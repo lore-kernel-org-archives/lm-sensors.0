@@ -1,513 +1,452 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 28 Feb 2013 16:46:33 +0000
-Subject: [lm-sensors] [PATCH v3 4/4] hwmon: (pmbus/ltc2978) Add support for LTC2974 and LTC3883
-Message-Id: <1362069993-9530-4-git-send-email-linux@roeck-us.net>
+From: "SP2148421 (at) web.de" <sp2148421@web.de>
+Date: Tue, 26 Feb 2013 12:44:53 +0000
+Subject: [lm-sensors] problem:  thresholds change to zero after some time
+Message-Id: <512CAE45.8090007@web.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8998130130372173845=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v3: Rebase to cleanup patch
-    Use u16 for new cached limit variables
-    Initialize variables in probe in per-array loops limited by the array size
-    instead of using a single loop. Limit array sizes to maximum required
-    based on the chip types supporting the cached attribute.
+This is a multi-part message in MIME format.
+--===============8998130130372173845==
+Content-Type: multipart/alternative;
+ boundary="------------020307050300020800090204"
 
-v2: Moved bug fixes to separate patches
-    Documentation now correctly reports supported attributes for all chips
-    Fixed initialization values for cached lowest and highest attributes
-    Updated copyright
-    Reordered definitions
-    Fixed clear_peaks functions to work correctly for all chips
-    Provide all supported attributes
+This is a multi-part message in MIME format.
+--------------020307050300020800090204
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
 
- Documentation/hwmon/ltc2978   |  134 +++++++++++++++++++++++-------------
- drivers/hwmon/pmbus/Kconfig   |    4 +-
- drivers/hwmon/pmbus/ltc2978.c |  149 +++++++++++++++++++++++++++++++++++------
- 3 files changed, 218 insertions(+), 69 deletions(-)
+Hi List,
+I have a strange problem…
+After some running days some sensor thresholds change from their 
+original values to zero (in the example below 3VSB, but I have seen this 
+for different values)!??? After reboot the machine I got the original 
+values again. A reload of the w83627ehf module do not clear the problem. 
+I recorded no other problems while running the machine.
+I’m not sure is this a Problem of lm-sensors, a hardware failure or a 
+compability error? Any ideas?
+Board:
+supermicro x7spa-hf
+OS:
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 12.04.2 LTS
+Release:        12.04
+Codename:       precise
+Kernel:
+3.2.0-38-generic #61-Ubuntu SMP Tue Feb 19 12:18:21 UTC 2013 x86_64 
+x86_64 x86_64 GNU/Linux
+ii libsensors4 1:3.3.1-2ubuntu1                        library to read 
+temperature/voltage/fan sensors
+ii lm-sensors 1:3.3.1-2ubuntu1                        utilities to read 
+temperature/voltage/fan sensors
+ii sensord 1:3.3.1-2ubuntu1                        hardware sensor 
+information logging daemon
+sample syslog output:
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Vcore: +1.16 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++1.05V: +1.05 V (min = +0.36 V, max = +0.00 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+3VCC: +3.33 V (min = +2.98 V, max = +0.00 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Vdimm: +1.85 V (min = +0.41 V, max = +0.00 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++5V: +5.15 V (min = +0.13 V, max = +0.00 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++12V: +11.90 V (min = +0.00 V, max = +0.13 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+3VSB: +3.30 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Feb 20 04:00:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Case Temp: 26.5 C (limit = 0.0 C, hysteresis = 4.0 C) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Vcore: +1.15 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++1.05V: +1.05 V (min = +0.36 V, max = +0.00 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+3VCC: +3.33 V (min = +2.98 V, max = +0.00 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Vdimm: +1.85 V (min = +0.41 V, max = +0.00 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++5V: +5.15 V (min = +0.13 V, max = +0.00 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++12V: +11.90 V (min = +0.00 V, max = +0.13 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+3VSB: +3.30 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Feb 20 04:01:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Case Temp: 26.0 C (limit = 0.0 C, hysteresis = 4.0 C) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Vcore: +1.15 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++1.05V: +1.05 V (min = +0.36 V, max = +0.00 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+3VCC: +3.33 V (min = +2.98 V, max = +0.00 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Vdimm: +1.85 V (min = +0.41 V, max = +0.00 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++5V: +5.15 V (min = +0.13 V, max = +0.00 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
++12V: +11.90 V (min = +0.00 V, max = +0.13 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+3VSB: +3.30 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Feb 20 04:02:33 gw00 sensord: Sensor alarm: Chip w83627dhg-isa-0ca0: 
+Case Temp: 26.0 C (limit = 0.0 C, hysteresis = 4.0 C) [ALARM]
+After reboot:
+Feb 24 07:06:45 gw00 sensord: Chip: coretemp-isa-0000
+Feb 24 07:06:45 gw00 sensord: Adapter: ISA adapter
+Feb 24 07:06:45 gw00 sensord: Core 0: 23.0 C
+Feb 24 07:06:45 gw00 sensord: Core 1: 25.0 C
+Feb 24 07:06:45 gw00 sensord: Chip: w83627dhg-isa-0ca0
+Feb 24 07:06:45 gw00 sensord: Adapter: ISA adapter
+Feb 24 07:06:45 gw00 sensord: Vcore: +1.15 V (min = +0.01 V, max = +1.39 V)
+Feb 24 07:06:45 gw00 sensord: +1.05V: +1.05 V (min = +0.94 V, max = +1.16 V)
+Feb 24 07:06:45 gw00 sensord: AVCC: +3.33 V (min = +2.96 V, max = +3.63 V)
+Feb 24 07:06:45 gw00 sensord: 3VCC: +3.33 V (min = +0.02 V, max = +3.63 V)
+Feb 24 07:06:45 gw00 sensord: Vdimm: +1.85 V (min = +1.62 V, max = +1.98 V)
+Feb 24 07:06:45 gw00 sensord: +12V: +11.90 V (min = +10.75 V, max = 
++13.18 V)
+Feb 24 07:06:45 gw00 sensord: 3VSB: +3.30 V (min = +2.96 V, max = +3.63 V)
+Feb 24 07:06:45 gw00 sensord: Vbat: +3.15 V (min = +2.96 V, max = +3.63 V)
+Feb 24 07:06:45 gw00 sensord: MB Temp: 39.0 C (limit = 75.0 C, 
+hysteresis = 0.0 C)
+Feb 24 07:06:45 gw00 sensord: CPU Temp: 39.5 C (limit = 100.0 C, 
+hysteresis = 97.0 C)
+Feb 24 07:06:45 gw00 sensord: Case Temp: 24.0 C (limit = 80.0 C, 
+hysteresis = 75.0 C)
+sensors:
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:       +25.0 C  (crit = +100.0 C)
+Core 1:       +26.0 C  (crit = +100.0 C)
+w83627dhg-isa-0ca0
+Adapter: ISA adapter
+Vcore:        +1.15 V  (min = +0.72 V, max =  +1.39 V)
++1.05V:       +1.05 V  (min = +0.94 V, max =  +1.16 V)
+AVCC:         +3.33 V  (min = +2.96 V, max =  +3.63 V)
+3VCC:         +3.33 V  (min = +2.98 V, max =  +3.63 V)
+Vdimm:        +1.85 V  (min = +1.62 V, max =  +1.98 V)
++5V:          +5.15 V  (min = +4.74 V, max =  +5.25 V)
++12V:        +11.90 V  (min = +0.00 V, max = +13.18 V)
+3VSB:         +3.30 V  (min = +2.96 V, max =  +0.00 V)  ALARM
+Vbat:         +3.15 V  (min = +2.96 V, max =  +3.63 V)
+MB Temp:      +40.0 C  (high = +0.0 C, hyst = +70.0 C)  sensor = thermistor
+CPU Temp:     +41.5 C  (high = +100.0 C, hyst = +97.0 C)  sensor = diode
+Case Temp:    +25.5 C  (high = +0.0 C, hyst = +75.0 C)  sensor = diode
+intrusion0:  OK
 
-diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
-index dcb10be..dc0d08c 100644
---- a/Documentation/hwmon/ltc2978
-+++ b/Documentation/hwmon/ltc2978
-@@ -2,6 +2,10 @@ Kernel driver ltc2978
- ========== 
- Supported chips:
-+  * Linear Technology LTC2974
-+    Prefix: 'ltc2974'
-+    Addresses scanned: -
-+    Datasheet: http://www.linear.com/product/ltc2974
-   * Linear Technology LTC2978
-     Prefix: 'ltc2978'
-     Addresses scanned: -
-@@ -10,6 +14,10 @@ Supported chips:
-     Prefix: 'ltc3880'
-     Addresses scanned: -
-     Datasheet: http://www.linear.com/product/ltc3880
-+  * Linear Technology LTC3883
-+    Prefix: 'ltc3883'
-+    Addresses scanned: -
-+    Datasheet: http://www.linear.com/product/ltc3883
- 
- Author: Guenter Roeck <linux@roeck-us.net>
- 
-@@ -17,9 +25,9 @@ Author: Guenter Roeck <linux@roeck-us.net>
- Description
- -----------
- 
--The LTC2978 is an octal power supply monitor, supervisor, sequencer and
--margin controller. The LTC3880 is a dual, PolyPhase DC/DC synchronous
--step-down switching regulator controller.
-+LTC2974 is a quad digital power supply manager. LTC2978 is an octal power supply
-+monitor. LTC3880 is a dual output poly-phase step-down DC/DC controller. LTC3883
-+is a single phase step-down DC/DC controller.
- 
- 
- Usage Notes
-@@ -41,60 +49,90 @@ Sysfs attributes
- in1_label		"vin"
- in1_input		Measured input voltage.
- in1_min			Minimum input voltage.
--in1_max			Maximum input voltage. LTC2978 only.
--in1_lcrit		Critical minimum input voltage. LTC2978 only.
-+in1_max			Maximum input voltage. LTC2974 and LTC2978 only.
-+in1_lcrit		Critical minimum input voltage. LTC2974 and LTC2978
-+			only.
- in1_crit		Critical maximum input voltage.
- in1_min_alarm		Input voltage low alarm.
--in1_max_alarm		Input voltage high alarm. LTC2978 only.
--in1_lcrit_alarm		Input voltage critical low alarm. LTC2978 only.
-+in1_max_alarm		Input voltage high alarm. LTC2974 and LTC2978 only.
-+in1_lcrit_alarm		Input voltage critical low alarm. LTC2974 and LTC2978
-+			only.
- in1_crit_alarm		Input voltage critical high alarm.
--in1_lowest		Lowest input voltage. LTC2978 only.
-+in1_lowest		Lowest input voltage. LTC2974 and LTC2978 only.
- in1_highest		Highest input voltage.
- in1_reset_history	Reset input voltage history.
- 
--in[2-9]_label		"vout[1-8]". Channels 3 to 9 on LTC2978 only.
--in[2-9]_input		Measured output voltage.
--in[2-9]_min		Minimum output voltage.
--in[2-9]_max		Maximum output voltage.
--in[2-9]_lcrit		Critical minimum output voltage.
--in[2-9]_crit		Critical maximum output voltage.
--in[2-9]_min_alarm	Output voltage low alarm.
--in[2-9]_max_alarm	Output voltage high alarm.
--in[2-9]_lcrit_alarm	Output voltage critical low alarm.
--in[2-9]_crit_alarm	Output voltage critical high alarm.
--in[2-9]_lowest		Lowest output voltage. LTC2978 only.
--in[2-9]_highest		Lowest output voltage.
--in[2-9]_reset_history	Reset output voltage history.
--
--temp[1-3]_input		Measured temperature.
-+in[N]_label		"vout[1-8]".
-+			LTC2974: N=2-5
-+			LTC2978: N=2-9
-+			LTC3880: N=2-3
-+			LTC3883: N=2
-+in[N]_input		Measured output voltage.
-+in[N]_min		Minimum output voltage.
-+in[N]_max		Maximum output voltage.
-+in[N]_lcrit		Critical minimum output voltage.
-+in[N]_crit		Critical maximum output voltage.
-+in[N]_min_alarm		Output voltage low alarm.
-+in[N]_max_alarm		Output voltage high alarm.
-+in[N]_lcrit_alarm	Output voltage critical low alarm.
-+in[N]_crit_alarm	Output voltage critical high alarm.
-+in[N]_lowest		Lowest output voltage. LTC2974 and LTC2978 only.
-+in[N]_highest		Highest output voltage.
-+in[N]_reset_history	Reset output voltage history.
-+
-+temp[N]_input		Measured temperature.
-+			On LTC2974, temp[1-4] report external temperatures,
-+			and temp5 reports the chip temperature.
- 			On LTC2978, only one temperature measurement is
- 			supported and reports the chip temperature.
- 			On LTC3880, temp1 and temp2 report external
--			temperatures, and temp3 reports the chip
--			temperature.
--temp[1-3]_min		Mimimum temperature. LTC2978 only.
--temp[1-3]_max		Maximum temperature.
--temp[1-3]_lcrit		Critical low temperature.
--temp[1-3]_crit		Critical high temperature.
--temp[1-3]_min_alarm	Temperature low alarm. LTC2978 only.
--temp[1-3]_max_alarm	Temperature high alarm.
--temp[1-3]_lcrit_alarm	Temperature critical low alarm.
--temp[1-3]_crit_alarm	Temperature critical high alarm.
--temp[1-3]_lowest	Lowest measured temperature. LTC2978 only.
--temp[1-3]_highest	Highest measured temperature.
--temp[1-3]_reset_history	Reset temperature history.
--
--power[1-2]_label	"pout[1-2]". LTC3880 only.
--power[1-2]_input	Measured power.
--
--curr1_label		"iin". LTC3880 only.
-+			temperatures, and temp3 reports the chip temperature.
-+			On LTC3883, temp1 reports an external temperature,
-+			and temp2 reports the chip temperature.
-+temp[N]_min		Mimimum temperature. LTC2974 and LTC2978 only.
-+temp[N]_max		Maximum temperature.
-+temp[N]_lcrit		Critical low temperature.
-+temp[N]_crit		Critical high temperature.
-+temp[N]_min_alarm	Temperature low alarm. LTC2974 and LTC2978 only.
-+temp[N]_max_alarm	Temperature high alarm.
-+temp[N]_lcrit_alarm	Temperature critical low alarm.
-+temp[N]_crit_alarm	Temperature critical high alarm.
-+temp[N]_lowest		Lowest measured temperature. LTC2974 and LTC2978 only.
-+			Not supported for chip temperature sensor on LTC2974.
-+temp[N]_highest		Highest measured temperature. Not supported for chip
-+			temperature sensor on LTC2974.
-+temp[N]_reset_history	Reset temperature history. Not supported for chip
-+			temperature sensor on LTC2974.
-+
-+power1_label		"pin". LTC3883 only.
-+power1_input		Measured input power.
-+
-+power[N]_label		"pout[1-4]".
-+			LTC2974: N=1-4
-+			LTC2978: Not supported
-+			LTC3880: N=1-2
-+			LTC3883: N=2
-+power[N]_input		Measured output power.
-+
-+curr1_label		"iin". LTC3880 and LTC3883 only.
- curr1_input		Measured input current.
- curr1_max		Maximum input current.
- curr1_max_alarm		Input current high alarm.
--
--curr[2-3]_label		"iout[1-2]". LTC3880 only.
--curr[2-3]_input		Measured output current.
--curr[2-3]_max		Maximum output current.
--curr[2-3]_crit		Critical output current.
--curr[2-3]_max_alarm	Output current high alarm.
--curr[2-3]_crit_alarm	Output current critical high alarm.
-+curr1_highest		Highest input current. LTC3883 only.
-+curr1_reset_history	Reset input current history. LTC3883 only.
-+
-+curr[N]_label		"iout[1-4]".
-+			LTC2974: N=1-4
-+			LTC2978: not supported
-+			LTC3880: N=2-3
-+			LTC3883: N=2
-+curr[N]_input		Measured output current.
-+curr[N]_max		Maximum output current.
-+curr[N]_crit		Critical high output current.
-+curr[N]_lcrit		Critical low output current. LTC2974 only.
-+curr[N]_max_alarm	Output current high alarm.
-+curr[N]_crit_alarm	Output current critical high alarm.
-+curr[N]_lcrit_alarm	Output current critical low alarm. LTC2974 only.
-+curr[N]_lowest		Lowest output current. LTC2974 only.
-+curr[N]_highest		Highest output current.
-+curr[N]_reset_history	Reset output current history.
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index 4f9eb0a..b1adad6 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -48,11 +48,11 @@ config SENSORS_LM25066
- 	  be called lm25066.
- 
- config SENSORS_LTC2978
--	tristate "Linear Technologies LTC2978 and LTC3880"
-+	tristate "Linear Technologies LTC2974, LTC2978, LTC3880, and LTC3883"
- 	default n
- 	help
- 	  If you say yes here you get hardware monitoring support for Linear
--	  Technology LTC2978 and LTC3880.
-+	  Technology LTC2974, LTC2978, LTC3880, and LTC3883.
- 
- 	  This driver can also be built as a module. If so, the module will
- 	  be called ltc2978.
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index 945f7ec..586a89e 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -1,7 +1,8 @@
- /*
-- * Hardware monitoring driver for LTC2978 and LTC3880
-+ * Hardware monitoring driver for LTC2974, LTC2978, LTC3880, and LTC3883
-  *
-  * Copyright (c) 2011 Ericsson AB.
-+ * Copyright (c) 2013 Guenter Roeck
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -26,31 +27,43 @@
- #include <linux/i2c.h>
- #include "pmbus.h"
- 
--enum chips { ltc2978, ltc3880 };
-+enum chips { ltc2974, ltc2978, ltc3880, ltc3883 };
- 
--/* LTC2978 and LTC3880 */
-+/* Common for all chips */
- #define LTC2978_MFR_VOUT_PEAK		0xdd
- #define LTC2978_MFR_VIN_PEAK		0xde
- #define LTC2978_MFR_TEMPERATURE_PEAK	0xdf
- #define LTC2978_MFR_SPECIAL_ID		0xe7
- 
--/* LTC2978 only */
-+/* LTC2974 and LTC2978 */
- #define LTC2978_MFR_VOUT_MIN		0xfb
- #define LTC2978_MFR_VIN_MIN		0xfc
- #define LTC2978_MFR_TEMPERATURE_MIN	0xfd
- 
--/* LTC3880 only */
-+/* LTC2974 only */
-+#define LTC2974_MFR_IOUT_PEAK		0xd7
-+#define LTC2974_MFR_IOUT_MIN		0xd8
-+
-+/* LTC3880 and LTC3883 */
- #define LTC3880_MFR_IOUT_PEAK		0xd7
- #define LTC3880_MFR_CLEAR_PEAKS		0xe3
- #define LTC3880_MFR_TEMPERATURE2_PEAK	0xf4
- 
-+/* LTC3883 only */
-+#define LTC3883_MFR_IIN_PEAK		0xe1
-+
-+#define LTC2974_ID			0x0212
- #define LTC2978_ID_REV1			0x0121
- #define LTC2978_ID_REV2			0x0122
- #define LTC3880_ID			0x4000
- #define LTC3880_ID_MASK			0xff00
-+#define LTC3883_ID			0x4300
-+#define LTC3883_ID_MASK			0xff00
- 
-+#define LTC2974_NUM_PAGES		4
- #define LTC2978_NUM_PAGES		8
- #define LTC3880_NUM_PAGES		2
-+#define LTC3883_NUM_PAGES		1
- 
- /*
-  * LTC2978 clears peak data whenever the CLEAR_FAULTS command is executed, which
-@@ -63,9 +76,10 @@ enum chips { ltc2978, ltc3880 };
- struct ltc2978_data {
- 	enum chips id;
- 	u16 vin_min, vin_max;
--	u16 temp_min, temp_max[LTC3880_NUM_PAGES];
-+	u16 temp_min[LTC2974_NUM_PAGES], temp_max[LTC2974_NUM_PAGES];
- 	u16 vout_min[LTC2978_NUM_PAGES], vout_max[LTC2978_NUM_PAGES];
--	u16 iout_max[LTC3880_NUM_PAGES];
-+	u16 iout_min[LTC2974_NUM_PAGES], iout_max[LTC2974_NUM_PAGES];
-+	u16 iin_max;
- 	u16 temp2_max;
- 	struct pmbus_driver_info info;
- };
-@@ -171,9 +185,9 @@ static int ltc2978_read_word_data(struct i2c_client *client, int page, int reg)
- 					   LTC2978_MFR_TEMPERATURE_MIN);
- 		if (ret >= 0) {
- 			if (lin11_to_val(ret)
--			    < lin11_to_val(data->temp_min))
--				data->temp_min = ret;
--			ret = data->temp_min;
-+			    < lin11_to_val(data->temp_min[page]))
-+				data->temp_min[page] = ret;
-+			ret = data->temp_min[page];
- 		}
- 		break;
- 	case PMBUS_VIRT_READ_IOUT_MAX:
-@@ -189,6 +203,41 @@ static int ltc2978_read_word_data(struct i2c_client *client, int page, int reg)
- 	return ret;
- }
- 
-+static int ltc2974_read_word_data(struct i2c_client *client, int page, int reg)
-+{
-+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-+	struct ltc2978_data *data = to_ltc2978_data(info);
-+	int ret;
-+
-+	switch (reg) {
-+	case PMBUS_VIRT_READ_IOUT_MAX:
-+		ret = pmbus_read_word_data(client, page, LTC2974_MFR_IOUT_PEAK);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret)
-+			    > lin11_to_val(data->iout_max[page]))
-+				data->iout_max[page] = ret;
-+			ret = data->iout_max[page];
-+		}
-+		break;
-+	case PMBUS_VIRT_READ_IOUT_MIN:
-+		ret = pmbus_read_word_data(client, page, LTC2974_MFR_IOUT_MIN);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret)
-+			    < lin11_to_val(data->iout_min[page]))
-+				data->iout_min[page] = ret;
-+			ret = data->iout_min[page];
-+		}
-+		break;
-+	case PMBUS_VIRT_RESET_IOUT_HISTORY:
-+		ret = 0;
-+		break;
-+	default:
-+		ret = ltc2978_read_word_data(client, page, reg);
-+		break;
-+	}
-+	return ret;
-+}
-+
- static int ltc3880_read_word_data(struct i2c_client *client, int page, int reg)
- {
- 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-@@ -230,15 +279,41 @@ static int ltc3880_read_word_data(struct i2c_client *client, int page, int reg)
- 	return ret;
- }
- 
-+static int ltc3883_read_word_data(struct i2c_client *client, int page, int reg)
-+{
-+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-+	struct ltc2978_data *data = to_ltc2978_data(info);
-+	int ret;
-+
-+	switch (reg) {
-+	case PMBUS_VIRT_READ_IIN_MAX:
-+		ret = pmbus_read_word_data(client, page, LTC3883_MFR_IIN_PEAK);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret)
-+			    > lin11_to_val(data->iin_max))
-+				data->iin_max = ret;
-+			ret = data->iin_max;
-+		}
-+		break;
-+	case PMBUS_VIRT_RESET_IIN_HISTORY:
-+		ret = 0;
-+		break;
-+	default:
-+		ret = ltc3880_read_word_data(client, page, reg);
-+		break;
-+	}
-+	return ret;
-+}
-+
- static int ltc2978_clear_peaks(struct i2c_client *client, int page,
- 			       enum chips id)
- {
- 	int ret;
- 
--	if (id = ltc2978)
--		ret = pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
--	else
-+	if (id = ltc3880 || id = ltc3883)
- 		ret = pmbus_write_byte(client, 0, LTC3880_MFR_CLEAR_PEAKS);
-+	else
-+		ret = pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
- 
- 	return ret;
- }
-@@ -251,8 +326,13 @@ static int ltc2978_write_word_data(struct i2c_client *client, int page,
- 	int ret;
- 
- 	switch (reg) {
-+	case PMBUS_VIRT_RESET_IIN_HISTORY:
-+		data->iin_max = 0x7c00;
-+		ret = ltc2978_clear_peaks(client, page, data->id);
-+		break;
- 	case PMBUS_VIRT_RESET_IOUT_HISTORY:
- 		data->iout_max[page] = 0x7c00;
-+		data->iout_min[page] = 0xfbff;
- 		ret = ltc2978_clear_peaks(client, page, data->id);
- 		break;
- 	case PMBUS_VIRT_RESET_TEMP2_HISTORY:
-@@ -270,7 +350,7 @@ static int ltc2978_write_word_data(struct i2c_client *client, int page,
- 		ret = ltc2978_clear_peaks(client, page, data->id);
- 		break;
- 	case PMBUS_VIRT_RESET_TEMP_HISTORY:
--		data->temp_min = 0x7bff;
-+		data->temp_min[page] = 0x7bff;
- 		data->temp_max[page] = 0x7c00;
- 		ret = ltc2978_clear_peaks(client, page, data->id);
- 		break;
-@@ -282,8 +362,10 @@ static int ltc2978_write_word_data(struct i2c_client *client, int page,
- }
- 
- static const struct i2c_device_id ltc2978_id[] = {
-+	{"ltc2974", ltc2974},
- 	{"ltc2978", ltc2978},
- 	{"ltc3880", ltc3880},
-+	{"ltc3883", ltc3883},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, ltc2978_id);
-@@ -308,10 +390,14 @@ static int ltc2978_probe(struct i2c_client *client,
- 	if (chip_id < 0)
- 		return chip_id;
- 
--	if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2) {
-+	if (chip_id = LTC2974_ID) {
-+		data->id = ltc2974;
-+	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2) {
- 		data->id = ltc2978;
- 	} else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID) {
- 		data->id = ltc3880;
-+	} else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID) {
-+		data->id = ltc3883;
- 	} else {
- 		dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
- 		return -ENODEV;
-@@ -329,12 +415,29 @@ static int ltc2978_probe(struct i2c_client *client,
- 	data->vin_max = 0x7c00;
- 	for (i = 0; i < ARRAY_SIZE(data->vout_min); i++)
- 		data->vout_min[i] = 0xffff;
--	data->temp_min = 0x7bff;
-+	for (i = 0; i < ARRAY_SIZE(data->iout_min); i++)
-+		data->iout_min[i] = 0xfbff;
-+	for (i = 0; i < ARRAY_SIZE(data->iout_max); i++)
-+		data->iout_max[i] = 0x7c00;
-+	for (i = 0; i < ARRAY_SIZE(data->temp_min); i++)
-+		data->temp_min[i] = 0x7bff;
- 	for (i = 0; i < ARRAY_SIZE(data->temp_max); i++)
- 		data->temp_max[i] = 0x7c00;
- 	data->temp2_max = 0x7c00;
- 
- 	switch (data->id) {
-+	case ltc2974:
-+		info->read_word_data = ltc2974_read_word_data;
-+		info->pages = LTC2974_NUM_PAGES;
-+		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
-+		  | PMBUS_HAVE_TEMP2;
-+		for (i = 0; i < info->pages; i++) {
-+			info->func[i] |= PMBUS_HAVE_VOUT
-+			  | PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_POUT
-+			  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP
-+			  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT;
-+		}
-+		break;
- 	case ltc2978:
- 		info->read_word_data = ltc2978_read_word_data;
- 		info->pages = LTC2978_NUM_PAGES;
-@@ -359,8 +462,16 @@ static int ltc2978_probe(struct i2c_client *client,
- 		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
- 		  | PMBUS_HAVE_POUT
- 		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
--		data->iout_max[0] = 0x7c00;
--		data->iout_max[1] = 0x7c00;
-+		break;
-+	case ltc3883:
-+		info->read_word_data = ltc3883_read_word_data;
-+		info->pages = LTC3883_NUM_PAGES;
-+		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_IIN
-+		  | PMBUS_HAVE_STATUS_INPUT
-+		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
-+		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
-+		  | PMBUS_HAVE_PIN | PMBUS_HAVE_POUT | PMBUS_HAVE_TEMP
-+		  | PMBUS_HAVE_TEMP2 | PMBUS_HAVE_STATUS_TEMP;
- 		break;
- 	default:
- 		return -ENODEV;
-@@ -381,5 +492,5 @@ static struct i2c_driver ltc2978_driver = {
- module_i2c_driver(ltc2978_driver);
- 
- MODULE_AUTHOR("Guenter Roeck");
--MODULE_DESCRIPTION("PMBus driver for LTC2978 and LTC3880");
-+MODULE_DESCRIPTION("PMBus driver for LTC2974, LTC2978, LTC3880, and LTC3883");
- MODULE_LICENSE("GPL");
--- 
-1.7.9.7
 
+
+--------------020307050300020800090204
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </head>
+  <body text="#000000" bgcolor="#FFFFFF">
+    <div class="moz-forward-container"><font size="2" face="Calibri"><span
+          style="font-size:11pt;">
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Hi List,</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"><font size="2">I</font> have a
+                strange problem…</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">After some running days some
+                sensor thresholds change from their original values to
+                zero (in the example below 3VSB, but I have seen this
+                for different values)!??? After reboot the machine I got
+                the original values again. A reload of the w83627ehf
+                module do not clear the problem. I recorded no other
+                problems while running the machine.</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">I’m not sure is this a Problem
+                of lm-sensors, a hardware failure or a compability
+                error? Any ideas?</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Board:</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">supermicro x7spa-hf</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">OS:</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">No LSB modules are available.</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Distributor ID: Ubuntu</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Description:    Ubuntu 12.04.2
+                LTS</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Release:        12.04</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Codename:       precise</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Kernel:</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">3.2.0-38-generic #61-Ubuntu SMP
+                Tue Feb 19 12:18:21 UTC 2013 x86_64 x86_64 x86_64
+                GNU/Linux </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">ii 
+                libsensors4                           
+                1:3.3.1-2ubuntu1                        library to read
+                temperature/voltage/fan sensors</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">ii 
+                lm-sensors                            
+                1:3.3.1-2ubuntu1                        utilities to
+                read temperature/voltage/fan sensors</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">ii 
+                sensord                               
+                1:3.3.1-2ubuntu1                        hardware sensor
+                information logging daemon</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">sample syslog output:</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Vcore: +1.16 V
+                (min = +0.00 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +1.05V: +1.05 V
+                (min = +0.36 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: 3VCC: +3.33 V
+                (min = +2.98 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Vdimm: +1.85 V
+                (min = +0.41 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +5V: +5.15 V (min
+                = +0.13 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +12V: +11.90 V
+                (min = +0.00 V, max = +0.13 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: 3VSB: +3.30 V
+                (min = +0.00 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:00:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Case Temp: 26.5 C
+                (limit = 0.0 C, hysteresis = 4.0 C) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Vcore: +1.15 V
+                (min = +0.00 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +1.05V: +1.05 V
+                (min = +0.36 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: 3VCC: +3.33 V
+                (min = +2.98 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Vdimm: +1.85 V
+                (min = +0.41 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +5V: +5.15 V (min
+                = +0.13 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +12V: +11.90 V
+                (min = +0.00 V, max = +0.13 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: 3VSB: +3.30 V
+                (min = +0.00 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:01:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Case Temp: 26.0 C
+                (limit = 0.0 C, hysteresis = 4.0 C) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Vcore: +1.15 V
+                (min = +0.00 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +1.05V: +1.05 V
+                (min = +0.36 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: 3VCC: +3.33 V
+                (min = +2.98 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Vdimm: +1.85 V
+                (min = +0.41 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +5V: +5.15 V (min
+                = +0.13 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: +12V: +11.90 V
+                (min = +0.00 V, max = +0.13 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: 3VSB: +3.30 V
+                (min = +0.00 V, max = +0.00 V) [ALARM]</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Feb 20 04:02:33 gw00 sensord:
+                Sensor alarm: Chip w83627dhg-isa-0ca0: Case Temp: 26.0 C
+                (limit = 0.0 C, hysteresis = 4.0 C) [ALARM]</span></font></div>
+          <div><font color="#1F497D"> </font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">After reboot:</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:
+                Chip: coretemp-isa-0000</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:
+                Adapter: ISA adapter</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                Core 0: 23.0 C</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                Core 1: 25.0 C</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:
+                Chip: w83627dhg-isa-0ca0</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:
+                Adapter: ISA adapter</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                Vcore: +1.15 V (min = +0.01 V, max = +1.39 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                +1.05V: +1.05 V (min = +0.94 V, max = +1.16 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                AVCC: +3.33 V (min = +2.96 V, max = +3.63 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                3VCC: +3.33 V (min = +0.02 V, max = +3.63 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                Vdimm: +1.85 V (min = +1.62 V, max = +1.98 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                +12V: +11.90 V (min = +10.75 V, max = +13.18 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                3VSB: +3.30 V (min = +2.96 V, max = +3.63 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                Vbat: +3.15 V (min = +2.96 V, max = +3.63 V)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                MB Temp: 39.0 C (limit = 75.0 C, hysteresis = 0.0 C)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                CPU Temp: 39.5 C (limit = 100.0 C, hysteresis = 97.0 C)</span></font></div>
+          <div><font size="2" color="#1F497D" face="Verdana"><span
+                style="font-size:10pt;">Feb 24 07:06:45 gw00 sensord:  
+                Case Temp: 24.0 C (limit = 80.0 C, hysteresis = 75.0 C)</span></font></div>
+          <div><font color="#1F497D"> </font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">sensors:</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">coretemp-isa-0000</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Adapter: ISA adapter</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Core 0:       +25.0 C  (crit =
+                +100.0 C)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Core 1:       +26.0 C  (crit =
+                +100.0 C)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">w83627dhg-isa-0ca0</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Adapter: ISA adapter</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Vcore:        +1.15 V  (min = 
+                +0.72 V, max =  +1.39 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">+1.05V:       +1.05 V  (min = 
+                +0.94 V, max =  +1.16 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">AVCC:         +3.33 V  (min = 
+                +2.96 V, max =  +3.63 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">3VCC:         +3.33 V  (min = 
+                +2.98 V, max =  +3.63 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Vdimm:        +1.85 V  (min = 
+                +1.62 V, max =  +1.98 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">+5V:          +5.15 V  (min = 
+                +4.74 V, max =  +5.25 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">+12V:        +11.90 V  (min = 
+                +0.00 V, max = +13.18 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">3VSB:         +3.30 V  (min = 
+                +2.96 V, max =  +0.00 V)  ALARM</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Vbat:         +3.15 V  (min = 
+                +2.96 V, max =  +3.63 V)</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">MB Temp:      +40.0 C  (high = 
+                +0.0 C, hyst = +70.0 C)  sensor = thermistor</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">CPU Temp:     +41.5 C  (high =
+                +100.0 C, hyst = +97.0 C)  sensor = diode</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">Case Temp:    +25.5 C  (high = 
+                +0.0 C, hyst = +75.0 C)  sensor = diode</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;">intrusion0:  OK</span></font></div>
+          <div><font size="2" face="Verdana"><span
+                style="font-size:10pt;"> </span></font></div>
+          <div> </div>
+          <div> </div>
+        </span></font>
+      <br>
+    </div>
+    <br>
+  </body>
+</html>
+
+--------------020307050300020800090204--
+
+
+--===============8998130130372173845==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8998130130372173845==--
