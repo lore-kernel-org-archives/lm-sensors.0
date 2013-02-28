@@ -1,21 +1,23 @@
 From: "Grace Rothstein" <gracerothstein@mrkservice.com>
-Date: Thu, 28 Feb 2013 20:17:08 +0000
+Date: Thu, 28 Feb 2013 23:01:10 +0000
 Subject: [SPAM:4.7] Website improvements
-Message-Id: <E1UB9um-0003Ll-MY@flocki.atrpms.net>
+Message-Id: <E1UBCTX-0002Pd-LW@flocki.atrpms.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5943142859389563516=="
+Content-Type: multipart/mixed; boundary="===============5699906946348851823=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <E1UB9um-0003Ll-MY@flocki.atrpms.net>
+In-Reply-To: <E1UB9um-0003Ll-MY@flocki.atrpms.net>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format
 
---===============5943142859389563516==
-Content-Type: multipart/alternative; charset="utf-8"; boundary="t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ"
+--===============5699906946348851823==
+Content-Type: multipart/alternative; charset="utf-8"; boundary="YXJI8nePBqaK=_yFDBAAONmlj67Xzc45SF"
 Content-Transfer-Encoding: 8bit
 
 This is a multi-part message in MIME format
 
---t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ
+--YXJI8nePBqaK=_yFDBAAONmlj67Xzc45SF
 Content-Type: text/plain ; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -42,7 +44,7 @@ Grace
 =20
 
 
---t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ
+--YXJI8nePBqaK=_yFDBAAONmlj67Xzc45SF
 Content-Type: text/html ; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -71,11 +73,11 @@ ail at <A href=3D"mailto:gracerothstein9459@gmail.com">gracerothstein9=
 <P>&nbsp;</P></BODY></HTML>
 
 
---t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ--
+--YXJI8nePBqaK=_yFDBAAONmlj67Xzc45SF--
 
 
 
---===============5943142859389563516==
+--===============5699906946348851823==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -85,5 +87,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5943142859389563516==--
+--===============5699906946348851823==--
 
