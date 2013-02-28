@@ -1,65 +1,101 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Thu, 21 Feb 2013 10:32:38 +0000
-Subject: [lm-sensors] [PATCH v3 0/3] Add ST-Ericsson AB8500 HWMON driver
-Message-Id: <1361442761-2690-1-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 28 Feb 2013 16:46:31 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (pmbus/ltc2978): Code cleanup
+Message-Id: <1362069993-9530-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Guenter,
-Please check this v3 patches, thanks.
+Use u16 instead of int to store cached limit attributes.
+This reduces allocated data size per driver instance by 48 bytes.
+Use defines for the number of pages supported by individual chips.
+Use ARRAY_SIZE for loops to initialize array variables, and
+initialize all variables in the same code block.
 
-Anton Vorontsov and David Woodhouse,
-Please have a look at this 1/3 and 2/3 patches, thanks.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/ltc2978.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-v2 -> v3 changes:
-- Add interface for converting voltage to temperature
-- Remove temp5 sensor since we cannot offer temperature read interface of it
-- Update hyst to use absolute temperature instead of a difference
-- Add the 3/3 patch
-
-v1 -> v2 changes:
-- Add Documentation/hwmon/abx500 and Documentation/hwmon/abx500
-- Make devices which cannot report milli-Celsius invisible
-- Add temp5_crit interface
-- Re-work the old find_active_thresholds() to threshold_updated()
-- Reset updated_min_alarm and updated_max_alarm at the end of each loop
-- Update the hyst mechamisn to make it works as real hyst
-- Remove non-stand attributes
-- Re-order the operations sequence inside probe and remove functions
-- Update all the lock usages to eliminate race conditions
-- Make attibutes index starts from 0
-also changes:
-- Since the old [1/2] "ARM: ux500: rename ab8500 to abx500 for hwmon driver"
-  has been merged by Samuel, so won't send it again.
-- Add another new patch "ab8500_btemp: export two symblols" as [2/2] of this
-  patch set.
-Hongbo Zhang (3):
-  ab8500_btemp: make get_temp interface public
-  ab8500: make res_to_temp tables public
-  hwmon: add ST-Ericsson ABX500 hwmon driver
-
- Documentation/hwmon/ab8500           |  22 ++
- Documentation/hwmon/abx500           |  26 ++
- drivers/hwmon/Kconfig                |  13 +
- drivers/hwmon/Makefile               |   1 +
- drivers/hwmon/ab8500.c               | 178 +++++++++++++
- drivers/hwmon/abx500.c               | 501 +++++++++++++++++++++++++++++++++++
- drivers/hwmon/abx500.h               |  87 ++++++
- drivers/power/ab8500_bmdata.c        |   8 +-
- drivers/power/ab8500_btemp.c         |   2 +-
- include/linux/mfd/abx500/ab8500-bm.h |   5 +
- 10 files changed, 840 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/hwmon/ab8500
- create mode 100644 Documentation/hwmon/abx500
- create mode 100644 drivers/hwmon/ab8500.c
- create mode 100644 drivers/hwmon/abx500.c
- create mode 100644 drivers/hwmon/abx500.h
-
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 6d61307..945f7ec 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -49,6 +49,9 @@ enum chips { ltc2978, ltc3880 };
+ #define LTC3880_ID			0x4000
+ #define LTC3880_ID_MASK			0xff00
+ 
++#define LTC2978_NUM_PAGES		8
++#define LTC3880_NUM_PAGES		2
++
+ /*
+  * LTC2978 clears peak data whenever the CLEAR_FAULTS command is executed, which
+  * happens pretty much each time chip data is updated. Raw peak data therefore
+@@ -56,13 +59,14 @@ enum chips { ltc2978, ltc3880 };
+  * internal cache of measured peak data, which is only cleared if an explicit
+  * "clear peak" command is executed for the sensor in question.
+  */
++
+ struct ltc2978_data {
+ 	enum chips id;
+-	int vin_min, vin_max;
+-	int temp_min, temp_max[2];
+-	int vout_min[8], vout_max[8];
+-	int iout_max[2];
+-	int temp2_max;
++	u16 vin_min, vin_max;
++	u16 temp_min, temp_max[LTC3880_NUM_PAGES];
++	u16 vout_min[LTC2978_NUM_PAGES], vout_max[LTC2978_NUM_PAGES];
++	u16 iout_max[LTC3880_NUM_PAGES];
++	u16 temp2_max;
+ 	struct pmbus_driver_info info;
+ };
+ 
+@@ -323,6 +327,8 @@ static int ltc2978_probe(struct i2c_client *client,
+ 
+ 	data->vin_min = 0x7bff;
+ 	data->vin_max = 0x7c00;
++	for (i = 0; i < ARRAY_SIZE(data->vout_min); i++)
++		data->vout_min[i] = 0xffff;
+ 	data->temp_min = 0x7bff;
+ 	for (i = 0; i < ARRAY_SIZE(data->temp_max); i++)
+ 		data->temp_max[i] = 0x7c00;
+@@ -331,18 +337,18 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	switch (data->id) {
+ 	case ltc2978:
+ 		info->read_word_data = ltc2978_read_word_data;
+-		info->pages = 8;
++		info->pages = LTC2978_NUM_PAGES;
+ 		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
+ 		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
+ 		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
+-		for (i = 1; i < 8; i++) {
++		for (i = 1; i < LTC2978_NUM_PAGES; i++) {
+ 			info->func[i] = PMBUS_HAVE_VOUT
+ 			  | PMBUS_HAVE_STATUS_VOUT;
+ 		}
+ 		break;
+ 	case ltc3880:
+ 		info->read_word_data = ltc3880_read_word_data;
+-		info->pages = 2;
++		info->pages = LTC3880_NUM_PAGES;
+ 		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_IIN
+ 		  | PMBUS_HAVE_STATUS_INPUT
+ 		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
+@@ -359,9 +365,6 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	default:
+ 		return -ENODEV;
+ 	}
+-	for (i = 0; i < info->pages; i++)
+-		data->vout_min[i] = 0xffff;
+-
+ 	return pmbus_do_probe(client, id, info);
+ }
+ 
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
