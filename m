@@ -1,41 +1,42 @@
-From: Hartmut Knaack <knaack.h@gmx.de>
-Date: Tue, 19 Feb 2013 23:03:00 +0000
-Subject: Re: [lm-sensors] [PATCH 1/9] hwmon: (adt7410) Clear unwanted bits in the config register
-Message-Id: <512404A4.1010200@gmx.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 28 Feb 2013 12:05:13 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adt7410) Document ADT7420 support
+Message-Id: <20130228130513.31185416@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1360947438-2550-1-git-send-email-lars@metafoo.de>
-In-Reply-To: <1360947438-2550-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Lars-Peter Clausen schrieb:
-> Make sure to clear the mode bits from the config register before setting the new
-> mode. Otherwise we might end up with a different mode than we want to.
->
-> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Reviewed-by: Hartmut Knaack <knaack.h@gmx.de>
-> ---
->  drivers/hwmon/adt7410.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
-> index 797c2b8..4ccee4f 100644
-> --- a/drivers/hwmon/adt7410.c
-> +++ b/drivers/hwmon/adt7410.c
-> @@ -364,6 +364,7 @@ static int adt7410_probe(struct i2c_client *client,
->  	/*
->  	 * Set to 16 bit resolution, continous conversion and comparator mode.
->  	 */
-> +	ret &= ~ADT7410_MODE_MASK;
->  	data->config = ret | ADT7410_FULL | ADT7410_RESOLUTION |
->  			ADT7410_EVENT_MODE;
->  	if (data->config != data->oldconfig) {
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIGFkdDc0MTAgZHJpdmVyIHN1cHBvcnRzIHRoZSBBRFQ3NDIwLCBidXQgaXRzIGRvY3VtZW50
+YXRpb24gZmlsZQptYWtlcyBubyBtZW50aW9uIG9mIHRoYXQuIEFkZCB0aGlzIHJlZnJlbmNlLCBh
+bmQgYSBicmllZiBhIGRlc2NyaXB0aW9uCm9mIHRoZSBkaWZmZXJlbmNlcyBiZXR3ZWVuIHRoZSBB
+RFQ3NDEwIGFuZCB0aGUgQURUNzQyMC4KClNpZ25lZC1vZmYtYnk6IEplYW4gRGVsdmFyZSA8a2hh
+bGlAbGludXgtZnIub3JnPgpDYzogTGFycy1QZXRlciBDbGF1c2VuIDxsYXJzQG1ldGFmb28uZGU+
+CkNjOiBIYXJ0bXV0IEtuYWFjayA8a25hYWNrLmhAZ214LmRlPgpDYzogR3VlbnRlciBSb2VjayA8
+bGludXhAcm9lY2stdXMubmV0PgotLS0KIERvY3VtZW50YXRpb24vaHdtb24vYWR0NzQxMCB8ICAg
+MTIgKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
+dGlvbigtKQoKLS0tIGxpbnV4LTMuOS1yYzAub3JpZy9Eb2N1bWVudGF0aW9uL2h3bW9uL2FkdDc0
+MTAJMjAxMy0wMi0xOSAwMDo1ODozNC4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LTMuOS1yYzAv
+RG9jdW1lbnRhdGlvbi9od21vbi9hZHQ3NDEwCTIwMTMtMDItMjggMTM6MDA6MjMuNDg1NDA1Nzg0
+ICswMTAwCkBAIC00LDkgKzQsMTQgQEAgS2VybmVsIGRyaXZlciBhZHQ3NDEwCiBTdXBwb3J0ZWQg
+Y2hpcHM6CiAgICogQW5hbG9nIERldmljZXMgQURUNzQxMAogICAgIFByZWZpeDogJ2FkdDc0MTAn
+Ci0gICAgQWRkcmVzc2VzIHNjYW5uZWQ6IEkyQyAweDQ4IC0gMHg0QgorICAgIEFkZHJlc3NlcyBz
+Y2FubmVkOiBOb25lCiAgICAgRGF0YXNoZWV0OiBQdWJsaWNseSBhdmFpbGFibGUgYXQgdGhlIEFu
+YWxvZyBEZXZpY2VzIHdlYnNpdGUKICAgICAgICAgICAgICAgIGh0dHA6Ly93d3cuYW5hbG9nLmNv
+bS9zdGF0aWMvaW1wb3J0ZWQtZmlsZXMvZGF0YV9zaGVldHMvQURUNzQxMC5wZGYKKyAgKiBBbmFs
+b2cgRGV2aWNlcyBBRFQ3NDIwCisgICAgUHJlZml4OiAnYWR0NzQyMCcKKyAgICBBZGRyZXNzZXMg
+c2Nhbm5lZDogTm9uZQorICAgIERhdGFzaGVldDogUHVibGljbHkgYXZhaWxhYmxlIGF0IHRoZSBB
+bmFsb2cgRGV2aWNlcyB3ZWJzaXRlCisgICAgICAgICAgICAgICBodHRwOi8vd3d3LmFuYWxvZy5j
+b20vc3RhdGljL2ltcG9ydGVkLWZpbGVzL2RhdGFfc2hlZXRzL0FEVDc0MjAucGRmCiAKIEF1dGhv
+cjogSGFydG11dCBLbmFhY2sgPGtuYWFjay5oQGdteC5kZT4KIApAQCAtMjcsNiArMzIsMTAgQEAg
+dmFsdWUgcGVyIHNlY29uZCBvciBldmVuIGp1c3RnZXQgb25lIHNhbQogQmVzaWRlcywgaXQgY2Fu
+IGNvbXBsZXRlbHkgcG93ZXIgZG93biBpdHMgQURDLCBpZiBwb3dlciBtYW5hZ2VtZW50IGlzCiBy
+ZXF1aXJlZC4KIAorVGhlIEFEVDc0MjAgaXMgcmVnaXN0ZXIgY29tcGF0aWJsZSwgdGhlIG9ubHkg
+ZGlmZmVyZW5jZXMgYmVpbmcgdGhlIHBhY2thZ2UsCithIHNsaWdodGx5IG5hcnJvd2VyIG9wZXJh
+dGluZyB0ZW1wZXJhdHVyZSByYW5nZSAoLTQwwrBDIHRvICsxNTDCsEMpLCBhbmQgYQorYmV0dGVy
+IGFjY3VyYWN5ICgwLjI1wrBDIGluc3RlYWQgb2YgMC41MMKwQy4pCisKIENvbmZpZ3VyYXRpb24g
+Tm90ZXMKIC0tLS0tLS0tLS0tLS0tLS0tLS0KIAoKCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
+ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
+b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
