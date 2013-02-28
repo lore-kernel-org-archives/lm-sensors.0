@@ -1,42 +1,31 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 28 Feb 2013 12:05:13 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (adt7410) Document ADT7420 support
-Message-Id: <20130228130513.31185416@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 28 Feb 2013 14:36:00 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (adt7410) Document ADT7420 support
+Message-Id: <20130228143600.GA19568@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20130228130513.31185416@endymion.delvare>
+In-Reply-To: <20130228130513.31185416@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-VGhlIGFkdDc0MTAgZHJpdmVyIHN1cHBvcnRzIHRoZSBBRFQ3NDIwLCBidXQgaXRzIGRvY3VtZW50
-YXRpb24gZmlsZQptYWtlcyBubyBtZW50aW9uIG9mIHRoYXQuIEFkZCB0aGlzIHJlZnJlbmNlLCBh
-bmQgYSBicmllZiBhIGRlc2NyaXB0aW9uCm9mIHRoZSBkaWZmZXJlbmNlcyBiZXR3ZWVuIHRoZSBB
-RFQ3NDEwIGFuZCB0aGUgQURUNzQyMC4KClNpZ25lZC1vZmYtYnk6IEplYW4gRGVsdmFyZSA8a2hh
-bGlAbGludXgtZnIub3JnPgpDYzogTGFycy1QZXRlciBDbGF1c2VuIDxsYXJzQG1ldGFmb28uZGU+
-CkNjOiBIYXJ0bXV0IEtuYWFjayA8a25hYWNrLmhAZ214LmRlPgpDYzogR3VlbnRlciBSb2VjayA8
-bGludXhAcm9lY2stdXMubmV0PgotLS0KIERvY3VtZW50YXRpb24vaHdtb24vYWR0NzQxMCB8ICAg
-MTIgKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
-dGlvbigtKQoKLS0tIGxpbnV4LTMuOS1yYzAub3JpZy9Eb2N1bWVudGF0aW9uL2h3bW9uL2FkdDc0
-MTAJMjAxMy0wMi0xOSAwMDo1ODozNC4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LTMuOS1yYzAv
-RG9jdW1lbnRhdGlvbi9od21vbi9hZHQ3NDEwCTIwMTMtMDItMjggMTM6MDA6MjMuNDg1NDA1Nzg0
-ICswMTAwCkBAIC00LDkgKzQsMTQgQEAgS2VybmVsIGRyaXZlciBhZHQ3NDEwCiBTdXBwb3J0ZWQg
-Y2hpcHM6CiAgICogQW5hbG9nIERldmljZXMgQURUNzQxMAogICAgIFByZWZpeDogJ2FkdDc0MTAn
-Ci0gICAgQWRkcmVzc2VzIHNjYW5uZWQ6IEkyQyAweDQ4IC0gMHg0QgorICAgIEFkZHJlc3NlcyBz
-Y2FubmVkOiBOb25lCiAgICAgRGF0YXNoZWV0OiBQdWJsaWNseSBhdmFpbGFibGUgYXQgdGhlIEFu
-YWxvZyBEZXZpY2VzIHdlYnNpdGUKICAgICAgICAgICAgICAgIGh0dHA6Ly93d3cuYW5hbG9nLmNv
-bS9zdGF0aWMvaW1wb3J0ZWQtZmlsZXMvZGF0YV9zaGVldHMvQURUNzQxMC5wZGYKKyAgKiBBbmFs
-b2cgRGV2aWNlcyBBRFQ3NDIwCisgICAgUHJlZml4OiAnYWR0NzQyMCcKKyAgICBBZGRyZXNzZXMg
-c2Nhbm5lZDogTm9uZQorICAgIERhdGFzaGVldDogUHVibGljbHkgYXZhaWxhYmxlIGF0IHRoZSBB
-bmFsb2cgRGV2aWNlcyB3ZWJzaXRlCisgICAgICAgICAgICAgICBodHRwOi8vd3d3LmFuYWxvZy5j
-b20vc3RhdGljL2ltcG9ydGVkLWZpbGVzL2RhdGFfc2hlZXRzL0FEVDc0MjAucGRmCiAKIEF1dGhv
-cjogSGFydG11dCBLbmFhY2sgPGtuYWFjay5oQGdteC5kZT4KIApAQCAtMjcsNiArMzIsMTAgQEAg
-dmFsdWUgcGVyIHNlY29uZCBvciBldmVuIGp1c3RnZXQgb25lIHNhbQogQmVzaWRlcywgaXQgY2Fu
-IGNvbXBsZXRlbHkgcG93ZXIgZG93biBpdHMgQURDLCBpZiBwb3dlciBtYW5hZ2VtZW50IGlzCiBy
-ZXF1aXJlZC4KIAorVGhlIEFEVDc0MjAgaXMgcmVnaXN0ZXIgY29tcGF0aWJsZSwgdGhlIG9ubHkg
-ZGlmZmVyZW5jZXMgYmVpbmcgdGhlIHBhY2thZ2UsCithIHNsaWdodGx5IG5hcnJvd2VyIG9wZXJh
-dGluZyB0ZW1wZXJhdHVyZSByYW5nZSAoLTQwwrBDIHRvICsxNTDCsEMpLCBhbmQgYQorYmV0dGVy
-IGFjY3VyYWN5ICgwLjI1wrBDIGluc3RlYWQgb2YgMC41MMKwQy4pCisKIENvbmZpZ3VyYXRpb24g
-Tm90ZXMKIC0tLS0tLS0tLS0tLS0tLS0tLS0KIAoKCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
-ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
-b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Thu, Feb 28, 2013 at 01:05:13PM +0100, Jean Delvare wrote:
+> The adt7410 driver supports the ADT7420, but its documentation file
+> makes no mention of that. Add this refrence, and a brief a description
+> of the differences between the ADT7410 and the ADT7420.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Lars-Peter Clausen <lars@metafoo.de>
+> Cc: Hartmut Knaack <knaack.h@gmx.de>
+> Cc: Guenter Roeck <linux@roeck-us.net>
+
+Applied, and thanks for making the changes. Should have remembered
+asking for it.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
