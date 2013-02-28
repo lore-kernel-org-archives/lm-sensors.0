@@ -1,52 +1,89 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 26 Feb 2013 10:04:17 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/7] hwmon: (pmbus/ltc2978) Update datasheet links
-Message-Id: <20130226110417.5703303a@endymion.delvare>
+From: "Grace Rothstein" <gracerothstein@mrkservice.com>
+Date: Thu, 28 Feb 2013 20:17:08 +0000
+Subject: [SPAM:4.7] Website improvements
+Message-Id: <E1UB9um-0003Ll-MY@flocki.atrpms.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5943142859389563516=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361585975-5604-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1361585975-5604-2-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 22 Feb 2013 18:19:30 -0800, Guenter Roeck wrote:
-> Links to datasheets are no longer valid. Provide links to product information
-> instead (which provides links to the datasheets and is hopefully more
-> persistent).
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Point to product information pages
-> 
->  Documentation/hwmon/ltc2978 |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
-> index 1642348..e4d75c6 100644
-> --- a/Documentation/hwmon/ltc2978
-> +++ b/Documentation/hwmon/ltc2978
-> @@ -5,11 +5,11 @@ Supported chips:
->    * Linear Technology LTC2978
->      Prefix: 'ltc2978'
->      Addresses scanned: -
-> -    Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
-> +    Datasheet: http://www.linear.com/product/ltc2978
->    * Linear Technology LTC3880
->      Prefix: 'ltc3880'
->      Addresses scanned: -
-> -    Datasheet: http://cds.linear.com/docs/Datasheet/3880f.pdf
-> +    Datasheet: http://www.linear.com/product/ltc3880
->  
->  Author: Guenter Roeck <linux@roeck-us.net>
->  
+This is a multi-part message in MIME format
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+--===============5943142859389563516==
+Content-Type: multipart/alternative; charset="utf-8"; boundary="t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ"
+Content-Transfer-Encoding: 8bit
 
--- 
-Jean Delvare
+This is a multi-part message in MIME format
+
+--t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ
+Content-Type: text/plain ; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hello ,=20
+=20
+My name is Grace Rothstein and I work in the Search Engine Optimizatio=
+n domain. As you know Google is continuously  updating its algorithm i=
+n regard with TOP 10 rankings for the websites in different niches. By=
+ having a well done on-page optimization, a good off-page link buildin=
+g process and a targeted email marketing campaign you can make a diffe=
+rence for your website !
+The idea is that after a website is well optimized the benefit consist=
+s in the increase of links and IP popularity, direct traffic to your w=
+ebsite and also higher rankings in search engines.=20
+If you would like more details about my SEO offer or would like to ask=
+ me anything regarding this matter then feel free to write me an email=
+ at gracerothstein9459@gmail.com .=20
+=20
+Best regards,
+Grace
+
+
+
+=20
+
+
+--t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ
+Content-Type: text/html ; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<HTML><HEAD>
+<META content=3D"MSHTML 6.00.3790.3959" name=3DGENERATOR></HEAD>
+<BODY>
+<P>Hello , <BR>&nbsp;</P>
+<P>My name is&nbsp;Grace Rothstein and I work in the Search Engine Opt=
+imization domain. As you know Google is continuously &nbsp;updating it=
+s algorithm in regard with TOP 10 rankings for the websites in differe=
+nt niches. By having a well done on-page optimization,&nbsp;a good off=
+-page link building process and a targeted email marketing campaign yo=
+u can make a difference for your website !</P>
+<P>The idea is that after a website is well optimized the benefit cons=
+ists in the increase of links and IP popularity, direct traffic to you=
+r website and also higher rankings in search engines. </P>
+<P>If you would like more details about my SEO offer or would like to =
+ask me anything regarding this matter then feel free to write me an em=
+ail at <A href=3D"mailto:gracerothstein9459@gmail.com">gracerothstein9=
+459@gmail.com</A>&nbsp;.&nbsp;<BR>&nbsp;</P>
+<P>Best regards,</P>
+<P>Grace</P>
+<P>&nbsp;</P>
+<P>&nbsp;</P>
+<P><BR>&nbsp;</P>
+<P>&nbsp;</P></BODY></HTML>
+
+
+--t1ms=_VZapqTfLsE7cidsYZgoCHVW9R6aQ--
+
+
+
+--===============5943142859389563516==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5943142859389563516==--
+
