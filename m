@@ -1,64 +1,114 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 04 Feb 2013 19:58:02 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] sensors-detect: Add detection of IT8752F
-Message-Id: <20130204205802.1129fa2a@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 28 Feb 2013 16:46:32 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (pmbus/ltc2978) Clean up documentation
+Message-Id: <1362069993-9530-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1359434448-21181-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1359434448-21181-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 28 Jan 2013 20:40:47 -0800, Guenter Roeck wrote:
-> IT8752F appears to be mostly compatible to IT8728F.
-> Supported by HWSensors4 and derived code.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  CHANGES                    |    3 ++-
->  prog/detect/sensors-detect |    6 ++++++
->  2 files changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/CHANGES b/CHANGES
-> index 7ef4c2b..465bd61 100644
-> --- a/CHANGES
-> +++ b/CHANGES
-> @@ -4,7 +4,8 @@ lm-sensors CHANGES file
->  SVN HEAD
->    sensors.conf.5: Mention "sensors -u" to get the raw feature names
->    sensors: Clarify what option -u is good for
-> -  sensors-detect: Add detection of AMD family 16h power sensors
-> +  sensors-detect: Add detection of IT8752F
-> +                  Add detection of AMD family 16h power sensors
->                    Map IT8771E, IT8772E, IT8782F and IT8783F to it87
->                    Use /sys/module instead of /proc/modules where available
->                    Drop legacy sysconfig configuration file syntax
+Some sysfs attributes are only supported on LTC2978 and not on LTC3880.
+Update documentation to reflect which attributes are supported for which chips.
 
-We don't keep this list sorted, you can simply append at the end.
+Output current attributes supported on LTC3880 were described as providing
+input current values. Fix text to reflect that the attributes provide output
+current values.
 
-> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> index a96a33e..59378c2 100755
-> --- a/prog/detect/sensors-detect
-> +++ b/prog/detect/sensors-detect
-> @@ -2224,6 +2224,12 @@ use constant FEAT_SMBUS	=> (1 << 7);
->  		logdev => 0x04,
->  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
->  	}, {
-> +		name => "ITE IT8752F Super IO Sensors",
-> +		driver => "to-be-written",	# it87
-> +		devid => 0x8752,
-> +		logdev => 0x04,
-> +		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
-> +	}, {
->  		name => "ITE IT8771E Super IO Sensors",
->  		driver => "it87",
->  		devid => 0x8771,
+"reset history" attribute descriptions were misleading and seemed to imply
+that all history was reset when writing a single attribute. Replace with more
+accurate text.
 
-Looks good, please commit and add an entry in wiki/Devices.
+Replace 'internal temperature" with "chip temperature". Temperature limits
+not only apply to the chip temperature, but also to external temperatures
+on LTC3880, so remove the word "chip" from the attribute description.
 
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/ltc2978 |   41 +++++++++++++++++++----------------------
+ 1 file changed, 19 insertions(+), 22 deletions(-)
+
+diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
+index e4d75c6..dcb10be 100644
+--- a/Documentation/hwmon/ltc2978
++++ b/Documentation/hwmon/ltc2978
+@@ -41,17 +41,16 @@ Sysfs attributes
+ in1_label		"vin"
+ in1_input		Measured input voltage.
+ in1_min			Minimum input voltage.
+-in1_max			Maximum input voltage.
+-in1_lcrit		Critical minimum input voltage.
++in1_max			Maximum input voltage. LTC2978 only.
++in1_lcrit		Critical minimum input voltage. LTC2978 only.
+ in1_crit		Critical maximum input voltage.
+ in1_min_alarm		Input voltage low alarm.
+-in1_max_alarm		Input voltage high alarm.
+-in1_lcrit_alarm		Input voltage critical low alarm.
++in1_max_alarm		Input voltage high alarm. LTC2978 only.
++in1_lcrit_alarm		Input voltage critical low alarm. LTC2978 only.
+ in1_crit_alarm		Input voltage critical high alarm.
+ in1_lowest		Lowest input voltage. LTC2978 only.
+ in1_highest		Highest input voltage.
+-in1_reset_history	Reset history. Writing into this attribute will reset
+-			history for all attributes.
++in1_reset_history	Reset input voltage history.
+ 
+ in[2-9]_label		"vout[1-8]". Channels 3 to 9 on LTC2978 only.
+ in[2-9]_input		Measured output voltage.
+@@ -65,27 +64,25 @@ in[2-9]_lcrit_alarm	Output voltage critical low alarm.
+ in[2-9]_crit_alarm	Output voltage critical high alarm.
+ in[2-9]_lowest		Lowest output voltage. LTC2978 only.
+ in[2-9]_highest		Lowest output voltage.
+-in[2-9]_reset_history	Reset history. Writing into this attribute will reset
+-			history for all attributes.
++in[2-9]_reset_history	Reset output voltage history.
+ 
+ temp[1-3]_input		Measured temperature.
+ 			On LTC2978, only one temperature measurement is
+-			supported and reflects the internal temperature.
++			supported and reports the chip temperature.
+ 			On LTC3880, temp1 and temp2 report external
+-			temperatures, and temp3 reports the internal
++			temperatures, and temp3 reports the chip
+ 			temperature.
+-temp[1-3]_min		Mimimum temperature.
++temp[1-3]_min		Mimimum temperature. LTC2978 only.
+ temp[1-3]_max		Maximum temperature.
+ temp[1-3]_lcrit		Critical low temperature.
+ temp[1-3]_crit		Critical high temperature.
+-temp[1-3]_min_alarm	Chip temperature low alarm.
+-temp[1-3]_max_alarm	Chip temperature high alarm.
+-temp[1-3]_lcrit_alarm	Chip temperature critical low alarm.
+-temp[1-3]_crit_alarm	Chip temperature critical high alarm.
++temp[1-3]_min_alarm	Temperature low alarm. LTC2978 only.
++temp[1-3]_max_alarm	Temperature high alarm.
++temp[1-3]_lcrit_alarm	Temperature critical low alarm.
++temp[1-3]_crit_alarm	Temperature critical high alarm.
+ temp[1-3]_lowest	Lowest measured temperature. LTC2978 only.
+ temp[1-3]_highest	Highest measured temperature.
+-temp[1-3]_reset_history	Reset history. Writing into this attribute will reset
+-			history for all attributes.
++temp[1-3]_reset_history	Reset temperature history.
+ 
+ power[1-2]_label	"pout[1-2]". LTC3880 only.
+ power[1-2]_input	Measured power.
+@@ -96,8 +93,8 @@ curr1_max		Maximum input current.
+ curr1_max_alarm		Input current high alarm.
+ 
+ curr[2-3]_label		"iout[1-2]". LTC3880 only.
+-curr[2-3]_input		Measured input current.
+-curr[2-3]_max		Maximum input current.
+-curr[2-3]_crit		Critical input current.
+-curr[2-3]_max_alarm	Input current high alarm.
+-curr[2-3]_crit_alarm	Input current critical high alarm.
++curr[2-3]_input		Measured output current.
++curr[2-3]_max		Maximum output current.
++curr[2-3]_crit		Critical output current.
++curr[2-3]_max_alarm	Output current high alarm.
++curr[2-3]_crit_alarm	Output current critical high alarm.
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
