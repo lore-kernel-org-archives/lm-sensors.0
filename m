@@ -1,38 +1,43 @@
-From: Dag Wieers <dag@wieers.com>
-Date: Sat, 09 Mar 2013 23:15:00 +0000
-Subject: Re: [lm-sensors] i2c-i801 on AppleTV (1st gen)
-Message-Id: <alpine.LRH.2.02.1303100013260.26996@pikachu.3ti.be>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Sat, 02 Mar 2013 07:33:30 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (sht15) Check return value of regulator_enable()
+Message-Id: <1362209610-12337-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
-In-Reply-To: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 17 Feb 2013, Jean Delvare wrote:
+Not having power is a pretty serious error so check that we are able to
+enable the supply and error out if we can't.
 
->> Did I break it ? :)
->
-> Could be. This could explain why the other system was looking
-> different, if something similar had already been attempted on it.
-> Please try powering the machine down, unplug the power cord, and cold
-> boot the machine at least 1 minute later. Hopefully the chip at 0x48
-> will be back.
->
-> If not, please let us know if you notice anything no longer working
-> properly on the machine. So that it can at least be documented.
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/hwmon/sht15.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-The chip at 0x48 did not come back, but everything still seems to work 
-fine on (both) systems. I might buy a third system, and will investigate 
-again...
-
-Thanks for your assistance !
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index bfe326e..2507f90 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -965,7 +965,13 @@ static int sht15_probe(struct platform_device *pdev)
+ 		if (voltage)
+ 			data->supply_uv = voltage;
+ 
+-		regulator_enable(data->reg);
++		ret = regulator_enable(data->reg);
++		if (ret != 0) {
++			dev_err(&pdev->dev,
++				"failed to enable regulator: %d\n", ret);
++			return ret;
++		}
++
+ 		/*
+ 		 * Setup a notifier block to update this if another device
+ 		 * causes the voltage to change
 -- 
--- dag wieers, dag@wieers.com, http://dag.wieers.com/
--- dagit linux solutions, info@dagit.net, http://dagit.net/
+1.7.10.4
 
-[Any errors in spelling, tact or fact are transmission errors]
 
 _______________________________________________
 lm-sensors mailing list
