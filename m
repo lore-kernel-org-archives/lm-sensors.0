@@ -1,36 +1,48 @@
-From: Doug Anderson <dianders@chromium.org>
-Date: Mon, 11 Mar 2013 21:36:45 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: NTC: add IIO get channel and read support
-Message-Id: <CAD=FV=WedkZdqrob=pvmdr_FD27xtX=riEc5rdiTS3QVPk22SA@mail.gmail.com>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Tue, 05 Mar 2013 05:11:20 +0000
+Subject: [lm-sensors] [PATCH 1/1] hwmon: mc13783-adc: Use module_platform_driver_probe macro
+Message-Id: <1362459560-13444-1-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1362967787-22557-1-git-send-email-ch.naveen@samsung.com>
-	<1362967787-22557-2-git-send-email-ch.naveen@samsung.com>
-In-Reply-To: <1362967787-22557-2-git-send-email-ch.naveen@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Naveen Krishna <naveenkrishna.ch@gmail.com>, dg77.kim@samsung.com
+To: lm-sensors@vger.kernel.org
 
-Naveen,
+module_platform_driver_probe() eliminates the boilerplate and simplifies
+the code.
 
-On Sun, Mar 10, 2013 at 7:09 PM, Naveen Krishna Chatradhi
-<ch.naveen@samsung.com> wrote:
-> @@ -317,7 +346,7 @@ static int ntc_thermistor_get_ohm(struct ntc_data *data)
->                 return data->pdata->read_ohm(data->pdev);
->
->         if (data->pdata->read_uV) {
-> -               read_uV = data->pdata->read_uV(data->pdev);
-> +               read_uV = data->pdata->read_uV(data->pdata);
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/hwmon/mc13783-adc.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-This doesn't apply for me.  Did you perhaps accidentally send up a
-patch against the version of the driver that's in the Chrome OS tree?
-You should be sending patches against some tree that's upstream
-(linux, linux-next, iio, ...).
+diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
+index 2a7f331..982d862 100644
+--- a/drivers/hwmon/mc13783-adc.c
++++ b/drivers/hwmon/mc13783-adc.c
+@@ -273,18 +273,7 @@ static struct platform_driver mc13783_adc_driver = {
+ 	.id_table	= mc13783_adc_idtable,
+ };
+ 
+-static int __init mc13783_adc_init(void)
+-{
+-	return platform_driver_probe(&mc13783_adc_driver, mc13783_adc_probe);
+-}
+-
+-static void __exit mc13783_adc_exit(void)
+-{
+-	platform_driver_unregister(&mc13783_adc_driver);
+-}
+-
+-module_init(mc13783_adc_init);
+-module_exit(mc13783_adc_exit);
++module_platform_driver_probe(mc13783_adc_driver, mc13783_adc_probe);
+ 
+ MODULE_DESCRIPTION("MC13783 ADC driver");
+ MODULE_AUTHOR("Luotao Fu <l.fu@pengutronix.de>");
+-- 
+1.7.4.1
 
-Thanks!
-
--Doug
 
 _______________________________________________
 lm-sensors mailing list
