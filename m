@@ -1,82 +1,51 @@
-From: Joakim Roubert <jokke@df.lth.se>
-Date: Wed, 13 Feb 2013 13:01:13 +0000
-Subject: [lm-sensors] Intel DP67BA
-Message-Id: <511B8E99.70906@df.lth.se>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------080701050803040506060701"
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Tue, 05 Mar 2013 03:12:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (mc13783-adc.c) use module_platform_driver_probe()
+Message-Id: <005401ce194f$54e8b250$feba16f0$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080701050803040506060701
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+This patch uses module_platform_driver_probe() macro which makes
+the code smaller and simpler.
 
-Hi!
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/hwmon/mc13783-adc.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-I have an Intel DP67BA motherboard, for which I downloaded the DQ67EP
-config and modified it somewhat to show useful values for the DP67BA. I
-attach the resulting config file if anybody else could have use for it.
-
-BR,
-
-/Joakim
+diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
+index 2a7f331..982d862 100644
+--- a/drivers/hwmon/mc13783-adc.c
++++ b/drivers/hwmon/mc13783-adc.c
+@@ -273,18 +273,7 @@ static struct platform_driver mc13783_adc_driver = {
+ 	.id_table	= mc13783_adc_idtable,
+ };
+ 
+-static int __init mc13783_adc_init(void)
+-{
+-	return platform_driver_probe(&mc13783_adc_driver, mc13783_adc_probe);
+-}
+-
+-static void __exit mc13783_adc_exit(void)
+-{
+-	platform_driver_unregister(&mc13783_adc_driver);
+-}
+-
+-module_init(mc13783_adc_init);
+-module_exit(mc13783_adc_exit);
++module_platform_driver_probe(mc13783_adc_driver, mc13783_adc_probe);
+ 
+ MODULE_DESCRIPTION("MC13783 ADC driver");
+ MODULE_AUTHOR("Luotao Fu <l.fu@pengutronix.de>");
 -- 
- http://www.df.lth.se/~jokke/
+1.7.2.5
 
---------------080701050803040506060701
-Content-Type: text/plain;
- name="DP67BA"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="DP67BA"
 
-IyBNb2RpZmllZCB2ZXJzaW9uIG9mCiMgaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtp
-L0NvbmZpZ3VyYXRpb25zL0ludGVsL0RRNjdFUAojIHRvIGNvcnJlc3BvbmQgdG8gdGhlIERQ
-NjdCQS4KIwojICJGUk9OVCIgYW5kICJSRUFSIiBmYW4gbGFiZWxzIGNvcnJlc3BvbmQgdG8g
-dGhlIG1vdGhlcmJvYXJkCiMgaGVhZGVycywgYnV0IG5vdCBuZWNlc3NhcmlseSB0aGUgYWN0
-dWFsIGZhbiBsb2NhdGlvbnMuCgpjaGlwICJuY3Q2Nzc1LWlzYS0wMjkwIgoKIyBGYW5zCmxh
-YmVsIGZhbjEgIlJlYXIgZmFuIgpzZXQgZmFuMV9taW4gMjUwICMgRnJvbSBJRFUKCmxhYmVs
-IGZhbjIgIkNQVSBmYW4iCnNldCBmYW4yX21pbiAyNTAgIyBGcm9tIElEVQoKbGFiZWwgZmFu
-MyAiRnJvbnQgZmFuIgpzZXQgZmFuM19taW4gMjUwICMgRnJvbSBJRFUKCiMgVGhlcmUgaXMg
-bm8gZmFuNCBvbiB0aGUgYm9hcmQKaWdub3JlIGZhbjQKCiMgVm9sdGFnZXMKCiMgUHJvY2Vz
-c29yIFZjYwpsYWJlbAlpbjAJCSJWY29yZSIKc2V0CWluMF9taW4gCTAuNiAjIEZyb20gSURV
-CnNldAlpbjBfbWF4IAkxLjYgIyBGcm9tIElEVQoKIyBUaGlzIHNob3VsZCBiZSAiMTIgVm9s
-dHMiLCBidXQgY29tcHV0YXRpb25zIGFyZSBzdHJhbmdlCmxhYmVsCWluMQkJIisxMlYiCmNv
-bXB1dGUJaW4xCQlAKjEwLjkyLCAgQC8xMC45MgpzZXQJaW4xX21pbgkJMTIqMC45NQpzZXQJ
-aW4xX21heAkJMTIqMS4wNQoKIyBBVkNDKD8pIC0gTm90IHNob3duIGluIEJJT1Mgb3IgSURV
-CmxhYmVsCWluMgkJIkFWQ0MiCnNldAlpbjJfbWluCQkzLjEJCSMgc2FtZSBhcyArMy4zVgpz
-ZXQJaW4yX21heAkJMy41CQkjIHNhbWUgYXMgKzMuM1YKCiMgKzMuMyBWb2x0cwpsYWJlbAlp
-bjMJCSIrMy4zViIKc2V0CWluM19taW4JCTMuMQkJIyBmcm9tIElEVQpzZXQJaW4zX21heAkJ
-My41CQkjIGZyb20gSURVCgojICs1IFZvbHRzCmxhYmVsCWluNAkJIis1ViIKY29tcHV0ZQlp
-bjQJCTQuOSpALCBALzQuOQpzZXQJaW40X21pbgkJNC43CQkjIGZyb20gSURVCnNldAlpbjRf
-bWF4CQk1LjMJCSMgZnJvbSBJRFUKCiMgTWVtb3J5IFZjYyAoIlNEUkFNIFZjYyIgaW4gSURV
-KQpsYWJlbAlpbjUJCSIrMS41ViIKY29tcHV0ZQlpbjUJCTEuNSpALCBALzEuNQpzZXQJaW41
-X21pbgkJMS40CQkjIGZyb20gSURVCnNldAlpbjVfbWF4CQkxLjYJCSMgZnJvbSBJRFUKCiMg
-UENIIFZjYwpsYWJlbAlpbjYJCSJQQ0giCnNldAlpbjZfbWluCQkwLjYJCSMgZnJvbSBJRFUK
-c2V0CWluNl9tYXgJCTEuNgkJIyBmcm9tIElEVQoKIyArMy4zIFZvbHQgU3RhbmRieQpsYWJl
-bAlpbjcJCSIzVlNCIgpzZXQJaW43X21pbgkJMy4xCQkjIGZyb20gSURVCnNldAlpbjdfbWF4
-CQkzLjUJCSMgZnJvbSBJRFUKCiMgVkJBVCg/KSAtIE5vdCBzaG93biBpbiBCSU9TIG9yIElE
-VQpsYWJlbAlpbjgJCSJWYmF0IgpzZXQJaW44X21pbgkJMy4wCnNldAlpbjhfbWF4CQkzLjUK
-CiMgSXQgc2hvd3MgKzIuMDUwIFYsIHNlZW1zIHRvIGJlIG5vdCB1c2VkCmlnbm9yZQljcHUw
-X3ZpZAoKIwlUZW1wZXJhdHVyZXMKCiMgTGFiZWxlZCBhcyAiU1lTVElOIgojIEd1ZXNzIQps
-YWJlbAl0ZW1wMQkJIkRJTU0gdGVtcCIKc2V0CXRlbXAxX21heCAJODAJCSMgRnJvbSBJRFUK
-c2V0CXRlbXAxX21heF9oeXN0IAk3NQkJIyBGcm9tIElEVQoKIyBMYWJlbGVkIGFzICJDUFVU
-SU4iCmxhYmVsCXRlbXAyCQkiVlIgdGVtcCIKc2V0CXRlbXAyX21heCAJODAJCSMgRnJvbSBJ
-RFUKc2V0CXRlbXAyX21heF9oeXN0IAk3NQkJIyBGcm9tIElEVQoKIyBMYWJlbGVkIGFzICJQ
-RUNJIEFnZW50IDAiCiMgR3Vlc3MhCmxhYmVsCXRlbXAzCQkiQ1BVIHRlbXAiCnNldAl0ZW1w
-M19tYXggCTgwCQkjIEZyb20gSURVCnNldAl0ZW1wM19tYXhfaHlzdCAJNzUJCSMgRnJvbSBJ
-RFUKCiMgTGFiZWxlZCBhcyAiUENIX0NISVBfVEVNUCIKbGFiZWwJdGVtcDcJCSJQQ0ggdGVt
-cCIKCiMgTGFiZWxlZCBhcyAiUEVDSSBBZ2VudCAxIgojIE5vdCB1c2VkCmlnbm9yZQl0ZW1w
-OAo=
---------------080701050803040506060701
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------080701050803040506060701--
