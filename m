@@ -1,40 +1,46 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 13 Mar 2013 00:05:09 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (adt7410) Don't re-read non-volatile registers
-Message-Id: <20130313000509.GA9958@roeck-us.net>
+From: Joe Buehl <joe.buehl@buehltech.com>
+Date: Wed, 06 Mar 2013 22:02:41 +0000
+Subject: [lm-sensors] Support for non-register devices
+Message-Id: <5137BD01.6080905@buehltech.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363084727-2372-1-git-send-email-lars@metafoo.de>
-In-Reply-To: <1363084727-2372-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 12, 2013 at 11:38:45AM +0100, Lars-Peter Clausen wrote:
-> Currently each time the temperature register is read the driver also reads the
-> threshold and hysteresis registers. This increases the amount of I2C traffic and
-> time needed to read the temperature by a factor of ~5. Neither the threshold nor
-> the hysteresis change on their own, so once we have read them, we should be able
-> to just use the cached value of the registers. This patch modifies the code
-> accordingly and only reads the threshold and hysteresis registers once during
-> probe.
-> 
-> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-> 
-> ---
-> Changes since v2:
-> 	* Fix error the register address in the "Failed to read value" error message
-> 	Otherwise I left the patch as it is hoping that the result of our discussion
-> 	was that the problem outlined by Hartmut is more of a theoretical nature.
+I am new to using I2C so apologies if this has already been addressed 
+before.
 
-One possibility to at least partially address the concerns would be to load the
-value cache from the update function if valid is false, and reset valid if there
-was an i2c read error. I'll leave that up to you, though.
+In trying to communicate with a Honeywell HIH-6130 humidity sensor from 
+a RaspberryPi I ran into an apparent limitation of i2c-tools. There 
+doesn't seem to be support for reading multiple bytes of data from a 
+device that doesn't need a register selected before the read.  This 
+device is accessed by first doing a write of just the address, followed 
+about 37ms later by a read of 4 bytes, as documented here 
+http://www.phanderson.com/arduino/I2CCommunications.pdf.  The write 
+operation can be done by using write_quick(), and a subsequent 
+read_byte() will get the first byte of data, but multiple calls to 
+read_byte() will just get the same first byte again.  Using 
+read_i2c_block_data() works better, however, because it sends an 
+unneeded command byte, I'm not sure the data returned is valid. There is 
+a long discussion of the details in this thread 
+http://www.raspberrypi.org/phpBB3/viewtopic.php?f2&t)454.
 
-The patches took good to me. I'll queue all three for 3.10.
+It seems to me that what is needed is a way to optionally specify that 
+no command byte should be sent in read_i2c_block_data() and 
+write_i2c_block_data().  While this is not compliant with the SMBus 
+protocol, this device doesn't claim to be compliant, and the purpose of 
+these two functions seems to be to allow such communications.  I don't 
+believe this particular device is unique so there should be other cases 
+where this is useful.
 
-Thanks,
-Guenter
+I looked at the python wrapper code in smbusmodule.c and it looks easy 
+enough to implement something like specifying a value of None for the 
+cmd argument to indicate that no command byte should be sent, but 
+implementation of the behavior seems to be buried somewhere deep in 
+i2c-dev.c or i2c-core.c and I haven't been able to find it.  I see that 
+there is work being done in this project to clean up these drivers, so I 
+wanted to propose this change, and also offer my help.
 
 _______________________________________________
 lm-sensors mailing list
