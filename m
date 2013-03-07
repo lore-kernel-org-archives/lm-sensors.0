@@ -1,32 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 12 Mar 2013 18:23:49 +0000
-Subject: Re: [lm-sensors] [PATCH 5/5] Add support for the Dallas/Maxim DS1705
-Message-Id: <20130312182349.GA2287@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 07 Mar 2013 12:33:01 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm75.h) Update header inclusion
+Message-Id: <20130307133301.4cfd2414@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130312155250.611baf07@endymion.delvare>
-In-Reply-To: <20130312155250.611baf07@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 12, 2013 at 06:43:05PM +0100, Jean Delvare wrote:
-> On Tue, 12 Mar 2013 10:19:53 -0700, Guenter Roeck wrote:
-> > On Tue, Mar 12, 2013 at 05:05:59PM +0100, Jean Delvare wrote:
-> > > BTW I'll take all these patches in my own tree if this is OK with you.
-> > > Not sure why you took my previous lm75 patch (Update header inclusion)
-> > > in yours.
-> > 
-> > Mostly because you had asked me to handle 3.8. Maybe that was a
-> > misunderstanding. Sorry if I stepped on your feet ... want me to drop it ?
-> 
-> Ah, yes, now I remember. But I really only meant the big RC1 push. Yes,
-> please drop it, sorry for the confusion.
-> 
-Done. Feel free to add my Reviewed-by to the patch.
+File lm75.h used to include <linux/hwmon.h> for SENSORS_LIMIT() but
+this function is gone by now. Instead we call clamp_val() so we should
+include <linux/kernel.h>, where this function is declared.
 
-Thanks,
-Guenter
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm75.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-3.9-rc1.orig/drivers/hwmon/lm75.h	2013-03-05 10:33:28.169897107 +0100
++++ linux-3.9-rc1/drivers/hwmon/lm75.h	2013-03-07 13:28:24.877903474 +0100
+@@ -25,7 +25,7 @@
+     which contains this code, we don't worry about the wasted space.
+ */
+ 
+-#include <linux/hwmon.h>
++#include <linux/kernel.h>
+ 
+ /* straight from the datasheet */
+ #define LM75_TEMP_MIN (-55000)
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
