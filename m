@@ -1,103 +1,66 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 27 Mar 2013 21:09:55 +0000
-Subject: Re: [lm-sensors] MSI MS-9832 Sensor Help
-Message-Id: <20130327220955.331c75ba@endymion.delvare>
+Date: Tue, 12 Mar 2013 14:44:42 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon: (lm75) Per-chip configuration register initialization
+Message-Id: <20130312154442.37fe765f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130327083917.040a96de@endymion.delvare>
-In-Reply-To: <20130327083917.040a96de@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgQnJ5YW4sCgpPbiBXZWQsIDI3IE1hciAyMDEzIDExOjE4OjEzIC0wNTAwLCBCcnlhbiBHdWlk
-cm96IHdyb3RlOgo+IEZpcnN0LCBJIGNhbid0IHRoYW5rIHlvdSBlbm91Z2ggZm9yIHlvdXIgaGVs
-cC4KPiBJJ3ZlIGxlYXJuZWQgcXVpdGUgYSBiaXQgYW5kIHRoYXQncyBhbHdheXMgZ3JlYXRseSBh
-cHByZWNpYXRlZC4KCllvdSdyZSB3ZWxjb21lIDopCgo+IEkndmUgcmVhZCB0aGUgYXJ0aWNsZSBh
-bmQgdHJpZWQgdG8gdW5kZXJzdGFuZCBpdCBhcyBiZXN0IGFzIEkgY2FuLgo+IFdpdGggeW91ciBz
-dWdnZXN0aW9ucywgdGhlIGFydGljbGUsIGFuZCB0aGUgc2FtcGxlIGNvbmZpZyBJIGZvdW5kIHRo
-YXQgd2FzIHNpbWlsYXIsIEkndmUgY29tZSB1cCB3aXRoIHRoZSBmb2xsb3dpbmcgY29uZmlnIGZv
-ciB0aGlzIHN5c3RlbS4KPiBJIGRpZCBteSBiZXN0IHRvIHRha2UgbXVsdGlwbGUgc2FtcGxlcyAo
-NSBhbGwgdG9nZXRoZXIpIGFuZCBzbyBmYXIsIGV2ZXJ5dGhpbmcgc2VlbXMgdG8gYmUgcHJldHR5
-IGNsb3NlLgo+IEkgYWxzbyB0cmllZCB0byB2YXJ5IHRoZSBsb2FkIG9mIHRoZSBzeXN0ZW0gKHVz
-aW5nIHN0cmVzcyB0byB0cnkgdG8gcmFpc2UgY3B1IHRlbXBzIGFuZCBmYW4gc3BlZWRzLikKPiBV
-bmxlc3MgeW91IHNlZSBzb21ldGhpbmcgdGhhdCdzIG9idmlvdXNseSBpbmNvcnJlY3Qgb3IgY29u
-Y2VybmluZywgSSB0aGluayBJJ20gZ29ubmEgZ28gd2l0aCBpdC4KClRoaXMgaXMgZ29vZCB3b3Jr
-LCBidXQgc2VlIG15IGNvbW1lbnRzIGJlbG93LgoKPiBSZWFsbHksIHRoZSBiaWdnZXN0IGRpZmZl
-cmVuY2VzIGhhZCB0byBkbyB3aXRoIFZiYXQgYW5kIFZTQiB3aGljaCBJJ20gbm93IGlnbm9yaW5n
-IGluIG15IGNvbmYuCj4gVGhlIEJJT1MgSFcgbW9uaXRvciBhbHdheXMgZGlzcGxheXMgVmJhdCBh
-bmQgVlNCIGF0IDMuNDJ2IHdoZXJlIHNlbnNvcnMgaGFzIHRoZW0gc2xpZ2h0bHkgYWJvdmUgb3Ig
-YmVsb3cuCj4gR3Vlc3Npbmcgbm90IGEgYmlnIGRlYWwgYW5kIHBvc3NpYmx5IG5vcm1hbCBiZWhh
-dmlvci4KClllcyBpdCBpcyBPSywgVlNCIGFuZCBWYmF0IGFyZSBzZWNvbmRhcnkgcG93ZXIgc291
-cmNlcywgdGhleSBkb24ndCBoYXZlCnRvIGJlIGFzIHN0YWJsZSBhcyArNVYgYW5kICsxMlYuIDMu
-NDJWIHZzLiAzLjM5ViBpcyBjb21wbGV0ZWx5IGZpbmUuCkFueXdheSB0aGVzZSBhcmUgaW50ZXJu
-YWxseSBzY2FsZWQgdm9sdGFnZSBpbnB1dHMgc28geW91IGp1c3QgY2FuJ3QgZ2V0CnRoZW0gd3Jv
-bmcuCgo+IEFuZCwgSSByZWFsaXplIG15IGxheW91dCBvZiB0aGlzIGNvbmYgaXMgcHJvYmFibHkg
-bm90IHN0YW5kYXJkLCBidXQgSSBwdXQgaXQgaW4gdGhlIG9yZGVyIEkgd2FzIGZpZ3VyaW5nIGl0
-IG91dCB3aXRoIGNvbW1lbnRzIChzb21lIHRha2VuIGRpcmVjdGx5IGZyb20geW91ciByZXBsaWVz
-KSB0byBob3BlZnVsbHkgcmVtaW5kIG1lIG9mIHRoaW5ncyBpZiBuZWVkZWQgaW4gdGhlIGZ1dHVy
-ZS4KPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tCj4gW3Jvb3RAZ2F0ZXdheSB+XSMgbmFubyAvZXRjL3NlbnNvcnMuZC9NU0ktTVMtOTgz
-Mi5jb25mCj4gY2hpcCAiZjcxODgyZmctaXNhLTBhMTAiCj4gCj4gIyBJZ25vcmUgLSBWb2x0YWdl
-Cj4gIyBUaGUgRjcxODgyRkcgdXNlcyBhbiA4LWJpdCwgOCBtViBMU0IgQURDIGZvciB2b2x0YWdl
-IG1vbml0b3JpbmcuCj4gIyBUaGlzIG1lYW5zIHRoYXQgaXQgY2FuIG1lYXN1cmUgdXAgdG8gMi4w
-NCBWIGRpcmVjdGx5LiBUaGlzIGlzIHRoZSB2YWx1ZQo+ICMgb2YgaW4yLCBpbjMgYW5kIGluNiBv
-biB0aGUgTVNJIE1TLTk4MzIsIHdoaWNoIG1lYW5zIHRoZXNlIGlucHV0cwo+ICMgYXJlIHNhdHVy
-YXRlZC4gVGhpcyBtZWFucyB0aGVzZSBpbnB1dHMgYXJlIHVudXNlZC4KPiAKPiDCoMKgIGlnbm9y
-ZSBpbjIKPiDCoMKgIGlnbm9yZSBpbjMKPiDCoMKgIGlnbm9yZSBpbjYKPiAKPiAjIElnbm9yZSAt
-IEZhbnMKPiAjIFRoZSBNU0kgTVMtOTgzMiB1c2VzIGZhbjEgKENQVSBGYW4pIGFuZCBmYW4yIChT
-eXN0ZW0gRmFuKS4KPiAjIFRoaXMgbWVhbnMgb3RoZXIgZmFucyBhcmUgdW51c2VkLgo+IAo+IMKg
-wqAgaWdub3JlIGZhbjMKPiDCoMKgIGlnbm9yZSBmYW40Cj4gCj4gIyBJZ25vcmUgLSBUZW1wcwo+
-ICMgVGhlIE1TSSBNUy05ODMyIHVzZXMgdGVtcDEgKENQVSB0ZW1wKSBhbmQgdGVtcDMgKFN5c3Rl
-bSB0ZW1wKS4KPiAjIFRoaXMgbWVhbnMgdGVtcDIgaXMgdW51c2VkLgo+IAo+IMKgwqAgaWdub3Jl
-IHRlbXAyCj4gCj4gIyBPdGhlciAtIFZvbHRhZ2VzCj4gIyBpbjAgKCszLjN2KSwgaW43ICgzVlNC
-KSwgYW5kIGluOCAoVmJhdCkgYXJlIGludGVybmFsbHkgbW9uaXRvcmVkIHZvbHRhZ2VzCj4gIyB3
-aXRoIGludGVybmFsIGRpdmlkZXJzLiBUaGlzIG1lYW5zIHRoZSB2YWx1ZXMgYXJlIHByb3Blcmx5
-IHNldCBhbmQgZG8gbm90Cj4gIyBuZWVkIHRvIGJlIGRlZmluZWQgaW4gdGhpcyBjb25maWd1cmF0
-aW9uIGFzIHRoZXkgc2hvdWxkIGJlIHJlcG9ydGVkIHByb3Blcmx5Lgo+IAo+ICMgVm9sdGFnZXMK
-PiDCoMKgIGxhYmVsIGluMSAiVmNvcmUiCj4gwqDCoCBsYWJlbCBpbjQgIis1ViIKPiDCoMKgIGxh
-YmVsIGluNSAiKzEyViIKPiAKPiDCoMKgIGNvbXB1dGUgaW40wqAgQCooMSsyMDAvNDcpLMKgIEAv
-KDErMjAwLzQ3KQo+IMKgwqAgY29tcHV0ZSBpbjXCoCBAKigxKzIwMC8yMCkswqAgQC8oMSsyMDAv
-MjApCj4gCj4gwqDCoCBzZXQgaW4xX21pbsKgIDEuMiAqIDAuOTUKPiDCoMKgIHNldCBpbjFfbWF4
-wqAgMS4yICogMS4wNQo+IMKgwqAgc2V0IGluNF9taW7CoCA1LjAgKiAwLjk1Cj4gwqDCoCBzZXQg
-aW40X21heMKgIDUuMCAqIDEuMDUKPiDCoMKgIHNldCBpbjVfbWluIDEyLjAgKiAwLjk1Cj4gwqDC
-oCBzZXQgaW41X21heCAxMi4wICogMS4wNQoKVGhlIEY3MTg4MkZHIGhhcyBvbmx5IG9uZSB2b2x0
-YWdlIGxpbWl0IHJlZ2lzdGVyIGFuZCB0aGlzIGlzIGluMV9tYXgsCnNvIGV2ZXJ5dGhpbmcgZWxz
-ZSB3aWxsIGNhdXNlIGEgZmFpbHVyZSB3aGVuIHJ1bm5pbmcgInNlbnNvcnMgLXMiLgoKQWxzbyBh
-Y2NvcmRpbmcgdG8KaHR0cDovL2Fyay5pbnRlbC5jb20vcHJvZHVjdHMvMzU2NDEvSW50ZWwtQXRv
-bS1Qcm9jZXNzb3ItMzMwLTFNLUNhY2hlLTFfNjAtR0h6LTUzMy1NSHotRlNCCnRoZSBWY29yZSBy
-YW5nZSBmb3IgdGhpcyBDUFUgaXMgMC45Vi0xLjE2MjVWIHNvIGluMV9tYXggc2hvdWxkIGJlIHNl
-dAp0byAxLjE2MjUgKiAxLjA1LgoKPiAKPiAjIEZhbnMKPiDCoMKgIGxhYmVsIGZhbjEgIkNQVSBG
-YW4iCj4gwqDCoCBsYWJlbCBmYW4yICJTeXMgRmFuIgo+IAo+IMKgwqAgc2V0IGZhbjFfbWluIDIx
-MDAKPiDCoMKgIHNldCBmYW4yX21pbiAxNDAwCj4gCj4gIyBUZW1wZXJhdHVyZXMKPiDCoMKgIGxh
-YmVsIHRlbXAxICJDUFUgVGVtcCIKPiDCoMKgIGxhYmVsIHRlbXAzICJTeXMgVGVtcCIKPiAKPiDC
-oMKgIHNldCB0ZW1wMV9tYXjCoMKgIDYwCj4gwqDCoCBzZXQgdGVtcDFfbWF4X2h5c3TCoCA1OAo+
-IMKgwqAgc2V0IHRlbXAzX21heMKgwqAgNTAKPiDCoMKgIHNldCB0ZW1wM19oeXN0wqAgNDgKClN1
-YmZlYXR1cmUgdGVtcDNfaHlzdCBkb2Vzbid0IGV4aXN0LCB5b3UgbWVhbnQgdGVtcDNfbWF4X2h5
-c3QuCgo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-Cj4gCj4gU2Vuc29ycyBub3cgZGlzcGxheXMgbmVhcmx5IGlkZW50aWNhbCByZXN1bHRzIHRvIEJJ
-T1MgSFcgbW9uaXRvci4KPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQo+IFtyb290QGdhdGV3YXkgfl0jIHNlbnNvcnMKPiBjb3JldGVtcC1pc2Et
-MDAwMAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gQ29yZSAwOsKgwqDCoMKgwqAgKzI2LjDCsEPC
-oCAoaGlnaCA9ICs3MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpIAo+IENvcmUgMTrCoMKgwqDCoMKg
-ICsyOC4wwrBDwqAgKGhpZ2ggPSArNzAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKSAKPiAKPiBmNzE4
-ODJmZy1pc2EtMGExMAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gKzMuM1Y6wqDCoMKgwqDCoMKg
-ICszLjQyIFYKPiBWY29yZTrCoMKgwqDCoMKgwqAgKzEuMTYgVsKgIChtYXggPcKgICsyLjA0IFYp
-wqAgCj4gKzVWOsKgwqDCoMKgwqDCoMKgwqAgKzUuMDkgVgo+ICsxMlY6wqDCoMKgwqDCoMKgICsx
-Mi4yMyBWCj4gM1ZTQjrCoMKgwqDCoMKgwqDCoCArMy4zOSBWCj4gVmJhdDrCoMKgwqDCoMKgwqDC
-oCArMy40MSBWCj4gQ1BVIEZhbjrCoMKgwqAgNDU4NyBSUE0KPiBTeXMgRmFuOsKgwqDCoCAyOTAx
-IFJQTQo+IENQVSBUZW1wOsKgwqDCoCArNDYuMMKwQ8KgIChoaWdoID0gKzg1LjDCsEMsIGh5c3Qg
-PSArODEuMMKwQykgCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IChjcml0ID0gKzEwMC4wwrBDLCBoeXN0ID0gKzk2LjDCsEMpwqAgc2Vuc29yID0gdHJhbnNpc3Rv
-cgo+IFN5cyBUZW1wOsKgwqDCoCArNDAuMMKwQ8KgIChoaWdoID0gKzcwLjDCsEMsIGh5c3QgPSAr
-NjguMMKwQykgCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIChj
-cml0ID0gKzg1LjDCsEMsIGh5c3QgPSArODMuMMKwQynCoCBzZW5zb3IgPSB0cmFuc2lzdG9yCj4g
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+
-IAo+IFlvdXIgdGhvdWdodHM/CgpUaGF0IHlvdSBkaWQgYSBnb29kIGpvYiA6KSBTbyBJIGFkZGVk
-IHlvdXIgY29uZmlndXJhdGlvbiBmaWxlICh3aXRoIHRoZQpmaXhlcyBhYm92ZSkgYXQ6Cmh0dHA6
-Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9Db25maWd1cmF0aW9ucy9NU0kvSU0tOTQ1R0MKU28g
-b3RoZXIgdXNlcnMgY2FuIGJlbmVmaXQuIFRoYW5rcyBmb3IgeW91ciBjb250cmlidXRpb24hCgot
-LSAKSmVhbiBEZWx2YXJlCmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
-cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
-c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+There is no standard for the configuration register bits of LM75-like
+chips. We shouldn't blindly clear bits setting the resolution as they
+are either unused or used for something else on some of the supported
+chips.
+
+So, switch to per-chip configuration initialization. This will allow
+for better tuning later, for example using more resolution bits when
+available.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm75.c |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+--- linux-3.9-rc2.orig/drivers/hwmon/lm75.c	2013-03-12 11:04:52.475912290 +0100
++++ linux-3.9-rc2/drivers/hwmon/lm75.c	2013-03-12 13:37:45.206041683 +0100
+@@ -167,8 +167,28 @@ lm75_probe(struct i2c_client *client, co
+ 	 * Then tweak to be more precise when appropriate.
+ 	 */
+ 	set_mask = 0;
+-	clr_mask = (1 << 0)			/* continuous conversions */
+-		| (1 << 6) | (1 << 5);		/* 9-bit mode */
++	clr_mask = LM75_SHUTDOWN;		/* continuous conversions */
++
++	switch (id->driver_data) {
++	case adt75:
++		clr_mask |= 1 << 5;		/* not one-shot mode */
++		break;
++	case ds1775:
++	case ds75:
++	case stds75:
++		clr_mask |= 3 << 5;		/* 9-bit mode */
++		break;
++	case mcp980x:
++	case tmp100:
++	case tmp101:
++	case tmp105:
++	case tmp175:
++	case tmp275:
++	case tmp75:
++		clr_mask |= 3 << 5;		/* 9-bit mode */
++		clr_mask |= 1 << 7;		/* not one-shot mode */
++		break;
++	}
+ 
+ 	/* configure as specified */
+ 	status = lm75_read_value(client, LM75_REG_CONF);
+
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
