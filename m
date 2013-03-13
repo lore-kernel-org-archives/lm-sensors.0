@@ -1,64 +1,88 @@
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Thu, 14 Mar 2013 13:11:20 +0000
-Subject: [lm-sensors] [PATCH 00/10] Use module_platform_driver_probe() part 2
-Message-Id: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 13 Mar 2013 11:16:51 +0000
+Subject: [lm-sensors] [PATCH 5/5 v2] Add support for the Dallas/Maxim DS7505
+Message-Id: <20130313121651.4438345e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-ide@vger.kernel.org, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi all,
-this patch set is the second part for the conversion to use
-new module_platform_driver_probe() macro.
+Basically it's the same as the original DS75 but much faster.
 
-I will send a part 3 for the remaining drivers.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+---
+Changes in v2:
+ * Fix chip names.
 
-Fabio Porcedda (10):
-  drivers: media: use module_platform_driver_probe()
-  drivers: ata: use module_platform_driver_probe()
-  drivers: char: use module_platform_driver_probe()
-  drivers: hwmon: use module_platform_driver_probe()
-  drivers: ide: use module_platform_driver_probe()
-  drivers: input: use module_platform_driver_probe()
-  drivers: memory: use module_platform_driver_probe()
-  drivers: mfd: use module_platform_driver_probe()
-  drivers: video: use module_platform_driver_probe()
-  drivers: misc: use module_platform_driver_probe()
+ Documentation/hwmon/lm75 |    8 ++++----
+ drivers/hwmon/Kconfig    |    2 +-
+ drivers/hwmon/lm75.c     |    7 +++++++
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
- drivers/ata/pata_at32.c                        | 13 +------------
- drivers/ata/pata_samsung_cf.c                  | 13 +------------
- drivers/char/hw_random/mxc-rnga.c              | 13 +------------
- drivers/char/hw_random/tx4939-rng.c            | 13 +------------
- drivers/hwmon/mc13783-adc.c                    | 13 +------------
- drivers/ide/gayle.c                            | 15 +--------------
- drivers/ide/tx4938ide.c                        | 13 +------------
- drivers/ide/tx4939ide.c                        | 13 +------------
- drivers/input/keyboard/amikbd.c                | 14 +-------------
- drivers/input/keyboard/davinci_keyscan.c       | 12 +-----------
- drivers/input/keyboard/nomadik-ske-keypad.c    | 12 +-----------
- drivers/input/misc/twl4030-pwrbutton.c         | 13 +------------
- drivers/input/mouse/amimouse.c                 | 14 +-------------
- drivers/input/serio/at32psif.c                 | 13 +------------
- drivers/input/serio/q40kbd.c                   | 13 +------------
- drivers/input/touchscreen/atmel-wm97xx.c       | 12 +-----------
- drivers/input/touchscreen/mc13783_ts.c         | 12 +-----------
- drivers/media/platform/sh_vou.c                | 13 +------------
- drivers/media/platform/soc_camera/atmel-isi.c  | 12 +-----------
- drivers/media/platform/soc_camera/mx1_camera.c | 13 +------------
- drivers/memory/emif.c                          | 12 +-----------
- drivers/mfd/davinci_voicecodec.c               | 12 +-----------
- drivers/mfd/htc-pasic3.c                       | 13 +------------
- drivers/misc/atmel_pwm.c                       | 12 +-----------
- drivers/misc/ep93xx_pwm.c                      | 13 +------------
- drivers/video/backlight/atmel-pwm-bl.c         | 12 +-----------
- drivers/video/sh_mipi_dsi.c                    | 12 +-----------
- drivers/video/sh_mobile_hdmi.c                 | 12 +-----------
- 28 files changed, 28 insertions(+), 329 deletions(-)
+--- linux-3.9-rc2.orig/Documentation/hwmon/lm75	2013-03-12 15:49:08.893730398 +0100
++++ linux-3.9-rc2/Documentation/hwmon/lm75	2013-03-12 15:51:32.842053514 +0100
+@@ -12,11 +12,11 @@ Supported chips:
+     Addresses scanned: I2C 0x48 - 0x4f
+     Datasheet: Publicly available at the National Semiconductor website
+                http://www.national.com/
+-  * Dallas Semiconductor DS75, DS1775
+-    Prefixes: 'ds75', 'ds1775'
++  * Dallas Semiconductor (now Maxim) DS75, DS1775, DS7505
++    Prefixes: 'ds75', 'ds1775', 'ds7505'
+     Addresses scanned: none
+-    Datasheet: Publicly available at the Dallas Semiconductor website
+-               http://www.maxim-ic.com/
++    Datasheet: Publicly available at the Maxim website
++               http://www.maximintegrated.com/
+   * Maxim MAX6625, MAX6626
+     Prefixes: 'max6625', 'max6626'
+     Addresses scanned: none
+--- linux-3.9-rc2.orig/drivers/hwmon/Kconfig	2013-03-12 15:07:16.999781820 +0100
++++ linux-3.9-rc2/drivers/hwmon/Kconfig	2013-03-12 15:51:32.845053584 +0100
+@@ -588,7 +588,7 @@ config SENSORS_LM75
+ 	  temperature sensor chip, with models including:
+ 
+ 		- Analog Devices ADT75
+-		- Dallas Semiconductor DS75 and DS1775
++		- Dallas Semiconductor DS75, DS1775 and DS7505
+ 		- Maxim MAX6625 and MAX6626
+ 		- Microchip MCP980x
+ 		- National Semiconductor LM75, LM75A
+--- linux-3.9-rc2.orig/drivers/hwmon/lm75.c	2013-03-12 15:46:06.388517515 +0100
++++ linux-3.9-rc2/drivers/hwmon/lm75.c	2013-03-12 15:51:32.845053584 +0100
+@@ -38,6 +38,7 @@ enum lm75_type {		/* keep sorted in alph
+ 	adt75,
+ 	ds1775,
+ 	ds75,
++	ds7505,
+ 	lm75,
+ 	lm75a,
+ 	max6625,
+@@ -202,6 +203,11 @@ lm75_probe(struct i2c_client *client, co
+ 		data->resolution = 11;
+ 		data->sample_time = HZ;
+ 		break;
++	case ds7505:
++		set_mask |= 3 << 5;		/* 12-bit mode */
++		data->resolution = 12;
++		data->sample_time = HZ / 4;
++		break;
+ 	case lm75:
+ 	case lm75a:
+ 		data->resolution = 9;
+@@ -289,6 +295,7 @@ static const struct i2c_device_id lm75_i
+ 	{ "adt75", adt75, },
+ 	{ "ds1775", ds1775, },
+ 	{ "ds75", ds75, },
++	{ "ds7505", ds7505, },
+ 	{ "lm75", lm75, },
+ 	{ "lm75a", lm75a, },
+ 	{ "max6625", max6625, },
 
 -- 
-1.8.1.5
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
