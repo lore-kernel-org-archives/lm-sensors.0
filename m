@@ -1,157 +1,148 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 31 Mar 2013 18:09:39 +0000
-Subject: [lm-sensors] [PATCH 5/5] hwmon: (it87) Use single group for miscellaneous attributes
-Message-Id: <1364753379-20222-6-git-send-email-linux@roeck-us.net>
+Date: Wed, 13 Mar 2013 23:23:57 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon: (w83627ehf) Use request_muxed_region
+Message-Id: <1363217037-15723-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use is_visible to determine if attributes should be generated or not.
-This simplifies the code and reduces object size by about 120 bytes
-on x86_64.
+Serialize access to the hardware by using "request_muxed_region".
+Calls to this macro will hold off the requestor if the resource is
+currently busy. "superio_enter" will return an error if call to
+"request_muxed_region" fails. Rest of the code change is to pass
+errors returned from superio_enter to the top level, and ensures
+that superio_exit is called in each error path.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c |   75 +++++++++++++++++++-------------------------------
- 1 file changed, 28 insertions(+), 47 deletions(-)
+ drivers/hwmon/w83627ehf.c |   38 +++++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index a6cc41d..44559c5 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1556,15 +1556,36 @@ static const struct attribute_group it87_group_temp = {
- 	.is_visible = it87_temp_is_visible,
- };
- 
-+static umode_t it87_is_visible(struct kobject *kobj,
-+			       struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct it87_sio_data *sio_data = dev->platform_data;
-+
-+	if ((index = 3 || index = 4) && sio_data->skip_vid)
-+		return 0;
-+
-+	if (index > 4 && !(sio_data->internal & (1 << (index - 5))))
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
- static struct attribute *it87_attributes[] = {
- 	&dev_attr_alarms.attr,
- 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
- 	&dev_attr_name.attr,
-+	&dev_attr_vrm.attr,				/* 3 */
-+	&dev_attr_cpu0_vid.attr,			/* 4 */
-+	&sensor_dev_attr_in3_label.dev_attr.attr,	/* 5 .. 7 */
-+	&sensor_dev_attr_in7_label.dev_attr.attr,
-+	&sensor_dev_attr_in8_label.dev_attr.attr,
- 	NULL
- };
- 
- static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
-+	.is_visible = it87_is_visible,
- };
- 
- static umode_t it87_fan_is_visible(struct kobject *kobj,
-@@ -1699,27 +1720,6 @@ static const struct attribute_group it87_group_pwm = {
- 	.is_visible = it87_pwm_is_visible,
- };
- 
--static struct attribute *it87_attributes_vid[] = {
--	&dev_attr_vrm.attr,
--	&dev_attr_cpu0_vid.attr,
--	NULL
--};
--
--static const struct attribute_group it87_group_vid = {
--	.attrs = it87_attributes_vid,
--};
--
--static struct attribute *it87_attributes_label[] = {
--	&sensor_dev_attr_in3_label.dev_attr.attr,
--	&sensor_dev_attr_in7_label.dev_attr.attr,
--	&sensor_dev_attr_in8_label.dev_attr.attr,
--	NULL
--};
--
--static const struct attribute_group it87_group_label = {
--	.attrs = it87_attributes_label,
--};
--
- /* SuperIO detection - will change isa_address if a chip is found */
- static int __init it87_find(unsigned short *address,
- 	struct it87_sio_data *sio_data)
-@@ -1989,17 +1989,11 @@ exit:
- 
- static void it87_remove_files(struct device *dev)
- {
--	struct it87_sio_data *sio_data = dev->platform_data;
--
- 	sysfs_remove_group(&dev->kobj, &it87_group);
- 	sysfs_remove_group(&dev->kobj, &it87_group_in);
- 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
- 	sysfs_remove_group(&dev->kobj, &it87_group_fan);
- 	sysfs_remove_group(&dev->kobj, &it87_group_pwm);
--
--	if (!sio_data->skip_vid)
--		sysfs_remove_group(&dev->kobj, &it87_group_vid);
--	sysfs_remove_group(&dev->kobj, &it87_group_label);
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index a56c33e..45d949b 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -135,11 +135,14 @@ superio_select(int ioreg, int ld)
+ 	outb(ld, ioreg + 1);
  }
  
- static int it87_probe(struct platform_device *pdev)
-@@ -2008,7 +2002,7 @@ static int it87_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct device *dev = &pdev->dev;
- 	struct it87_sio_data *sio_data = dev->platform_data;
--	int err = 0, i;
+-static inline void
++static inline int
+ superio_enter(int ioreg)
+ {
++	if (!request_muxed_region(ioreg, 2, DRVNAME))
++		return -EBUSY;
+ 	outb(0x87, ioreg);
+ 	outb(0x87, ioreg);
++	return 0;
+ }
+ 
+ static inline void
+@@ -148,6 +151,7 @@ superio_exit(int ioreg)
+ 	outb(0xaa, ioreg);
+ 	outb(0x02, ioreg);
+ 	outb(0x02, ioreg + 1);
++	release_region(ioreg, 2);
+ }
+ 
+ /*
+@@ -1970,20 +1974,23 @@ w83627ehf_set_temp_reg_ehf(struct w83627ehf_data *data, int n_temp)
+ 	}
+ }
+ 
+-static void
++static int
+ w83627ehf_check_fan_inputs(const struct w83627ehf_sio_data *sio_data,
+ 			   struct w83627ehf_data *data)
+ {
+ 	int fan3pin, fan4pin, fan4min, fan5pin, regval;
 +	int err;
- 	int enable_pwm_interface;
  
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-@@ -2089,6 +2083,12 @@ static int it87_probe(struct platform_device *pdev)
- 	/* Initialize the IT87 chip */
- 	it87_init_device(pdev);
- 
-+	if (!sio_data->skip_vid) {
-+		data->vrm = vid_which_vrm();
-+		/* VID reading from Super-I/O config space if available */
-+		data->vid = sio_data->vid_value;
-+	}
-+
- 	/* Register sysfs hooks */
- 	err = sysfs_create_group(&dev->kobj, &it87_group);
- 	if (err)
-@@ -2112,25 +2112,6 @@ static int it87_probe(struct platform_device *pdev)
- 			goto error;
+ 	/* The W83627UHG is simple, only two fan inputs, no config */
+ 	if (sio_data->kind = w83627uhg) {
+ 		data->has_fan = 0x03; /* fan1 and fan2 */
+ 		data->has_fan_min = 0x03;
+-		return;
++		return 0;
  	}
  
--	if (!sio_data->skip_vid) {
--		data->vrm = vid_which_vrm();
--		/* VID reading from Super-I/O config space if available */
--		data->vid = sio_data->vid_value;
--		err = sysfs_create_group(&dev->kobj, &it87_group_vid);
+-	superio_enter(sio_data->sioreg);
++	err = superio_enter(sio_data->sioreg);
++	if (err)
++		return err;
+ 
+ 	/* fan4 and fan5 share some pins with the GPIO and serial flash */
+ 	if (sio_data->kind = nct6775) {
+@@ -2057,6 +2064,7 @@ w83627ehf_check_fan_inputs(const struct w83627ehf_sio_data *sio_data,
+ 			data->has_fan_min |= (1 << 4);
+ 		}
+ 	}
++	return 0;
+ }
+ 
+ static int w83627ehf_probe(struct platform_device *pdev)
+@@ -2360,7 +2368,10 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ 	w83627ehf_init_device(data, sio_data->kind);
+ 
+ 	data->vrm = vid_which_vrm();
+-	superio_enter(sio_data->sioreg);
++	err = superio_enter(sio_data->sioreg);
++	if (err)
++		goto exit_release;
++
+ 	/* Read VID value */
+ 	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b ||
+ 	    sio_data->kind = nct6775 || sio_data->kind = nct6776) {
+@@ -2372,8 +2383,10 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ 		superio_select(sio_data->sioreg, W83667HG_LD_VID);
+ 		data->vid = superio_inb(sio_data->sioreg, 0xe3);
+ 		err = device_create_file(dev, &dev_attr_cpu0_vid);
 -		if (err)
--			goto error;
--	}
--
--	/* Export labels for internal sensors */
--	for (i = 0; i < 3; i++) {
--		if (!(sio_data->internal & (1 << i)))
--			continue;
--		err = sysfs_create_file(&dev->kobj,
--					it87_attributes_label[i]);
--		if (err)
--			goto error;
--	}
--
- 	data->hwmon_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		err = PTR_ERR(data->hwmon_dev);
++		if (err) {
++			superio_exit(sio_data->sioreg);
+ 			goto exit_release;
++		}
+ 	} else if (sio_data->kind != w83627uhg) {
+ 		superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
+ 		if (superio_inb(sio_data->sioreg, SIO_REG_VID_CTRL) & 0x80) {
+@@ -2409,8 +2422,10 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ 				data->vid &= 0x3f;
+ 
+ 			err = device_create_file(dev, &dev_attr_cpu0_vid);
+-			if (err)
++			if (err) {
++				superio_exit(sio_data->sioreg);
+ 				goto exit_release;
++			}
+ 		} else {
+ 			dev_info(dev, "VID pins in output mode, CPU VID not "
+ 				 "available\n");
+@@ -2434,7 +2449,9 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ 
+ 	superio_exit(sio_data->sioreg);
+ 
+-	w83627ehf_check_fan_inputs(sio_data, data);
++	err = w83627ehf_check_fan_inputs(sio_data, data);
++	if (err)
++		goto exit_remove;
+ 
+ 	/* Read fan clock dividers immediately */
+ 	w83627ehf_update_fan_div_common(dev, data);
+@@ -2721,8 +2738,11 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
+ 
+ 	u16 val;
+ 	const char *sio_name;
++	int err;
+ 
+-	superio_enter(sioaddr);
++	err = superio_enter(sioaddr);
++	if (err)
++		return err;
+ 
+ 	if (force_id)
+ 		val = force_id;
 -- 
 1.7.9.7
 
