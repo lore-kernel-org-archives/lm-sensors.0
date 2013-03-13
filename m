@@ -1,79 +1,251 @@
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Thu, 14 Mar 2013 13:11:23 +0000
-Subject: [lm-sensors] [PATCH 02/10] drivers: ata: use module_platform_driver_probe()
-Message-Id: <1363266691-15757-4-git-send-email-fabio.porcedda@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 13 Mar 2013 23:58:41 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (pmbus/lm25066) Refactor device specific coefficients
+Message-Id: <1363219122-27226-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-ide@vger.kernel.org, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jeff Garzik <jgarzik@pobox.com>
+To: lm-sensors@vger.kernel.org
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+Initialize device specific coefficients from table instead of hard-coding it
+to simplify adding additional chips.
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: linux-ide@vger.kernel.org
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/ata/pata_at32.c       | 13 +------------
- drivers/ata/pata_samsung_cf.c | 13 +------------
- 2 files changed, 2 insertions(+), 24 deletions(-)
+ drivers/hwmon/pmbus/lm25066.c |  196 +++++++++++++++++++++++++----------------
+ 1 file changed, 118 insertions(+), 78 deletions(-)
 
-diff --git a/drivers/ata/pata_at32.c b/drivers/ata/pata_at32.c
-index 36f189c..8d493b4 100644
---- a/drivers/ata/pata_at32.c
-+++ b/drivers/ata/pata_at32.c
-@@ -393,18 +393,7 @@ static struct platform_driver pata_at32_driver = {
- 	},
- };
+diff --git a/drivers/hwmon/pmbus/lm25066.c b/drivers/hwmon/pmbus/lm25066.c
+index f9f0c93..0826714 100644
+--- a/drivers/hwmon/pmbus/lm25066.c
++++ b/drivers/hwmon/pmbus/lm25066.c
+@@ -44,6 +44,103 @@ enum chips { lm25066, lm5064, lm5066 };
  
--static int __init pata_at32_init(void)
--{
--	return platform_driver_probe(&pata_at32_driver, pata_at32_probe);
--}
--
--static void __exit pata_at32_exit(void)
--{
--	platform_driver_unregister(&pata_at32_driver);
--}
--
--module_init(pata_at32_init);
--module_exit(pata_at32_exit);
-+module_platform_driver_probe(pata_at32_driver, pata_at32_probe);
+ #define LM25066_DEV_SETUP_CL		(1 << 4)	/* Current limit */
  
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("AVR32 SMC/CFC PATA Driver");
-diff --git a/drivers/ata/pata_samsung_cf.c b/drivers/ata/pata_samsung_cf.c
-index 70b0e01..6ef27e9 100644
---- a/drivers/ata/pata_samsung_cf.c
-+++ b/drivers/ata/pata_samsung_cf.c
-@@ -661,18 +661,7 @@ static struct platform_driver pata_s3c_driver = {
- 	},
- };
++struct __coeff {
++	short m, b, R;
++};
++
++#define PSC_CURRENT_IN_L	(PSC_NUM_CLASSES)
++#define PSC_POWER_L		(PSC_NUM_CLASSES + 1)
++
++static struct __coeff lm25066_coeff[3][PSC_NUM_CLASSES + 2] = {
++	[lm25066] = {
++		[PSC_VOLTAGE_IN] = {
++			.m = 22070,
++			.R = -2,
++		},
++		[PSC_VOLTAGE_OUT] = {
++			.m = 22070,
++			.R = -2,
++		},
++		[PSC_CURRENT_IN] = {
++			.m = 13661,
++			.R = -2,
++		},
++		[PSC_CURRENT_IN_L] = {
++			.m = 6852,
++			.R = -2,
++		},
++		[PSC_POWER] = {
++			.m = 736,
++			.R = -2,
++		},
++		[PSC_POWER_L] = {
++			.m = 369,
++			.R = -2,
++		},
++		[PSC_TEMPERATURE] = {
++			.m = 16,
++		},
++	},
++	[lm5064] = {
++		[PSC_VOLTAGE_IN] = {
++			.m = 4611,
++			.R = -2,
++		},
++		[PSC_VOLTAGE_OUT] = {
++			.m = 4621,
++			.R = -2,
++		},
++		[PSC_CURRENT_IN] = {
++			.m = 10742,
++			.R = -2,
++		},
++		[PSC_CURRENT_IN_L] = {
++			.m = 5456,
++			.R = -2,
++		},
++		[PSC_POWER] = {
++			.m = 1204,
++			.R = -3,
++		},
++		[PSC_POWER_L] = {
++			.m = 612,
++			.R = -3,
++		},
++		[PSC_TEMPERATURE] = {
++			.m = 16,
++		},
++	},
++	[lm5066] = {
++		[PSC_VOLTAGE_IN] = {
++			.m = 4587,
++			.R = -2,
++		},
++		[PSC_VOLTAGE_OUT] = {
++			.m = 4587,
++			.R = -2,
++		},
++		[PSC_CURRENT_IN] = {
++			.m = 10753,
++			.R = -2,
++		},
++		[PSC_CURRENT_IN_L] = {
++			.m = 5405,
++			.R = -2,
++		},
++		[PSC_POWER] = {
++			.m = 1204,
++			.R = -3,
++		},
++		[PSC_POWER_L] = {
++			.m = 605,
++			.R = -3,
++		},
++		[PSC_TEMPERATURE] = {
++			.m = 16,
++		},
++	},
++};
++
+ struct lm25066_data {
+ 	int id;
+ 	struct pmbus_driver_info info;
+@@ -162,6 +259,7 @@ static int lm25066_probe(struct i2c_client *client,
+ 	int config;
+ 	struct lm25066_data *data;
+ 	struct pmbus_driver_info *info;
++	struct __coeff *coeff;
  
--static int __init pata_s3c_init(void)
--{
--	return platform_driver_probe(&pata_s3c_driver, pata_s3c_probe);
--}
--
--static void __exit pata_s3c_exit(void)
--{
--	platform_driver_unregister(&pata_s3c_driver);
--}
--
--module_init(pata_s3c_init);
--module_exit(pata_s3c_exit);
-+module_platform_driver_probe(pata_s3c_driver, pata_s3c_probe);
+ 	if (!i2c_check_functionality(client->adapter,
+ 				     I2C_FUNC_SMBUS_READ_BYTE_DATA))
+@@ -186,9 +284,6 @@ static int lm25066_probe(struct i2c_client *client,
+ 	info->format[PSC_TEMPERATURE] = direct;
+ 	info->format[PSC_POWER] = direct;
  
- MODULE_AUTHOR("Abhilash Kesavan, <a.kesavan@samsung.com>");
- MODULE_DESCRIPTION("low-level driver for Samsung PATA controller");
+-	info->m[PSC_TEMPERATURE] = 16;
+-	info->b[PSC_TEMPERATURE] = 0;
+-	info->R[PSC_TEMPERATURE] = 0;
+ 
+ 	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_VMON | PMBUS_HAVE_VOUT
+ 	  | PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_PIN | PMBUS_HAVE_IIN
+@@ -197,81 +292,26 @@ static int lm25066_probe(struct i2c_client *client,
+ 	info->read_word_data = lm25066_read_word_data;
+ 	info->write_word_data = lm25066_write_word_data;
+ 
+-	switch (id->driver_data) {
+-	case lm25066:
+-		info->m[PSC_VOLTAGE_IN] = 22070;
+-		info->b[PSC_VOLTAGE_IN] = 0;
+-		info->R[PSC_VOLTAGE_IN] = -2;
+-		info->m[PSC_VOLTAGE_OUT] = 22070;
+-		info->b[PSC_VOLTAGE_OUT] = 0;
+-		info->R[PSC_VOLTAGE_OUT] = -2;
+-
+-		if (config & LM25066_DEV_SETUP_CL) {
+-			info->m[PSC_CURRENT_IN] = 6852;
+-			info->b[PSC_CURRENT_IN] = 0;
+-			info->R[PSC_CURRENT_IN] = -2;
+-			info->m[PSC_POWER] = 369;
+-			info->b[PSC_POWER] = 0;
+-			info->R[PSC_POWER] = -2;
+-		} else {
+-			info->m[PSC_CURRENT_IN] = 13661;
+-			info->b[PSC_CURRENT_IN] = 0;
+-			info->R[PSC_CURRENT_IN] = -2;
+-			info->m[PSC_POWER] = 736;
+-			info->b[PSC_POWER] = 0;
+-			info->R[PSC_POWER] = -2;
+-		}
+-		break;
+-	case lm5064:
+-		info->m[PSC_VOLTAGE_IN] = 22075;
+-		info->b[PSC_VOLTAGE_IN] = 0;
+-		info->R[PSC_VOLTAGE_IN] = -2;
+-		info->m[PSC_VOLTAGE_OUT] = 22075;
+-		info->b[PSC_VOLTAGE_OUT] = 0;
+-		info->R[PSC_VOLTAGE_OUT] = -2;
+-
+-		if (config & LM25066_DEV_SETUP_CL) {
+-			info->m[PSC_CURRENT_IN] = 6713;
+-			info->b[PSC_CURRENT_IN] = 0;
+-			info->R[PSC_CURRENT_IN] = -2;
+-			info->m[PSC_POWER] = 3619;
+-			info->b[PSC_POWER] = 0;
+-			info->R[PSC_POWER] = -3;
+-		} else {
+-			info->m[PSC_CURRENT_IN] = 13426;
+-			info->b[PSC_CURRENT_IN] = 0;
+-			info->R[PSC_CURRENT_IN] = -2;
+-			info->m[PSC_POWER] = 7238;
+-			info->b[PSC_POWER] = 0;
+-			info->R[PSC_POWER] = -3;
+-		}
+-		break;
+-	case lm5066:
+-		info->m[PSC_VOLTAGE_IN] = 4587;
+-		info->b[PSC_VOLTAGE_IN] = 0;
+-		info->R[PSC_VOLTAGE_IN] = -2;
+-		info->m[PSC_VOLTAGE_OUT] = 4587;
+-		info->b[PSC_VOLTAGE_OUT] = 0;
+-		info->R[PSC_VOLTAGE_OUT] = -2;
+-
+-		if (config & LM25066_DEV_SETUP_CL) {
+-			info->m[PSC_CURRENT_IN] = 10753;
+-			info->b[PSC_CURRENT_IN] = 0;
+-			info->R[PSC_CURRENT_IN] = -2;
+-			info->m[PSC_POWER] = 1204;
+-			info->b[PSC_POWER] = 0;
+-			info->R[PSC_POWER] = -3;
+-		} else {
+-			info->m[PSC_CURRENT_IN] = 5405;
+-			info->b[PSC_CURRENT_IN] = 0;
+-			info->R[PSC_CURRENT_IN] = -2;
+-			info->m[PSC_POWER] = 605;
+-			info->b[PSC_POWER] = 0;
+-			info->R[PSC_POWER] = -3;
+-		}
+-		break;
+-	default:
+-		return -ENODEV;
++	coeff = &lm25066_coeff[data->id][0];
++	info->m[PSC_TEMPERATURE] = coeff[PSC_TEMPERATURE].m;
++	info->b[PSC_TEMPERATURE] = coeff[PSC_TEMPERATURE].b;
++	info->R[PSC_TEMPERATURE] = coeff[PSC_TEMPERATURE].R;
++	info->m[PSC_VOLTAGE_IN] = coeff[PSC_VOLTAGE_IN].m;
++	info->b[PSC_VOLTAGE_IN] = coeff[PSC_VOLTAGE_IN].b;
++	info->R[PSC_VOLTAGE_IN] = coeff[PSC_VOLTAGE_IN].R;
++	info->m[PSC_VOLTAGE_OUT] = coeff[PSC_VOLTAGE_OUT].m;
++	info->b[PSC_VOLTAGE_OUT] = coeff[PSC_VOLTAGE_OUT].b;
++	info->R[PSC_VOLTAGE_OUT] = coeff[PSC_VOLTAGE_OUT].R;
++	info->b[PSC_CURRENT_IN] = coeff[PSC_CURRENT_IN].b;
++	info->R[PSC_CURRENT_IN] = coeff[PSC_CURRENT_IN].R;
++	info->b[PSC_POWER] = coeff[PSC_POWER].b;
++	info->R[PSC_POWER] = coeff[PSC_POWER].R;
++	if (config & LM25066_DEV_SETUP_CL) {
++		info->m[PSC_CURRENT_IN] = coeff[PSC_CURRENT_IN_L].m;
++		info->m[PSC_POWER] = coeff[PSC_POWER_L].m;
++	} else {
++		info->m[PSC_CURRENT_IN] = coeff[PSC_CURRENT_IN].m;
++		info->m[PSC_POWER] = coeff[PSC_POWER].m;
+ 	}
+ 
+ 	return pmbus_do_probe(client, id, info);
 -- 
-1.8.1.5
+1.7.9.7
 
 
 _______________________________________________
