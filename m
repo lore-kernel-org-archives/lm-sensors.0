@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 13 Mar 2013 04:46:48 +0000
+Date: Wed, 13 Mar 2013 04:52:26 +0000
 Subject: Re: [lm-sensors] [PATCH v4] hwmon: ntc: Add DT with IIO support to NTC thermistor driver
-Message-Id: <20130313044648.GA10059@roeck-us.net>
+Message-Id: <20130313045226.GA15611@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1363077566-6254-1-git-send-email-ch.naveen@samsung.com>
  <1363147700-7042-1-git-send-email-ch.naveen@samsung.com>
@@ -22,6 +22,22 @@ On Wed, Mar 13, 2013 at 09:38:20AM +0530, Naveen Krishna Chatradhi wrote:
 > and uses iio_raw_read calls to get the ADC converted value.
 > 
 > Signed-off-by: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+
+Unfortunately there is still something we'll need to sort out:
+
+fs/sysfs/Kconfig:1:     symbol SYSFS is selected by AT91_ADC
+drivers/iio/adc/Kconfig:85:     symbol AT91_ADC depends on IIO
+drivers/iio/Kconfig:5:  symbol IIO is selected by SENSORS_NTC_THERMISTOR
+drivers/hwmon/Kconfig:900:      symbol SENSORS_NTC_THERMISTOR depends on HWMON
+drivers/hwmon/Kconfig:5:        symbol HWMON is selected by EEEPC_LAPTOP
+drivers/platform/x86/Kconfig:477:       symbol EEEPC_LAPTOP depends on
+HOTPLUG_PCI
+drivers/pci/hotplug/Kconfig:5:  symbol HOTPLUG_PCI depends on SYSFS
+
+So we can not just select IIO. I'll see if I can find a solution.
+
+Guenter
+
 > ---
 > Changes since v3:
 > 1. Added a NULL check before iio_channel_release
@@ -29,15 +45,6 @@ On Wed, Mar 13, 2013 at 09:38:20AM +0530, Naveen Krishna Chatradhi wrote:
 > 
 > Guenter Roeck, Its wonderful working with you. Thanks.
 > 
-My pleasure.
-
-Patch looks ok to me now. I'll wait a couple of days to see if there is some
-feedback from the devicetree folks. Unless there are objections, I'll then queue
-it for 3.10.
-
-Thanks,
-Guenter
-
 >  .../devicetree/bindings/hwmon/ntc_thermistor.txt   |   29 ++++
 >  drivers/hwmon/Kconfig                              |    1 +
 >  drivers/hwmon/ntc_thermistor.c                     |  145 +++++++++++++++++---
