@@ -1,88 +1,81 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 13 Mar 2013 11:16:51 +0000
-Subject: [lm-sensors] [PATCH 5/5 v2] Add support for the Dallas/Maxim DS7505
-Message-Id: <20130313121651.4438345e@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 13 Mar 2013 23:23:56 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: (w83627ehf) Drop read/write lock
+Message-Id: <1363217037-15723-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Basically it's the same as the original DS75 but much faster.
+Signeded/write lock is acquired for each read/write operation from/to the chip.
+This occurs either during initialization, when it is not needed, or during
+updates, when the update_lock is held as well, and it is not needed either.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-Changes in v2:
- * Fix chip names.
+ drivers/hwmon/w83627ehf.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
- Documentation/hwmon/lm75 |    8 ++++----
- drivers/hwmon/Kconfig    |    2 +-
- drivers/hwmon/lm75.c     |    7 +++++++
- 3 files changed, 12 insertions(+), 5 deletions(-)
-
---- linux-3.9-rc2.orig/Documentation/hwmon/lm75	2013-03-12 15:49:08.893730398 +0100
-+++ linux-3.9-rc2/Documentation/hwmon/lm75	2013-03-12 15:51:32.842053514 +0100
-@@ -12,11 +12,11 @@ Supported chips:
-     Addresses scanned: I2C 0x48 - 0x4f
-     Datasheet: Publicly available at the National Semiconductor website
-                http://www.national.com/
--  * Dallas Semiconductor DS75, DS1775
--    Prefixes: 'ds75', 'ds1775'
-+  * Dallas Semiconductor (now Maxim) DS75, DS1775, DS7505
-+    Prefixes: 'ds75', 'ds1775', 'ds7505'
-     Addresses scanned: none
--    Datasheet: Publicly available at the Dallas Semiconductor website
--               http://www.maxim-ic.com/
-+    Datasheet: Publicly available at the Maxim website
-+               http://www.maximintegrated.com/
-   * Maxim MAX6625, MAX6626
-     Prefixes: 'max6625', 'max6626'
-     Addresses scanned: none
---- linux-3.9-rc2.orig/drivers/hwmon/Kconfig	2013-03-12 15:07:16.999781820 +0100
-+++ linux-3.9-rc2/drivers/hwmon/Kconfig	2013-03-12 15:51:32.845053584 +0100
-@@ -588,7 +588,7 @@ config SENSORS_LM75
- 	  temperature sensor chip, with models including:
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 92e173d..a56c33e 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -429,7 +429,6 @@ struct w83627ehf_data {
+ 	const char *name;
  
- 		- Analog Devices ADT75
--		- Dallas Semiconductor DS75 and DS1775
-+		- Dallas Semiconductor DS75, DS1775 and DS7505
- 		- Maxim MAX6625 and MAX6626
- 		- Microchip MCP980x
- 		- National Semiconductor LM75, LM75A
---- linux-3.9-rc2.orig/drivers/hwmon/lm75.c	2013-03-12 15:46:06.388517515 +0100
-+++ linux-3.9-rc2/drivers/hwmon/lm75.c	2013-03-12 15:51:32.845053584 +0100
-@@ -38,6 +38,7 @@ enum lm75_type {		/* keep sorted in alph
- 	adt75,
- 	ds1775,
- 	ds75,
-+	ds7505,
- 	lm75,
- 	lm75a,
- 	max6625,
-@@ -202,6 +203,11 @@ lm75_probe(struct i2c_client *client, co
- 		data->resolution = 11;
- 		data->sample_time = HZ;
- 		break;
-+	case ds7505:
-+		set_mask |= 3 << 5;		/* 12-bit mode */
-+		data->resolution = 12;
-+		data->sample_time = HZ / 4;
-+		break;
- 	case lm75:
- 	case lm75a:
- 		data->resolution = 9;
-@@ -289,6 +295,7 @@ static const struct i2c_device_id lm75_i
- 	{ "adt75", adt75, },
- 	{ "ds1775", ds1775, },
- 	{ "ds75", ds75, },
-+	{ "ds7505", ds7505, },
- 	{ "lm75", lm75, },
- 	{ "lm75a", lm75a, },
- 	{ "max6625", max6625, },
-
+ 	struct device *hwmon_dev;
+-	struct mutex lock;
+ 
+ 	u16 reg_temp[NUM_REG_TEMP];
+ 	u16 reg_temp_over[NUM_REG_TEMP];
+@@ -538,8 +537,6 @@ static u16 w83627ehf_read_value(struct w83627ehf_data *data, u16 reg)
+ {
+ 	int res, word_sized = is_word_sized(reg);
+ 
+-	mutex_lock(&data->lock);
+-
+ 	w83627ehf_set_bank(data, reg);
+ 	outb_p(reg & 0xff, data->addr + ADDR_REG_OFFSET);
+ 	res = inb_p(data->addr + DATA_REG_OFFSET);
+@@ -548,8 +545,6 @@ static u16 w83627ehf_read_value(struct w83627ehf_data *data, u16 reg)
+ 		       data->addr + ADDR_REG_OFFSET);
+ 		res = (res << 8) + inb_p(data->addr + DATA_REG_OFFSET);
+ 	}
+-
+-	mutex_unlock(&data->lock);
+ 	return res;
+ }
+ 
+@@ -558,8 +553,6 @@ static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg,
+ {
+ 	int word_sized = is_word_sized(reg);
+ 
+-	mutex_lock(&data->lock);
+-
+ 	w83627ehf_set_bank(data, reg);
+ 	outb_p(reg & 0xff, data->addr + ADDR_REG_OFFSET);
+ 	if (word_sized) {
+@@ -568,8 +561,6 @@ static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg,
+ 		       data->addr + ADDR_REG_OFFSET);
+ 	}
+ 	outb_p(value & 0xff, data->addr + DATA_REG_OFFSET);
+-
+-	mutex_unlock(&data->lock);
+ 	return 0;
+ }
+ 
+@@ -2094,7 +2085,6 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	data->addr = res->start;
+-	mutex_init(&data->lock);
+ 	mutex_init(&data->update_lock);
+ 	data->name = w83627ehf_device_names[sio_data->kind];
+ 	data->bank = 0xff;		/* Force initial bank selection */
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
