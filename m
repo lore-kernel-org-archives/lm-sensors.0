@@ -1,86 +1,187 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Fri, 08 Mar 2013 08:13:29 +0000
-Subject: [lm-sensors] [PATCH v4 1/3] ab8500_btemp: make ab8500_btemp_get* interfaces public
-Message-Id: <1362730411-11112-2-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 13 Mar 2013 23:58:39 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (pmbus/lm25066) Report VAUX as vmon
+Message-Id: <1363219122-27226-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Make ab8500_btemp_get_temp interface public, export it and also export the
-ab8500_btemp_get, ab8500_btemp_get_batctrl_temp interfaces, so that the ab8500
-hwmon driver can use them.
+So far the driver reported the voltage on VAUX as "vout2". This was not
+entirely appropriate as it is not an output voltage, and complicates
+the code. Use the new virtual "VMON" register set and report the voltage
+as "vmon" instead.
 
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
-Acked-by: Anton Vorontsov <anton@enomsg.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/power/ab8500_btemp.c         | 5 ++++-
- include/linux/mfd/abx500/ab8500-bm.h | 5 +++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ Documentation/hwmon/lm25066   |   16 ++++-----
+ drivers/hwmon/pmbus/lm25066.c |   73 ++++++++++++-----------------------------
+ 2 files changed, 29 insertions(+), 60 deletions(-)
 
-diff --git a/drivers/power/ab8500_btemp.c b/drivers/power/ab8500_btemp.c
-index 20e2a7d..3359075 100644
---- a/drivers/power/ab8500_btemp.c
-+++ b/drivers/power/ab8500_btemp.c
-@@ -123,6 +123,7 @@ struct ab8500_btemp *ab8500_btemp_get(void)
+diff --git a/Documentation/hwmon/lm25066 b/Documentation/hwmon/lm25066
+index 26025e4..2bc5ba6 100644
+--- a/Documentation/hwmon/lm25066
++++ b/Documentation/hwmon/lm25066
+@@ -60,14 +60,14 @@ in1_max			Maximum input voltage.
+ in1_min_alarm		Input voltage low alarm.
+ in1_max_alarm		Input voltage high alarm.
  
- 	return btemp;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get);
+-in2_label		"vout1"
+-in2_input		Measured output voltage.
+-in2_average		Average measured output voltage.
+-in2_min			Minimum output voltage.
+-in2_min_alarm		Output voltage low alarm.
+-
+-in3_label		"vout2"
+-in3_input		Measured voltage on vaux pin
++in2_label		"vmon"
++in2_input		Measured voltage on VAUX pin
++
++in3_label		"vout1"
++in3_input		Measured output voltage.
++in3_average		Average measured output voltage.
++in3_min			Minimum output voltage.
++in3_min_alarm		Output voltage low alarm.
  
- /**
-  * ab8500_btemp_batctrl_volt_to_res() - convert batctrl voltage to resistance
-@@ -727,7 +728,7 @@ static void ab8500_btemp_periodic(struct ab8500_btemp *di,
+ curr1_label		"iin"
+ curr1_input		Measured input current.
+diff --git a/drivers/hwmon/pmbus/lm25066.c b/drivers/hwmon/pmbus/lm25066.c
+index c299392..5489d70 100644
+--- a/drivers/hwmon/pmbus/lm25066.c
++++ b/drivers/hwmon/pmbus/lm25066.c
+@@ -2,6 +2,7 @@
+  * Hardware monitoring driver for LM25066 / LM5064 / LM5066
   *
-  * Returns battery temperature
-  */
--static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
-+int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- {
- 	int temp = 0;
+  * Copyright (c) 2011 Ericsson AB.
++ * Copyright (c) 2013 Guenter Roeck
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -56,42 +57,27 @@ static int lm25066_read_word_data(struct i2c_client *client, int page, int reg)
+ 	const struct lm25066_data *data = to_lm25066_data(info);
+ 	int ret;
  
-@@ -763,6 +764,7 @@ static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
+-	if (page > 1)
+-		return -ENXIO;
+-
+-	/* Map READ_VAUX into READ_VOUT register on page 1 */
+-	if (page = 1) {
+-		switch (reg) {
+-		case PMBUS_READ_VOUT:
+-			ret = pmbus_read_word_data(client, 0,
+-						   LM25066_READ_VAUX);
+-			if (ret < 0)
+-				break;
+-			/* Adjust returned value to match VOUT coefficients */
+-			switch (data->id) {
+-			case lm25066:
+-				/* VOUT: 4.54 mV VAUX: 283.2 uV LSB */
+-				ret = DIV_ROUND_CLOSEST(ret * 2832, 45400);
+-				break;
+-			case lm5064:
+-				/* VOUT: 4.53 mV VAUX: 700 uV LSB */
+-				ret = DIV_ROUND_CLOSEST(ret * 70, 453);
+-				break;
+-			case lm5066:
+-				/* VOUT: 2.18 mV VAUX: 725 uV LSB */
+-				ret = DIV_ROUND_CLOSEST(ret * 725, 2180);
+-				break;
+-			}
++	switch (reg) {
++	case PMBUS_VIRT_READ_VMON:
++		ret = pmbus_read_word_data(client, 0, LM25066_READ_VAUX);
++		if (ret < 0)
++			break;
++		/* Adjust returned value to match VIN coefficients */
++		switch (data->id) {
++		case lm25066:
++			/* VIN: 4.54 mV VAUX: 283.2 uV LSB */
++			ret = DIV_ROUND_CLOSEST(ret * 2832, 45400);
++			break;
++		case lm5064:
++			/* VIN: 4.53 mV VAUX: 700 uV LSB */
++			ret = DIV_ROUND_CLOSEST(ret * 70, 453);
+ 			break;
+-		default:
+-			/* No other valid registers on page 1 */
+-			ret = -ENXIO;
++		case lm5066:
++			/* VIN: 2.18 mV VAUX: 725 uV LSB */
++			ret = DIV_ROUND_CLOSEST(ret * 725, 2180);
+ 			break;
+ 		}
+-		goto done;
+-	}
+-
+-	switch (reg) {
++		break;
+ 	case PMBUS_READ_IIN:
+ 		ret = pmbus_read_word_data(client, 0, LM25066_MFR_READ_IIN);
+ 		break;
+@@ -128,7 +114,6 @@ static int lm25066_read_word_data(struct i2c_client *client, int page, int reg)
+ 		ret = -ENODATA;
+ 		break;
  	}
- 	return temp;
+-done:
+ 	return ret;
  }
-+EXPORT_SYMBOL(ab8500_btemp_get_temp);
  
- /**
-  * ab8500_btemp_get_batctrl_temp() - get the temperature
-@@ -774,6 +776,7 @@ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
+@@ -137,9 +122,6 @@ static int lm25066_write_word_data(struct i2c_client *client, int page, int reg,
  {
- 	return btemp->bat_temp * 1000;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_batctrl_temp);
+ 	int ret;
  
- /**
-  * ab8500_btemp_get_property() - get the btemp properties
-diff --git a/include/linux/mfd/abx500/ab8500-bm.h b/include/linux/mfd/abx500/ab8500-bm.h
-index 44310c9..4dd79f6 100644
---- a/include/linux/mfd/abx500/ab8500-bm.h
-+++ b/include/linux/mfd/abx500/ab8500-bm.h
-@@ -427,6 +427,7 @@ void ab8500_fg_reinit(void);
- void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
- struct ab8500_btemp *ab8500_btemp_get(void);
- int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
-+int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
- struct ab8500_fg *ab8500_fg_get(void);
- int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
- int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
-@@ -451,6 +452,10 @@ static int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
- {
- 	return 0;
+-	if (page > 1)
+-		return -ENXIO;
+-
+ 	switch (reg) {
+ 	case PMBUS_IIN_OC_WARN_LIMIT:
+ 		ret = pmbus_write_word_data(client, 0,
+@@ -161,17 +143,6 @@ static int lm25066_write_word_data(struct i2c_client *client, int page, int reg,
+ 	return ret;
  }
-+static int ab8500_btemp_get_temp(struct ab8500_btemp *btemp)
-+{
-+	return 0;
-+}
- struct ab8500_fg *ab8500_fg_get(void)
+ 
+-static int lm25066_write_byte(struct i2c_client *client, int page, u8 value)
+-{
+-	if (page > 1)
+-		return -ENXIO;
+-
+-	if (page <= 0)
+-		return pmbus_write_byte(client, page, value);
+-
+-	return 0;
+-}
+-
+ static int lm25066_probe(struct i2c_client *client,
+ 			  const struct i2c_device_id *id)
  {
- 	return NULL;
+@@ -195,7 +166,7 @@ static int lm25066_probe(struct i2c_client *client,
+ 	data->id = id->driver_data;
+ 	info = &data->info;
+ 
+-	info->pages = 2;
++	info->pages = 1;
+ 	info->format[PSC_VOLTAGE_IN] = direct;
+ 	info->format[PSC_VOLTAGE_OUT] = direct;
+ 	info->format[PSC_CURRENT_IN] = direct;
+@@ -206,14 +177,12 @@ static int lm25066_probe(struct i2c_client *client,
+ 	info->b[PSC_TEMPERATURE] = 0;
+ 	info->R[PSC_TEMPERATURE] = 0;
+ 
+-	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_VOUT
++	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_VMON | PMBUS_HAVE_VOUT
+ 	  | PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_PIN | PMBUS_HAVE_IIN
+ 	  | PMBUS_HAVE_STATUS_INPUT | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
+-	info->func[1] = PMBUS_HAVE_VOUT;
+ 
+ 	info->read_word_data = lm25066_read_word_data;
+ 	info->write_word_data = lm25066_write_word_data;
+-	info->write_byte = lm25066_write_byte;
+ 
+ 	switch (id->driver_data) {
+ 	case lm25066:
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
