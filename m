@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 13 Mar 2013 21:50:40 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 13 Mar 2013 21:56:12 +0000
 Subject: Re: [lm-sensors] [PATCH 4/5] hwmon: (lm75) Tune resolution and sample time per chip
-Message-Id: <20130313215040.GA23330@roeck-us.net>
+Message-Id: <20130313225612.10afcbde@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130312155108.054dd75e@endymion.delvare>
 In-Reply-To: <20130312155108.054dd75e@endymion.delvare>
@@ -10,25 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 13, 2013 at 12:15:16PM +0100, Jean Delvare wrote:
-> Hi Guenter,
-> 
-Hi Jean,
+On Wed, 13 Mar 2013 14:50:40 -0700, Guenter Roeck wrote:
+> Does that mean I can now submit the 20-something patches I didn't bother
+> to submit due to lack of reviewers ? Just asking :-)
 
-> > If it is too complex it might not be worth the effort.
-> 
-> For me it's not worth it. I think my patches already represent a
-> significant improvement to the lm75 driver, it will make readings
-> faster and more accurate out of the box. I don't want to spend more
+Nah, I'd rather review the patches you've already sent... starting with
+ltc2978 and coretemp.
 
-Makes sense.
+Which doesn't prevent you from posting patches anyway. And even pushing
+them upstream if nobody has time to review them and you're confident
+they'll do more good than harm.
 
-> time on this, I'd rather spend time reviewing pending patches ;)
-> 
-Does that mean I can now submit the 20-something patches I didn't bother
-to submit due to lack of reviewers ? Just asking :-)
-
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
