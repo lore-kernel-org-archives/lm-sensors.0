@@ -1,86 +1,77 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Mon, 25 Mar 2013 08:48:44 +0000
-Subject: [lm-sensors] [PATCH v5 1/5] ab8500_btemp: make ab8500_btemp_get* interfaces public
-Message-Id: <1364201328-20881-2-git-send-email-hongbo.zhang@linaro.org>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Thu, 14 Mar 2013 13:11:31 +0000
+Subject: [lm-sensors] [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+Message-Id: <1363266691-15757-12-git-send-email-fabio.porcedda@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-ide@vger.kernel.org, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>
 
-Make ab8500_btemp_get_temp interface public, export it and also export the
-ab8500_btemp_get, ab8500_btemp_get_batctrl_temp interfaces, so that the ab8500
-hwmon driver can use them.
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
-Acked-by: Anton Vorontsov <anton@enomsg.org>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/power/ab8500_btemp.c         | 5 ++++-
- include/linux/mfd/abx500/ab8500-bm.h | 5 +++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/misc/atmel_pwm.c  | 12 +-----------
+ drivers/misc/ep93xx_pwm.c | 13 +------------
+ 2 files changed, 2 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/power/ab8500_btemp.c b/drivers/power/ab8500_btemp.c
-index 20e2a7d..3359075 100644
---- a/drivers/power/ab8500_btemp.c
-+++ b/drivers/power/ab8500_btemp.c
-@@ -123,6 +123,7 @@ struct ab8500_btemp *ab8500_btemp_get(void)
+diff --git a/drivers/misc/atmel_pwm.c b/drivers/misc/atmel_pwm.c
+index 28f5aaa..494d050 100644
+--- a/drivers/misc/atmel_pwm.c
++++ b/drivers/misc/atmel_pwm.c
+@@ -393,17 +393,7 @@ static struct platform_driver atmel_pwm_driver = {
+ 	 */
+ };
  
- 	return btemp;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get);
+-static int __init pwm_init(void)
+-{
+-	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
+-}
+-module_init(pwm_init);
+-
+-static void __exit pwm_exit(void)
+-{
+-	platform_driver_unregister(&atmel_pwm_driver);
+-}
+-module_exit(pwm_exit);
++module_platform_driver_probe(atmel_pwm_driver, pwm_probe);
  
- /**
-  * ab8500_btemp_batctrl_volt_to_res() - convert batctrl voltage to resistance
-@@ -727,7 +728,7 @@ static void ab8500_btemp_periodic(struct ab8500_btemp *di,
-  *
-  * Returns battery temperature
-  */
--static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
-+int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- {
- 	int temp = 0;
+ MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/misc/ep93xx_pwm.c b/drivers/misc/ep93xx_pwm.c
+index 16d7179..96787ec 100644
+--- a/drivers/misc/ep93xx_pwm.c
++++ b/drivers/misc/ep93xx_pwm.c
+@@ -365,18 +365,7 @@ static struct platform_driver ep93xx_pwm_driver = {
+ 	.remove		= __exit_p(ep93xx_pwm_remove),
+ };
  
-@@ -763,6 +764,7 @@ static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- 	}
- 	return temp;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_temp);
+-static int __init ep93xx_pwm_init(void)
+-{
+-	return platform_driver_probe(&ep93xx_pwm_driver, ep93xx_pwm_probe);
+-}
+-
+-static void __exit ep93xx_pwm_exit(void)
+-{
+-	platform_driver_unregister(&ep93xx_pwm_driver);
+-}
+-
+-module_init(ep93xx_pwm_init);
+-module_exit(ep93xx_pwm_exit);
++module_platform_driver_probe(ep93xx_pwm_driver, ep93xx_pwm_probe);
  
- /**
-  * ab8500_btemp_get_batctrl_temp() - get the temperature
-@@ -774,6 +776,7 @@ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
- {
- 	return btemp->bat_temp * 1000;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_batctrl_temp);
- 
- /**
-  * ab8500_btemp_get_property() - get the btemp properties
-diff --git a/include/linux/mfd/abx500/ab8500-bm.h b/include/linux/mfd/abx500/ab8500-bm.h
-index 44310c9..4dd79f6 100644
---- a/include/linux/mfd/abx500/ab8500-bm.h
-+++ b/include/linux/mfd/abx500/ab8500-bm.h
-@@ -427,6 +427,7 @@ void ab8500_fg_reinit(void);
- void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
- struct ab8500_btemp *ab8500_btemp_get(void);
- int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
-+int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
- struct ab8500_fg *ab8500_fg_get(void);
- int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
- int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
-@@ -451,6 +452,10 @@ static int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
- {
- 	return 0;
- }
-+static int ab8500_btemp_get_temp(struct ab8500_btemp *btemp)
-+{
-+	return 0;
-+}
- struct ab8500_fg *ab8500_fg_get(void)
- {
- 	return NULL;
+ MODULE_AUTHOR("Matthieu Crapet <mcrapet@gmail.com>, "
+ 	      "H Hartley Sweeten <hsweeten@visionengravers.com>");
 -- 
-1.8.0
+1.8.1.5
 
 
 _______________________________________________
