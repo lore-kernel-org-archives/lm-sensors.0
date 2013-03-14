@@ -1,135 +1,82 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 14 Mar 2013 00:44:17 +0000
-Subject: [lm-sensors] [PATCH 2/9] hwmon: Fix 'Macros with complex values' checkpatch errors
-Message-Id: <1363221864-15284-3-git-send-email-linux@roeck-us.net>
+From: Alistair Strachan <alistair@devzero.co.uk>
+Date: Thu, 14 Mar 2013 01:03:03 +0000
+Subject: Re: [lm-sensors] [PATCH 2/9] hwmon: Fix 'Macros with complex values' checkpatch errors
+Message-Id: <CABgp7kPf8wLMXi3An4vnWOtXUyhe1cxeHbw70uRms+N8afqEyg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7779538730843656358=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <1363221864-15284-3-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1363221864-15284-3-git-send-email-linux@roeck-us.net>
 To: lm-sensors@vger.kernel.org
 
-Fix:
+--===============7779538730843656358==
+Content-Type: multipart/alternative; boundary=20cf30780cf0aa801a04d7d81529
 
-ERROR: Macros with complex values should be enclosed in parenthesis
+--20cf30780cf0aa801a04d7d81529
+Content-Type: text/plain; charset=UTF-8
 
-when it is seen due to complex code and not due to multi-line variable
-declarations.
+On 13 March 2013 17:44, Guenter Roeck <linux@roeck-us.net> wrote:
 
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Alistair John Strachan <alistair@devzero.co.uk>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/abituguru.c  |   11 +++++++----
- drivers/hwmon/abituguru3.c |   10 ++++++----
- drivers/hwmon/gpio-fan.c   |    2 +-
- drivers/hwmon/s3c-hwmon.c  |   19 ++++++++-----------
- 4 files changed, 22 insertions(+), 20 deletions(-)
+> Fix:
+>
+> ERROR: Macros with complex values should be enclosed in parenthesis
+>
+> when it is seen due to complex code and not due to multi-line variable
+> declarations.
+>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Alistair John Strachan <alistair@devzero.co.uk>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+>
 
-diff --git a/drivers/hwmon/abituguru.c b/drivers/hwmon/abituguru.c
-index b84f180..df0b699 100644
---- a/drivers/hwmon/abituguru.c
-+++ b/drivers/hwmon/abituguru.c
-@@ -96,9 +96,12 @@
- #define ABIT_UGURU_MAX_TIMEOUTS			2
- /* utility macros */
- #define ABIT_UGURU_NAME				"abituguru"
--#define ABIT_UGURU_DEBUG(level, format, arg...)				\
--	if (level <= verbose)						\
--		pr_debug(format , ## arg)
-+#define ABIT_UGURU_DEBUG(level, format, arg...)		\
-+	do {						\
-+		if (level <= verbose)			\
-+			pr_debug(format , ## arg);	\
-+	} while (0)
-+
- /* Macros to help calculate the sysfs_names array length */
- /*
-  * sum of strlen of: in??_input\0, in??_{min,max}\0, in??_{min,max}_alarm\0,
-@@ -1533,7 +1536,7 @@ static int abituguru_resume(struct device *dev)
- }
- 
- static SIMPLE_DEV_PM_OPS(abituguru_pm, abituguru_suspend, abituguru_resume);
--#define ABIT_UGURU_PM	&abituguru_pm
-+#define ABIT_UGURU_PM	(&abituguru_pm)
- #else
- #define ABIT_UGURU_PM	NULL
- #endif /* CONFIG_PM */
-diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
-index dcce352..1d2da31 100644
---- a/drivers/hwmon/abituguru3.c
-+++ b/drivers/hwmon/abituguru3.c
-@@ -76,9 +76,11 @@
- #define ABIT_UGURU3_SYNCHRONIZE_TIMEOUT		5
- /* utility macros */
- #define ABIT_UGURU3_NAME			"abituguru3"
--#define ABIT_UGURU3_DEBUG(format, arg...)	\
--	if (verbose)				\
--		pr_debug(format , ## arg)
-+#define ABIT_UGURU3_DEBUG(format, arg...)		\
-+	do {						\
-+		if (verbose)				\
-+			pr_debug(format , ## arg);	\
-+	} while (0)
- 
- /* Macros to help calculate the sysfs_names array length */
- #define ABIT_UGURU3_MAX_NO_SENSORS 26
-@@ -1159,7 +1161,7 @@ static int abituguru3_resume(struct device *dev)
- }
- 
- static SIMPLE_DEV_PM_OPS(abituguru3_pm, abituguru3_suspend, abituguru3_resume);
--#define ABIT_UGURU3_PM	&abituguru3_pm
-+#define ABIT_UGURU3_PM	(&abituguru3_pm)
- #else
- #define ABIT_UGURU3_PM	NULL
- #endif /* CONFIG_PM */
-diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-index 3978194..4e02480 100644
---- a/drivers/hwmon/gpio-fan.c
-+++ b/drivers/hwmon/gpio-fan.c
-@@ -619,7 +619,7 @@ static int gpio_fan_resume(struct device *dev)
- }
- 
- static SIMPLE_DEV_PM_OPS(gpio_fan_pm, gpio_fan_suspend, gpio_fan_resume);
--#define GPIO_FAN_PM	&gpio_fan_pm
-+#define GPIO_FAN_PM	(&gpio_fan_pm)
- #else
- #define GPIO_FAN_PM	NULL
- #endif
-diff --git a/drivers/hwmon/s3c-hwmon.c b/drivers/hwmon/s3c-hwmon.c
-index ff2ae02..a9f7e80 100644
---- a/drivers/hwmon/s3c-hwmon.c
-+++ b/drivers/hwmon/s3c-hwmon.c
-@@ -107,17 +107,14 @@ static ssize_t s3c_hwmon_show_raw(struct device *dev,
- 	return  (ret < 0) ? ret : snprintf(buf, PAGE_SIZE, "%d\n", ret);
- }
- 
--#define DEF_ADC_ATTR(x)	\
--	static SENSOR_DEVICE_ATTR(adc##x##_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, x)
--
--DEF_ADC_ATTR(0);
--DEF_ADC_ATTR(1);
--DEF_ADC_ATTR(2);
--DEF_ADC_ATTR(3);
--DEF_ADC_ATTR(4);
--DEF_ADC_ATTR(5);
--DEF_ADC_ATTR(6);
--DEF_ADC_ATTR(7);
-+static SENSOR_DEVICE_ATTR(adc0_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 0);
-+static SENSOR_DEVICE_ATTR(adc1_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 1);
-+static SENSOR_DEVICE_ATTR(adc2_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 2);
-+static SENSOR_DEVICE_ATTR(adc3_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 3);
-+static SENSOR_DEVICE_ATTR(adc4_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 4);
-+static SENSOR_DEVICE_ATTR(adc5_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 5);
-+static SENSOR_DEVICE_ATTR(adc6_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 6);
-+static SENSOR_DEVICE_ATTR(adc7_raw, S_IRUGO, s3c_hwmon_show_raw, NULL, 7);
- 
- static struct attribute *s3c_hwmon_attrs[9] = {
- 	&sensor_dev_attr_adc0_raw.dev_attr.attr,
+LGTM.
+
+Acked-by: Alistair John Strachan <alistair@devzero.co.uk>
+
 -- 
-1.7.9.7
+Cheers,
+Alistair.
 
+--20cf30780cf0aa801a04d7d81529
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">On 13 March 2013 17:44, Guenter Roeck <span dir=3D"ltr">&l=
+t;<a href=3D"mailto:linux@roeck-us.net" target=3D"_blank">linux@roeck-us.ne=
+t</a>&gt;</span> wrote:<br><div class=3D"gmail_extra"><div class=3D"gmail_q=
+uote"><blockquote class=3D"gmail_quote" style=3D"margin:0pt 0pt 0pt 0.8ex;b=
+order-left:1px solid rgb(204,204,204);padding-left:1ex">
+Fix:<br>
+<br>
+ERROR: Macros with complex values should be enclosed in parenthesis<br>
+<br>
+when it is seen due to complex code and not due to multi-line variable<br>
+declarations.<br>
+<br>
+Cc: Hans de Goede &lt;<a href=3D"mailto:hdegoede@redhat.com">hdegoede@redha=
+t.com</a>&gt;<br>
+Cc: Alistair John Strachan &lt;<a href=3D"mailto:alistair@devzero.co.uk">al=
+istair@devzero.co.uk</a>&gt;<br>
+Signed-off-by: Guenter Roeck &lt;<a href=3D"mailto:linux@roeck-us.net">linu=
+x@roeck-us.net</a>&gt;<br></blockquote><div><br>
+LGTM.<br>
+<br>
+Acked-by: Alistair John Strachan &lt;<a href=3D"mailto:alistair@devzero.co.=
+uk">alistair@devzero.co.uk</a>&gt;<br><br></div></div>-- <br>Cheers,<br>Ali=
+stair.
+</div></div>
+
+--20cf30780cf0aa801a04d7d81529--
+
+
+--===============7779538730843656358==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7779538730843656358==--
