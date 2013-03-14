@@ -1,89 +1,87 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Tue, 26 Mar 2013 07:06:55 +0000
-Subject: [lm-sensors] [PATCH v6 1/5] ab8500_btemp: make ab8500_btemp_get* interfaces public
-Message-Id: <1364281619-13208-2-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 14 Mar 2013 00:44:24 +0000
+Subject: [lm-sensors] [PATCH 9/9] hwmon: (ltc4261) Fix 'Macros with complex values' checkpatch error
+Message-Id: <1363221864-15284-10-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
-In-Reply-To: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
-Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
+To: lm-sensors@vger.kernel.org
 
-Make ab8500_btemp_get_temp interface public, export it and also export the
-ab8500_btemp_get, ab8500_btemp_get_batctrl_temp interfaces, so that the ab8500
-hwmon driver can use them.
+Fix:
+ERROR: Macros with complex values should be enclosed in parenthesis
 
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
-Acked-by: Anton Vorontsov <anton@enomsg.org>
+by unwinding the problematic macros.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/power/ab8500_btemp.c         | 5 ++++-
- include/linux/mfd/abx500/ab8500-bm.h | 5 +++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/hwmon/ltc4261.c |   38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/power/ab8500_btemp.c b/drivers/power/ab8500_btemp.c
-index 20e2a7d..3359075 100644
---- a/drivers/power/ab8500_btemp.c
-+++ b/drivers/power/ab8500_btemp.c
-@@ -123,6 +123,7 @@ struct ab8500_btemp *ab8500_btemp_get(void)
- 
- 	return btemp;
+diff --git a/drivers/hwmon/ltc4261.c b/drivers/hwmon/ltc4261.c
+index 84a2d28..487da58 100644
+--- a/drivers/hwmon/ltc4261.c
++++ b/drivers/hwmon/ltc4261.c
+@@ -165,24 +165,12 @@ static ssize_t ltc4261_show_bool(struct device *dev,
  }
-+EXPORT_SYMBOL(ab8500_btemp_get);
  
- /**
-  * ab8500_btemp_batctrl_volt_to_res() - convert batctrl voltage to resistance
-@@ -727,7 +728,7 @@ static void ab8500_btemp_periodic(struct ab8500_btemp *di,
-  *
-  * Returns battery temperature
+ /*
+- * These macros are used below in constructing device attribute objects
+- * for use with sysfs_create_group() to make a sysfs device file
+- * for each register.
+- */
+-
+-#define LTC4261_VALUE(name, ltc4261_cmd_idx) \
+-	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
+-	ltc4261_show_value, NULL, ltc4261_cmd_idx)
+-
+-#define LTC4261_BOOL(name, mask) \
+-	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
+-	ltc4261_show_bool, NULL, (mask))
+-
+-/*
+  * Input voltages.
   */
--static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
-+int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- {
- 	int temp = 0;
+-LTC4261_VALUE(in1_input, LTC4261_ADIN_H);
+-LTC4261_VALUE(in2_input, LTC4261_ADIN2_H);
++static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ltc4261_show_value, NULL,
++			  LTC4261_ADIN_H);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, ltc4261_show_value, NULL,
++			  LTC4261_ADIN2_H);
  
-@@ -763,6 +764,7 @@ static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- 	}
- 	return temp;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_temp);
+ /*
+  * Voltage alarms. The chip has only one set of voltage alarm status bits,
+@@ -192,16 +180,22 @@ LTC4261_VALUE(in2_input, LTC4261_ADIN2_H);
+  * To ensure that the alarm condition is reported to the user, report it
+  * with both voltage sensors.
+  */
+-LTC4261_BOOL(in1_min_alarm, FAULT_UV);
+-LTC4261_BOOL(in1_max_alarm, FAULT_OV);
+-LTC4261_BOOL(in2_min_alarm, FAULT_UV);
+-LTC4261_BOOL(in2_max_alarm, FAULT_OV);
++static SENSOR_DEVICE_ATTR(in1_min_alarm, S_IRUGO, ltc4261_show_bool, NULL,
++			  FAULT_UV);
++static SENSOR_DEVICE_ATTR(in1_max_alarm, S_IRUGO, ltc4261_show_bool, NULL,
++			  FAULT_OV);
++static SENSOR_DEVICE_ATTR(in2_min_alarm, S_IRUGO, ltc4261_show_bool, NULL,
++			  FAULT_UV);
++static SENSOR_DEVICE_ATTR(in2_max_alarm, S_IRUGO, ltc4261_show_bool, NULL,
++			  FAULT_OV);
  
- /**
-  * ab8500_btemp_get_batctrl_temp() - get the temperature
-@@ -774,6 +776,7 @@ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
- {
- 	return btemp->bat_temp * 1000;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_batctrl_temp);
+ /* Currents (via sense resistor) */
+-LTC4261_VALUE(curr1_input, LTC4261_SENSE_H);
++static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ltc4261_show_value, NULL,
++			  LTC4261_SENSE_H);
  
- /**
-  * ab8500_btemp_get_property() - get the btemp properties
-diff --git a/include/linux/mfd/abx500/ab8500-bm.h b/include/linux/mfd/abx500/ab8500-bm.h
-index 44310c9..4dd79f6 100644
---- a/include/linux/mfd/abx500/ab8500-bm.h
-+++ b/include/linux/mfd/abx500/ab8500-bm.h
-@@ -427,6 +427,7 @@ void ab8500_fg_reinit(void);
- void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
- struct ab8500_btemp *ab8500_btemp_get(void);
- int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
-+int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
- struct ab8500_fg *ab8500_fg_get(void);
- int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
- int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
-@@ -451,6 +452,10 @@ static int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
- {
- 	return 0;
- }
-+static int ab8500_btemp_get_temp(struct ab8500_btemp *btemp)
-+{
-+	return 0;
-+}
- struct ab8500_fg *ab8500_fg_get(void)
- {
- 	return NULL;
+ /* Overcurrent alarm */
+-LTC4261_BOOL(curr1_max_alarm, FAULT_OC);
++static SENSOR_DEVICE_ATTR(curr1_max_alarm, S_IRUGO, ltc4261_show_bool, NULL,
++			  FAULT_OC);
+ 
+ static struct attribute *ltc4261_attributes[] = {
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
