@@ -1,54 +1,59 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 14 Mar 2013 10:23:54 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 14 Mar 2013 13:33:04 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: lineage-pem: Add missing terminating entry for pem_[input|fan]_attri
-Message-Id: <20130314112354.31396c51@endymion.delvare>
+Message-Id: <20130314133304.GA24678@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1363249638.15861.1.camel@phoenix>
-In-Reply-To: <1363249638.15861.1.camel@phoenix>
+ <20130314112354.31396c51@endymion.delvare>
+In-Reply-To: <20130314112354.31396c51@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Axel Lin <axel.lin@ingics.com>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Axel Lin <axel.lin@ingics.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Axel,
-
-On Thu, 14 Mar 2013 16:27:18 +0800, Axel Lin wrote:
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
->  drivers/hwmon/lineage-pem.c |    2 ++
->  1 file changed, 2 insertions(+)
+On Thu, Mar 14, 2013 at 11:23:54AM +0100, Jean Delvare wrote:
+> Hi Axel,
 > 
-> diff --git a/drivers/hwmon/lineage-pem.c b/drivers/hwmon/lineage-pem.c
-> index 41df29f..ebbb9f4 100644
-> --- a/drivers/hwmon/lineage-pem.c
-> +++ b/drivers/hwmon/lineage-pem.c
-> @@ -422,6 +422,7 @@ static struct attribute *pem_input_attributes[] = {
->  	&sensor_dev_attr_in2_input.dev_attr.attr,
->  	&sensor_dev_attr_curr1_input.dev_attr.attr,
->  	&sensor_dev_attr_power1_input.dev_attr.attr,
-> +	NULL
->  };
->  
->  static const struct attribute_group pem_input_group = {
-> @@ -432,6 +433,7 @@ static struct attribute *pem_fan_attributes[] = {
->  	&sensor_dev_attr_fan1_input.dev_attr.attr,
->  	&sensor_dev_attr_fan2_input.dev_attr.attr,
->  	&sensor_dev_attr_fan3_input.dev_attr.attr,
-> +	NULL
->  };
->  
->  static const struct attribute_group pem_fan_group = {
+> On Thu, 14 Mar 2013 16:27:18 +0800, Axel Lin wrote:
+> > Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> > ---
+> >  drivers/hwmon/lineage-pem.c |    2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/hwmon/lineage-pem.c b/drivers/hwmon/lineage-pem.c
+> > index 41df29f..ebbb9f4 100644
+> > --- a/drivers/hwmon/lineage-pem.c
+> > +++ b/drivers/hwmon/lineage-pem.c
+> > @@ -422,6 +422,7 @@ static struct attribute *pem_input_attributes[] = {
+> >  	&sensor_dev_attr_in2_input.dev_attr.attr,
+> >  	&sensor_dev_attr_curr1_input.dev_attr.attr,
+> >  	&sensor_dev_attr_power1_input.dev_attr.attr,
+> > +	NULL
+> >  };
+> >  
+> >  static const struct attribute_group pem_input_group = {
+> > @@ -432,6 +433,7 @@ static struct attribute *pem_fan_attributes[] = {
+> >  	&sensor_dev_attr_fan1_input.dev_attr.attr,
+> >  	&sensor_dev_attr_fan2_input.dev_attr.attr,
+> >  	&sensor_dev_attr_fan3_input.dev_attr.attr,
+> > +	NULL
+> >  };
+> >  
+> >  static const struct attribute_group pem_fan_group = {
+> 
+> Good catch.
+> 
+> Acked-by: Jean Delvare <khali@linux-fr.org>
+> 
+> I'll let Guenter pick the fix as this is his driver. This should go to
+> stable too.
+> 
+Will do. Just wonder why this never blew up in my face, as we use that driver
+in my previous company :).
 
-Good catch.
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
-I'll let Guenter pick the fix as this is his driver. This should go to
-stable too.
-
--- 
-Jean Delvare
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
