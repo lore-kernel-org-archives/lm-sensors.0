@@ -1,92 +1,100 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Fri, 08 Mar 2013 08:13:28 +0000
-Subject: [lm-sensors] [PATCH v4 0/3] Add ST-Ericsson AB8500 HWMON driver
-Message-Id: <1362730411-11112-1-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 14 Mar 2013 00:44:22 +0000
+Subject: [lm-sensors] [PATCH 7/9] hwmon: (ltc4215) Fix 'Macros with complex values' checkpatch error
+Message-Id: <1363221864-15284-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Guenter,
-Please check this v4 patches, thanks for all your reviews/comments for this
-patch set.
+Fix:
+ERROR: Macros with complex values should be enclosed in parenthesis
 
-Anton Vorontsov,
-I have add your Acked-by: into patch [1/3]; but for this v4 [2/3], we have to
-change it much according to Guenter's feedback and our internal discussions,
-so please have a look at this new [2/3] again, thank you.
+by unwinding the problematic macros.
 
-v3 -> v4 changes:
-for patch [3/3]
-- define delays in HZ
-- update ab8500_read_sensor function, returning temp by parameter
-- remove ab8500_is_visible function
-- use clamp_val in set_min and set_max callback
-- remove unnecessary locks in remove and suspend functions
-- let abx500 and ab8500 use its own data structure
-for patch [2/3]
-- move the data tables from driver/power/ab8500_bmdata.c to
-  include/linux/power/ab8500.h
-- rename driver/power/ab8500_bmdata.c to driver/power/ab8500_bm.c
-- rename these variable names to eliminate CamelCase warnings
-- add const attribute to these data
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ltc4215.c |   46 ++++++++++++++++++----------------------------
+ 1 file changed, 18 insertions(+), 28 deletions(-)
 
-v2 -> v3 changes:
-- Add interface for converting voltage to temperature
-- Remove temp5 sensor since we cannot offer temperature read interface of it
-- Update hyst to use absolute temperature instead of a difference
-- Add the 3/3 patch
-
-v1 -> v2 changes:
-- Add Documentation/hwmon/abx500 and Documentation/hwmon/abx500
-- Make devices which cannot report milli-Celsius invisible
-- Add temp5_crit interface
-- Re-work the old find_active_thresholds() to threshold_updated()
-- Reset updated_min_alarm and updated_max_alarm at the end of each loop
-- Update the hyst mechamisn to make it works as real hyst
-- Remove non-stand attributes
-- Re-order the operations sequence inside probe and remove functions
-- Update all the lock usages to eliminate race conditions
-- Make attibutes index starts from 0
-also changes:
-- Since the old [1/2] "ARM: ux500: rename ab8500 to abx500 for hwmon driver"
-  has been merged by Samuel, so won't send it again.
-- Add another new patch "ab8500_btemp: export two symblols" as [2/2] of this
-  patch set.
-
-Hongbo Zhang (3):
-  ab8500_btemp: make ab8500_btemp_get* interfaces public
-  ab8500: re-arrange ab8500 power and temperature data tables
-  hwmon: add ST-Ericsson ABX500 hwmon driver
-
- Documentation/hwmon/ab8500           |  22 ++
- Documentation/hwmon/abx500           |  28 ++
- drivers/hwmon/Kconfig                |  13 +
- drivers/hwmon/Makefile               |   1 +
- drivers/hwmon/ab8500.c               | 208 ++++++++++++++
- drivers/hwmon/abx500.c               | 494 +++++++++++++++++++++++++++++++++
- drivers/hwmon/abx500.h               |  69 +++++
- drivers/power/Makefile               |   2 +-
- drivers/power/ab8500_bm.c            | 341 +++++++++++++++++++++++
- drivers/power/ab8500_bmdata.c        | 519 -----------------------------------
- drivers/power/ab8500_btemp.c         |   5 +-
- drivers/power/ab8500_fg.c            |   4 +-
- include/linux/mfd/abx500.h           |   6 +-
- include/linux/mfd/abx500/ab8500-bm.h |   5 +
- include/linux/power/ab8500.h         | 189 +++++++++++++
- 15 files changed, 1380 insertions(+), 526 deletions(-)
- create mode 100644 Documentation/hwmon/ab8500
- create mode 100644 Documentation/hwmon/abx500
- create mode 100644 drivers/hwmon/ab8500.c
- create mode 100644 drivers/hwmon/abx500.c
- create mode 100644 drivers/hwmon/abx500.h
- create mode 100644 drivers/power/ab8500_bm.c
- delete mode 100644 drivers/power/ab8500_bmdata.c
- create mode 100644 include/linux/power/ab8500.h
-
+diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
+index e887610..8a14296 100644
+--- a/drivers/hwmon/ltc4215.c
++++ b/drivers/hwmon/ltc4215.c
+@@ -172,12 +172,12 @@ static ssize_t ltc4215_show_alarm(struct device *dev,
+ 					  struct device_attribute *da,
+ 					  char *buf)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(da);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct ltc4215_data *data = ltc4215_update_device(dev);
+-	const u8 reg = data->regs[attr->index];
+-	const u32 mask = attr->nr;
++	const u8 reg = data->regs[LTC4215_STATUS];
++	const u32 mask = attr->index;
+ 
+-	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
++	return snprintf(buf, PAGE_SIZE, "%u\n", !!(reg & mask));
+ }
+ 
+ /*
+@@ -186,39 +186,29 @@ static ssize_t ltc4215_show_alarm(struct device *dev,
+  * for each register.
+  */
+ 
+-#define LTC4215_VOLTAGE(name, ltc4215_cmd_idx) \
+-	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
+-	ltc4215_show_voltage, NULL, ltc4215_cmd_idx)
+-
+-#define LTC4215_CURRENT(name) \
+-	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
+-	ltc4215_show_current, NULL, 0);
+-
+-#define LTC4215_POWER(name) \
+-	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
+-	ltc4215_show_power, NULL, 0);
+-
+-#define LTC4215_ALARM(name, mask, reg) \
+-	static SENSOR_DEVICE_ATTR_2(name, S_IRUGO, \
+-	ltc4215_show_alarm, NULL, (mask), reg)
+-
+ /* Construct a sensor_device_attribute structure for each register */
+ 
+ /* Current */
+-LTC4215_CURRENT(curr1_input);
+-LTC4215_ALARM(curr1_max_alarm,	(1 << 2),	LTC4215_STATUS);
++static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ltc4215_show_current, NULL, 0);
++static SENSOR_DEVICE_ATTR(curr1_max_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
++			  1 << 2);
+ 
+ /* Power (virtual) */
+-LTC4215_POWER(power1_input);
++static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, ltc4215_show_power, NULL, 0);
+ 
+ /* Input Voltage */
+-LTC4215_VOLTAGE(in1_input,			LTC4215_ADIN);
+-LTC4215_ALARM(in1_max_alarm,	(1 << 0),	LTC4215_STATUS);
+-LTC4215_ALARM(in1_min_alarm,	(1 << 1),	LTC4215_STATUS);
++static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ltc4215_show_voltage, NULL,
++			  LTC4215_ADIN);
++static SENSOR_DEVICE_ATTR(in1_max_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
++			  1 << 0);
++static SENSOR_DEVICE_ATTR(in1_min_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
++			  1 << 1);
+ 
+ /* Output Voltage */
+-LTC4215_VOLTAGE(in2_input,			LTC4215_SOURCE);
+-LTC4215_ALARM(in2_min_alarm,	(1 << 3),	LTC4215_STATUS);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, ltc4215_show_voltage, NULL,
++			  LTC4215_SOURCE);
++static SENSOR_DEVICE_ATTR(in2_min_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
++			  1 << 3);
+ 
+ /*
+  * Finally, construct an array of pointers to members of the above objects,
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
