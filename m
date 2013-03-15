@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 15 Mar 2013 12:39:48 +0000
+From: Aike Kristian Terjung <Aike@terjung.net>
+Date: Fri, 15 Mar 2013 13:17:36 +0000
 Subject: Re: [lm-sensors] Max6650 not working / no sysfs entries
-Message-Id: <20130315133948.29e56fb4@endymion.delvare>
+Message-Id: <7A66EC8D-9234-436F-BCB1-1E64828953DA@terjung.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1DE40A3D-6512-40E3-8281-F3F86A9C5432@terjung.net>
 In-Reply-To: <1DE40A3D-6512-40E3-8281-F3F86A9C5432@terjung.net>
@@ -10,27 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-QWlrZSwKCjEqIERvbid0IGRyb3AgdGhlIGxpc3QgZnJvbSBDYy4KMiogRG9uJ3QgdG9wLXBvc3Qu
-CgpUaGF0IGJlaW5nIHNhaWQuLi4KCk9uIEZyaSwgMTUgTWFyIDIwMTMgMTM6MzI6MjEgKzAxMDAs
-IEFpa2UgS3Jpc3RpYW4gVGVyanVuZyB3cm90ZToKPiB0aGFuayB5b3UgZm9yIHlvdXIgcmVwbHku
-ICBJIHRyaWVkIHdoYXQgeW91IHN1Z2dlc3RlZDoKPiAKPiBlY2hvIG1heDY2NTAgMHg5MCA+IC9z
-eXMvYnVzL2kyYy9kZXZpY2VzL2kyYy0wL25ld19kZXZpY2UKPiAKPiB3aGF0IGkgZ2V0IGlzOiAK
-PiAKPiBiYXNoOiBlY2hvOiBTY2hyZWliZmVobGVyOiBEYXMgQXJndW1lbnQgaXN0IHVuZ8O8bHRp
-Zy4KPiAKPiBkbWVzZzogCj4gCj4gMmMgaTJjLTA6IEludmFsaWQgNy1iaXQgSTJDIGFkZHJlc3Mg
-MHg5MAo+IAo+IHdoeSBpcyB0aGUgYWRkcmVzcyA3LWJpdCB3aWR0aD8gSXQgc2VlbXMgY29tbW9u
-IHRvIG1lIHRoYXQgaTJjLWRldmljZXMgaGF2ZSA4IGJpdCBhZGRyZXNzZXM/IEkgY291bGQgY2hh
-bmdlIHRoZSBhZGRyZXNzIHRvIDAwMTEgMTExIHRvIG1ha2UgaXQgNyBiaXQgY29tcGF0aWJsZSwg
-YnV0IHRoaXMgc29sdXRpb24gIHNlZW1zIHN0cmFuZ2UgdG8gbWUuIAoKTm8sIEkyQyBhZGRyZXNz
-ZXMgY2FuIGJlIGVpdGhlciA3LWJpdCBvciAxMC1iaXQsIG5ldmVyIDgtYml0LgoKT25lIGNvbW1v
-biBtaXN0YWtlIGVuY291cmFnZWQgYnkgc29tZSBkYXRhc2hlZXRzIGlzIHRvIHJlZmVyIHRvICJy
-ZWFkCmFkZHJlc3MiIGFuZCAid3JpdGUgYWRkcmVzcyIgZm9yIGEgY2hpcCBhcyA4LWJpdCB2YWx1
-ZXMuIFdoYXQgcmVhbGx5CmdvZXMgb24gdGhlIHdpcmUgaXMgYSA3LWJpdCBhZGRyZXNzIGZvbGxv
-d2VkIGJ5IGEgZGlyZWN0aW9uIGJpdC4gU28gaWYKeW91IHRoaW5rIHlvdXIgY2hpcCB1c2VzIGFk
-ZHJlc3MgMHg5MCB0aGVuIG9kZHMgYXJlIHRoYXQgaXQgYWN0dWFsbHkKdXNlcyAweDkwID4+IDEg
-PT0gMHg0OC4KCkFzIGEgbWF0dGVyIG9mIGZhY3QsIHRoZSBmaXJzdCBwb3NzaWJsZSBhZGRyZXNz
-IGxpc3RlZCBieSB0aGUgTUFYNjY1MApkYXRhc2hlZXQgaXMgMHg0OC4gQW5kIGFsbCBwb3NzaWJs
-ZSBhZGRyZXNzZXMgYXJlIHNob3duIGFzIDctYml0IHZhbHVlcy4KCi0tIApKZWFuIERlbHZhcmUK
-aHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy93aXNobGlzdC5odG1sCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hi Jean,
+
+thank you very much, its working now! 
+
+> 1* Don't drop the list from Cc.
+> 2* Don't top-post.
+
+ok.
+
+> One common mistake encouraged by some datasheets is to refer to "read
+> address" and "write address" for a chip as 8-bit values. What really
+> goes on the wire is a 7-bit address followed by a direction bit. So if
+> you think your chip uses address 0x90 then odds are that it actually
+> uses 0x90 >> 1 = 0x48.
+
+After your explanation i looked at the datasheet again, they mention 0x90 as Hex, but 0101 000 as binary value. I had never seen this without your help ;-)
+
+ thanks
+
+Aike
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
