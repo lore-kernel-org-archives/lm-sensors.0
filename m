@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 15 Mar 2013 12:14:25 +0000
+Date: Fri, 15 Mar 2013 12:39:48 +0000
 Subject: Re: [lm-sensors] Max6650 not working / no sysfs entries
-Message-Id: <20130315131425.4aab3891@endymion.delvare>
+Message-Id: <20130315133948.29e56fb4@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1DE40A3D-6512-40E3-8281-F3F86A9C5432@terjung.net>
 In-Reply-To: <1DE40A3D-6512-40E3-8281-F3F86A9C5432@terjung.net>
@@ -10,31 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aike,
-
-On Fri, 15 Mar 2013 12:08:50 +0100, Aike Kristian Terjung wrote:
-> i have added a MAX6650 to the i2c-bus of my guruplug server to control a fan i would like to add to the system. Sensors-detect is able to find the device suggests the max6650 module. If i add max6650 module to the kernel nothing happens. sensors did not mention the max6650 and does not show the fan, no sysfs entries are visible under /sys/class/hwmon.
-> I added some debug-output to the module to get closer, with the result that sensors_max6650_init is called, but not max6650_probe i would expect next.
-> 
-> The max6646 temperature-sensor i added additionally is working fine and is present in sysfs.
-> 
-> Could this be the result of a damaged max6650? I did some soldering-misstakes in my first attemp, but i am pretty shire that the wiring should be ok now because sensors-detect can find the chip. 
-
-The MAX6650 is almost impossible to detect reliably, and for this
-reason the max6650 kernel driver doesn't even try to detect the
-devices (detection code was dropped in kernel v3.0), and relies on the
-user to instantiate the device explicitly. See method 4 in
-  http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/i2c/instantiating-devices
-for how this works.
-
-Note that MAX6650 device detection was dropped from sensors-detect as
-well by now, so this is consistent.
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+QWlrZSwKCjEqIERvbid0IGRyb3AgdGhlIGxpc3QgZnJvbSBDYy4KMiogRG9uJ3QgdG9wLXBvc3Qu
+CgpUaGF0IGJlaW5nIHNhaWQuLi4KCk9uIEZyaSwgMTUgTWFyIDIwMTMgMTM6MzI6MjEgKzAxMDAs
+IEFpa2UgS3Jpc3RpYW4gVGVyanVuZyB3cm90ZToKPiB0aGFuayB5b3UgZm9yIHlvdXIgcmVwbHku
+ICBJIHRyaWVkIHdoYXQgeW91IHN1Z2dlc3RlZDoKPiAKPiBlY2hvIG1heDY2NTAgMHg5MCA+IC9z
+eXMvYnVzL2kyYy9kZXZpY2VzL2kyYy0wL25ld19kZXZpY2UKPiAKPiB3aGF0IGkgZ2V0IGlzOiAK
+PiAKPiBiYXNoOiBlY2hvOiBTY2hyZWliZmVobGVyOiBEYXMgQXJndW1lbnQgaXN0IHVuZ8O8bHRp
+Zy4KPiAKPiBkbWVzZzogCj4gCj4gMmMgaTJjLTA6IEludmFsaWQgNy1iaXQgSTJDIGFkZHJlc3Mg
+MHg5MAo+IAo+IHdoeSBpcyB0aGUgYWRkcmVzcyA3LWJpdCB3aWR0aD8gSXQgc2VlbXMgY29tbW9u
+IHRvIG1lIHRoYXQgaTJjLWRldmljZXMgaGF2ZSA4IGJpdCBhZGRyZXNzZXM/IEkgY291bGQgY2hh
+bmdlIHRoZSBhZGRyZXNzIHRvIDAwMTEgMTExIHRvIG1ha2UgaXQgNyBiaXQgY29tcGF0aWJsZSwg
+YnV0IHRoaXMgc29sdXRpb24gIHNlZW1zIHN0cmFuZ2UgdG8gbWUuIAoKTm8sIEkyQyBhZGRyZXNz
+ZXMgY2FuIGJlIGVpdGhlciA3LWJpdCBvciAxMC1iaXQsIG5ldmVyIDgtYml0LgoKT25lIGNvbW1v
+biBtaXN0YWtlIGVuY291cmFnZWQgYnkgc29tZSBkYXRhc2hlZXRzIGlzIHRvIHJlZmVyIHRvICJy
+ZWFkCmFkZHJlc3MiIGFuZCAid3JpdGUgYWRkcmVzcyIgZm9yIGEgY2hpcCBhcyA4LWJpdCB2YWx1
+ZXMuIFdoYXQgcmVhbGx5CmdvZXMgb24gdGhlIHdpcmUgaXMgYSA3LWJpdCBhZGRyZXNzIGZvbGxv
+d2VkIGJ5IGEgZGlyZWN0aW9uIGJpdC4gU28gaWYKeW91IHRoaW5rIHlvdXIgY2hpcCB1c2VzIGFk
+ZHJlc3MgMHg5MCB0aGVuIG9kZHMgYXJlIHRoYXQgaXQgYWN0dWFsbHkKdXNlcyAweDkwID4+IDEg
+PT0gMHg0OC4KCkFzIGEgbWF0dGVyIG9mIGZhY3QsIHRoZSBmaXJzdCBwb3NzaWJsZSBhZGRyZXNz
+IGxpc3RlZCBieSB0aGUgTUFYNjY1MApkYXRhc2hlZXQgaXMgMHg0OC4gQW5kIGFsbCBwb3NzaWJs
+ZSBhZGRyZXNzZXMgYXJlIHNob3duIGFzIDctYml0IHZhbHVlcy4KCi0tIApKZWFuIERlbHZhcmUK
+aHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy93aXNobGlzdC5odG1sCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
