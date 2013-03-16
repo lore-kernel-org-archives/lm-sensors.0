@@ -1,25 +1,85 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 Mar 2013 19:47:43 +0000
-Subject: Re: [lm-sensors] [PATCH v7 4/5] ab8500: power: export abx500_res_to_temp tables for hwmon
-Message-Id: <20130327194743.GA11086@roeck-us.net>
+Date: Sat, 16 Mar 2013 18:30:53 +0000
+Subject: [lm-sensors] [PATCH 2/2] sensors-detect: Add detection of TMP431 and TMP432
+Message-Id: <1363458653-18731-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364368412-12810-1-git-send-email-hongbo.zhang@linaro.org>
- <1364368412-12810-5-git-send-email-hongbo.zhang@linaro.org>
-In-Reply-To: <1364368412-12810-5-git-send-email-hongbo.zhang@linaro.org>
+References: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hongbo Zhang <hongbo.zhang@linaro.org>
-Cc: khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org, linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 27, 2013 at 03:13:31PM +0800, Hongbo Zhang wrote:
-> This patch exports the thermistor resistance-to-temperature tables, so that the
-> hwmon driver can access them, and also adds the corresponding table size
-> variables.
-> 
-> Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    |    1 +
+ prog/detect/sensors-detect |   24 +++++++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
 
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+diff --git a/CHANGES b/CHANGES
+index 51ac3c8..ba6409f 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -12,6 +12,7 @@ SVN HEAD
+                   Add detection of IT8752F
+                   Add detection of MCP98244
+                   Add detection of LM95234
++                  Add detection of TMP431/TMP432
+ 
+ 3.3.3 "Happy Birthday Sophie" (2012-11-06)
+   documentation: Update fan-divisors, fan divisors are optional
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index f238802..00e3904 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -1023,6 +1023,16 @@ use vars qw(@i2c_adapter_names);
+ 		i2c_addrs => [0x4c, 0x4d],
+ 		i2c_detect => sub { tmp42x_detect(@_, 2); },
+ 	}, {
++		name => "Texas Instruments TMP431",
++		driver => "to-be-written",		# tmp401
++		i2c_addrs => [0x4c, 0x4d],
++		i2c_detect => sub { lm90_detect(@_, 16); },
++	}, {
++		name => "Texas Instruments TMP432",
++		driver => "to-be-written",		# tmp401
++		i2c_addrs => [0x4c, 0x4d],
++		i2c_detect => sub { lm90_detect(@_, 17); },
++	}, {
+ 		name => "Texas Instruments AMC6821",
+ 		driver => "amc6821",
+ 		i2c_addrs => [0x18..0x1a, 0x2c..0x2e, 0x4c..0x4e],
+@@ -4537,7 +4547,7 @@ sub max6680_95_detect
+ #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
+ #		  11 = W83L771AWG/ASG, 12 = MAX6690,
+ #		  13 = ADT7461A/NCT1008, 14 = SA56004,
+-#		  15 = G781
++#		  15 = G781, 16 = TMP431, 17 = TMP432
+ # Registers used:
+ #   0x03: Configuration
+ #   0x04: Conversion rate
+@@ -4655,6 +4665,18 @@ sub lm90_detect
+ 		return if $mid != 0x47;		# GMT
+ 		return 8 if $cid = 0x01;	# G781
+ 	}
++	if ($chip = 16) {
++		return if ($conf & 0x1B) != 0;
++		return if $rate > 0x0F;
++		return if $mid != 0x55;		# Texas Instruments
++		return 6 if ($cid = 0x31);	# TMP431A/B/C/D
++	}
++	if ($chip = 17) {
++		return if ($conf & 0x1B) != 0;
++		return if $rate > 0x0F;
++		return if $mid != 0x55;		# Texas Instruments
++		return 6 if ($cid = 0x32);	# TMP432A/B
++	}
+ 	return;
+ }
+ 
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
