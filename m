@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 17 Mar 2013 06:44:16 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 17 Mar 2013 11:09:16 +0000
 Subject: Re: [lm-sensors] IT8771E
-Message-Id: <20130317064416.GD32694@roeck-us.net>
+Message-Id: <20130317120916.17ecc784@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAJDbZnQ-rGoUL+5F=e8cWD9Q8JQd+RXZ9ec=J8PC+8SE9P+=Cg@mail.gmail.com>
 In-Reply-To: <CAJDbZnQ-rGoUL+5F=e8cWD9Q8JQd+RXZ9ec=J8PC+8SE9P+=Cg@mail.gmail.com>
@@ -10,9 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 17, 2013 at 02:05:05PM +0800, Ross Moore wrote:
+Hi Ross,
+
+A few things on top of what Guenter already said:
+
+On Sun, 17 Mar 2013 14:05:05 +0800, Ross Moore wrote:
 > Here is the output of pwmconfig - I was noting the pwm and fan are on the
-> same chip; perhaps they always are. But note the correlation plots in here.
+> same chip; perhaps they always are.
+
+Not always, but most of the time, yes. This is the easiest way to
+implement automatic (hardware-controlled) fan speed control.
+
+> But note the correlation plots in here.
 > It seems pwm is controlling the fans in any kind of consistent manner
 > (although clearly there is a link):
 > 
@@ -33,6 +42,23 @@ On Sun, Mar 17, 2013 at 02:05:05PM +0800, Ross Moore wrote:
 >    hwmon1/device is coretemp
 >    hwmon2/device is it8771
 >    hwmon3 is asus
+
+You have 3 different drivers presumably accessing the same chip:
+thermal (ACPI), it87 (native) and asus-wmi (WMI.) This is not a good
+idea. I suppose you had to boot with acpi_enforce_resources=lax to be
+able to load the it87 driver?
+
+Can we see the output of "sensors" on your machine?
+
+Which kernel version are you running? 
+
+What board is this?
+
+Do you have any fan speed control related option in the BIOS, and if
+so, what did you set it to?
+
+Are you using 3-pin fans, 4-pin fans or a mix of both?
+
 > 
 > Found the following PWM controls:
 >    hwmon2/device/pwm1
@@ -87,6 +113,12 @@ On Sun, Mar 17, 2013 at 02:05:05PM +0800, Ross Moore wrote:
 >     PWM 4 FAN 1112
 >     PWM 2 FAN 1112
 >     PWM 0 FAN 1112
+
+The response curve is very odd. Not only fan speed is increasing from
+PWM 255 to PWM 180, but the maximum speed never reaches the original
+speed. This makes me wonder what the original PWM value was. I'll
+prepare a modified version of pwmconfig which prints this information.
+
 > 
 >   hwmon2/device/fan2_input ... speed was 1211 now 1207
 >     no correlation
@@ -116,14 +148,24 @@ On Sun, Mar 17, 2013 at 02:05:05PM +0800, Ross Moore wrote:
 >     PWM 45 FAN 188
 >     PWM 30 FAN 0
 >     Fan Stopped at PWM = 30
->
-Seems to be ok to me, except the system doesn't seem to like pwm values
-above 165 or doesn't measure fan speed correctly for those values.
-Does the fan get faster when the script sets pwm values above 165 ?
 
-So you can control fan1 with pwm1, and fan2 with pwm2.
+This is pretty chaotic. Note that we don't have a datasheet for the
+IT8771E, support is still considered experimental. So it may well be
+that we got the fan speed control code wrong.
 
-Guenter
+I would like you to check if PWM values stick. Please go
+to /sys/class/hwmon/hwmon2/device, check the values of files pwm1 and
+pwm2, see if they change on their own. Then try writing arbitrary
+values to them, and check if the value is sticking for one minute.
+
+I have made a test version of pwmconfig available at:
+http://khali.linux-fr.org/devel/misc/pwmconfig
+
+Please give it a try. The correlations will take much longer because I
+have set the step to 1, but hopefully it will teach us something.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
