@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 17 Mar 2013 11:09:16 +0000
+Date: Sun, 17 Mar 2013 17:58:18 +0000
 Subject: Re: [lm-sensors] IT8771E
-Message-Id: <20130317120916.17ecc784@endymion.delvare>
+Message-Id: <20130317185818.23070574@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAJDbZnQ-rGoUL+5F=e8cWD9Q8JQd+RXZ9ec=J8PC+8SE9P+=Cg@mail.gmail.com>
 In-Reply-To: <CAJDbZnQ-rGoUL+5F=e8cWD9Q8JQd+RXZ9ec=J8PC+8SE9P+=Cg@mail.gmail.com>
@@ -10,164 +10,90 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ross,
-
-A few things on top of what Guenter already said:
-
-On Sun, 17 Mar 2013 14:05:05 +0800, Ross Moore wrote:
-> Here is the output of pwmconfig - I was noting the pwm and fan are on the
-> same chip; perhaps they always are.
-
-Not always, but most of the time, yes. This is the easiest way to
-implement automatic (hardware-controlled) fan speed control.
-
-> But note the correlation plots in here.
-> It seems pwm is controlling the fans in any kind of consistent manner
-> (although clearly there is a link):
-> 
-> # pwmconfig revision 5857 (2010-08-22)
-> This program will search your sensors for pulse width modulation (pwm)
-> controls, and test each one to see if it controls a fan on
-> your motherboard. Note that many motherboards do not have pwm
-> circuitry installed, even if your sensor chip supports pwm.
-> 
-> We will attempt to briefly stop each fan using the pwm controls.
-> The program will attempt to restore each fan to full speed
-> after testing. However, it is ** very important ** that you
-> physically verify that the fans have been to full speed
-> after the program has completed.
-> 
-> Found the following devices:
->    hwmon0 is acpitz
->    hwmon1/device is coretemp
->    hwmon2/device is it8771
->    hwmon3 is asus
-
-You have 3 different drivers presumably accessing the same chip:
-thermal (ACPI), it87 (native) and asus-wmi (WMI.) This is not a good
-idea. I suppose you had to boot with acpi_enforce_resources=lax to be
-able to load the it87 driver?
-
-Can we see the output of "sensors" on your machine?
-
-Which kernel version are you running? 
-
-What board is this?
-
-Do you have any fan speed control related option in the BIOS, and if
-so, what did you set it to?
-
-Are you using 3-pin fans, 4-pin fans or a mix of both?
-
-> 
-> Found the following PWM controls:
->    hwmon2/device/pwm1
->    hwmon2/device/pwm2
->    hwmon2/device/pwm3
-> 
-> Giving the fans some time to reach full speed...
-> Found the following fan sensors:
->    hwmon2/device/fan1_input     current speed: 2227 RPM
->    hwmon2/device/fan2_input     current speed: 1211 RPM
-> 
-> Warning!!! This program will stop your fans, one at a time,
-> for approximately 5 seconds each!!!
-> This may cause your processor temperature to rise!!!
-> If you do not want to do this hit control-C now!!!
-> Hit return to continue:
-> 
-> Testing pwm control hwmon2/device/pwm1 ...
->   hwmon2/device/fan1_input ... speed was 2227 now 1115
->     It appears that fan hwmon2/device/fan1_input
->     is controlled by pwm hwmon2/device/pwm1
-> Would you like to generate a detailed correlation (y)? y
-> Note: If you had gnuplot installed, I could generate a graphical plot.
->     PWM 255 FAN 1256
->     PWM 240 FAN 1149
->     PWM 225 FAN 1256
->     PWM 210 FAN 1388
->     PWM 195 FAN 1599
->     PWM 180 FAN 1795
->     PWM 165 FAN 1739
->     PWM 150 FAN 1683
->     PWM 135 FAN 1562
->     PWM 120 FAN 1490
->     PWM 105 FAN 1400
->     PWM 90 FAN 1313
->     PWM 75 FAN 1250
->     PWM 60 FAN 1194
->     PWM 45 FAN 1121
->     PWM 30 FAN 1112
->     PWM 28 FAN 1113
->     PWM 26 FAN 1112
->     PWM 24 FAN 1112
->     PWM 22 FAN 1113
->     PWM 20 FAN 1112
->     PWM 18 FAN 1112
->     PWM 16 FAN 1113
->     PWM 14 FAN 1112
->     PWM 12 FAN 1113
->     PWM 10 FAN 1112
->     PWM 8 FAN 1113
->     PWM 6 FAN 1112
->     PWM 4 FAN 1112
->     PWM 2 FAN 1112
->     PWM 0 FAN 1112
-
-The response curve is very odd. Not only fan speed is increasing from
-PWM 255 to PWM 180, but the maximum speed never reaches the original
-speed. This makes me wonder what the original PWM value was. I'll
-prepare a modified version of pwmconfig which prints this information.
-
-> 
->   hwmon2/device/fan2_input ... speed was 1211 now 1207
->     no correlation
-> 
-> Testing pwm control hwmon2/device/pwm2 ...
->   hwmon2/device/fan1_input ... speed was 2227 now 2419
->     no correlation
->   hwmon2/device/fan2_input ... speed was 1211 now 0
->     It appears that fan hwmon2/device/fan2_input
->     is controlled by pwm hwmon2/device/pwm2
-> Would you like to generate a detailed correlation (y)? y
-> Note: If you had gnuplot installed, I could generate a graphical plot.
->     PWM 255 FAN 548
->     PWM 240 FAN 258
->     PWM 225 FAN 360 (probably incorrect)
->     PWM 210 FAN 547 (probably incorrect)
->     PWM 195 FAN 734 (probably incorrect)
->     PWM 180 FAN 891 (probably incorrect)
->     PWM 165 FAN 903 (probably incorrect)
->     PWM 150 FAN 853 (probably incorrect)
->     PWM 135 FAN 791 (probably incorrect)
->     PWM 120 FAN 724 (probably incorrect)
->     PWM 105 FAN 651 (probably incorrect)
->     PWM 90 FAN 573 (probably incorrect)
->     PWM 75 FAN 485 (probably incorrect)
->     PWM 60 FAN 382 (probably incorrect)
->     PWM 45 FAN 188
->     PWM 30 FAN 0
->     Fan Stopped at PWM = 30
-
-This is pretty chaotic. Note that we don't have a datasheet for the
-IT8771E, support is still considered experimental. So it may well be
-that we got the fan speed control code wrong.
-
-I would like you to check if PWM values stick. Please go
-to /sys/class/hwmon/hwmon2/device, check the values of files pwm1 and
-pwm2, see if they change on their own. Then try writing arbitrary
-values to them, and check if the value is sticking for one minute.
-
-I have made a test version of pwmconfig available at:
-http://khali.linux-fr.org/devel/misc/pwmconfig
-
-Please give it a try. The correlations will take much longer because I
-have set the step to 1, but hopefully it will teach us something.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgUm9zcywKClBsZWFzZSBsZWF2ZSB0aGUgbGlzdCBpbiBDYyBzbyBvdGhlcnMgY2FuIHJlYWQg
+YW5kIGhlbHAuIEknbSBhZGRpbmcgaXQKYmFjay4KCk9uIFN1biwgMTcgTWFyIDIwMTMgMjE6NDk6
+MzkgKzA4MDAsIFJvc3MgTW9vcmUgd3JvdGU6Cj4gSGkgSmVhbiwKPiAKPiBHcmVhdCwgdGhhbmtz
+IGZvciB0aGUgZGV0YWlsZWQgcXVlc3Rpb25zLgo+ICAgICBXaGljaCBrZXJuZWwgdmVyc2lvbiBh
+cmUgeW91IHJ1bm5pbmc/Cj4gICAgIFdoYXQgYm9hcmQgaXMgdGhpcz8KPiAKPiBPSywgVGhpcyBp
+cyBhbiBBU1VTIFA4SDc3LUkgbW90aGVyYm9hcmQuIEknbSBydW5uaW5nIDMuNyBrZXJuZWwuIEkK
+PiAKPiA+Cj4gPiBZb3UgaGF2ZSAzIGRpZmZlcmVudCBkcml2ZXJzIHByZXN1bWFibHkgYWNjZXNz
+aW5nIHRoZSBzYW1lIGNoaXA6Cj4gPiB0aGVybWFsIChBQ1BJKSwgaXQ4NyAobmF0aXZlKSBhbmQg
+YXN1cy13bWkgKFdNSS4pIFRoaXMgaXMgbm90IGEgZ29vZAo+ID4gaWRlYS4gSSBzdXBwb3NlIHlv
+dSBoYWQgdG8gYm9vdCB3aXRoIGFjcGlfZW5mb3JjZV9yZXNvdXJjZXM9bGF4IHRvIGJlCj4gPiBh
+YmxlIHRvIGxvYWQgdGhlIGl0ODcgZHJpdmVyCj4gPgo+IAo+IE5vcGUsIEkgZGlkbid0IGNoYW5n
+ZSBhbnkgYm9vdCBwYXJhbWV0ZXJzOyBJIGFzc3VtZSB0aGlzIGlzbid0IHNldCwgYW5kIEkKPiBj
+YW4ndCBzZWUgYW55dGhpbmcgbGlrZSBpdCBpbiBncnViMi4gU2hvdWxkIEkgcm1tb2QgdGhlc2Ug
+b3RoZXIgZHJpdmVycyBhbmQKPiBibGFja2xpc3QgdGhlbT8gKEFuZCBpZiBzbywgaG93IGRvIEkg
+ZmluZCBvdXQgdGhlIG5hbWVzIG9mIHRoZSBtb2R1bGVzCj4gZHJpdmluZyB0aG9zZSBjaGlwcz8p
+CgpXZWxsIGlmIHRoZSBkcml2ZXJzIGFyZSBoYXBweSB0b2dldGhlciBtYXliZSBJIGFtIG5lZWRs
+ZXNzbHkgYW54aW91cy4KCkZvciByZWZlcmVuY2UsIHRoZSBkcml2ZXIgbmFtZXMgYXJlICJ0aGVy
+bWFsIiwgIml0ODciIGFuZCAiYXN1cy13bWkiLgpIb3dldmVyIHRoZXJtYWwgaXMgZnJlcXVlbnRs
+eSBidWlsdCBpbnRvIHRoZSBrZXJuZWwgc28geW91IGNhbid0IHJlbW92ZQppdC4KCj4gPiBDYW4g
+d2Ugc2VlIHRoZSBvdXRwdXQgb2YgInNlbnNvcnMiIG9uIHlvdXIgbWFjaGluZT8KPiAKPiBTdXJl
+Ogo+IGFjcGl0ei12aXJ0dWFsLTAKPiBBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQo+IHRlbXAxOiAg
+ICAgICAgKzI3LjjCsEMgIChjcml0ID0gKzk2LjDCsEMpCj4gdGVtcDI6ICAgICAgICArMjkuOMKw
+QyAgKGNyaXQgPSArOTYuMMKwQykKPiAKPiBjb3JldGVtcC1pc2EtMDAwMAo+IEFkYXB0ZXI6IElT
+QSBhZGFwdGVyCj4gUGh5c2ljYWwgaWQgMDogICs0Mi4wwrBDICAoaGlnaCA9ICs3Ni4wwrBDLCBj
+cml0ID0gKzk1LjDCsEMpCj4gQ29yZSAwOiAgICAgICAgICs0Mi4wwrBDICAoaGlnaCA9ICs3Ni4w
+wrBDLCBjcml0ID0gKzk1LjDCsEMpCj4gQ29yZSAxOiAgICAgICAgICs0MS4wwrBDICAoaGlnaCA9
+ICs3Ni4wwrBDLCBjcml0ID0gKzk1LjDCsEMpCj4gCj4gaXQ4NzcxLWlzYS0wMjkwCj4gQWRhcHRl
+cjogSVNBIGFkYXB0ZXIKPiBpbjA6ICAgICAgICAgICsxLjAxIFYgIChtaW4gPSAgKzAuMDAgViwg
+bWF4ID0gICszLjA2IFYpCj4gaW4xOiAgICAgICAgICArMS40OSBWICAobWluID0gICswLjAwIFYs
+IG1heCA9ICArMy4wNiBWKQo+IGluMjogICAgICAgICAgKzIuMDUgViAgKG1pbiA9ICArMC4wMCBW
+LCBtYXggPSAgKzMuMDYgVikKPiBpbjM6ICAgICAgICAgICsyLjAwIFYgIChtaW4gPSAgKzAuMDAg
+ViwgbWF4ID0gICszLjA2IFYpCj4gaW40OiAgICAgICAgICArMi4wNCBWICAobWluID0gICswLjAw
+IFYsIG1heCA9ICArMy4wNiBWKQo+IGluNTogICAgICAgICAgKzIuMjMgViAgKG1pbiA9ICArMC4w
+MCBWLCBtYXggPSAgKzMuMDYgVikKPiBpbjY6ICAgICAgICAgICsyLjI2IFYgIChtaW4gPSAgKzAu
+MDAgViwgbWF4ID0gICszLjA2IFYpCj4gM1ZTQjogICAgICAgICArMS40MiBWICAobWluID0gICsw
+LjAwIFYsIG1heCA9ICArNi4xMiBWKQo+IFZiYXQ6ICAgICAgICAgKzMuMzQgVgo+IGZhbjE6ICAg
+ICAgICAyNzY2IFJQTSAgKG1pbiA9ICAgNDEgUlBNKQo+IGZhbjI6ICAgICAgICAxMzQxIFJQTSAg
+KG1pbiA9ICAgODQgUlBNKQo+IHRlbXAxOiAgICAgICAgKzQwLjDCsEMgIChsb3cgID0gIC0xLjDC
+sEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCj4gdGVtcDI6ICAgICAg
+ICArNDAuMMKwQyAgKGxvdyAgPSAgLTEuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIHNlbnNvciA9
+IHRoZXJtaXN0b3IKPiB0ZW1wMzogICAgICAgICAtOC4wwrBDICAobG93ICA9ICAtMS4wwrBDLCBo
+aWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IGludHJ1c2lvbjA6ICBPSwoK
+SXQgaXMgc3RyYW5nZSB0aGF0ICJhc3VzIiBkb2Vzbid0IHNob3cgdXAgaGVyZSwgd2hpbGUgcHdt
+Y29uZmlnIHNlZXMKaXQuIENhbiB5b3UgcGxlYXNlIHRlbGwgdXMgd2hhdCBhdHRyaWJ1dGVzIHlv
+dSBzZWUKdW5kZXIgL3N5cy9jbGFzcy9od21vbjMgKGFzc3VtaW5nIHRoaXMgaXMgc3RpbGwgdGhl
+ICJhc3VzIiBpbnRlcmZhY2UpPwoKPiA+IERvIHlvdSBoYXZlIGFueSBmYW4gc3BlZWQgY29udHJv
+bCByZWxhdGVkIG9wdGlvbiBpbiB0aGUgQklPUywgYW5kIGlmCj4gPiBzbywgd2hhdCBkaWQgeW91
+IHNldCBpdCB0bz8KPiAKPiBJIGRpZCwgYnV0IEkgc3dpdGNoZWQgaXQgb2ZmIHRvIGFsbG93IGZv
+ciBPUyBsZXZlbCBjb250cm9sLiBJIGZvdW5kIHRoZQo+IEJJT1Mgc2V0dGluZ3MgYSBiaXQgbm9p
+c3ksIGFuZCB0aGluZ3MgZGlkbid0IHNlZW0gdG9vIHdhcm0uCgpPSy4gT24gQXN1cyBib2FyZHMg
+SSBoYXZlIGhlcmUsIEkgY2FuIHNlbGVjdCBhIHByb2ZpbGUgYW5kIGhhdmUKZ2VuZXJhbGx5IGJl
+ZW4gaGFwcHkgd2l0aCB0aGUgIlNpbGVudCIgcHJvZmlsZSwgYnV0IEkgc3VwcG9zZSBpdCBkZXBl
+bmRzCm9uIHRoZSBib2FyZCwgZmFucywgZWFycywgZXRjLgoKPiA+IEFyZSB5b3UgdXNpbmcgMy1w
+aW4gZmFucywgNC1waW4gZmFucyBvciBhIG1peCBvZiBib3RoPwo+Cj4gSSdtIHVzaW5nIGEgc3Rv
+Y2sgSW50ZWwgQ29yZSBpMyBjb29sZXIgKHRoYXQncyB0aGUgb25lIHNwaW5uaW5nIGF0IHVwCj4g
+Mjc2NnJwbSAtIEkndmUgcnVuIGl0IG9uIGFub3RoZXIgbW90aGVyYm9hcmQgYmVmb3JlIGFuZCBo
+YWQgZnVsbCBjb250cm9sIG9mCj4gaXQpLiBJIHRoaW5rIHRoYXQncyAzLXBpbi4gVGhlIHNlY29u
+ZGFyeSBjYXNlIGZhbiwgSSdtIG5vdCBzbyBzdXJlIGFib3V0LAo+IGl0J3Mgd2hhdCBjYW1lIHdp
+dGggdGhlIGNhc2UgYW5kIEknZCBoYXZlIHRvIG9wZW4gaXQgdG8gY2hlY2suCgpFdmVyeSBJbnRl
+bCBzdG9jayBjb29sZXIgSSd2ZSBzZWVuIHNpbmNlIDIwMDcgaGFkIGEgNC1waW4gZmFuLCBzbyBJ
+J20Kc3VycHJpc2VkIHRoYXQgeW91IHNheSB5b3VycyBoYXMgb25seSAzIHBpbnMuIEknZCB0aGlu
+ayBldmVyeSByZWNlbnQKbW90aGVyYm9hcmQgZXhwZWN0cyA0LXBpbiBmYW5zIGF0IGxlYXN0IGZv
+ciB0aGUgQ1BVLCBhbmQgQ1BVIGZhbiBzcGVlZApjb250cm9sIHdvdWxkbid0IHdvcmsgKGF0IGFs
+bCkgaWYgeW91IHVzZSBhIDMtcGluIGZhbi4KCkFzIGEgbWF0dGVyIG9mIGZhY3QsIEkgZG93bmxv
+YWRlZCB0aGUgbWFudWFsIGZvciB5b3VyIGJvYXJkIGFuZCBpdCBzYXlzCnRoYXQgYm90aCB0aGUg
+Q1BVIGZhbiBoZWFkZXIgYW5kIHRoZSBjaGFzc2lzIGZhbiBoZWFkZXIgaGF2ZSA0IHBpbnMuClRo
+ZXJlIGRvZXNuJ3Qgc2VlbSB0byBiZSBhIGp1bXBlciB0byBzd2l0Y2ggdG8gMy1waW4gbW9kZSwg
+c28gdW5sZXNzCnRoZXJlIGlzIGEgQklPUyBvcHRpb24gZm9yIGl0LCBvciBzb21lIHRyYW5zcGFy
+ZW50IG1hZ2ljIHRvCmF1dG8tZGV0ZWN0IHdoYXQncyBjb25uZWN0ZWQsIEknZCBzYXkgeW91IG11
+c3QgdXNlIDQtcGluIGZhbnMgZm9yIGJvdGgKdGhlIENQVSBhbmQgdGhlIGNoYXNzaXMuCgo+ID4g
+KC4uLikKPiA+IEkgd291bGQgbGlrZSB5b3UgdG8gY2hlY2sgaWYgUFdNIHZhbHVlcyBzdGljay4g
+UGxlYXNlIGdvCj4gPiB0byAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMi9kZXZpY2UsIGNoZWNrIHRo
+ZSB2YWx1ZXMgb2YgZmlsZXMgcHdtMSBhbmQKPiA+IHB3bTIsIHNlZSBpZiB0aGV5IGNoYW5nZSBv
+biB0aGVpciBvd24uIFRoZW4gdHJ5IHdyaXRpbmcgYXJiaXRyYXJ5Cj4gPiB2YWx1ZXMgdG8gdGhl
+bSwgYW5kIGNoZWNrIGlmIHRoZSB2YWx1ZSBpcyBzdGlja2luZyBmb3Igb25lIG1pbnV0ZS4KPiAK
+PiBUaGUgdmFsdWVzIG9mIGJvdGggYXJlIGN1cnJlbnRseSBzZXQgMCwgYW5kIHRoZSBzdGF0ZSBv
+ZiB0aGUgZmFucyBpcyB0aGF0Cj4gYm90aCBhcmUgb24gZnVsbCBzcGVlZC4gVGhlIHZhbHVlcyBk
+b24ndCBjaGFuZ2Ugb24gdGhlaXIgb3duLgo+IEkgY2FuIGVjaG8gbnVtYmVycyBiZXR3ZWVuIDAg
+YW5kIDI1NSBpbnRvIHRob3NlIGRldmljZXMgYW5kIHRoZXkgc3RpY2ssIGJ1dAo+IG5vIG9idmlv
+dXMgY2hhbmdlcyB0byBmYW4gc3BlZWRzLgoKVGhpcyBpcyB2ZXJ5IG9kZCwgYXMgMCBub3JtYWxs
+eSBtZWFucyBmYW5zIHN0b3BwZWQuIEFsc28gdGhlIGZpcnN0CnJlc3VsdHMgZnJvbSBwd21jb25m
+aWcgd2VyZSBzdHJhbmdlIGJ1dCBjb21wbGV0ZWx5IGRpZmZlcmVudCBmcm9tIHdoYXQKeW91IGFy
+ZSByZXBvcnRpbmcgbm93LgoKV2hhdCdzIHRoZSB2YWx1ZSBvZiBwd20xX2VuYWJsZSBhbmQgcHdt
+Ml9lbmFibGU/CgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
