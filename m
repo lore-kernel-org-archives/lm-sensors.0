@@ -1,48 +1,23 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 17 Mar 2013 06:30:33 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 17 Mar 2013 12:39:20 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 0/2] fs: sysfs: Add devres support
-Message-Id: <20130317063033.GB32694@roeck-us.net>
+Message-Id: <20130317133920.465e8a8c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1363317887-24009-1-git-send-email-linux@roeck-us.net>
- <20130316162140.GB2630@kroah.com>
- <20130316181253.GA23608@roeck-us.net>
- <20130316195002.GB3112@kroah.com>
- <20130316212540.GA18933@roeck-us.net>
+	<20130316162140.GB2630@kroah.com>
+	<20130316181253.GA23608@roeck-us.net>
+	<20130316195002.GB3112@kroah.com>
+	<20130316212540.GA18933@roeck-us.net>
 In-Reply-To: <20130316212540.GA18933@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Sat, Mar 16, 2013 at 02:25:40PM -0700, Guenter Roeck wrote:
+On Sat, 16 Mar 2013 14:25:40 -0700, Guenter Roeck wrote:
 > On Sat, Mar 16, 2013 at 12:50:02PM -0700, Greg Kroah-Hartman wrote:
 > > On Sat, Mar 16, 2013 at 11:12:53AM -0700, Guenter Roeck wrote:
-> > > Adding lm-sensors.
-> > > 
-> > > On Sat, Mar 16, 2013 at 09:21:40AM -0700, Greg Kroah-Hartman wrote:
-> > > > On Thu, Mar 14, 2013 at 08:24:45PM -0700, Guenter Roeck wrote:
-> > > > > Provide devres functions for device_create_file, sysfs_create_file,
-> > > > > and sysfs_create_group plus the respective remove functions.
-> > > > > 
-> > > > > Idea is to be able to drop calls to the remove functions from the various
-> > > > > drivers using those calls.
-> > > > 
-> > > > Hm, despite the fact that almost every driver that makes these calls is
-> > > > broken?  :)
-> > > > 
-> > > > > Potential savings are substantial. There are more than 700 calls to
-> > > > > device_remove_file in the kernel, more than 500 calls to sysfs_remove_group,
-> > > > > and some 50 calls to sysfs_remove_file (though not all of those use dev->kobj
-> > > > > as parameter). Expanding the API to sysfs_create_bin_file would add another 80+
-> > > > > opportunities, and adding sysfs_create_link would create another 100 or so.
-> > > > 
-> > > > The idea is nice, but why are these drivers adding sysfs files on their
-> > > > own?  Are they doing this in a way that is race-free with userspace
-> > > > (i.e. creating them before userspace is told about the device), or are
-> > > > they broken and need to have these calls added to the "default
-> > > > device/driver/bus" attribute list for them instead?
-> > > > 
 > > > My use case is primarily for hwmon drivers.
 > > > 
 > > > hwmon has a separate API call to register a driver with the hwmon subsystem,
@@ -56,7 +31,6 @@ On Sat, Mar 16, 2013 at 02:25:40PM -0700, Guenter Roeck wrote:
 > > callbacks to your driver to validate if you really want this sysfs file
 > > to be created or not.  Just use that like other subsystems do, then you
 > > will never have to be making these create and remove calls at all.
-> > 
 > 
 > I thought about it, but right now I have no idea how to make it work.
 > Initialization sequence in hwmon drivers is
@@ -76,99 +50,39 @@ On Sat, Mar 16, 2013 at 02:25:40PM -0700, Guenter Roeck wrote:
 > 
 > On the other side, attribute files must exist before hwmon_device_register()
 > is called, since otherwise userspace would get confused.
-> 
-> If interrupts are supported, those are typically used to signal attribute
-> file related events (via udev and/or poll events), meaning the interrupts
-> must only be enabled after sysfs files were created (becaue the interrupt
-> acts on it), and should only be enabled after the hwmon device was registered
-> (because otherwise userspace won't know about the device if the first interrupt
-> happens after sysfs file creation but before hwmon registration).
-> 
-> I looked into the use of is_visible. The drivers I looked at (ad7877, tsc2005,
-> lm3533_led, lm3533-core, lm3533_bl) all need data obtained in the probe function
-> in their is_visible function, meaning the attribute files can not be created
-> before that data is available. That (and the solution to create the attributes
-> in the probe function after basic device initialization) is quite similar
-> to the problem we have in the hwmon subsystem and its current solution.
-> 
-> Overall I have no idea how to make this all fit into the generic attribute
-> file handling. If you do, please let me know.
-> 
-I spent some time implementing two variants of devm_hwmon_device_register().
-One is based on the patchset provided here, and uses the following API.
 
-struct device *devm_hwmon_device_register(struct device *dev);
+I'd like to add something at this point.
 
-The other is
+We have historically created the hwmon attributes in the hardware (i2c,
+platform...) device, and then created an empty hwmon class device on
+top of it so that libsensors etc. can locate all hardware monitoring
+chips on the system. This is probably wrong and this may explain the
+difference of views between Greg and Guenter.
 
-struct device *devm_hwmon_device_register(struct device *dev, struct
-					  attribute_group **groups);
+I suspect that ideally all hwmon-related attributes should belong to the
+hwmon-class device and not the physical device. Would doing so solve
+the problem of is_visible() needing chip-specific information that can
+only be gathered during probe()? Sure this is an interface change, but
+a few hwmon drivers already do it that way (the ones without an actual
+hardware device, e.g. ACPI thermal zones) and libsensors supports this
+since version 3.0.3, which was released in September 2008 - 4.5 years
+ago.
 
-The second API includes a pointer to the sysfs attribute groups, and creates the
-sysfs attributes within the API call. With this approach, conditional attributes
-are managed with is_visible.
+This would require creating the attributes after calling
+hwmon_device_register() rather than before, but from the ongoing
+discussion I seem to understand that the driver core supports creating
+the attributes for us, possibly at the same time as the class device
+will be created. Would this solve the userspace timing issue?
 
-I then converted a couple of drivers to the new APIs.
+Also note that libsensors is really old fashioned when it comes to
+device discovery. It doesn't support hot-plug nor hot-remove. So some
+work would be needed in this area anyway if we want libsensors-based
+applications to properly cope with device addition and removal.
 
-For the first approach, conversion was quite simple:
-	device_create_file -> devm_device_create_file
-	sysfs_create_group -> devm_sysfs_create_group
-	hwmon_device_register -> devm_hwmon_device_register
-and drop all remove calls.
+Just my 2 cents.
 
-Result for the lm90 driver as a medium complexity example:
-
- drivers/hwmon/lm90.c |   46 +++++++++++++---------------------------------
- 1 file changed, 13 insertions(+), 33 deletions(-)
-
-The object size is reduced by approximately 500 bytes (of 20k).
-
-Result for max16065 driver:
-
- drivers/hwmon/max16065.c |   52 +++++++++++-----------------------------------
- 1 file changed, 12 insertions(+), 40 deletions(-)
-
-Code size is reduced by approximately 450 bytes (of 12k).
-
-For the second approach, I had to convert sysfs groups to use is_visible,
-create new groups where those did not exist, implement is_visible functions,
-drop calls to device_create_file, sysfs_create_group, and drop the remove
-functions.
-
-Result for the lm90 driver:
- drivers/hwmon/lm90.c |  137 ++++++++++++++++++++++++++++++--------------------
- 1 file changed, 83 insertions(+), 54 deletions(-)
-
-The object size increases by about 200 bytes.
-
-Results for max16065 driver:
-
- drivers/hwmon/max16065.c |  142 ++++++++++++++++++++++++++--------------------
- 1 file changed, 80 insertions(+), 62 deletions(-)
-
-Code size increases by about 160 bytes.
-
-This is after I pulled all tricks I could find to reduce the code size increase.
-In both cases, the code ended up being less readable and more confusing
-than before, as the validation if an attribute has to be created or not
-is now spread across multiple is_visible functions and no longer
-in a single block of code, and it is more difficult to understand if an
-attribute will be created or not.
-
-For simple drivers which don't need is_visible, the resulting code is
-similar with both approaches. Unfortunately, most hwmon drivers are not
-that simple. As soon as conditional attributes are needed, the code ends up
-being more complex.
-
-In conclusion, I see the second approach (ie using is_visible) as a no-go.
-The idea is to reduce complexity, not to increase it. So, ultimately, we can
-discuss how the API functions are named and its parameters, but for the hwmon
-subsystem conversion to devres to make sense we would need the device/sysfs
-API functions along the line I proposed. Otherwise we are better off with
-just keeping the current hwmon API and not bother converting it to devres.
-
-Thanks,
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
