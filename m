@@ -1,194 +1,225 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 31 Mar 2013 18:09:35 +0000
-Subject: [lm-sensors] [PATCH 1/5] hwmon: (it87) Use is_visible for voltage sensors
-Message-Id: <1364753379-20222-2-git-send-email-linux@roeck-us.net>
+Date: Mon, 18 Mar 2013 01:45:50 +0000
+Subject: [lm-sensors] [RFC PATCH 1/8] hwmon: Add devres support
+Message-Id: <1363571157-16273-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
 
-Simplify code and reduce object size by more than 300 bytes on x86_64.
+This patch provices new API functions devm_hwmon_device_register() and
+devm_hwmon_device_unregister().
+
+devm_hwmon_device_register() has a new parameter, a pointer to an array of type
+attribute_group. When using this API, callers to not have to create or remove
+sysfs attribute groups. Instead, attributes are created by the infrastructure.
+
+devm_hwmon_device_unregister() does not have to be called except for error
+handling.
+
+The new API attaches the provided attributes to the hwmon device.
+It automatically creates a 'name' attribute as required by the hwmon sysfs ABI.
+The name is set to either the name provided with devm_hwmon_device_register
+or the name of the hardware device driver.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c |  106 +++++++++++++++++++++-----------------------------
- 1 file changed, 45 insertions(+), 61 deletions(-)
+ drivers/hwmon/hwmon.c |  123 +++++++++++++++++++++++++++++++++++++++++++++----
+ include/linux/hwmon.h |    5 ++
+ 2 files changed, 119 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 72b21d5..bbf2a34 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1424,70 +1424,82 @@ static ssize_t show_name(struct device *dev, struct device_attribute
- }
- static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+index 646314f..4681b98 100644
+--- a/drivers/hwmon/hwmon.c
++++ b/drivers/hwmon/hwmon.c
+@@ -29,6 +29,51 @@ static struct class *hwmon_class;
  
--static struct attribute *it87_attributes_in[9][5] = {
-+static umode_t it87_in_is_visible(struct kobject *kobj,
-+				  struct attribute *attr, int index)
- {
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct it87_sio_data *sio_data = dev->platform_data;
-+	int i = index / 5;	/* voltage index */
-+	int a = index % 5;	/* attribute index */
-+
-+	if (sio_data->skip_in & (1 << i))
-+		return 0;
-+
-+	if (i = 8 && a != 0)
-+		return 0;
-+
-+	if (a = 4 && !sio_data->beep_pin)
-+		return 0;
-+
-+	return attr->mode;
+ static DEFINE_IDA(hwmon_ida);
+ 
++static void hwmon_device_register_release(struct device *dev)
++{
++	kfree(dev);
 +}
 +
-+static struct attribute *it87_attributes_in[] = {
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_min.dev_attr.attr,
- 	&sensor_dev_attr_in0_max.dev_attr.attr,
- 	&sensor_dev_attr_in0_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in0_beep.dev_attr.attr,	/* 4 */
++static struct device *_hwmon_device_register(struct device *dev,
++					const struct attribute_group **groups,
++					const char *name)
++{
++	struct device *hwdev;
++	int id, err;
 +
- 	&sensor_dev_attr_in1_input.dev_attr.attr,
- 	&sensor_dev_attr_in1_min.dev_attr.attr,
- 	&sensor_dev_attr_in1_max.dev_attr.attr,
- 	&sensor_dev_attr_in1_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in1_beep.dev_attr.attr,
++	hwdev = kzalloc(sizeof(*hwdev), GFP_KERNEL);
++	if (!hwdev)
++		return ERR_PTR(-ENOMEM);
 +
- 	&sensor_dev_attr_in2_input.dev_attr.attr,
- 	&sensor_dev_attr_in2_min.dev_attr.attr,
- 	&sensor_dev_attr_in2_max.dev_attr.attr,
- 	&sensor_dev_attr_in2_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in2_beep.dev_attr.attr,
++	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
++	if (id < 0) {
++		err = id;
++		goto err_free;
++	}
 +
- 	&sensor_dev_attr_in3_input.dev_attr.attr,
- 	&sensor_dev_attr_in3_min.dev_attr.attr,
- 	&sensor_dev_attr_in3_max.dev_attr.attr,
- 	&sensor_dev_attr_in3_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in3_beep.dev_attr.attr,
++	hwdev->groups = groups;
++	hwdev->class = hwmon_class;
++	hwdev->parent = dev;
++	hwdev->release = hwmon_device_register_release;
++	dev_set_drvdata(hwdev, (void *)name);
 +
- 	&sensor_dev_attr_in4_input.dev_attr.attr,
- 	&sensor_dev_attr_in4_min.dev_attr.attr,
- 	&sensor_dev_attr_in4_max.dev_attr.attr,
- 	&sensor_dev_attr_in4_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in4_beep.dev_attr.attr,
++	err = kobject_set_name(&hwdev->kobj, HWMON_ID_FORMAT, id);
++	if (err)
++		goto err_remove;
 +
- 	&sensor_dev_attr_in5_input.dev_attr.attr,
- 	&sensor_dev_attr_in5_min.dev_attr.attr,
- 	&sensor_dev_attr_in5_max.dev_attr.attr,
- 	&sensor_dev_attr_in5_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in5_beep.dev_attr.attr,
++	err = device_register(hwdev);
++	if (err)
++		goto err_remove;
 +
- 	&sensor_dev_attr_in6_input.dev_attr.attr,
- 	&sensor_dev_attr_in6_min.dev_attr.attr,
- 	&sensor_dev_attr_in6_max.dev_attr.attr,
- 	&sensor_dev_attr_in6_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in6_beep.dev_attr.attr,
++	return hwdev;
 +
- 	&sensor_dev_attr_in7_input.dev_attr.attr,
- 	&sensor_dev_attr_in7_min.dev_attr.attr,
- 	&sensor_dev_attr_in7_max.dev_attr.attr,
- 	&sensor_dev_attr_in7_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_in7_beep.dev_attr.attr,
++err_remove:
++	ida_simple_remove(&hwmon_ida, id);
++err_free:
++	kfree(hwdev);
++	return ERR_PTR(err);
++}
 +
- 	&sensor_dev_attr_in8_input.dev_attr.attr,
- 	NULL
--} };
+ /**
+  * hwmon_device_register - register w/ hwmon
+  * @dev: the device to register
+@@ -40,22 +85,52 @@ static DEFINE_IDA(hwmon_ida);
+  */
+ struct device *hwmon_device_register(struct device *dev)
+ {
++	return _hwmon_device_register(dev, NULL, NULL);
++}
++EXPORT_SYMBOL_GPL(hwmon_device_register);
++
++struct hwmon_devres {
++	struct list_head node;
+ 	struct device *hwdev;
+-	int id;
 +};
  
--static const struct attribute_group it87_group_in[9] = {
--	{ .attrs = it87_attributes_in[0] },
--	{ .attrs = it87_attributes_in[1] },
--	{ .attrs = it87_attributes_in[2] },
--	{ .attrs = it87_attributes_in[3] },
--	{ .attrs = it87_attributes_in[4] },
--	{ .attrs = it87_attributes_in[5] },
--	{ .attrs = it87_attributes_in[6] },
--	{ .attrs = it87_attributes_in[7] },
--	{ .attrs = it87_attributes_in[8] },
-+static const struct attribute_group it87_group_in = {
-+	.attrs = it87_attributes_in,
-+	.is_visible = it87_in_is_visible,
- };
+-	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
+-	if (id < 0)
+-		return ERR_PTR(id);
++static void devm_hwmon_release(struct device *dev, void *res)
++{
++	struct hwmon_devres *devres = res;
  
- static struct attribute *it87_attributes_temp[3][6] = {
-@@ -1537,18 +1549,6 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
- };
+-	hwdev = device_create(hwmon_class, dev, MKDEV(0, 0), NULL,
+-			      HWMON_ID_FORMAT, id);
++	hwmon_device_unregister(devres->hwdev);
++}
  
--static struct attribute *it87_attributes_in_beep[] = {
--	&sensor_dev_attr_in0_beep.dev_attr.attr,
--	&sensor_dev_attr_in1_beep.dev_attr.attr,
--	&sensor_dev_attr_in2_beep.dev_attr.attr,
--	&sensor_dev_attr_in3_beep.dev_attr.attr,
--	&sensor_dev_attr_in4_beep.dev_attr.attr,
--	&sensor_dev_attr_in5_beep.dev_attr.attr,
--	&sensor_dev_attr_in6_beep.dev_attr.attr,
--	&sensor_dev_attr_in7_beep.dev_attr.attr,
--	NULL
--};
--
- static struct attribute *it87_attributes_temp_beep[] = {
- 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
- 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
-@@ -1966,14 +1966,8 @@ static void it87_remove_files(struct device *dev)
- 	int i;
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
--	for (i = 0; i < 9; i++) {
--		if (sio_data->skip_in & (1 << i))
--			continue;
--		sysfs_remove_group(&dev->kobj, &it87_group_in[i]);
--		if (it87_attributes_in_beep[i])
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_in_beep[i]);
--	}
-+	sysfs_remove_group(&dev->kobj, &it87_group_in);
+-	if (IS_ERR(hwdev))
+-		ida_simple_remove(&hwmon_ida, id);
++struct device *devm_hwmon_device_register(struct device *dev,
++					  const struct attribute_group **groups,
++					  const char *name)
++{
++	struct hwmon_devres *devres;
++	struct device *hwdev;
++	int err;
 +
- 	for (i = 0; i < 3; i++) {
- 		if (!(data->has_temp & (1 << i)))
- 			continue;
-@@ -2102,19 +2096,9 @@ static int it87_probe(struct platform_device *pdev)
- 	if (err)
- 		return err;
++	if (!dev)
++		return ERR_PTR(-EINVAL);
++
++	devres = devres_alloc(devm_hwmon_release, sizeof(*devres),
++			      GFP_KERNEL);
++	if (!devres)
++		return ERR_PTR(-ENOMEM);
  
--	for (i = 0; i < 9; i++) {
--		if (sio_data->skip_in & (1 << i))
--			continue;
--		err = sysfs_create_group(&dev->kobj, &it87_group_in[i]);
--		if (err)
--			goto error;
--		if (sio_data->beep_pin && it87_attributes_in_beep[i]) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_in_beep[i]);
--			if (err)
--				goto error;
--		}
--	}
-+	err = sysfs_create_group(&dev->kobj, &it87_group_in);
-+	if (err)
-+		goto error;
++	hwdev = _hwmon_device_register(dev, groups, name);
++	if (IS_ERR(hwdev)) {
++		err = PTR_ERR(hwdev);
++		goto err_free;
++	}
++	devres->hwdev = hwdev;
++	devres_add(dev, devres);
+ 	return hwdev;
++
++err_free:
++	devres_free(devres);
++	return ERR_PTR(err);
+ }
+-EXPORT_SYMBOL_GPL(hwmon_device_register);
++EXPORT_SYMBOL_GPL(devm_hwmon_device_register);
  
- 	for (i = 0; i < 3; i++) {
- 		if (!(data->has_temp & (1 << i)))
+ /**
+  * hwmon_device_unregister - removes the previously registered class device
+@@ -75,6 +150,22 @@ void hwmon_device_unregister(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(hwmon_device_unregister);
+ 
++static int devm_hwmon_match(struct device *dev, void *res, void *data)
++{
++	struct hwmon_devres *devres = res;
++
++	return devres->hwdev = data;
++}
++
++void devm_hwmon_device_unregister(struct device *hwdev)
++{
++	WARN_ON(devres_destroy(hwdev->parent, devm_hwmon_release,
++			       devm_hwmon_match, hwdev));
++
++	hwmon_device_unregister(hwdev);
++}
++EXPORT_SYMBOL_GPL(devm_hwmon_device_unregister);
++
+ static void __init hwmon_pci_quirks(void)
+ {
+ #if defined CONFIG_X86 && defined CONFIG_PCI
+@@ -103,6 +194,19 @@ static void __init hwmon_pci_quirks(void)
+ #endif
+ }
+ 
++static ssize_t hwmon_name_show(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	const char *name = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", name ? : dev->parent->driver->name);
++}
++
++struct device_attribute hwmon_dev_attrs[] = {
++	__ATTR(name, S_IRUGO, hwmon_name_show, NULL),
++	__ATTR_NULL,
++};
++
+ static int __init hwmon_init(void)
+ {
+ 	hwmon_pci_quirks();
+@@ -112,6 +216,7 @@ static int __init hwmon_init(void)
+ 		pr_err("couldn't create sysfs class\n");
+ 		return PTR_ERR(hwmon_class);
+ 	}
++	hwmon_class->dev_attrs = hwmon_dev_attrs;
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
+index b2514f7..67c9c08 100644
+--- a/include/linux/hwmon.h
++++ b/include/linux/hwmon.h
+@@ -15,9 +15,14 @@
+ #define _HWMON_H_
+ 
+ struct device;
++struct attribute_group;
+ 
+ struct device *hwmon_device_register(struct device *dev);
++struct device *devm_hwmon_device_register(struct device *dev,
++					const struct attribute_group **groups,
++					const char *name);
+ 
+ void hwmon_device_unregister(struct device *dev);
++void devm_hwmon_device_unregister(struct device *dev);
+ 
+ #endif
 -- 
 1.7.9.7
 
