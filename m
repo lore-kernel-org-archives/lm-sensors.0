@@ -1,95 +1,220 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 13 Mar 2013 23:23:55 +0000
-Subject: [lm-sensors] [PATCH 3/5] hwmon: (w83627ehf) Add support for SmartFanIV mode on W83667HG-B
-Message-Id: <1363217037-15723-4-git-send-email-linux@roeck-us.net>
+Date: Mon, 18 Mar 2013 01:45:56 +0000
+Subject: [lm-sensors] [RFC PATCH 7/8] hwmon: (max16065) Convert to devm_hwmon_device_register API
+Message-Id: <1363571157-16273-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-SmartFan IV mode is supported on W83667HG-B, but configured differently than
-on other chips and not detected. As a result, changing the fan control mode
-was impossible if SmartFan IV mode is selected.
-
-Detect SmartFan I V mode and make it configurable if was configured at system
-startup.
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/w83627ehf.c |   34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ drivers/hwmon/max16065.c |  103 +++++++++++++++++++++-------------------------
+ 1 file changed, 47 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 5058b3a..92e173d 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -243,6 +243,8 @@ static const u16 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[]
+diff --git a/drivers/hwmon/max16065.c b/drivers/hwmon/max16065.c
+index 2fa2c02..cb05219 100644
+--- a/drivers/hwmon/max16065.c
++++ b/drivers/hwmon/max16065.c
+@@ -84,6 +84,7 @@ static const bool max16065_have_current[] = {
+ struct max16065_data {
+ 	enum chips type;
+ 	struct device *hwmon_dev;
++	const struct attribute_group *groups[4];
+ 	struct mutex update_lock;
+ 	bool valid;
+ 	unsigned long last_updated; /* in jiffies */
+@@ -144,7 +145,7 @@ static int max16065_read_adc(struct i2c_client *client, int reg)
  
- static const u16 W83627EHF_REG_TEMP_OFFSET[] = { 0x454, 0x455, 0x456 };
- 
-+static const u16 W83627HCB_REG_FAN_MODE[] = { 0x950, 0xa50, 0xb50 };
-+
- static const u16 NCT6775_REG_TARGET[] = { 0x101, 0x201, 0x301 };
- static const u16 NCT6775_REG_FAN_MODE[] = { 0x102, 0x202, 0x302 };
- static const u16 NCT6775_REG_FAN_STOP_OUTPUT[] = { 0x105, 0x205, 0x305 };
-@@ -753,7 +755,8 @@ static void nct6775_update_pwm(struct w83627ehf_data *data)
- 	}
- }
- 
--static void w83627ehf_update_pwm(struct w83627ehf_data *data)
-+static void w83627ehf_update_pwm(struct w83627ehf_sio_data *sio_data,
-+				 struct w83627ehf_data *data)
+ static struct max16065_data *max16065_update_device(struct device *dev)
  {
- 	int i;
- 	int pwmcfg = 0, tolerance = 0; /* shut up the compiler */
-@@ -771,8 +774,19 @@ static void w83627ehf_update_pwm(struct w83627ehf_data *data)
- 		}
- 		data->pwm_mode[i]  			((pwmcfg >> W83627EHF_PWM_MODE_SHIFT[i]) & 1) ? 0 : 1;
--		data->pwm_enable[i] = ((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
--				       & 3) + 1;
-+		if (sio_data->kind = w83667hg_b) {
-+			u8 mode = w83627ehf_read_value(data,
-+						W83627HCB_REG_FAN_MODE[i]);
-+			if (mode & 1)
-+				data->pwm_enable[i] = 5;
-+			else
-+				data->pwm_enable[i] +				  ((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
-+				   & 3) + 1;
-+		} else {
-+			data->pwm_enable[i] +			  ((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i]) & 3) + 1;
-+		}
- 		data->pwm[i] = w83627ehf_read_value(data, data->REG_PWM[i]);
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct max16065_data *data = i2c_get_clientdata(client);
  
- 		data->tolerance[i] = (tolerance >> (i = 1 ? 4 : 0)) & 0x0f;
-@@ -787,7 +801,7 @@ static void w83627ehf_update_pwm_common(struct device *dev,
- 	if (sio_data->kind = nct6775 || sio_data->kind = nct6776)
- 		nct6775_update_pwm(data);
- 	else
--		w83627ehf_update_pwm(data);
-+		w83627ehf_update_pwm(sio_data, data);
+ 	mutex_lock(&data->update_lock);
+@@ -186,7 +187,7 @@ static ssize_t max16065_show_alarm(struct device *dev,
+ 
+ 	val &= (1 << attr2->index);
+ 	if (val)
+-		i2c_smbus_write_byte_data(to_i2c_client(dev),
++		i2c_smbus_write_byte_data(to_i2c_client(dev->parent),
+ 					  MAX16065_FAULT(attr2->nr), val);
+ 
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", !!val);
+@@ -223,7 +224,7 @@ static ssize_t max16065_set_limit(struct device *dev,
+ 				  const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct max16065_data *data = i2c_get_clientdata(client);
+ 	unsigned long val;
+ 	int err;
+@@ -250,7 +251,7 @@ static ssize_t max16065_show_limit(struct device *dev,
+ 				   struct device_attribute *da, char *buf)
+ {
+ 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct max16065_data *data = i2c_get_clientdata(client);
+ 
+ 	return snprintf(buf, PAGE_SIZE, "%d\n",
+@@ -516,36 +517,58 @@ static struct attribute *max16065_max_attributes[] = {
+ 	NULL
+ };
+ 
++static umode_t max16065_basic_is_visible(struct kobject *kobj,
++					 struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct i2c_client *client = to_i2c_client(dev->parent);
++	struct max16065_data *data = i2c_get_clientdata(client);
++	int channel = index / 4;
++
++	if (channel >= data->num_adc || !data->range[channel])
++		return 0;
++
++	return attr->mode;
++}
++
+ static const struct attribute_group max16065_basic_group = {
+ 	.attrs = max16065_basic_attributes,
++	.is_visible = max16065_basic_is_visible,
+ };
+ 
+ static const struct attribute_group max16065_current_group = {
+ 	.attrs = max16065_current_attributes,
+ };
+ 
++static umode_t max16065_limit_is_visible(struct kobject *kobj,
++					 struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct i2c_client *client = to_i2c_client(dev->parent);
++	struct max16065_data *data = i2c_get_clientdata(client);
++
++	if (index >= data->num_adc || !data->range[index])
++		return 0;
++
++	return attr->mode;
++}
++
+ static const struct attribute_group max16065_min_group = {
+ 	.attrs = max16065_min_attributes,
++	.is_visible = max16065_limit_is_visible,
+ };
+ 
+ static const struct attribute_group max16065_max_group = {
+ 	.attrs = max16065_max_attributes,
++	.is_visible = max16065_limit_is_visible,
+ };
+ 
+-static void max16065_cleanup(struct i2c_client *client)
+-{
+-	sysfs_remove_group(&client->dev.kobj, &max16065_max_group);
+-	sysfs_remove_group(&client->dev.kobj, &max16065_min_group);
+-	sysfs_remove_group(&client->dev.kobj, &max16065_current_group);
+-	sysfs_remove_group(&client->dev.kobj, &max16065_basic_group);
+-}
+-
+ static int max16065_probe(struct i2c_client *client,
+ 			  const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct max16065_data *data;
+-	int i, j, val, ret;
++	int i, j, val, group = 0;
+ 	bool have_secondary;		/* true if chip has secondary limits */
+ 	bool secondary_is_max = false;	/* secondary limits reflect max */
+ 
+@@ -597,37 +620,17 @@ static int max16065_probe(struct i2c_client *client,
+ 	}
+ 
+ 	/* Register sysfs hooks */
+-	for (i = 0; i < data->num_adc * 4; i++) {
+-		/* Do not create sysfs entry if channel is disabled */
+-		if (!data->range[i / 4])
+-			continue;
+-
+-		ret = sysfs_create_file(&client->dev.kobj,
+-					max16065_basic_attributes[i]);
+-		if (unlikely(ret))
+-			goto out;
+-	}
++	data->groups[group++] = &max16065_basic_group;
+ 
+ 	if (have_secondary) {
+-		struct attribute **attr = secondary_is_max ?
+-		  max16065_max_attributes : max16065_min_attributes;
+-
+-		for (i = 0; i < data->num_adc; i++) {
+-			if (!data->range[i])
+-				continue;
+-
+-			ret = sysfs_create_file(&client->dev.kobj, attr[i]);
+-			if (unlikely(ret))
+-				goto out;
+-		}
++		data->groups[group++] +		  secondary_is_max ? &max16065_max_group : &max16065_min_group;
+ 	}
+ 
+ 	if (data->have_current) {
+ 		val = i2c_smbus_read_byte_data(client, MAX16065_CURR_CONTROL);
+-		if (unlikely(val < 0)) {
+-			ret = val;
+-			goto out;
+-		}
++		if (unlikely(val < 0))
++			return val;
+ 		if (val & MAX16065_CURR_ENABLE) {
+ 			/*
+ 			 * Current gain is 6, 12, 24, 48 based on values in
+@@ -636,34 +639,22 @@ static int max16065_probe(struct i2c_client *client,
+ 			data->curr_gain = 6 << ((val >> 2) & 0x03);
+ 			data->range[MAX16065_NUM_ADC]
+ 			  = max16065_csp_adc_range[(val >> 1) & 0x01];
+-			ret = sysfs_create_group(&client->dev.kobj,
+-						 &max16065_current_group);
+-			if (unlikely(ret))
+-				goto out;
++			data->groups[group++] = &max16065_current_group;
+ 		} else {
+ 			data->have_current = false;
+ 		}
+ 	}
+ 
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (unlikely(IS_ERR(data->hwmon_dev))) {
+-		ret = PTR_ERR(data->hwmon_dev);
+-		goto out;
+-	}
+-	return 0;
++	data->hwmon_dev = devm_hwmon_device_register(&client->dev,
++						     data->groups, id->name);
++	if (unlikely(IS_ERR(data->hwmon_dev)))
++		return PTR_ERR(data->hwmon_dev);
+ 
+-out:
+-	max16065_cleanup(client);
+-	return ret;
++	return 0;
  }
  
- static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
-@@ -1475,6 +1489,18 @@ store_pwm_enable(struct device *dev, struct device_attribute *attr,
- 		reg |= (val - 1) << 4;
- 		w83627ehf_write_value(data,
- 				      NCT6775_REG_FAN_MODE[nr], reg);
-+	} else if (sio_data->kind = w83667hg_b) {
-+		w83627ehf_write_value(data, W83627HCB_REG_FAN_MODE[nr],
-+				      val = 5 ? 1 : 0);
-+		if (val != 5) {
-+			reg = w83627ehf_read_value(data,
-+					W83627EHF_REG_PWM_ENABLE[nr]);
-+			reg &= ~(0x03 << W83627EHF_PWM_ENABLE_SHIFT[nr]);
-+			reg |= (val - 1) << W83627EHF_PWM_ENABLE_SHIFT[nr];
-+			w83627ehf_write_value(data,
-+					      W83627EHF_REG_PWM_ENABLE[nr],
-+					      reg);
-+		}
- 	} else {
- 		reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
- 		reg &= ~(0x03 << W83627EHF_PWM_ENABLE_SHIFT[nr]);
+ static int max16065_remove(struct i2c_client *client)
+ {
+-	struct max16065_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	max16065_cleanup(client);
+-
+ 	return 0;
+ }
+ 
 -- 
 1.7.9.7
 
