@@ -1,154 +1,319 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Tue, 26 Mar 2013 07:06:57 +0000
-Subject: [lm-sensors] [PATCH v6 3/5] ab8500: power: add const attributes to some data arrays
-Message-Id: <1364281619-13208-4-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 18 Mar 2013 01:45:57 +0000
+Subject: [lm-sensors] [RFC PATCH 8/8] hwmon: (tmp401) Convert to devm_hwmon_device_register API
+Message-Id: <1363571157-16273-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
-In-Reply-To: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
+References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
-Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
 
-This patch adds const attributes to AB8500 power and temperature related
-read-only data arrays.
-
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/power/ab8500_bmdata.c | 18 +++++++++---------
- drivers/power/ab8500_fg.c     |  4 ++--
- include/linux/mfd/abx500.h    |  6 +++---
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/hwmon/tmp401.c |  184 ++++++++++++++++++++++++------------------------
+ 1 file changed, 92 insertions(+), 92 deletions(-)
 
-diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
-index f836550..9c25ca8 100644
---- a/drivers/power/ab8500_bmdata.c
-+++ b/drivers/power/ab8500_bmdata.c
-@@ -11,7 +11,7 @@
-  * Note that the res_to_temp table must be strictly sorted by falling resistance
-  * values to work.
-  */
--static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
-+static const struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
- 	{-5, 53407},
- 	{ 0, 48594},
- 	{ 5, 43804},
-@@ -29,7 +29,7 @@ static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
- 	{65, 12500},
- };
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index c85f696..69b5293 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -108,6 +108,7 @@ MODULE_DEVICE_TABLE(i2c, tmp401_id);
  
--static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
-+static const struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
- 	{-5, 200000},
- 	{ 0, 159024},
- 	{ 5, 151921},
-@@ -47,7 +47,7 @@ static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
- 	{65,  82869},
- };
+ struct tmp401_data {
+ 	struct device *hwmon_dev;
++	const struct attribute_group *groups[3];
+ 	struct mutex update_lock;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+@@ -213,7 +214,7 @@ static struct tmp401_data *tmp401_update_device_reg16(
  
--static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
-+static const struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
- 	{4171,	100},
- 	{4114,	 95},
- 	{4009,	 83},
-@@ -70,7 +70,7 @@ static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
- 	{3247,	  0},
- };
- 
--static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
-+static const struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
- 	{4161,	100},
- 	{4124,	 98},
- 	{4044,	 90},
-@@ -93,7 +93,7 @@ static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
- 	{3250,	  0},
- };
- 
--static struct abx500_v_to_cap cap_tbl[] = {
-+static const struct abx500_v_to_cap cap_tbl[] = {
- 	{4186,	100},
- 	{4163,	 99},
- 	{4114,	 95},
-@@ -124,7 +124,7 @@ static struct abx500_v_to_cap cap_tbl[] = {
-  * Note that the res_to_temp table must be strictly sorted by falling
-  * resistance values to work.
-  */
--static struct abx500_res_to_temp temp_tbl[] = {
-+static const struct abx500_res_to_temp temp_tbl[] = {
- 	{-5, 214834},
- 	{ 0, 162943},
- 	{ 5, 124820},
-@@ -146,7 +146,7 @@ static struct abx500_res_to_temp temp_tbl[] = {
-  * Note that the batres_vs_temp table must be strictly sorted by falling
-  * temperature values to work.
-  */
--static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
- 	{ 40, 120},
- 	{ 30, 135},
- 	{ 20, 165},
-@@ -160,7 +160,7 @@ static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
-  * Note that the batres_vs_temp table must be strictly sorted by falling
-  * temperature values to work.
-  */
--static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
- 	{ 60, 300},
- 	{ 30, 300},
- 	{ 20, 300},
-@@ -171,7 +171,7 @@ static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
- };
- 
- /* battery resistance table for LI ION 9100 battery */
--static struct batres_vs_temp temp_to_batres_tbl_9100[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_9100[] = {
- 	{ 60, 180},
- 	{ 30, 180},
- 	{ 20, 180},
-diff --git a/drivers/power/ab8500_fg.c b/drivers/power/ab8500_fg.c
-index b3bf178..d21456d 100644
---- a/drivers/power/ab8500_fg.c
-+++ b/drivers/power/ab8500_fg.c
-@@ -811,7 +811,7 @@ static int ab8500_fg_bat_voltage(struct ab8500_fg *di)
- static int ab8500_fg_volt_to_capacity(struct ab8500_fg *di, int voltage)
+ static struct tmp401_data *tmp401_update_device(struct device *dev)
  {
- 	int i, tbl_size;
--	struct abx500_v_to_cap *tbl;
-+	const struct abx500_v_to_cap *tbl;
- 	int cap = 0;
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct tmp401_data *data = i2c_get_clientdata(client);
  
- 	tbl = di->bat->bat_type[di->bat->batt_id].v_to_cap_tbl,
-@@ -863,7 +863,7 @@ static int ab8500_fg_uncomp_volt_to_capacity(struct ab8500_fg *di)
- static int ab8500_fg_battery_resistance(struct ab8500_fg *di)
+ 	mutex_lock(&data->update_lock);
+@@ -329,6 +330,7 @@ static ssize_t show_status(struct device *dev,
+ static ssize_t store_temp_min(struct device *dev, struct device_attribute
+ 	*devattr, const char *buf, size_t count)
  {
- 	int i, tbl_size;
--	struct batres_vs_temp *tbl;
-+	const struct batres_vs_temp *tbl;
- 	int resist = 0;
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct tmp401_data *data = tmp401_update_device(dev);
+ 	long val;
+@@ -341,9 +343,9 @@ static ssize_t store_temp_min(struct device *dev, struct device_attribute
  
- 	tbl = di->bat->bat_type[di->bat->batt_id].batres_tbl;
-diff --git a/include/linux/mfd/abx500.h b/include/linux/mfd/abx500.h
-index 2138bd3..03fc0f1 100644
---- a/include/linux/mfd/abx500.h
-+++ b/include/linux/mfd/abx500.h
-@@ -173,11 +173,11 @@ struct abx500_battery_type {
- 	int low_high_vol_lvl;
- 	int battery_resistance;
- 	int n_temp_tbl_elements;
--	struct abx500_res_to_temp *r_to_t_tbl;
-+	const struct abx500_res_to_temp *r_to_t_tbl;
- 	int n_v_cap_tbl_elements;
--	struct abx500_v_to_cap *v_to_cap_tbl;
-+	const struct abx500_v_to_cap *v_to_cap_tbl;
- 	int n_batres_tbl_elements;
--	struct batres_vs_temp *batres_tbl;
-+	const struct batres_vs_temp *batres_tbl;
+ 	mutex_lock(&data->update_lock);
+ 
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(client,
+ 		TMP401_TEMP_LOW_LIMIT_MSB_WRITE[index], reg >> 8);
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(client,
+ 		TMP401_TEMP_LOW_LIMIT_LSB[index], reg & 0xFF);
+ 
+ 	data->temp_low[index] = reg;
+@@ -356,6 +358,7 @@ static ssize_t store_temp_min(struct device *dev, struct device_attribute
+ static ssize_t store_temp_max(struct device *dev, struct device_attribute
+ 	*devattr, const char *buf, size_t count)
+ {
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct tmp401_data *data = tmp401_update_device(dev);
+ 	long val;
+@@ -368,9 +371,9 @@ static ssize_t store_temp_max(struct device *dev, struct device_attribute
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(client,
+ 		TMP401_TEMP_HIGH_LIMIT_MSB_WRITE[index], reg >> 8);
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(client,
+ 		TMP401_TEMP_HIGH_LIMIT_LSB[index], reg & 0xFF);
+ 
+ 	data->temp_high[index] = reg;
+@@ -395,7 +398,7 @@ static ssize_t store_temp_crit(struct device *dev, struct device_attribute
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(to_i2c_client(dev->parent),
+ 		TMP401_TEMP_CRIT_LIMIT[index], reg);
+ 
+ 	data->temp_crit[index] = reg;
+@@ -427,7 +430,7 @@ static ssize_t store_temp_crit_hyst(struct device *dev, struct device_attribute
+ 	val = clamp_val(val, temp - 255000, temp);
+ 	reg = ((temp - val) + 500) / 1000;
+ 
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(to_i2c_client(dev->parent),
+ 		TMP401_TEMP_CRIT_HYST, reg);
+ 
+ 	data->temp_crit_hyst = reg;
+@@ -455,44 +458,68 @@ static ssize_t reset_temp_history(struct device *dev,
+ 			" supported. Use 1 to reset the history!\n", val);
+ 		return -EINVAL;
+ 	}
+-	i2c_smbus_write_byte_data(to_i2c_client(dev),
++	i2c_smbus_write_byte_data(to_i2c_client(dev->parent),
+ 		TMP411_TEMP_LOWEST_MSB[0], val);
+ 
+ 	return count;
+ }
+ 
+-static struct sensor_device_attribute tmp401_attr[] = {
+-	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp_value, NULL, 0),
+-	SENSOR_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_min,
+-		    store_temp_min, 0),
+-	SENSOR_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
+-		    store_temp_max, 0),
+-	SENSOR_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp_crit,
+-		    store_temp_crit, 0),
+-	SENSOR_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temp_crit_hyst,
+-		    store_temp_crit_hyst, 0),
+-	SENSOR_ATTR(temp1_min_alarm, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_LOCAL_LOW),
+-	SENSOR_ATTR(temp1_max_alarm, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_LOCAL_HIGH),
+-	SENSOR_ATTR(temp1_crit_alarm, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_LOCAL_CRIT),
+-	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp_value, NULL, 1),
+-	SENSOR_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_min,
+-		    store_temp_min, 1),
+-	SENSOR_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_max,
+-		    store_temp_max, 1),
+-	SENSOR_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp_crit,
+-		    store_temp_crit, 1),
+-	SENSOR_ATTR(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 1),
+-	SENSOR_ATTR(temp2_fault, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_REMOTE_OPEN),
+-	SENSOR_ATTR(temp2_min_alarm, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_REMOTE_LOW),
+-	SENSOR_ATTR(temp2_max_alarm, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_REMOTE_HIGH),
+-	SENSOR_ATTR(temp2_crit_alarm, S_IRUGO, show_status, NULL,
+-		    TMP401_STATUS_REMOTE_CRIT),
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_value, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_min,
++			  store_temp_min, 0);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
++			  store_temp_max, 0);
++static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp_crit,
++			  store_temp_crit, 0);
++static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO,
++			  show_temp_crit_hyst, store_temp_crit_hyst, 0);
++static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_LOCAL_LOW);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_LOCAL_HIGH);
++static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_LOCAL_CRIT);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_value, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_min,
++			  store_temp_min, 1);
++static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_max,
++			  store_temp_max, 1);
++static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp_crit,
++			  store_temp_crit, 1);
++static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst,
++			  NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_REMOTE_OPEN);
++static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_REMOTE_LOW);
++static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_REMOTE_HIGH);
++static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_status, NULL,
++			  TMP401_STATUS_REMOTE_CRIT);
++
++static struct attribute *tmp401_attributes[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp2_fault.dev_attr.attr,
++	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group tmp401_group = {
++	.attrs = tmp401_attributes,
  };
  
- /**
+ /*
+@@ -502,12 +529,24 @@ static struct sensor_device_attribute tmp401_attr[] = {
+  * minimum and maximum register reset for both the local
+  * and remote channels.
+  */
+-static struct sensor_device_attribute tmp411_attr[] = {
+-	SENSOR_ATTR(temp1_highest, S_IRUGO, show_temp_highest, NULL, 0),
+-	SENSOR_ATTR(temp1_lowest, S_IRUGO, show_temp_lowest, NULL, 0),
+-	SENSOR_ATTR(temp2_highest, S_IRUGO, show_temp_highest, NULL, 1),
+-	SENSOR_ATTR(temp2_lowest, S_IRUGO, show_temp_lowest, NULL, 1),
+-	SENSOR_ATTR(temp_reset_history, S_IWUSR, NULL, reset_temp_history, 0),
++static SENSOR_DEVICE_ATTR(temp1_highest, S_IRUGO, show_temp_highest, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_lowest, S_IRUGO, show_temp_lowest, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp2_highest, S_IRUGO, show_temp_highest, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_lowest, S_IRUGO, show_temp_lowest, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp_reset_history, S_IWUSR, NULL, reset_temp_history,
++			  0);
++
++static struct attribute *tmp411_attributes[] = {
++	&sensor_dev_attr_temp1_highest.dev_attr.attr,
++	&sensor_dev_attr_temp1_lowest.dev_attr.attr,
++	&sensor_dev_attr_temp2_highest.dev_attr.attr,
++	&sensor_dev_attr_temp2_lowest.dev_attr.attr,
++	&sensor_dev_attr_temp_reset_history.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group tmp411_group = {
++	.attrs = tmp411_attributes,
+ };
+ 
+ /*
+@@ -577,30 +616,9 @@ static int tmp401_detect(struct i2c_client *client,
+ 	return 0;
+ }
+ 
+-static int tmp401_remove(struct i2c_client *client)
+-{
+-	struct tmp401_data *data = i2c_get_clientdata(client);
+-	int i;
+-
+-	if (data->hwmon_dev)
+-		hwmon_device_unregister(data->hwmon_dev);
+-
+-	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++)
+-		device_remove_file(&client->dev, &tmp401_attr[i].dev_attr);
+-
+-	if (data->kind = tmp411) {
+-		for (i = 0; i < ARRAY_SIZE(tmp411_attr); i++)
+-			device_remove_file(&client->dev,
+-					   &tmp411_attr[i].dev_attr);
+-	}
+-
+-	return 0;
+-}
+-
+ static int tmp401_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+-	int i, err = 0;
+ 	struct tmp401_data *data;
+ 	const char *names[] = { "TMP401", "TMP411" };
+ 
+@@ -617,37 +635,20 @@ static int tmp401_probe(struct i2c_client *client,
+ 	tmp401_init_client(client);
+ 
+ 	/* Register sysfs hooks */
+-	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++) {
+-		err = device_create_file(&client->dev,
+-					 &tmp401_attr[i].dev_attr);
+-		if (err)
+-			goto exit_remove;
+-	}
++	data->groups[0] = &tmp401_group;
+ 
+ 	/* Register additional tmp411 sysfs hooks */
+-	if (data->kind = tmp411) {
+-		for (i = 0; i < ARRAY_SIZE(tmp411_attr); i++) {
+-			err = device_create_file(&client->dev,
+-						 &tmp411_attr[i].dev_attr);
+-			if (err)
+-				goto exit_remove;
+-		}
+-	}
++	if (data->kind = tmp411)
++		data->groups[1] = &tmp411_group;
+ 
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		data->hwmon_dev = NULL;
+-		goto exit_remove;
+-	}
++	data->hwmon_dev = devm_hwmon_device_register(&client->dev,
++						     data->groups, id->name);
++	if (IS_ERR(data->hwmon_dev))
++		return PTR_ERR(data->hwmon_dev);
+ 
+ 	dev_info(&client->dev, "Detected TI %s chip\n", names[data->kind]);
+ 
+ 	return 0;
+-
+-exit_remove:
+-	tmp401_remove(client);
+-	return err;
+ }
+ 
+ static struct i2c_driver tmp401_driver = {
+@@ -656,7 +657,6 @@ static struct i2c_driver tmp401_driver = {
+ 		.name	= "tmp401",
+ 	},
+ 	.probe		= tmp401_probe,
+-	.remove		= tmp401_remove,
+ 	.id_table	= tmp401_id,
+ 	.detect		= tmp401_detect,
+ 	.address_list	= normal_i2c,
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
