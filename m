@@ -1,107 +1,233 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Tue, 26 Mar 2013 07:06:54 +0000
-Subject: [lm-sensors] [PATCH v6 0/5] Add ST-Ericsson AB8500 HWMON driver
-Message-Id: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 18 Mar 2013 01:45:54 +0000
+Subject: [lm-sensors] [RFC PATCH 5/8] hwmon: (max6697) Convert to devm_hwmon_device_register API
+Message-Id: <1363571157-16273-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
-Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
 
-Guenter,
-Please check this v6 patches,
-thanks for all your reviews/comments for this patch set.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/max6697.c |  157 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 86 insertions(+), 71 deletions(-)
 
-Anton Vorontsov, for this v5 and v6 patches:
-I have add your Acked-by: into patch [1/5] (which was [1/3]); and split the
-old [2/3] into new [2/5], [3/5] and [4/5] patches, so please have a look them
-again, thank you.
-
-v5 -> v6 changes:
-- add depend on AB8500_BM in Kconfig
-- fix wrong usage of clamp_val()
-- export symbols for module compiling
-
-v4 -> v5 changes:
-- split the old [2/3]-ab8500-re-arrange-ab8500-power-and-temperature-data into
-  new three [2/5], [3/5] and [4/5] patches.
-- hwmon driver minor coding style clean ups:
-  - {} usage in if-else statement in ab8500_read_sensor function
-  - index error fix in gpadc_monitor function
-  - fix issue of clamp_val() usage
-  - remove unnecessary else in function abx500_attrs_visible
-  - remove redundant print message about irq set up
-  - return the calling function return value directly in probe function
-
-v3 -> v4 changes:
-for patch [3/3]
-- define delays in HZ
-- update ab8500_read_sensor function, returning temp by parameter
-- remove ab8500_is_visible function
-- use clamp_val in set_min and set_max callback
-- remove unnecessary locks in remove and suspend functions
-- let abx500 and ab8500 use its own data structure
-for patch [2/3]
-- move the data tables from driver/power/ab8500_bmdata.c to
-  include/linux/power/ab8500.h
-- rename driver/power/ab8500_bmdata.c to driver/power/ab8500_bm.c
-- rename these variable names to eliminate CamelCase warnings
-- add const attribute to these data
-
-v2 -> v3 changes:
-- Add interface for converting voltage to temperature
-- Remove temp5 sensor since we cannot offer temperature read interface of it
-- Update hyst to use absolute temperature instead of a difference
-- Add the 3/3 patch
-
-v1 -> v2 changes:
-- Add Documentation/hwmon/abx500 and Documentation/hwmon/abx500
-- Make devices which cannot report milli-Celsius invisible
-- Add temp5_crit interface
-- Re-work the old find_active_thresholds() to threshold_updated()
-- Reset updated_min_alarm and updated_max_alarm at the end of each loop
-- Update the hyst mechamisn to make it works as real hyst
-- Remove non-stand attributes
-- Re-order the operations sequence inside probe and remove functions
-- Update all the lock usages to eliminate race conditions
-- Make attibutes index starts from 0
-also changes:
-- Since the old [1/2] "ARM: ux500: rename ab8500 to abx500 for hwmon driver"
-  has been merged by Samuel, so won't send it again.
-- Add another new patch "ab8500_btemp: export two symblols" as [2/2] of this
-  patch set.
-
-Hongbo Zhang (5):
-  ab8500_btemp: make ab8500_btemp_get* interfaces public
-  ab8500: power: eliminate CamelCase warning of some variables
-  ab8500: power: add const attributes to some data arrays
-  ab8500: power: export abx500_res_to_temp tables for hwmon
-  hwmon: add ST-Ericsson ABX500 hwmon driver
-
- Documentation/hwmon/ab8500           |  22 ++
- Documentation/hwmon/abx500           |  28 ++
- drivers/hwmon/Kconfig                |  13 +
- drivers/hwmon/Makefile               |   1 +
- drivers/hwmon/ab8500.c               | 206 +++++++++++++++
- drivers/hwmon/abx500.c               | 491 +++++++++++++++++++++++++++++++++++
- drivers/hwmon/abx500.h               |  69 +++++
- drivers/power/ab8500_bmdata.c        |  42 +--
- drivers/power/ab8500_btemp.c         |   5 +-
- drivers/power/ab8500_fg.c            |   4 +-
- include/linux/mfd/abx500.h           |   6 +-
- include/linux/mfd/abx500/ab8500-bm.h |   5 +
- include/linux/power/ab8500.h         |  16 ++
- 13 files changed, 885 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/hwmon/ab8500
- create mode 100644 Documentation/hwmon/abx500
- create mode 100644 drivers/hwmon/ab8500.c
- create mode 100644 drivers/hwmon/abx500.c
- create mode 100644 drivers/hwmon/abx500.h
- create mode 100644 include/linux/power/ab8500.h
-
+diff --git a/drivers/hwmon/max6697.c b/drivers/hwmon/max6697.c
+index bf4aa37..068425b 100644
+--- a/drivers/hwmon/max6697.c
++++ b/drivers/hwmon/max6697.c
+@@ -181,7 +181,7 @@ static const struct max6697_chip_data max6697_chip_data[] = {
+ 
+ static struct max6697_data *max6697_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct max6697_data *data = i2c_get_clientdata(client);
+ 	struct max6697_data *ret = data;
+ 	int val;
+@@ -303,7 +303,7 @@ static ssize_t set_temp(struct device *dev,
+ {
+ 	int nr = to_sensor_dev_attr_2(devattr)->nr;
+ 	int index = to_sensor_dev_attr_2(devattr)->index;
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct max6697_data *data = i2c_get_clientdata(client);
+ 	long temp;
+ 	int ret;
+@@ -466,15 +466,86 @@ static struct attribute *max6697_attributes[8][7] = {
+ 	}
+ };
+ 
++static umode_t max6697_is_visible(struct kobject *kobj, struct attribute *attr,
++				  int index, int channel)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct i2c_client *client = to_i2c_client(dev->parent);
++	struct max6697_data *data = i2c_get_clientdata(client);
++	const struct max6697_chip_data *chip = data->chip;
++
++	if (channel >= chip->channels)
++		return 0;
++
++	if ((index = 3 || index = 4) && !(chip->have_crit & (1 << channel)))
++		return 0;
++	if (index = 5 && !(chip->have_fault & (1 << channel)))
++		return 0;
++
++	return attr->mode;
++}
++
++static umode_t max6697_visible_0(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 0);
++}
++
++static umode_t max6697_visible_1(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 1);
++}
++
++static umode_t max6697_visible_2(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 2);
++}
++
++static umode_t max6697_visible_3(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 3);
++}
++
++static umode_t max6697_visible_4(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 4);
++}
++
++static umode_t max6697_visible_5(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 5);
++}
++
++static umode_t max6697_visible_6(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 6);
++}
++
++static umode_t max6697_visible_7(struct kobject *k, struct attribute *a, int i)
++{
++	return max6697_is_visible(k, a, i, 7);
++}
++
+ static const struct attribute_group max6697_group[8] = {
+-	{ .attrs = max6697_attributes[0] },
+-	{ .attrs = max6697_attributes[1] },
+-	{ .attrs = max6697_attributes[2] },
+-	{ .attrs = max6697_attributes[3] },
+-	{ .attrs = max6697_attributes[4] },
+-	{ .attrs = max6697_attributes[5] },
+-	{ .attrs = max6697_attributes[6] },
+-	{ .attrs = max6697_attributes[7] },
++	{ .attrs = max6697_attributes[0], .is_visible = max6697_visible_0 },
++	{ .attrs = max6697_attributes[1], .is_visible = max6697_visible_1 },
++	{ .attrs = max6697_attributes[2], .is_visible = max6697_visible_2 },
++	{ .attrs = max6697_attributes[3], .is_visible = max6697_visible_3 },
++	{ .attrs = max6697_attributes[4], .is_visible = max6697_visible_4 },
++	{ .attrs = max6697_attributes[5], .is_visible = max6697_visible_5 },
++	{ .attrs = max6697_attributes[6], .is_visible = max6697_visible_6 },
++	{ .attrs = max6697_attributes[7], .is_visible = max6697_visible_7 },
++};
++
++static const struct attribute_group *max6697_groups[] = {
++	&max6697_group[0],
++	&max6697_group[1],
++	&max6697_group[2],
++	&max6697_group[3],
++	&max6697_group[4],
++	&max6697_group[5],
++	&max6697_group[6],
++	&max6697_group[7],
++	NULL
+ };
+ 
+ static void max6697_get_config_of(struct device_node *node,
+@@ -606,21 +677,13 @@ done:
+ 	return 0;
+ }
+ 
+-static void max6697_remove_files(struct i2c_client *client)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(max6697_group); i++)
+-		sysfs_remove_group(&client->dev.kobj, &max6697_group[i]);
+-}
+-
+ static int max6697_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct device *dev = &client->dev;
+ 	struct max6697_data *data;
+-	int i, err;
++	int err;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -639,57 +702,10 @@ static int max6697_probe(struct i2c_client *client,
+ 	if (err)
+ 		return err;
+ 
+-	for (i = 0; i < data->chip->channels; i++) {
+-		err = sysfs_create_file(&dev->kobj,
+-					max6697_attributes[i][0]);
+-		if (err)
+-			goto error;
+-		err = sysfs_create_file(&dev->kobj,
+-					max6697_attributes[i][1]);
+-		if (err)
+-			goto error;
+-		err = sysfs_create_file(&dev->kobj,
+-					max6697_attributes[i][2]);
+-		if (err)
+-			goto error;
+-
+-		if (data->chip->have_crit & (1 << i)) {
+-			err = sysfs_create_file(&dev->kobj,
+-						max6697_attributes[i][3]);
+-			if (err)
+-				goto error;
+-			err = sysfs_create_file(&dev->kobj,
+-						max6697_attributes[i][4]);
+-			if (err)
+-				goto error;
+-		}
+-		if (data->chip->have_fault & (1 << i)) {
+-			err = sysfs_create_file(&dev->kobj,
+-						max6697_attributes[i][5]);
+-			if (err)
+-				goto error;
+-		}
+-	}
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
+-	}
+-
+-	return 0;
+-
+-error:
+-	max6697_remove_files(client);
+-	return err;
+-}
+-
+-static int max6697_remove(struct i2c_client *client)
+-{
+-	struct max6697_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	max6697_remove_files(client);
++	data->hwmon_dev = devm_hwmon_device_register(dev, max6697_groups,
++						     id->name);
++	if (IS_ERR(data->hwmon_dev))
++		return PTR_ERR(data->hwmon_dev);
+ 
+ 	return 0;
+ }
+@@ -715,7 +731,6 @@ static struct i2c_driver max6697_driver = {
+ 		.name	= "max6697",
+ 	},
+ 	.probe = max6697_probe,
+-	.remove	= max6697_remove,
+ 	.id_table = max6697_id,
+ };
+ 
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
