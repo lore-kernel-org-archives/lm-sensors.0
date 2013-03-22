@@ -1,30 +1,66 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Tue, 19 Mar 2013 08:19:56 +0000
-Subject: Re: [lm-sensors] Getting temps for all CPU cores to show up on an AMD chip
-Message-Id: <51481FAC.20702@ladisch.de>
+From: Marc Ferland <ferlandm@sonatest.com>
+Date: Fri, 22 Mar 2013 17:51:30 +0000
+Subject: [lm-sensors] [PATCH] fancontrol: Fix handling of absolute paths in config
+Message-Id: <87obebb9wd.fsf@sonatest.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-=-="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAO2Qn5nT3FPbyrzJCF3NfyQ2y4sgR62w5JhMQeVNsHEcWY5HDA@mail.gmail.com>
-In-Reply-To: <CAO2Qn5nT3FPbyrzJCF3NfyQ2y4sgR62w5JhMQeVNsHEcWY5HDA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-dag dg wrote:
-> I wish that was the case so I could close the book but CPUID's
-> HWmonitor and OCCT PT both report all 6 temps which show the temps
-> fluxuating(within a degree of each other but still enough to tell
-> they're different measurements)
+--=-=-=
+Content-Type: text/plain
 
-I don't know where they get these values from; there's nothing in the
-AMD datasheets except the per-die northbridge sensor.  (Even the Boost
-function is documented as just counting idle cores.)
+The following patch fixes the fancontrol script so it can handle
+absolute filenames again.
+
+Marc
 
 
-Regards,
-Clemens
+--=-=-=
+Content-Type: text/x-patch
+Content-Disposition: inline
+
+Index: prog/pwm/fancontrol
+===================================================================
+--- prog/pwm/fancontrol	(revision 6127)
++++ prog/pwm/fancontrol	(working copy)
+@@ -289,16 +289,19 @@
+ cd $DIR
+ 
+ # Check for configuration change
+-if [ -z "$DEVPATH" -o -z "$DEVNAME" ]
++if [ "$DIR" != "/" ]
+ then
+-	echo "Configuration is too old, please run pwmconfig again" >&2
+-	exit 1
++	if [ -z "$DEVPATH" -o -z "$DEVNAME" ]
++	then
++		echo "Configuration is too old, please run pwmconfig again" >&2
++		exit 1
++	fi
++	if ! ValidateDevices "$DEVPATH" "$DEVNAME"
++	then
++		echo "Configuration appears to be outdated, please run pwmconfig again" >&2
++		exit 1
++	fi
+ fi
+-if ! ValidateDevices "$DEVPATH" "$DEVNAME"
+-then
+-	echo "Configuration appears to be outdated, please run pwmconfig again" >&2
+-	exit 1
+-fi
+ CheckFiles || exit 1
+ 
+ if [ -f "$PIDFILE" ]
+
+--=-=-=
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--=-=-=--
