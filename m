@@ -1,91 +1,86 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 18 Mar 2013 01:45:52 +0000
-Subject: [lm-sensors] [RFC PATCH 3/8] hwmon: (ltc4215) Convert to devm_hwmon_device_register API
-Message-Id: <1363571157-16273-4-git-send-email-linux@roeck-us.net>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Mon, 25 Mar 2013 08:48:44 +0000
+Subject: [lm-sensors] [PATCH v5 1/5] ab8500_btemp: make ab8500_btemp_get* interfaces public
+Message-Id: <1364201328-20881-2-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Make ab8500_btemp_get_temp interface public, export it and also export the
+ab8500_btemp_get, ab8500_btemp_get_batctrl_temp interfaces, so that the ab8500
+hwmon driver can use them.
+
+Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
+Acked-by: Anton Vorontsov <anton@enomsg.org>
 ---
- drivers/hwmon/ltc4215.c |   32 +++++++++++---------------------
- 1 file changed, 11 insertions(+), 21 deletions(-)
+ drivers/power/ab8500_btemp.c         | 5 ++++-
+ include/linux/mfd/abx500/ab8500-bm.h | 5 +++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
-index e887610..83bc0ba 100644
---- a/drivers/hwmon/ltc4215.c
-+++ b/drivers/hwmon/ltc4215.c
-@@ -45,7 +45,7 @@ struct ltc4215_data {
+diff --git a/drivers/power/ab8500_btemp.c b/drivers/power/ab8500_btemp.c
+index 20e2a7d..3359075 100644
+--- a/drivers/power/ab8500_btemp.c
++++ b/drivers/power/ab8500_btemp.c
+@@ -123,6 +123,7 @@ struct ab8500_btemp *ab8500_btemp_get(void)
  
- static struct ltc4215_data *ltc4215_update_device(struct device *dev)
- {
--	struct i2c_client *client = to_i2c_client(dev);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
- 	struct ltc4215_data *data = i2c_get_clientdata(client);
- 	s32 val;
- 	int i;
-@@ -244,12 +244,16 @@ static const struct attribute_group ltc4215_group = {
- 	.attrs = ltc4215_attributes,
- };
- 
-+static const struct attribute_group *ltc4215_groups[] = {
-+	&ltc4215_group,
-+	NULL
-+};
-+
- static int ltc4215_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
- 	struct i2c_adapter *adapter = client->adapter;
- 	struct ltc4215_data *data;
--	int ret;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
-@@ -264,31 +268,17 @@ static int ltc4215_probe(struct i2c_client *client,
- 	/* Initialize the LTC4215 chip */
- 	i2c_smbus_write_byte_data(client, LTC4215_FAULT, 0x00);
- 
--	/* Register sysfs hooks */
--	ret = sysfs_create_group(&client->dev.kobj, &ltc4215_group);
--	if (ret)
--		return ret;
--
--	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		ret = PTR_ERR(data->hwmon_dev);
--		goto out_hwmon_device_register;
--	}
-+	data->hwmon_dev = devm_hwmon_device_register(&client->dev,
-+						     ltc4215_groups,
-+						     id->name);
-+	if (IS_ERR(data->hwmon_dev))
-+		return PTR_ERR(data->hwmon_dev);
- 
- 	return 0;
--
--out_hwmon_device_register:
--	sysfs_remove_group(&client->dev.kobj, &ltc4215_group);
--	return ret;
+ 	return btemp;
  }
++EXPORT_SYMBOL(ab8500_btemp_get);
  
- static int ltc4215_remove(struct i2c_client *client)
+ /**
+  * ab8500_btemp_batctrl_volt_to_res() - convert batctrl voltage to resistance
+@@ -727,7 +728,7 @@ static void ab8500_btemp_periodic(struct ab8500_btemp *di,
+  *
+  * Returns battery temperature
+  */
+-static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
++int ab8500_btemp_get_temp(struct ab8500_btemp *di)
  {
--	struct ltc4215_data *data = i2c_get_clientdata(client);
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &ltc4215_group);
--
+ 	int temp = 0;
+ 
+@@ -763,6 +764,7 @@ static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
+ 	}
+ 	return temp;
+ }
++EXPORT_SYMBOL(ab8500_btemp_get_temp);
+ 
+ /**
+  * ab8500_btemp_get_batctrl_temp() - get the temperature
+@@ -774,6 +776,7 @@ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
+ {
+ 	return btemp->bat_temp * 1000;
+ }
++EXPORT_SYMBOL(ab8500_btemp_get_batctrl_temp);
+ 
+ /**
+  * ab8500_btemp_get_property() - get the btemp properties
+diff --git a/include/linux/mfd/abx500/ab8500-bm.h b/include/linux/mfd/abx500/ab8500-bm.h
+index 44310c9..4dd79f6 100644
+--- a/include/linux/mfd/abx500/ab8500-bm.h
++++ b/include/linux/mfd/abx500/ab8500-bm.h
+@@ -427,6 +427,7 @@ void ab8500_fg_reinit(void);
+ void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
+ struct ab8500_btemp *ab8500_btemp_get(void);
+ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
++int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
+ struct ab8500_fg *ab8500_fg_get(void);
+ int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
+ int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
+@@ -451,6 +452,10 @@ static int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
+ {
  	return 0;
  }
- 
++static int ab8500_btemp_get_temp(struct ab8500_btemp *btemp)
++{
++	return 0;
++}
+ struct ab8500_fg *ab8500_fg_get(void)
+ {
+ 	return NULL;
 -- 
-1.7.9.7
+1.8.0
 
 
 _______________________________________________
