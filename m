@@ -1,75 +1,148 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 18 Mar 2013 13:29:54 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 0/2] fs: sysfs: Add devres support
-Message-Id: <20130318132954.GA30482@roeck-us.net>
+Date: Mon, 25 Mar 2013 13:10:35 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (tmp401) Add support for TMP431
+Message-Id: <1364217035-7671-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363317887-24009-1-git-send-email-linux@roeck-us.net>
- <20130316162140.GB2630@kroah.com>
- <20130316181253.GA23608@roeck-us.net>
- <20130316195002.GB3112@kroah.com>
- <20130316212540.GA18933@roeck-us.net>
- <20130317133920.465e8a8c@endymion.delvare>
- <20130317131933.GA15179@roeck-us.net>
- <20130318090241.3856df75@endymion.delvare>
-In-Reply-To: <20130318090241.3856df75@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 18, 2013 at 09:02:41AM +0100, Jean Delvare wrote:
-> On Sun, 17 Mar 2013 06:19:33 -0700, Guenter Roeck wrote:
-> > On Sun, Mar 17, 2013 at 01:39:20PM +0100, Jean Delvare wrote:
-> > > I'd like to add something at this point.
-> > > 
-> > > We have historically created the hwmon attributes in the hardware (i2c,
-> > > platform...) device, and then created an empty hwmon class device on
-> > > top of it so that libsensors etc. can locate all hardware monitoring
-> > > chips on the system. This is probably wrong and this may explain the
-> > > difference of views between Greg and Guenter.
-> > > 
-> > > I suspect that ideally all hwmon-related attributes should belong to the
-> > > hwmon-class device and not the physical device. Would doing so solve
-> > > the problem of is_visible() needing chip-specific information that can
-> > > only be gathered during probe()? Sure this is an interface change, but
-> > > a few hwmon drivers already do it that way (the ones without an actual
-> > > hardware device, e.g. ACPI thermal zones) and libsensors supports this
-> > > since version 3.0.3, which was released in September 2008 - 4.5 years
-> > > ago.
-> > > 
-> > > This would require creating the attributes after calling
-> > > hwmon_device_register() rather than before, but from the ongoing
-> > > discussion I seem to understand that the driver core supports creating
-> > > the attributes for us, possibly at the same time as the class device
-> > > will be created. Would this solve the userspace timing issue?
-> > > 
-> > This is what I had in mind as ultimate possibility when I created
-> > the second API mentioned in my other e-mail.
-> > 
-> > struct device *devm_hwmon_device_register(struct device *dev,
-> > 					  const struct attribute_group **groups)
-> > 
-> > The attributes are still attached to dev (ie to the hardware device)
-> > in my current code, but it should be possible to attach them to the
-> > hwmon class device instead.
-> > 
-> > Problem with that approach is that it makes drivers larger, not smaller,
-> > at least if is_visible is needed. So it kind of defeats the purpose.
-> > 
-> > We can go along that route anyway if people think it is the right or a better
-> > approach, but I am not sure if it is worth it. I can send out the patches if
-> > there is interest.
-> 
-> Really, I don't know. All I know is that I do not have any time to
-> devote to this ATM.
-> 
-Hi Jean,
+TMP431 is compatible to TMP401.
 
-Can't help it. Worst case I learned how make better use of is_visible
-and how to avoid its pitfalls.
+Also add support for additional I2C addresses supported by TMP411B
+and TMP411C.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Reject invalid address/chip combinations
+
+ Documentation/hwmon/tmp401 |   16 ++++++++++------
+ drivers/hwmon/Kconfig      |    4 ++--
+ drivers/hwmon/tmp401.c     |   15 ++++++++++++---
+ 3 files changed, 24 insertions(+), 11 deletions(-)
+
+diff --git a/Documentation/hwmon/tmp401 b/Documentation/hwmon/tmp401
+index 9fc4472..12e4781 100644
+--- a/Documentation/hwmon/tmp401
++++ b/Documentation/hwmon/tmp401
+@@ -8,8 +8,12 @@ Supported chips:
+     Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp401.html
+   * Texas Instruments TMP411
+     Prefix: 'tmp411'
+-    Addresses scanned: I2C 0x4c
++    Addresses scanned: I2C 0x4c, 0x4d, 0x4e
+     Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp411.html
++  * Texas Instruments TMP431
++    Prefix: 'tmp431'
++    Addresses scanned: I2C 0x4c, 0x4d
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp431.html
+ 
+ Authors:
+          Hans de Goede <hdegoede@redhat.com>
+@@ -18,8 +22,8 @@ Authors:
+ Description
+ -----------
+ 
+-This driver implements support for Texas Instruments TMP401 and
+-TMP411 chips. These chips implements one remote and one local
++This driver implements support for Texas Instruments TMP401, TMP411,
++and TMP431 chips. These chips implement one remote and one local
+ temperature sensor. Temperature is measured in degrees
+ Celsius. Resolution of the remote sensor is 0.0625 degree. Local
+ sensor resolution can be set to 0.5, 0.25, 0.125 or 0.0625 degree (not
+@@ -27,10 +31,10 @@ supported by the driver so far, so using the default resolution of 0.5
+ degree).
+ 
+ The driver provides the common sysfs-interface for temperatures (see
+-/Documentation/hwmon/sysfs-interface under Temperatures).
++Documentation/hwmon/sysfs-interface under Temperatures).
+ 
+-The TMP411 chip is compatible with TMP401. It provides some additional
+-features.
++The TMP411 and TMP431 chips are compatible with TMP401. TMP411 provides
++some additional features.
+ 
+ * Minimum and Maximum temperature measured since power-on, chip-reset
+ 
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 89ac1cb..30351de 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1204,8 +1204,8 @@ config SENSORS_TMP401
+ 	tristate "Texas Instruments TMP401 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for Texas Instruments TMP401 and
+-	  TMP411 temperature sensor chips.
++	  If you say yes here you get support for Texas Instruments TMP401,
++	  TMP411, and TMP431 temperature sensor chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called tmp401.
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index c85f696..a4efdc4 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -40,9 +40,9 @@
+ #include <linux/sysfs.h>
+ 
+ /* Addresses to scan */
+-static const unsigned short normal_i2c[] = { 0x4c, I2C_CLIENT_END };
++static const unsigned short normal_i2c[] = { 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
+ 
+-enum chips { tmp401, tmp411 };
++enum chips { tmp401, tmp411, tmp431 };
+ 
+ /*
+  * The TMP401 registers, note some registers have different addresses for
+@@ -90,6 +90,7 @@ static const u8 TMP411_TEMP_HIGHEST_LSB[2]		= { 0x33, 0x37 };
+ #define TMP401_MANUFACTURER_ID			0x55
+ #define TMP401_DEVICE_ID			0x11
+ #define TMP411_DEVICE_ID			0x12
++#define TMP431_DEVICE_ID			0x31
+ 
+ /*
+  * Driver data (common to all clients)
+@@ -98,6 +99,7 @@ static const u8 TMP411_TEMP_HIGHEST_LSB[2]		= { 0x33, 0x37 };
+ static const struct i2c_device_id tmp401_id[] = {
+ 	{ "tmp401", tmp401 },
+ 	{ "tmp411", tmp411 },
++	{ "tmp431", tmp431 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, tmp401_id);
+@@ -554,11 +556,18 @@ static int tmp401_detect(struct i2c_client *client,
+ 
+ 	switch (reg) {
+ 	case TMP401_DEVICE_ID:
++		if (client->addr != 0x4c)
++			return -ENODEV;
+ 		kind = tmp401;
+ 		break;
+ 	case TMP411_DEVICE_ID:
+ 		kind = tmp411;
+ 		break;
++	case TMP431_DEVICE_ID:
++		if (client->addr = 0x4e)
++			return -ENODEV;
++		kind = tmp431;
++		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
+@@ -602,7 +611,7 @@ static int tmp401_probe(struct i2c_client *client,
+ {
+ 	int i, err = 0;
+ 	struct tmp401_data *data;
+-	const char *names[] = { "TMP401", "TMP411" };
++	const char *names[] = { "TMP401", "TMP411", "TMP431" };
+ 
+ 	data = devm_kzalloc(&client->dev, sizeof(struct tmp401_data),
+ 			    GFP_KERNEL);
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
