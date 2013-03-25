@@ -1,152 +1,99 @@
 From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Wed, 27 Mar 2013 07:13:30 +0000
-Subject: [lm-sensors] [PATCH v7 3/5] ab8500: power: add const attributes to some data arrays
-Message-Id: <1364368412-12810-4-git-send-email-hongbo.zhang@linaro.org>
+Date: Mon, 25 Mar 2013 08:48:43 +0000
+Subject: [lm-sensors] [PATCH v5 0/5] Add ST-Ericsson AB8500 HWMON driver
+Message-Id: <1364201328-20881-1-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364368412-12810-1-git-send-email-hongbo.zhang@linaro.org>
-In-Reply-To: <1364368412-12810-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
-Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
+To: lm-sensors@vger.kernel.org
 
-This patch adds const attributes to AB8500 power and temperature related
-read-only data arrays.
+Guenter,
+Sorry for the delay due to our internal issues. Please check this v5 patches,
+thanks for all your reviews/comments for this patch set.
 
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
----
- drivers/power/ab8500_bmdata.c | 18 +++++++++---------
- drivers/power/ab8500_fg.c     |  4 ++--
- include/linux/mfd/abx500.h    |  6 +++---
- 3 files changed, 14 insertions(+), 14 deletions(-)
+Anton Vorontsov,
+I have add your Acked-by: into patch [1/5] (which was [1/3]); and split the
+old [2/3] into new [2/5], [3/5] and [4/5] patches, so please have a look them
+again, thank you.
 
-diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
-index f836550..9c25ca8 100644
---- a/drivers/power/ab8500_bmdata.c
-+++ b/drivers/power/ab8500_bmdata.c
-@@ -11,7 +11,7 @@
-  * Note that the res_to_temp table must be strictly sorted by falling resistance
-  * values to work.
-  */
--static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
-+static const struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
- 	{-5, 53407},
- 	{ 0, 48594},
- 	{ 5, 43804},
-@@ -29,7 +29,7 @@ static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
- 	{65, 12500},
- };
- 
--static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
-+static const struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
- 	{-5, 200000},
- 	{ 0, 159024},
- 	{ 5, 151921},
-@@ -47,7 +47,7 @@ static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
- 	{65,  82869},
- };
- 
--static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
-+static const struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
- 	{4171,	100},
- 	{4114,	 95},
- 	{4009,	 83},
-@@ -70,7 +70,7 @@ static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
- 	{3247,	  0},
- };
- 
--static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
-+static const struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
- 	{4161,	100},
- 	{4124,	 98},
- 	{4044,	 90},
-@@ -93,7 +93,7 @@ static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
- 	{3250,	  0},
- };
- 
--static struct abx500_v_to_cap cap_tbl[] = {
-+static const struct abx500_v_to_cap cap_tbl[] = {
- 	{4186,	100},
- 	{4163,	 99},
- 	{4114,	 95},
-@@ -124,7 +124,7 @@ static struct abx500_v_to_cap cap_tbl[] = {
-  * Note that the res_to_temp table must be strictly sorted by falling
-  * resistance values to work.
-  */
--static struct abx500_res_to_temp temp_tbl[] = {
-+static const struct abx500_res_to_temp temp_tbl[] = {
- 	{-5, 214834},
- 	{ 0, 162943},
- 	{ 5, 124820},
-@@ -146,7 +146,7 @@ static struct abx500_res_to_temp temp_tbl[] = {
-  * Note that the batres_vs_temp table must be strictly sorted by falling
-  * temperature values to work.
-  */
--static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
- 	{ 40, 120},
- 	{ 30, 135},
- 	{ 20, 165},
-@@ -160,7 +160,7 @@ static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
-  * Note that the batres_vs_temp table must be strictly sorted by falling
-  * temperature values to work.
-  */
--static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
- 	{ 60, 300},
- 	{ 30, 300},
- 	{ 20, 300},
-@@ -171,7 +171,7 @@ static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
- };
- 
- /* battery resistance table for LI ION 9100 battery */
--static struct batres_vs_temp temp_to_batres_tbl_9100[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_9100[] = {
- 	{ 60, 180},
- 	{ 30, 180},
- 	{ 20, 180},
-diff --git a/drivers/power/ab8500_fg.c b/drivers/power/ab8500_fg.c
-index b3bf178..d21456d 100644
---- a/drivers/power/ab8500_fg.c
-+++ b/drivers/power/ab8500_fg.c
-@@ -811,7 +811,7 @@ static int ab8500_fg_bat_voltage(struct ab8500_fg *di)
- static int ab8500_fg_volt_to_capacity(struct ab8500_fg *di, int voltage)
- {
- 	int i, tbl_size;
--	struct abx500_v_to_cap *tbl;
-+	const struct abx500_v_to_cap *tbl;
- 	int cap = 0;
- 
- 	tbl = di->bat->bat_type[di->bat->batt_id].v_to_cap_tbl,
-@@ -863,7 +863,7 @@ static int ab8500_fg_uncomp_volt_to_capacity(struct ab8500_fg *di)
- static int ab8500_fg_battery_resistance(struct ab8500_fg *di)
- {
- 	int i, tbl_size;
--	struct batres_vs_temp *tbl;
-+	const struct batres_vs_temp *tbl;
- 	int resist = 0;
- 
- 	tbl = di->bat->bat_type[di->bat->batt_id].batres_tbl;
-diff --git a/include/linux/mfd/abx500.h b/include/linux/mfd/abx500.h
-index 2138bd3..03fc0f1 100644
---- a/include/linux/mfd/abx500.h
-+++ b/include/linux/mfd/abx500.h
-@@ -173,11 +173,11 @@ struct abx500_battery_type {
- 	int low_high_vol_lvl;
- 	int battery_resistance;
- 	int n_temp_tbl_elements;
--	struct abx500_res_to_temp *r_to_t_tbl;
-+	const struct abx500_res_to_temp *r_to_t_tbl;
- 	int n_v_cap_tbl_elements;
--	struct abx500_v_to_cap *v_to_cap_tbl;
-+	const struct abx500_v_to_cap *v_to_cap_tbl;
- 	int n_batres_tbl_elements;
--	struct batres_vs_temp *batres_tbl;
-+	const struct batres_vs_temp *batres_tbl;
- };
- 
- /**
+v4 -> v5 changes:
+- split the old [2/3]-ab8500-re-arrange-ab8500-power-and-temperature-data into
+  new three [2/5], [3/5] and [4/5] patches.
+- hwmon driver minor coding style clean ups:
+  - {} usage in if-else statement in ab8500_read_sensor function
+  - index error fix in gpadc_monitor function
+  - fix issue of clamp_val() usage
+  - remove unnecessary else in function abx500_attrs_visible
+  - remove redundant print message about irq set up
+  - return the calling function return value directly in probe function
+
+v3 -> v4 changes:
+for patch [3/3]
+- define delays in HZ
+- update ab8500_read_sensor function, returning temp by parameter
+- remove ab8500_is_visible function
+- use clamp_val in set_min and set_max callback
+- remove unnecessary locks in remove and suspend functions
+- let abx500 and ab8500 use its own data structure
+for patch [2/3]
+- move the data tables from driver/power/ab8500_bmdata.c to
+  include/linux/power/ab8500.h
+- rename driver/power/ab8500_bmdata.c to driver/power/ab8500_bm.c
+- rename these variable names to eliminate CamelCase warnings
+- add const attribute to these data
+
+v2 -> v3 changes:
+- Add interface for converting voltage to temperature
+- Remove temp5 sensor since we cannot offer temperature read interface of it
+- Update hyst to use absolute temperature instead of a difference
+- Add the 3/3 patch
+
+v1 -> v2 changes:
+- Add Documentation/hwmon/abx500 and Documentation/hwmon/abx500
+- Make devices which cannot report milli-Celsius invisible
+- Add temp5_crit interface
+- Re-work the old find_active_thresholds() to threshold_updated()
+- Reset updated_min_alarm and updated_max_alarm at the end of each loop
+- Update the hyst mechamisn to make it works as real hyst
+- Remove non-stand attributes
+- Re-order the operations sequence inside probe and remove functions
+- Update all the lock usages to eliminate race conditions
+- Make attibutes index starts from 0
+also changes:
+- Since the old [1/2] "ARM: ux500: rename ab8500 to abx500 for hwmon driver"
+  has been merged by Samuel, so won't send it again.
+- Add another new patch "ab8500_btemp: export two symblols" as [2/2] of this
+  patch set.
+
+Hongbo Zhang (5):
+  ab8500_btemp: make ab8500_btemp_get* interfaces public
+  ab8500: power: eliminate CamelCase warning of some variables
+  ab8500: power: add const attributes to some data arrays
+  ab8500: power: export abx500_res_to_temp tables for hwmon
+  hwmon: add ST-Ericsson ABX500 hwmon driver
+
+ Documentation/hwmon/ab8500           |  22 ++
+ Documentation/hwmon/abx500           |  28 ++
+ drivers/hwmon/Kconfig                |  13 +
+ drivers/hwmon/Makefile               |   1 +
+ drivers/hwmon/ab8500.c               | 206 +++++++++++++++
+ drivers/hwmon/abx500.c               | 491 +++++++++++++++++++++++++++++++++++
+ drivers/hwmon/abx500.h               |  69 +++++
+ drivers/power/ab8500_bmdata.c        |  38 +--
+ drivers/power/ab8500_btemp.c         |   5 +-
+ drivers/power/ab8500_fg.c            |   4 +-
+ include/linux/mfd/abx500.h           |   6 +-
+ include/linux/mfd/abx500/ab8500-bm.h |   5 +
+ include/linux/power/ab8500.h         |  16 ++
+ 13 files changed, 881 insertions(+), 23 deletions(-)
+ create mode 100644 Documentation/hwmon/ab8500
+ create mode 100644 Documentation/hwmon/abx500
+ create mode 100644 drivers/hwmon/ab8500.c
+ create mode 100644 drivers/hwmon/abx500.c
+ create mode 100644 drivers/hwmon/abx500.h
+ create mode 100644 include/linux/power/ab8500.h
+
 -- 
 1.8.0
 
