@@ -1,77 +1,154 @@
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Thu, 14 Mar 2013 13:11:31 +0000
-Subject: [lm-sensors] [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-Message-Id: <1363266691-15757-12-git-send-email-fabio.porcedda@gmail.com>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Tue, 26 Mar 2013 07:06:57 +0000
+Subject: [lm-sensors] [PATCH v6 3/5] ab8500: power: add const attributes to some data arrays
+Message-Id: <1364281619-13208-4-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
+In-Reply-To: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-ide@vger.kernel.org, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>
+To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
+Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+This patch adds const attributes to AB8500 power and temperature related
+read-only data arrays.
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
 ---
- drivers/misc/atmel_pwm.c  | 12 +-----------
- drivers/misc/ep93xx_pwm.c | 13 +------------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+ drivers/power/ab8500_bmdata.c | 18 +++++++++---------
+ drivers/power/ab8500_fg.c     |  4 ++--
+ include/linux/mfd/abx500.h    |  6 +++---
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/misc/atmel_pwm.c b/drivers/misc/atmel_pwm.c
-index 28f5aaa..494d050 100644
---- a/drivers/misc/atmel_pwm.c
-+++ b/drivers/misc/atmel_pwm.c
-@@ -393,17 +393,7 @@ static struct platform_driver atmel_pwm_driver = {
- 	 */
+diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
+index f836550..9c25ca8 100644
+--- a/drivers/power/ab8500_bmdata.c
++++ b/drivers/power/ab8500_bmdata.c
+@@ -11,7 +11,7 @@
+  * Note that the res_to_temp table must be strictly sorted by falling resistance
+  * values to work.
+  */
+-static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
++static const struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
+ 	{-5, 53407},
+ 	{ 0, 48594},
+ 	{ 5, 43804},
+@@ -29,7 +29,7 @@ static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
+ 	{65, 12500},
  };
  
--static int __init pwm_init(void)
--{
--	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
--}
--module_init(pwm_init);
--
--static void __exit pwm_exit(void)
--{
--	platform_driver_unregister(&atmel_pwm_driver);
--}
--module_exit(pwm_exit);
-+module_platform_driver_probe(atmel_pwm_driver, pwm_probe);
- 
- MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/misc/ep93xx_pwm.c b/drivers/misc/ep93xx_pwm.c
-index 16d7179..96787ec 100644
---- a/drivers/misc/ep93xx_pwm.c
-+++ b/drivers/misc/ep93xx_pwm.c
-@@ -365,18 +365,7 @@ static struct platform_driver ep93xx_pwm_driver = {
- 	.remove		= __exit_p(ep93xx_pwm_remove),
+-static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
++static const struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
+ 	{-5, 200000},
+ 	{ 0, 159024},
+ 	{ 5, 151921},
+@@ -47,7 +47,7 @@ static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
+ 	{65,  82869},
  };
  
--static int __init ep93xx_pwm_init(void)
--{
--	return platform_driver_probe(&ep93xx_pwm_driver, ep93xx_pwm_probe);
--}
--
--static void __exit ep93xx_pwm_exit(void)
--{
--	platform_driver_unregister(&ep93xx_pwm_driver);
--}
--
--module_init(ep93xx_pwm_init);
--module_exit(ep93xx_pwm_exit);
-+module_platform_driver_probe(ep93xx_pwm_driver, ep93xx_pwm_probe);
+-static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
++static const struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
+ 	{4171,	100},
+ 	{4114,	 95},
+ 	{4009,	 83},
+@@ -70,7 +70,7 @@ static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
+ 	{3247,	  0},
+ };
  
- MODULE_AUTHOR("Matthieu Crapet <mcrapet@gmail.com>, "
- 	      "H Hartley Sweeten <hsweeten@visionengravers.com>");
+-static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
++static const struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
+ 	{4161,	100},
+ 	{4124,	 98},
+ 	{4044,	 90},
+@@ -93,7 +93,7 @@ static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
+ 	{3250,	  0},
+ };
+ 
+-static struct abx500_v_to_cap cap_tbl[] = {
++static const struct abx500_v_to_cap cap_tbl[] = {
+ 	{4186,	100},
+ 	{4163,	 99},
+ 	{4114,	 95},
+@@ -124,7 +124,7 @@ static struct abx500_v_to_cap cap_tbl[] = {
+  * Note that the res_to_temp table must be strictly sorted by falling
+  * resistance values to work.
+  */
+-static struct abx500_res_to_temp temp_tbl[] = {
++static const struct abx500_res_to_temp temp_tbl[] = {
+ 	{-5, 214834},
+ 	{ 0, 162943},
+ 	{ 5, 124820},
+@@ -146,7 +146,7 @@ static struct abx500_res_to_temp temp_tbl[] = {
+  * Note that the batres_vs_temp table must be strictly sorted by falling
+  * temperature values to work.
+  */
+-static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
++static const struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
+ 	{ 40, 120},
+ 	{ 30, 135},
+ 	{ 20, 165},
+@@ -160,7 +160,7 @@ static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
+  * Note that the batres_vs_temp table must be strictly sorted by falling
+  * temperature values to work.
+  */
+-static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
++static const struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
+ 	{ 60, 300},
+ 	{ 30, 300},
+ 	{ 20, 300},
+@@ -171,7 +171,7 @@ static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
+ };
+ 
+ /* battery resistance table for LI ION 9100 battery */
+-static struct batres_vs_temp temp_to_batres_tbl_9100[] = {
++static const struct batres_vs_temp temp_to_batres_tbl_9100[] = {
+ 	{ 60, 180},
+ 	{ 30, 180},
+ 	{ 20, 180},
+diff --git a/drivers/power/ab8500_fg.c b/drivers/power/ab8500_fg.c
+index b3bf178..d21456d 100644
+--- a/drivers/power/ab8500_fg.c
++++ b/drivers/power/ab8500_fg.c
+@@ -811,7 +811,7 @@ static int ab8500_fg_bat_voltage(struct ab8500_fg *di)
+ static int ab8500_fg_volt_to_capacity(struct ab8500_fg *di, int voltage)
+ {
+ 	int i, tbl_size;
+-	struct abx500_v_to_cap *tbl;
++	const struct abx500_v_to_cap *tbl;
+ 	int cap = 0;
+ 
+ 	tbl = di->bat->bat_type[di->bat->batt_id].v_to_cap_tbl,
+@@ -863,7 +863,7 @@ static int ab8500_fg_uncomp_volt_to_capacity(struct ab8500_fg *di)
+ static int ab8500_fg_battery_resistance(struct ab8500_fg *di)
+ {
+ 	int i, tbl_size;
+-	struct batres_vs_temp *tbl;
++	const struct batres_vs_temp *tbl;
+ 	int resist = 0;
+ 
+ 	tbl = di->bat->bat_type[di->bat->batt_id].batres_tbl;
+diff --git a/include/linux/mfd/abx500.h b/include/linux/mfd/abx500.h
+index 2138bd3..03fc0f1 100644
+--- a/include/linux/mfd/abx500.h
++++ b/include/linux/mfd/abx500.h
+@@ -173,11 +173,11 @@ struct abx500_battery_type {
+ 	int low_high_vol_lvl;
+ 	int battery_resistance;
+ 	int n_temp_tbl_elements;
+-	struct abx500_res_to_temp *r_to_t_tbl;
++	const struct abx500_res_to_temp *r_to_t_tbl;
+ 	int n_v_cap_tbl_elements;
+-	struct abx500_v_to_cap *v_to_cap_tbl;
++	const struct abx500_v_to_cap *v_to_cap_tbl;
+ 	int n_batres_tbl_elements;
+-	struct batres_vs_temp *batres_tbl;
++	const struct batres_vs_temp *batres_tbl;
+ };
+ 
+ /**
 -- 
-1.8.1.5
+1.8.0
 
 
 _______________________________________________
