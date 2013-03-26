@@ -1,222 +1,89 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 18 Mar 2013 01:45:56 +0000
-Subject: [lm-sensors] [RFC PATCH 7/8] hwmon: (max16065) Convert to devm_hwmon_device_register API
-Message-Id: <1363571157-16273-8-git-send-email-linux@roeck-us.net>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Tue, 26 Mar 2013 07:06:55 +0000
+Subject: [lm-sensors] [PATCH v6 1/5] ab8500_btemp: make ab8500_btemp_get* interfaces public
+Message-Id: <1364281619-13208-2-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
+References: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
+In-Reply-To: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
+To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
+Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Make ab8500_btemp_get_temp interface public, export it and also export the
+ab8500_btemp_get, ab8500_btemp_get_batctrl_temp interfaces, so that the ab8500
+hwmon driver can use them.
+
+Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
+Acked-by: Anton Vorontsov <anton@enomsg.org>
 ---
- drivers/hwmon/max16065.c |  103 +++++++++++++++++++++-------------------------
- 1 file changed, 47 insertions(+), 56 deletions(-)
+ drivers/power/ab8500_btemp.c         | 5 ++++-
+ include/linux/mfd/abx500/ab8500-bm.h | 5 +++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/max16065.c b/drivers/hwmon/max16065.c
-index 2fa2c02..cb05219 100644
---- a/drivers/hwmon/max16065.c
-+++ b/drivers/hwmon/max16065.c
-@@ -84,6 +84,7 @@ static const bool max16065_have_current[] = {
- struct max16065_data {
- 	enum chips type;
- 	struct device *hwmon_dev;
-+	const struct attribute_group *groups[4];
- 	struct mutex update_lock;
- 	bool valid;
- 	unsigned long last_updated; /* in jiffies */
-@@ -144,7 +145,7 @@ static int max16065_read_adc(struct i2c_client *client, int reg)
+diff --git a/drivers/power/ab8500_btemp.c b/drivers/power/ab8500_btemp.c
+index 20e2a7d..3359075 100644
+--- a/drivers/power/ab8500_btemp.c
++++ b/drivers/power/ab8500_btemp.c
+@@ -123,6 +123,7 @@ struct ab8500_btemp *ab8500_btemp_get(void)
  
- static struct max16065_data *max16065_update_device(struct device *dev)
- {
--	struct i2c_client *client = to_i2c_client(dev);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
- 	struct max16065_data *data = i2c_get_clientdata(client);
- 
- 	mutex_lock(&data->update_lock);
-@@ -186,7 +187,7 @@ static ssize_t max16065_show_alarm(struct device *dev,
- 
- 	val &= (1 << attr2->index);
- 	if (val)
--		i2c_smbus_write_byte_data(to_i2c_client(dev),
-+		i2c_smbus_write_byte_data(to_i2c_client(dev->parent),
- 					  MAX16065_FAULT(attr2->nr), val);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n", !!val);
-@@ -223,7 +224,7 @@ static ssize_t max16065_set_limit(struct device *dev,
- 				  const char *buf, size_t count)
- {
- 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
--	struct i2c_client *client = to_i2c_client(dev);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
- 	struct max16065_data *data = i2c_get_clientdata(client);
- 	unsigned long val;
- 	int err;
-@@ -250,7 +251,7 @@ static ssize_t max16065_show_limit(struct device *dev,
- 				   struct device_attribute *da, char *buf)
- {
- 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
--	struct i2c_client *client = to_i2c_client(dev);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
- 	struct max16065_data *data = i2c_get_clientdata(client);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
-@@ -516,36 +517,58 @@ static struct attribute *max16065_max_attributes[] = {
- 	NULL
- };
- 
-+static umode_t max16065_basic_is_visible(struct kobject *kobj,
-+					 struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
-+	struct max16065_data *data = i2c_get_clientdata(client);
-+	int channel = index / 4;
-+
-+	if (channel >= data->num_adc || !data->range[channel])
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
- static const struct attribute_group max16065_basic_group = {
- 	.attrs = max16065_basic_attributes,
-+	.is_visible = max16065_basic_is_visible,
- };
- 
- static const struct attribute_group max16065_current_group = {
- 	.attrs = max16065_current_attributes,
- };
- 
-+static umode_t max16065_limit_is_visible(struct kobject *kobj,
-+					 struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
-+	struct max16065_data *data = i2c_get_clientdata(client);
-+
-+	if (index >= data->num_adc || !data->range[index])
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
- static const struct attribute_group max16065_min_group = {
- 	.attrs = max16065_min_attributes,
-+	.is_visible = max16065_limit_is_visible,
- };
- 
- static const struct attribute_group max16065_max_group = {
- 	.attrs = max16065_max_attributes,
-+	.is_visible = max16065_limit_is_visible,
- };
- 
--static void max16065_cleanup(struct i2c_client *client)
--{
--	sysfs_remove_group(&client->dev.kobj, &max16065_max_group);
--	sysfs_remove_group(&client->dev.kobj, &max16065_min_group);
--	sysfs_remove_group(&client->dev.kobj, &max16065_current_group);
--	sysfs_remove_group(&client->dev.kobj, &max16065_basic_group);
--}
--
- static int max16065_probe(struct i2c_client *client,
- 			  const struct i2c_device_id *id)
- {
- 	struct i2c_adapter *adapter = client->adapter;
- 	struct max16065_data *data;
--	int i, j, val, ret;
-+	int i, j, val, group = 0;
- 	bool have_secondary;		/* true if chip has secondary limits */
- 	bool secondary_is_max = false;	/* secondary limits reflect max */
- 
-@@ -597,37 +620,17 @@ static int max16065_probe(struct i2c_client *client,
- 	}
- 
- 	/* Register sysfs hooks */
--	for (i = 0; i < data->num_adc * 4; i++) {
--		/* Do not create sysfs entry if channel is disabled */
--		if (!data->range[i / 4])
--			continue;
--
--		ret = sysfs_create_file(&client->dev.kobj,
--					max16065_basic_attributes[i]);
--		if (unlikely(ret))
--			goto out;
--	}
-+	data->groups[group++] = &max16065_basic_group;
- 
- 	if (have_secondary) {
--		struct attribute **attr = secondary_is_max ?
--		  max16065_max_attributes : max16065_min_attributes;
--
--		for (i = 0; i < data->num_adc; i++) {
--			if (!data->range[i])
--				continue;
--
--			ret = sysfs_create_file(&client->dev.kobj, attr[i]);
--			if (unlikely(ret))
--				goto out;
--		}
-+		data->groups[group++] +		  secondary_is_max ? &max16065_max_group : &max16065_min_group;
- 	}
- 
- 	if (data->have_current) {
- 		val = i2c_smbus_read_byte_data(client, MAX16065_CURR_CONTROL);
--		if (unlikely(val < 0)) {
--			ret = val;
--			goto out;
--		}
-+		if (unlikely(val < 0))
-+			return val;
- 		if (val & MAX16065_CURR_ENABLE) {
- 			/*
- 			 * Current gain is 6, 12, 24, 48 based on values in
-@@ -636,34 +639,22 @@ static int max16065_probe(struct i2c_client *client,
- 			data->curr_gain = 6 << ((val >> 2) & 0x03);
- 			data->range[MAX16065_NUM_ADC]
- 			  = max16065_csp_adc_range[(val >> 1) & 0x01];
--			ret = sysfs_create_group(&client->dev.kobj,
--						 &max16065_current_group);
--			if (unlikely(ret))
--				goto out;
-+			data->groups[group++] = &max16065_current_group;
- 		} else {
- 			data->have_current = false;
- 		}
- 	}
- 
--	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (unlikely(IS_ERR(data->hwmon_dev))) {
--		ret = PTR_ERR(data->hwmon_dev);
--		goto out;
--	}
--	return 0;
-+	data->hwmon_dev = devm_hwmon_device_register(&client->dev,
-+						     data->groups, id->name);
-+	if (unlikely(IS_ERR(data->hwmon_dev)))
-+		return PTR_ERR(data->hwmon_dev);
- 
--out:
--	max16065_cleanup(client);
--	return ret;
-+	return 0;
+ 	return btemp;
  }
++EXPORT_SYMBOL(ab8500_btemp_get);
  
- static int max16065_remove(struct i2c_client *client)
+ /**
+  * ab8500_btemp_batctrl_volt_to_res() - convert batctrl voltage to resistance
+@@ -727,7 +728,7 @@ static void ab8500_btemp_periodic(struct ab8500_btemp *di,
+  *
+  * Returns battery temperature
+  */
+-static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
++int ab8500_btemp_get_temp(struct ab8500_btemp *di)
  {
--	struct max16065_data *data = i2c_get_clientdata(client);
--
--	hwmon_device_unregister(data->hwmon_dev);
--	max16065_cleanup(client);
--
+ 	int temp = 0;
+ 
+@@ -763,6 +764,7 @@ static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
+ 	}
+ 	return temp;
+ }
++EXPORT_SYMBOL(ab8500_btemp_get_temp);
+ 
+ /**
+  * ab8500_btemp_get_batctrl_temp() - get the temperature
+@@ -774,6 +776,7 @@ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
+ {
+ 	return btemp->bat_temp * 1000;
+ }
++EXPORT_SYMBOL(ab8500_btemp_get_batctrl_temp);
+ 
+ /**
+  * ab8500_btemp_get_property() - get the btemp properties
+diff --git a/include/linux/mfd/abx500/ab8500-bm.h b/include/linux/mfd/abx500/ab8500-bm.h
+index 44310c9..4dd79f6 100644
+--- a/include/linux/mfd/abx500/ab8500-bm.h
++++ b/include/linux/mfd/abx500/ab8500-bm.h
+@@ -427,6 +427,7 @@ void ab8500_fg_reinit(void);
+ void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
+ struct ab8500_btemp *ab8500_btemp_get(void);
+ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
++int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
+ struct ab8500_fg *ab8500_fg_get(void);
+ int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
+ int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
+@@ -451,6 +452,10 @@ static int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
+ {
  	return 0;
  }
- 
++static int ab8500_btemp_get_temp(struct ab8500_btemp *btemp)
++{
++	return 0;
++}
+ struct ab8500_fg *ab8500_fg_get(void)
+ {
+ 	return NULL;
 -- 
-1.7.9.7
+1.8.0
 
 
 _______________________________________________
