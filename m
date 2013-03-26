@@ -1,227 +1,97 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 18 Mar 2013 01:45:50 +0000
-Subject: [lm-sensors] [RFC PATCH 1/8] hwmon: Add devres support
-Message-Id: <1363571157-16273-2-git-send-email-linux@roeck-us.net>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Tue, 26 Mar 2013 07:06:56 +0000
+Subject: [lm-sensors] [PATCH v6 2/5] ab8500: power: eliminate CamelCase warning of some variables
+Message-Id: <1364281619-13208-3-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1363571157-16273-1-git-send-email-linux@roeck-us.net>
+References: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
+In-Reply-To: <1364281619-13208-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
+To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
+Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
 
-This patch provices new API functions devm_hwmon_device_register() and
-devm_hwmon_device_unregister().
+Some AB8500 power related variable names don't comply with kernel coding rules,
+any new patch using these variables will result in CamelCase warnings from
+checkpatch.pl, this patch re-name these variables.
 
-devm_hwmon_device_register() has a new parameter, a pointer to an array of type
-attribute_group. When using this API, callers to not have to create or remove
-sysfs attribute groups. Instead, attributes are created by the infrastructure.
-
-devm_hwmon_device_unregister() does not have to be called except for error
-handling.
-
-The new API attaches the provided attributes to the hwmon device.
-It automatically creates a 'name' attribute as required by the hwmon sysfs ABI.
-The name is set to either the name provided with devm_hwmon_device_register
-or the name of the hardware device driver.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
 ---
- drivers/hwmon/hwmon.c |  123 +++++++++++++++++++++++++++++++++++++++++++++----
- include/linux/hwmon.h |    5 ++
- 2 files changed, 119 insertions(+), 9 deletions(-)
+ drivers/power/ab8500_bmdata.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
-index 646314f..4681b98 100644
---- a/drivers/hwmon/hwmon.c
-+++ b/drivers/hwmon/hwmon.c
-@@ -29,6 +29,51 @@ static struct class *hwmon_class;
- 
- static DEFINE_IDA(hwmon_ida);
- 
-+static void hwmon_device_register_release(struct device *dev)
-+{
-+	kfree(dev);
-+}
-+
-+static struct device *_hwmon_device_register(struct device *dev,
-+					const struct attribute_group **groups,
-+					const char *name)
-+{
-+	struct device *hwdev;
-+	int id, err;
-+
-+	hwdev = kzalloc(sizeof(*hwdev), GFP_KERNEL);
-+	if (!hwdev)
-+		return ERR_PTR(-ENOMEM);
-+
-+	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
-+	if (id < 0) {
-+		err = id;
-+		goto err_free;
-+	}
-+
-+	hwdev->groups = groups;
-+	hwdev->class = hwmon_class;
-+	hwdev->parent = dev;
-+	hwdev->release = hwmon_device_register_release;
-+	dev_set_drvdata(hwdev, (void *)name);
-+
-+	err = kobject_set_name(&hwdev->kobj, HWMON_ID_FORMAT, id);
-+	if (err)
-+		goto err_remove;
-+
-+	err = device_register(hwdev);
-+	if (err)
-+		goto err_remove;
-+
-+	return hwdev;
-+
-+err_remove:
-+	ida_simple_remove(&hwmon_ida, id);
-+err_free:
-+	kfree(hwdev);
-+	return ERR_PTR(err);
-+}
-+
- /**
-  * hwmon_device_register - register w/ hwmon
-  * @dev: the device to register
-@@ -40,22 +85,52 @@ static DEFINE_IDA(hwmon_ida);
+diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
+index f034ae4..f836550 100644
+--- a/drivers/power/ab8500_bmdata.c
++++ b/drivers/power/ab8500_bmdata.c
+@@ -11,7 +11,7 @@
+  * Note that the res_to_temp table must be strictly sorted by falling resistance
+  * values to work.
   */
- struct device *hwmon_device_register(struct device *dev)
- {
-+	return _hwmon_device_register(dev, NULL, NULL);
-+}
-+EXPORT_SYMBOL_GPL(hwmon_device_register);
-+
-+struct hwmon_devres {
-+	struct list_head node;
- 	struct device *hwdev;
--	int id;
-+};
+-static struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
++static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
+ 	{-5, 53407},
+ 	{ 0, 48594},
+ 	{ 5, 43804},
+@@ -29,7 +29,7 @@ static struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
+ 	{65, 12500},
+ };
  
--	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
--	if (id < 0)
--		return ERR_PTR(id);
-+static void devm_hwmon_release(struct device *dev, void *res)
-+{
-+	struct hwmon_devres *devres = res;
+-static struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
++static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
+ 	{-5, 200000},
+ 	{ 0, 159024},
+ 	{ 5, 151921},
+@@ -47,7 +47,7 @@ static struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
+ 	{65,  82869},
+ };
  
--	hwdev = device_create(hwmon_class, dev, MKDEV(0, 0), NULL,
--			      HWMON_ID_FORMAT, id);
-+	hwmon_device_unregister(devres->hwdev);
-+}
+-static struct abx500_v_to_cap cap_tbl_A_thermistor[] = {
++static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
+ 	{4171,	100},
+ 	{4114,	 95},
+ 	{4009,	 83},
+@@ -70,7 +70,7 @@ static struct abx500_v_to_cap cap_tbl_A_thermistor[] = {
+ 	{3247,	  0},
+ };
  
--	if (IS_ERR(hwdev))
--		ida_simple_remove(&hwmon_ida, id);
-+struct device *devm_hwmon_device_register(struct device *dev,
-+					  const struct attribute_group **groups,
-+					  const char *name)
-+{
-+	struct hwmon_devres *devres;
-+	struct device *hwdev;
-+	int err;
-+
-+	if (!dev)
-+		return ERR_PTR(-EINVAL);
-+
-+	devres = devres_alloc(devm_hwmon_release, sizeof(*devres),
-+			      GFP_KERNEL);
-+	if (!devres)
-+		return ERR_PTR(-ENOMEM);
+-static struct abx500_v_to_cap cap_tbl_B_thermistor[] = {
++static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
+ 	{4161,	100},
+ 	{4124,	 98},
+ 	{4044,	 90},
+@@ -230,10 +230,10 @@ static struct abx500_battery_type bat_type_thermistor[] = {
+ 	.maint_b_chg_timer_h = 200,
+ 	.low_high_cur_lvl = 300,
+ 	.low_high_vol_lvl = 4000,
+-	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_A_thermistor),
+-	.r_to_t_tbl = temp_tbl_A_thermistor,
+-	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_A_thermistor),
+-	.v_to_cap_tbl = cap_tbl_A_thermistor,
++	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_a_thermistor),
++	.r_to_t_tbl = temp_tbl_a_thermistor,
++	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_a_thermistor),
++	.v_to_cap_tbl = cap_tbl_a_thermistor,
+ 	.n_batres_tbl_elements = ARRAY_SIZE(temp_to_batres_tbl_thermistor),
+ 	.batres_tbl = temp_to_batres_tbl_thermistor,
  
-+	hwdev = _hwmon_device_register(dev, groups, name);
-+	if (IS_ERR(hwdev)) {
-+		err = PTR_ERR(hwdev);
-+		goto err_free;
-+	}
-+	devres->hwdev = hwdev;
-+	devres_add(dev, devres);
- 	return hwdev;
-+
-+err_free:
-+	devres_free(devres);
-+	return ERR_PTR(err);
- }
--EXPORT_SYMBOL_GPL(hwmon_device_register);
-+EXPORT_SYMBOL_GPL(devm_hwmon_device_register);
- 
- /**
-  * hwmon_device_unregister - removes the previously registered class device
-@@ -75,6 +150,22 @@ void hwmon_device_unregister(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(hwmon_device_unregister);
- 
-+static int devm_hwmon_match(struct device *dev, void *res, void *data)
-+{
-+	struct hwmon_devres *devres = res;
-+
-+	return devres->hwdev = data;
-+}
-+
-+void devm_hwmon_device_unregister(struct device *hwdev)
-+{
-+	WARN_ON(devres_destroy(hwdev->parent, devm_hwmon_release,
-+			       devm_hwmon_match, hwdev));
-+
-+	hwmon_device_unregister(hwdev);
-+}
-+EXPORT_SYMBOL_GPL(devm_hwmon_device_unregister);
-+
- static void __init hwmon_pci_quirks(void)
- {
- #if defined CONFIG_X86 && defined CONFIG_PCI
-@@ -103,6 +194,19 @@ static void __init hwmon_pci_quirks(void)
- #endif
- }
- 
-+static ssize_t hwmon_name_show(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	const char *name = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%s\n", name ? : dev->parent->driver->name);
-+}
-+
-+struct device_attribute hwmon_dev_attrs[] = {
-+	__ATTR(name, S_IRUGO, hwmon_name_show, NULL),
-+	__ATTR_NULL,
-+};
-+
- static int __init hwmon_init(void)
- {
- 	hwmon_pci_quirks();
-@@ -112,6 +216,7 @@ static int __init hwmon_init(void)
- 		pr_err("couldn't create sysfs class\n");
- 		return PTR_ERR(hwmon_class);
- 	}
-+	hwmon_class->dev_attrs = hwmon_dev_attrs;
- 	return 0;
- }
- 
-diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
-index b2514f7..67c9c08 100644
---- a/include/linux/hwmon.h
-+++ b/include/linux/hwmon.h
-@@ -15,9 +15,14 @@
- #define _HWMON_H_
- 
- struct device;
-+struct attribute_group;
- 
- struct device *hwmon_device_register(struct device *dev);
-+struct device *devm_hwmon_device_register(struct device *dev,
-+					const struct attribute_group **groups,
-+					const char *name);
- 
- void hwmon_device_unregister(struct device *dev);
-+void devm_hwmon_device_unregister(struct device *dev);
- 
- #endif
+@@ -258,10 +258,10 @@ static struct abx500_battery_type bat_type_thermistor[] = {
+ 	.maint_b_chg_timer_h = 200,
+ 	.low_high_cur_lvl = 300,
+ 	.low_high_vol_lvl = 4000,
+-	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_B_thermistor),
+-	.r_to_t_tbl = temp_tbl_B_thermistor,
+-	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_B_thermistor),
+-	.v_to_cap_tbl = cap_tbl_B_thermistor,
++	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_b_thermistor),
++	.r_to_t_tbl = temp_tbl_b_thermistor,
++	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_b_thermistor),
++	.v_to_cap_tbl = cap_tbl_b_thermistor,
+ 	.n_batres_tbl_elements = ARRAY_SIZE(temp_to_batres_tbl_thermistor),
+ 	.batres_tbl = temp_to_batres_tbl_thermistor,
+ },
 -- 
-1.7.9.7
+1.8.0
 
 
 _______________________________________________
