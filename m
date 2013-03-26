@@ -1,99 +1,234 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 17 Mar 2013 17:58:18 +0000
-Subject: Re: [lm-sensors] IT8771E
-Message-Id: <20130317185818.23070574@endymion.delvare>
+From: "AP" <mail@combcstint.info>
+Date: Tue, 26 Mar 2013 19:28:03 +0000
+Subject: [lm-sensors] Community & educational development
+Message-Id: <1364307844cf4b5c44207be79895e785522bde20e2_@combcstint.info>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1734202750894336389=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAJDbZnQ-rGoUL+5F=e8cWD9Q8JQd+RXZ9ec=J8PC+8SE9P+=Cg@mail.gmail.com>
-In-Reply-To: <CAJDbZnQ-rGoUL+5F=e8cWD9Q8JQd+RXZ9ec=J8PC+8SE9P+=Cg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUm9zcywKClBsZWFzZSBsZWF2ZSB0aGUgbGlzdCBpbiBDYyBzbyBvdGhlcnMgY2FuIHJlYWQg
-YW5kIGhlbHAuIEknbSBhZGRpbmcgaXQKYmFjay4KCk9uIFN1biwgMTcgTWFyIDIwMTMgMjE6NDk6
-MzkgKzA4MDAsIFJvc3MgTW9vcmUgd3JvdGU6Cj4gSGkgSmVhbiwKPiAKPiBHcmVhdCwgdGhhbmtz
-IGZvciB0aGUgZGV0YWlsZWQgcXVlc3Rpb25zLgo+ICAgICBXaGljaCBrZXJuZWwgdmVyc2lvbiBh
-cmUgeW91IHJ1bm5pbmc/Cj4gICAgIFdoYXQgYm9hcmQgaXMgdGhpcz8KPiAKPiBPSywgVGhpcyBp
-cyBhbiBBU1VTIFA4SDc3LUkgbW90aGVyYm9hcmQuIEknbSBydW5uaW5nIDMuNyBrZXJuZWwuIEkK
-PiAKPiA+Cj4gPiBZb3UgaGF2ZSAzIGRpZmZlcmVudCBkcml2ZXJzIHByZXN1bWFibHkgYWNjZXNz
-aW5nIHRoZSBzYW1lIGNoaXA6Cj4gPiB0aGVybWFsIChBQ1BJKSwgaXQ4NyAobmF0aXZlKSBhbmQg
-YXN1cy13bWkgKFdNSS4pIFRoaXMgaXMgbm90IGEgZ29vZAo+ID4gaWRlYS4gSSBzdXBwb3NlIHlv
-dSBoYWQgdG8gYm9vdCB3aXRoIGFjcGlfZW5mb3JjZV9yZXNvdXJjZXM9bGF4IHRvIGJlCj4gPiBh
-YmxlIHRvIGxvYWQgdGhlIGl0ODcgZHJpdmVyCj4gPgo+IAo+IE5vcGUsIEkgZGlkbid0IGNoYW5n
-ZSBhbnkgYm9vdCBwYXJhbWV0ZXJzOyBJIGFzc3VtZSB0aGlzIGlzbid0IHNldCwgYW5kIEkKPiBj
-YW4ndCBzZWUgYW55dGhpbmcgbGlrZSBpdCBpbiBncnViMi4gU2hvdWxkIEkgcm1tb2QgdGhlc2Ug
-b3RoZXIgZHJpdmVycyBhbmQKPiBibGFja2xpc3QgdGhlbT8gKEFuZCBpZiBzbywgaG93IGRvIEkg
-ZmluZCBvdXQgdGhlIG5hbWVzIG9mIHRoZSBtb2R1bGVzCj4gZHJpdmluZyB0aG9zZSBjaGlwcz8p
-CgpXZWxsIGlmIHRoZSBkcml2ZXJzIGFyZSBoYXBweSB0b2dldGhlciBtYXliZSBJIGFtIG5lZWRs
-ZXNzbHkgYW54aW91cy4KCkZvciByZWZlcmVuY2UsIHRoZSBkcml2ZXIgbmFtZXMgYXJlICJ0aGVy
-bWFsIiwgIml0ODciIGFuZCAiYXN1cy13bWkiLgpIb3dldmVyIHRoZXJtYWwgaXMgZnJlcXVlbnRs
-eSBidWlsdCBpbnRvIHRoZSBrZXJuZWwgc28geW91IGNhbid0IHJlbW92ZQppdC4KCj4gPiBDYW4g
-d2Ugc2VlIHRoZSBvdXRwdXQgb2YgInNlbnNvcnMiIG9uIHlvdXIgbWFjaGluZT8KPiAKPiBTdXJl
-Ogo+IGFjcGl0ei12aXJ0dWFsLTAKPiBBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQo+IHRlbXAxOiAg
-ICAgICAgKzI3LjjCsEMgIChjcml0ID0gKzk2LjDCsEMpCj4gdGVtcDI6ICAgICAgICArMjkuOMKw
-QyAgKGNyaXQgPSArOTYuMMKwQykKPiAKPiBjb3JldGVtcC1pc2EtMDAwMAo+IEFkYXB0ZXI6IElT
-QSBhZGFwdGVyCj4gUGh5c2ljYWwgaWQgMDogICs0Mi4wwrBDICAoaGlnaCA9ICs3Ni4wwrBDLCBj
-cml0ID0gKzk1LjDCsEMpCj4gQ29yZSAwOiAgICAgICAgICs0Mi4wwrBDICAoaGlnaCA9ICs3Ni4w
-wrBDLCBjcml0ID0gKzk1LjDCsEMpCj4gQ29yZSAxOiAgICAgICAgICs0MS4wwrBDICAoaGlnaCA9
-ICs3Ni4wwrBDLCBjcml0ID0gKzk1LjDCsEMpCj4gCj4gaXQ4NzcxLWlzYS0wMjkwCj4gQWRhcHRl
-cjogSVNBIGFkYXB0ZXIKPiBpbjA6ICAgICAgICAgICsxLjAxIFYgIChtaW4gPSAgKzAuMDAgViwg
-bWF4ID0gICszLjA2IFYpCj4gaW4xOiAgICAgICAgICArMS40OSBWICAobWluID0gICswLjAwIFYs
-IG1heCA9ICArMy4wNiBWKQo+IGluMjogICAgICAgICAgKzIuMDUgViAgKG1pbiA9ICArMC4wMCBW
-LCBtYXggPSAgKzMuMDYgVikKPiBpbjM6ICAgICAgICAgICsyLjAwIFYgIChtaW4gPSAgKzAuMDAg
-ViwgbWF4ID0gICszLjA2IFYpCj4gaW40OiAgICAgICAgICArMi4wNCBWICAobWluID0gICswLjAw
-IFYsIG1heCA9ICArMy4wNiBWKQo+IGluNTogICAgICAgICAgKzIuMjMgViAgKG1pbiA9ICArMC4w
-MCBWLCBtYXggPSAgKzMuMDYgVikKPiBpbjY6ICAgICAgICAgICsyLjI2IFYgIChtaW4gPSAgKzAu
-MDAgViwgbWF4ID0gICszLjA2IFYpCj4gM1ZTQjogICAgICAgICArMS40MiBWICAobWluID0gICsw
-LjAwIFYsIG1heCA9ICArNi4xMiBWKQo+IFZiYXQ6ICAgICAgICAgKzMuMzQgVgo+IGZhbjE6ICAg
-ICAgICAyNzY2IFJQTSAgKG1pbiA9ICAgNDEgUlBNKQo+IGZhbjI6ICAgICAgICAxMzQxIFJQTSAg
-KG1pbiA9ICAgODQgUlBNKQo+IHRlbXAxOiAgICAgICAgKzQwLjDCsEMgIChsb3cgID0gIC0xLjDC
-sEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCj4gdGVtcDI6ICAgICAg
-ICArNDAuMMKwQyAgKGxvdyAgPSAgLTEuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIHNlbnNvciA9
-IHRoZXJtaXN0b3IKPiB0ZW1wMzogICAgICAgICAtOC4wwrBDICAobG93ICA9ICAtMS4wwrBDLCBo
-aWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IGludHJ1c2lvbjA6ICBPSwoK
-SXQgaXMgc3RyYW5nZSB0aGF0ICJhc3VzIiBkb2Vzbid0IHNob3cgdXAgaGVyZSwgd2hpbGUgcHdt
-Y29uZmlnIHNlZXMKaXQuIENhbiB5b3UgcGxlYXNlIHRlbGwgdXMgd2hhdCBhdHRyaWJ1dGVzIHlv
-dSBzZWUKdW5kZXIgL3N5cy9jbGFzcy9od21vbjMgKGFzc3VtaW5nIHRoaXMgaXMgc3RpbGwgdGhl
-ICJhc3VzIiBpbnRlcmZhY2UpPwoKPiA+IERvIHlvdSBoYXZlIGFueSBmYW4gc3BlZWQgY29udHJv
-bCByZWxhdGVkIG9wdGlvbiBpbiB0aGUgQklPUywgYW5kIGlmCj4gPiBzbywgd2hhdCBkaWQgeW91
-IHNldCBpdCB0bz8KPiAKPiBJIGRpZCwgYnV0IEkgc3dpdGNoZWQgaXQgb2ZmIHRvIGFsbG93IGZv
-ciBPUyBsZXZlbCBjb250cm9sLiBJIGZvdW5kIHRoZQo+IEJJT1Mgc2V0dGluZ3MgYSBiaXQgbm9p
-c3ksIGFuZCB0aGluZ3MgZGlkbid0IHNlZW0gdG9vIHdhcm0uCgpPSy4gT24gQXN1cyBib2FyZHMg
-SSBoYXZlIGhlcmUsIEkgY2FuIHNlbGVjdCBhIHByb2ZpbGUgYW5kIGhhdmUKZ2VuZXJhbGx5IGJl
-ZW4gaGFwcHkgd2l0aCB0aGUgIlNpbGVudCIgcHJvZmlsZSwgYnV0IEkgc3VwcG9zZSBpdCBkZXBl
-bmRzCm9uIHRoZSBib2FyZCwgZmFucywgZWFycywgZXRjLgoKPiA+IEFyZSB5b3UgdXNpbmcgMy1w
-aW4gZmFucywgNC1waW4gZmFucyBvciBhIG1peCBvZiBib3RoPwo+Cj4gSSdtIHVzaW5nIGEgc3Rv
-Y2sgSW50ZWwgQ29yZSBpMyBjb29sZXIgKHRoYXQncyB0aGUgb25lIHNwaW5uaW5nIGF0IHVwCj4g
-Mjc2NnJwbSAtIEkndmUgcnVuIGl0IG9uIGFub3RoZXIgbW90aGVyYm9hcmQgYmVmb3JlIGFuZCBo
-YWQgZnVsbCBjb250cm9sIG9mCj4gaXQpLiBJIHRoaW5rIHRoYXQncyAzLXBpbi4gVGhlIHNlY29u
-ZGFyeSBjYXNlIGZhbiwgSSdtIG5vdCBzbyBzdXJlIGFib3V0LAo+IGl0J3Mgd2hhdCBjYW1lIHdp
-dGggdGhlIGNhc2UgYW5kIEknZCBoYXZlIHRvIG9wZW4gaXQgdG8gY2hlY2suCgpFdmVyeSBJbnRl
-bCBzdG9jayBjb29sZXIgSSd2ZSBzZWVuIHNpbmNlIDIwMDcgaGFkIGEgNC1waW4gZmFuLCBzbyBJ
-J20Kc3VycHJpc2VkIHRoYXQgeW91IHNheSB5b3VycyBoYXMgb25seSAzIHBpbnMuIEknZCB0aGlu
-ayBldmVyeSByZWNlbnQKbW90aGVyYm9hcmQgZXhwZWN0cyA0LXBpbiBmYW5zIGF0IGxlYXN0IGZv
-ciB0aGUgQ1BVLCBhbmQgQ1BVIGZhbiBzcGVlZApjb250cm9sIHdvdWxkbid0IHdvcmsgKGF0IGFs
-bCkgaWYgeW91IHVzZSBhIDMtcGluIGZhbi4KCkFzIGEgbWF0dGVyIG9mIGZhY3QsIEkgZG93bmxv
-YWRlZCB0aGUgbWFudWFsIGZvciB5b3VyIGJvYXJkIGFuZCBpdCBzYXlzCnRoYXQgYm90aCB0aGUg
-Q1BVIGZhbiBoZWFkZXIgYW5kIHRoZSBjaGFzc2lzIGZhbiBoZWFkZXIgaGF2ZSA0IHBpbnMuClRo
-ZXJlIGRvZXNuJ3Qgc2VlbSB0byBiZSBhIGp1bXBlciB0byBzd2l0Y2ggdG8gMy1waW4gbW9kZSwg
-c28gdW5sZXNzCnRoZXJlIGlzIGEgQklPUyBvcHRpb24gZm9yIGl0LCBvciBzb21lIHRyYW5zcGFy
-ZW50IG1hZ2ljIHRvCmF1dG8tZGV0ZWN0IHdoYXQncyBjb25uZWN0ZWQsIEknZCBzYXkgeW91IG11
-c3QgdXNlIDQtcGluIGZhbnMgZm9yIGJvdGgKdGhlIENQVSBhbmQgdGhlIGNoYXNzaXMuCgo+ID4g
-KC4uLikKPiA+IEkgd291bGQgbGlrZSB5b3UgdG8gY2hlY2sgaWYgUFdNIHZhbHVlcyBzdGljay4g
-UGxlYXNlIGdvCj4gPiB0byAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMi9kZXZpY2UsIGNoZWNrIHRo
-ZSB2YWx1ZXMgb2YgZmlsZXMgcHdtMSBhbmQKPiA+IHB3bTIsIHNlZSBpZiB0aGV5IGNoYW5nZSBv
-biB0aGVpciBvd24uIFRoZW4gdHJ5IHdyaXRpbmcgYXJiaXRyYXJ5Cj4gPiB2YWx1ZXMgdG8gdGhl
-bSwgYW5kIGNoZWNrIGlmIHRoZSB2YWx1ZSBpcyBzdGlja2luZyBmb3Igb25lIG1pbnV0ZS4KPiAK
-PiBUaGUgdmFsdWVzIG9mIGJvdGggYXJlIGN1cnJlbnRseSBzZXQgMCwgYW5kIHRoZSBzdGF0ZSBv
-ZiB0aGUgZmFucyBpcyB0aGF0Cj4gYm90aCBhcmUgb24gZnVsbCBzcGVlZC4gVGhlIHZhbHVlcyBk
-b24ndCBjaGFuZ2Ugb24gdGhlaXIgb3duLgo+IEkgY2FuIGVjaG8gbnVtYmVycyBiZXR3ZWVuIDAg
-YW5kIDI1NSBpbnRvIHRob3NlIGRldmljZXMgYW5kIHRoZXkgc3RpY2ssIGJ1dAo+IG5vIG9idmlv
-dXMgY2hhbmdlcyB0byBmYW4gc3BlZWRzLgoKVGhpcyBpcyB2ZXJ5IG9kZCwgYXMgMCBub3JtYWxs
-eSBtZWFucyBmYW5zIHN0b3BwZWQuIEFsc28gdGhlIGZpcnN0CnJlc3VsdHMgZnJvbSBwd21jb25m
-aWcgd2VyZSBzdHJhbmdlIGJ1dCBjb21wbGV0ZWx5IGRpZmZlcmVudCBmcm9tIHdoYXQKeW91IGFy
-ZSByZXBvcnRpbmcgbm93LgoKV2hhdCdzIHRoZSB2YWx1ZSBvZiBwd20xX2VuYWJsZSBhbmQgcHdt
-Ml9lbmFibGU/CgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnM
+This is a multi-part message in MIME format.
+
+--===============1734202750894336389==
+Content-Type: multipart/alternative;
+	boundary="--=_NextPart_0EE68C66.20111108_ECAMP_8.0.60.1672"
+
+This is a multi-part message in MIME format.
+
+----=_NextPart_0EE68C66.20111108_ECAMP_8.0.60.1672
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+PRESS RELEASE
+
+The American Grants and Loans Catalog is now available. Our new and revised
+2013 edition contains more than 2800 financial programs, subsidies, scholarships,
+grants and loans offered by the US federal government.
+
+In addition you will also have access to over 2400 programs funded by private
+corporations and foundations. That is over 5200 programs available through
+various sources of financial providing organizations.
+
+NEW: You will also have access to our live Database that is updated on a daily
+basis. This product also provides daily email alerts as programs are announced.
+
+The Database is also available with IP recognition. This allows you to login
+without a username or password (Great for libraries or educational institutions
+who want their users to access the database).
+
+Businesses, students, researchers, scientists, teachers, doctors, private individuals,
+municipalities, government departments, educational institutions, law enforcement
+agencies, nonprofits, foundations and associations will find a wealth of information
+that will help them with their new ventures or existing projects.
+
+The document is a fully searchable PDF file for easy access to your particular
+needs and interests. Simply enter your keywords to search through the publication.
+
+It is the perfect tool for libraries and educational institutions to use as a
+reference guide for students who require funds to pursue their education.
+
+
+Contents of the Directory:
+
+-Web link to program announcement page
+-Web link to Federal agency or foundation administering the program
+-Authorization upon which a program is based
+-Objectives and goals of the program
+-Types of financial assistance offered under a program
+-Uses and restrictions placed upon a program
+-Eligibility requirements
+-Application and award process
+-Regulations, guidelines and literature relevant to a program
+-Information contacts at the headquarters, regional, and local offices
+-Programs that are related based upon program objectives and uses
+
+
+Programs in the Catalog provide a wide range of benefits and services
+for categories such as:
+
+Agriculture
+Business and Commerce
+Community Development
+Consumer Protection
+Cultural Affairs
+Disaster Prevention and Relief
+Education
+Employment, Labor and Training
+Energy
+Environmental Quality
+Food and Nutrition
+Health
+Housing
+Income Security and Social Services
+Information and Statistics
+Law, Justice, and Legal Services
+Natural Resources
+Regional Development
+Science and Technology
+Transportation
+
+
+CD version: $69.95
+Printed version: $149.95
+
+To order please call: 1 (800) 610-4543
+
+
+Please do not reply to the sender's email address as this address is only for outgoing mail.
+
+If you do not wish to receive information from us in the future please reply here:
+rem218@mail.com
+
+This is a CANSPAM ACT compliant advertising broadcast sent by:
+American Publishing Inc. , 7025 County Rd. 46A, Suite 1071, Lake Mary, FL, 32746-4753
+
+----=_NextPart_0EE68C66.20111108_ECAMP_8.0.60.1672
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"=
+ "http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><META http-equiv=3D"Content-Type" content=3D"text/html; charset=
+=3Diso-8859-1">
+<STYLE>
+body,p,div,td { font-family: Arial; }
+</STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV align=3Dcenter><FONT size=3D2>PRESS RELEASE</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>The American Grants and Loans Catalog is=
+ now
+available. Our new and revised<BR>2013 edition contains more than 2800=
+ financial
+programs, subsidies, scholarships,<BR>grants and loans offered by the US=
+ federal
+government.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>In addition you will also have access to=
+ over
+2400 programs funded by private<BR>corporations and foundations. That is over
+5200 programs available through<BR>various sources of financial providing
+organizations.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>NEW: You will also have access to our live
+Database that is updated on a daily<BR>basis. This product also provides=
+ daily
+email alerts as programs are announced.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>The Database is also available with IP
+recognition. This allows you to login<BR>without a username or password=
+ (Great
+for libraries or educational institutions<BR>who want their users to access=
+ the
+database).</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>Businesses, students, researchers,=
+ scientists,
+teachers, doctors, private individuals,<BR>municipalities, government
+departments, educational institutions, law enforcement<BR>agencies,=
+ nonprofits,
+foundations and associations will find a wealth of information<BR>that will=
+ help
+them with their new ventures or existing projects.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>The document is a fully searchable PDF=
+ file for
+easy access to your particular<BR>needs and interests. Simply enter your
+keywords to search through the publication.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>It is the perfect tool for libraries and
+educational institutions to use as a<BR>reference guide for students who=
+ require
+funds to pursue their education.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><BR><FONT size=3D2>Contents of the=
+ Directory:</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>-Web link to program announcement=
+ page<BR>-Web
+link to Federal agency or foundation administering the=
+ program<BR>-Authorization
+upon which a program is based<BR>-Objectives and goals of the=
+ program<BR>-Types
+of financial assistance offered under a program<BR>-Uses and restrictions=
+ placed
+upon a program<BR>-Eligibility requirements<BR>-Application and award
+process<BR>-Regulations, guidelines and literature relevant to a
+program<BR>-Information contacts at the headquarters, regional, and local
+offices<BR>-Programs that are related based upon program objectives and
+uses</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><BR><FONT size=3D2>Programs in the Catalog provide a wide=
+ range
+of benefits and services<BR>for categories such as:</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>Agriculture<BR>Business and=
+ Commerce<BR>Community
+Development<BR>Consumer Protection<BR>Cultural Affairs<BR>Disaster Prevention
+and Relief<BR>Education<BR>Employment, Labor and
+Training<BR>Energy<BR>Environmental Quality<BR>Food and
+Nutrition<BR>Health<BR>Housing<BR>Income Security and Social
+Services<BR>Information and Statistics<BR>Law, Justice, and Legal
+Services<BR>Natural Resources<BR>Regional Development<BR>Science and
+Technology<BR>Transportation</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><BR><FONT size=3D2>CD version: $69.95<BR>Printed version:
+$149.95</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>To order please call: 1 (800)
+610-4543</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><BR><FONT size=3D2>Please do not reply to the sender's=
+ email
+address as this address is only for outgoing mail.</FONT></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>If you do not wish to receive information=
+ from us
+in the future please reply here:<BR></FONT><A
+href=3D"mailto:rem218@mail.com"><FONT size=
+=3D2>rem218@mail.com</FONT></A></DIV>
+<DIV align=3Dcenter>&nbsp;</DIV>
+<DIV align=3Dcenter><FONT size=3D2>This is a CANSPAM ACT compliant=
+ advertising
+broadcast sent by:<BR>American Publishing Inc. , 7025 County Rd. 46A, Suite
+1071, Lake Mary, FL, 32746-4753</FONT></DIV></BODY></HTML>
+
+----=_NextPart_0EE68C66.20111108_ECAMP_8.0.60.1672--
+
+
+
+--===============1734202750894336389==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1734202750894336389==--
+
