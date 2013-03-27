@@ -1,86 +1,97 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 14 Mar 2013 00:02:42 +0000
-Subject: [lm-sensors] [PATCH 2/4] hwmon: (w83627hf) Drop read/write lock
-Message-Id: <1363219364-5221-3-git-send-email-linux@roeck-us.net>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Wed, 27 Mar 2013 07:13:29 +0000
+Subject: [lm-sensors] [PATCH v7 2/5] ab8500: power: eliminate CamelCase warning of some variables
+Message-Id: <1364368412-12810-3-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1364368412-12810-1-git-send-email-hongbo.zhang@linaro.org>
+In-Reply-To: <1364368412-12810-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
+Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@linaro.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
 
-The read/write lock is acquired for each read/write operation from/to the chip.
-This occurs either during initialization, when it is not needed, or during
-updates, when the update_lock is held as well, and it is not needed either.
+Some AB8500 power related variable names don't comply with kernel coding rules,
+any new patch using these variables will result in CamelCase warnings from
+checkpatch.pl, this patch re-name these variables.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
 ---
- drivers/hwmon/w83627hf.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/power/ab8500_bmdata.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
-index 83f674a..4ec5692 100644
---- a/drivers/hwmon/w83627hf.c
-+++ b/drivers/hwmon/w83627hf.c
-@@ -359,7 +359,6 @@ struct w83627hf_data {
- 	unsigned short addr;
- 	const char *name;
- 	struct device *hwmon_dev;
--	struct mutex lock;
- 	enum chips type;
+diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
+index f034ae4..f836550 100644
+--- a/drivers/power/ab8500_bmdata.c
++++ b/drivers/power/ab8500_bmdata.c
+@@ -11,7 +11,7 @@
+  * Note that the res_to_temp table must be strictly sorted by falling resistance
+  * values to work.
+  */
+-static struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
++static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
+ 	{-5, 53407},
+ 	{ 0, 48594},
+ 	{ 5, 43804},
+@@ -29,7 +29,7 @@ static struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
+ 	{65, 12500},
+ };
  
- 	struct mutex update_lock;
-@@ -1458,7 +1457,6 @@ static int w83627hf_probe(struct platform_device *pdev)
- 	data->addr = res->start;
- 	data->type = sio_data->type;
- 	data->name = names[sio_data->type];
--	mutex_init(&data->lock);
- 	mutex_init(&data->update_lock);
- 	platform_set_drvdata(pdev, data);
+-static struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
++static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
+ 	{-5, 200000},
+ 	{ 0, 159024},
+ 	{ 5, 151921},
+@@ -47,7 +47,7 @@ static struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
+ 	{65,  82869},
+ };
  
-@@ -1624,11 +1622,11 @@ static inline void w83627hf_reset_bank(struct w83627hf_data *data, u16 reg)
- 	}
- }
+-static struct abx500_v_to_cap cap_tbl_A_thermistor[] = {
++static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
+ 	{4171,	100},
+ 	{4114,	 95},
+ 	{4009,	 83},
+@@ -70,7 +70,7 @@ static struct abx500_v_to_cap cap_tbl_A_thermistor[] = {
+ 	{3247,	  0},
+ };
  
-+/* Caller must hold update_lock except if called during initialization */
- static int w83627hf_read_value(struct w83627hf_data *data, u16 reg)
- {
- 	int res, word_sized;
+-static struct abx500_v_to_cap cap_tbl_B_thermistor[] = {
++static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
+ 	{4161,	100},
+ 	{4124,	 98},
+ 	{4044,	 90},
+@@ -230,10 +230,10 @@ static struct abx500_battery_type bat_type_thermistor[] = {
+ 	.maint_b_chg_timer_h = 200,
+ 	.low_high_cur_lvl = 300,
+ 	.low_high_vol_lvl = 4000,
+-	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_A_thermistor),
+-	.r_to_t_tbl = temp_tbl_A_thermistor,
+-	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_A_thermistor),
+-	.v_to_cap_tbl = cap_tbl_A_thermistor,
++	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_a_thermistor),
++	.r_to_t_tbl = temp_tbl_a_thermistor,
++	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_a_thermistor),
++	.v_to_cap_tbl = cap_tbl_a_thermistor,
+ 	.n_batres_tbl_elements = ARRAY_SIZE(temp_to_batres_tbl_thermistor),
+ 	.batres_tbl = temp_to_batres_tbl_thermistor,
  
--	mutex_lock(&data->lock);
- 	word_sized = (((reg & 0xff00) = 0x100)
- 		   || ((reg & 0xff00) = 0x200))
- 		  && (((reg & 0x00ff) = 0x50)
-@@ -1645,7 +1643,6 @@ static int w83627hf_read_value(struct w83627hf_data *data, u16 reg)
- 				       W83781D_DATA_REG_OFFSET);
- 	}
- 	w83627hf_reset_bank(data, reg);
--	mutex_unlock(&data->lock);
- 	return res;
- }
- 
-@@ -1710,11 +1707,11 @@ exit:
- 	return res;
- }
- 
-+/* Caller must hold update_lock except if called during initialization */
- static int w83627hf_write_value(struct w83627hf_data *data, u16 reg, u16 value)
- {
- 	int word_sized;
- 
--	mutex_lock(&data->lock);
- 	word_sized = (((reg & 0xff00) = 0x100)
- 		   || ((reg & 0xff00) = 0x200))
- 		  && (((reg & 0x00ff) = 0x53)
-@@ -1730,7 +1727,6 @@ static int w83627hf_write_value(struct w83627hf_data *data, u16 reg, u16 value)
- 	outb_p(value & 0xff,
- 	       data->addr + W83781D_DATA_REG_OFFSET);
- 	w83627hf_reset_bank(data, reg);
--	mutex_unlock(&data->lock);
- 	return 0;
- }
- 
+@@ -258,10 +258,10 @@ static struct abx500_battery_type bat_type_thermistor[] = {
+ 	.maint_b_chg_timer_h = 200,
+ 	.low_high_cur_lvl = 300,
+ 	.low_high_vol_lvl = 4000,
+-	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_B_thermistor),
+-	.r_to_t_tbl = temp_tbl_B_thermistor,
+-	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_B_thermistor),
+-	.v_to_cap_tbl = cap_tbl_B_thermistor,
++	.n_temp_tbl_elements = ARRAY_SIZE(temp_tbl_b_thermistor),
++	.r_to_t_tbl = temp_tbl_b_thermistor,
++	.n_v_cap_tbl_elements = ARRAY_SIZE(cap_tbl_b_thermistor),
++	.v_to_cap_tbl = cap_tbl_b_thermistor,
+ 	.n_batres_tbl_elements = ARRAY_SIZE(temp_to_batres_tbl_thermistor),
+ 	.batres_tbl = temp_to_batres_tbl_thermistor,
+ },
 -- 
-1.7.9.7
+1.8.0
 
 
 _______________________________________________
