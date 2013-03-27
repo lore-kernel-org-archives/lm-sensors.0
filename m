@@ -1,284 +1,103 @@
-From: Bryan Guidroz <bryanguidroz@hotmail.com>
-Date: Wed, 27 Mar 2013 16:18:13 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 27 Mar 2013 21:09:55 +0000
 Subject: Re: [lm-sensors] MSI MS-9832 Sensor Help
-Message-Id: <BLU173-W37F2031468F4945B9C5B22D1D10@phx.gbl>
+Message-Id: <20130327220955.331c75ba@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130327083917.040a96de@endymion.delvare>
 In-Reply-To: <20130327083917.040a96de@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-First, I can't thank you enough for your help.
-I've learned quite a bit and that's always greatly appreciated.
-
-I've read the article and tried to understand it as best as I can.
-With your suggestions, the article, and the sample config I found that was =
-similar, I've come up with the following config for this system.
-I did my best to take multiple samples (5 all together) and so far, everyth=
-ing seems to be pretty close.
-I also tried to vary the load of the system (using stress to try to raise c=
-pu temps and fan speeds.)
-Unless you see something that's obviously incorrect or concerning, I think =
-I'm gonna go with it.
-Really, the biggest differences had to do with Vbat and VSB which I'm now i=
-gnoring in my conf.
-The BIOS HW monitor always displays Vbat and VSB at 3.42v where sensors has=
- them slightly above or below.
-Guessing not a big deal and possibly normal behavior.
-And, I realize my layout of this conf is probably not standard, but I put i=
-t in the order I was figuring it out with comments (some taken directly fro=
-m your replies) to hopefully remind me of things if needed in the future.
-
--------------------------------------------------------
-[root@gateway ~]# nano /etc/sensors.d/MSI-MS-9832.conf
-chip "f71882fg-isa-0a10"
-
-# Ignore - Voltage
-# The F71882FG uses an 8-bit, 8 mV LSB ADC for voltage monitoring.
-# This means that it can measure up to 2.04 V directly. This is the value
-# of in2, in3 and in6 on the MSI MS-9832, which means these inputs
-# are saturated. This means these inputs are unused.
-
-=A0=A0 ignore in2
-=A0=A0 ignore in3
-=A0=A0 ignore in6
-
-# Ignore - Fans
-# The MSI MS-9832 uses fan1 (CPU Fan) and fan2 (System Fan).
-# This means other fans are unused.
-
-=A0=A0 ignore fan3
-=A0=A0 ignore fan4
-
-# Ignore - Temps
-# The MSI MS-9832 uses temp1 (CPU temp) and temp3 (System temp).
-# This means temp2 is unused.
-
-=A0=A0 ignore temp2
-
-# Other - Voltages
-# in0 (+3.3v), in7 (3VSB), and in8 (Vbat) are internally monitored voltages
-# with internal dividers. This means the values are properly set and do not
-# need to be defined in this configuration as they should be reported prope=
-rly.
-
-# Voltages
-=A0=A0 label in1 "Vcore"
-=A0=A0 label in4 "+5V"
-=A0=A0 label in5 "+12V"
-
-=A0=A0 compute in4=A0 @*(1+200/47),=A0 @/(1+200/47)
-=A0=A0 compute in5=A0 @*(1+200/20),=A0 @/(1+200/20)
-
-=A0=A0 set in1_min=A0 1.2 * 0.95
-=A0=A0 set in1_max=A0 1.2 * 1.05
-=A0=A0 set in4_min=A0 5.0 * 0.95
-=A0=A0 set in4_max=A0 5.0 * 1.05
-=A0=A0 set in5_min 12.0 * 0.95
-=A0=A0 set in5_max 12.0 * 1.05
-
-# Fans
-=A0=A0 label fan1 "CPU Fan"
-=A0=A0 label fan2 "Sys Fan"
-
-=A0=A0 set fan1_min 2100
-=A0=A0 set fan2_min 1400
-
-# Temperatures
-=A0=A0 label temp1 "CPU Temp"
-=A0=A0 label temp3 "Sys Temp"
-
-=A0=A0 set temp1_max=A0=A0 60
-=A0=A0 set temp1_max_hyst=A0 58
-=A0=A0 set temp3_max=A0=A0 50
-=A0=A0 set temp3_hyst=A0 48
---------------------------------------------------
-
-Sensors now displays nearly identical results to BIOS HW monitor.
-
---------------------------------------------------
-[root@gateway ~]# sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:=A0=A0=A0=A0=A0 +26.0=B0C=A0 (high =3D +70.0=B0C, crit =3D +90.0=B0C=
-)=20
-Core 1:=A0=A0=A0=A0=A0 +28.0=B0C=A0 (high =3D +70.0=B0C, crit =3D +90.0=B0C=
-)=20
-
-f71882fg-isa-0a10
-Adapter: ISA adapter
-+3.3V:=A0=A0=A0=A0=A0=A0 +3.42 V
-Vcore:=A0=A0=A0=A0=A0=A0 +1.16 V=A0 (max =3D=A0 +2.04 V)=A0=20
-+5V:=A0=A0=A0=A0=A0=A0=A0=A0 +5.09 V
-+12V:=A0=A0=A0=A0=A0=A0 +12.23 V
-3VSB:=A0=A0=A0=A0=A0=A0=A0 +3.39 V
-Vbat:=A0=A0=A0=A0=A0=A0=A0 +3.41 V
-CPU Fan:=A0=A0=A0 4587 RPM
-Sys Fan:=A0=A0=A0 2901 RPM
-CPU Temp:=A0=A0=A0 +46.0=B0C=A0 (high =3D +85.0=B0C, hyst =3D +81.0=B0C)=20
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 (crit =3D +=
-100.0=B0C, hyst =3D +96.0=B0C)=A0 sensor =3D transistor
-Sys Temp:=A0=A0=A0 +40.0=B0C=A0 (high =3D +70.0=B0C, hyst =3D +68.0=B0C)=20
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 (crit =3D +=
-85.0=B0C, hyst =3D +83.0=B0C)=A0 sensor =3D transistor
--------------------------------------------------------
-
-Your thoughts?
-Thanks
-
-
-----------------------------------------
-> Date: Wed, 27 Mar 2013 08:39:17 +0100
-> From: khali@linux-fr.org
-> To: bryanguidroz@hotmail.com
-> CC: lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] MSI MS-9832 Sensor Help
->
-> On Tue, 26 Mar 2013 22:21:08 -0500, Bryan Guidroz wrote:
-> > I'm about to start on your article, but just wanted to put this out the=
-re to be sure I'm heading in the right direction.
-> > I rebooted the machine and recorded the following from the BIOS HW moni=
-tor:
-> >
-> > CPU Temp: 51
-> > Sys Temp: 37
-> > CPU Fan: 4615
-> > Sys Fan: 2901
-> > CPU Vcore: 1.16
-> > 3.3v: 3.424
-> > 5v: 5.087
-> > 12v 12.232
-> > VSB: 3.42
-> > VBAT: 3.42
->
-> As stated in the article, it is better to gather more than one sample
-> per input. For voltages it is the only way to guarantee you get the
-> labels and scaling factors right.
->
-> > I googled f71882fg-isa-0a10 and came across this to try to help me get =
-started.
-> > (again, hoping for simplicity)
-> > http://www.spinics.net/lists/lm-sensors/msg20054.html
->
-> Same board vendor and same chip, but vastly different platform. Thus
-> zero guarantee that this configuration file will work for you.
->
-> > In the config from that site (no idea if it's valid in any way,) I only=
- modified the Aux Temp and Sys Temp (as it appears they were backwards in m=
-y system) and came up with this config.
-> > I placed it in /etc/sensors.d/MSI-MS-9832.conf (leaving /etc/sensors3.c=
-onf alone)
-> >
-> > ----------------------------------------------------------------
-> > chip "f71882fg-*"
-> > # Voltages
-> >    label in0 "+3.3V"
-> >    label in1 "Vtt1.2V"
-> >    label in2 "Vram"
-> >    label in3 "Vchip"
-> >    label in4 "+5V"
-> >    label in5 "+12V"
-> >    label in6 "Vcc1.5V"
-> >    label in7 "Vcore"
-> >    label in8 "5VSB"
-> >
-> >    # in0 is scaled internally
-> >    compute in0  @*2, @*2
-> >    compute in2  @*(1+100/100), @/(1+100/100)
-> >    compute in3  @*(1+100/47),  @/(1+100/47)
-> >    compute in4  @*(1+200/47),  @/(1+200/47)
-> >    compute in5  @*(1+200/20),  @/(1+200/20)
-> >    compute in8  @*(1+100/46),  @/(1+100/46)
-> >
-> >    # in0 is the chip's own VCC.
-> >    #set in0_min  3.0
-> >    #set in0_max  3.6
-> >
-> >    #set in1_min  1.2 * 0.95
-> >    #set in1_max  1.2 * 1.05
-> >    #set in2_min  2.5 * 0.95
-> >    #set in2_max  2.6 * 1.05
-> >    #set in3_min  3.3 * 0.95
-> >    #set in3_max  3.3 * 1.05
-> >    #set in4_min  5.0 * 0.95
-> >    #set in4_max  5.0 * 1.05
-> >    #set in5_min 12.0 * 0.95
-> >    #set in5_max 12.0 * 1.05
-> >    #set in6_min  1.5 * 0.95
-> >    #set in6_max  1.5 * 1.05
-> >    # in7 nominal value depends on the CPU model
-> >    #set in7_min  1.4 * 0.95
-> >    #set in7_max  1.4 * 1.05
-> >    #set in8_min  5.0 * 0.95
-> >    #set in8_max  5.0 * 1.05
-> >
-> > # Fans
-> >    label fan1 "CPU Fan"
-> >    label fan2 "Sys Fan"
-> >    label fan3 "Aux Fan"
-> >
-> >    #set fan1_min 2100
-> >    #set fan2_min 1400
-> >    #set fan3_min 1400
-> >    ignore fan3
-> >    ignore fan4
-> >
-> > # Temperatures
-> >    label temp1 "CPU Temp"
-> >    label temp2 "Aux Temp"
-> >    label temp3 "Sys Temp"
-> >
-> >    set temp1_max   60
-> >    set temp1_max_hyst  58
-> >    set temp2_max   50
-> >    set temp2_max_hyst  48
-> >    ignore temp2
-> >    set temp3_max   50
-> >    set temp3_hyst  48
-> > -----------------------------------------------------
-> >
-> > Now, sensors looks a little better, but still wrong.
->
-> I'm not surprised...
->
-> > Hoping the article will help me figure this out.
-> >
-> > -----------------------------------------------------
->
-> I recommend that you remove the copied configuration file while you go
-> through the article's instructions. Then you can compare your findings
-> with what the configuration file was doing, and fix it before putting
-> it back.
->
-> Note : the F71882FG uses an 8-bit, 8 mV LSB ADC for voltage monitoring.
-> This means that it can measure up to 2.04 V directly. This is the value
-> of in2, in3 and in6 in your original report, which means these inputs
-> are saturated. This means these inputs are unused. So you can start
-> your new configuration file with:
->
-> chip "f71882fg-isa-0a10"
->
-> ignore in2
-> ignore in3
-> ignore in6
->
-> This will simplify your comparison work.
->
-> > (...)
-> > But, these mb vendors/sensor vendors/whoever need to standardize this.
-> > Like... 3.3v should just be 3.3v and CPU temp should just be CPU temp.
-> > Guessing there is a good reason it isn't so straight forward that's way=
- beyond my pay grade.
->
-> I'm dreaming of something like this. Unfortunately there is no standard
-> interface in this area for now.
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html 		 	   		 =20
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQnJ5YW4sCgpPbiBXZWQsIDI3IE1hciAyMDEzIDExOjE4OjEzIC0wNTAwLCBCcnlhbiBHdWlk
+cm96IHdyb3RlOgo+IEZpcnN0LCBJIGNhbid0IHRoYW5rIHlvdSBlbm91Z2ggZm9yIHlvdXIgaGVs
+cC4KPiBJJ3ZlIGxlYXJuZWQgcXVpdGUgYSBiaXQgYW5kIHRoYXQncyBhbHdheXMgZ3JlYXRseSBh
+cHByZWNpYXRlZC4KCllvdSdyZSB3ZWxjb21lIDopCgo+IEkndmUgcmVhZCB0aGUgYXJ0aWNsZSBh
+bmQgdHJpZWQgdG8gdW5kZXJzdGFuZCBpdCBhcyBiZXN0IGFzIEkgY2FuLgo+IFdpdGggeW91ciBz
+dWdnZXN0aW9ucywgdGhlIGFydGljbGUsIGFuZCB0aGUgc2FtcGxlIGNvbmZpZyBJIGZvdW5kIHRo
+YXQgd2FzIHNpbWlsYXIsIEkndmUgY29tZSB1cCB3aXRoIHRoZSBmb2xsb3dpbmcgY29uZmlnIGZv
+ciB0aGlzIHN5c3RlbS4KPiBJIGRpZCBteSBiZXN0IHRvIHRha2UgbXVsdGlwbGUgc2FtcGxlcyAo
+NSBhbGwgdG9nZXRoZXIpIGFuZCBzbyBmYXIsIGV2ZXJ5dGhpbmcgc2VlbXMgdG8gYmUgcHJldHR5
+IGNsb3NlLgo+IEkgYWxzbyB0cmllZCB0byB2YXJ5IHRoZSBsb2FkIG9mIHRoZSBzeXN0ZW0gKHVz
+aW5nIHN0cmVzcyB0byB0cnkgdG8gcmFpc2UgY3B1IHRlbXBzIGFuZCBmYW4gc3BlZWRzLikKPiBV
+bmxlc3MgeW91IHNlZSBzb21ldGhpbmcgdGhhdCdzIG9idmlvdXNseSBpbmNvcnJlY3Qgb3IgY29u
+Y2VybmluZywgSSB0aGluayBJJ20gZ29ubmEgZ28gd2l0aCBpdC4KClRoaXMgaXMgZ29vZCB3b3Jr
+LCBidXQgc2VlIG15IGNvbW1lbnRzIGJlbG93LgoKPiBSZWFsbHksIHRoZSBiaWdnZXN0IGRpZmZl
+cmVuY2VzIGhhZCB0byBkbyB3aXRoIFZiYXQgYW5kIFZTQiB3aGljaCBJJ20gbm93IGlnbm9yaW5n
+IGluIG15IGNvbmYuCj4gVGhlIEJJT1MgSFcgbW9uaXRvciBhbHdheXMgZGlzcGxheXMgVmJhdCBh
+bmQgVlNCIGF0IDMuNDJ2IHdoZXJlIHNlbnNvcnMgaGFzIHRoZW0gc2xpZ2h0bHkgYWJvdmUgb3Ig
+YmVsb3cuCj4gR3Vlc3Npbmcgbm90IGEgYmlnIGRlYWwgYW5kIHBvc3NpYmx5IG5vcm1hbCBiZWhh
+dmlvci4KClllcyBpdCBpcyBPSywgVlNCIGFuZCBWYmF0IGFyZSBzZWNvbmRhcnkgcG93ZXIgc291
+cmNlcywgdGhleSBkb24ndCBoYXZlCnRvIGJlIGFzIHN0YWJsZSBhcyArNVYgYW5kICsxMlYuIDMu
+NDJWIHZzLiAzLjM5ViBpcyBjb21wbGV0ZWx5IGZpbmUuCkFueXdheSB0aGVzZSBhcmUgaW50ZXJu
+YWxseSBzY2FsZWQgdm9sdGFnZSBpbnB1dHMgc28geW91IGp1c3QgY2FuJ3QgZ2V0CnRoZW0gd3Jv
+bmcuCgo+IEFuZCwgSSByZWFsaXplIG15IGxheW91dCBvZiB0aGlzIGNvbmYgaXMgcHJvYmFibHkg
+bm90IHN0YW5kYXJkLCBidXQgSSBwdXQgaXQgaW4gdGhlIG9yZGVyIEkgd2FzIGZpZ3VyaW5nIGl0
+IG91dCB3aXRoIGNvbW1lbnRzIChzb21lIHRha2VuIGRpcmVjdGx5IGZyb20geW91ciByZXBsaWVz
+KSB0byBob3BlZnVsbHkgcmVtaW5kIG1lIG9mIHRoaW5ncyBpZiBuZWVkZWQgaW4gdGhlIGZ1dHVy
+ZS4KPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCj4gW3Jvb3RAZ2F0ZXdheSB+XSMgbmFubyAvZXRjL3NlbnNvcnMuZC9NU0ktTVMtOTgz
+Mi5jb25mCj4gY2hpcCAiZjcxODgyZmctaXNhLTBhMTAiCj4gCj4gIyBJZ25vcmUgLSBWb2x0YWdl
+Cj4gIyBUaGUgRjcxODgyRkcgdXNlcyBhbiA4LWJpdCwgOCBtViBMU0IgQURDIGZvciB2b2x0YWdl
+IG1vbml0b3JpbmcuCj4gIyBUaGlzIG1lYW5zIHRoYXQgaXQgY2FuIG1lYXN1cmUgdXAgdG8gMi4w
+NCBWIGRpcmVjdGx5LiBUaGlzIGlzIHRoZSB2YWx1ZQo+ICMgb2YgaW4yLCBpbjMgYW5kIGluNiBv
+biB0aGUgTVNJIE1TLTk4MzIsIHdoaWNoIG1lYW5zIHRoZXNlIGlucHV0cwo+ICMgYXJlIHNhdHVy
+YXRlZC4gVGhpcyBtZWFucyB0aGVzZSBpbnB1dHMgYXJlIHVudXNlZC4KPiAKPiDCoMKgIGlnbm9y
+ZSBpbjIKPiDCoMKgIGlnbm9yZSBpbjMKPiDCoMKgIGlnbm9yZSBpbjYKPiAKPiAjIElnbm9yZSAt
+IEZhbnMKPiAjIFRoZSBNU0kgTVMtOTgzMiB1c2VzIGZhbjEgKENQVSBGYW4pIGFuZCBmYW4yIChT
+eXN0ZW0gRmFuKS4KPiAjIFRoaXMgbWVhbnMgb3RoZXIgZmFucyBhcmUgdW51c2VkLgo+IAo+IMKg
+wqAgaWdub3JlIGZhbjMKPiDCoMKgIGlnbm9yZSBmYW40Cj4gCj4gIyBJZ25vcmUgLSBUZW1wcwo+
+ICMgVGhlIE1TSSBNUy05ODMyIHVzZXMgdGVtcDEgKENQVSB0ZW1wKSBhbmQgdGVtcDMgKFN5c3Rl
+bSB0ZW1wKS4KPiAjIFRoaXMgbWVhbnMgdGVtcDIgaXMgdW51c2VkLgo+IAo+IMKgwqAgaWdub3Jl
+IHRlbXAyCj4gCj4gIyBPdGhlciAtIFZvbHRhZ2VzCj4gIyBpbjAgKCszLjN2KSwgaW43ICgzVlNC
+KSwgYW5kIGluOCAoVmJhdCkgYXJlIGludGVybmFsbHkgbW9uaXRvcmVkIHZvbHRhZ2VzCj4gIyB3
+aXRoIGludGVybmFsIGRpdmlkZXJzLiBUaGlzIG1lYW5zIHRoZSB2YWx1ZXMgYXJlIHByb3Blcmx5
+IHNldCBhbmQgZG8gbm90Cj4gIyBuZWVkIHRvIGJlIGRlZmluZWQgaW4gdGhpcyBjb25maWd1cmF0
+aW9uIGFzIHRoZXkgc2hvdWxkIGJlIHJlcG9ydGVkIHByb3Blcmx5Lgo+IAo+ICMgVm9sdGFnZXMK
+PiDCoMKgIGxhYmVsIGluMSAiVmNvcmUiCj4gwqDCoCBsYWJlbCBpbjQgIis1ViIKPiDCoMKgIGxh
+YmVsIGluNSAiKzEyViIKPiAKPiDCoMKgIGNvbXB1dGUgaW40wqAgQCooMSsyMDAvNDcpLMKgIEAv
+KDErMjAwLzQ3KQo+IMKgwqAgY29tcHV0ZSBpbjXCoCBAKigxKzIwMC8yMCkswqAgQC8oMSsyMDAv
+MjApCj4gCj4gwqDCoCBzZXQgaW4xX21pbsKgIDEuMiAqIDAuOTUKPiDCoMKgIHNldCBpbjFfbWF4
+wqAgMS4yICogMS4wNQo+IMKgwqAgc2V0IGluNF9taW7CoCA1LjAgKiAwLjk1Cj4gwqDCoCBzZXQg
+aW40X21heMKgIDUuMCAqIDEuMDUKPiDCoMKgIHNldCBpbjVfbWluIDEyLjAgKiAwLjk1Cj4gwqDC
+oCBzZXQgaW41X21heCAxMi4wICogMS4wNQoKVGhlIEY3MTg4MkZHIGhhcyBvbmx5IG9uZSB2b2x0
+YWdlIGxpbWl0IHJlZ2lzdGVyIGFuZCB0aGlzIGlzIGluMV9tYXgsCnNvIGV2ZXJ5dGhpbmcgZWxz
+ZSB3aWxsIGNhdXNlIGEgZmFpbHVyZSB3aGVuIHJ1bm5pbmcgInNlbnNvcnMgLXMiLgoKQWxzbyBh
+Y2NvcmRpbmcgdG8KaHR0cDovL2Fyay5pbnRlbC5jb20vcHJvZHVjdHMvMzU2NDEvSW50ZWwtQXRv
+bS1Qcm9jZXNzb3ItMzMwLTFNLUNhY2hlLTFfNjAtR0h6LTUzMy1NSHotRlNCCnRoZSBWY29yZSBy
+YW5nZSBmb3IgdGhpcyBDUFUgaXMgMC45Vi0xLjE2MjVWIHNvIGluMV9tYXggc2hvdWxkIGJlIHNl
+dAp0byAxLjE2MjUgKiAxLjA1LgoKPiAKPiAjIEZhbnMKPiDCoMKgIGxhYmVsIGZhbjEgIkNQVSBG
+YW4iCj4gwqDCoCBsYWJlbCBmYW4yICJTeXMgRmFuIgo+IAo+IMKgwqAgc2V0IGZhbjFfbWluIDIx
+MDAKPiDCoMKgIHNldCBmYW4yX21pbiAxNDAwCj4gCj4gIyBUZW1wZXJhdHVyZXMKPiDCoMKgIGxh
+YmVsIHRlbXAxICJDUFUgVGVtcCIKPiDCoMKgIGxhYmVsIHRlbXAzICJTeXMgVGVtcCIKPiAKPiDC
+oMKgIHNldCB0ZW1wMV9tYXjCoMKgIDYwCj4gwqDCoCBzZXQgdGVtcDFfbWF4X2h5c3TCoCA1OAo+
+IMKgwqAgc2V0IHRlbXAzX21heMKgwqAgNTAKPiDCoMKgIHNldCB0ZW1wM19oeXN0wqAgNDgKClN1
+YmZlYXR1cmUgdGVtcDNfaHlzdCBkb2Vzbid0IGV4aXN0LCB5b3UgbWVhbnQgdGVtcDNfbWF4X2h5
+c3QuCgo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+Cj4gCj4gU2Vuc29ycyBub3cgZGlzcGxheXMgbmVhcmx5IGlkZW50aWNhbCByZXN1bHRzIHRvIEJJ
+T1MgSFcgbW9uaXRvci4KPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLQo+IFtyb290QGdhdGV3YXkgfl0jIHNlbnNvcnMKPiBjb3JldGVtcC1pc2Et
+MDAwMAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gQ29yZSAwOsKgwqDCoMKgwqAgKzI2LjDCsEPC
+oCAoaGlnaCA9ICs3MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpIAo+IENvcmUgMTrCoMKgwqDCoMKg
+ICsyOC4wwrBDwqAgKGhpZ2ggPSArNzAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKSAKPiAKPiBmNzE4
+ODJmZy1pc2EtMGExMAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gKzMuM1Y6wqDCoMKgwqDCoMKg
+ICszLjQyIFYKPiBWY29yZTrCoMKgwqDCoMKgwqAgKzEuMTYgVsKgIChtYXggPcKgICsyLjA0IFYp
+wqAgCj4gKzVWOsKgwqDCoMKgwqDCoMKgwqAgKzUuMDkgVgo+ICsxMlY6wqDCoMKgwqDCoMKgICsx
+Mi4yMyBWCj4gM1ZTQjrCoMKgwqDCoMKgwqDCoCArMy4zOSBWCj4gVmJhdDrCoMKgwqDCoMKgwqDC
+oCArMy40MSBWCj4gQ1BVIEZhbjrCoMKgwqAgNDU4NyBSUE0KPiBTeXMgRmFuOsKgwqDCoCAyOTAx
+IFJQTQo+IENQVSBUZW1wOsKgwqDCoCArNDYuMMKwQ8KgIChoaWdoID0gKzg1LjDCsEMsIGh5c3Qg
+PSArODEuMMKwQykgCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+IChjcml0ID0gKzEwMC4wwrBDLCBoeXN0ID0gKzk2LjDCsEMpwqAgc2Vuc29yID0gdHJhbnNpc3Rv
+cgo+IFN5cyBUZW1wOsKgwqDCoCArNDAuMMKwQ8KgIChoaWdoID0gKzcwLjDCsEMsIGh5c3QgPSAr
+NjguMMKwQykgCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIChj
+cml0ID0gKzg1LjDCsEMsIGh5c3QgPSArODMuMMKwQynCoCBzZW5zb3IgPSB0cmFuc2lzdG9yCj4g
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+
+IAo+IFlvdXIgdGhvdWdodHM/CgpUaGF0IHlvdSBkaWQgYSBnb29kIGpvYiA6KSBTbyBJIGFkZGVk
+IHlvdXIgY29uZmlndXJhdGlvbiBmaWxlICh3aXRoIHRoZQpmaXhlcyBhYm92ZSkgYXQ6Cmh0dHA6
+Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9Db25maWd1cmF0aW9ucy9NU0kvSU0tOTQ1R0MKU28g
+b3RoZXIgdXNlcnMgY2FuIGJlbmVmaXQuIFRoYW5rcyBmb3IgeW91ciBjb250cmlidXRpb24hCgot
+LSAKSmVhbiBEZWx2YXJlCmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
