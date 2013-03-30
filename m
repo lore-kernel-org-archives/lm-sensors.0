@@ -1,163 +1,131 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 31 Mar 2013 18:09:36 +0000
-Subject: [lm-sensors] [PATCH 2/5] hwmon: (it87) Use is_visible for temperature sensors
-Message-Id: <1364753379-20222-3-git-send-email-linux@roeck-us.net>
+Date: Sat, 30 Mar 2013 17:05:05 +0000
+Subject: Re: [lm-sensors] [nct6775] Asrock 890FX Deluxe5 - Strange values and alarms (#6)
+Message-Id: <20130330170505.GA28035@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Simplify code and reduce object size by more than 200 bytes on x86_64.
+On Sat, Mar 30, 2013 at 08:54:57AM -0700, fizista wrote:
+> Hi there.
+>=20
+> Look at this:
+>=20
+> Vcore:          +1.23 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+> in1:            +1.85 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> AVCC:           +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+> +3.3V:          +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+> in4:            +0.10 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> in5:            +1.70 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> in6:            +0.10 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> 3VSB:           +3.46 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+> Vbat:           +3.39 V  (min =3D  +2.70 V, max =3D  +3.30 V)  ALARM
+> fan1:             0 RPM  (min =3D    0 RPM, div =3D 128)
+> fan2:          3515 RPM  (min =3D    0 RPM, div =3D 8)
+> fan3:             0 RPM  (min =3D    0 RPM, div =3D 128)
+> SYSTIN:         +40.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALAR=
+M  sensor =3D thermistor
+> CPUTIN:         +31.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D thermistor
+> AUXTIN:        +127.5=B0C  (high =3D +114.0=B0C, hyst =3D +114.0=B0C)  AL=
+ARM  sensor =3D thermistor
+> PCH_CHIP_TEMP:   +0.0=B0C =20
+> PCH_CPU_TEMP:    +0.0=B0C =20
+> PCH_MCH_TEMP:    +0.0=B0C=20
+>=20
+> FAN3 should be about 700RPM (the value I saw in the BIOS)
+>=20
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c |   88 +++++++++++++++++++++-----------------------------
- 1 file changed, 37 insertions(+), 51 deletions(-)
+Hi,
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index bbf2a34..5066439 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1502,40 +1502,58 @@ static const struct attribute_group it87_group_in = {
- 	.is_visible = it87_in_is_visible,
- };
- 
--static struct attribute *it87_attributes_temp[3][6] = {
-+static umode_t it87_temp_is_visible(struct kobject *kobj,
-+				    struct attribute *attr, int index)
- {
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct it87_data *data = dev_get_drvdata(dev);
-+	struct it87_sio_data *sio_data = dev->platform_data;
-+	int i = index / 7;	/* temperature index */
-+	int a = index % 7;	/* attribute index */
-+
-+	if (!(data->has_temp & (1 << i)))
-+		return 0;
-+
-+	if (a = 5 && !has_temp_offset(data))
-+		return 0;
-+
-+	if (a = 6 && !sio_data->beep_pin)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static struct attribute *it87_attributes_temp[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
- 	&sensor_dev_attr_temp1_type.dev_attr.attr,
- 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
--	NULL
--} , {
-+	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
-+	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
-+
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_type.dev_attr.attr,
- 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
--	NULL
--} , {
-+	&sensor_dev_attr_temp2_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp2_beep.dev_attr.attr,
-+
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_type.dev_attr.attr,
- 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
--	NULL
--} };
-+	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp3_beep.dev_attr.attr,
- 
--static const struct attribute_group it87_group_temp[3] = {
--	{ .attrs = it87_attributes_temp[0] },
--	{ .attrs = it87_attributes_temp[1] },
--	{ .attrs = it87_attributes_temp[2] },
-+	NULL
- };
- 
--static struct attribute *it87_attributes_temp_offset[] = {
--	&sensor_dev_attr_temp1_offset.dev_attr.attr,
--	&sensor_dev_attr_temp2_offset.dev_attr.attr,
--	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+static const struct attribute_group it87_group_temp = {
-+	.attrs = it87_attributes_temp,
-+	.is_visible = it87_temp_is_visible,
- };
- 
- static struct attribute *it87_attributes[] = {
-@@ -1549,12 +1567,6 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
- };
- 
--static struct attribute *it87_attributes_temp_beep[] = {
--	&sensor_dev_attr_temp1_beep.dev_attr.attr,
--	&sensor_dev_attr_temp2_beep.dev_attr.attr,
--	&sensor_dev_attr_temp3_beep.dev_attr.attr,
--};
--
- static struct attribute *it87_attributes_fan[5][3+1] = { {
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_fan1_min.dev_attr.attr,
-@@ -1967,18 +1979,8 @@ static void it87_remove_files(struct device *dev)
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
- 	sysfs_remove_group(&dev->kobj, &it87_group_in);
-+	sysfs_remove_group(&dev->kobj, &it87_group_temp);
- 
--	for (i = 0; i < 3; i++) {
--		if (!(data->has_temp & (1 << i)))
--			continue;
--		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
--		if (has_temp_offset(data))
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_temp_offset[i]);
--		if (sio_data->beep_pin)
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_temp_beep[i]);
--	}
- 	for (i = 0; i < 5; i++) {
- 		if (!(data->has_fan & (1 << i)))
- 			continue;
-@@ -2100,25 +2102,9 @@ static int it87_probe(struct platform_device *pdev)
- 	if (err)
- 		goto error;
- 
--	for (i = 0; i < 3; i++) {
--		if (!(data->has_temp & (1 << i)))
--			continue;
--		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
--		if (err)
--			goto error;
--		if (has_temp_offset(data)) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_temp_offset[i]);
--			if (err)
--				goto error;
--		}
--		if (sio_data->beep_pin) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_temp_beep[i]);
--			if (err)
--				goto error;
--		}
--	}
-+	err = sysfs_create_group(&dev->kobj, &it87_group_temp);
-+	if (err)
-+		goto error;
- 
- 	/* Do not create fan files for disabled fans */
- 	fan_beep_need_rw = 1;
--- 
-1.7.9.7
+The ASRock configuration utility specifies for this board:
 
+<Fan Enable=3D"1">
+    <Item Index=3D"0" Name=3D"CPU_TEMP" Enable=3D"1" Control=3D"Temperature=
+">CPU Temperature</Item>
+    <Item Index=3D"1" Name=3D"MB_TEMP" Enable=3D"1" Control=3D"Temperature"=
+>M/B Temperature</Item>
+    <Item Index=3D"2" Name=3D"FAN2" Enable=3D"1" Control=3D"FanReading">CPU=
+ Fan1 Speed</Item>
+    <Item Index=3D"3" Name=3D"FAN6" Enable=3D"1" Control=3D"FanReading">CPU=
+ Fan2 Speed</Item>
+    <Item Index=3D"4" Name=3D"FAN1" Enable=3D"1" Control=3D"FanReading">Cha=
+ssis Fan1 Speed</Item>
+    <Item Index=3D"5" Name=3D"FAN4" Enable=3D"1" Control=3D"FanReading">Cha=
+ssis Fan2 Speed</Item>
+    <Item Index=3D"6" Name=3D"FAN5" Enable=3D"1" Control=3D"FanReading">Cha=
+ssis Fan3 Speed</Item>
+    <Item Index=3D"7" Name=3D"FAN3" Enable=3D"1" Control=3D"FanReading">Pow=
+er Fan Speed</Item>
+</Fan>
+
+</HardwareMonitor>
+    <FanControl Enable=3D"1" AutoApply=3D"0">
+    <Item Name=3D"FAN2" Enable=3D"1" Interface=3D"SIO_FAN" SmartFan=3D"1" A=
+pplyValue=3D"" ModelName=3D"P67E4"
+	SelectValue=3D"0" TempSelectValue=3D"0">CPU FAN1; CPU FAN2</Item>
+    <Item Name=3D"FAN1" Enable=3D"1" Interface=3D"SIO_FAN" SmartFan=3D"1" A=
+pplyValue=3D"" ModelName=3D"P67E4"
+	SelectValue=3D"0"> CHASSIS FAN1</Item>
+    <Item Name=3D"FAN4" Enable=3D"1" Interface=3D"MMIO" BaseAddress=3D"0xFE=
+D80400" ReadingReg=3D"0x69"
+	WritingReg=3D"0x03" ApplyValue=3D"" ModelName=3D"P67E4" SelectValue=3D"0">=
+CHASSIS FAN2</Item>
+    <Item Name=3D"FAN5" Enable=3D"1" Interface=3D"MMIO" BaseAddress=3D"0xFE=
+D80400" ReadingReg=3D"0x6E"
+	WritingReg=3D"0x13" ApplyValue=3D"" ModelName=3D"P67E4" SelectValue=3D"0">=
+CHASSIS FAN3</Item>
+</FanControl>
+
+<FanReading Enable=3D"1">
+    <Item Name=3D"FAN1" Bank=3D"6" HighReg=3D"0x56" LowReg=3D"0x57">SYSFANI=
+N</Item>
+    <Item Name=3D"FAN2" Bank=3D"6" HighReg=3D"0x58" LowReg=3D"0x59" SwitchI=
+nterface=3D"SIO_GPIO"
+	SwitchControl=3D"GPIO80=3DLow, GPIO87=3DHigh">CPUFANIN</Item>
+    <Item Name=3D"FAN3" Interface=3D"MMIO" BaseAddress=3D"0xFED80400" Readi=
+ngReg=3D"0x73"
+	WritingReg=3D"0x23">AUXFANIN</Item>
+    <Item Name=3D"FAN4" Interface=3D"MMIO" BaseAddress=3D"0xFED80400" Readi=
+ngReg=3D"0x69"
+	WritingReg=3D"0x03">AUXFANIN0</Item>
+    <Item Name=3D"FAN5" Interface=3D"MMIO" BaseAddress=3D"0xFED80400" Readi=
+ngReg=3D"0x6E"
+	WritingReg=3D"0x13" >AUXFANIN1</Item>
+    <Item Name=3D"FAN6" Bank=3D"6" HighReg=3D"0x58" LowReg=3D"0x59" SwitchI=
+nterface=3D"SIO_GPIO"
+	SwitchControl=3D"GPIO80=3DHigh, GPIO87=3DLow">CPUFANIN2</Item>
+</FanReading>
+
+Translating this, fan2 (the one with the high reading) would be one of
+the CPU fans. The CPU fans are pin multiplexed, meaning you'll never know
+which one of the fan speeds is really reported, as the pin multiplexing
+is not supported by Linux. I have no idea why it reads such a high speed.
+Is this a standard fan ?
+
+Fans 3..5 are read via direct MMIO, ie not through the NCT6775, and also not
+supported in Linux. If you want to see the speed of a chassis fan, you would
+have to connect it to the header for chassis fan 1.
+
+The alarms are because the min/max values are not configured. You would
+have to specify limits in the configuration file and apply as appropriate.
+
+There is a scaling factor for most of the voltages, but unfortunately the A=
+SRock
+utility doesn't specify it, or I don't know how to interpret it. So you'll =
+have
+to figure it out based on the raw voltages.
+
+See http://www.lm-sensors.org/wiki/Configurations/ASRock/AM2NF3-VSTA for an
+example configuration file for another ASRock board, and
+http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling for how to find the
+specific values for your board.
+
+Copying the lm-sensors mailing list for additional input.
+
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
