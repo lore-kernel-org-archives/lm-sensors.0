@@ -1,101 +1,162 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Mon, 25 Mar 2013 08:48:43 +0000
-Subject: [lm-sensors] [PATCH v5 0/5] Add ST-Ericsson AB8500 HWMON driver
-Message-Id: <1364201328-20881-1-git-send-email-hongbo.zhang@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 31 Mar 2013 18:09:36 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon: (it87) Use is_visible for temperature sensors
+Message-Id: <1364753379-20222-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Guenter,
-Sorry for the delay due to our internal issues. Please check this v5 patches,
-thanks for all your reviews/comments for this patch set.
+Simplify code and reduce object size by more than 200 bytes on x86_64.
 
-Anton Vorontsov,
-I have add your Acked-by: into patch [1/5] (which was [1/3]); and split the
-old [2/3] into new [2/5], [3/5] and [4/5] patches, so please have a look them
-again, thank you.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |   88 +++++++++++++++++++++-----------------------------
+ 1 file changed, 37 insertions(+), 51 deletions(-)
 
-v4 -> v5 changes:
-- split the old [2/3]-ab8500-re-arrange-ab8500-power-and-temperature-data into
-  new three [2/5], [3/5] and [4/5] patches.
-- hwmon driver minor coding style clean ups:
-  - {} usage in if-else statement in ab8500_read_sensor function
-  - index error fix in gpadc_monitor function
-  - fix issue of clamp_val() usage
-  - remove unnecessary else in function abx500_attrs_visible
-  - remove redundant print message about irq set up
-  - return the calling function return value directly in probe function
-
-v3 -> v4 changes:
-for patch [3/3]
-- define delays in HZ
-- update ab8500_read_sensor function, returning temp by parameter
-- remove ab8500_is_visible function
-- use clamp_val in set_min and set_max callback
-- remove unnecessary locks in remove and suspend functions
-- let abx500 and ab8500 use its own data structure
-for patch [2/3]
-- move the data tables from driver/power/ab8500_bmdata.c to
-  include/linux/power/ab8500.h
-- rename driver/power/ab8500_bmdata.c to driver/power/ab8500_bm.c
-- rename these variable names to eliminate CamelCase warnings
-- add const attribute to these data
-
-v2 -> v3 changes:
-- Add interface for converting voltage to temperature
-- Remove temp5 sensor since we cannot offer temperature read interface of it
-- Update hyst to use absolute temperature instead of a difference
-- Add the 3/3 patch
-
-v1 -> v2 changes:
-- Add Documentation/hwmon/abx500 and Documentation/hwmon/abx500
-- Make devices which cannot report milli-Celsius invisible
-- Add temp5_crit interface
-- Re-work the old find_active_thresholds() to threshold_updated()
-- Reset updated_min_alarm and updated_max_alarm at the end of each loop
-- Update the hyst mechamisn to make it works as real hyst
-- Remove non-stand attributes
-- Re-order the operations sequence inside probe and remove functions
-- Update all the lock usages to eliminate race conditions
-- Make attibutes index starts from 0
-also changes:
-- Since the old [1/2] "ARM: ux500: rename ab8500 to abx500 for hwmon driver"
-  has been merged by Samuel, so won't send it again.
-- Add another new patch "ab8500_btemp: export two symblols" as [2/2] of this
-  patch set.
-
-Hongbo Zhang (5):
-  ab8500_btemp: make ab8500_btemp_get* interfaces public
-  ab8500: power: eliminate CamelCase warning of some variables
-  ab8500: power: add const attributes to some data arrays
-  ab8500: power: export abx500_res_to_temp tables for hwmon
-  hwmon: add ST-Ericsson ABX500 hwmon driver
-
- Documentation/hwmon/ab8500           |  22 ++
- Documentation/hwmon/abx500           |  28 ++
- drivers/hwmon/Kconfig                |  13 +
- drivers/hwmon/Makefile               |   1 +
- drivers/hwmon/ab8500.c               | 206 +++++++++++++++
- drivers/hwmon/abx500.c               | 491 +++++++++++++++++++++++++++++++++++
- drivers/hwmon/abx500.h               |  69 +++++
- drivers/power/ab8500_bmdata.c        |  38 +--
- drivers/power/ab8500_btemp.c         |   5 +-
- drivers/power/ab8500_fg.c            |   4 +-
- include/linux/mfd/abx500.h           |   6 +-
- include/linux/mfd/abx500/ab8500-bm.h |   5 +
- include/linux/power/ab8500.h         |  16 ++
- 13 files changed, 881 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/hwmon/ab8500
- create mode 100644 Documentation/hwmon/abx500
- create mode 100644 drivers/hwmon/ab8500.c
- create mode 100644 drivers/hwmon/abx500.c
- create mode 100644 drivers/hwmon/abx500.h
- create mode 100644 include/linux/power/ab8500.h
-
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index bbf2a34..5066439 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -1502,40 +1502,58 @@ static const struct attribute_group it87_group_in = {
+ 	.is_visible = it87_in_is_visible,
+ };
+ 
+-static struct attribute *it87_attributes_temp[3][6] = {
++static umode_t it87_temp_is_visible(struct kobject *kobj,
++				    struct attribute *attr, int index)
+ {
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct it87_data *data = dev_get_drvdata(dev);
++	struct it87_sio_data *sio_data = dev->platform_data;
++	int i = index / 7;	/* temperature index */
++	int a = index % 7;	/* attribute index */
++
++	if (!(data->has_temp & (1 << i)))
++		return 0;
++
++	if (a = 5 && !has_temp_offset(data))
++		return 0;
++
++	if (a = 6 && !sio_data->beep_pin)
++		return 0;
++
++	return attr->mode;
++}
++
++static struct attribute *it87_attributes_temp[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+-	NULL
+-} , {
++	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
++	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
++
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
+-	NULL
+-} , {
++	&sensor_dev_attr_temp2_offset.dev_attr.attr,
++	&sensor_dev_attr_temp2_beep.dev_attr.attr,
++
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
+-	NULL
+-} };
++	&sensor_dev_attr_temp3_offset.dev_attr.attr,
++	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+ 
+-static const struct attribute_group it87_group_temp[3] = {
+-	{ .attrs = it87_attributes_temp[0] },
+-	{ .attrs = it87_attributes_temp[1] },
+-	{ .attrs = it87_attributes_temp[2] },
++	NULL
+ };
+ 
+-static struct attribute *it87_attributes_temp_offset[] = {
+-	&sensor_dev_attr_temp1_offset.dev_attr.attr,
+-	&sensor_dev_attr_temp2_offset.dev_attr.attr,
+-	&sensor_dev_attr_temp3_offset.dev_attr.attr,
++static const struct attribute_group it87_group_temp = {
++	.attrs = it87_attributes_temp,
++	.is_visible = it87_temp_is_visible,
+ };
+ 
+ static struct attribute *it87_attributes[] = {
+@@ -1549,12 +1567,6 @@ static const struct attribute_group it87_group = {
+ 	.attrs = it87_attributes,
+ };
+ 
+-static struct attribute *it87_attributes_temp_beep[] = {
+-	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+-	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+-	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+-};
+-
+ static struct attribute *it87_attributes_fan[5][3+1] = { {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+@@ -1967,18 +1979,8 @@ static void it87_remove_files(struct device *dev)
+ 
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_in);
++	sysfs_remove_group(&dev->kobj, &it87_group_temp);
+ 
+-	for (i = 0; i < 3; i++) {
+-		if (!(data->has_temp & (1 << i)))
+-			continue;
+-		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
+-		if (has_temp_offset(data))
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_temp_offset[i]);
+-		if (sio_data->beep_pin)
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_temp_beep[i]);
+-	}
+ 	for (i = 0; i < 5; i++) {
+ 		if (!(data->has_fan & (1 << i)))
+ 			continue;
+@@ -2100,25 +2102,9 @@ static int it87_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto error;
+ 
+-	for (i = 0; i < 3; i++) {
+-		if (!(data->has_temp & (1 << i)))
+-			continue;
+-		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
+-		if (err)
+-			goto error;
+-		if (has_temp_offset(data)) {
+-			err = sysfs_create_file(&dev->kobj,
+-						it87_attributes_temp_offset[i]);
+-			if (err)
+-				goto error;
+-		}
+-		if (sio_data->beep_pin) {
+-			err = sysfs_create_file(&dev->kobj,
+-						it87_attributes_temp_beep[i]);
+-			if (err)
+-				goto error;
+-		}
+-	}
++	err = sysfs_create_group(&dev->kobj, &it87_group_temp);
++	if (err)
++		goto error;
+ 
+ 	/* Do not create fan files for disabled fans */
+ 	fan_beep_need_rw = 1;
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
