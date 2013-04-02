@@ -1,37 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 27 Apr 2013 13:08:26 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (iio_hwmon) Fix missing iio_channel_release_all call if devm_kzalloc
-Message-Id: <20130427130826.GA31156@roeck-us.net>
+From: Paul Menzel <paulepanter@users.sourceforge.net>
+Date: Tue, 02 Apr 2013 09:24:26 +0000
+Subject: [lm-sensors] Nuvoton NCT5572D incorrectly detected as NCT6775F
+Message-Id: <1364894666.7911.23.camel@mattotaupa>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3917410457934095576=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1366708003.10246.1.camel@phoenix>
- <20130423124800.GA29681@roeck-us.net>
- <517B9AFE.9000205@jic23.retrosnub.co.uk>
-In-Reply-To: <517B9AFE.9000205@jic23.retrosnub.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
-Cc: Axel Lin <axel.lin@ingics.com>, Jonathan Cameron <jic23@cam.ac.uk>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sat, Apr 27, 2013 at 10:31:42AM +0100, Jonathan Cameron wrote:
-> On 04/23/2013 01:48 PM, Guenter Roeck wrote:
-> > On Tue, Apr 23, 2013 at 05:06:43PM +0800, Axel Lin wrote:
-> >> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> > Good catch.
-> >
-> > Acked-by: Guenter Roeck <linux@roeck-us.net>
-> Given the timing this will need to go in through hwmon
-> after the merge window is closed.  Sorry, busy week or
-> I would have caught up with this earlier.
-> 
-> Acked-by: Jonathan Cameron <jic23@kernel.org>
 
-Ok.
+--===============3917410457934095576==
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-NjXqXaWCW29idEuwrg1P"
+
+
+--=-NjXqXaWCW29idEuwrg1P
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+(please CC me as I am not subscribed)
+
+
+Dear Linux hwmon folks,
+
+
+lately I was fooled to think my board ASRock E350M1 has a Nuvoton 6775F.
+
+                w83627ehf: Found NCT6775F chip at 0x290
+
+Then I was pointed out that it actually has a Nuvoton NCT 5572D and
+looking at the board, this is actually written on the chip. Searching
+for that on the Web this was confirmed too [1][2][3].
+
+Should the Linux message be changed to the following?
+
+        w83627ehf: Found NCT6775F (or NCT5572D) chip at 0x290
+
+Is it planned to add support for that the NCT5572D?
+
 
 Thanks,
-Guenter
+
+Paul
+
+
+[1] http://review.coreboot.org/gitweb?p=3Dcoreboot.git;a=3Dcommit;h=3D63896=
+e75b42697a8898c0386c492091318cf5c82
+[2] http://www.spinics.net/lists/lm-sensors/msg32057.html
+[3] http://www.coreboot.org/pipermail/coreboot/2013-April/075596.html
+
+--=-NjXqXaWCW29idEuwrg1P
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEABECAAYFAlFao8oACgkQPX1aK2wOHVhKxQCfU7Syh5qukJDVQupiunUvKE0v
+Rn8AoIGYfaAXMaGLzngSUuwGobnzZIzX
+=4joX
+-----END PGP SIGNATURE-----
+
+--=-NjXqXaWCW29idEuwrg1P--
+
+
+
+--===============3917410457934095576==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3917410457934095576==--
+
