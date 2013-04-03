@@ -1,90 +1,109 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 19 Apr 2013 13:37:28 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] Add support for GMT G72/G763 PWM fan controller
-Message-Id: <20130419133728.GA8445@roeck-us.net>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Wed, 03 Apr 2013 12:18:07 +0000
+Subject: [lm-sensors] [PATCH v8 0/5] Add ST-Ericsson AB8500 HWMON driver
+Message-Id: <1364991492-2421-1-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1366322287.git.arno@natisbad.org>
- <4f4a821bbc61e2da28fd70553fd717ada255097d.1366322287.git.arno@natisbad.org>
- <20130419055054.GD18115@lunn.ch>
- <87y5ceahas.fsf@natisbad.org>
-In-Reply-To: <87y5ceahas.fsf@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnaud Ebalard <arno@natisbad.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Simon Guinot <simon.guinot@sequanux.org>, Olivier Mouchet <olivier.mouchet@gmail.com>
+To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
+Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
 
-On Fri, Apr 19, 2013 at 01:30:51PM +0200, Arnaud Ebalard wrote:
-> Hi,
-> 
-> Andrew Lunn <andrew@lunn.ch> writes:
-> 
-> > Hi Arnaud
-> >
-> >> +static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
-> >> +static DEVICE_ATTR(pwm1_polarity, S_IWUSR | S_IRUGO,
-> >> +		   get_pwm_polarity, set_pwm_polarity);
-> >> +static DEVICE_ATTR(pwm1_mode, S_IWUSR | S_IRUGO,
-> >> +		   get_pwm_mode, set_pwm_mode);
-> >> +static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
-> >> +		   get_speed_control_mode, set_speed_control_mode);
-> >> +static DEVICE_ATTR(pwm1_freq, S_IWUSR | S_IRUGO,
-> >> +		   get_pwm_freq, set_pwm_freq);
-> >> +
-> >> +static DEVICE_ATTR(fan1_input, S_IRUGO, get_fan_rpm, NULL);
-> >> +static DEVICE_ATTR(fan1_alarm, S_IRUGO, get_fan_ooc, NULL);
-> >> +static DEVICE_ATTR(fan1_alarm_detection, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_ooc_detection, set_fan_ooc_detection);
-> >> +static DEVICE_ATTR(fan1_fault, S_IRUGO, get_fan_failure, NULL);
-> >> +static DEVICE_ATTR(fan1_fault_detection, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_failure_detection, set_fan_failure_detection);
-> >> +static DEVICE_ATTR(fan1_target, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_target, set_fan_target);
-> >> +static DEVICE_ATTR(fan1_pulses, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_pulses, set_fan_pulses);
-> >> +static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_clk_div, set_fan_clk_div);
-> >> +static DEVICE_ATTR(fan1_gear_mode, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_gear_mode, set_fan_gear_mode);
-> >> +static DEVICE_ATTR(fan1_startup_voltage, S_IWUSR | S_IRUGO,
-> >> +		   get_fan_startup_voltage, set_fan_startup_voltage);
-> >
-> > It is normal to use SENSOR_ATTR, not DEVICE_ATTR. Take a look at the
-> > existing fan drivers.
-> 
-> I will take a look and use SENSOR_ATTR if it is the expected way. For
-> the records, the g760a.c which I used as basis uses DEVICE_ATTR ;-)
-> 
-You only need SENSOR_ATTR if you have an index parameter. Otherwise DEVICE_ATTR
-is just fine. I would actually reject the patch if I notice that it uses
-SENSOR_ATTR without need for a parameter. Besides, in the context used,
-it would probably be SENSOR_DEVICE_ATTR.
+Guenter and Anton,
+As suggested by Anton, I rebased these patches to his latest battery-2.6 tree.
+Thanks.
 
-> > I also think a lot of these are not needed. They are fixed properties
-> > of the board and cannot change dynamically. They are set once using DT
-> > and user space does not need to care.
-> 
-> I added those knobs for a simple reason: I don't have all the various
-> characteristics of the target platform I am working on (Netgear
-> ReadyNAS Duo v2) and needed to be able to test various values w/o
-> rebooting to get those rights. I thought this knobs would be useful for
-> people with the same issue (for instance, the new ReadyNAS 102 also has
-> a G762) and would not hurt.
-> 
-Testing is not a reason to add non-standard attributes.
+v7 -> v8 changes:
+- rebase these patches to Anton's latest battery-2.6 tree.
 
-Thanks,
-Guenter
+v6 -> v7 changes:
+- move exporting symbols from [5/5] to [4/5], which was a mistake.
 
-> Anyway, I will split the patch in two parts and keep the useless knobs
-> on my side.
-> 
-> Thanks for your feedback,
-> 
-> Cheers,
-> 
-> a+
-> 
+v5 -> v6 changes:
+- add depend on AB8500_BM in Kconfig
+- fix wrong usage of clamp_val()
+- export symbols for module compiling
+
+v4 -> v5 changes:
+- split the old [2/3]-ab8500-re-arrange-ab8500-power-and-temperature-data into
+  new three [2/5], [3/5] and [4/5] patches.
+- hwmon driver minor coding style clean ups:
+  - {} usage in if-else statement in ab8500_read_sensor function
+  - index error fix in gpadc_monitor function
+  - fix issue of clamp_val() usage
+  - remove unnecessary else in function abx500_attrs_visible
+  - remove redundant print message about irq set up
+  - return the calling function return value directly in probe function
+
+v3 -> v4 changes:
+for patch [3/3]
+- define delays in HZ
+- update ab8500_read_sensor function, returning temp by parameter
+- remove ab8500_is_visible function
+- use clamp_val in set_min and set_max callback
+- remove unnecessary locks in remove and suspend functions
+- let abx500 and ab8500 use its own data structure
+for patch [2/3]
+- move the data tables from driver/power/ab8500_bmdata.c to
+  include/linux/power/ab8500.h
+- rename driver/power/ab8500_bmdata.c to driver/power/ab8500_bm.c
+- rename these variable names to eliminate CamelCase warnings
+- add const attribute to these data
+
+v2 -> v3 changes:
+- Add interface for converting voltage to temperature
+- Remove temp5 sensor since we cannot offer temperature read interface of it
+- Update hyst to use absolute temperature instead of a difference
+- Add the 3/3 patch
+
+v1 -> v2 changes:
+- Add Documentation/hwmon/abx500 and Documentation/hwmon/abx500
+- Make devices which cannot report milli-Celsius invisible
+- Add temp5_crit interface
+- Re-work the old find_active_thresholds() to threshold_updated()
+- Reset updated_min_alarm and updated_max_alarm at the end of each loop
+- Update the hyst mechamisn to make it works as real hyst
+- Remove non-stand attributes
+- Re-order the operations sequence inside probe and remove functions
+- Update all the lock usages to eliminate race conditions
+- Make attibutes index starts from 0
+also changes:
+- Since the old [1/2] "ARM: ux500: rename ab8500 to abx500 for hwmon driver"
+  has been merged by Samuel, so won't send it again.
+- Add another new patch "ab8500_btemp: export two symblols" as [2/2] of this
+  patch set.
+
+Hongbo Zhang (5):
+  ab8500_btemp: make ab8500_btemp_get* interfaces public
+  ab8500: power: eliminate CamelCase warning of some variables
+  ab8500: power: add const attributes to some data arrays
+  ab8500: power: export abx500_res_to_temp tables for hwmon
+  hwmon: add ST-Ericsson ABX500 hwmon driver
+
+ Documentation/hwmon/ab8500           |  22 ++
+ Documentation/hwmon/abx500           |  28 ++
+ drivers/hwmon/Kconfig                |  13 +
+ drivers/hwmon/Makefile               |   1 +
+ drivers/hwmon/ab8500.c               | 206 +++++++++++++++
+ drivers/hwmon/abx500.c               | 491 +++++++++++++++++++++++++++++++++++
+ drivers/hwmon/abx500.h               |  69 +++++
+ drivers/power/ab8500_bmdata.c        |  44 ++--
+ drivers/power/ab8500_btemp.c         |   5 +-
+ drivers/power/ab8500_fg.c            |   4 +-
+ include/linux/mfd/abx500.h           |   6 +-
+ include/linux/mfd/abx500/ab8500-bm.h |   1 +
+ include/linux/power/ab8500.h         |  16 ++
+ 13 files changed, 882 insertions(+), 24 deletions(-)
+ create mode 100644 Documentation/hwmon/ab8500
+ create mode 100644 Documentation/hwmon/abx500
+ create mode 100644 drivers/hwmon/ab8500.c
+ create mode 100644 drivers/hwmon/abx500.c
+ create mode 100644 drivers/hwmon/abx500.h
+ create mode 100644 include/linux/power/ab8500.h
+
+-- 
+1.8.0
+
 
 _______________________________________________
 lm-sensors mailing list
