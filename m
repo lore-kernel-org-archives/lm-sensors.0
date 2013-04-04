@@ -1,168 +1,164 @@
 From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Date: Thu, 04 Apr 2013 19:11:29 +0000
-Subject: [lm-sensors] [PATCH 4/4] drivers/hwmon/coretemp : Debug fs interface
-Message-Id: <1365102689-12581-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+Date: Thu, 04 Apr 2013 19:11:26 +0000
+Subject: [lm-sensors] [PATCH 1/4] x86, mcheck, therm_throt: Process package thresholds
+Message-Id: <1365102689-12581-2-git-send-email-srinivas.pandruvada@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Added debug fs interface to check numer of interrupts and
-number of time work function is scheduled.
+Added callback registration for package threshold reports. Also added
+a callback to check the rate control implemented in callback or not.
+If there is no rate control implemented, then there is a default rate
+control similar to core threshold notification by delaying 300HZ between
+reports.
 
 Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- drivers/hwmon/coretemp.c | 101 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 100 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/mce.h               |  7 ++++
+ arch/x86/kernel/cpu/mcheck/therm_throt.c | 63 ++++++++++++++++++++++++++++++--
+ 2 files changed, 66 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 689d3b8..94dfa9e 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -40,7 +40,7 @@
- #include <asm/processor.h>
- #include <asm/cpu_device_id.h>
- #include <asm/mce.h>
--
-+#include <linux/debugfs.h>
+diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
+index f4076af..4c619bf 100644
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -214,6 +214,13 @@ void mce_log_therm_throt_event(__u64 status);
+ /* Interrupt Handler for core thermal thresholds */
+ extern int (*platform_thermal_notify)(__u64 msr_val);
  
- #define DRVNAME	"coretemp"
++/* Interrupt Handler for package thermal thresholds */
++extern int (*platform_thermal_package_notify)(__u64 msr_val);
++
++/* Callback support of rate control, return true, if
++ * callback has rate control */
++extern bool (*platform_thermal_package_rate_control)(void);
++
+ #ifdef CONFIG_X86_THERMAL_VECTOR
+ extern void mcheck_intel_therm_init(void);
+ #else
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index 47a1870..28cecab 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -54,12 +54,24 @@ struct thermal_state {
+ 	struct _thermal_state package_power_limit;
+ 	struct _thermal_state core_thresh0;
+ 	struct _thermal_state core_thresh1;
++	struct _thermal_state pkg_thresh0;
++	struct _thermal_state pkg_thresh1;
+ };
  
-@@ -127,6 +127,99 @@ static unsigned long pkg_temp_scheduled;
- static DEFINE_PER_CPU(struct delayed_work, pkg_temp_threshold_work);
- static atomic_t pkg_thres_device_cnt =	ATOMIC_INIT(0);
+ /* Callback to handle core threshold interrupts */
+ int (*platform_thermal_notify)(__u64 msr_val);
+ EXPORT_SYMBOL(platform_thermal_notify);
  
++/* Callback to handle core package threshold_interrupts */
++int (*platform_thermal_package_notify)(__u64 msr_val);
++EXPORT_SYMBOL(platform_thermal_package_notify);
 +
-+#ifdef CONFIG_DEBUG_FS
++/* Callback support of rate control, return true, if
++ * callback has rate control */
++bool (*platform_thermal_package_rate_control)(void);
++EXPORT_SYMBOL(platform_thermal_package_rate_control);
 +
-+#define PKG_TEMP_RD_BUFSIZE	32
-+static struct dentry *debugfs;
-+static unsigned int pkg_interrupt_cnt;
-+static unsigned int pkg_work_cnt;
-+#define INC_INTR_COUNTER	++pkg_interrupt_cnt
-+#define INC_WORK_COUNTER	++pkg_work_cnt
 +
-+static ssize_t show_work_count(struct file *file, char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	char *buf;
-+	u32 len = 0;
-+	ssize_t ret;
-+
-+	buf = kzalloc(PKG_TEMP_RD_BUFSIZE, GFP_KERNEL);
-+	if (!buf)
-+		return 0;
-+
-+	len = snprintf(buf, PKG_TEMP_RD_BUFSIZE, "[%d]\n", pkg_work_cnt);
-+	ret =  simple_read_from_buffer(user_buf, count, ppos, buf, len);
-+	kfree(buf);
-+
-+	return ret;
-+}
-+
-+static ssize_t show_interrupt_count(struct file *file, char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	char *buf;
-+	u32 len = 0;
-+	ssize_t ret;
-+
-+	buf = kzalloc(PKG_TEMP_RD_BUFSIZE, GFP_KERNEL);
-+	if (!buf)
-+		return 0;
-+
-+	len = snprintf(buf, PKG_TEMP_RD_BUFSIZE, "[%d]\n", pkg_interrupt_cnt);
-+	ret =  simple_read_from_buffer(user_buf, count, ppos, buf, len);
-+	kfree(buf);
-+
-+	return ret;
-+}
-+
-+static const struct file_operations pkg_temp_intr_ops = {
-+	.owner		= THIS_MODULE,
-+	.open		= simple_open,
-+	.read		= show_interrupt_count,
-+	.llseek		= default_llseek,
-+};
-+
-+static const struct file_operations pkg_temp_work_ops = {
-+	.owner		= THIS_MODULE,
-+	.open		= simple_open,
-+	.read		= show_work_count,
-+	.llseek		= default_llseek,
-+};
-+
-+static int pkg_temp_debugfs_init(void)
-+{
-+
-+	debugfs = debugfs_create_dir("coretemp", NULL);
-+	if (!debugfs)
-+		return -ENOMEM;
-+
-+	debugfs_create_file("threshold_interrupt", S_IFREG | S_IRUGO,
-+			debugfs, (void *)NULL, &pkg_temp_intr_ops);
-+
-+	debugfs_create_file("threshold_work_fn", S_IFREG | S_IRUGO,
-+			debugfs, (void *)NULL, &pkg_temp_work_ops);
-+	return 0;
-+}
-+
-+static void pkg_temp_debugfs_remove(void)
-+{
-+	if (debugfs)
-+		debugfs_remove_recursive(debugfs);
-+}
-+#else
-+#define INC_INTR_COUNTER
-+#define INC_WORK_COUNTER
-+static inline int pkg_temp_debugfs_init(void)
-+{
-+	return 0;
-+}
-+
-+static inline void pkg_temp_debugfs_remove(void)
-+{
-+}
-+#endif /* CONFIG_DEBUG_FS */
-+
- #define define_device_show_thresholds(_index)		\
- static ssize_t show_threshold_##_index(struct device *dev, \
- 			struct device_attribute *devattr, char *buf) \
-@@ -585,6 +678,7 @@ static void pkg_temp_threshold_work_fn(struct work_struct *work)
- 	__u64 msr_val;
- 	bool notify = false;
+ static DEFINE_PER_CPU(struct thermal_state, thermal_state);
  
-+	INC_WORK_COUNTER;
- 	clear_bit_unlock(TO_PHYS_ID(smp_processor_id()), &pkg_temp_scheduled);
- 	enable_pkg_thres_interrupt();
- 	rdmsrl(MSR_IA32_PACKAGE_THERM_STATUS, msr_val);
-@@ -606,6 +700,7 @@ static int pkg_temp_platform_thermal_notify(__u64 msr_val)
- {
- 	int cpu = smp_processor_id();
- 
-+	INC_INTR_COUNTER;
- 	if (test_and_set_bit_lock(TO_PHYS_ID(cpu), &pkg_temp_scheduled))
- 		return 0;
- 	disable_pkg_thres_interrupt();
-@@ -1027,6 +1122,9 @@ static int __init coretemp_init(void)
- 
- 	register_hotcpu_notifier(&coretemp_cpu_notifier);
- 	put_online_cpus();
-+
-+	pkg_temp_debugfs_init();
-+
+ static atomic_t therm_throt_en	= ATOMIC_INIT(0);
+@@ -203,19 +215,25 @@ static int therm_throt_process(bool new_event, int event, int level)
  	return 0;
+ }
  
- #ifndef CONFIG_HOTPLUG_CPU
-@@ -1043,6 +1141,7 @@ static void __exit coretemp_exit(void)
+-static int thresh_event_valid(int event)
++static int thresh_event_valid(int level, int event)
+ {
+ 	struct _thermal_state *state;
+ 	unsigned int this_cpu = smp_processor_id();
+ 	struct thermal_state *pstate = &per_cpu(thermal_state, this_cpu);
+ 	u64 now = get_jiffies_64();
  
- 	platform_thermal_package_notify = NULL;
- 	platform_thermal_package_rate_control = NULL;
-+	pkg_temp_debugfs_remove();
+-	state = (event = 0) ? &pstate->core_thresh0 : &pstate->core_thresh1;
++	if (level = PACKAGE_LEVEL)
++		state = (event = 0) ? &pstate->pkg_thresh0 :
++						&pstate->pkg_thresh1;
++	else
++		state = (event = 0) ? &pstate->core_thresh0 :
++						&pstate->core_thresh1;
  
- 	get_online_cpus();
- 	unregister_hotcpu_notifier(&coretemp_cpu_notifier);
+ 	if (time_before64(now, state->next_check))
+ 		return 0;
+ 
+ 	state->next_check = now + CHECK_INTERVAL;
++
+ 	return 1;
+ }
+ 
+@@ -321,6 +339,39 @@ device_initcall(thermal_throttle_init_device);
+ 
+ #endif /* CONFIG_SYSFS */
+ 
++static void notify_package_thresholds(__u64 msr_val)
++{
++	bool notify_thres_0 = false;
++	bool notify_thres_1 = false;
++
++	if (!platform_thermal_package_notify)
++		return;
++
++	/* lower threshold check */
++	if (msr_val & THERM_LOG_THRESHOLD0)
++		notify_thres_0 = true;
++	/* higher threshold check */
++	if (msr_val & THERM_LOG_THRESHOLD1)
++		notify_thres_1 = true;
++
++	if (!notify_thres_0 && !notify_thres_1)
++		return;
++
++	if (platform_thermal_package_rate_control &&
++		platform_thermal_package_rate_control()) {
++		/* Rate control is implemented in callback */
++		platform_thermal_package_notify(msr_val);
++		return;
++	}
++
++	/* lower threshold reached */
++	if (notify_thres_0 && thresh_event_valid(PACKAGE_LEVEL, 0))
++		platform_thermal_package_notify(msr_val);
++	/* higher threshold reached */
++	if (notify_thres_1 && thresh_event_valid(PACKAGE_LEVEL, 1))
++		platform_thermal_package_notify(msr_val);
++}
++
+ static void notify_thresholds(__u64 msr_val)
+ {
+ 	/* check whether the interrupt handler is defined;
+@@ -330,10 +381,12 @@ static void notify_thresholds(__u64 msr_val)
+ 		return;
+ 
+ 	/* lower threshold reached */
+-	if ((msr_val & THERM_LOG_THRESHOLD0) &&	thresh_event_valid(0))
++	if ((msr_val & THERM_LOG_THRESHOLD0) &&
++			thresh_event_valid(CORE_LEVEL, 0))
+ 		platform_thermal_notify(msr_val);
+ 	/* higher threshold reached */
+-	if ((msr_val & THERM_LOG_THRESHOLD1) && thresh_event_valid(1))
++	if ((msr_val & THERM_LOG_THRESHOLD1) &&
++			thresh_event_valid(CORE_LEVEL, 1))
+ 		platform_thermal_notify(msr_val);
+ }
+ 
+@@ -359,6 +412,8 @@ static void intel_thermal_interrupt(void)
+ 
+ 	if (this_cpu_has(X86_FEATURE_PTS)) {
+ 		rdmsrl(MSR_IA32_PACKAGE_THERM_STATUS, msr_val);
++		/* check violations of package thermal thresholds */
++		notify_package_thresholds(msr_val);
+ 		therm_throt_process(msr_val & PACKAGE_THERM_STATUS_PROCHOT,
+ 					THERMAL_THROTTLING_EVENT,
+ 					PACKAGE_LEVEL);
 -- 
 1.7.11.7
 
