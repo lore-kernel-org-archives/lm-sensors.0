@@ -1,32 +1,80 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 14 Apr 2013 06:25:52 +0000
-Subject: Re: [lm-sensors] Configuration for Foxconn A7GM-S 2.0
-Message-Id: <20130414082552.36f5d53e@endymion.delvare>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Date: Thu, 04 Apr 2013 19:11:25 +0000
+Subject: [lm-sensors] [PATCH 0/4] thermal threshold event notification
+Message-Id: <1365102689-12581-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20556.55176.173597.530756@freddi.uddeborg>
-In-Reply-To: <20556.55176.173597.530756@freddi.uddeborg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gU2F0LCAxMyBBcHIgMjAxMyAyMTowOTozMCArMDIwMCwgR8O2cmFuIFVkZGVib3JnIHdyb3Rl
-Ogo+IEfDtnJhbiBVZGRlYm9yZzoKPiA+IEplYW4gRGVsdmFyZToKPiA+ID4gVGhlbiBmb3IgdGhl
-IHdpa2kgdmVyc2lvbiBvZiB5b3VyIGNvbmZpZ3VyYXRpb24gZmlsZSwgd2Ugd29uJ3QgaWdub3Jl
-Cj4gPiA+IGFueSBpbnB1dC4gQmV0dGVyIHByaW50IDAgUlBNIHRoYW4gb21pdCBhIHJ1bm5pbmcg
-ZmFuLgo+ID4gCj4gPiBZZXMsIHRoYXQgbWFrZXMgc2Vuc2UuICBJJ2xsIHRyeSB0byByZW1lbWJl
-ciB0byBjaGVjayBuZXh0IHRpbWUgSSBoYXZlCj4gPiB0aGUgYm94IG9wZW4gZm9yIHNvbWUgcmVh
-c29uIHdoaWNoIG9uZSBpcyB0aGUgY2hhc3NpcyBmYW4uCj4gCj4gSXQncyBiZWVuIGEgd2hpbGUg
-c2luY2UgSSB3cm90ZSB0aGF0LCBidXQgSSBhY3R1YWxseSBoYXZlbid0IGhhZAo+IHJlYXNvbiB0
-byBvcGVuIHRoZSBjYXNlIHNpbmNlIHRoZW4uICBOb3QgdW50aWwgdG9kYXksIGFuZCB3aGVuIEkg
-ZGlkIEkKPiB0b29rIHRoZSBvcHBvcnR1bml0eSB0byB0ZXN0IHdoaWNoIHNlbnNvciB3YXMgY29u
-bmVjdGVkIHRvIHRoZSBzb2NrZXQKPiBvbiB0aGUgYm9hcmQuICBJdCB0dXJuZWQgb3V0IHRvIGJl
-IGZhbjIuICBTbyBub3cgSSBjYW4gZ2l2ZSB0aGUgbGFzdAo+IGJpdHMgb2YgaW5mb3JtYXRpb24g
-dG8gbWFrZSB0aGUgc2V0dXAgZm9yIHRoZSBGb3hjb25uIEE3R00tUyAyLjAKPiBtb3RoZXJib2Fy
-ZCBjb21wbGV0ZToKPiAKPiAgICAgICBsYWJlbCAgZmFuMSAgIkNQVSBmYW4iCj4gICAgICAgbGFi
-ZWwgIGZhbjIgICJDaGFzc2lzIGZhbiIKPiAgICAgICBpZ25vcmUgZmFuMwo+IAo+IEJldHRlciBs
-YXRlIHRoYW4gbmV2ZXIhIDotKQoKVGhhbmtzIGZvciBsZXR0aW5nIHVzIGtub3chIEkndmUgdXBk
-YXRlZCB0aGUgY29uZmlndXJhdGlvbiBmaWxlIGluIHRoZQp3aWtpLgoKLS0gCkplYW4gRGVsdmFy
-ZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
-c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
-bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+This is clear that there is reluctance in adding thresholds in coretemp sysfs,
+during previous attempts. Proably because of lake of use cases.
+But this time use case may be more compelling.
+
+We have many small form factor devices like ultrabooks, slate PCs in the market.
+Unfortunately these devices reach maximum temperature with relatively less
+workloads, causing BIOS to do thermal throttling. There are real performance
+issues due to aggressive BIOS action to control thermals and also thermal breakdown
+in some cases.
+
+Even the most expensive laptops, don't have correct ACPI thermal configuration,
+so that kernel thermal driver can act. In some case even the trip point is higher
+than critical temperature setting.
+
+Intel has developed several drivers, which can be used to cool the system very efficiently.
+They include RAPL based cooling driver, Powerclamp driver and P state driver.
+To utilize these cooling device a closed loop user mode program is required, which
+will utilize these method and dynamically compensate for high CPU temperatures,
+without relying on any configuration data.
+One such solution is developed is "Linux thermal daemon". More details can be
+obtained from 
+"https://github.com/01org/thermal_daemon/blob/master/ThermalDaemon_Introduction.pdf".
+This daemon polls for cpu temperature and apply compensation once the CPU reach target
+temperature. 
+
+This polling can be mostly avoided, by getting notification for the temperature, where
+it needs to wake up and get ready for apply compensation. In most of the normal use 
+cases, there may not be any threshold events. So very minimal number of user space
+notification for thermal thresholds.
+
+ 
+This patch adds two entries to coretemp sysfs.
+tempX_notify_threshold_1
+tempX_notify_threshold_2
+
+These two settings acts on "Package level", not on core level. So it will only appear
+if there is support for package temperature. Many of recent Intel processors, support
+package temperatures
+When any valid value is written to these files, it will directly set corresponding CPU MSR,
+in the corresponding package and read back directly from MSR. Since package MSR, affects
+all cores in package, setting will be applicable to all CPU's in the package minimizing
+read, writes and notifications. Also package threshold interrupts are enabled only when,
+a non zero value is written to thresholds.
+
+Once thresholds are violated, it uses a rate control of 5 seconds, reducing the number
+of interrupts, when temperature is hanging around trip point. Using the sticky log bit,
+it sends kboject uevent change notification for corresponding package sysfs.
+Once the thermal daemon receives notification, it can change to new threshold or act
+immediately to reduce CPU temperature.
+
+
+Srinivas Pandruvada (4):
+  x86, mcheck, therm_throt: Process package thresholds
+  hwmon: (coretemp) Add threshold support
+  hwmon: (coretemp) : Add notification support
+  drivers/hwmon/coretemp : Debug fs interface
+
+ arch/x86/include/asm/mce.h               |   7 +
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |  50 ++++-
+ drivers/hwmon/coretemp.c                 | 319 +++++++++++++++++++++++++++++--
+ 3 files changed, 361 insertions(+), 15 deletions(-)
+
+-- 
+1.7.11.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
