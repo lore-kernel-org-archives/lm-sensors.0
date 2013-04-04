@@ -1,130 +1,180 @@
-From: Anthony Olech <anthony.olech.opensource@diasemi.com>
-Date: Fri, 19 Apr 2013 16:56:29 +0000
-Subject: [lm-sensors] [NEW DRIVER V6 0/7] DA9058 PMIC - please comment on this new driver
-Message-Id: <201304191703.r3JH3du0017574@latitude>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Date: Thu, 04 Apr 2013 19:11:28 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (coretemp) : Add notification support
+Message-Id: <1365102689-12581-4-git-send-email-srinivas.pandruvada@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201304191708.r3JH8BEu017809@latitude>
-In-Reply-To: <201304191708.r3JH8BEu017809@latitude>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+To: lm-sensors@vger.kernel.org
 
-This is submission attempt number 6 to have this driver included in
-the linux kernel source tree. This is the driver for the Dialog DA9058.
+This patch add support of uevent notification once the thresholds
+are violated.
+It adds a 5 seconds debounce affect, to avoid repeated notifications and
+control the rate of notifications. Since the log bit is sticky, it will
+preserve the status.
+Coretemp sysfs uses different sysfs path for each physical cpu id. This
+patch will issue unique uevent for each physical device id.
 
-The DA9058 is a low power Power Management Integrated Circuit with extra
-functionality. It is a Multi Function Device controlled only from an I2C
-bus whose components can raise an interrupt request on a single IRQ line.
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ drivers/hwmon/coretemp.c | 93 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 92 insertions(+), 1 deletion(-)
 
-The driver for the DA9058 consists of a core (i2c) device driver that
-instantiates the individual component device drivers for:
-
-adc - 5 ADC channels
-gpio - 2 available pins
-onkey - 1 device
-regulator - 4 BUCKS, 19 LDO and 3 fixed
-rtc - low power clock
-hwmon - 5 monitored voltages/temperatures
-
-All the above six component device drivers depend on the 'core'
-component driver, which is number one in the patch series.
-
-Each component driver for the Dialog DA9058 will follow as an e-mail
-patch relative to 
-
-This driver has been tested on a Samsung SMDK6410 connected to a Dialog
-DA9058 Evaluation Board via one GPIO and a 3-wire I2C connection.
-
-All the components can be builtin to the kernel or compiled as modules.
-As far as I can tell, all the latest APIs both for the core driver and
-all the component drivers have been adhered to, but if I have missed
-something please let me know.
-
-In a clean check out of next-20130419 in linux-next, each patch has been
-applied individually and the final result has been built successfully.
-
-Many thanks,
-Anthony Olech, Dialog Semiconductor Ltd.
-
-Tony Olech (at Home) (7):
-  drivers/mfd: DA9058 MFD core driver
-  drivers/iio/adc: DA9058 ADC driver
-  drivers/input/misc: DA9058 ONKEY driver
-  drivers/rtc: DA9058 RTC driver
-  drivers/gpio: DA9058 GPIO driver
-  drivers/hwmon: DA9058 HWMON driver
-  drivers/regulator: DA9058 REGULATOR driver
-
- Documentation/hwmon/da9058           |   38 ++
- drivers/gpio/Kconfig                 |   12 +
- drivers/gpio/Makefile                |    1 +
- drivers/gpio/gpio-da9058.c           |  376 ++++++++++++++
- drivers/hwmon/Kconfig                |   10 +
- drivers/hwmon/Makefile               |    3 +-
- drivers/hwmon/da9058-hwmon.c         |  330 ++++++++++++
- drivers/iio/adc/Kconfig              |   12 +
- drivers/iio/adc/Makefile             |    1 +
- drivers/iio/adc/da9058-adc.c         |  396 ++++++++++++++
- drivers/input/misc/Kconfig           |   10 +
- drivers/input/misc/Makefile          |    1 +
- drivers/input/misc/da9058_onkey.c    |  173 +++++++
- drivers/mfd/Kconfig                  |   17 +
- drivers/mfd/Makefile                 |    3 +
- drivers/mfd/da9058-core.c            |   73 +++
- drivers/mfd/da9058-i2c.c             |   96 ++++
- drivers/mfd/da9058-info.c            |  939 ++++++++++++++++++++++++++++++++++
- drivers/mfd/da9058-irq.c             |   56 ++
- drivers/regulator/Kconfig            |   11 +
- drivers/regulator/Makefile           |    1 +
- drivers/regulator/da9058-regulator.c |  199 +++++++
- drivers/rtc/Kconfig                  |   10 +
- drivers/rtc/Makefile                 |    1 +
- drivers/rtc/rtc-da9058.c             |  448 ++++++++++++++++
- include/linux/mfd/da9058/adc.h       |   18 +
- include/linux/mfd/da9058/bat.h       |   33 ++
- include/linux/mfd/da9058/codec.h     |   22 +
- include/linux/mfd/da9058/conf.h      |   22 +
- include/linux/mfd/da9058/core.h      |   66 +++
- include/linux/mfd/da9058/gpio.h      |   19 +
- include/linux/mfd/da9058/hwmon.h     |   32 ++
- include/linux/mfd/da9058/i2c.h       |   22 +
- include/linux/mfd/da9058/irq.h       |   50 ++
- include/linux/mfd/da9058/onkey.h     |   17 +
- include/linux/mfd/da9058/pdata.h     |   30 ++
- include/linux/mfd/da9058/registers.h |  480 +++++++++++++++++
- include/linux/mfd/da9058/regulator.h |   26 +
- include/linux/mfd/da9058/rtc.h       |   17 +
- 39 files changed, 4070 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/hwmon/da9058
- create mode 100644 drivers/gpio/gpio-da9058.c
- create mode 100644 drivers/hwmon/da9058-hwmon.c
- create mode 100644 drivers/iio/adc/da9058-adc.c
- create mode 100644 drivers/input/misc/da9058_onkey.c
- create mode 100644 drivers/mfd/da9058-core.c
- create mode 100644 drivers/mfd/da9058-i2c.c
- create mode 100644 drivers/mfd/da9058-info.c
- create mode 100644 drivers/mfd/da9058-irq.c
- create mode 100644 drivers/regulator/da9058-regulator.c
- create mode 100644 drivers/rtc/rtc-da9058.c
- create mode 100644 include/linux/mfd/da9058/adc.h
- create mode 100644 include/linux/mfd/da9058/bat.h
- create mode 100644 include/linux/mfd/da9058/codec.h
- create mode 100644 include/linux/mfd/da9058/conf.h
- create mode 100644 include/linux/mfd/da9058/core.h
- create mode 100644 include/linux/mfd/da9058/gpio.h
- create mode 100644 include/linux/mfd/da9058/hwmon.h
- create mode 100644 include/linux/mfd/da9058/i2c.h
- create mode 100644 include/linux/mfd/da9058/irq.h
- create mode 100644 include/linux/mfd/da9058/onkey.h
- create mode 100644 include/linux/mfd/da9058/pdata.h
- create mode 100644 include/linux/mfd/da9058/registers.h
- create mode 100644 include/linux/mfd/da9058/regulator.h
- create mode 100644 include/linux/mfd/da9058/rtc.h
-
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 6767af1..689d3b8 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -39,6 +39,8 @@
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include <asm/cpu_device_id.h>
++#include <asm/mce.h>
++
+ 
+ #define DRVNAME	"coretemp"
+ 
+@@ -120,6 +122,11 @@ struct attribute_info {
+ static LIST_HEAD(pdev_list);
+ static DEFINE_MUTEX(pdev_list_mutex);
+ 
++#define PKG_TEMP_NOTIFY_DELAY		msecs_to_jiffies(5000)
++static unsigned long pkg_temp_scheduled;
++static DEFINE_PER_CPU(struct delayed_work, pkg_temp_threshold_work);
++static atomic_t pkg_thres_device_cnt =	ATOMIC_INIT(0);
++
+ #define define_device_show_thresholds(_index)		\
+ static ssize_t show_threshold_##_index(struct device *dev, \
+ 			struct device_attribute *devattr, char *buf) \
+@@ -274,6 +281,11 @@ static ssize_t show_temp(struct device *dev,
+ 	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
+ }
+ 
++static bool pkg_temp_platform_thermal_rate_control(void)
++{
++	return true;
++}
++
+ struct tjmax {
+ 	char const *id;
+ 	int tjmax;
+@@ -548,6 +560,62 @@ static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
+ 	return tdata;
+ }
+ 
++static void enable_pkg_thres_interrupt(void)
++{
++	u32 l, h;
++	rdmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT, l, h);
++	wrmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT,
++		l | (THERM_INT_THRESHOLD0_ENABLE |
++			THERM_INT_THRESHOLD1_ENABLE), h);
++
++}
++
++static void disable_pkg_thres_interrupt(void)
++{
++	u32 l, h;
++	rdmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT, l, h);
++	wrmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT,
++		l & (~THERM_INT_THRESHOLD0_ENABLE) &
++		(~THERM_INT_THRESHOLD1_ENABLE), h);
++}
++
++static void pkg_temp_threshold_work_fn(struct work_struct *work)
++{
++	struct platform_device *pdev = coretemp_get_pdev(smp_processor_id());
++	__u64 msr_val;
++	bool notify = false;
++
++	clear_bit_unlock(TO_PHYS_ID(smp_processor_id()), &pkg_temp_scheduled);
++	enable_pkg_thres_interrupt();
++	rdmsrl(MSR_IA32_PACKAGE_THERM_STATUS, msr_val);
++	if (msr_val & THERM_LOG_THRESHOLD0) {
++		wrmsrl(MSR_IA32_PACKAGE_THERM_STATUS,
++				msr_val & ~THERM_LOG_THRESHOLD0);
++		notify = true;
++	}
++	if (msr_val & THERM_LOG_THRESHOLD1) {
++		wrmsrl(MSR_IA32_PACKAGE_THERM_STATUS,
++				msr_val & ~THERM_LOG_THRESHOLD1);
++		notify = true;
++	}
++	if (notify)
++		kobject_uevent(&pdev->dev.kobj, KOBJ_CHANGE);
++}
++
++static int pkg_temp_platform_thermal_notify(__u64 msr_val)
++{
++	int cpu = smp_processor_id();
++
++	if (test_and_set_bit_lock(TO_PHYS_ID(cpu), &pkg_temp_scheduled))
++		return 0;
++	disable_pkg_thres_interrupt();
++	schedule_delayed_work_on(cpu,
++				&per_cpu(pkg_temp_threshold_work, cpu),
++				PKG_TEMP_NOTIFY_DELAY);
++
++	return 0;
++}
++
+ static int __cpuinit create_core_data(struct platform_device *pdev,
+ 				unsigned int cpu, int pkg_flag)
+ {
+@@ -615,8 +683,10 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
+ 		 */
+ 		thres_cnt = clamp_val(thres_cnt, 0, MAX_NON_CORE_ATTRS);
+ 		dev_dbg(&pdev->dev, "No of thresholds %d\n", thres_cnt);
+-		if (thres_cnt)
++		if (thres_cnt) {
+ 			tdata->attr_size += thres_cnt;
++			atomic_inc(&pkg_thres_device_cnt);
++		}
+ 	}
+ 
+ 	pdata->core_data[attr_no] = tdata;
+@@ -832,6 +902,17 @@ static void __cpuinit get_core_online(unsigned int cpu)
+ 	 * So, just add interfaces for this core.
+ 	 */
+ 	coretemp_add_core(cpu, 0);
++
++	INIT_DELAYED_WORK(&per_cpu(pkg_temp_threshold_work, cpu),
++				pkg_temp_threshold_work_fn);
++
++	if (atomic_read(&pkg_thres_device_cnt)) {
++		/* Add threshold interrupt callbacks */
++		platform_thermal_package_notify +				pkg_temp_platform_thermal_notify;
++		platform_thermal_package_rate_control +				pkg_temp_platform_thermal_rate_control;
++	}
+ }
+ 
+ static void __cpuinit put_core_offline(unsigned int cpu)
+@@ -880,6 +961,13 @@ static void __cpuinit put_core_offline(unsigned int cpu)
+ 	 */
+ 	if (!is_any_core_online(pdata))
+ 		coretemp_device_remove(cpu);
++
++	cancel_delayed_work_sync(&per_cpu(pkg_temp_threshold_work, cpu));
++
++	if (atomic_dec_return(&pkg_thres_device_cnt) = 0) {
++		platform_thermal_package_notify = NULL;
++		platform_thermal_package_rate_control = NULL;
++	}
+ }
+ 
+ static int __cpuinit coretemp_cpu_callback(struct notifier_block *nfb,
+@@ -953,6 +1041,9 @@ static void __exit coretemp_exit(void)
+ {
+ 	struct pdev_entry *p, *n;
+ 
++	platform_thermal_package_notify = NULL;
++	platform_thermal_package_rate_control = NULL;
++
+ 	get_online_cpus();
+ 	unregister_hotcpu_notifier(&coretemp_cpu_notifier);
+ 	mutex_lock(&pdev_list_mutex);
 -- 
-end-of-patch for NEW DRIVER V6
+1.7.11.7
 
 
 _______________________________________________
