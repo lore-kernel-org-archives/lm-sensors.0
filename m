@@ -1,85 +1,50 @@
-From: Marcin Nowak <galandilias@gmail.com>
-Date: Tue, 09 Apr 2013 15:22:13 +0000
-Subject: Re: [lm-sensors] looking for help with W83795ADG
-Message-Id: <CA+-AzzJ4rougBbYkHikvvAyiET2tQ0yE_=3PABcTdPS3Uns7LA@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7349120847455776145=="
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Fri, 05 Apr 2013 01:51:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ad7314) use spi_get_drvdata() and spi_set_drvdata()
+Message-Id: <000901ce31a0$1798a090$46c9e1b0$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
-In-Reply-To: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============7349120847455776145==
-Content-Type: multipart/alternative; boundary=001a11c25c1e29d5bf04d9ef1e7b
+Use the wrapper functions for getting and setting the driver data using
+spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
+can directly pass a struct spi_device.
 
---001a11c25c1e29d5bf04d9ef1e7b
-Content-Type: text/plain; charset=UTF-8
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/hwmon/ad7314.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-:) yes I know - I thought that my message will reach Karsten finally :)
-Maybe someone else than Karsten has N36L HP Proliant and will provide me
-with kernel config :)
-
-Regards,
-Marcin
-
-
-2013/4/9 Jean Delvare <khali@linux-fr.org>
-
-> On Tue, 9 Apr 2013 15:23:09 +0200, Marcin Nowak wrote:
-> > It seems that you have kernel configuration for HP Proliant Micro N36L :)
-> > If so can you please send it to me? I am a junior Gentoo user and I am
-> > struggling a lot of troubles in compilation of kernel best suited for
-> N36L
-> > :)
->
-> I don't know who you thought you were taking to, but this is a mailing
-> list.
->
-> --
-> Jean Delvare
->
-
---001a11c25c1e29d5bf04d9ef1e7b
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div>:) yes I know - I thought that my message will reach =
-Karsten finally :) Maybe someone else than Karsten has N36L HP Proliant and=
- will provide me with kernel config :)<br><br></div>Regards,<br>Marcin<br>
-</div><div class=3D"gmail_extra"><br><br><div class=3D"gmail_quote">2013/4/=
-9 Jean Delvare <span dir=3D"ltr">&lt;<a href=3D"mailto:khali@linux-fr.org" =
-target=3D"_blank">khali@linux-fr.org</a>&gt;</span><br><blockquote class=3D=
-"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding=
--left:1ex">
-<div class=3D"HOEnZb"><div class=3D"h5">On Tue, 9 Apr 2013 15:23:09 +0200, =
-Marcin Nowak wrote:<br>
-&gt; It seems that you have kernel configuration for HP Proliant Micro N36L=
- :)<br>
-&gt; If so can you please send it to me? I am a junior Gentoo user and I am=
-<br>
-&gt; struggling a lot of troubles in compilation of kernel best suited for =
-N36L<br>
-&gt; :)<br>
-<br>
-</div></div>I don&#39;t know who you thought you were taking to, but this i=
-s a mailing<br>
-list.<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br>
---<br>
-Jean Delvare<br>
-</font></span></blockquote></div><br></div>
-
---001a11c25c1e29d5bf04d9ef1e7b--
+diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
+index f3c6001..f4f9b21 100644
+--- a/drivers/hwmon/ad7314.c
++++ b/drivers/hwmon/ad7314.c
+@@ -116,7 +116,7 @@ static int ad7314_probe(struct spi_device *spi_dev)
+ 	if (chip = NULL)
+ 		return -ENOMEM;
+ 
+-	dev_set_drvdata(&spi_dev->dev, chip);
++	spi_set_drvdata(spi_dev, chip);
+ 
+ 	ret = sysfs_create_group(&spi_dev->dev.kobj, &ad7314_group);
+ 	if (ret < 0)
+@@ -137,7 +137,7 @@ error_remove_group:
+ 
+ static int ad7314_remove(struct spi_device *spi_dev)
+ {
+-	struct ad7314_data *chip = dev_get_drvdata(&spi_dev->dev);
++	struct ad7314_data *chip = spi_get_drvdata(spi_dev);
+ 
+ 	hwmon_device_unregister(chip->hwmon_dev);
+ 	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
+-- 
+1.7.2.5
 
 
---===============7349120847455776145==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7349120847455776145==--
