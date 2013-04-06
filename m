@@ -1,166 +1,71 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 13 Apr 2013 16:36:42 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (nct6775) Support two SuperIO chips in the same system
-Message-Id: <1365871004-14448-2-git-send-email-linux@roeck-us.net>
+Date: Sat, 06 Apr 2013 06:21:09 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct6775) Enable both AUXTIN and VIN3 on NCT6776
+Message-Id: <1365229269-5036-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Per datasheet, VIN3 and AUXTIN share the same external pin. However, there
+is no clean way to detect this condition. Furthermore, both are reported
+by the BIOS on Supermicro C7H61. It may thus be possible that chip revisions
+exist where both attributes are supported at the same time.
+Better play safe and report both.
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/nct6775.c |  100 ++++++++++++++++++++++++++---------------------
- 1 file changed, 56 insertions(+), 44 deletions(-)
+ drivers/hwmon/nct6775.c |   37 -------------------------------------
+ 1 file changed, 37 deletions(-)
 
 diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index f11d311..4d63943 100644
+index d05a700..8d0e4c4 100644
 --- a/drivers/hwmon/nct6775.c
 +++ b/drivers/hwmon/nct6775.c
-@@ -3486,8 +3486,8 @@ static int __init nct6775_find(int sioaddr, unsigned short *addr,
+@@ -3721,43 +3721,6 @@ static int nct6775_probe(struct platform_device *pdev)
  	}
+ #endif /* USE_ALTERNATE */
  
- 	superio_exit(sioaddr);
--	pr_info("Found %s or compatible chip at %#x\n",
--		nct6775_sio_names[sio_data->kind], *addr);
-+	pr_info("Found %s or compatible chip at %#x:%#x\n",
-+		nct6775_sio_names[sio_data->kind], sioaddr, *addr);
- 	sio_data->sioreg = sioaddr;
- 
- 	return 0;
-@@ -3499,14 +3499,20 @@ static int __init nct6775_find(int sioaddr, unsigned short *addr,
-  * track of the nct6775 driver. But since we platform_device_alloc(), we
-  * must keep track of the device
-  */
--static struct platform_device *pdev;
-+static struct platform_device *pdev[2];
- 
- static int __init sensors_nct6775_init(void)
- {
--	int err;
-+	int i, err;
-+	bool found = false;
- 	unsigned short address;
- 	struct resource res;
- 	struct nct6775_sio_data sio_data;
-+	int sioaddr[2] = { 0x2e, 0x4e };
-+
-+	err = platform_driver_register(&nct6775_driver);
-+	if (err)
-+		return err;
- 
- 	/*
- 	 * initialize sio_data->kind and sio_data->sioreg.
-@@ -3515,64 +3521,70 @@ static int __init sensors_nct6775_init(void)
- 	 * driver will probe 0x2e and 0x4e and auto-detect the presence of a
- 	 * nct6775 hardware monitor, and call probe()
- 	 */
--	if (nct6775_find(0x2e, &address, &sio_data) &&
--	    nct6775_find(0x4e, &address, &sio_data))
--		return -ENODEV;
--
--	err = platform_driver_register(&nct6775_driver);
--	if (err)
--		goto exit;
-+	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+		if (nct6775_find(sioaddr[i], &address, &sio_data))
-+			continue;
- 
--	pdev = platform_device_alloc(DRVNAME, address);
--	if (!pdev) {
--		err = -ENOMEM;
--		pr_err("Device allocation failed\n");
--		goto exit_unregister;
+-	switch (data->kind) {
+-	case nct6775:
+-		break;
+-	case nct6776:
+-		/*
+-		 * On NCT6776, AUXTIN and VIN3 pins are shared.
+-		 * Only way to detect it is to check if AUXTIN is used
+-		 * as a temperature source, and if that source is
+-		 * enabled.
+-		 *
+-		 * If that is the case, disable in6, which reports VIN3.
+-		 * Otherwise disable temp3.
+-		 */
+-		if (data->have_temp & (1 << 2)) {
+-			u8 reg = nct6775_read_value(data,
+-						    data->reg_temp_config[2]);
+-			if (reg & 0x01)
+-				data->have_temp &= ~(1 << 2);
+-			else
+-				data->have_in &= ~(1 << 6);
+-		}
+-		break;
+-	case nct6779:
+-		/*
+-		 * Shared pins:
+-		 *	VIN4 / AUXTIN0
+-		 *	VIN5 / AUXTIN1
+-		 *	VIN6 / AUXTIN2
+-		 *	VIN7 / AUXTIN3
+-		 *
+-		 * There does not seem to be a clean way to detect if VINx or
+-		 * AUXTINx is active, so for keep both sensor types enabled
+-		 * for now.
+-		 */
+-		break;
 -	}
-+		found = true;
- 
--	err = platform_device_add_data(pdev, &sio_data,
--				       sizeof(struct nct6775_sio_data));
--	if (err) {
--		pr_err("Platform data allocation failed\n");
--		goto exit_device_put;
--	}
-+		pdev[i] = platform_device_alloc(DRVNAME, address);
-+		if (!pdev[i]) {
-+			err = -ENOMEM;
-+			goto exit_device_put;
-+		}
- 
--	memset(&res, 0, sizeof(res));
--	res.name = DRVNAME;
--	res.start = address + IOREGION_OFFSET;
--	res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
--	res.flags = IORESOURCE_IO;
-+		err = platform_device_add_data(pdev[i], &sio_data,
-+					       sizeof(struct nct6775_sio_data));
-+		if (err)
-+			goto exit_device_put;
-+
-+		memset(&res, 0, sizeof(res));
-+		res.name = DRVNAME;
-+		res.start = address + IOREGION_OFFSET;
-+		res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
-+		res.flags = IORESOURCE_IO;
-+
-+		err = acpi_check_resource_conflict(&res);
-+		if (err) {
-+			platform_device_put(pdev[i]);
-+			pdev[i] = NULL;
-+			continue;
-+		}
- 
--	err = acpi_check_resource_conflict(&res);
--	if (err)
--		goto exit_device_put;
-+		err = platform_device_add_resources(pdev[i], &res, 1);
-+		if (err)
-+			goto exit_device_put;
- 
--	err = platform_device_add_resources(pdev, &res, 1);
--	if (err) {
--		pr_err("Device resource addition failed (%d)\n", err);
--		goto exit_device_put;
-+		/* platform_device_add calls probe() */
-+		err = platform_device_add(pdev[i]);
-+		if (err)
-+			goto exit_device_put;
- 	}
 -
--	/* platform_device_add calls probe() */
--	err = platform_device_add(pdev);
--	if (err) {
--		pr_err("Device addition failed (%d)\n", err);
--		goto exit_device_put;
-+	if (!found) {
-+		err = -ENODEV;
-+		goto exit_unregister;
- 	}
- 
- 	return 0;
- 
- exit_device_put:
--	platform_device_put(pdev);
-+	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+		if (pdev[i])
-+			platform_device_put(pdev[i]);
-+	}
- exit_unregister:
- 	platform_driver_unregister(&nct6775_driver);
--exit:
- 	return err;
- }
- 
- static void __exit sensors_nct6775_exit(void)
- {
--	platform_device_unregister(pdev);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+		if (pdev[i])
-+			platform_device_unregister(pdev[i]);
-+	}
- 	platform_driver_unregister(&nct6775_driver);
- }
+ 	/* Initialize the chip */
+ 	nct6775_init_device(data);
  
 -- 
 1.7.9.7
