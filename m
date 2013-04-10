@@ -1,98 +1,40 @@
-From: "BICHON, Quentin" <q-bichon@ti.com>
-Date: Wed, 10 Apr 2013 15:04:47 +0000
-Subject: [lm-sensors] request for TMP432
-Message-Id: <06BD56040955684AB7DB9D4C50FFEB7E119117@DNCE04.ent.ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_000_06BD56040955684AB7DB9D4C50FFEB7E119117DNCE04entticom_"
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 10 Apr 2013 15:15:39 +0000
+Subject: Re: [lm-sensors] request for TMP432
+Message-Id: <20130410151539.GB6670@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <06BD56040955684AB7DB9D4C50FFEB7E119117@DNCE04.ent.ti.com>
+In-Reply-To: <06BD56040955684AB7DB9D4C50FFEB7E119117@DNCE04.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============6857860355757105063==
-Content-Language: en-US
-Content-Type: multipart/alternative;
-	boundary="_000_06BD56040955684AB7DB9D4C50FFEB7E119117DNCE04entticom_"
+On Wed, Apr 10, 2013 at 03:04:47PM +0000, BICHON, Quentin wrote:
+> Hi,
+> 
+> I am working for TI and I would be interested in a driver solution for the TMP432.
+> 
+> I think we can help if needed providing samples for instance.
+> 
+> Thank you,
+> Best,
+> Quentin
+> 
+Hi Quentin,
 
---_000_06BD56040955684AB7DB9D4C50FFEB7E119117DNCE04entticom_
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+TI provided samples, so we are fine there.
 
-SGksDQoNCkkgYW0gd29ya2luZyBmb3IgVEkgYW5kIEkgd291bGQgYmUgaW50ZXJlc3RlZCBpbiBh
-IGRyaXZlciBzb2x1dGlvbiBmb3IgdGhlIFRNUDQzMi4NCg0KSSB0aGluayB3ZSBjYW4gaGVscCBp
-ZiBuZWVkZWQgcHJvdmlkaW5nIHNhbXBsZXMgZm9yIGluc3RhbmNlLg0KDQpUaGFuayB5b3UsDQpC
-ZXN0LA0KUXVlbnRpbg0KDQpUZXhhcyBJbnN0cnVtZW50cyBEZXV0c2NobGFuZCBHbWJILCBIYWdn
-ZXJ0eXN0ci4gMSwgRC04NTM1NiBGcmVpc2luZy4gQW10c2dlcmljaHQgTcO8bmNoZW4gSFJCIDQw
-OTYwLiBHZXNjaMOkZnRzZsO8aHJlcjogRHIuIFdvbGZyYW0gVGlldHNjaGVyLiBWb3JzaXR6ZW5k
-ZXIgZGVzIEF1ZnNpY2h0c3JhdGVzOiBFZGdhciBGcmFuaw0KDQoNCg==
+I already submitted a patch series[1], adding support for TMP432 to the
+tmp401 driver. I am waiting for review feedback right now, which is
+the more challenging part nowadays.
 
---_000_06BD56040955684AB7DB9D4C50FFEB7E119117DNCE04entticom_
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: base64
+Thanks,
+Guenter
 
-PGh0bWwgeG1sbnM6dj0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTp2bWwiIHhtbG5zOm89InVy
-bjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOm9mZmljZSIgeG1sbnM6dz0idXJuOnNjaGVt
-YXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6d29yZCIgeG1sbnM6bT0iaHR0cDovL3NjaGVtYXMubWlj
-cm9zb2Z0LmNvbS9vZmZpY2UvMjAwNC8xMi9vbW1sIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcv
-VFIvUkVDLWh0bWw0MCI+DQo8aGVhZD4NCjwhLS0gVGVtcGxhdGUgZ2VuZXJhdGVkIGJ5IEV4Y2xh
-aW1lciBNYWlsIERpc2NsYWltZXJzIG9uIDA1OjA0OjQ3IFdlZG5lc2RheSwgMTAgQXByaWwgMjAx
-MyAtLT4NCjxtZXRhIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIgY29udGVudD0idGV4dC9odG1s
-OyBjaGFyc2V0PXV0Zi04Ij4NCjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+UC4zODQ2OGFmZC03MTMx
-LTRkYWQtOTU0Ny01MDQ1YmZlYjAyZTkgew0KCU1BUkdJTjogMGNtIDBjbSAwcHQNCn0NCkxJLjM4
-NDY4YWZkLTcxMzEtNGRhZC05NTQ3LTUwNDViZmViMDJlOSB7DQoJTUFSR0lOOiAwY20gMGNtIDBw
-dA0KfQ0KRElWLjM4NDY4YWZkLTcxMzEtNGRhZC05NTQ3LTUwNDViZmViMDJlOSB7DQoJTUFSR0lO
-OiAwY20gMGNtIDBwdA0KfQ0KVEFCTEUuMzg0NjhhZmQtNzEzMS00ZGFkLTk1NDctNTA0NWJmZWIw
-MmU5VGFibGUgew0KCU1BUkdJTjogMGNtIDBjbSAwcHQNCn0NCkRJVi5TZWN0aW9uMSB7DQoJcGFn
-ZTogU2VjdGlvbjENCn0NCjwvc3R5bGU+DQo8bWV0YSBuYW1lPSJHZW5lcmF0b3IiIGNvbnRlbnQ9
-Ik1pY3Jvc29mdCBXb3JkIDE0IChmaWx0ZXJlZCBtZWRpdW0pIj4NCjxzdHlsZT48IS0tDQovKiBG
-b250IERlZmluaXRpb25zICovDQpAZm9udC1mYWNlDQoJe2ZvbnQtZmFtaWx5OkNhbGlicmk7DQoJ
-cGFub3NlLTE6MiAxNSA1IDIgMiAyIDQgMyAyIDQ7fQ0KLyogU3R5bGUgRGVmaW5pdGlvbnMgKi8N
-CnAuTXNvTm9ybWFsLCBsaS5Nc29Ob3JtYWwsIGRpdi5Nc29Ob3JtYWwNCgl7bWFyZ2luOjBpbjsN
-CgltYXJnaW4tYm90dG9tOi4wMDAxcHQ7DQoJZm9udC1zaXplOjExLjBwdDsNCglmb250LWZhbWls
-eToiQ2FsaWJyaSIsInNhbnMtc2VyaWYiO30NCmE6bGluaywgc3Bhbi5Nc29IeXBlcmxpbmsNCgl7
-bXNvLXN0eWxlLXByaW9yaXR5Ojk5Ow0KCWNvbG9yOmJsdWU7DQoJdGV4dC1kZWNvcmF0aW9uOnVu
-ZGVybGluZTt9DQphOnZpc2l0ZWQsIHNwYW4uTXNvSHlwZXJsaW5rRm9sbG93ZWQNCgl7bXNvLXN0
-eWxlLXByaW9yaXR5Ojk5Ow0KCWNvbG9yOnB1cnBsZTsNCgl0ZXh0LWRlY29yYXRpb246dW5kZXJs
-aW5lO30NCnNwYW4uRW1haWxTdHlsZTE3DQoJe21zby1zdHlsZS10eXBlOnBlcnNvbmFsLWNvbXBv
-c2U7DQoJZm9udC1mYW1pbHk6IkNhbGlicmkiLCJzYW5zLXNlcmlmIjsNCgljb2xvcjp3aW5kb3d0
-ZXh0O30NCi5Nc29DaHBEZWZhdWx0DQoJe21zby1zdHlsZS10eXBlOmV4cG9ydC1vbmx5O30NCkBw
-YWdlIFdvcmRTZWN0aW9uMQ0KCXtzaXplOjguNWluIDExLjBpbjsNCgltYXJnaW46MS4waW4gMS4w
-aW4gMS4waW4gMS4waW47fQ0KZGl2LldvcmRTZWN0aW9uMQ0KCXtwYWdlOldvcmRTZWN0aW9uMTt9
-DQotLT48L3N0eWxlPjwhLS1baWYgZ3RlIG1zbyA5XT48eG1sPg0KPG86c2hhcGVkZWZhdWx0cyB2
-OmV4dD0iZWRpdCIgc3BpZG1heD0iMTAyNiIgLz4NCjwveG1sPjwhW2VuZGlmXS0tPjwhLS1baWYg
-Z3RlIG1zbyA5XT48eG1sPg0KPG86c2hhcGVsYXlvdXQgdjpleHQ9ImVkaXQiPg0KPG86aWRtYXAg
-djpleHQ9ImVkaXQiIGRhdGE9IjEiIC8+DQo8L286c2hhcGVsYXlvdXQ+PC94bWw+PCFbZW5kaWZd
-LS0+DQo8L2hlYWQ+DQo8Ym9keSBsYW5nPSJFTi1VUyIgbGluaz0iYmx1ZSIgdmxpbms9InB1cnBs
-ZSI+DQo8cCBjbGFzcz0iMzg0NjhhZmQtNzEzMS00ZGFkLTk1NDctNTA0NWJmZWIwMmU5Ij48L3A+
-DQo8ZGl2IGNsYXNzPSJXb3JkU2VjdGlvbjEiPg0KPHAgY2xhc3M9Ik1zb05vcm1hbCI+SGksPG86
-cD48L286cD48L3A+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj48bzpwPiZuYnNwOzwvbzpwPjwvcD4N
-CjxwIGNsYXNzPSJNc29Ob3JtYWwiPkkgYW0gd29ya2luZyBmb3IgVEkgYW5kIEkgd291bGQgYmUg
-aW50ZXJlc3RlZCBpbiBhIGRyaXZlciBzb2x1dGlvbiBmb3IgdGhlIFRNUDQzMi48bzpwPjwvbzpw
-PjwvcD4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPjxvOnA+Jm5ic3A7PC9vOnA+PC9wPg0KPHAgY2xh
-c3M9Ik1zb05vcm1hbCI+SSB0aGluayB3ZSBjYW4gaGVscCBpZiBuZWVkZWQgcHJvdmlkaW5nIHNh
-bXBsZXMgZm9yIGluc3RhbmNlLjxvOnA+PC9vOnA+PC9wPg0KPHAgY2xhc3M9Ik1zb05vcm1hbCI+
-PG86cD4mbmJzcDs8L286cD48L3A+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj5UaGFuayB5b3UsPG86
-cD48L286cD48L3A+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj5CZXN0LDxvOnA+PC9vOnA+PC9wPg0K
-PHAgY2xhc3M9Ik1zb05vcm1hbCI+UXVlbnRpbjxvOnA+PC9vOnA+PC9wPg0KPC9kaXY+DQo8cD48
-L3A+DQo8cCBjbGFzcz0iMzg0NjhhZmQtNzEzMS00ZGFkLTk1NDctNTA0NWJmZWIwMmU5Ij48Zm9u
-dCBjb2xvcj0iIzgwODA4MCIgc2l6ZT0iMSI+VGV4YXMgSW5zdHJ1bWVudHMgRGV1dHNjaGxhbmQg
-R21iSCwgSGFnZ2VydHlzdHIuIDEsIEQtODUzNTYgRnJlaXNpbmcuIEFtdHNnZXJpY2h0IE3DvG5j
-aGVuIEhSQiA0MDk2MC4gR2VzY2jDpGZ0c2bDvGhyZXI6IERyLiBXb2xmcmFtIFRpZXRzY2hlci4g
-Vm9yc2l0emVuZGVyIGRlcyBBdWZzaWNodHNyYXRlczogRWRnYXINCiBGcmFuazwvZm9udD48L3A+
-DQo8cCBjbGFzcz0iMzg0NjhhZmQtNzEzMS00ZGFkLTk1NDctNTA0NWJmZWIwMmU5Ij48Zm9udCBj
-b2xvcj0iIzgwODA4MCIgc2l6ZT0iMSI+PC9mb250PiZuYnNwOzwvcD4NCjxwIGNsYXNzPSIzODQ2
-OGFmZC03MTMxLTRkYWQtOTU0Ny01MDQ1YmZlYjAyZTkiPjwvcD4NCjwvYm9keT4NCjwvaHRtbD4N
-Cg==
-
---_000_06BD56040955684AB7DB9D4C50FFEB7E119117DNCE04entticom_--
-
-
---===============6857860355757105063==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+[1] http://thread.gmane.org/gmane.linux.drivers.sensors/32191
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6857860355757105063==--
