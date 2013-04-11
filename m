@@ -1,7 +1,7 @@
-From: "BICHON, Quentin" <q-bichon@ti.com>
-Date: Thu, 11 Apr 2013 08:15:10 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 11 Apr 2013 08:36:19 +0000
 Subject: Re: [lm-sensors] request for TMP432
-Message-Id: <06BD56040955684AB7DB9D4C50FFEB7E119443@DNCE04.ent.ti.com>
+Message-Id: <20130411103619.2c12ca0f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <06BD56040955684AB7DB9D4C50FFEB7E119117@DNCE04.ent.ti.com>
 In-Reply-To: <06BD56040955684AB7DB9D4C50FFEB7E119117@DNCE04.ent.ti.com>
@@ -10,111 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+Hi Quentin,
 
-This stand-alone driver is very appreciated by the team, however they are using the following kernel version:
-Linux version 2.6.32.27-Cavium-Octeon
-And the code on the driver is apparently not compatible.
+On Thu, 11 Apr 2013 08:15:10 +0000, BICHON, Quentin wrote:
+> This stand-alone driver is very appreciated by the team, however they are using the following kernel version:
+> Linux version 2.6.32.27-Cavium-Octeon
+> And the code on the driver is apparently not compatible.
+> 
+> Do you know if some minor changes could fix this?
 
-Do you know if some minor changes could fix this?
+Most certainly yes. The same problem happens for every single driver
+and so far I have always been able to add compatibility code to make it
+work. For all i2c-related compatibility issues I have a separate header
+file common to all the drivers I maintain. The latest version can be
+seen at:
 
-Thanks again,
-Quentin
+http://khali.linux-fr.org/devel/misc/adt7410/i2c-compat.h
 
+So adding this file and the following line near the top of the tmp401
+driver should solve most issues:
 
-Texas Instruments Deutschland GmbH, Haggertystr. 1, D-85356 Freising. Amtsgericht M?nchen HRB 40960. Gesch?ftsf?hrer: Dr. Wolfram Tietscher. Vorsitzender des Aufsichtsrates: Edgar Frank
+#include "i2c-compat.h"
 
------Original Message-----
-From: Guenter Roeck [mailto:linux@roeck-us.net]
-Sent: Wednesday, April 10, 2013 6:40 PM
-To: BICHON, Quentin
-Cc: lm-sensors@lm-sensors.org
-Subject: Re: [lm-sensors] request for TMP432
+There may be a few remaining issues left, I'll leave them to Guenter.
 
-[ added the mailing list back to Cc: - it somehow got lost ]
+Quentin, your testing is very appreciated. Would you or someone in your
+team also be able to review Guenter's patches? This would speed up
+upstream integration.
 
-On Wed, Apr 10, 2013 at 04:30:12PM +0000, BICHON, Quentin wrote:
-> Ok, thanks for the answer again.
-> Yes, I would be interested to have the stand-alone driver. I will forward that to the technical team interested by it and they may be able to give productive feedbacks as well.
->
-The stand-alone driver is now available at https://github.com/groeck/tmp401.
-
-Thanks,
-Guenter
-
-> Thanks,
-> Quentin
->
->
-> Texas Instruments Deutschland GmbH, Haggertystr. 1, D-85356 Freising.
-> Amtsgericht M?nchen HRB 40960. Gesch?ftsf?hrer: Dr. Wolfram Tietscher.
-> Vorsitzender des Aufsichtsrates: Edgar Frank
->
-> -----Original Message-----
-> From: Guenter Roeck [mailto:linux@roeck-us.net]
-> Sent: Wednesday, April 10, 2013 6:18 PM
-> To: BICHON, Quentin
-> Subject: Re: [lm-sensors] request for TMP432
->
-> On Wed, Apr 10, 2013 at 03:58:56PM +0000, BICHON, Quentin wrote:
-> > Hi Guenter,
-> >
-> > Thank you for your answer.
-> > So, if I understand correctly this is still a beta version? If I use the current version of the tmp401, will it be safe to use?
->
-> The current tmp401 driver won't work for TMP432. I can make it available as stand-alone driver on github if you are interested in testing it.
->
-> Yes, you could call it beta. I don't expect any problems with it, so it should be safe to use. Of course, one never knows.
->
-> > How long usually last the review feedback period?
-> >
-> Depends. If I get review feedback in a week or so, it might make it into the 3.10 kernel, otherwise I'll wait for 3.11.
->
-> Guenter
->
-> > Thanks,
-> > Quentin
-> >
-> >
-> > Texas Instruments Deutschland GmbH, Haggertystr. 1, D-85356 Freising.
-> > Amtsgericht M?nchen HRB 40960. Gesch?ftsf?hrer: Dr. Wolfram Tietscher.
-> > Vorsitzender des Aufsichtsrates: Edgar Frank
-> >
-> > -----Original Message-----
-> > From: Guenter Roeck [mailto:linux@roeck-us.net]
-> > Sent: Wednesday, April 10, 2013 5:16 PM
-> > To: BICHON, Quentin
-> > Cc: lm-sensors@lm-sensors.org
-> > Subject: Re: [lm-sensors] request for TMP432
-> >
-> > On Wed, Apr 10, 2013 at 03:04:47PM +0000, BICHON, Quentin wrote:
-> > > Hi,
-> > >
-> > > I am working for TI and I would be interested in a driver solution for the TMP432.
-> > >
-> > > I think we can help if needed providing samples for instance.
-> > >
-> > > Thank you,
-> > > Best,
-> > > Quentin
-> > >
-> > Hi Quentin,
-> >
-> > TI provided samples, so we are fine there.
-> >
-> > I already submitted a patch series[1], adding support for TMP432 to
-> > the
-> > tmp401 driver. I am waiting for review feedback right now, which is the more challenging part nowadays.
-> >
-> > Thanks,
-> > Guenter
-> >
-> > [1] http://thread.gmane.org/gmane.linux.drivers.sensors/32191
-> >
-> >
->
->
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
