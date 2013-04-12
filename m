@@ -1,213 +1,457 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Tue, 16 Apr 2013 05:05:50 +0000
-Subject: Re: [lm-sensors] [PATCH 0/4] thermal threshold event notification
-Message-Id: <1366088750.2323.55.camel@rzhang1-mobl4>
+From: Anthony Olech <anthony.olech.opensource@diasemi.com>
+Date: Fri, 12 Apr 2013 13:05:28 +0000
+Subject: [lm-sensors] [NEW DRIVER V4 6/7] DA9058 HWMON driver
+Message-Id: <201304121312.r3CDCJte011826@latitude>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1365102689-12581-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <20130404194321.GA24956@roeck-us.net> <515DDDF0.9020904@linux.intel.com>
-	 <20130406032431.GA25103@roeck-us.net> <51622E08.3020902@linux.intel.com>
-	 <20130408152653.GC20919@roeck-us.net>
-	 <1366084864.2323.23.camel@rzhang1-mobl4>
-	 <20130416045327.GA2551@roeck-us.net>
-In-Reply-To: <20130416045327.GA2551@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, fenghua.yu@intel.com, lm-sensors@lm-sensors.org, linux-pm@vger.kernel.org
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On Mon, 2013-04-15 at 21:53 -0700, Guenter Roeck wrote:
-> On Tue, Apr 16, 2013 at 12:01:04PM +0800, Zhang Rui wrote:
-> > Hi,
-> > 
-> > On Mon, 2013-04-08 at 08:26 -0700, Guenter Roeck wrote:
-> > > On Sun, Apr 07, 2013 at 07:40:08PM -0700, Srinivas Pandruvada wrote:
-> > > > Hi Guenter,
-> > > > 
-> > > > Thanks for your quick response. Please see my answers in-line.
-> > > > 
-> > > > Thanks,
-> > > > Srinivas
-> > > > 
-> > > > On 04/05/2013 08:24 PM, Guenter Roeck wrote:
-> > > > >On Thu, Apr 04, 2013 at 01:09:20PM -0700, Srinivas Pandruvada wrote:
-> > > > >>On 04/04/2013 12:43 PM, Guenter Roeck wrote:
-> > > > >>>On Thu, Apr 04, 2013 at 12:11:25PM -0700, Srinivas Pandruvada wrote:
-> > > > >>>>This is clear that there is reluctance in adding thresholds in coretemp sysfs,
-> > > > >>>>during previous attempts. Proably because of lake of use cases.
-> > > > >>>>But this time use case may be more compelling.
-> > > > >>>>
-> > > > >>>>We have many small form factor devices like ultrabooks, slate PCs in the market.
-> > > > >>>>Unfortunately these devices reach maximum temperature with relatively less
-> > > > >>>>workloads, causing BIOS to do thermal throttling. There are real performance
-> > > > >>>>issues due to aggressive BIOS action to control thermals and also thermal breakdown
-> > > > >>>>in some cases.
-> > > > >>>>
-> > > > >>>>Even the most expensive laptops, don't have correct ACPI thermal configuration,
-> > > > >>>>so that kernel thermal driver can act. In some case even the trip point is higher
-> > > > >>>>than critical temperature setting.
-> > > > >>>>
-> > > > >>>>Intel has developed several drivers, which can be used to cool the system very efficiently.
-> > > > >>>>They include RAPL based cooling driver, Powerclamp driver and P state driver.
-> > > > >>>>To utilize these cooling device a closed loop user mode program is required, which
-> > > > >>>>will utilize these method and dynamically compensate for high CPU temperatures,
-> > > > >>>>without relying on any configuration data.
-> > > > >>>>One such solution is developed is "Linux thermal daemon". More details can be
-> > > > >>>>obtained from
-> > > > >>>>"https://github.com/01org/thermal_daemon/blob/master/ThermalDaemon_Introduction.pdf".
-> > > > >>>>This daemon polls for cpu temperature and apply compensation once the CPU reach target
-> > > > >>>>temperature.
-> > > > >>>>
-> > > > >>>>This polling can be mostly avoided, by getting notification for the temperature, where
-> > > > >>>>it needs to wake up and get ready for apply compensation. In most of the normal use
-> > > > >>>>cases, there may not be any threshold events. So very minimal number of user space
-> > > > >>>>notification for thermal thresholds.
-> > > > >>>>
-> > > > >>>>This patch adds two entries to coretemp sysfs.
-> > > > >>>>tempX_notify_threshold_1
-> > > > >>>>tempX_notify_threshold_2
-> > > > >>>>
-> > > > >>>>These two settings acts on "Package level", not on core level. So it will only appear
-> > > > >>>>if there is support for package temperature. Many of recent Intel processors, support
-> > > > >>>>package temperatures
-> > > > >>>>When any valid value is written to these files, it will directly set corresponding CPU MSR,
-> > > > >>>>in the corresponding package and read back directly from MSR. Since package MSR, affects
-> > > > >>>>all cores in package, setting will be applicable to all CPU's in the package minimizing
-> > > > >>>>read, writes and notifications. Also package threshold interrupts are enabled only when,
-> > > > >>>>a non zero value is written to thresholds.
-> > > > >>>>
-> > > > >>>>Once thresholds are violated, it uses a rate control of 5 seconds, reducing the number
-> > > > >>>>of interrupts, when temperature is hanging around trip point. Using the sticky log bit,
-> > > > >>>>it sends kboject uevent change notification for corresponding package sysfs.
-> > > > >>>>Once the thermal daemon receives notification, it can change to new threshold or act
-> > > > >>>>immediately to reduce CPU temperature.
-> > > > >>>>
-> > > > >>>>
-> > > > >>>>Srinivas Pandruvada (4):
-> > > > >>>>   x86, mcheck, therm_throt: Process package thresholds
-> > > > >>>>   hwmon: (coretemp) Add threshold support
-> > > > >>>>   hwmon: (coretemp) : Add notification support
-> > > > >>>>   drivers/hwmon/coretemp : Debug fs interface
-> > > > >>>>
-> > > > >>>>  arch/x86/include/asm/mce.h               |   7 +
-> > > > >>>>  arch/x86/kernel/cpu/mcheck/therm_throt.c |  50 ++++-
-> > > > >>>>  drivers/hwmon/coretemp.c                 | 319 +++++++++++++++++++++++++++++--
-> > > > >>>>  3 files changed, 361 insertions(+), 15 deletions(-)
-> > > > >>>>
-> > > > >>>Key question: Why does the thermal subsystem not work for you ?
-> > > > >>Thermal is bigger issue in Ultrabooks, Slate PCs and other small
-> > > > >>form factor devices.
-> > > > >>Linux ACPI thermal driver depends on ACPI configuration to activate
-> > > > >>active/passive control. So if you have garbage data or not optimized
-> > > > >>data, the current Linux driver can't control thermals. There are
-> > > > >>multiple platforms with bad ACPI data. Some of them have "ACPI
-> > > > >>threshold > critical temp"
-> > > > >>
-> > > > >I wasn't talking about ACPI, I was talking about the Linux thermal subsystem
-> > > > >in drivers/thermal. There is no single mention of "ACPI" in that directory.
-> > > > 
-> > > > <Thermal drivers also  resides outside this directory. ACPI also
-> > > > registers as thermal zone similar to other example you mentioned
-> > > > below. ACPI is the only means to configure per platform thermal trip
-> > > > points in thermal zones in PC platform.
-> > > > >
-> > > > >
-> > > > >>Currently all these systems, rely on BIOS fan and T state control.
-> > > > >>Once T states are used the performance gets hurt. Also we had cases
-> > > > >>of thermal breakdown.
-> > > > >>
-> > > > >>In addition there are several new methods to cool the system,
-> > > > >>developed by Intel and are in latest Linux kernel. They are
-> > > > >>specially designed to cool the system when needed.
-> > > > >>
-> > > > >So, again, why can't you use the thermal subsystem ?
-> > > > <Thermal zone needs to show temperature.  This will be duplicate
-> > > > what coretemp.X is showing. I want to prevent identical information
-> > > > be displayed at two different sysfs>
-> > > > Also the db8500 example you are giving, uses a pre-configured
-> > > > thresholds loaded during probe().
-> > > > There is no thermal ABI to set thresholds at run time. Basically
-> > > > when a temperature is above a trip temp, corresponding cooling
-> > > > devices will be activated.
-> > > > So I still I have to write a platform driver to set thresholds, and
-> > > > then registers with thermal zone. This will show as another
-> > > > packagetemp.x at sysfs like coretemp.x.
-> > > > 
-> > > > So please let me know how to set dynamic thresholds?
-> > > > >
-> > > > 
-> > > > >The db8500_thermal driver in drivers/thermal is quite similar to what
-> > > > >you try to accomplish. I would suggest to look into it and use a similar
-> > > > >approach. I really don't see how this fits into the hwmon subsystem.
-> > > > <Is this logic based on that hwmon shouldn't have write interface
-> > > > and used only for monitoring?  I think some hwmon driver already
-> > > > have write interface like gpiofan.>
-> > > 
-> > > That isn't the point. hwmon is static in nature, not dynamic. Its scope is
-> > > hardware monitoring, not thermal management. This is what the thermal subsystem
-> > > is for. Yes, presumably you would need a platform driver to set the thresholds.
-> > > Another question, though, would be if you want or need a user space component in
-> > > the first place or if you can implement all required functionality in a thermal
-> > > driver.
-> > > 
-> > Agreed.
-> > 
-> > I read the slides at
-> > https://github.com/01org/thermal_daemon/blob/master/ThermalDaemon_Introduction.pdf
-> > 
-> > According to your slides, you have four kinds of cooling devices,
-> > 1. RAPL cooling device driver
-> > 2. P states control
-> > 3. Intel power clamp driver
-> > 4. T states
-> > and four trip points (according to the picture in page 9).
-> > 
-> > I think you will use, say RAPL for trip point 0 (the bigger the number
-> > is, the higher temperature the trip point is), both RAPL and P state
-> > control for trip point1, ..., all of the cooling devices for trip point
-> > 3, etc, right?
-> > 
-> > IMO, all of these actions fit into the Linux/Thermal subsystem
-> > naturally.
-> > 
-> > so my question would be why do you prefer to do it by user space
-> > component?
-> > 
-> Even if a user space component is needed or desired, I would much prefer
-> if the thermal subsystem would be enhanced to support it
+This is the HWMON component driver of the Dialog DA9058 PMIC.
+This driver is just one component of the whole DA9058 PMIC driver.
+It depends on the CORE and ADC component drivers of the DA9058 MFD.
 
-It does today.
-a sensor driver can register a thermal zone without any cooling devices.
-and using "userspace" governor, so that the thermal subsystem will
-invoke a callback when the temperature crosses a trip point, instead of
-throttling/de-throttling cooling devices.
+Signed-off-by: Anthony Olech <anthony.olech.opensource@diasemi.com>
+Signed-off-by: David Dajun Chen <david.chen@diasemi.com>
+---
+ Documentation/hwmon/da9058   |   38 +++++
+ drivers/hwmon/Kconfig        |   10 ++
+ drivers/hwmon/Makefile       |    3 +-
+ drivers/hwmon/da9058-hwmon.c |  341 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 391 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/hwmon/da9058
+ create mode 100644 drivers/hwmon/da9058-hwmon.c
 
-But if you are talking about export events to userspace directly, you're
-right that it is not done in thermal subsystem today.
-there is an API thermal_generate_netlink_event() for platform thermal
-drivers to generate a thermal netlink to userspace, but it seems that no
-one is using this for now. 
-
-thanks,
-rui
->  instead of
-> creating a hwmon overlay and duplicate what the thermal subsystem
-> tries to accomplish.
-> 
-
-
-> I think we will at some point need a neat way of passing hwmon
-> information into the thermal subsystem (neat -> without requiring
-> from each hwmon driver to also register with the thermal subsystem),
-> but that is a different problem.
-> 
-> Thanks,
-> Guenter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/Documentation/hwmon/da9058 b/Documentation/hwmon/da9058
+new file mode 100644
+index 0000000..841148f
+--- /dev/null
++++ b/Documentation/hwmon/da9058
+@@ -0,0 +1,38 @@
++Kernel driver da9058-hwmon
++=============
++
++Supported chips:
++  * Dialog Semiconductor DA9058 PMIC
++    Prefix: 'da9058'
++    Datasheet:
++	http://www.dialog-semiconductor.com/products/power-management/da9058
++
++Authors: Opensource [Anthony Olech] <anthony.olech.opensource@diasemi.com>
++
++Description
++-----------
++
++The DA9058 PMIC contains a 5 channel ADC which can be used to monitor a
++range of system operating parameters, including the battery voltage and
++temperature.  The ADC measures voltage, but two of the ADC channels can
++be configured to supply a current, so that if an NTC termister is connected
++then the voltage reading can be converted to a temperature. Currently the
++driver provides reporting of all the input values but does not provide any
++alarms.
++
++Voltage Monitoring
++------------------
++
++Voltages are sampled in either 'automatic' or 'manual' mode, which is an
++initialization parameter set in the platform data by the machine driver.
++In manual mode the ADC conversion is 12 bit and in automatic mode it is
++10 bit. However all the raw readings are reported as 12 bit numbers.
++
++Physical Limits
++---------------
++
++vbat   2500 - 4500 milliVolts
++tbat   0    - 2500 milliVolts
++adc    0    - 2500 milliVolts
++vfpin  0    - 4095 milliVolts
++tjunc  there is a correction factor programmed during manufacturing
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 89ac1cb..9a3f226 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -304,6 +304,16 @@ config SENSORS_ATXP1
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called atxp1.
+ 
++config SENSORS_DA9058
++	tristate "Dialog Semiconductor DA9058 ADC"
++	depends on MFD_DA9058 && DA9058_ADC
++	help
++	  If you say yes here you get support for the hardware monitoring
++	  functionality of the Dialog Semiconductor DA9058 PMIC.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called da9058-hwmon.
++
+ config SENSORS_DS620
+ 	tristate "Dallas Semiconductor DS620"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 8d6d97e..c3b103b 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -44,7 +44,8 @@ obj-$(CONFIG_SENSORS_ASC7621)	+= asc7621.o
+ obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
+ obj-$(CONFIG_SENSORS_CORETEMP)	+= coretemp.o
+ obj-$(CONFIG_SENSORS_DA9052_ADC)+= da9052-hwmon.o
+-obj-$(CONFIG_SENSORS_DA9055)+= da9055-hwmon.o
++obj-$(CONFIG_SENSORS_DA9055)	+= da9055-hwmon.o
++obj-$(CONFIG_SENSORS_DA9058)	+= da9058-hwmon.o
+ obj-$(CONFIG_SENSORS_DME1737)	+= dme1737.o
+ obj-$(CONFIG_SENSORS_DS620)	+= ds620.o
+ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
+diff --git a/drivers/hwmon/da9058-hwmon.c b/drivers/hwmon/da9058-hwmon.c
+new file mode 100644
+index 0000000..3859b16
+--- /dev/null
++++ b/drivers/hwmon/da9058-hwmon.c
+@@ -0,0 +1,341 @@
++/*
++ *  Copyright (C) 2012 Dialog Semiconductor Ltd.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/regmap.h>
++#include <linux/mfd/core.h>
++
++#include <linux/mfd/da9058/version.h>
++#include <linux/mfd/da9058/registers.h>
++#include <linux/mfd/da9058/core.h>
++#include <linux/mfd/da9058/hwmon.h>
++
++static ssize_t da9058_vbat_show_adc(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	int voltage; /* x000 .. xFFF = 2500 .. 4500 mV */
++	int ret;
++
++	ret = da9058_adc_read(hwmon->da9058, DA9058_ADCMAN_MUXSEL_VBAT,
++					hwmon->use_automatic_adc, &voltage);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", 2500 + voltage * 2000 / 0xFFF);
++}
++
++static ssize_t da9058_tbat_show_type(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d\n", hwmon->battery_sensor_type);
++}
++
++static ssize_t da9058_tbat_show_adc(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	int voltage; /* x000 .. xFFF = 0 .. 2500 mV */
++	int ret;
++
++	ret = da9058_adc_read(hwmon->da9058, DA9058_ADCMAN_MUXSEL_TEMP,
++					hwmon->use_automatic_adc, &voltage);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", voltage * 2500 / 0xFFF);
++}
++
++static ssize_t da9058_gp_show_adc(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	int voltage; /* xFFF .. x800 = 0 .. 2500 mV */
++	int ret;
++
++	ret = da9058_adc_read(hwmon->da9058, DA9058_ADCMAN_MUXSEL_ADCIN,
++				hwmon->use_automatic_adc, &voltage);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", (0xFFF - voltage) * 2500 / 0x7FF);
++}
++
++static ssize_t da9058_tjunc_show_min(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	unsigned int toffreg;
++	int ret = da9058_reg_read(hwmon->da9058, DA9058_TOFFSET_REG, &toffreg);
++
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", -(1708 * (s8)((u8)toffreg) + 108800));
++}
++
++static ssize_t da9058_tjunc_show_max(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	unsigned int toffreg;
++	int ret = da9058_reg_read(hwmon->da9058, DA9058_TOFFSET_REG, &toffreg);
++
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", 1708*(255 - (s8)((u8)toffreg)) - 108800);
++}
++
++/*
++ *  The algorithm for converting the value is
++ *  Degrees celsius = 1.708 * (TJUNC_RES - T_OFFSET) - 108.8
++ *  T_OFFSET is a trim value used to improve accuracy of the result
++ */
++static ssize_t da9058_tjunc_show_adc(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	int tjunc;
++	unsigned int toffreg;
++	int ret;
++
++	ret = da9058_reg_read(hwmon->da9058, DA9058_TOFFSET_REG, &toffreg);
++	if (ret < 0)
++		return ret;
++
++	ret = da9058_adc_read(hwmon->da9058, DA9058_ADCMAN_MUXSEL_TJUNC,
++					hwmon->use_automatic_adc, &tjunc);
++	if (ret < 0)
++		return ret;
++
++	tjunc >>= 4;	/* recover most sig 8 bits as a pos/zero number */
++
++	return sprintf(buf, "%d\n", 1708*(tjunc - (s8)((u8)toffreg)) - 108800);
++}
++static ssize_t da9058_tjunc_show_offset(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	unsigned int toffreg;
++	int ret;
++
++	ret = da9058_reg_read(hwmon->da9058, DA9058_TOFFSET_REG, &toffreg);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%d\n", -1708*(s8)((u8)toffreg) - 108800);
++}
++
++static ssize_t da9058_vfpin_show_adc(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct da9058_hwmon *hwmon = dev_get_drvdata(dev);
++	int voltage; /* x000 .. xFFF = 0 .. 4095 mV */
++	int ret;
++
++	ret = da9058_adc_read(hwmon->da9058, DA9058_ADCMAN_MUXSEL_VF,
++					hwmon->use_automatic_adc, &voltage);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", voltage);
++}
++
++static ssize_t da9058_hwmon_show_name(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	return sprintf(buf, "da9058\n");
++}
++
++static ssize_t da9058_show_label(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	int channel = to_sensor_dev_attr(devattr)->index;
++
++	switch (channel) {
++	case 0:	return sprintf(buf, "vbat\n");
++	case 1:	return sprintf(buf, "tbat\n");
++	case 2:	return sprintf(buf, "vfpin\n");
++	case 3:	return sprintf(buf, "adc\n");
++	case 4:	return sprintf(buf, "tjunc\n");
++	default: return -EINVAL;
++	}
++}
++
++static DEVICE_ATTR(name, S_IRUGO, da9058_hwmon_show_name, NULL);
++
++static SENSOR_DEVICE_ATTR(in0_label, S_IRUGO, da9058_show_label, NULL, 0);
++static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, da9058_vbat_show_adc, NULL, 0);
++
++static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, da9058_show_label, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO, da9058_tbat_show_type, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, da9058_tbat_show_adc, NULL, 1);
++
++static SENSOR_DEVICE_ATTR(in1_label, S_IRUGO, da9058_show_label, NULL, 2);
++static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, da9058_vfpin_show_adc, NULL, 2);
++
++static SENSOR_DEVICE_ATTR(in2_label, S_IRUGO, da9058_show_label, NULL, 3);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, da9058_gp_show_adc, NULL, 3);
++
++static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, da9058_show_label, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp2_min, S_IRUGO, da9058_tjunc_show_min, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO, da9058_tjunc_show_max, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, da9058_tjunc_show_adc, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp2_offset, S_IRUGO, da9058_tjunc_show_offset, NULL,
++				4);
++
++static struct attribute *da9058_attr[] = {
++	&dev_attr_name.attr,
++	&sensor_dev_attr_in0_label.dev_attr.attr,
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_label.dev_attr.attr,
++	&sensor_dev_attr_temp1_type.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_in1_label.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in2_label.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_label.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_offset.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group da9058_attr_group = {.attrs = da9058_attr};
++
++static int da9058_hwmon_probe(struct platform_device *pdev)
++{
++	struct da9058 *da9058 = dev_get_drvdata(pdev->dev.parent);
++	const struct mfd_cell *cell = mfd_get_cell(pdev);
++	struct da9058_hwmon_pdata *hwmon_pdata;
++	struct da9058_hwmon *hwmon;
++	int ret;
++
++	if (cell = NULL) {
++		ret = -ENODEV;
++		goto exit;
++	}
++
++	hwmon_pdata = cell->platform_data;
++
++	if (hwmon_pdata = NULL) {
++		ret = -EINVAL;
++		goto exit;
++	}
++
++	if (hwmon_pdata->use_automatic_adc &&
++			!hwmon_pdata->temp_adc_resistance) {
++		ret = -EINVAL; /* impossible setting */
++		goto exit;
++	}
++
++	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9058_hwmon),
++				GFP_KERNEL);
++	if (!hwmon) {
++		ret = -ENOMEM;
++		goto exit;
++	}
++
++	platform_set_drvdata(pdev, hwmon);
++
++	hwmon->da9058 = da9058;
++	hwmon->pdev = pdev;
++	hwmon->use_automatic_adc = hwmon_pdata->use_automatic_adc;
++	hwmon->temp_adc_resistance = hwmon_pdata->temp_adc_resistance;
++	hwmon->vf_adc_resistance = hwmon_pdata->vf_adc_resistance;
++	hwmon->battery_sensor_type = hwmon_pdata->battery_sensor_type;
++
++	if (hwmon->use_automatic_adc) {
++		unsigned int mode = DA9058_ADCCONT_AUTOADCEN |
++				DA9058_ADCCONT_TEMPISRCEN |
++				DA9058_ADCCONT_AUTOVBATEN |
++				DA9058_ADCCONT_AUTOVFEN |
++				DA9058_ADCCONT_AUTOAINEN;
++
++		if (hwmon->vf_adc_resistance)
++			mode |= DA9058_ADCCONT_VFISRCEN;
++
++		ret = da9058_reg_write(da9058, DA9058_ADCCONT_REG, mode);
++		if (ret)
++			goto failed_to_initialize_device;
++	} else {
++		unsigned int mode = 0;
++
++		if (hwmon->temp_adc_resistance)
++			mode |= DA9058_ADCCONT_TEMPISRCEN;
++		if (hwmon->vf_adc_resistance)
++			mode |= DA9058_ADCCONT_VFISRCEN;
++
++		ret = da9058_reg_write(da9058, DA9058_ADCCONT_REG, mode);
++		if (ret)
++			goto failed_to_initialize_device;
++	}
++
++	mutex_init(&hwmon->hwmon_lock);
++
++	hwmon->class_device = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(hwmon->class_device)) {
++		ret = PTR_ERR(hwmon->class_device);
++		goto failed_to_register_device;
++	}
++
++	ret = sysfs_create_group(&pdev->dev.kobj, &da9058_attr_group);
++	if (ret)
++		goto failed_to_create_sysfs_group;
++
++	goto exit;
++
++failed_to_create_sysfs_group:
++	hwmon_device_unregister(hwmon->class_device);
++failed_to_register_device:
++	sysfs_remove_group(&pdev->dev.kobj, &da9058_attr_group);
++failed_to_initialize_device:
++	devm_kfree(&pdev->dev, hwmon);
++exit:
++	return ret;
++}
++
++static int da9058_hwmon_remove(struct platform_device *pdev)
++{
++	struct da9058_hwmon *hwmon = platform_get_drvdata(pdev);
++
++	sysfs_remove_group(&pdev->dev.kobj, &da9058_attr_group);
++
++
++	hwmon_device_unregister(hwmon->class_device);
++
++	devm_kfree(&pdev->dev, hwmon);
++
++	return 0;
++}
++
++static struct platform_driver da9058_hwmon_driver = {
++	.probe = da9058_hwmon_probe,
++	.remove = da9058_hwmon_remove,
++	.driver = {
++		.name = "da9058-hwmon",
++		.owner = THIS_MODULE,
++	},
++};
++
++module_platform_driver(da9058_hwmon_driver);
++
++MODULE_DESCRIPTION("Dialog DA9058 PMIC HardWare Monitor Driver");
++MODULE_AUTHOR("Anthony Olech <Anthony.Olech@diasemi.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:da9058-hwmon");
+-- 
+end-of-patch for NEW DRIVER V4
 
 
 _______________________________________________
