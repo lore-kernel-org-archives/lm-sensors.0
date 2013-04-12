@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 12 Apr 2013 15:09:33 +0000
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Fri, 12 Apr 2013 15:53:48 +0000
 Subject: Re: [lm-sensors] [NEW DRIVER V4 6/7] DA9058 HWMON driver
-Message-Id: <20130412150933.GB28704@roeck-us.net>
+Message-Id: <51682E0C.4090605@metafoo.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201304121312.r3CDCJte011826@latitude>
 In-Reply-To: <201304121312.r3CDCJte011826@latitude>
@@ -9,28 +9,25 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Anthony Olech <anthony.olech.opensource@diasemi.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Randy Dunlap <rdunlap@xenotime.net>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>, David Dajun Chen <david.chen@diasemi.com>
+Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Randy Dunlap <rdunlap@xenotime.net>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>, David Dajun Chen <david.chen@diasemi.com>
 
-On Fri, Apr 12, 2013 at 02:05:28PM +0100, Anthony Olech wrote:
+On 04/12/2013 03:05 PM, Anthony Olech wrote:
 > This is the HWMON component driver of the Dialog DA9058 PMIC.
 > This driver is just one component of the whole DA9058 PMIC driver.
 > It depends on the CORE and ADC component drivers of the DA9058 MFD.
 > 
 > Signed-off-by: Anthony Olech <anthony.olech.opensource@diasemi.com>
 > Signed-off-by: David Dajun Chen <david.chen@diasemi.com>
+
+Hi,
+
+can't you use the generic IIO to HWMON bridge driver? And if not it's probably
+better to extent the bridge driver than writing this custom driver.
+
+- Lars
+
+
 > ---
-
-No changelog ? That makes it unnecessarily difficult to review the driver,
-especially since a cursory glance suggests that you introduced new problems
-since V3. What is the point of calling devm_kfree() ? Why bother with
-devm_kzalloc() if you ignore its benefits anyway ?
-
-Anyway, I don't have time right now to re-review the entire thing as I'll have
-to pull my comments from the previous version, compare and figure out what you
-changed and what you didn't change. So this will have to wait a bit.
-
-Guenter
-
 >  Documentation/hwmon/da9058   |   38 +++++
 >  drivers/hwmon/Kconfig        |   10 ++
 >  drivers/hwmon/Makefile       |    3 +-
@@ -465,10 +462,7 @@ Guenter
 > +MODULE_AUTHOR("Anthony Olech <Anthony.Olech@diasemi.com>");
 > +MODULE_LICENSE("GPL v2");
 > +MODULE_ALIAS("platform:da9058-hwmon");
-> -- 
-> end-of-patch for NEW DRIVER V4
-> 
-> 
+
 
 _______________________________________________
 lm-sensors mailing list
