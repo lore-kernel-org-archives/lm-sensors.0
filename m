@@ -1,166 +1,394 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Date: Thu, 04 Apr 2013 19:11:26 +0000
-Subject: [lm-sensors] [PATCH 1/4] x86, mcheck, therm_throt: Process package thresholds
-Message-Id: <1365102689-12581-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 14 Apr 2013 17:56:13 +0000
+Subject: [lm-sensors] [PATCH v2 4/4] hwmon: (tmp401) Add support for TMP432
+Message-Id: <1365962173-28311-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Added callback registration for package threshold reports. Also added
-a callback to check the rate control implemented in callback or not.
-If there is no rate control implemented, then there is a default rate
-control similar to core threshold notification by delaying 300HZ between
-reports.
+TMP432 is similar to TMP431 with a second external temperature sensor.
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- arch/x86/include/asm/mce.h               |  7 ++++
- arch/x86/kernel/cpu/mcheck/therm_throt.c | 63 ++++++++++++++++++++++++++++++--
- 2 files changed, 66 insertions(+), 4 deletions(-)
+v2: Fixed spelling error in commit log
+    Improved documentation
 
-diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-index f4076af..4c619bf 100644
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -214,6 +214,13 @@ void mce_log_therm_throt_event(__u64 status);
- /* Interrupt Handler for core thermal thresholds */
- extern int (*platform_thermal_notify)(__u64 msr_val);
+ Documentation/hwmon/tmp401 |   11 ++-
+ drivers/hwmon/tmp401.c     |  182 +++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 154 insertions(+), 39 deletions(-)
+
+diff --git a/Documentation/hwmon/tmp401 b/Documentation/hwmon/tmp401
+index 12e4781..79f957e 100644
+--- a/Documentation/hwmon/tmp401
++++ b/Documentation/hwmon/tmp401
+@@ -14,6 +14,10 @@ Supported chips:
+     Prefix: 'tmp431'
+     Addresses scanned: I2C 0x4c, 0x4d
+     Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp431.html
++  * Texas Instruments TMP432
++    Prefix: 'tmp432'
++    Addresses scanned: I2C 0x4c, 0x4d
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp432.html
  
-+/* Interrupt Handler for package thermal thresholds */
-+extern int (*platform_thermal_package_notify)(__u64 msr_val);
+ Authors:
+          Hans de Goede <hdegoede@redhat.com>
+@@ -23,8 +27,8 @@ Description
+ -----------
+ 
+ This driver implements support for Texas Instruments TMP401, TMP411,
+-and TMP431 chips. These chips implement one remote and one local
+-temperature sensor. Temperature is measured in degrees
++TMP431, and TMP432 chips. These chips implement one or two remote and
++one local temperature sensor. Temperature is measured in degrees
+ Celsius. Resolution of the remote sensor is 0.0625 degree. Local
+ sensor resolution can be set to 0.5, 0.25, 0.125 or 0.0625 degree (not
+ supported by the driver so far, so using the default resolution of 0.5
+@@ -44,3 +48,6 @@ some additional features.
+ 
+   Exported via sysfs attribute temp_reset_history. Writing 1 to this
+   file triggers a reset.
 +
-+/* Callback support of rate control, return true, if
-+ * callback has rate control */
-+extern bool (*platform_thermal_package_rate_control)(void);
-+
- #ifdef CONFIG_X86_THERMAL_VECTOR
- extern void mcheck_intel_therm_init(void);
- #else
-diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-index 47a1870..28cecab 100644
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-+++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -54,12 +54,24 @@ struct thermal_state {
- 	struct _thermal_state package_power_limit;
- 	struct _thermal_state core_thresh0;
- 	struct _thermal_state core_thresh1;
-+	struct _thermal_state pkg_thresh0;
-+	struct _thermal_state pkg_thresh1;
++TMP432 is compatible with TMP401 and TMP431. It supports two external
++temperature sensors.
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index 606d1be..1092a9a 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -43,7 +43,7 @@
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
+ 
+-enum chips { tmp401, tmp411, tmp431 };
++enum chips { tmp401, tmp411, tmp431, tmp432 };
+ 
+ /*
+  * The TMP401 registers, note some registers have different addresses for
+@@ -85,6 +85,28 @@ static const u8 TMP401_TEMP_LSB[6][2] = {
+ 	{ 0x33, 0x37 },	/* highest */
  };
  
- /* Callback to handle core threshold interrupts */
- int (*platform_thermal_notify)(__u64 msr_val);
- EXPORT_SYMBOL(platform_thermal_notify);
++static const u8 TMP432_TEMP_MSB_READ[4][3] = {
++	{ 0x00, 0x01, 0x23 },	/* temp */
++	{ 0x06, 0x08, 0x16 },	/* low limit */
++	{ 0x05, 0x07, 0x15 },	/* high limit */
++	{ 0x20, 0x19, 0x1A },	/* therm (crit) limit */
++};
++
++static const u8 TMP432_TEMP_MSB_WRITE[3][3] = {
++	{ 0, 0, 0 },		/* temp  - unused */
++	{ 0x0C, 0x0E, 0x16 },	/* low limit */
++	{ 0x0B, 0x0D, 0x15 },	/* high limit */
++};
++
++static const u8 TMP432_TEMP_LSB[3][3] = {
++	{ 0x29, 0x10, 0x24 },	/* temp */
++	{ 0x3E, 0x14, 0x18 },	/* low limit */
++	{ 0x3D, 0x13, 0x17 },	/* high limit */
++};
++
++/* [0] = fault, [1] = low, [2] = high, [3] = therm/crit */
++const u8 TMP432_STATUS_REG[] = { 0x1b, 0x36, 0x35, 0x37 };
++
+ /* Flags */
+ #define TMP401_CONFIG_RANGE			BIT(2)
+ #define TMP401_CONFIG_SHUTDOWN			BIT(6)
+@@ -96,6 +118,11 @@ static const u8 TMP401_TEMP_LSB[6][2] = {
+ #define TMP401_STATUS_LOCAL_LOW			BIT(5)
+ #define TMP401_STATUS_LOCAL_HIGH		BIT(6)
  
-+/* Callback to handle core package threshold_interrupts */
-+int (*platform_thermal_package_notify)(__u64 msr_val);
-+EXPORT_SYMBOL(platform_thermal_package_notify);
++/* On TMP432, each status has its own register */
++#define TMP432_STATUS_LOCAL			BIT(0)
++#define TMP432_STATUS_REMOTE1			BIT(1)
++#define TMP432_STATUS_REMOTE2			BIT(2)
 +
-+/* Callback support of rate control, return true, if
-+ * callback has rate control */
-+bool (*platform_thermal_package_rate_control)(void);
-+EXPORT_SYMBOL(platform_thermal_package_rate_control);
-+
-+
- static DEFINE_PER_CPU(struct thermal_state, thermal_state);
+ /* Manufacturer / Device ID's */
+ #define TMP401_MANUFACTURER_ID			0x55
+ #define TMP401_DEVICE_ID			0x11
+@@ -103,6 +130,7 @@ static const u8 TMP401_TEMP_LSB[6][2] = {
+ #define TMP411B_DEVICE_ID			0x13
+ #define TMP411C_DEVICE_ID			0x10
+ #define TMP431_DEVICE_ID			0x31
++#define TMP432_DEVICE_ID			0x32
  
- static atomic_t therm_throt_en	= ATOMIC_INIT(0);
-@@ -203,19 +215,25 @@ static int therm_throt_process(bool new_event, int event, int level)
+ /*
+  * Driver data (common to all clients)
+@@ -112,6 +140,7 @@ static const struct i2c_device_id tmp401_id[] = {
+ 	{ "tmp401", tmp401 },
+ 	{ "tmp411", tmp411 },
+ 	{ "tmp431", tmp431 },
++	{ "tmp432", tmp432 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, tmp401_id);
+@@ -130,9 +159,9 @@ struct tmp401_data {
+ 	unsigned int update_interval;	/* in milliseconds */
+ 
+ 	/* register values */
+-	u8 status;
++	u8 status[4];
+ 	u8 config;
+-	u16 temp[6][2];
++	u16 temp[6][3];
+ 	u8 temp_crit_hyst;
+ };
+ 
+@@ -166,22 +195,26 @@ static int tmp401_update_device_reg16(struct i2c_client *client,
+ {
+ 	int i, j, val;
+ 	int num_regs = data->kind = tmp411 ? 6 : 4;
++	int num_sensors = data->kind = tmp432 ? 3 : 2;
+ 
+-	for (i = 0; i < 2; i++) {			/* local / rem1 */
++	for (i = 0; i < num_sensors; i++) {		/* local / rem1 */
+ 		for (j = 0; j < num_regs; j++) {	/* temp / low / ... */
++			u8 reg;
+ 			/*
+ 			 * High byte must be read first immediately followed
+ 			 * by the low byte
+ 			 */
+-			val = i2c_smbus_read_byte_data(client,
+-						TMP401_TEMP_MSB_READ[j][i]);
++			reg = data->kind = tmp432 ? TMP432_TEMP_MSB_READ[j][i]
++						   : TMP401_TEMP_MSB_READ[j][i];
++			val = i2c_smbus_read_byte_data(client, reg);
+ 			if (val < 0)
+ 				return val;
+ 			data->temp[j][i] = val << 8;
+ 			if (j = 3)		/* crit is msb only */
+ 				continue;
+-			val = i2c_smbus_read_byte_data(client,
+-						TMP401_TEMP_LSB[j][i]);
++			reg = data->kind = tmp432 ? TMP432_TEMP_LSB[j][i]
++						   : TMP401_TEMP_LSB[j][i];
++			val = i2c_smbus_read_byte_data(client, reg);
+ 			if (val < 0)
+ 				return val;
+ 			data->temp[j][i] |= val;
+@@ -195,7 +228,7 @@ static struct tmp401_data *tmp401_update_device(struct device *dev)
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct tmp401_data *data = i2c_get_clientdata(client);
+ 	struct tmp401_data *ret = data;
+-	int val;
++	int i, val;
+ 	unsigned long next_update;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -203,12 +236,34 @@ static struct tmp401_data *tmp401_update_device(struct device *dev)
+ 	next_update = data->last_updated +
+ 		      msecs_to_jiffies(data->update_interval) + 1;
+ 	if (time_after(jiffies, next_update) || !data->valid) {
+-		val = i2c_smbus_read_byte_data(client, TMP401_STATUS);
+-		if (val < 0) {
+-			ret = ERR_PTR(val);
+-			goto abort;
++		if (data->kind != tmp432) {
++			val = i2c_smbus_read_byte_data(client, TMP401_STATUS);
++			if (val < 0) {
++				ret = ERR_PTR(val);
++				goto abort;
++			}
++			data->status[0] +			  (val & TMP401_STATUS_REMOTE_OPEN) >> 1;
++			data->status[1] +			  ((val & TMP401_STATUS_REMOTE_LOW) >> 2) |
++			  ((val & TMP401_STATUS_LOCAL_LOW) >> 5);
++			data->status[2] +			  ((val & TMP401_STATUS_REMOTE_HIGH) >> 3) |
++			  ((val & TMP401_STATUS_LOCAL_HIGH) >> 6);
++			data->status[3] = val & (TMP401_STATUS_LOCAL_CRIT
++						| TMP401_STATUS_REMOTE_CRIT);
++		} else {
++			for (i = 0; i < ARRAY_SIZE(data->status); i++) {
++				val = i2c_smbus_read_byte_data(client,
++							TMP432_STATUS_REG[i]);
++				if (val < 0) {
++					ret = ERR_PTR(val);
++					goto abort;
++				}
++				data->status[i] = val;
++			}
+ 		}
+-		data->status = val;
++
+ 		val = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
+ 		if (val < 0) {
+ 			ret = ERR_PTR(val);
+@@ -270,13 +325,14 @@ static ssize_t show_temp_crit_hyst(struct device *dev,
+ static ssize_t show_status(struct device *dev,
+ 	struct device_attribute *devattr, char *buf)
+ {
+-	int mask = to_sensor_dev_attr(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++	int mask = to_sensor_dev_attr_2(devattr)->index;
+ 	struct tmp401_data *data = tmp401_update_device(dev);
+ 
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
+ 
+-	return sprintf(buf, "%d\n", !!(data->status & mask));
++	return sprintf(buf, "%d\n", !!(data->status[nr] & mask));
+ }
+ 
+ static ssize_t store_temp(struct device *dev, struct device_attribute *devattr,
+@@ -288,6 +344,7 @@ static ssize_t store_temp(struct device *dev, struct device_attribute *devattr,
+ 	struct tmp401_data *data = tmp401_update_device(dev);
+ 	long val;
+ 	u16 reg;
++	u8 regaddr;
+ 
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
+@@ -301,13 +358,13 @@ static ssize_t store_temp(struct device *dev, struct device_attribute *devattr,
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	i2c_smbus_write_byte_data(client,
+-				  TMP401_TEMP_MSB_WRITE[nr][index],
+-				  reg >> 8);
++	regaddr = data->kind = tmp432 ? TMP432_TEMP_MSB_WRITE[nr][index]
++				       : TMP401_TEMP_MSB_WRITE[nr][index];
++	i2c_smbus_write_byte_data(client, regaddr, reg >> 8);
+ 	if (nr != 3) {
+-		i2c_smbus_write_byte_data(client,
+-					  TMP401_TEMP_LSB[nr][index],
+-					  reg & 0xFF);
++		regaddr = data->kind = tmp432 ? TMP432_TEMP_LSB[nr][index]
++					       : TMP401_TEMP_LSB[nr][index];
++		i2c_smbus_write_byte_data(client, regaddr, reg & 0xFF);
+ 	}
+ 	data->temp[nr][index] = reg;
+ 
+@@ -428,12 +485,12 @@ static SENSOR_DEVICE_ATTR_2(temp1_crit, S_IWUSR | S_IRUGO, show_temp,
+ 			    store_temp, 3, 0);
+ static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO,
+ 			  show_temp_crit_hyst, store_temp_crit_hyst, 0);
+-static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_LOCAL_LOW);
+-static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_LOCAL_HIGH);
+-static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_LOCAL_CRIT);
++static SENSOR_DEVICE_ATTR_2(temp1_min_alarm, S_IRUGO, show_status, NULL,
++			    1, TMP432_STATUS_LOCAL);
++static SENSOR_DEVICE_ATTR_2(temp1_max_alarm, S_IRUGO, show_status, NULL,
++			    2, TMP432_STATUS_LOCAL);
++static SENSOR_DEVICE_ATTR_2(temp1_crit_alarm, S_IRUGO, show_status, NULL,
++			    3, TMP432_STATUS_LOCAL);
+ static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0, 1);
+ static SENSOR_DEVICE_ATTR_2(temp2_min, S_IWUSR | S_IRUGO, show_temp,
+ 			    store_temp, 1, 1);
+@@ -443,14 +500,14 @@ static SENSOR_DEVICE_ATTR_2(temp2_crit, S_IWUSR | S_IRUGO, show_temp,
+ 			    store_temp, 3, 1);
+ static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst,
+ 			  NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_REMOTE_OPEN);
+-static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_REMOTE_LOW);
+-static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_REMOTE_HIGH);
+-static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_status, NULL,
+-			  TMP401_STATUS_REMOTE_CRIT);
++static SENSOR_DEVICE_ATTR_2(temp2_fault, S_IRUGO, show_status, NULL,
++			    0, TMP432_STATUS_REMOTE1);
++static SENSOR_DEVICE_ATTR_2(temp2_min_alarm, S_IRUGO, show_status, NULL,
++			    1, TMP432_STATUS_REMOTE1);
++static SENSOR_DEVICE_ATTR_2(temp2_max_alarm, S_IRUGO, show_status, NULL,
++			    2, TMP432_STATUS_REMOTE1);
++static SENSOR_DEVICE_ATTR_2(temp2_crit_alarm, S_IRUGO, show_status, NULL,
++			    3, TMP432_STATUS_REMOTE1);
+ 
+ static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
+ 		   set_update_interval);
+@@ -511,6 +568,42 @@ static const struct attribute_group tmp411_group = {
+ 	.attrs = tmp411_attributes,
+ };
+ 
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 0, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_min, S_IWUSR | S_IRUGO, show_temp,
++			    store_temp, 1, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_max, S_IWUSR | S_IRUGO, show_temp,
++			    store_temp, 2, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_crit, S_IWUSR | S_IRUGO, show_temp,
++			    store_temp, 3, 2);
++static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temp_crit_hyst,
++			  NULL, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_fault, S_IRUGO, show_status, NULL,
++			    0, TMP432_STATUS_REMOTE2);
++static SENSOR_DEVICE_ATTR_2(temp3_min_alarm, S_IRUGO, show_status, NULL,
++			    1, TMP432_STATUS_REMOTE2);
++static SENSOR_DEVICE_ATTR_2(temp3_max_alarm, S_IRUGO, show_status, NULL,
++			    2, TMP432_STATUS_REMOTE2);
++static SENSOR_DEVICE_ATTR_2(temp3_crit_alarm, S_IRUGO, show_status, NULL,
++			    3, TMP432_STATUS_REMOTE2);
++
++static struct attribute *tmp432_attributes[] = {
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp3_fault.dev_attr.attr,
++	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
++
++	NULL
++};
++
++static const struct attribute_group tmp432_group = {
++	.attrs = tmp432_attributes,
++};
++
+ /*
+  * Begin non sysfs callback code (aka Real code)
+  */
+@@ -581,6 +674,11 @@ static int tmp401_detect(struct i2c_client *client,
+ 			return -ENODEV;
+ 		kind = tmp431;
+ 		break;
++	case TMP432_DEVICE_ID:
++		if (client->addr = 0x4e)
++			return -ENODEV;
++		kind = tmp432;
++		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
+@@ -612,6 +710,9 @@ static int tmp401_remove(struct i2c_client *client)
+ 	if (data->kind = tmp411)
+ 		sysfs_remove_group(&dev->kobj, &tmp411_group);
+ 
++	if (data->kind = tmp432)
++		sysfs_remove_group(&dev->kobj, &tmp432_group);
++
  	return 0;
  }
  
--static int thresh_event_valid(int event)
-+static int thresh_event_valid(int level, int event)
- {
- 	struct _thermal_state *state;
- 	unsigned int this_cpu = smp_processor_id();
- 	struct thermal_state *pstate = &per_cpu(thermal_state, this_cpu);
- 	u64 now = get_jiffies_64();
+@@ -621,7 +722,7 @@ static int tmp401_probe(struct i2c_client *client,
+ 	struct device *dev = &client->dev;
+ 	int err;
+ 	struct tmp401_data *data;
+-	const char *names[] = { "TMP401", "TMP411", "TMP431" };
++	const char *names[] = { "TMP401", "TMP411", "TMP431", "TMP432" };
  
--	state = (event = 0) ? &pstate->core_thresh0 : &pstate->core_thresh1;
-+	if (level = PACKAGE_LEVEL)
-+		state = (event = 0) ? &pstate->pkg_thresh0 :
-+						&pstate->pkg_thresh1;
-+	else
-+		state = (event = 0) ? &pstate->core_thresh0 :
-+						&pstate->core_thresh1;
+ 	data = devm_kzalloc(dev, sizeof(struct tmp401_data), GFP_KERNEL);
+ 	if (!data)
+@@ -646,6 +747,13 @@ static int tmp401_probe(struct i2c_client *client,
+ 			goto exit_remove;
+ 	}
  
- 	if (time_before64(now, state->next_check))
- 		return 0;
- 
- 	state->next_check = now + CHECK_INTERVAL;
-+
- 	return 1;
- }
- 
-@@ -321,6 +339,39 @@ device_initcall(thermal_throttle_init_device);
- 
- #endif /* CONFIG_SYSFS */
- 
-+static void notify_package_thresholds(__u64 msr_val)
-+{
-+	bool notify_thres_0 = false;
-+	bool notify_thres_1 = false;
-+
-+	if (!platform_thermal_package_notify)
-+		return;
-+
-+	/* lower threshold check */
-+	if (msr_val & THERM_LOG_THRESHOLD0)
-+		notify_thres_0 = true;
-+	/* higher threshold check */
-+	if (msr_val & THERM_LOG_THRESHOLD1)
-+		notify_thres_1 = true;
-+
-+	if (!notify_thres_0 && !notify_thres_1)
-+		return;
-+
-+	if (platform_thermal_package_rate_control &&
-+		platform_thermal_package_rate_control()) {
-+		/* Rate control is implemented in callback */
-+		platform_thermal_package_notify(msr_val);
-+		return;
++	/* Register additional tmp432 sysfs hooks */
++	if (data->kind = tmp432) {
++		err = sysfs_create_group(&dev->kobj, &tmp432_group);
++		if (err)
++			goto exit_remove;
 +	}
 +
-+	/* lower threshold reached */
-+	if (notify_thres_0 && thresh_event_valid(PACKAGE_LEVEL, 0))
-+		platform_thermal_package_notify(msr_val);
-+	/* higher threshold reached */
-+	if (notify_thres_1 && thresh_event_valid(PACKAGE_LEVEL, 1))
-+		platform_thermal_package_notify(msr_val);
-+}
-+
- static void notify_thresholds(__u64 msr_val)
- {
- 	/* check whether the interrupt handler is defined;
-@@ -330,10 +381,12 @@ static void notify_thresholds(__u64 msr_val)
- 		return;
- 
- 	/* lower threshold reached */
--	if ((msr_val & THERM_LOG_THRESHOLD0) &&	thresh_event_valid(0))
-+	if ((msr_val & THERM_LOG_THRESHOLD0) &&
-+			thresh_event_valid(CORE_LEVEL, 0))
- 		platform_thermal_notify(msr_val);
- 	/* higher threshold reached */
--	if ((msr_val & THERM_LOG_THRESHOLD1) && thresh_event_valid(1))
-+	if ((msr_val & THERM_LOG_THRESHOLD1) &&
-+			thresh_event_valid(CORE_LEVEL, 1))
- 		platform_thermal_notify(msr_val);
- }
- 
-@@ -359,6 +412,8 @@ static void intel_thermal_interrupt(void)
- 
- 	if (this_cpu_has(X86_FEATURE_PTS)) {
- 		rdmsrl(MSR_IA32_PACKAGE_THERM_STATUS, msr_val);
-+		/* check violations of package thermal thresholds */
-+		notify_package_thresholds(msr_val);
- 		therm_throt_process(msr_val & PACKAGE_THERM_STATUS_PROCHOT,
- 					THERMAL_THROTTLING_EVENT,
- 					PACKAGE_LEVEL);
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
 -- 
-1.7.11.7
+1.7.9.7
 
 
 _______________________________________________
