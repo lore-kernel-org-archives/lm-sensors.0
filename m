@@ -1,37 +1,32 @@
-From: =?utf-8?Q?G=C3=B6ran_Uddeborg?= <goeran@uddeborg.se>
-Date: Sat, 13 Apr 2013 19:09:30 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 14 Apr 2013 06:25:52 +0000
 Subject: Re: [lm-sensors] Configuration for Foxconn A7GM-S 2.0
-Message-Id: <20841.44394.271036.543749@freddi.uddeborg>
+Message-Id: <20130414082552.36f5d53e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20556.55176.173597.530756@freddi.uddeborg>
 In-Reply-To: <20556.55176.173597.530756@freddi.uddeborg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-G=F6ran Uddeborg:
-> Jean Delvare:
-> > Then for the wiki version of your configuration file, we won't ignore
-> > any input. Better print 0 RPM than omit a running fan.
->=20
-> Yes, that makes sense.  I'll try to remember to check next time I have
-> the box open for some reason which one is the chassis fan.
-
-It's been a while since I wrote that, but I actually haven't had
-reason to open the case since then.  Not until today, and when I did I
-took the opportunity to test which sensor was connected to the socket
-on the board.  It turned out to be fan2.  So now I can give the last
-bits of information to make the setup for the Foxconn A7GM-S 2.0
-motherboard complete:
-
-      label  fan1  "CPU fan"
-      label  fan2  "Chassis fan"
-      ignore fan3
-
-Better late than never! :-)
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU2F0LCAxMyBBcHIgMjAxMyAyMTowOTozMCArMDIwMCwgR8O2cmFuIFVkZGVib3JnIHdyb3Rl
+Ogo+IEfDtnJhbiBVZGRlYm9yZzoKPiA+IEplYW4gRGVsdmFyZToKPiA+ID4gVGhlbiBmb3IgdGhl
+IHdpa2kgdmVyc2lvbiBvZiB5b3VyIGNvbmZpZ3VyYXRpb24gZmlsZSwgd2Ugd29uJ3QgaWdub3Jl
+Cj4gPiA+IGFueSBpbnB1dC4gQmV0dGVyIHByaW50IDAgUlBNIHRoYW4gb21pdCBhIHJ1bm5pbmcg
+ZmFuLgo+ID4gCj4gPiBZZXMsIHRoYXQgbWFrZXMgc2Vuc2UuICBJJ2xsIHRyeSB0byByZW1lbWJl
+ciB0byBjaGVjayBuZXh0IHRpbWUgSSBoYXZlCj4gPiB0aGUgYm94IG9wZW4gZm9yIHNvbWUgcmVh
+c29uIHdoaWNoIG9uZSBpcyB0aGUgY2hhc3NpcyBmYW4uCj4gCj4gSXQncyBiZWVuIGEgd2hpbGUg
+c2luY2UgSSB3cm90ZSB0aGF0LCBidXQgSSBhY3R1YWxseSBoYXZlbid0IGhhZAo+IHJlYXNvbiB0
+byBvcGVuIHRoZSBjYXNlIHNpbmNlIHRoZW4uICBOb3QgdW50aWwgdG9kYXksIGFuZCB3aGVuIEkg
+ZGlkIEkKPiB0b29rIHRoZSBvcHBvcnR1bml0eSB0byB0ZXN0IHdoaWNoIHNlbnNvciB3YXMgY29u
+bmVjdGVkIHRvIHRoZSBzb2NrZXQKPiBvbiB0aGUgYm9hcmQuICBJdCB0dXJuZWQgb3V0IHRvIGJl
+IGZhbjIuICBTbyBub3cgSSBjYW4gZ2l2ZSB0aGUgbGFzdAo+IGJpdHMgb2YgaW5mb3JtYXRpb24g
+dG8gbWFrZSB0aGUgc2V0dXAgZm9yIHRoZSBGb3hjb25uIEE3R00tUyAyLjAKPiBtb3RoZXJib2Fy
+ZCBjb21wbGV0ZToKPiAKPiAgICAgICBsYWJlbCAgZmFuMSAgIkNQVSBmYW4iCj4gICAgICAgbGFi
+ZWwgIGZhbjIgICJDaGFzc2lzIGZhbiIKPiAgICAgICBpZ25vcmUgZmFuMwo+IAo+IEJldHRlciBs
+YXRlIHRoYW4gbmV2ZXIhIDotKQoKVGhhbmtzIGZvciBsZXR0aW5nIHVzIGtub3chIEkndmUgdXBk
+YXRlZCB0aGUgY29uZmlndXJhdGlvbiBmaWxlIGluIHRoZQp3aWtpLgoKLS0gCkplYW4gRGVsdmFy
+ZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
+c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
+bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
