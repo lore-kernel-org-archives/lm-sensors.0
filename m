@@ -1,101 +1,125 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 06 Apr 2013 16:23:06 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Update Nuvoton chip information
-Message-Id: <1365265386-11277-1-git-send-email-linux@roeck-us.net>
+From: Anthony Olech <anthony.olech.opensource@diasemi.com>
+Date: Wed, 17 Apr 2013 16:33:37 +0000
+Subject: [lm-sensors] [NEW DRIVER V5 0/7] DA9058 PMIC - please comment on this new driver
+Message-Id: <201304171635.r3HGZp3D023837@latitude>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 
-NCT5577D datasheet says that the chip ID can be 0xC333, same as NCT6776F.
-So we can not use the chip revision to detect the actual chip.
-Merge entries for NCT5577D and NCT6776F into one.
+This is submission attempt number 5 to have this driver included in
+the linux kernel source tree. This is the driver for the Dialog DA9058.
 
-List NCT5572D as another variant of W83677HG-I (NCT6775).
+The DA9058 is a low power Power Management Integrated Circuit with extra
+functionality. It is a Multi Function Device controlled only from an I2C
+bus whose components can raise an interrupt request on a single IRQ line.
 
-NCT6106D chip ID as observed on a real system is 0xC452, not 0x1061 as
-claimed by the data sheet. Detect both chip IDs as NCT6102D/NCT6106D.
+The driver for the DA9058 consists of a core (i2c) device driver that
+instantiates the individual component device drivers for:
 
-List NCT5532D as variant of NCT6779D. Data sheets list possible chip
-IDs of 0xC561 and 0xC562, so detect and accept all chip revisions.
+adc - 5 ADC channels
+gpio - 2 available pins
+onkey - 1 device
+regulator - 4 BUCKS, 19 LDO and 3 fixed
+rtc - low power clock
+hwmon - 5 monitored voltages/temperatures
 
-Point to new nct6775 driver for NCT6775, NCT6776, and NCT6779.
+All the above six component device drivers depend on the 'core'
+component driver, which is number one in the patch series.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- CHANGES                    |    1 +
- prog/detect/sensors-detect |   26 ++++++++++++++------------
- 2 files changed, 15 insertions(+), 12 deletions(-)
+Each component driver for the Dialog DA9058 will follow as an e-mail
+patch relative to linux next-20130417
 
-diff --git a/CHANGES b/CHANGES
-index ba6409f..19e9b08 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -13,6 +13,7 @@ SVN HEAD
-                   Add detection of MCP98244
-                   Add detection of LM95234
-                   Add detection of TMP431/TMP432
-+                  Update Nuvoton chip information and NCT6106D chip detection
- 
- 3.3.3 "Happy Birthday Sophie" (2012-11-06)
-   documentation: Update fan-divisors, fan divisors are optional
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 00e3904..65aa2a0 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -2043,7 +2043,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
- 		logdev => 0x0b,
- 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
- 	}, {
--		name => "Nuvoton W83677HG-I (NCT6771F/NCT6772F/NCT6775F) Super IO Sensors",
-+		name => "Nuvoton W83677HG-I (NCT5572D/NCT6771F/NCT6772F/NCT6775F) Super IO Sensors",
- 		driver => "w83627ehf",
- 		devid => 0xB470,
- 		devid_mask => 0xFFF0,
-@@ -2054,27 +2054,29 @@ use constant FEAT_SMBUS	=> (1 << 7);
- 		driver => "not-a-sensor",
- 		devid => 0x61,
- 	}, {
--		name => "Nuvoton NCT5577D Super IO Sensors",
--		driver => "to-be-written",
--		devid => 0xC331,
-+		name => "Nuvoton NCT5577D/NCT6776F Super IO Sensors",
-+		driver => "nct6775",
-+		devid => 0xC330,
-+		devid_mask => 0xFFF0,
- 		logdev => 0x0b,
- 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
- 	}, {
--		name => "Nuvoton NCT6776F Super IO Sensors",
--		driver => "w83627ehf",
--		devid => 0xC333,
-+		name => "Nuvoton NCT5532D/NCT6779D Super IO Sensors",
-+		driver => "nct6775",
-+		devid => 0xC560,
-+		devid_mask => 0xFFF0,
- 		logdev => 0x0b,
- 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
- 	}, {
--		name => "Nuvoton NCT6779D Super IO Sensors",
--		driver => "to-be-written",	# nct6775, new driver
--		devid => 0xC562,
-+		name => "Nuvoton NCT6102D/NCT6106D Super IO Sensors",
-+		driver => "to-be-written",	# nct6775
-+		devid => 0x1061,
- 		logdev => 0x0b,
- 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
- 	}, {
- 		name => "Nuvoton NCT6102D/NCT6106D Super IO Sensors",
--		driver => "to-be-written",	# nct6775, new driver
--		devid => 0x1061,
-+		driver => "to-be-written",	# nct6775
-+		devid => 0xC452,
- 		logdev => 0x0b,
- 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
- 	}, {
+This driver has been tested on a Samsung SMDK6410 connected to a Dialog
+DA9058 Evaluation Board via one GPIO and a 3-wire I2C connection.
+
+All the components can be builtin to the kernel or compiled as modules.
+As far as I can tell, all the latest APIs both for the core driver and
+all the component drivers have been adhered to, but if I have missed
+something please let me know.
+
+Many thanks,
+Anthony Olech, Dialog Semiconductor Ltd.
+
+Tony Olech (at Home) (7):
+  drivers/mfd: DA9058 MFD core driver
+  drivers/iio/adc: DA9058 ADC driver
+  drivers/input/misc: DA9058 ONKEY driver
+  drivers/rtc: DA9058 RTC driver
+  drivers/gpio: DA9058 GPIO driver
+  drivers/hwmon: DA9058 HWMON driver
+  drivers/regulator: DA9058 REGULATOR driver
+
+ Documentation/hwmon/da9058           |   39 ++
+ drivers/gpio/Kconfig                 |   12 +
+ drivers/gpio/Makefile                |    1 +
+ drivers/gpio/gpio-da9058.c           |  377 ++++++++++++++
+ drivers/hwmon/Kconfig                |   10 +
+ drivers/hwmon/Makefile               |    3 +-
+ drivers/hwmon/da9058-hwmon.c         |  349 +++++++++++++
+ drivers/iio/adc/Kconfig              |   12 +
+ drivers/iio/adc/Makefile             |    1 +
+ drivers/iio/adc/da9058-adc.c         |  397 +++++++++++++++
+ drivers/input/misc/Kconfig           |   10 +
+ drivers/input/misc/Makefile          |    1 +
+ drivers/input/misc/da9058_onkey.c    |  177 +++++++
+ drivers/mfd/Kconfig                  |   17 +
+ drivers/mfd/Makefile                 |    3 +
+ drivers/mfd/da9058-core.c            |   74 +++
+ drivers/mfd/da9058-i2c.c             |   97 ++++
+ drivers/mfd/da9058-info.c            |  929 ++++++++++++++++++++++++++++++++++
+ drivers/mfd/da9058-irq.c             |   57 +++
+ drivers/regulator/Kconfig            |   11 +
+ drivers/regulator/Makefile           |    1 +
+ drivers/regulator/da9058-regulator.c |  210 ++++++++
+ drivers/rtc/Kconfig                  |   10 +
+ drivers/rtc/Makefile                 |    1 +
+ drivers/rtc/rtc-da9058.c             |  458 +++++++++++++++++
+ include/linux/mfd/da9058/adc.h       |   18 +
+ include/linux/mfd/da9058/bat.h       |   33 ++
+ include/linux/mfd/da9058/codec.h     |   22 +
+ include/linux/mfd/da9058/conf.h      |   22 +
+ include/linux/mfd/da9058/core.h      |   66 +++
+ include/linux/mfd/da9058/gpio.h      |   19 +
+ include/linux/mfd/da9058/hwmon.h     |   33 ++
+ include/linux/mfd/da9058/i2c.h       |   22 +
+ include/linux/mfd/da9058/irq.h       |   50 ++
+ include/linux/mfd/da9058/onkey.h     |   17 +
+ include/linux/mfd/da9058/pdata.h     |   30 ++
+ include/linux/mfd/da9058/registers.h |  480 ++++++++++++++++++
+ include/linux/mfd/da9058/regulator.h |   33 ++
+ include/linux/mfd/da9058/rtc.h       |   17 +
+ 39 files changed, 4118 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/hwmon/da9058
+ create mode 100644 drivers/gpio/gpio-da9058.c
+ create mode 100644 drivers/hwmon/da9058-hwmon.c
+ create mode 100644 drivers/iio/adc/da9058-adc.c
+ create mode 100644 drivers/input/misc/da9058_onkey.c
+ create mode 100644 drivers/mfd/da9058-core.c
+ create mode 100644 drivers/mfd/da9058-i2c.c
+ create mode 100644 drivers/mfd/da9058-info.c
+ create mode 100644 drivers/mfd/da9058-irq.c
+ create mode 100644 drivers/regulator/da9058-regulator.c
+ create mode 100644 drivers/rtc/rtc-da9058.c
+ create mode 100644 include/linux/mfd/da9058/adc.h
+ create mode 100644 include/linux/mfd/da9058/bat.h
+ create mode 100644 include/linux/mfd/da9058/codec.h
+ create mode 100644 include/linux/mfd/da9058/conf.h
+ create mode 100644 include/linux/mfd/da9058/core.h
+ create mode 100644 include/linux/mfd/da9058/gpio.h
+ create mode 100644 include/linux/mfd/da9058/hwmon.h
+ create mode 100644 include/linux/mfd/da9058/i2c.h
+ create mode 100644 include/linux/mfd/da9058/irq.h
+ create mode 100644 include/linux/mfd/da9058/onkey.h
+ create mode 100644 include/linux/mfd/da9058/pdata.h
+ create mode 100644 include/linux/mfd/da9058/registers.h
+ create mode 100644 include/linux/mfd/da9058/regulator.h
+ create mode 100644 include/linux/mfd/da9058/rtc.h
+
 -- 
-1.7.9.7
+end-of-patch for NEW DRIVER V5
 
 
 _______________________________________________
