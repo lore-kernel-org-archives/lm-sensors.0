@@ -1,163 +1,68 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Wed, 03 Apr 2013 12:18:10 +0000
-Subject: [lm-sensors] [PATCH v8 3/5] ab8500: power: add const attributes to some data arrays
-Message-Id: <1364991492-2421-4-git-send-email-hongbo.zhang@linaro.org>
+From: arno@natisbad.org (Arnaud Ebalard)
+Date: Thu, 18 Apr 2013 22:28:39 +0000
+Subject: [lm-sensors] [RFC, PATCHv0 2/3] Add DT documentation for G762 PWM fan controller
+Message-Id: <3a1f8fa72e97a3dc8102bc3ba416c83160205355.1366322287.git.arno@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364991492-2421-1-git-send-email-hongbo.zhang@linaro.org>
-In-Reply-To: <1364991492-2421-1-git-send-email-hongbo.zhang@linaro.org>
+References: <cover.1366322287.git.arno@natisbad.org>
+In-Reply-To: <cover.1366322287.git.arno@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
-Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Olivier Mouchet <olivier.mouchet@gmail.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Simon Guinot <simon.guinot@sequanux.org>
 
-This patch adds const attributes to AB8500 power and temperature related
-read-only data arrays.
 
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
 ---
- drivers/power/ab8500_bmdata.c | 20 ++++++++++----------
- drivers/power/ab8500_fg.c     |  4 ++--
- include/linux/mfd/abx500.h    |  6 +++---
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ Documentation/devicetree/bindings/hwmon/g762.txt |   37 ++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/g762.txt
 
-diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
-index 05ad966..3cdcdcf 100644
---- a/drivers/power/ab8500_bmdata.c
-+++ b/drivers/power/ab8500_bmdata.c
-@@ -11,7 +11,7 @@
-  * Note that the res_to_temp table must be strictly sorted by falling resistance
-  * values to work.
-  */
--static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
-+static const struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
- 	{-5, 53407},
- 	{ 0, 48594},
- 	{ 5, 43804},
-@@ -29,7 +29,7 @@ static struct abx500_res_to_temp temp_tbl_a_thermistor[] = {
- 	{65, 12500},
- };
- 
--static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
-+static const struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
- 	{-5, 200000},
- 	{ 0, 159024},
- 	{ 5, 151921},
-@@ -47,7 +47,7 @@ static struct abx500_res_to_temp temp_tbl_b_thermistor[] = {
- 	{65,  82869},
- };
- 
--static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
-+static const struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
- 	{4171,	100},
- 	{4114,	 95},
- 	{4009,	 83},
-@@ -70,7 +70,7 @@ static struct abx500_v_to_cap cap_tbl_a_thermistor[] = {
- 	{3247,	  0},
- };
- 
--static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
-+static const struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
- 	{4161,	100},
- 	{4124,	 98},
- 	{4044,	 90},
-@@ -93,7 +93,7 @@ static struct abx500_v_to_cap cap_tbl_b_thermistor[] = {
- 	{3250,	  0},
- };
- 
--static struct abx500_v_to_cap cap_tbl[] = {
-+static const struct abx500_v_to_cap cap_tbl[] = {
- 	{4186,	100},
- 	{4163,	 99},
- 	{4114,	 95},
-@@ -124,7 +124,7 @@ static struct abx500_v_to_cap cap_tbl[] = {
-  * Note that the res_to_temp table must be strictly sorted by falling
-  * resistance values to work.
-  */
--static struct abx500_res_to_temp temp_tbl[] = {
-+static const struct abx500_res_to_temp temp_tbl[] = {
- 	{-5, 214834},
- 	{ 0, 162943},
- 	{ 5, 124820},
-@@ -146,7 +146,7 @@ static struct abx500_res_to_temp temp_tbl[] = {
-  * Note that the batres_vs_temp table must be strictly sorted by falling
-  * temperature values to work.
-  */
--static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
- 	{ 40, 120},
- 	{ 30, 135},
- 	{ 20, 165},
-@@ -160,7 +160,7 @@ static struct batres_vs_temp temp_to_batres_tbl_thermistor[] = {
-  * Note that the batres_vs_temp table must be strictly sorted by falling
-  * temperature values to work.
-  */
--static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
- 	{ 60, 300},
- 	{ 30, 300},
- 	{ 20, 300},
-@@ -171,7 +171,7 @@ static struct batres_vs_temp temp_to_batres_tbl_ext_thermistor[] = {
- };
- 
- /* battery resistance table for LI ION 9100 battery */
--static struct batres_vs_temp temp_to_batres_tbl_9100[] = {
-+static const struct batres_vs_temp temp_to_batres_tbl_9100[] = {
- 	{ 60, 180},
- 	{ 30, 180},
- 	{ 20, 180},
-@@ -547,7 +547,7 @@ int ab8500_bm_of_probe(struct device *dev,
- 		       struct device_node *np,
- 		       struct abx500_bm_data *bm)
- {
--	struct batres_vs_temp *tmp_batres_tbl;
-+	const struct batres_vs_temp *tmp_batres_tbl;
- 	struct device_node *battery_node;
- 	const char *btech;
- 	int i;
-diff --git a/drivers/power/ab8500_fg.c b/drivers/power/ab8500_fg.c
-index 1601d27..c5391f5 100644
---- a/drivers/power/ab8500_fg.c
-+++ b/drivers/power/ab8500_fg.c
-@@ -863,7 +863,7 @@ static int ab8500_fg_bat_voltage(struct ab8500_fg *di)
- static int ab8500_fg_volt_to_capacity(struct ab8500_fg *di, int voltage)
- {
- 	int i, tbl_size;
--	struct abx500_v_to_cap *tbl;
-+	const struct abx500_v_to_cap *tbl;
- 	int cap = 0;
- 
- 	tbl = di->bm->bat_type[di->bm->batt_id].v_to_cap_tbl,
-@@ -915,7 +915,7 @@ static int ab8500_fg_uncomp_volt_to_capacity(struct ab8500_fg *di)
- static int ab8500_fg_battery_resistance(struct ab8500_fg *di)
- {
- 	int i, tbl_size;
--	struct batres_vs_temp *tbl;
-+	const struct batres_vs_temp *tbl;
- 	int resist = 0;
- 
- 	tbl = di->bm->bat_type[di->bm->batt_id].batres_tbl;
-diff --git a/include/linux/mfd/abx500.h b/include/linux/mfd/abx500.h
-index 33b0253..3301b20 100644
---- a/include/linux/mfd/abx500.h
-+++ b/include/linux/mfd/abx500.h
-@@ -183,11 +183,11 @@ struct abx500_battery_type {
- 	int low_high_vol_lvl;
- 	int battery_resistance;
- 	int n_temp_tbl_elements;
--	struct abx500_res_to_temp *r_to_t_tbl;
-+	const struct abx500_res_to_temp *r_to_t_tbl;
- 	int n_v_cap_tbl_elements;
--	struct abx500_v_to_cap *v_to_cap_tbl;
-+	const struct abx500_v_to_cap *v_to_cap_tbl;
- 	int n_batres_tbl_elements;
--	struct batres_vs_temp *batres_tbl;
-+	const struct batres_vs_temp *batres_tbl;
- };
- 
- /**
+diff --git a/Documentation/devicetree/bindings/hwmon/g762.txt b/Documentation/devicetree/bindings/hwmon/g762.txt
+new file mode 100644
+index 0000000..9eee838
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/g762.txt
+@@ -0,0 +1,37 @@
++GMT G762/G763 PWM Fan controller
++
++Required node properties:
++
++ - "compatible": must be either "gmt,g762" or "gmt,g763"
++ - "reg": I2C bus address of the device
++
++Optional properties:
++
++ - "pwm_mode": fan driving mode. 1 for PWM mode, 0 for linear. Default
++               value is 0, i.e. linear.
++ - "pwm_enable": fan speed control. 1 for open-loop, 2 for closed-loop.
++               Default value is 2, i.e. closed-loop.
++ - "pwm_freq": reference clock frequency for PWM mode in Hz. Default is
++               32768.
++ - "fan_pulses": number of pulses per fan revolution. Supported values
++               are 2 and 4. Default is 2.
++ - "fan_div": fan clock frequency divisor value. Supported values are
++              1, 2, 4 and 8. Default is 1.
++ - "fan_target": initial target fan speed in RPM. By default, current
++               value is not modified.
++
++Previous optional properties provides devicetree access to the entries
++described in Documentation/hwmon/g762
++
++Example g762 node:
++
++   g762: g762@3e {
++        compatible = "gmt,g762";
++   	reg = <0x3e>;
++   	pwm_mode = <1>;      /* closed-loop control */
++   	pwm_enable = <2>;    /* PWM mode */
++   	pwm_freq = <8192>;   /* PWM reference clock freq */
++   	fan_pulses = <2>;    /* 2 pulses per rev */
++   	fan_div = <2>;       /* fan clock divisor */
++   	fan_target = <2000>; /* target fan speed at 2000 RPM */
++   };
 -- 
-1.8.0
+1.7.10.4
 
 
 _______________________________________________
