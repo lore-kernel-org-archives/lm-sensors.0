@@ -1,125 +1,66 @@
-From: Anthony Olech <anthony.olech.opensource@diasemi.com>
-Date: Wed, 17 Apr 2013 16:33:37 +0000
-Subject: [lm-sensors] [NEW DRIVER V5 0/7] DA9058 PMIC - please comment on this new driver
-Message-Id: <201304171635.r3HGZp3D023837@latitude>
+From: arno@natisbad.org (Arnaud Ebalard)
+Date: Thu, 18 Apr 2013 22:27:57 +0000
+Subject: [lm-sensors] [RFC, PATCHv0 0/3] Add support for GMT G762/G763 PWM fan controller
+Message-Id: <cover.1366322287.git.arno@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Olivier Mouchet <olivier.mouchet@gmail.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Simon Guinot <simon.guinot@sequanux.org>
 
-This is submission attempt number 5 to have this driver included in
-the linux kernel source tree. This is the driver for the Dialog DA9058.
+Hi,
 
-The DA9058 is a low power Power Management Integrated Circuit with extra
-functionality. It is a Multi Function Device controlled only from an I2C
-bus whose components can raise an interrupt request on a single IRQ line.
+This series adds support for GMT G762/G763. This work is based on a
+basic version for 2.6.31 kernel developed Olivier Mouchet (kept as
+author for this reason in g762.c) for LaCie NAS. Updates have been
+performed to run on recent kernels. Supported has been completed and
+additional features added: ability to configure various characteristics
+from .dts file, better initialization, alarms and error reporting
+support, gear mode, polarity, fan pulse per revolution, fan startup
+voltage control. The following detailed datasheet has been used as a
+basis for this work:
 
-The driver for the DA9058 consists of a core (i2c) device driver that
-instantiates the individual component device drivers for:
+  http://natisbad.org/NAS/refs/GMT_EDS-762_763-080710-0.2.pdf
 
-adc - 5 ADC channels
-gpio - 2 available pins
-onkey - 1 device
-regulator - 4 BUCKS, 19 LDO and 3 fixed
-rtc - low power clock
-hwmon - 5 monitored voltages/temperatures
+The purpose for this v0 is to get some feedback on the mistakes I may
+have made or missing things to get the patch accepted.
 
-All the above six component device drivers depend on the 'core'
-component driver, which is number one in the patch series.
+The patch was developed for and tested against the GMT G762 fan
+controller used in a Netgear ReadyNAS Duo v2 (kirkwood 88F6282-based
+NAS). This is the main reason for the device tree bindings provided in
+first patch. The patches are against current ARM tree; tell me if you
+need me to rebase it against something else.
 
-Each component driver for the Dialog DA9058 will follow as an e-mail
-patch relative to linux next-20130417
+Patch 2/3 provides documentation for DT bindings. Documentation for the
+sysfs interface provided by the driver is available in patch 3/3.
 
-This driver has been tested on a Samsung SMDK6410 connected to a Dialog
-DA9058 Evaluation Board via one GPIO and a 3-wire I2C connection.
+As a side note, I found it difficult to extend g760a driver to add g762
+features; hence the new g762.c file.
 
-All the components can be builtin to the kernel or compiled as modules.
-As far as I can tell, all the latest APIs both for the core driver and
-all the component drivers have been adhered to, but if I have missed
-something please let me know.
+Comments welcome,
 
-Many thanks,
-Anthony Olech, Dialog Semiconductor Ltd.
+Cheers,
 
-Tony Olech (at Home) (7):
-  drivers/mfd: DA9058 MFD core driver
-  drivers/iio/adc: DA9058 ADC driver
-  drivers/input/misc: DA9058 ONKEY driver
-  drivers/rtc: DA9058 RTC driver
-  drivers/gpio: DA9058 GPIO driver
-  drivers/hwmon: DA9058 HWMON driver
-  drivers/regulator: DA9058 REGULATOR driver
+a+
 
- Documentation/hwmon/da9058           |   39 ++
- drivers/gpio/Kconfig                 |   12 +
- drivers/gpio/Makefile                |    1 +
- drivers/gpio/gpio-da9058.c           |  377 ++++++++++++++
- drivers/hwmon/Kconfig                |   10 +
- drivers/hwmon/Makefile               |    3 +-
- drivers/hwmon/da9058-hwmon.c         |  349 +++++++++++++
- drivers/iio/adc/Kconfig              |   12 +
- drivers/iio/adc/Makefile             |    1 +
- drivers/iio/adc/da9058-adc.c         |  397 +++++++++++++++
- drivers/input/misc/Kconfig           |   10 +
- drivers/input/misc/Makefile          |    1 +
- drivers/input/misc/da9058_onkey.c    |  177 +++++++
- drivers/mfd/Kconfig                  |   17 +
- drivers/mfd/Makefile                 |    3 +
- drivers/mfd/da9058-core.c            |   74 +++
- drivers/mfd/da9058-i2c.c             |   97 ++++
- drivers/mfd/da9058-info.c            |  929 ++++++++++++++++++++++++++++++++++
- drivers/mfd/da9058-irq.c             |   57 +++
- drivers/regulator/Kconfig            |   11 +
- drivers/regulator/Makefile           |    1 +
- drivers/regulator/da9058-regulator.c |  210 ++++++++
- drivers/rtc/Kconfig                  |   10 +
- drivers/rtc/Makefile                 |    1 +
- drivers/rtc/rtc-da9058.c             |  458 +++++++++++++++++
- include/linux/mfd/da9058/adc.h       |   18 +
- include/linux/mfd/da9058/bat.h       |   33 ++
- include/linux/mfd/da9058/codec.h     |   22 +
- include/linux/mfd/da9058/conf.h      |   22 +
- include/linux/mfd/da9058/core.h      |   66 +++
- include/linux/mfd/da9058/gpio.h      |   19 +
- include/linux/mfd/da9058/hwmon.h     |   33 ++
- include/linux/mfd/da9058/i2c.h       |   22 +
- include/linux/mfd/da9058/irq.h       |   50 ++
- include/linux/mfd/da9058/onkey.h     |   17 +
- include/linux/mfd/da9058/pdata.h     |   30 ++
- include/linux/mfd/da9058/registers.h |  480 ++++++++++++++++++
- include/linux/mfd/da9058/regulator.h |   33 ++
- include/linux/mfd/da9058/rtc.h       |   17 +
- 39 files changed, 4118 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/hwmon/da9058
- create mode 100644 drivers/gpio/gpio-da9058.c
- create mode 100644 drivers/hwmon/da9058-hwmon.c
- create mode 100644 drivers/iio/adc/da9058-adc.c
- create mode 100644 drivers/input/misc/da9058_onkey.c
- create mode 100644 drivers/mfd/da9058-core.c
- create mode 100644 drivers/mfd/da9058-i2c.c
- create mode 100644 drivers/mfd/da9058-info.c
- create mode 100644 drivers/mfd/da9058-irq.c
- create mode 100644 drivers/regulator/da9058-regulator.c
- create mode 100644 drivers/rtc/rtc-da9058.c
- create mode 100644 include/linux/mfd/da9058/adc.h
- create mode 100644 include/linux/mfd/da9058/bat.h
- create mode 100644 include/linux/mfd/da9058/codec.h
- create mode 100644 include/linux/mfd/da9058/conf.h
- create mode 100644 include/linux/mfd/da9058/core.h
- create mode 100644 include/linux/mfd/da9058/gpio.h
- create mode 100644 include/linux/mfd/da9058/hwmon.h
- create mode 100644 include/linux/mfd/da9058/i2c.h
- create mode 100644 include/linux/mfd/da9058/irq.h
- create mode 100644 include/linux/mfd/da9058/onkey.h
- create mode 100644 include/linux/mfd/da9058/pdata.h
- create mode 100644 include/linux/mfd/da9058/registers.h
- create mode 100644 include/linux/mfd/da9058/regulator.h
- create mode 100644 include/linux/mfd/da9058/rtc.h
+Arnaud Ebalard (3):
+  Add support for GMT G72/G763 PWM fan controller
+  Add DT documentation for G762 PWM fan controller
+  Add documentation for g762 driver
+
+ Documentation/devicetree/bindings/hwmon/g762.txt |   37 +
+ Documentation/hwmon/g762                         |   89 ++
+ drivers/hwmon/Kconfig                            |   10 +
+ drivers/hwmon/Makefile                           |    1 +
+ drivers/hwmon/g762.c                             | 1159 ++++++++++++++++++++++
+ 5 files changed, 1296 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/g762.txt
+ create mode 100644 Documentation/hwmon/g762
+ create mode 100644 drivers/hwmon/g762.c
 
 -- 
-end-of-patch for NEW DRIVER V5
+1.7.10.4
 
 
 _______________________________________________
