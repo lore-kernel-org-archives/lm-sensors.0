@@ -1,49 +1,124 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 22 Apr 2013 02:30:45 +0000
-Subject: Re: [lm-sensors] [NEW DRIVER V6 6/7] drivers/hwmon: DA9058 HWMON driver
-Message-Id: <20130422023045.GA31508@roeck-us.net>
+From: Adam Rosi-Kessel <adam@rosi-kessel.org>
+Date: Thu, 18 Apr 2013 14:50:01 +0000
+Subject: Re: [lm-sensors] Dell Inspiron 530 Chassis Fan Control?
+Message-Id: <51700819.6070805@rosi-kessel.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1874334270924131675=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201304191712.r3JHCEmr017829@latitude>
- <51718BFE.7060409@metafoo.de>
- <20130420173513.GA8275@roeck-us.net>
- <24DF37198A1E704D9811D8F72B87EB514191F1F7@NB-EX-MBX02.diasemi.com>
-In-Reply-To: <24DF37198A1E704D9811D8F72B87EB514191F1F7@NB-EX-MBX02.diasemi.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+References: <20130316175820.GA979@whitehail.bostoncoop.net>
+In-Reply-To: <20130316175820.GA979@whitehail.bostoncoop.net>
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--===============1874334270924131675==
+Content-Type: multipart/alternative;
+ boundary="------------070506060405000404040105"
+
+This is a multi-part message in MIME format.
+--------------070506060405000404040105
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: "Opensource [Anthony Olech]" <anthony.olech.opensource@diasemi.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Randy Dunlap <rdunlap@xenotime.net>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, David Dajun Chen <david.chen@diasemi.com>
 
-On Mon, Apr 22, 2013 at 01:14:26AM +0000, Opensource [Anthony Olech] wrote:
-> > -----Original Message-----
-> > From: Guenter Roeck [mailto:linux@roeck-us.net]
-> > Sent: 20 April 2013 18:35
-> > To: Lars-Peter Clausen
-> > Cc: Opensource [Anthony Olech]; Jean Delvare; Mark Brown; Randy Dunlap;
-> > lm-sensors@lm-sensors.org; LKML; David Dajun Chen
-> > Subject: Re: [NEW DRIVER V6 6/7] drivers/hwmon: DA9058 HWMON driver
-> > On Fri, Apr 19, 2013 at 08:25:02PM +0200, Lars-Peter Clausen wrote:
-> > > Same comment as before, I'd like to see this using the generic IIO to
-> > > HWMON bridge instead of recreating it.
-> > ... and I agree. Seems we are getting more and more of those, and at some
-> > point it makes really sense to find a generic solution.
-> > Anthony, can you please look into that ?
-> > Thanks,
-> > Guenter
-> 
-> OK -- generic IIO to HWMON bridge
-> 
-> I will investigate - but if you know any prototypes or any useful starting point could you let me know as I don't want to re-invent the wheel.
-> 
-The idea is that you would implement an IIO ADC driver (drivers/iio/adc has lots
-of examples). The IIO to HWMON bridge already exists (drivers/hwmon/iio_hwmon.c
-in linux-next or drivers/staging/iio/iio_hwmon.c in mainline). Setting it up
-would then then a matter of platform data or device tree data.
+On 3/16/2013 6:59 PM, Guenter Roeck wrote:
+>>>>> > > >>Sorry -- typo above. It should say I can control*CPU*  fans, but can't
+>>>>> > > >>find any documentation as to how to control the*chassis*  fan.
+>>>> > > >On my motherboard, all fan headers have 4 pins, but there is a jumper
+>>>> > > >to tell the board to treat the case fan headers as 3-pin. This is
+>>>> > > >rather rare though, most motherboards have it hard-wired
+>>> > >Thanks. I will check this. Before I open up my case, is there anywhere I
+>>> > >can/should look in log files or /sys to see if the chassis fan is
+>>> > >controllable? Would this be found in a different place than the CPU fans?
+>> >
+>> >No, it can't be seen from the logs nor /sys. Only hardware inspection
+>> >can tell you, and not even in all cases.
+>> >
+> Inspiron 530 manual (downloadable) says that the processor fan has a 4-pin
+> connector and the chassis fan has a 3-pin connector.
+Apologies as this a bit OT, but hoping someone can help me understand 
+what's happening here. It does appear that the Inspiron has a 3-pin 
+connector. When I power up the box, it is very quiet for about 4 or 5 
+minutes. After that, the fan appears to go to 100% and never quiets down 
+again. Even when I cpufreq-set to powersave and cap the max CPU freq at 
+2.0 GHz for all four cores (80% of max), it still stays loud 
+indefinitely. I've opened up the box and cleaned out all dust and 
+visually inspected the fans, and nothing appears awry. 
+/sys/devices/virtual/thermal/thermal_zone0/temp consistently reports 
+40.0 degrees C i.e. 40000 (I'm actually suspicious of that number 
+because it never seems to change). Any ideas for what I can do to 
+troubleshoot why the fan is always running at full blast?
 
-Thanks,
-Guenter
+Adam
+
+--------------070506060405000404040105
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=ISO-8859-1"
+      http-equiv="Content-Type">
+  </head>
+  <body text="#000000" bgcolor="#FFFFFF">
+    <div class="moz-cite-prefix">On 3/16/2013 6:59 PM, Guenter Roeck
+      wrote:<br>
+    </div>
+    <blockquote cite="mid:20130316225948.GA23321@roeck-us.net"
+      type="cite">
+      <blockquote type="cite" style="color: #000000;">
+        <blockquote type="cite" style="color: #000000;">
+          <blockquote type="cite" style="color: #000000;">
+            <blockquote type="cite" style="color: #000000;">
+              <pre wrap=""><span class="moz-txt-citetags">&gt; &gt; &gt;&gt; </span>Sorry -- typo above. It should say I can control <b class="moz-txt-star"><span class="moz-txt-tag">*</span>CPU<span class="moz-txt-tag">*</span></b> fans, but can't
+<span class="moz-txt-citetags">&gt; &gt; &gt;&gt; </span>find any documentation as to how to control the <b class="moz-txt-star"><span class="moz-txt-tag">*</span>chassis<span class="moz-txt-tag">*</span></b> fan.
+</pre>
+            </blockquote>
+            <pre wrap=""><span class="moz-txt-citetags">&gt; &gt; &gt; </span>On my motherboard, all fan headers have 4 pins, but there is a jumper
+<span class="moz-txt-citetags">&gt; &gt; &gt; </span>to tell the board to treat the case fan headers as 3-pin. This is
+<span class="moz-txt-citetags">&gt; &gt; &gt; </span>rather rare though, most motherboards have it hard-wired
+</pre>
+          </blockquote>
+          <pre wrap=""><span class="moz-txt-citetags">&gt; &gt; </span>Thanks. I will check this. Before I open up my case, is there anywhere I 
+<span class="moz-txt-citetags">&gt; &gt; </span>can/should look in log files or /sys to see if the chassis fan is 
+<span class="moz-txt-citetags">&gt; &gt; </span>controllable? Would this be found in a different place than the CPU fans?
+</pre>
+        </blockquote>
+        <pre wrap=""><span class="moz-txt-citetags">&gt; </span>
+<span class="moz-txt-citetags">&gt; </span>No, it can't be seen from the logs nor /sys. Only hardware inspection
+<span class="moz-txt-citetags">&gt; </span>can tell you, and not even in all cases.
+<span class="moz-txt-citetags">&gt; </span>
+</pre>
+      </blockquote>
+      <pre wrap="">Inspiron 530 manual (downloadable) says that the processor fan has a 4-pin
+connector and the chassis fan has a 3-pin connector.</pre>
+    </blockquote>
+    Apologies as this a bit OT, but hoping someone can help me
+    understand what's happening here. It does appear that the Inspiron
+    has a 3-pin connector. When I power up the box, it is very quiet for
+    about 4 or 5 minutes. After that, the fan appears to go to 100% and
+    never quiets down again. Even when I cpufreq-set to powersave and
+    cap the max CPU freq at 2.0 GHz for all four cores (80% of max), it
+    still stays loud indefinitely. I've opened up the box and cleaned
+    out all dust and visually inspected the fans, and nothing appears
+    awry. /sys/devices/virtual/thermal/thermal_zone0/temp consistently
+    reports 40.0 degrees C i.e. 40000 (I'm actually suspicious of that
+    number because it never seems to change). Any ideas for what I can
+    do to troubleshoot why the fan is always running at full blast?<br>
+    <br>
+    Adam<br>
+  </body>
+</html>
+
+--------------070506060405000404040105--
+
+
+--===============1874334270924131675==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1874334270924131675==--
