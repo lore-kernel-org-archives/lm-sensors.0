@@ -1,8 +1,10 @@
 From: Anthony Olech <anthony.olech.opensource@diasemi.com>
 Date: Fri, 19 Apr 2013 16:56:28 +0000
 Subject: [lm-sensors] [NEW DRIVER V6 6/7] drivers/hwmon: DA9058 HWMON driver
-Message-Id: <201304191707.r3JH7vkj017588@latitude>
+Message-Id: <201304191712.r3JHCEmr017829@latitude>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201304191707.r3JH7vkj017588@latitude>
+In-Reply-To: <201304191707.r3JH7vkj017588@latitude>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
