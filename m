@@ -1,63 +1,48 @@
-From: =?ISO-8859-1?Q?Martin_Hundeb=F8ll?= <martin@hundeboll.net>
-Date: Fri, 19 Apr 2013 10:06:59 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 19 Apr 2013 14:07:13 +0000
 Subject: Re: [lm-sensors] Dell Inspiron 530 Chassis Fan Control?
-Message-Id: <51711743.8090706@hundeboll.net>
+Message-Id: <20130419160713.01f8bd91@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130316175820.GA979@whitehail.bostoncoop.net>
 In-Reply-To: <20130316175820.GA979@whitehail.bostoncoop.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 2013-04-18 16:50, Adam Rosi-Kessel wrote:
-> On 3/16/2013 6:59 PM, Guenter Roeck wrote:
->>>>>> > > >>Sorry -- typo above. It should say I can control*CPU*  fans, b=
-ut can't
->>>>>> > > >>find any documentation as to how to control the*chassis*  fan.
->>>>> > > >On my motherboard, all fan headers have 4 pins, but there is a j=
-umper
->>>>> > > >to tell the board to treat the case fan headers as 3-pin. This is
->>>>> > > >rather rare though, most motherboards have it hard-wired
->>>> > >Thanks. I will check this. Before I open up my case, is there anywh=
-ere I
->>>> > >can/should look in log files or /sys to see if the chassis fan is
->>>> > >controllable? Would this be found in a different place than the CPU=
- fans?
->>> >
->>> >No, it can't be seen from the logs nor /sys. Only hardware inspection
->>> >can tell you, and not even in all cases.
->>> >
->> Inspiron 530 manual (downloadable) says that the processor fan has a 4-p=
-in
->> connector and the chassis fan has a 3-pin connector.
-> Apologies as this a bit OT, but hoping someone can help me understand
-> what's happening here. It does appear that the Inspiron has a 3-pin
-> connector. When I power up the box, it is very quiet for about 4 or 5
-> minutes. After that, the fan appears to go to 100% and never quiets down
-> again. Even when I cpufreq-set to powersave and cap the max CPU freq at
-> 2.0 GHz for all four cores (80% of max), it still stays loud
-> indefinitely. I've opened up the box and cleaned out all dust and
-> visually inspected the fans, and nothing appears awry.
-> /sys/devices/virtual/thermal/thermal_zone0/temp consistently reports
-> 40.0 degrees C i.e. 40000 (I'm actually suspicious of that number
-> because it never seems to change). Any ideas for what I can do to
-> troubleshoot why the fan is always running at full blast?
-
-My Latitude E5430 has the same issue, but only when connected to=20
-external monitors, so I suspect the GPU to produce too much heat.
-
---=20
-Kind Regards
-Martin Hundeb=F8ll
-Frederiks All=E9 99, 1.th
-8000 Aarhus C
-Denmark
-
-+45 61 65 54 61
-martin@hundeboll.net
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQWRhbSwKCk9uIFRodSwgMTggQXByIDIwMTMgMTA6NTA6MDEgLTA0MDAsIEFkYW0gUm9zaS1L
+ZXNzZWwgd3JvdGU6Cj4gQXBvbG9naWVzIGFzIHRoaXMgYSBiaXQgT1QsIGJ1dCBob3Bpbmcgc29t
+ZW9uZSBjYW4gaGVscCBtZSB1bmRlcnN0YW5kIAo+IHdoYXQncyBoYXBwZW5pbmcgaGVyZS4gSXQg
+ZG9lcyBhcHBlYXIgdGhhdCB0aGUgSW5zcGlyb24gaGFzIGEgMy1waW4gCj4gY29ubmVjdG9yLiBX
+aGVuIEkgcG93ZXIgdXAgdGhlIGJveCwgaXQgaXMgdmVyeSBxdWlldCBmb3IgYWJvdXQgNCBvciA1
+IAo+IG1pbnV0ZXMuIEFmdGVyIHRoYXQsIHRoZSBmYW4gYXBwZWFycyB0byBnbyB0byAxMDAlIGFu
+ZCBuZXZlciBxdWlldHMgZG93biAKPiBhZ2Fpbi4gRXZlbiB3aGVuIEkgY3B1ZnJlcS1zZXQgdG8g
+cG93ZXJzYXZlIGFuZCBjYXAgdGhlIG1heCBDUFUgZnJlcSBhdCAKPiAyLjAgR0h6IGZvciBhbGwg
+Zm91ciBjb3JlcyAoODAlIG9mIG1heCksIGl0IHN0aWxsIHN0YXlzIGxvdWQgCj4gaW5kZWZpbml0
+ZWx5LgoKV2hhdCBkb2VzICJ0b3AiIHNheSBhYm91dCB0aGUgc3lzdGVtIGxvYWQ/IENwdWZyZXEg
+bWFrZXMgbm8gZGlmZmVyZW5jZQppZiB0aGVyZSBpcyBDUFUgbG9hZC4KCj4gSSd2ZSBvcGVuZWQg
+dXAgdGhlIGJveCBhbmQgY2xlYW5lZCBvdXQgYWxsIGR1c3QgYW5kIAo+IHZpc3VhbGx5IGluc3Bl
+Y3RlZCB0aGUgZmFucywgYW5kIG5vdGhpbmcgYXBwZWFycyBhd3J5LiAKPiAvc3lzL2RldmljZXMv
+dmlydHVhbC90aGVybWFsL3RoZXJtYWxfem9uZTAvdGVtcCBjb25zaXN0ZW50bHkgcmVwb3J0cyAK
+PiA0MC4wIGRlZ3JlZXMgQyBpLmUuIDQwMDAwIChJJ20gYWN0dWFsbHkgc3VzcGljaW91cyBvZiB0
+aGF0IG51bWJlciAKPiBiZWNhdXNlIGl0IG5ldmVyIHNlZW1zIHRvIGNoYW5nZSkuCgpJdCBpcyBj
+b21wbGV0ZWx5IHBvc3NpYmxlIHRoYXQgdGhlIHJldHVybmVkIHZhbHVlIGlzIGJvZ3VzLCB3ZSd2
+ZSBzZWVuCnRoYXQgYmVmb3JlLiBTb21ldGltZXMgZml4ZWQgYnkgYSBCSU9TIHVwZGF0ZSwgc29t
+ZXRpbWVzIG5vdC4gQW5vdGhlcgpwb3NzaWJpbGl0eSBpcyB0aGF0IHRoZSBtZWFzdXJlbWVudCBp
+cyBzbyBpbmFjY3VyYXRlIGJlbG93IDQwwrBDIHRoYXQKdGhleSBkb24ndCB3YW50IHRvIHJlcG9y
+dCBpdCBhbmQgeW91J2xsIG9ubHkgc2VlIHRoZSB2YWx1ZSByYWlzZSBpZiB0aGUKdGVtcGVyYXR1
+cmUgYWN0dWFsbHkgZ29lcyBhYm92ZSA0MMKwQy4KCkRvbid0IHlvdSBoYXZlIGFueSBvdGhlciB0
+aGVybWFsIHNlbnNvciBpbiB0aGUgc3lzdGVtIHRoYW4gdGhlIEFDUEkKdGhlcm1hbCB6b25lPyBE
+aWQgeW91IHRyeSBydW5uaW5nIHNlbnNvcnMtZGV0ZWN0IGFscmVhZHk/IEEgcmVjZW50CnZlcnNp
+b24gcHJlZmVyYWJseToKICBodHRwOi8vZGwubG0tc2Vuc29ycy5vcmcvbG0tc2Vuc29ycy9maWxl
+cy9zZW5zb3JzLWRldGVjdAoKRG8geW91IGhhdmUgYW55IC9zeXMvY2xhc3MvdGhlcm1hbC9jb29s
+aW5nX2RldmljZSogd2l0aCBhdHRyaWJ1dGUgdHlwZQpvdGhlciB0aGFuIFByb2Nlc3Nvcj8KCj4g
+QW55IGlkZWFzIGZvciB3aGF0IEkgY2FuIGRvIHRvIAo+IHRyb3VibGVzaG9vdCB3aHkgdGhlIGZh
+biBpcyBhbHdheXMgcnVubmluZyBhdCBmdWxsIGJsYXN0PwoKRG8geW91IGhhdmUgYW55IHJlYXNv
+biB0byBiZWxpZXZlIHRoYXQgdGhlIGZhbiBzcGVlZCBjYW4gYmUgY29udHJvbGxlZD8KRG9lcyBp
+dCBiZWhhdmUgYmV0dGVyIHVuZGVyIGEgZGlmZmVyZW50IE9TPwoKRG8geW91IHNlZSBhbnkgb3B0
+aW9uIGluIHRoZSBCSU9TIHRvIGNvbnRyb2wgdGhlIHRoZXJtYWwgYW5kL29yCmFjb3VzdGljIHBy
+b2ZpbGU/IFRyeSBwbGF5aW5nIHdpdGggdGhlc2UgaWYgdGhleSBleGlzdC4KCi0tIApKZWFuIERl
+bHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
+LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
+c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
