@@ -1,55 +1,55 @@
-From: arno@natisbad.org (Arnaud Ebalard)
-Date: Fri, 19 Apr 2013 05:34:48 +0000
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Fri, 19 Apr 2013 05:50:54 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] Add support for GMT G72/G763 PWM fan controller
-Message-Id: <877gjz9j7r.fsf@natisbad.org>
+Message-Id: <20130419055054.GD18115@lunn.ch>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <cover.1366322287.git.arno@natisbad.org>
-	<4f4a821bbc61e2da28fd70553fd717ada255097d.1366322287.git.arno@natisbad.org>
-	<20130419043555.GA14124@roeck-us.net>
-In-Reply-To: <20130419043555.GA14124@roeck-us.net> (Guenter Roeck's message of
-	"Thu, 18 Apr 2013 21:35:55 -0700")
+ <4f4a821bbc61e2da28fd70553fd717ada255097d.1366322287.git.arno@natisbad.org>
+In-Reply-To: <4f4a821bbc61e2da28fd70553fd717ada255097d.1366322287.git.arno@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Simon Guinot <simon.guinot@sequanux.org>, Olivier Mouchet <olivier.mouchet@gmail.com>
+To: Arnaud Ebalard <arno@natisbad.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Simon Guinot <simon.guinot@sequanux.org>, Olivier Mouchet <olivier.mouchet@gmail.com>
 
-Hi,
+Hi Arnaud
 
-Guenter Roeck <linux@roeck-us.net> writes:
+> +static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
+> +static DEVICE_ATTR(pwm1_polarity, S_IWUSR | S_IRUGO,
+> +		   get_pwm_polarity, set_pwm_polarity);
+> +static DEVICE_ATTR(pwm1_mode, S_IWUSR | S_IRUGO,
+> +		   get_pwm_mode, set_pwm_mode);
+> +static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
+> +		   get_speed_control_mode, set_speed_control_mode);
+> +static DEVICE_ATTR(pwm1_freq, S_IWUSR | S_IRUGO,
+> +		   get_pwm_freq, set_pwm_freq);
+> +
+> +static DEVICE_ATTR(fan1_input, S_IRUGO, get_fan_rpm, NULL);
+> +static DEVICE_ATTR(fan1_alarm, S_IRUGO, get_fan_ooc, NULL);
+> +static DEVICE_ATTR(fan1_alarm_detection, S_IWUSR | S_IRUGO,
+> +		   get_fan_ooc_detection, set_fan_ooc_detection);
+> +static DEVICE_ATTR(fan1_fault, S_IRUGO, get_fan_failure, NULL);
+> +static DEVICE_ATTR(fan1_fault_detection, S_IWUSR | S_IRUGO,
+> +		   get_fan_failure_detection, set_fan_failure_detection);
+> +static DEVICE_ATTR(fan1_target, S_IWUSR | S_IRUGO,
+> +		   get_fan_target, set_fan_target);
+> +static DEVICE_ATTR(fan1_pulses, S_IWUSR | S_IRUGO,
+> +		   get_fan_pulses, set_fan_pulses);
+> +static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO,
+> +		   get_fan_clk_div, set_fan_clk_div);
+> +static DEVICE_ATTR(fan1_gear_mode, S_IWUSR | S_IRUGO,
+> +		   get_fan_gear_mode, set_fan_gear_mode);
+> +static DEVICE_ATTR(fan1_startup_voltage, S_IWUSR | S_IRUGO,
+> +		   get_fan_startup_voltage, set_fan_startup_voltage);
 
-> On Fri, Apr 19, 2013 at 12:28:21AM +0200, Arnaud Ebalard wrote:
->> 
->> Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
->> Tested-by: Arnaud Ebalard <arno@natisbad.org>
->> ---
->>  drivers/hwmon/Kconfig  |   10 +
->>  drivers/hwmon/Makefile |    1 +
->>  drivers/hwmon/g762.c   | 1159 ++++++++++++++++++++++++++++++++++++++++++++++++
->>  3 files changed, 1170 insertions(+)
->>  create mode 100644 drivers/hwmon/g762.c
->> 
-> checkpatch says:
->
-> total: 1 errors, 15 warnings, 0 checks, 1182 lines checked
->
-> Please fix those. Also, please make sure there are spaces around operators.
->
-> Additional comments inline. This is not a complete review; I gave up after
-> a while. Please fix the problems and resubmit.
+It is normal to use SENSOR_ATTR, not DEVICE_ATTR. Take a look at the
+existing fan drivers.
 
-Thanks for taking the time and sorry for some lame errors (missing
-spaces around operators, spaces issues, unchecked overflow). Regarding
-the ssize_t, I will replace it by an int where appropriate; basically
-all the functions not returning a size value or an error (i.e. those not
-using sprintf).
+I also think a lot of these are not needed. They are fixed properties
+of the board and cannot change dynamically. They are set once using DT
+and user space does not need to care.
 
-Will try and resubmit a v1 with all thoses fixed and additional review
-done after the week end
-
-Cheers,
-
-a+
+	 Andrew
 
 _______________________________________________
 lm-sensors mailing list
