@@ -1,8 +1,10 @@
 From: Anthony Olech <anthony.olech.opensource@diasemi.com>
 Date: Fri, 19 Apr 2013 16:56:29 +0000
 Subject: [lm-sensors] [NEW DRIVER V6 0/7] DA9058 PMIC - please comment on this new driver
-Message-Id: <201304191708.r3JH8BEu017809@latitude>
+Message-Id: <201304191703.r3JH3du0017574@latitude>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201304191708.r3JH8BEu017809@latitude>
+In-Reply-To: <201304191708.r3JH8BEu017809@latitude>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
