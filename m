@@ -1,9 +1,9 @@
-From: "AP" <mail@bcstwebint.info>
-Date: Fri, 05 Apr 2013 20:00:00 +0000
+From: "AP" <mail@bitnettech.info>
+Date: Mon, 22 Apr 2013 21:10:19 +0000
 Subject: [lm-sensors] Community & educational development
-Message-Id: <1365188840cf4b5c44207be79895e785522bde20e2_@bcstwebint.info>
+Message-Id: <1366635629cf4b5c44207be79895e785522bde20e2_@bitnettech.info>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4834669582325394004=="
+Content-Type: multipart/mixed; boundary="===============3093817637183906770=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1364307844cf4b5c44207be79895e785522bde20e2_@combcstint.info>
 In-Reply-To: <1364307844cf4b5c44207be79895e785522bde20e2_@combcstint.info>
@@ -11,13 +11,13 @@ To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============4834669582325394004==
+--===============3093817637183906770==
 Content-Type: multipart/alternative;
-	boundary="--=_NextPart_524E67CA.20111108_ECAMP_8.0.60.1672"
+	boundary="--=_NextPart_4C2CFD4E.20111108_ECAMP_8.0.60.1672"
 
 This is a multi-part message in MIME format.
 
-----=_NextPart_524E67CA.20111108_ECAMP_8.0.60.1672
+----=_NextPart_4C2CFD4E.20111108_ECAMP_8.0.60.1672
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -105,7 +105,7 @@ rem218@mail.com
 This is a CANSPAM ACT compliant advertising broadcast sent by:
 American Publishing Inc. , 7025 County Rd. 46A, Suite 1071, Lake Mary, FL, 32746-4753
 
-----=_NextPart_524E67CA.20111108_ECAMP_8.0.60.1672
+----=_NextPart_4C2CFD4E.20111108_ECAMP_8.0.60.1672
 Content-Type: text/html;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -218,11 +218,11 @@ href=3D"mailto:rem218@mail.com"><FONT size=
 broadcast sent by:<BR>American Publishing Inc. , 7025 County Rd. 46A, Suite
 1071, Lake Mary, FL, 32746-4753</FONT></DIV></BODY></HTML>
 
-----=_NextPart_524E67CA.20111108_ECAMP_8.0.60.1672--
+----=_NextPart_4C2CFD4E.20111108_ECAMP_8.0.60.1672--
 
 
 
---===============4834669582325394004==
+--===============3093817637183906770==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -232,5 +232,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4834669582325394004==--
+--===============3093817637183906770==--
 
