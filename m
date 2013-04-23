@@ -1,134 +1,100 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 20 Apr 2013 17:18:12 +0000
-Subject: [lm-sensors] [PATCH v2 3/4] hwmon: (tmp401) Add support for update_interval attribute
-Message-Id: <1366478293-8167-4-git-send-email-linux@roeck-us.net>
+From: arno@natisbad.org (Arnaud Ebalard)
+Date: Tue, 23 Apr 2013 22:06:08 +0000
+Subject: [lm-sensors] [PATCHv1 2/3] hwmon: Add documentation for g762 driver
+Message-Id: <24acd174f829d211f5d4c1b8631ffc3f8dd97910.1366753420.git.arno@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1365962173-28311-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1365962173-28311-4-git-send-email-linux@roeck-us.net>
+References: <cover.1366322287.git.arno@natisbad.org>
+	<4f4a821bbc61e2da28fd70553fd717ada255097d.1366322287.git.arno@natisbad.org>
+	<20130419043555.GA14124@roeck-us.net>
+In-Reply-To: <cover.1366753420.git.arno@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Simon Guinot <simon.guinot@sequanux.org>, Olivier Mouchet <olivier.mouchet@gmail.com>
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
+
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
 ---
-v2: Improve indentation in tmp401_update_device
-    Improve and simplify calculations in set_update_interval
-    Move calculations outside the locked code section
-    Make update_interval variable unsigned
+ Documentation/hwmon/g762 |   67 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
+ create mode 100644 Documentation/hwmon/g762
 
- drivers/hwmon/tmp401.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 53 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-index 0611462..fa6af51 100644
---- a/drivers/hwmon/tmp401.c
-+++ b/drivers/hwmon/tmp401.c
-@@ -127,6 +127,8 @@ struct tmp401_data {
- 	unsigned long last_updated; /* in jiffies */
- 	enum chips kind;
- 
-+	unsigned int update_interval;	/* in milliseconds */
+diff --git a/Documentation/hwmon/g762 b/Documentation/hwmon/g762
+new file mode 100644
+index 0000000..5015829
+--- /dev/null
++++ b/Documentation/hwmon/g762
+@@ -0,0 +1,67 @@
++Kernel driver g762
++=========
 +
- 	/* register values */
- 	u8 status;
- 	u8 config;
-@@ -194,10 +196,13 @@ static struct tmp401_data *tmp401_update_device(struct device *dev)
- 	struct tmp401_data *data = i2c_get_clientdata(client);
- 	struct tmp401_data *ret = data;
- 	int val;
-+	unsigned long next_update;
- 
- 	mutex_lock(&data->update_lock);
- 
--	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
-+	next_update = data->last_updated +
-+		      msecs_to_jiffies(data->update_interval) + 1;
-+	if (time_after(jiffies, next_update) || !data->valid) {
- 		val = i2c_smbus_read_byte_data(client, TMP401_STATUS);
- 		if (val < 0) {
- 			ret = ERR_PTR(val);
-@@ -372,6 +377,46 @@ static ssize_t reset_temp_history(struct device *dev,
- 	return count;
- }
- 
-+static ssize_t show_update_interval(struct device *dev,
-+				    struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct tmp401_data *data = i2c_get_clientdata(client);
++This documentation is based on G760a one, GMT G762 datasheet available
++at http://natisbad.org/NAS/ref/GMT_EDS-762_763-080710-0.2.pdf (used
++for the development of the driver) and sysfs bindings described in
++Documentation/hwmon/sysfs-interface.
 +
-+	return sprintf(buf, "%u\n", data->update_interval);
-+}
++The GMT G762 Fan Speed PWM Controller is connected directly to a fan
++and performs closed-loop or open-loop control of the fan speed. Two
++modes - PWM or linear - are supported by the device.
 +
-+static ssize_t set_update_interval(struct device *dev,
-+				   struct device_attribute *attr,
-+				   const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct tmp401_data *data = i2c_get_clientdata(client);
-+	unsigned long val;
-+	int err, rate;
++The following entries are available to the user in a subdirectory of
++/sys/bus/i2c/drivers/g762/ to control the operation of the device.
++This can be done manually using the following entries but is usually
++done via a userland daemon like fancontrol.
 +
-+	err = kstrtoul(buf, 10, &val);
-+	if (err)
-+		return err;
++Note that those entries do not provide ways to setup the specific
++hardware characteristics of the system (reference clock, pulses per
++fan revolution, ...); Those can be modified via devicetree bindings
++documented in Documentation/devicetree/bindings/hwmon/g762.txt.
 +
-+	/*
-+	 * For valid rates, interval can be calculated as
-+	 *	interval = (1 << (7 - rate)) * 125;
-+	 * Rounded rate is therefore
-+	 *	rate = 7 - __fls(interval * 4 / (125 * 3));
-+	 * Use clamp_val() to avoid overflows, and to ensure valid input
-+	 * for __fls.
-+	 */
-+	val = clamp_val(val, 125, 16000);
-+	rate = 7 - __fls(val * 4 / (125 * 3));
-+	mutex_lock(&data->update_lock);
-+	i2c_smbus_write_byte_data(client, TMP401_CONVERSION_RATE_WRITE, rate);
-+	data->update_interval = (1 << (7 - rate)) * 125;
-+	mutex_unlock(&data->update_lock);
 +
-+	return count;
-+}
++  fan1_target: set desired fan speed. This only makes sense in closed-loop
++            fan speed control (i.e. when pwm1_enable is set to 2).
 +
- static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
- static SENSOR_DEVICE_ATTR_2(temp1_min, S_IWUSR | S_IRUGO, show_temp,
- 			    store_temp, 1, 0);
-@@ -405,6 +450,9 @@ static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_status, NULL,
- static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_status, NULL,
- 			  TMP401_STATUS_REMOTE_CRIT);
- 
-+static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
-+		   set_update_interval);
++  fan1_input: provide current fan rotation value in RPM as reported by
++            the fan to the device.
 +
- static struct attribute *tmp401_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
-@@ -425,6 +473,8 @@ static struct attribute *tmp401_attributes[] = {
- 	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
- 
-+	&dev_attr_update_interval.attr,
++  fan1_div: fan clock divisor. Supported value are 1, 2, 4 and 8. Default
++            value is 1.
 +
- 	NULL
- };
- 
-@@ -466,9 +516,11 @@ static const struct attribute_group tmp411_group = {
- static void tmp401_init_client(struct i2c_client *client)
- {
- 	int config, config_orig;
-+	struct tmp401_data *data = i2c_get_clientdata(client);
- 
- 	/* Set the conversion rate to 2 Hz */
- 	i2c_smbus_write_byte_data(client, TMP401_CONVERSION_RATE_WRITE, 5);
-+	data->update_interval = 500;
- 
- 	/* Start conversions (disable shutdown if necessary) */
- 	config = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
++  fan1_gear_mode: fan gear mode. Supported values are 0, 1 and 2. Default
++            value is 0. The value is a characteristic of the system
++            and a higher value can be set for more precisely control
++            fans with a high rotation speed. Note that this affects the
++            measurable speed range, not the read value.
++
++  fan1_fault: reports fan failure, i.e. no transition on fan gear pin for
++            about 0.7s (if the fan is not voluntarily set off).
++
++  fan1_alarm: in closed-loop control mode, if fan RPM value is 25% out
++            of the programmed value for over 6 seconds 'fan1_alarm' is
++            set to 1.
++
++  pwm1: get or set PWM fan control value. This is an integer value
++            between 0 and 255. 0 stops the fan, 255 makes it run at
++            full speed.
++
++  pwm1_enable: set current fan speed control mode i.e. 1 for manual fan
++            speed control (open-loop), 2 for automatic fan speed control
++            (closed-loop).
++
++  pwm1_mode: set or get fan driving mode: 1 for PWM mode, 0 for linear
++            mode. Default is linear mode.
++
++
++In PWM mode ('pwm1_mode' set to 1), the fan speed is programmed either by
++setting a value between 0 and 255 via 'pwm1' entry (0 stops the fan, 255
++makes it run at full speed). This can also be done by passing the
++expected RPM value via 'fan1_target'. Current fan speed value can be
++retrieved via 'fan1_input'. This fan speed value is computed based on
++the parameters associated with the physical characteristics of the
++system: a reference clock source frequency, a number of pulses per fan
++revolution, etc.
++
++Note that the driver will update its values at most once per second.
 -- 
-1.7.9.7
+1.7.10.4
 
 
 _______________________________________________
