@@ -1,118 +1,90 @@
-From: Adam Rosi-Kessel <adam@rosi-kessel.org>
-Date: Fri, 19 Apr 2013 14:47:18 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 24 Apr 2013 18:05:51 +0000
 Subject: Re: [lm-sensors] Dell Inspiron 530 Chassis Fan Control?
-Message-Id: <20130419144718.GA7386@whitehail.bostoncoop.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6538373020946081276=="
+Message-Id: <20130424200551.57e65921@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130316175820.GA979@whitehail.bostoncoop.net>
 In-Reply-To: <20130316175820.GA979@whitehail.bostoncoop.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============6538373020946081276==
-Content-Type: text/plain; charset=unknown-8bit
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Apr 19, 2013 at 04:07:13PM +0200, Jean Delvare wrote:
-> > Apologies as this a bit OT, but hoping someone can help me understand=
-=20
-> > what's happening here. It does appear that the Inspiron has a 3-pin=20
-> > connector. When I power up the box, it is very quiet for about 4 or 5=
-=20
-> > minutes. After that, the fan appears to go to 100% and never quiets d=
-own=20
-> > again. Even when I cpufreq-set to powersave and cap the max CPU freq =
-at=20
-> > 2.0 GHz for all four cores (80% of max), it still stays loud=20
-> > indefinitely.
-> Don't you have any other thermal sensor in the system than the ACPI
-> thermal zone? Did you try running sensors-detect already? A recent
-> version preferably:
->   http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-
-Martin Hundeboll's suggestion lead me to at least a work-around. The box
-came with a builtin mobo VGA card as well as a high-powered ATI catalyst
-one (probably for gaming). I removed the high-powered VGA card and the
-fan noise is back to normal. Not sure if the noise was from the fan on
-the VGA card, or the VGA card was generating so much heat that other fans
-never spun down, but in any case this is a fine solution because the box
-is mainly a server.
-
-Incidentally, sensors-detect reported:
-
-Driver `it87':
-  * ISA bus, address 0x290
-    Chip `ITE IT8718F Super IO Sensors' (confidence: 9)
-
-Driver `coretemp':
-  * Chip `Intel Core family thermal sensor' (confidence: 9)
-
-And sensors (the first one must be that "always 40.0" number):
-
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +40.0=B0C  (crit =3D +120.0=B0C)                 =20
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +36.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C) =20
-Core 1:      +35.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C) =20
-Core 2:      +44.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C) =20
-Core 3:      +38.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C) =20
-
-it8718-isa-0290
-Adapter: ISA adapter
-in0:         +1.12 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-in1:         +3.04 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-in2:         +3.33 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-+5V:         +3.02 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-in4:         +3.01 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-in5:         +0.06 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-in6:         +0.10 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-5VSB:        +2.77 V  (min =3D  +0.00 V, max =3D  +4.08 V)  =20
-Vbat:        +3.12 V
-fan1:       1569 RPM  (min =3D    0 RPM)
-fan2:          0 RPM  (min =3D    0 RPM)
-fan3:       1171 RPM  (min =3D    0 RPM)
-temp1:       +84.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D thermistor
-temp2:       +33.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D thermistor
-temp3:       -74.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D thermistor
-cpu0_vid:   +0.000 V
-
-
-> Do you have any /sys/class/thermal/cooling_device* with attribute type
-> other than Processor?
-
-0 is "Fan" and "1-4" are all Processor.
-
-> Do you have any reason to believe that the fan speed can be controlled?
-> Does it behave better under a different OS?
-
-My belief was based on the fact that for the first few minutes after
-boot-up, the box operated quietly, and then would get very loud. So it
-would seem *something* was controlling the fan speed.
-
-> Do you see any option in the BIOS to control the thermal and/or
-> acoustic profile? Try playing with these if they exist.
-
-Nothing was in BIOS. It's a pretty old device at this point and latest
-BIOS release was a long while back.
-
-Adam
-
-
---===============6538373020946081276==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6538373020946081276==--
+SGkgQWRhbSwKClNvcnJ5IGZvciB0aGUgZGVsYXkuIFRoaXMgc3BlY2lmaWMgbWVzc2FnZSB3b3Vs
+ZCBjcmFzaCBteSBlLW1haWwgY2xpZW50CndoZW4gSSB0cmllZCB0byByZXBseS4gVGhpcyBpcyBm
+aXhlZCBub3cgYnV0IGl0IHRvb2sgc29tZSB0aW1lLgoKT24gRnJpLCAxOSBBcHIgMjAxMyAxMDo0
+NzoxOCAtMDQwMCwgQWRhbSBSb3NpLUtlc3NlbCB3cm90ZToKPiBNYXJ0aW4gSHVuZGVib2xsJ3Mg
+c3VnZ2VzdGlvbiBsZWFkIG1lIHRvIGF0IGxlYXN0IGEgd29yay1hcm91bmQuIFRoZSBib3gKPiBj
+YW1lIHdpdGggYSBidWlsdGluIG1vYm8gVkdBIGNhcmQgYXMgd2VsbCBhcyBhIGhpZ2gtcG93ZXJl
+ZCBBVEkgY2F0YWx5c3QKPiBvbmUgKHByb2JhYmx5IGZvciBnYW1pbmcpLiBJIHJlbW92ZWQgdGhl
+IGhpZ2gtcG93ZXJlZCBWR0EgY2FyZCBhbmQgdGhlCj4gZmFuIG5vaXNlIGlzIGJhY2sgdG8gbm9y
+bWFsLiBOb3Qgc3VyZSBpZiB0aGUgbm9pc2Ugd2FzIGZyb20gdGhlIGZhbiBvbgo+IHRoZSBWR0Eg
+Y2FyZCwgb3IgdGhlIFZHQSBjYXJkIHdhcyBnZW5lcmF0aW5nIHNvIG11Y2ggaGVhdCB0aGF0IG90
+aGVyIGZhbnMKPiBuZXZlciBzcHVuIGRvd24sIGJ1dCBpbiBhbnkgY2FzZSB0aGlzIGlzIGEgZmlu
+ZSBzb2x1dGlvbiBiZWNhdXNlIHRoZSBib3gKPiBpcyBtYWlubHkgYSBzZXJ2ZXIuCgpXZWxsIGRv
+bmUuIEkgaGF2ZSBoYWQgc2ltaWxhciBwcm9ibGVtcyBvbiBhIGxhcHRvcCBvZiBtaW5lIGJ1dAp1
+bmZvcnR1bmF0ZWx5IHJlbW92aW5nIHRoZSBncmFwaGljcyBjaGlwIHdhc24ndCBhbiBvcHRpb24g
+dGhlcmUuCgpUaGUgZmFuIHNwZWVkIHZhbHVlcyB5b3UgcmVwb3J0ZWQgb3JpZ2luYWxseSB3ZXJl
+IGFyb3VuZCAxNTAwIFJQTSBhbmQKMTIwMCBSUE0gb3JpZ2luYWxseSAoYW5kIGhlcmUgYWdhaW4g
+YmVsb3cuKSBVbmxlc3Mgb25lIG9mIHRoZXNlIGZhbnMgaXMKZGVmZWN0aXZlLCB0aGlzIHNob3Vs
+ZCBiZSByZWFzb25hYmx5IHF1aWV0LiBTbyB0aGUgdGhlb3J5IHRoYXQgdGhlCmdyYXBoaWNzIGNh
+cmQncyBmYW4gd2FzIHRoZSBzb3VyY2Ugb2YgdGhlIG5vaXNlIHNlZW1zIG1vcmUgcmVhbGlzdGlj
+LgoKVGhlcmUgYXJlIHBvc3NpYmlsaXRpZXMgdG8gbGltaXQgdGhlIHBvd2VyIHVzZWQgYnkgdGhl
+IFJhZGVvbiBjYXJkcywKYnV0IGlmIHlvdSBkb24ndCBuZWVkIGl0LCByZW1vdmluZyBpdCBhcyB5
+b3UgZGlkIGlzIGNlcnRhaW5seSB0aGUgYmVzdApvcHRpb24sIGZvciBib3RoIG5vaXNlIGFuZCBw
+b3dlciBjb25zdW1wdGlvbi4KCj4gSW5jaWRlbnRhbGx5LCBzZW5zb3JzLWRldGVjdCByZXBvcnRl
+ZDoKPiAKPiBEcml2ZXIgYGl0ODcnOgo+ICAgKiBJU0EgYnVzLCBhZGRyZXNzIDB4MjkwCj4gICAg
+IENoaXAgYElURSBJVDg3MThGIFN1cGVyIElPIFNlbnNvcnMnIChjb25maWRlbmNlOiA5KQo+IAo+
+IERyaXZlciBgY29yZXRlbXAnOgo+ICAgKiBDaGlwIGBJbnRlbCBDb3JlIGZhbWlseSB0aGVybWFs
+IHNlbnNvcicgKGNvbmZpZGVuY2U6IDkpCj4gCj4gQW5kIHNlbnNvcnMgKHRoZSBmaXJzdCBvbmUg
+bXVzdCBiZSB0aGF0ICJhbHdheXMgNDAuMCIgbnVtYmVyKToKPiAKPiBhY3BpdHotdmlydHVhbC0w
+Cj4gQWRhcHRlcjogVmlydHVhbCBkZXZpY2UKPiB0ZW1wMTogICAgICAgKzQwLjDCsEMgIChjcml0
+ID0gKzEyMC4wwrBDKSAgICAgICAgICAgICAgICAgIAo+IAo+IGNvcmV0ZW1wLWlzYS0wMDAwCj4g
+QWRhcHRlcjogSVNBIGFkYXB0ZXIKPiBDb3JlIDA6ICAgICAgKzM2LjDCsEMgIChoaWdoID0gKzgw
+LjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpICAKPiBDb3JlIDE6ICAgICAgKzM1LjDCsEMgIChoaWdo
+ID0gKzgwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpICAKPiBDb3JlIDI6ICAgICAgKzQ0LjDCsEMg
+IChoaWdoID0gKzgwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpICAKPiBDb3JlIDM6ICAgICAgKzM4
+LjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpICAKPiAKPiBpdDg3MTgt
+aXNhLTAyOTAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IGluMDogICAgICAgICArMS4xMiBWICAo
+bWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IGluMTogICAgICAgICArMy4wNCBW
+ICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IGluMjogICAgICAgICArMy4z
+MyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+ICs1VjogICAgICAgICAr
+My4wMiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IGluNDogICAgICAg
+ICArMy4wMSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IGluNTogICAg
+ICAgICArMC4wNiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IGluNjog
+ICAgICAgICArMC4xMCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IDVW
+U0I6ICAgICAgICArMi43NyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+
+IFZiYXQ6ICAgICAgICArMy4xMiBWCj4gZmFuMTogICAgICAgMTU2OSBSUE0gIChtaW4gPSAgICAw
+IFJQTSkKPiBmYW4yOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+IGZhbjM6ICAg
+ICAgIDExNzEgUlBNICAobWluID0gICAgMCBSUE0pCj4gdGVtcDE6ICAgICAgICs4NC4wwrBDICAo
+bG93ICA9ICAtMS4wwrBDLCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+
+IHRlbXAyOiAgICAgICArMzMuMMKwQyAgKGxvdyAgPSAgLTEuMMKwQywgaGlnaCA9ICsxMjcuMMKw
+QykgIHNlbnNvciA9IHRoZXJtaXN0b3IKPiB0ZW1wMzogICAgICAgLTc0LjDCsEMgIChsb3cgID0g
+IC0xLjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCj4gY3B1MF92
+aWQ6ICAgKzAuMDAwIFYKClRoaXMgd291bGQgcmVxdWlyZSBzb21lIGNvbmZpZ3VyYXRpb24gKGxh
+YmVscyBhbmQgdm9sdGFnZSBzY2FsaW5nCmZhY3RvcnMpLiBWb2x0YWdlcyBhbmQgZmFucyBsb29r
+IHJpZ2h0IGJ1dCB0ZW1wMSBpcyBwcmV0dHkgaGlnaC4gRG9lcwppdCB2YXJ5IGFjY29yZGluZyB0
+byBDUFUgbG9hZD8KCkRvZXMgdGhlIEJJT1Mgc2hvdyBhbnkgdGVtcGVyYXR1cmUgdmFsdWU/IFRo
+aXMgd291bGQgbGV0IHlvdSBtYXAgdGhlCnRlbXBlcmF0dXJlIHNlbnNvcnMuCgo+ID4gRG8geW91
+IGhhdmUgYW55IC9zeXMvY2xhc3MvdGhlcm1hbC9jb29saW5nX2RldmljZSogd2l0aCBhdHRyaWJ1
+dGUgdHlwZQo+ID4gb3RoZXIgdGhhbiBQcm9jZXNzb3I/Cj4gCj4gMCBpcyAiRmFuIiBhbmQgIjEt
+NCIgYXJlIGFsbCBQcm9jZXNzb3IuCgpUaGVuIGl0IGNvdWxkIGJlIHRoYXQgdGhlIENQVSBmYW4g
+aXMgc29tZWhvdyBjb250cm9sbGVkIGJ5IEFDUEkKKGFsdGhvdWdoIEFDUEkgc2hvdWxkIG5vdCBs
+ZXQgdGhlIGl0ODcgZHJpdmVyIGJpbmQgdG8gdGhlIGRldmljZSBpZiBpdAphbHNvIHVzZXMgaXQu
+KQoKWW91IG1heSBjaGVjayBpZiB0aGUgZmFuIHNwZWVkIChwcmVzdW1hYmx5IGZhbjEpIGdldHMg
+aGlnaGVyIHVuZGVyIGxvYWQuCgo+ID4gRG8geW91IGhhdmUgYW55IHJlYXNvbiB0byBiZWxpZXZl
+IHRoYXQgdGhlIGZhbiBzcGVlZCBjYW4gYmUgY29udHJvbGxlZD8KPiA+IERvZXMgaXQgYmVoYXZl
+IGJldHRlciB1bmRlciBhIGRpZmZlcmVudCBPUz8KPiAKPiBNeSBiZWxpZWYgd2FzIGJhc2VkIG9u
+IHRoZSBmYWN0IHRoYXQgZm9yIHRoZSBmaXJzdCBmZXcgbWludXRlcyBhZnRlcgo+IGJvb3QtdXAs
+IHRoZSBib3ggb3BlcmF0ZWQgcXVpZXRseSwgYW5kIHRoZW4gd291bGQgZ2V0IHZlcnkgbG91ZC4g
+U28gaXQKPiB3b3VsZCBzZWVtICpzb21ldGhpbmcqIHdhcyBjb250cm9sbGluZyB0aGUgZmFuIHNw
+ZWVkLgoKWWVzLCBvbiBSYWRlb24gZ3JhcGhpY3MgY2FyZHMgdGhlIGZhbiBzcGVlZCBpcyB1c3Vh
+bGx5IGNvbnRyb2xsZWQgYnkgYQpjbG9zZWQtbG9vcCBhbGdvcml0aG0gYmFzZWQgb24gdGhlIG1l
+YXN1cmVkIGNoaXAgdGVtcGVyYXR1cmUuIE15CmV4cGVyaWVuY2UgaXMgdGhhdCB0aGUgb3Blbi1z
+b3VyY2UgcmFkZW9uIGRyaXZlciBpc24ndCBnb29kIGF0IHBvd2VyCm1hbmFnZW1lbnQgKGJ5IGRl
+ZmF1bHQsIGF0IGxlYXN0OyB0aGVyZSBhcmUgc3lzZnMgYXR0cmlidXRlcyB3aGljaCBjYW4KaGVs
+cCBpbXByb3ZlIHRoZSBzaXR1YXRpb24pIHNvIEkgY2FuIGVhc2lseSBpbWFnaW5lIHRoYXQgdGhl
+IGdyYXBoaWNzCmNhcmQncyBmYW4gd291bGQgc3BpbiBmYXN0IG1vc3Qgb2YgdGhlIHRpbWUuCgot
+LSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
+Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
