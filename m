@@ -1,41 +1,84 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Apr 2013 12:12:45 +0000
-Subject: Re: [lm-sensors] [PATCH v2] sensors-detect: Update Nuvoton chip information
-Message-Id: <20130409141245.695f77d3@endymion.delvare>
+From: Joe May <josephdmay@gmail.com>
+Date: Fri, 26 Apr 2013 01:16:06 +0000
+Subject: [lm-sensors] Kernel problems
+Message-Id: <CAJPx3-yTzJCrgHK1BMLz7MvtVKeq4_x5ZFA5_xDGBFeVPTjdrg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8804459380294865632=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1365409539-17414-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1365409539-17414-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon,  8 Apr 2013 01:25:39 -0700, Guenter Roeck wrote:
-> NCT5577D datasheet says that the chip ID can be 0xC333, same as NCT6776F.
-> So we can not use the chip revision to detect the actual chip.
-> Merge entries for NCT5577D and NCT6776F into one.
-> 
-> List NCT5572D as another variant of W83677HG-I (NCT6775).
-> 
-> NCT6106D chip ID as observed on a real system is 0xC452, not 0x1061 as
-> claimed by the data sheet. Confirmed with Nuvoton that the correct
-> chip ID is 0xC452. Also list its variants NCT6102D and NCT6104D.
-> 
-> List NCT5532D as variant of NCT6779D. Data sheets list possible chip
-> IDs of 0xC561 and 0xC562, so detect and accept all chip revisions.
-> 
-> Point to new nct6775 driver for NCT6775, NCT6776, and NCT6779.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Chip ID for NCT6106D is 0xC452. 0x1061 was wrong.
+--===============8804459380294865632==
+Content-Type: multipart/alternative; boundary=089e0149cc548e642304db39475b
 
-Looks good, please commit.
+--089e0149cc548e642304db39475b
+Content-Type: text/plain; charset=ISO-8859-1
 
--- 
-Jean Delvare
+Hi,
+
+I recently purchased a phyCORE-MPC5200B development board with on board I2C
+components.
+After building the kernel (2.6.23.1) I flashed it to the board and it works
+great; well everything but the I2C onboard devices.
+
+phytec support told me to include lm_sensors when I compile the kernel.
+
+when I run the mkpatch script, it does not like my kernel tree path.
+
+There is also no linux directory under /usr/src.
+
+I cannot figure out how to generate the patch file with my kernel (which is
+a stock 2.6.23 from kernel.org) and I am using lm_sensors-2.8.8 with the
+host OS being OpenSuse 11.1.
+
+I have tried from the lm-sensors directory:
+
+mkpatch/mkpatch.pl . /home/joe/linux-2.6.23/ > /tmp/sensors-patch
+and it says:
+Kernel root '/home/joe/linux-2.6.23/' is not found.
+
+Please advise!
+
+thanks,
+Joe
+
+--089e0149cc548e642304db39475b
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><br><div style>Hi,</div><div style><br></div><div style>I =
+recently purchased a phyCORE-MPC5200B development board with on board I2C c=
+omponents.</div><div style>After building the kernel (2.6.23.1) I flashed i=
+t to the board and it works great; well everything but the I2C onboard devi=
+ces.</div>
+<div style><br></div><div style>phytec support told me to include lm_sensor=
+s when I compile the kernel.</div><div style><br></div><div style>when I ru=
+n the mkpatch script, it does not like my kernel tree path.</div><div style=
+>
+<br></div><div style>There is also no linux directory under /usr/src.</div>=
+<div style><br></div><div style>I cannot figure out how to generate the pat=
+ch file with my kernel (which is a stock 2.6.23 from <a href=3D"http://kern=
+el.org">kernel.org</a>) and I am using lm_sensors-2.8.8 with the host OS be=
+ing OpenSuse 11.1.</div>
+<div style><br></div><div style>I have tried from the lm-sensors directory:=
+</div><div style><br></div><div style>mkpatch/<a href=3D"http://mkpatch.pl"=
+>mkpatch.pl</a> . /home/joe/linux-2.6.23/ &gt; /tmp/sensors-patch</div><div=
+ style>
+and it says:</div><div style>Kernel root &#39;/home/joe/linux-2.6.23/&#39; =
+is not found.</div><div style><br></div><div style>Please advise!</div><div=
+ style><br></div><div style>thanks,</div><div style>Joe</div><div style>
+<br></div></div>
+
+--089e0149cc548e642304db39475b--
+
+
+--===============8804459380294865632==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8804459380294865632==--
