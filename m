@@ -1,73 +1,29 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 28 Apr 2013 09:45:02 +0000
-Subject: [lm-sensors] [PATCH 4/5] pwmconfig: Properly deal with multiple fan control
-Message-Id: <20130428114502.6ffb629c@endymion.delvare>
+Date: Sun, 28 Apr 2013 09:42:57 +0000
+Subject: [lm-sensors] [PATCH 3/5] pwmconfig: Drop a stray comment
+Message-Id: <20130428114257.7eece497@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-When a given PWM output controls more than one fan,
-fanactive_min is no longer a space-separated list of numbers, it will
-also include items of the form "A+B". The tests in the rest of the
-code do not expect that and choke with errors like:
-
-/usr/sbin/pwmconfig: line 926: [: 538+799: integer expression expected
-/usr/sbin/pwmconfig: line 952: [: 538+799: integer expression expected
-
-As the only thing we really care about is whether any fan stops
-completely when PWM is 0, we can simply record the minimum of the
-lowest speed of all affected fans.
+fancontrol supports multiple controlled fans for quite some time now.
 ---
- prog/pwm/pwmconfig |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ prog/pwm/pwmconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- lm-sensors.orig/prog/pwm/pwmconfig	2013-04-09 14:27:17.121884123 +0200
-+++ lm-sensors/prog/pwm/pwmconfig	2013-04-09 14:44:49.457542849 +0200
-@@ -444,6 +444,7 @@ do
- 
- 	let pwmactivecount=0
- 	let count=1
-+	S_MIN 	for j in $GOODFAN
- 	do
- 		OS=`echo $SPEEDS | cut -d' ' -f$count`
-@@ -462,7 +463,6 @@ do
- 				let pwmactivecount=1
- 				pwmactive="$i ${pwmactive}"
- 				fanactive="$j ${fanactive}"
--				fanactive_min="$S ${fanactive_min}"
- 
- 				# Give all correlated fans time to return to full speed
- 				sleep $DELAY
-@@ -473,8 +473,14 @@ do
+--- lm-sensors.orig/prog/pwm/pwmconfig	2013-04-03 10:33:18.906884864 +0200
++++ lm-sensors/prog/pwm/pwmconfig	2013-04-03 10:39:27.883195930 +0200
+@@ -472,7 +472,7 @@ do
+ 					exit 1
  				fi
  			else
- 				fanactive="$j+${fanactive}"
--				fanactive_min="$S+${fanactive_min}"
+-				fanactive="$j+${fanactive}" #not supported yet by fancontrol
++				fanactive="$j+${fanactive}"
+ 				fanactive_min="$S+${fanactive_min}"
  			fi
-+
-+			# Keep track of the slowest fan controlled by one PWM
-+			if [ -z "$S_MIN" ] || [ $S -lt $S_MIN ]
-+			then
-+				S_MIN=$S
-+			fi
-+
  			S=`cat $j`
- 			if [ $S -lt $threshold ]
- 			then
-@@ -507,8 +513,11 @@ do
- 		if [ "$X" = "y" -o "$X" = "Y" ]
- 		then
- 			pwmactive="$i ${pwmactive}"
-+			fanactive_min="0 $fanactive_min"
- 		fi
- 		echo
-+	else
-+		fanactive_min="$S_MIN $fanactive_min"
- 	fi
- done
- 
 
 -- 
 Jean Delvare
