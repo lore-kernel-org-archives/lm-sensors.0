@@ -1,67 +1,76 @@
-From: arno@natisbad.org (Arnaud Ebalard)
-Date: Thu, 18 Apr 2013 22:27:57 +0000
-Subject: [lm-sensors] [RFC, PATCHv0 0/3] Add support for GMT G762/G763 PWM fan controller
-Message-Id: <cover.1366322287.git.arno@natisbad.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 28 Apr 2013 09:45:02 +0000
+Subject: [lm-sensors] [PATCH 4/5] pwmconfig: Properly deal with multiple fan control
+Message-Id: <20130428114502.6ffb629c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Olivier Mouchet <olivier.mouchet@gmail.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Simon Guinot <simon.guinot@sequanux.org>
+To: lm-sensors@vger.kernel.org
 
-Hi,
+When a given PWM output controls more than one fan,
+fanactive_min is no longer a space-separated list of numbers, it will
+also include items of the form "A+B". The tests in the rest of the
+code do not expect that and choke with errors like:
 
-This series adds support for GMT G762/G763. This work is based on a
-basic version for 2.6.31 kernel developed Olivier Mouchet (kept as
-author for this reason in g762.c) for LaCie NAS. Updates have been
-performed to run on recent kernels. Supported has been completed and
-additional features added: ability to configure various characteristics
-from .dts file, better initialization, alarms and error reporting
-support, gear mode, polarity, fan pulse per revolution, fan startup
-voltage control. The following detailed datasheet has been used as a
-basis for this work:
+/usr/sbin/pwmconfig: line 926: [: 538+799: integer expression expected
+/usr/sbin/pwmconfig: line 952: [: 538+799: integer expression expected
 
-  http://natisbad.org/NAS/refs/GMT_EDS-762_763-080710-0.2.pdf
+As the only thing we really care about is whether any fan stops
+completely when PWM is 0, we can simply record the minimum of the
+lowest speed of all affected fans.
+---
+ prog/pwm/pwmconfig |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-The purpose for this v0 is to get some feedback on the mistakes I may
-have made or missing things to get the patch accepted.
-
-The patch was developed for and tested against the GMT G762 fan
-controller used in a Netgear ReadyNAS Duo v2 (kirkwood 88F6282-based
-NAS). This is the main reason for the device tree bindings provided in
-first patch. The patches are against current ARM tree; tell me if you
-need me to rebase it against something else.
-
-Patch 2/3 provides documentation for DT bindings. Documentation for the
-sysfs interface provided by the driver is available in patch 3/3.
-
-As a side note, I found it difficult to extend g760a driver to add g762
-features; hence the new g762.c file.
-
-Comments welcome,
-
-Cheers,
-
-a+
-
-Arnaud Ebalard (3):
-  Add support for GMT G72/G763 PWM fan controller
-  Add DT documentation for G762 PWM fan controller
-  Add documentation for g762 driver
-
- Documentation/devicetree/bindings/hwmon/g762.txt |   37 +
- Documentation/hwmon/g762                         |   89 ++
- drivers/hwmon/Kconfig                            |   10 +
- drivers/hwmon/Makefile                           |    1 +
- drivers/hwmon/g762.c                             | 1159 ++++++++++++++++++++++
- 5 files changed, 1296 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/hwmon/g762.txt
- create mode 100644 Documentation/hwmon/g762
- create mode 100644 drivers/hwmon/g762.c
+--- lm-sensors.orig/prog/pwm/pwmconfig	2013-04-09 14:27:17.121884123 +0200
++++ lm-sensors/prog/pwm/pwmconfig	2013-04-09 14:44:49.457542849 +0200
+@@ -444,6 +444,7 @@ do
+ 
+ 	let pwmactivecount=0
+ 	let count=1
++	S_MIN 	for j in $GOODFAN
+ 	do
+ 		OS=`echo $SPEEDS | cut -d' ' -f$count`
+@@ -462,7 +463,6 @@ do
+ 				let pwmactivecount=1
+ 				pwmactive="$i ${pwmactive}"
+ 				fanactive="$j ${fanactive}"
+-				fanactive_min="$S ${fanactive_min}"
+ 
+ 				# Give all correlated fans time to return to full speed
+ 				sleep $DELAY
+@@ -473,8 +473,14 @@ do
+ 				fi
+ 			else
+ 				fanactive="$j+${fanactive}"
+-				fanactive_min="$S+${fanactive_min}"
+ 			fi
++
++			# Keep track of the slowest fan controlled by one PWM
++			if [ -z "$S_MIN" ] || [ $S -lt $S_MIN ]
++			then
++				S_MIN=$S
++			fi
++
+ 			S=`cat $j`
+ 			if [ $S -lt $threshold ]
+ 			then
+@@ -507,8 +513,11 @@ do
+ 		if [ "$X" = "y" -o "$X" = "Y" ]
+ 		then
+ 			pwmactive="$i ${pwmactive}"
++			fanactive_min="0 $fanactive_min"
+ 		fi
+ 		echo
++	else
++		fanactive_min="$S_MIN $fanactive_min"
+ 	fi
+ done
+ 
 
 -- 
-1.7.10.4
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
