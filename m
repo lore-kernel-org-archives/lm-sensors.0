@@ -1,25 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 25 May 2013 07:18:33 +0000
-Subject: Re: [lm-sensors] lm-sensors help question
-Message-Id: <20130525091833.1ce8eddd@endymion.delvare>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Fri, 03 May 2013 09:55:40 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon: w83627ehf: Remove redundant platform_set_drvdata()
+Message-Id: <1367574220-15787-5-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <519EE12B.4030108@gmail.com>
-In-Reply-To: <519EE12B.4030108@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCAyNCBNYXkgMjAxMyAxOToxOTo1NCAtMDYwMCwgQnJ1Y2UgS2V0dGxlIHdyb3RlOgo+
-IGJydWNlQGJydWNlLUE3ODBMM0c6fiQgc2Vuc29ycwo+IGFjcGl0ei12aXJ0dWFsLTAKPiBBZGFw
-dGVyOiBWaXJ0dWFsIGRldmljZQo+IHRlbXAxOiAgICAgICAgKzYwLjDCsEMgIChjcml0ID0gKzEy
-Ny4wwrBDKQo+IAo+IGsxMHRlbXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IHRl
-bXAxOiAgICAgICAgKzQ4LjbCsEMgIChoaWdoID0gKzcwLjDCsEMpCj4gICAgICAgICAgICAgICAg
-ICAgICAgICAgKGNyaXQgPSArOTAuMMKwQywgaHlzdCA9ICs4OC4wwrBDKQo+IAo+IEJ1dCBhcyBs
-b25nIGFzIHRoZSBrMTB0ZW1wIGFib3ZlIGlzIHJlcHJlc2VudGF0aXZlIG9mIHRoZSBDUFUgY29y
-ZSB0ZW1wIAo+IEkgYW0gZ29vZCwgdGhpcyByZXByZXNlbnRzIHRoZSBzeXN0ZW0gYXQgMTAwJSBm
-b3Igc2V2ZXJhbCBob3Vycy4KClRoZSB0aGVybWFsIG1hcmdpbiBpcyBjb21mb3J0YWJsZSwgeW91
-ciBDUFUgY29vbGluZyBpcyBtb3JlIHRoYW4KYWRlcXVhdGUgOikKCkplYW4KCi0tIApKZWFuIERl
-bHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
-LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
-c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+driver is bound) removes the need to set driver data field to
+NULL.
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 0160272..004801e 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -2598,7 +2598,6 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ exit_remove:
+ 	w83627ehf_device_remove_files(dev);
+ exit_release:
+-	platform_set_drvdata(pdev, NULL);
+ 	release_region(res->start, IOREGION_LENGTH);
+ exit:
+ 	return err;
+@@ -2611,7 +2610,6 @@ static int w83627ehf_remove(struct platform_device *pdev)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	w83627ehf_device_remove_files(&pdev->dev);
+ 	release_region(data->addr, IOREGION_LENGTH);
+-	platform_set_drvdata(pdev, NULL);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
