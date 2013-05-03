@@ -1,28 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 12 May 2013 19:59:50 +0000
-Subject: Re: [lm-sensors] Gigabyte GA-Z77N-ITX Motherboard it87 sensors module (SuperIO chip ITE 8728)
-Message-Id: <20130512215950.1e4205ab@endymion.delvare>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Fri, 03 May 2013 09:55:36 +0000
+Subject: [lm-sensors] [PATCH 1/5] hwmon: abituguru3: Remove redundant platform_set_drvdata()
+Message-Id: <1367574220-15787-1-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAPweEDz7mv+eouxQeNxL=bxEafZwFgG3BsMW+shK9bhapjVeeA@mail.gmail.com>
-In-Reply-To: <CAPweEDz7mv+eouxQeNxL=bxEafZwFgG3BsMW+shK9bhapjVeeA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Luke,
+Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+driver is bound) removes the need to set driver data field to
+NULL.
 
-On Tue, 7 May 2013 16:24:38 +0100, luke.leighton wrote:
->  also based on this being only related to linux kernel 3.2.... wait....
-> http://www.h-online.com/open/news/item/Debian-7-0-will-use-3-2-kernel-1425560.html
-> 
->  yep, linux 3.2 is definitely going to be around for a looong time [it
-> was only released in january!!]
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/hwmon/abituguru3.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-Linux 2.6.1 was released in January as well ;)
-
+diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
+index 1d2da31..0cac8c0 100644
+--- a/drivers/hwmon/abituguru3.c
++++ b/drivers/hwmon/abituguru3.c
+@@ -1079,7 +1079,6 @@ static int abituguru3_remove(struct platform_device *pdev)
+ 	int i;
+ 	struct abituguru3_data *data = platform_get_drvdata(pdev);
+ 
+-	platform_set_drvdata(pdev, NULL);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	for (i = 0; data->sysfs_attr[i].dev_attr.attr.name; i++)
+ 		device_remove_file(&pdev->dev, &data->sysfs_attr[i].dev_attr);
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
