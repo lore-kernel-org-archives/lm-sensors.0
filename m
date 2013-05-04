@@ -1,47 +1,37 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Date: Mon, 06 May 2013 03:58:28 +0000
-Subject: [lm-sensors] [PATCH 3/5] hwmon: (i5k_amb) remove unnecessary platform_set_drvdata()
-Message-Id: <002b01ce4a0d$f799b8c0$e6cd2a40$@samsung.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 04 May 2013 13:56:43 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.10
+Message-Id: <20130504155643.1d3a6ca9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The driver core clears the driver data to NULL after device_release
-or on probe failure, since commit 0998d0631001288a5974afc0b2a5f568bcdecb4d
-(device-core: Ensure drvdata = NULL when no driver is bound).
-Thus, it is not needed to manually clear the device driver data to NULL.
+Hi Linus,
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- drivers/hwmon/i5k_amb.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Please pull hwmon subsystem updates for Linux 3.10 from:
 
-diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
-index b87c2cc..de058c2 100644
---- a/drivers/hwmon/i5k_amb.c
-+++ b/drivers/hwmon/i5k_amb.c
-@@ -556,7 +556,6 @@ static int i5k_amb_probe(struct platform_device *pdev)
- 
- err_init_failed:
- 	iounmap(data->amb_mmio);
--	platform_set_drvdata(pdev, NULL);
- err_map_failed:
- 	release_mem_region(data->amb_base, data->amb_len);
- err:
-@@ -576,7 +575,6 @@ static int i5k_amb_remove(struct platform_device *pdev)
- 	kfree(data->attrs);
- 	iounmap(data->amb_mmio);
- 	release_mem_region(data->amb_base, data->amb_len);
--	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- 	return 0;
- }
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+Only lm75 driver updates this time.
+
+ Documentation/hwmon/lm75 | 15 ++++----
+ drivers/hwmon/Kconfig    |  2 +-
+ drivers/hwmon/lm75.c     | 92 ++++++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 94 insertions(+), 15 deletions(-)
+
+---------------
+
+Jean Delvare (4):
+      hwmon: (lm75) Per-chip configuration register initialization
+      hwmon: (lm75) Prepare to support per-chip resolution and sample time
+      hwmon: (lm75) Tune resolution and sample time per chip
+      hwmon: (lm75) Add support for the Dallas/Maxim DS7505
+
+Thanks,
 -- 
-1.7.2.5
-
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
