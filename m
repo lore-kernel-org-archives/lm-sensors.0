@@ -1,46 +1,46 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 09 May 2013 17:09:49 +0000
-Subject: [lm-sensors] [PATCH 1/3] pm: Introduce __pm to mark power management functions and data
-Message-Id: <1368119391-13837-2-git-send-email-linux@roeck-us.net>
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Mon, 06 May 2013 04:02:29 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon: (w83627ehf) remove unnecessary platform_set_drvdata()
+Message-Id: <002d01ce4a0e$86e51240$94af36c0$@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jingoo Han <jg1.han@samsung.com>, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-By marking power management functions and data with __pm, #ifdef CONFIG_PM
-and #ifdef CONFIG_PM_SLEEP is no longer necessary in most cases.
-This ensures that the power management code still compiles even if power
-management is disabled, but does not consume space in the object file.
-As a side effect, drivers declaring struct dev_pm_ops unconditionally
-get a bit smaller if CONFIG_PM_SLEEP is disabled.
+The driver core clears the driver data to NULL after device_release
+or on probe failure, since commit 0998d0631001288a5974afc0b2a5f568bcdecb4d
+(device-core: Ensure drvdata = NULL when no driver is bound).
+Thus, it is not needed to manually clear the device driver data to NULL.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 ---
- include/linux/pm.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/hwmon/w83627ehf.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/pm.h b/include/linux/pm.h
-index fe70d9b..46df155 100644
---- a/include/linux/pm.h
-+++ b/include/linux/pm.h
-@@ -43,9 +43,11 @@ struct device;
- #ifdef CONFIG_PM
- extern const char power_group_name[];		/* = "power" */
- #define pm_ops_ptr(_ptr)	(_ptr)
-+#define __pm
- #else
- #define power_group_name	NULL
- #define pm_ops_ptr(_ptr)	NULL
-+#define __pm			__section(.discard)
- #endif
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 0160272..004801e 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -2598,7 +2598,6 @@ static int w83627ehf_probe(struct platform_device *pdev)
+ exit_remove:
+ 	w83627ehf_device_remove_files(dev);
+ exit_release:
+-	platform_set_drvdata(pdev, NULL);
+ 	release_region(res->start, IOREGION_LENGTH);
+ exit:
+ 	return err;
+@@ -2611,7 +2610,6 @@ static int w83627ehf_remove(struct platform_device *pdev)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	w83627ehf_device_remove_files(&pdev->dev);
+ 	release_region(data->addr, IOREGION_LENGTH);
+-	platform_set_drvdata(pdev, NULL);
  
- typedef struct pm_message {
+ 	return 0;
+ }
 -- 
-1.7.9.7
+1.7.2.5
+
 
 
 _______________________________________________
