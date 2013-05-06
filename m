@@ -1,7 +1,7 @@
 From: Jingoo Han <jg1.han@samsung.com>
-Date: Mon, 06 May 2013 04:01:16 +0000
-Subject: [lm-sensors] [PATCH 4/5] hwmon: (ntc_thermistor) remove unnecessary platform_set_drvdata()
-Message-Id: <002c01ce4a0e$5b976890$12c639b0$@samsung.com>
+Date: Mon, 06 May 2013 03:57:40 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon: (coretemp) remove unnecessary platform_set_drvdata()
+Message-Id: <002a01ce4a0d$dab7ec40$9027c4c0$@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -15,19 +15,27 @@ Thus, it is not needed to manually clear the device driver data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 ---
- drivers/hwmon/ntc_thermistor.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/hwmon/coretemp.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
-index d6d640a..830a842 100644
---- a/drivers/hwmon/ntc_thermistor.c
-+++ b/drivers/hwmon/ntc_thermistor.c
-@@ -514,7 +514,6 @@ static int ntc_thermistor_remove(struct platform_device *pdev)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
- 	ntc_iio_channel_release(pdata);
--	platform_set_drvdata(pdev, NULL);
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 658ce3a..ade35cf 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -578,7 +578,6 @@ static int coretemp_probe(struct platform_device *pdev)
  
+ exit_name:
+ 	device_remove_file(&pdev->dev, &pdata->name_attr);
+-	platform_set_drvdata(pdev, NULL);
+ exit_free:
+ 	kfree(pdata);
+ 	return err;
+@@ -595,7 +594,6 @@ static int coretemp_remove(struct platform_device *pdev)
+ 
+ 	device_remove_file(&pdev->dev, &pdata->name_attr);
+ 	hwmon_device_unregister(pdata->hwmon_dev);
+-	platform_set_drvdata(pdev, NULL);
+ 	kfree(pdata);
  	return 0;
  }
 -- 
