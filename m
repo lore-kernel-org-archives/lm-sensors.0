@@ -1,98 +1,168 @@
-From: Sebastian Werner <Sebastian.Werner@shd-online.de>
-Date: Tue, 07 May 2013 12:54:21 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 07 May 2013 15:18:24 +0000
 Subject: Re: [lm-sensors] Getting correct temperature information from Intel 945GSE/ICH7M
-Message-Id: <CE0521C9E8FCC646A7D4D5C05886A095604FFFBC@SHDEXMBX1.shd-online.de>
+Message-Id: <20130507151824.GB1853@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CE0521C9E8FCC646A7D4D5C05886A095604FFD4A@SHDEXMBX1.shd-online.de>
 In-Reply-To: <CE0521C9E8FCC646A7D4D5C05886A095604FFD4A@SHDEXMBX1.shd-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Pg0KPj5PbiBNb24sIE1heSAwNiwgMjAxMyBhdCAxMjozMToxMVBNICswMDAwLCBTZWJhc3RpYW4g
-V2VybmVyIHdyb3RlOg0KPj4gSGVsbG8sDQo+PiANCj4+IEkgYW0gdHJ5aW5nIHRvIGdldCB0aGUg
-cmlnaHQgdGVtcGVyYXR1cmUgZnJvbSB0d28gZGlmZmVyZW50IHBpZWNlcyBvZiBoYXJkd2FyZS4N
-Cj4+IFRoZSBmaXJzdCwgbmV3ZXN0IHBpZWNlIChodHRwOi8vd3d3LmpldHdheWNvbXB1dGVyLmNv
-bS9JVFgtSkJDMzYyRjM2Lmh0bWwpIHdvcmtzIHJpZ2h0IG91dCBvZiB0aGUgYm94LiBHb3QgbG0t
-c2Vuc29yIG9uIHRoZSBkZWJpYW4gc3lzdGVtLCBzZW5zb3JzLWRldGVjdCB0ZWxscyBtZSB0byBt
-b2Rwcm9iZSBsbTc4IGFuZCB0aGUgdGVtcGVyYXR1cmUgaXMgcm91Z2hseSB0aGUgc2FtZSBhcyB0
-aGUgb25lIHNob3duIGluIHRoZSBiaW9zLg0KPj4gDQo+PiBBY3BpdHotdmlydHVhbC0wDQo+PiBB
-ZGFwdGVyOiBWaXJ0dWFsIGRldmljZQ0KPj4gVGVtcDE6ICAgICAgICAgICAgICArNDAuMMKwQyAg
-KGNyaXQgPSArMTI3LjDCsEMpDQo+PiBUZW1wMjogICAgICAgICAgICAgICsyNi44wrBDICAoY3Jp
-dCA9ICsxMjcuMMKwQykNCj4+IFRlbXAzOiAgICAgICAgICAgICAgKzI2LjjCsEMgIChjcml0ID0g
-KzEwMC4wwrBDKQ0KPj4gDQo+VGhpcyBvdXRwdXQgaXMgbm90IGZyb20gdGhlIGxtNzggZHJpdmVy
-Lg0KPg0KPlRoZSAiY29yZXRlbXAiIGRyaXZlciB3b3JrcyB3aXRoIHRoaXMgQ1BVIChBdG9tIE4y
-NjAwKS4gTG9hZCBpdCBhbmQgc2VlIHdoYXQgaXQgcmVwb3J0cy4NCg0KV2VpcmRseSBlbm91Z2gs
-IHRyeWluZyB0byBsb2FkICJjb3JldGVtcCIgb24gdGhlIG5ldyBoYXJkd2FyZSBnaXZlcyBtZSBh
-DQogIk5vIHN1Y2ggZGV2aWNlIiBlcnJvciAuLi4NCg0KTGlrZSBKZWFuIG1lbnRpb25lZCwgSSBh
-bSBydW5uaW5nIGEgcmF0aGVyIG9sZCB2ZXJzaW9uLCBkdWUgdG8gaGF2aW5nIG9sZA0KcGFja2Fn
-ZXMgYW5kIGFsbCB0aGVpciBiYWdnYWdlLiBJIHRvb2sgdGhlIG5ld2VzdCB2ZXJzaW9uIGZyb20g
-aHR0cDovL2RsLmxtLQ0Kc2Vuc29ycy5vcmcvbG0tc2Vuc29ycy9maWxlcy9zZW5zb3JzLWRldGVj
-dCBhbmQgcmVyYW4gaXQgb24gYWxsIHRoZSBzeXN0ZW1zIEkNCmhhdmUgYWNjZXNzIHRvLg0Kc2Vu
-c29ycy1kZXRlY3Qgb3V0cHV0Og0KDQpEcml2ZXIgYGNvcmV0ZW1wJzoNCiAgKiBDaGlwIGBJbnRl
-bCBkaWdpdGFsIHRoZXJtYWwgc2Vuc29yJyAoY29uZmlkZW5jZTogOSkNCg0KRHJpdmVyIGBmNzE4
-ODJmZyc6DQogICogSVNBIGJ1cywgYWRkcmVzcyAweDI5NQ0KICAgIENoaXAgYEZpbnRlayBGNzE4
-MDhBIFN1cGVyIElPIFNlbnNvcnMnIChjb25maWRlbmNlOiA5KQ0KDQojLS0tLWN1dCBoZXJlLS0t
-LQ0KIyBDaGlwIGRyaXZlcnMNCm1vZHByb2JlIGNvcmV0ZW1wDQptb2Rwcm9iZSBmNzE4ODJmZw0K
-L3Vzci9iaW4vc2Vuc29ycyAtcw0KIy0tLS1jdXQgaGVyZS0tLS0NCg0KDQoNCg0KPj4gTm90IHRl
-bXAyIGFuZCB0ZW1wMyB0aG91Z2guIEJvdGggdGVtcGVyYXR1cmVzIG5ldmVyIGNoYW5nZSBhbmQg
-dGhleSBoYXZlIG5vIGNvbm5lY3Rpb24gdG8gYW55dGhpbmcgSSBjYW4gcmVhZCBpbiB0aGUgYmlv
-cy4NCj4+IEkgcHJlc3VtZWQgdGhhdCB0aG9zZSBhcmUgJ2RlYWQgd2lyZXMnIGFuZCBJIGFtIGF0
-IHRoZSBtb21lbnQgaWdub3JpbmcgdGhvc2UsIHNpbmNlIHRlbXAxIGlzIGdvb2QgZW5vdWdoIGZv
-ciBtZS4NCj4+IA0KPlRoZSB0ZW1wZXJhdHVyZXMgYXJlIHJlcG9ydGVkIGJ5IEFDUEkuIE5vIGlk
-ZWEgaG93IHRoYXQgdHJhbnNsYXRlcyB0byBoYXJkd2FyZQ0KPnRlbXBlcmF0dXJlcy4gSWYgdGhl
-IHRlbXBlcmF0dXJlIG5ldmVyIGNoYW5nZXMsIHRoZXJlIG1heSBiZSBhIGJ1ZyBpbiB0aGUNCj5B
-Q1BJIHRhYmxlcy4gVGhvc2UgYXJlIGNvbnRyb2xsZWQgYnkgdGhlIGJvYXJkIG1hbnVmYWN0dXJl
-ciwgYW5kIHdvdWxkIGJlDQo+dXBkYXRlZCB3aXRoIHRoZSBCSU9TLiBEbyB5b3UgaGF2ZSB0aGUg
-bGF0ZXN0IEJJT1MgdmVyc2lvbnMgaW5zdGFsbGVkID8NCj4NCj4+IFRoZSBzZWNvbmQsIHRoZSBv
-bGRlciBwaWVjZSAoaHR0cDovL3d3dy5qZXR3YXljb21wdXRlci5jb20vSVRYLUpCQzM2MEYzMy1C
-Lmh0bWwpIGRvZXMgbm90IHNlZW0gdG8gd29yay4gU2Vuc29ycy1kZXRlY3QgdGVsbHMgbWUgdG8g
-bG9hZCBjb3JldGVtcCwgdXNpbmcgdGhlIGxhdGVzdCB2ZXJzaW9uIG9mIHNlbnNvcnMtZGV0ZWN0
-IGZyb20gdGhlIHNpdGUgd2FudHMgdG8gYWxzbyBtZSB0byBsb2FkIHRoZSBmNzE4ODJmZyBkcml2
-ZXIuIFRoYXQgZG9lc24ndCB3b3JrIG91dCB3aXRoIGEgJ05vIHN1Y2ggZGV2aWNlJyBlcnJvci4N
-Cj4+IA0KPldoYXQgaXMgeW91ciBrZXJuZWwgdmVyc2lvbiwgYW5kIHdoYXQgZXhhY3RseSBkb2Vz
-IHNlbnNvcnMtZGV0ZWN0IHJlcG9ydCA/DQoNCkkgYW0gb24gZGViaWFuIHNxZWV6ZSwgcnVubmlu
-ZyAyLjYuMzItNS02ODYNCg0Kc2Vuc29ycy1kZXRlY3QgZ2l2ZXMgbWUgdGhpczoNCg0KRHJpdmVy
-IGBjb3JldGVtcCc6DQogICogQ2hpcCBgSW50ZWwgZGlnaXRhbCB0aGVybWFsIHNlbnNvcicgKGNv
-bmZpZGVuY2U6IDkpDQoNCkRyaXZlciBgbG03OCc6DQogICogSVNBIGJ1cywgYWRkcmVzcyAweDI5
-MA0KICAgIENoaXAgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OCcgKGNvbmZpZGVuY2U6IDYp
-DQoNCkRyaXZlciBgZjcxODgyZmcnOg0KICAqIElTQSBidXMsIGFkZHJlc3MgMHgyOTUNCiAgICBD
-aGlwIGBGaW50ZWsgRjcxODY5Ri9FIFN1cGVyIElPIFNlbnNvcnMnIChjb25maWRlbmNlOiA5KQ0K
-DQojLS0tLWN1dCBoZXJlLS0tLQ0KIyBDaGlwIGRyaXZlcnMNCm1vZHByb2JlIGNvcmV0ZW1wDQpt
-b2Rwcm9iZSBmNzE4ODJmZw0KbW9kcHJvYmUgbG03OA0KL3Vzci9iaW4vc2Vuc29ycyAtcw0KIy0t
-LS1jdXQgaGVyZS0tLS0NCg0KY29yZXRlbXAgaXMgbG9hZGFibGUsIGJ1dCBmNzE4ODJmZyBnaXZl
-cyBtZSB0aGlzOg0Kfi9kZXRlY3QjIG1vZHByb2JlIC0tZmlyc3QtdGltZSAtdiBmNzE4ODJmZw0K
-aW5zbW9kIC9saWIvbW9kdWxlcy8yLjYuMzItNS02ODYva2VybmVsL2RyaXZlcnMvaHdtb24vZjcx
-ODgyZmcua28gDQpGQVRBTDogRXJyb3IgaW5zZXJ0aW5nIGY3MTg4MmZnICgvbGliL21vZHVsZXMv
-Mi42LjMyLTUtNjg2L2tlcm5lbC9kcml2ZXJzL2h3bW9uL2Y3MTg4MmZnLmtvKTogTm8gc3VjaCBk
-ZXZpY2UNCg0KPklmIEkgaW50ZXJwcmV0IHRoZSBpbmZvcm1hdGlvbiBJIGZpbmQgb24gdGhlIHdl
-YiBjb3JyZWN0bHksIHRoZSBib2FyZCBtaWdodA0KPmJlIE1JODEyIG9yIE1JODEwIGZyb20gaUJU
-LiBJZiBzbywgdGhlIEZpbnRlayBjaGlwIG9uIHRoZSBib2FyZCBpcyBvbmx5IHVzZWQNCj5mb3Ig
-Q09NIHBvcnRzLiBUcnkgbG9hZGluZyB0aGUgdzgzNjI3ZWhmIGRyaXZlciBpbnN0ZWFkLg0KDQpU
-cnlpbmcgdG8gbG9hZCB3ODM2MjdlaGYgZ2l2ZXMgbWUgdGhlIHNhbWUgIk5vIHN1Y2ggZGV2aWNl
-IiBlcnJvci4NCg0KPj4gQWNwaXR6LXZpcnR1YWwtMA0KPj4gQWRhcHRlcjogVmlydHVhbCBkZXZp
-Y2UNCj4+IFRlbXAxOiAgICAgICAgICAgICAgKzMwLjDCsEMgIChjcml0ID0gKzEwMC4wwrBDKQ0K
-Pj4gQ29yZXRlbXAtaXNvLTAwMDANCj4+IENvcmUgMDogICAgICAgICAgICAgICArMzAuMMKwQyAg
-KGNyaXQgPSArOTAuMMKwQykNCj4+IA0KPlRoZSBDUFUgaXMgQXRvbSBOMjcwLCBzbyB0aGUgcmVw
-b3J0ZWQgY3JpdGljYWwgY29yZSB0ZW1wZXJhdHVyZSBpcyBjb3JyZWN0Lg0KPkNQVSB0ZW1wZXJh
-dHVyZSBtZWFzdXJlbWVudHMgYXJlIGhpZ2hseSBpbmFjY3VyYXRlIHRoYXQgZmFyIGJlbG93IHRo
-ZSBtYXhpbXVtDQo+dGVtcGVyYXR1cmUsIHNvIHRoZSByZXBvcnRlZCB2YWx1ZSBpcyBhcyBnb29k
-IGFzIGl0IGdldHMuIEFjY3VyYWN5IGlzIGJldHRlcg0KPndpdGggaGlnaGVyIHRlbXBlcmF0dXJl
-cy4NCg0KQWxsIGluIGFsbCBJIGFtIG5vdCBhZnRlciBleGFjdCB2YWx1ZXMuIEkgbmVlZCB0byBm
-aW5kIG91dCBpZiB0aGUgc3lzdGVtIGhhZA0KYmVlbiB1c2VkIGluIHRoZSB3cm9uZyBlbnZpcm9u
-bWVudHMsIHdoaWNoIG1pZ2h0IGhhdmUgbGVhZCB0byB0aGUgZGVtaXNlIG9mIHRoZQ0KaGFyZHdh
-cmUuIEhvdyBhY2N1cmF0ZSBhcmUgd2UgdGFsa2luZyBoZXJlPyBJIGp1c3Qgd2FudCB0byBzZXQg
-YSB0aHJlc2hvbGQgdG8NCndhdGNoIG92ZXIsIG1heWJlIHNldHRpbmcgaXQgdG8gfjUwIGRlZ3Jl
-ZXMgYXMgYSBmaXJzdCBzdGVwcGluZyBzdG9uZS4NCg0KPj4gQm90aCBhcmUgbm8gcmVhbGlzdGlj
-IHZhbHVlcy4gVGVtcDEgbmV2ZXIgY2hhbmdlcy4gVGhlIENvcmUgMCB0ZW1wZXJhdHVyZSBzZWVt
-cyB0b28gbG93IChib3RoIHN5c3RlbXMgZmVlbCByb3VnaGx5IHRoZSBzYW1lIHRvIHRoZSB0b3Vj
-aCBmcm9tIHRoZSBvdXRzaWRlKSwgaXQgZG9lcyBjaGFuZ2UgaWYgSSBwdXQgYSB2ZW50aWxhdG9y
-IGJlc2lkZSBpdC4NCg0KPj4gSSBmZWVsIHF1aXRlIG91dCBvZiBteSBmaWVsZCBpbiB0aGlzLCBj
-b3VsZCBzb21lb25lIGdpdmUgbWUgYSBwb2ludGVyIG9yIHR3byB3aGF0IG1pZ2h0IGJlIGdvaW5n
-IG9uIG9yIHdoZXJlIEkgY291bGQgcmVhZCB1cCB0byB1bmRlcnN0YW5kIHRoaXMgd2VpcmQgc2l0
-dWF0aW9uPw0KPg0KPk5vdCByZWFsbHkgd2VpcmQgYXQgYWxsLCBidXQgcXVpdGUgY29tbW9uLg0K
-DQpUaGlzIG1ha2VzIG1lIGZlZWwgYXQgbGVhc3QgYSB0aW55IGJpdCBiZXR0ZXIuIDopDQpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1h
-aWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5z
-b3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Tue, May 07, 2013 at 12:54:21PM +0000, Sebastian Werner wrote:
+> >
+> >>On Mon, May 06, 2013 at 12:31:11PM +0000, Sebastian Werner wrote:
+> >> Hello,
+> >>=20
+> >> I am trying to get the right temperature from two different pieces of =
+hardware.
+> >> The first, newest piece (http://www.jetwaycomputer.com/ITX-JBC362F36.h=
+tml) works right out of the box. Got lm-sensor on the debian system, sensor=
+s-detect tells me to modprobe lm78 and the temperature is roughly the same =
+as the one shown in the bios.
+> >>=20
+> >> Acpitz-virtual-0
+> >> Adapter: Virtual device
+> >> Temp1:              +40.0=B0C  (crit =3D +127.0=B0C)
+> >> Temp2:              +26.8=B0C  (crit =3D +127.0=B0C)
+> >> Temp3:              +26.8=B0C  (crit =3D +100.0=B0C)
+> >>=20
+> >This output is not from the lm78 driver.
+> >
+> >The "coretemp" driver works with this CPU (Atom N2600). Load it and see =
+what it reports.
+>=20
+> Weirdly enough, trying to load "coretemp" on the new hardware gives me a
+>  "No such device" error ...
+>=20
+Old drivers, most likely. What is the output of /proc/cpuinfo ?
+
+> Like Jean mentioned, I am running a rather old version, due to having old
+> packages and all their baggage. I took the newest version from http://dl.=
+lm-
+> sensors.org/lm-sensors/files/sensors-detect and reran it on all the syste=
+ms I
+> have access to.
+> sensors-detect output:
+>=20
+> Driver `coretemp':
+>   * Chip `Intel digital thermal sensor' (confidence: 9)
+>=20
+> Driver `f71882fg':
+>   * ISA bus, address 0x295
+>     Chip `Fintek F71808A Super IO Sensors' (confidence: 9)
+>=20
+> #----cut here----
+> # Chip drivers
+> modprobe coretemp
+> modprobe f71882fg
+> /usr/bin/sensors -s
+> #----cut here----
+>=20
+>=20
+> >> Not temp2 and temp3 though. Both temperatures never change and they ha=
+ve no connection to anything I can read in the bios.
+> >> I presumed that those are 'dead wires' and I am at the moment ignoring=
+ those, since temp1 is good enough for me.
+> >>=20
+> >The temperatures are reported by ACPI. No idea how that translates to ha=
+rdware
+> >temperatures. If the temperature never changes, there may be a bug in the
+> >ACPI tables. Those are controlled by the board manufacturer, and would be
+> >updated with the BIOS. Do you have the latest BIOS versions installed ?
+> >
+> >> The second, the older piece (http://www.jetwaycomputer.com/ITX-JBC360F=
+33-B.html) does not seem to work. Sensors-detect tells me to load coretemp,=
+ using the latest version of sensors-detect from the site wants to also me =
+to load the f71882fg driver. That doesn't work out with a 'No such device' =
+error.
+> >>=20
+> >What is your kernel version, and what exactly does sensors-detect report=
+ ?
+>=20
+> I am on debian sqeeze, running 2.6.32-5-686
+>=20
+You will need a more recent kernel version, or install stand-alone drivers =
+for
+both coretemp and f71882fg. Not sure what the lm78 detection is about, but =
+that
+doesn't look correct as Jean pointed out.
+
+> sensors-detect gives me this:
+>=20
+> Driver `coretemp':
+>   * Chip `Intel digital thermal sensor' (confidence: 9)
+>=20
+> Driver `lm78':
+>   * ISA bus, address 0x290
+>     Chip `National Semiconductor LM78' (confidence: 6)
+>=20
+> Driver `f71882fg':
+>   * ISA bus, address 0x295
+>     Chip `Fintek F71869F/E Super IO Sensors' (confidence: 9)
+>=20
+> #----cut here----
+> # Chip drivers
+> modprobe coretemp
+> modprobe f71882fg
+> modprobe lm78
+> /usr/bin/sensors -s
+> #----cut here----
+>=20
+> coretemp is loadable, but f71882fg gives me this:
+> ~/detect# modprobe --first-time -v f71882fg
+> insmod /lib/modules/2.6.32-5-686/kernel/drivers/hwmon/f71882fg.ko=20
+> FATAL: Error inserting f71882fg (/lib/modules/2.6.32-5-686/kernel/drivers=
+/hwmon/f71882fg.ko): No such device
+>=20
+> >If I interpret the information I find on the web correctly, the board mi=
+ght
+> >be MI812 or MI810 from iBT. If so, the Fintek chip on the board is only =
+used
+> >for COM ports. Try loading the w83627ehf driver instead.
+>=20
+> Trying to load w83627ehf gives me the same "No such device" error.
+>=20
+> >> Acpitz-virtual-0
+> >> Adapter: Virtual device
+> >> Temp1:              +30.0=B0C  (crit =3D +100.0=B0C)
+> >> Coretemp-iso-0000
+> >> Core 0:               +30.0=B0C  (crit =3D +90.0=B0C)
+> >>=20
+> >The CPU is Atom N270, so the reported critical core temperature is corre=
+ct.
+> >CPU temperature measurements are highly inaccurate that far below the ma=
+ximum
+> >temperature, so the reported value is as good as it gets. Accuracy is be=
+tter
+> >with higher temperatures.
+>=20
+> All in all I am not after exact values. I need to find out if the system =
+had
+> been used in the wrong environments, which might have lead to the demise =
+of the
+> hardware. How accurate are we talking here? I just want to set a threshol=
+d to
+> watch over, maybe setting it to ~50 degrees as a first stepping stone.
+>=20
+TjMax for the CPU is 90 degrees C. If you set your limit to 15-20 degrees C
+below that, you will be absolutely fine.
+
+To give you a reference, here is what my SandyBridge system is running at
+right now (full load):
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Physical id 0:  +85.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+Core 0:         +82.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+Core 1:         +82.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+Core 2:         +85.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+Core 3:         +82.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
