@@ -1,29 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 27 May 2013 13:13:25 +0000
-Subject: [lm-sensors] lm-sensors 3.3.4 has been released!
-Message-Id: <20130527151325.0185240e@endymion.delvare>
+From: Robert Coulson <rob.coulson@gmail.com>
+Date: Thu, 09 May 2013 05:45:52 +0000
+Subject: [lm-sensors] [lm-sensors 0/2] hwmon: add ds1721 chip support
+Message-Id: <1368078354-26298-1-git-send-email-rob.coulson@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hello,
 
-I just released lm-sensors 3.3.4. This is really only a maintenance
-release with not much to announce.
+this patch series is targeted for the 3.9 branch and contains these patches:
+- 1/2: ds1721 chip support to the ds1621 driver.
+- 2/2: ds1721 conversion interval attribute support.
 
-Most important changes are:
-* pwmconfig: Fixed support of multiple fan control
-* fancontrol: Fixed support of absolute device paths
-* sensors-detect: Detection of new devices
+These patches did not have any checkpatch errors or warnings and have been
+tested with ds1621, ds1625, and ds1721 chips.
 
-See CHANGES for the details.
+Please review them and provide your comments.
 
-Phil, please copy the new release to your mirror as your time permits.
+Regards,
+Rob
+
+Robert Coulson (2):
+  hwmon: (ds1621) Add ds1721 chip support
+  hwmon: (ds1621) Add ds1721 update interval sysfs attribute
+
+ Documentation/hwmon/ds1621 |   91 ++++++++++++++++++++--
+ drivers/hwmon/Kconfig      |    9 ++-
+ drivers/hwmon/ds1621.c     |  178 ++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 255 insertions(+), 23 deletions(-)
 
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
