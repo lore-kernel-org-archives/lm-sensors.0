@@ -1,37 +1,183 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 19 May 2013 15:19:02 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (tmp401) Drop redundant safety on cache lifetime
-Message-Id: <20130519151902.GA20849@roeck-us.net>
+From: Robert Coulson <rob.coulson@gmail.com>
+Date: Thu, 09 May 2013 05:45:54 +0000
+Subject: [lm-sensors] [lm-sensors 2/2] hwmon: (ds1621) Add ds1721 update interval sysfs attribute
+Message-Id: <1368078354-26298-3-git-send-email-rob.coulson@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130519165730.2a7425d1@endymion.delvare>
-In-Reply-To: <20130519165730.2a7425d1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, May 19, 2013 at 05:17:47PM +0200, Jean Delvare wrote:
-> On Sun, 19 May 2013 08:05:37 -0700, Guenter Roeck wrote:
-> > On Sun, May 19, 2013 at 04:57:30PM +0200, Jean Delvare wrote:
-> > > time_after (as opposed to time_after_equal) already ensures that the
-> > > cache lifetime is at least as much as requested. There is no point in
-> > > manually adding another jiffy to that value, and this can confuse the
-> > > reader into wrong interpretation.
-> > > 
-> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > > Cc: Imre Deak <imre.deak@intel.com>
-> > > Cc: Guenter Roeck <linux@roeck-us.net>
-> > 
-> > Acked-by: Guenter Roeck <linux@roeck-us.net>
-> > 
-> > Are you going to take the series, or do you want me to handle it ?
-> 
-> You take tmp401 and I take lm63 and lm90?
-> 
-Ok, makes sense.
+The ds1721 device can be configured for 9..12 bit resolutions;
+add a sysfs attribute for userspace to configure this attribute.
+The definition, description, details, and usage are shown in the
+documentation and were crafted from an LM73 driver patch done by
+Chris Verges & Guenter Roeck).
 
-Thanks,
-Guenter
+Signed-off-by: Robert Coulson <rob.coulson@gmail.com>
+---
+ Documentation/hwmon/ds1621 |   65 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/ds1621.c     |   58 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 123 insertions(+)
+
+diff --git a/Documentation/hwmon/ds1621 b/Documentation/hwmon/ds1621
+index ee7bc01..ae29036 100644
+--- a/Documentation/hwmon/ds1621
++++ b/Documentation/hwmon/ds1621
+@@ -75,3 +75,68 @@ The DS1721 is pin compatible with the DS1621, has an accuracy of +/- 1.0
+ degree Celius over a -10 to +85 degree range, a minimum/maximum alarm
+ default setting of 75 and 80 degrees respectifully, and a maximum conversion
+ time of 750ms.
++
++In addition, the DS1721 supports four resolution settings from 9 to 12 bits
++(defined in degrees C per LSB: 0.5, 0.25, 0.125, and 0.0625, respectifully),
++that are set at device power on to the highest resolution: 12-bits (0.0625 degree C).
++
++Changing the DS1721 resolution mode affects the conversion time and can be
++done from userspace, via the device 'update_interval' sysfs attribute. This
++attribute will normalize range of input values to the device maximum resolution
++values defined in the datasheet as such:
++
++Resolution    Conversion Time    Input Range
++ (C/LSB)       (msec)             (msec)
++--------------------------------------------
++0.5             93.75              0....94
++0.25            187.5              95...187
++0.125           375                188..375
++0.0625          750                376..infinity
++--------------------------------------
++
++The following examples show how the 'update_interval' attribute can be
++used to change the conversion time:
++
++$ cat update_interval
++750
++$ cat temp1_input
++22062
++$
++$ echo 300 > update_interval
++$ cat update_interval
++375
++$ cat temp1_input
++22125
++$
++$ echo 150 > update_interval
++$ cat update_interval
++188
++$ cat temp1_input
++22250
++$
++$ echo 1 > update_interval
++$ cat update_interval
++94
++$ cat temp1_input
++22000
++$
++$ echo 1000 > update_interval
++$ cat update_interval
++750
++$ cat temp1_input
++22062
++$
++
++As shown, the ds1621 driver automatically adjusts the 'update_interval'
++user input, via a step function. Reading back the 'update_interval' value
++after a write operation provides the conversion time used by the device.
++
++Mathematically, the resolution can be derived from the conversion time
++via the following function:
++
++   g(x) = 0.5 * [minimum_conversion_time/x]
++
++where:
++ -> 'x' = the output from 'update_interval'
++ -> 'g(x)' = the resolution in degrees C per LSB.
++ -> 93.75ms = minimum conversion time
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index 04a3b12..efd4cca 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -274,7 +274,47 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
+ 	return sprintf(buf, "%d\n", !!(data->conf & attr->index));
+ }
+ 
++static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
++			  char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds1621_data *data = i2c_get_clientdata(client);
++	return scnprintf(buf, PAGE_SIZE, "%hu\n", data->update_interval);
++}
++
++static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
++			    const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds1621_data *data = i2c_get_clientdata(client);
++	unsigned long convrate;
++	s32 err;
++	int resol = 0;
++
++	err = kstrtoul(buf, 10, &convrate);
++	if (err)
++		return err;
++
++	/* Convert rate into resolution bits */
++	while (resol < (ARRAY_SIZE(ds1721_convrates) - 1) &&
++	       convrate > ds1721_convrates[resol])
++		resol++;
++
++	mutex_lock(&data->update_lock);
++	data->conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
++	data->conf &= ~DS1621_REG_CONFIG_RESOL;
++	data->conf |= (resol << DS1621_REG_CONFIG_RESOL_SHIFT);
++	i2c_smbus_write_byte_data(client, DS1621_REG_CONF, data->conf);
++	data->update_interval = ds1721_convrates[resol];
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_convrate,
++		   set_convrate);
++
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp, set_temp, 1);
+ static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp, 2);
+@@ -290,11 +330,29 @@ static struct attribute *ds1621_attributes[] = {
+ 	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
++	&dev_attr_update_interval.attr,
+ 	NULL
+ };
+ 
++static umode_t ds1621_attribute_visible(struct kobject *kobj,
++					struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct device_attribute *devattr;
++
++	devattr = container_of(attr, struct device_attribute, attr);
++	if (attr = &dev_attr_update_interval.attr)
++		if (data->kind != ds1721)
++			/* shhh, we're hiding update_interval */
++			return 0;
++	return attr->mode;
++}
++
+ static const struct attribute_group ds1621_group = {
+ 	.attrs = ds1621_attributes,
++	.is_visible = ds1621_attribute_visible
+ };
+ 
+ 
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
