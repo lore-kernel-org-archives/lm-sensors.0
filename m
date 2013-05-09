@@ -1,8 +1,10 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 09 May 2013 17:09:23 +0000
+Date: Thu, 09 May 2013 17:09:48 +0000
 Subject: [lm-sensors] [PATCH 0/3] pm: Introduce __pm to mark power management code
-Message-Id: <1368119366-8716-1-git-send-email-linux@roeck-us.net>
+Message-Id: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1368119366-8716-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1368119366-8716-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
