@@ -1,36 +1,27 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 19 May 2013 15:38:52 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2] Add ds1631 chip support to ds1621 driver
-Message-Id: <20130519153852.GA22408@roeck-us.net>
+Date: Thu, 09 May 2013 17:09:23 +0000
+Subject: [lm-sensors] [PATCH 0/3] pm: Introduce __pm to mark power management code
+Message-Id: <1368119366-8716-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1368742242-15191-1-git-send-email-rob.coulson@gmail.com>
-In-Reply-To: <1368742242-15191-1-git-send-email-rob.coulson@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jingoo Han <jg1.han@samsung.com>, Guenter Roeck <linux@roeck-us.net>
 
-On Thu, May 16, 2013 at 03:10:40PM -0700, Robert Coulson wrote:
-> This set of patches adds ds1631 chip support into the ds1621 driver,
-> documentation, and Kconfig.
-> 
-> It is based on the 3.9 source base and intended for hwmon-next since it is
-> dependent on the previously applied ds1721 chip support patch set.
-> 
-> In addition, this code has been tested and validated with the ds1621,
-> ds1625, ds1721, and ds1631 chips, using sensors, sensors-detect, and
-> explicit device instantiation
-> 
-> Robert Coulson (2):
->   hwmon (ds1621): Add ds1631 chip support to ds1621 driver
->   hwmon (ds1621): Add ds1631 information to ds1621 Documentation and
+The following patch series introduces a marker for power management functions
+and data. This this marker, #ifdef CONFIG_PM and #ifdef CONFIG_PM_SLEEP
+can be removed from most of the code. This ensures that the conditional code
+still compiles but is not included in the object file.
 
-Hi Rob,
+As a side effect, drivers declaring struct dev_pm_ops unconditionally
+get a bit smaller if CONFIG_PM_SLEEP is not configured.
 
-Folded both patches into one, and applied to -next.
+The first patch in the series introduces the marker, the following
+two patches introduce the marker in two drivers to demonstrate its use.
 
-Thanks,
-Guenter
+The patch series depends on the "PM: Add pm_ops_ptr() macro" patch
+submitted by Jingoo Han.
 
 _______________________________________________
 lm-sensors mailing list
