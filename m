@@ -1,72 +1,77 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 30 May 2013 13:20:01 +0000
-Subject: [lm-sensors] [PATCH 1/2] sensors-detect: Use modules.builtin instead of /sys/module
-Message-Id: <20130530152001.4f0b2554@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 09 May 2013 17:09:50 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (tmp102) Convert to use __pm instead of #ifdef CONFIG_PM
+Message-Id: <1368119391-13837-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jingoo Han <jg1.han@samsung.com>, Guenter Roeck <linux@roeck-us.net>
 
-/sys/module doesn't actually contain all built-in modules, only the
-ones which have a version or at least one parameter. Better use file
-modules.builtin which is generated since kernel 2.6.33, it is complete
-and this will let us handle built-in modules properly.
+With this change, code only needed is power management is active still
+compiles if it is disabled, but does not consume space in the object file.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- prog/detect/sensors-detect |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/hwmon/tmp102.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- lm-sensors.orig/prog/detect/sensors-detect	2013-05-28 13:51:44.964830827 +0200
-+++ lm-sensors/prog/detect/sensors-detect	2013-05-30 14:29:07.580744646 +0200
-@@ -2616,11 +2616,12 @@ sub initialize_conf
- # [2] -> SUBLEVEL
- # [3] -> EXTRAVERSION
- #
--use vars qw(@kernel_version $kernel_arch);
-+use vars qw($kernel_version @kernel_version $kernel_arch);
+diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+index 523dd89..8e5d267 100644
+--- a/drivers/hwmon/tmp102.c
++++ b/drivers/hwmon/tmp102.c
+@@ -236,8 +236,7 @@ static int tmp102_remove(struct i2c_client *client)
+ 	return 0;
+ }
  
- sub initialize_kernel_version
+-#ifdef CONFIG_PM
+-static int tmp102_suspend(struct device *dev)
++static int __pm tmp102_suspend(struct device *dev)
  {
--	`uname -r` =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
-+	chomp($kernel_version = `uname -r`);
-+	$kernel_version =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
- 	@kernel_version = ($1, $2, $3, $4);
- 	chomp($kernel_arch = `uname -m`);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	int config;
+@@ -250,7 +249,7 @@ static int tmp102_suspend(struct device *dev)
+ 	return i2c_smbus_write_word_swapped(client, TMP102_CONF_REG, config);
+ }
  
-@@ -2792,20 +2793,19 @@ use vars qw(%modules_list %modules_suppo
- 
- sub initialize_modules_list
+-static int tmp102_resume(struct device *dev)
++static int __pm tmp102_resume(struct device *dev)
  {
--	local $_;
-+	local ($_, *INPUTFILE);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	int config;
+@@ -263,16 +262,11 @@ static int tmp102_resume(struct device *dev)
+ 	return i2c_smbus_write_word_swapped(client, TMP102_CONF_REG, config);
+ }
  
--	# /sys/module contains built-in drivers too, but doesn't exist on
--	# older kernels (added in kernel 2.6.7)
--	if (opendir(local *MODULES, "$sysfs_root/module")) {
--		while (defined($_ = readdir(MODULES))) {
--			next if m/^\./;
--			$modules_list{$1} = 1 if m/^(\S*)/;
-+	# Starting with kernel 2.6.33, a list of built-in modules is available
-+	if (open(*INPUTFILE, "/lib/modules/$kernel_version/modules.builtin")) {
-+		while (<INPUTFILE>) {
-+			tr/-/_/;
-+			$modules_list{$1} = 1 if m/\/([^\/]+)\.ko$/;
- 		}
--		return;
-+		close(INPUTFILE);
- 	}
+-static const struct dev_pm_ops tmp102_dev_pm_ops = {
++static const struct dev_pm_ops __pm tmp102_dev_pm_ops = {
+ 	.suspend	= tmp102_suspend,
+ 	.resume		= tmp102_resume,
+ };
  
--	# Fall back to /proc/modules as it is always available
--	open(local *INPUTFILE, "/proc/modules") or return;
-+	# List all loaded modules
-+	open(*INPUTFILE, "/proc/modules") or return;
- 	while (<INPUTFILE>) {
- 		$modules_list{$1} = 1 if m/^(\S*)/;
- 	}
-
-
+-#define TMP102_DEV_PM_OPS (&tmp102_dev_pm_ops)
+-#else
+-#define	TMP102_DEV_PM_OPS NULL
+-#endif /* CONFIG_PM */
+-
+ static const struct i2c_device_id tmp102_id[] = {
+ 	{ "tmp102", 0 },
+ 	{ }
+@@ -281,7 +275,7 @@ MODULE_DEVICE_TABLE(i2c, tmp102_id);
+ 
+ static struct i2c_driver tmp102_driver = {
+ 	.driver.name	= DRIVER_NAME,
+-	.driver.pm	= TMP102_DEV_PM_OPS,
++	.driver.pm	= pm_ops_ptr(&tmp102_dev_pm_ops),
+ 	.probe		= tmp102_probe,
+ 	.remove		= tmp102_remove,
+ 	.id_table	= tmp102_id,
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
