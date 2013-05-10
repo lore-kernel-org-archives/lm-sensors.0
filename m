@@ -1,39 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 09 May 2013 20:30:07 +0000
+From: Pavel Machek <pavel@ucw.cz>
+Date: Fri, 10 May 2013 10:54:46 +0000
 Subject: Re: [lm-sensors] [PATCH 0/3] pm: Introduce __pm to mark power management code
-Message-Id: <20130509203007.GA31769@roeck-us.net>
+Message-Id: <20130510105446.GA6107@amd.pavel.ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1368119366-8716-1-git-send-email-linux@roeck-us.net>
- <1728768.gTkBc2iT1V@vostro.rjw.lan>
-In-Reply-To: <1728768.gTkBc2iT1V@vostro.rjw.lan>
+References: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1368119391-13837-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jingoo Han <jg1.han@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <len.brown@intel.com>, Jingoo Han <jg1.han@samsung.com>
 
-On Thu, May 09, 2013 at 09:15:00PM +0200, Rafael J. Wysocki wrote:
-> On Thursday, May 09, 2013 10:09:23 AM Guenter Roeck wrote:
-> > The following patch series introduces a marker for power management functions
-> > and data. This this marker, #ifdef CONFIG_PM and #ifdef CONFIG_PM_SLEEP
-> > can be removed from most of the code. This ensures that the conditional code
-> > still compiles but is not included in the object file.
-> > 
-> > As a side effect, drivers declaring struct dev_pm_ops unconditionally
-> > get a bit smaller if CONFIG_PM_SLEEP is not configured.
-> > 
-> > The first patch in the series introduces the marker, the following
-> > two patches introduce the marker in two drivers to demonstrate its use.
-> > 
-> > The patch series depends on the "PM: Add pm_ops_ptr() macro" patch
-> > submitted by Jingoo Han.
-> 
-> What about CCing a PM core maintainer?
-> 
-Actually, that was the idea. Somehow my send script got screwed up.
-No idea what happened. Sorry for that.
+On Thu 2013-05-09 10:09:48, Guenter Roeck wrote:
+> The following patch series introduces a marker for power management functions
+> and data. This this marker, #ifdef CONFIG_PM and #ifdef CONFIG_PM_SLEEP
+> can be removed from most of the code. This ensures that the conditional code
+> still compiles but is not included in the object file.
 
-Guenter
+Was it compile-tested for both PM_SLEEP and !PM_SLEEP cases?
+
+If driver wants to have pm-specific fields in its structures, this
+will make it harder.
+
+Ifdefs are ugly, and this has better compiler coverage in !PM_SLEEP
+case. Good. OTOH most people are running with PM_SLEEP, so advantage
+is not great...
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
 _______________________________________________
 lm-sensors mailing list
