@@ -1,113 +1,65 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 09 May 2013 13:30:03 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 13 May 2013 08:11:50 +0000
 Subject: Re: [lm-sensors] i2c multimaster and the device driver detect function
-Message-Id: <20130509133003.GA898@roeck-us.net>
+Message-Id: <20130513101150.0c9e4d30@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130212164811.GV8668@pengutronix.de>
- <3D8D1B67-2846-4B78-B402-6B9FD1CB10E6@gmail.com>
- <20130508175417.GB29689@roeck-us.net>
- <FCF1B5D0-FF63-40D5-B7B4-D5969628AAD3@gmail.com>
- <20130509035313.GA26817@roeck-us.net>
- <3322BACE-9434-4249-8621-C1AD0D340A8A@gmail.com>
+	<3D8D1B67-2846-4B78-B402-6B9FD1CB10E6@gmail.com>
+	<20130508175417.GB29689@roeck-us.net>
+	<FCF1B5D0-FF63-40D5-B7B4-D5969628AAD3@gmail.com>
+	<20130509035313.GA26817@roeck-us.net>
+	<3322BACE-9434-4249-8621-C1AD0D340A8A@gmail.com>
 In-Reply-To: <3322BACE-9434-4249-8621-C1AD0D340A8A-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: =?iso-8859-1?Q?Jean-Fran=E7ois?= Dagenais <jeff.dagenais-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Dagenais <jeff.dagenais-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org
 
-On Thu, May 09, 2013 at 08:38:28AM -0400, Jean-Fran=E7ois Dagenais wrote:
->=20
-> On 2013-05-08, at 11:53 PM, Guenter Roeck wrote:
->=20
-> > Guess the real conclusion is that one should avoid two active masters
-> > in the first place if possible.
->=20
-> I agree, I can't think of any benefits worth the trouble.
->=20
-> > Is one of the I2C adapter drivers your own ? If so, you can disable aut=
-o-detection
-> > in the adapter code by setting the adapter class to 0 (specifically, do=
-n't set it
-> > to I2C_CLASS_HWMON). You can do the same in the Kontron driver if you h=
-ave the
-> > source (it is GPL so you should be able to find it). While not perfect,=
- that should
-> > be better than disabling auto-detection in the affected chip drivers.
->=20
-> That's great advice!! I will look into this, thanks!
->=20
-> > Note that the Kontron driver also sets I2C_CLASS_SPD, which means EEPRO=
-Ms are
-> > auto-detected on address 0x50.
->=20
-> Funny, I had to explicitly inject "I2C_BOARD_INFO("24c32", 0x50)" to see
-> Kontron's JIDA chip.
->=20
-Interesting.
-
-> >> [...] Right now I have a working setup where some slaves are
-> >> declared on bus 0 (PLD i2c master) and others on bus 1 (FPGA i2c maste=
-r). I have
-> >> yet to stress test the setup within the next day or so, but so far, it=
- seems to
-> >> work ok.
-> >>=20
-> > Sure, it does work, I am just not sure what the benefits are of having =
-two
-> > masters in this scenario.
->=20
-> My thoughts exactly. I would have avoided it. Right now I am trying to im=
-prove
-> and existing design.
->=20
-> >  Guess you are saying that the I2C master in the
-> > Kontron PLD can not drive the AD7147 - is that correct ?
->=20
-> Well no, it does drive it, we have it in stable production. It's just tha=
-t when
-> you have your finger on the wheel, CPU usage goes up to 5-15%. More inten=
-se
-> polling of the sensors also takes a toll on the CPU. For different reason=
-s other
-> than the ad714x, the FPGA i2c core option suddenly became attractive.
->=20
-> > If so, and if that
-> > means you have to use your own I2C core anyway, why bother using the Ko=
-ntron
-> > PLD's I2C bus to start with ? You could just ignore it (ie not instanti=
-ate
->=20
-> > or build it at all) and use your own.
->=20
-> Yeah, we already considered that... our FPGA's reset and flash select are
-> controlled by an i2c I/O expander! Hehe, so this I/O expander needs to be
-> mastered from the kempld. Reality is a bummer ;)
->=20
-> >=20
-> > Did you tell Kontron about the problems with their PLD ? Maybe they hav=
-e a
-> > solution.
->=20
-> Yes we did. If I remember correctly, the problem is the absence of an int=
-errupt
-> line from the PLD to the CPU, which explains the high CPU since the driver
-> sleeps-polls for async PLD completions and statuses. ... I know...
->=20
-Ah, that one. Yes, the higher CPU utilization is an indication that this is=
- due
-to polling, not due to power draw on the I2C lines. You might try to increa=
-se
-the usleep_range interval in the Kontron driver to reduce the load a bit.
-
-Anyway (kind of) good news - newer Kontron boards do support interrupts and=
- no
-longer have to revert to polling.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U2FsdXQgSmVhbi1GcmFuw6dvaXMsIGhpIEd1ZW50ZXIsCgpTb3JyeSBmb3IganVtcGluZyBpbiBh
+IGxpdHRsZSBsYXRlLCBJIGFtIGp1c3QgYmFjayBmcm9tIHZhY2F0aW9uLgoKT24gVGh1LCA5IE1h
+eSAyMDEzIDA4OjM4OjI4IC0wNDAwLCBKZWFuLUZyYW7Dp29pcyBEYWdlbmFpcyB3cm90ZToKPiBP
+biAyMDEzLTA1LTA4LCBhdCAxMTo1MyBQTSwgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IElzIG9u
+ZSBvZiB0aGUgSTJDIGFkYXB0ZXIgZHJpdmVycyB5b3VyIG93biA/IElmIHNvLCB5b3UgY2FuIGRp
+c2FibGUgYXV0by1kZXRlY3Rpb24KPiA+IGluIHRoZSBhZGFwdGVyIGNvZGUgYnkgc2V0dGluZyB0
+aGUgYWRhcHRlciBjbGFzcyB0byAwIChzcGVjaWZpY2FsbHksIGRvbid0IHNldCBpdAo+ID4gdG8g
+STJDX0NMQVNTX0hXTU9OKS4gWW91IGNhbiBkbyB0aGUgc2FtZSBpbiB0aGUgS29udHJvbiBkcml2
+ZXIgaWYgeW91IGhhdmUgdGhlCj4gPiBzb3VyY2UgKGl0IGlzIEdQTCBzbyB5b3Ugc2hvdWxkIGJl
+IGFibGUgdG8gZmluZCBpdCkuIFdoaWxlIG5vdCBwZXJmZWN0LCB0aGF0IHNob3VsZAo+ID4gYmUg
+YmV0dGVyIHRoYW4gZGlzYWJsaW5nIGF1dG8tZGV0ZWN0aW9uIGluIHRoZSBhZmZlY3RlZCBjaGlw
+IGRyaXZlcnMuCj4gCj4gVGhhdCdzIGdyZWF0IGFkdmljZSEhIEkgd2lsbCBsb29rIGludG8gdGhp
+cywgdGhhbmtzIQoKR3VlbnRlciBpcyByaWdodC4gWW91IG5ldmVyIGhhdmUgdG8gZGlzYWJsZSBh
+dXRvLWRldGVjdGlvbiBpbiB0aGUgc2xhdmUKZHJpdmVycyAoamM0MiBldGMuKSBBbGwgdGhlc2Ug
+c2xhdmUgZHJpdmVycyBkbyBpcyBjbGFpbSAiSSBfY2FuXyBkbwphdXRvLWRldGVjdGlvbiIsIG5v
+dCAiSSBfd2lsbF8gZG8gYXV0by1kZXRlY3Rpb24uIiBJdCdzIGFsd2F5cyB1cCB0byB0aGUKSTJD
+IGFkYXB0ZXIgZHJpdmVyLCB3aGV0aGVyIGF1dG8tZGV0ZWN0aW9uIHdpbGwgaGFwcGVuIG9yIG5v
+dC4gQW5kIGl0CmlzIGRpc2FibGVkIGJ5IGRlZmF1bHQuIFNvIGlmIHlvdSBkb24ndCB3YW50IGl0
+LCBqdXN0IGRvIG5vdCBlbmFibGUgaXQKaW4gdGhlIGJ1cyBkcml2ZXIuIFlvdSBjYW4gZXZlbiBz
+ZXQgaXQgcGVyIGFkYXB0ZXIsIHdoZW4gdGhlIGRyaXZlcgpjb250cm9scyBtb3JlIHRoYW4gb25l
+IGFkYXB0ZXIsIGFuZCBwZXIgYnVzIHNlZ21lbnQsIHdoZW4gbXVsdGlwbGV4aW5nCmlzIHRha2lu
+ZyBwbGFjZS4KClBsZWFzZSBhbHNvIG5vdGU6IHRoZSBqYzQyIGRyaXZlciBub3cgdXNlcyBJMkNf
+Q0xBU1NfU1BEIG5vdApJMkNfQ0xBU1NfSFdNT04sIGJlY2F1c2UgbWVtb3J5IG1vZHVsZXMgdHlw
+aWNhbGx5IHVzZSBhIHNpbmdsZSBjaGlwIGZvcgpTUEQgRUVQUk9NIGFuZCBKRURFQyBKQzQyLjIg
+dGVtcGVyYXR1cmUgc2Vuc29yLiBUaGluayBvZiBJMkNfQ0xBU1NfU1BECmFzICJJMkMgY2xhc3Mg
+Zm9yIG1lbW9yeSBtb2R1bGVzLiIKCj4gPiBOb3RlIHRoYXQgdGhlIEtvbnRyb24gZHJpdmVyIGFs
+c28gc2V0cyBJMkNfQ0xBU1NfU1BELCB3aGljaCBtZWFucyBFRVBST01zIGFyZQo+ID4gYXV0by1k
+ZXRlY3RlZCBvbiBhZGRyZXNzIDB4NTAuCj4gCj4gRnVubnksIEkgaGFkIHRvIGV4cGxpY2l0bHkg
+aW5qZWN0ICJJMkNfQk9BUkRfSU5GTygiMjRjMzIiLCAweDUwKSIgdG8gc2VlCj4gS29udHJvbidz
+IEpJREEgY2hpcC4KClRoZSBvbmx5IEVFUFJPTXMgd2hpY2ggYXJlIGF1dG8tZGV0ZWN0ZWQgYXJl
+IFNQRCBhbmQgRURJRCBFRVBST01zLiBUaGUKbGVnYWN5IGVlcHJvbSBkcml2ZXIgaXMgdXNlZCBm
+b3IgdGhlc2UuIFRoZSAyNEMzMiBpcyBhIGxhcmdlciBFRVBST00sCnlvdSBtdXN0IHVzZSB0aGUg
+YXQyNCBkcml2ZXIgZm9yIGl0IGFuZCBpdCBkb2Vzbid0IHN1cHBvcnQKYXV0by1kZXRlY3Rpb24g
+KHRoaXMgaXMgc2ltcGx5IG5vdCBwb3NzaWJsZS4pCgpJbiB0aGUgbG9uZyBydW4sIHRoZSBsZWdh
+Y3kgZWVwcm9tIGRyaXZlciBjb3VsZCBiZSBraWxsZWQsIGJ1dCBub3QKYmVmb3JlIHNvbWVvbmUg
+dmVyaWZpZXMgdGhhdCB0aGUgYXQyNCBkcml2ZXIgY2FuIHRha2Ugb3ZlciBjb21wbGV0ZWx5LApp
+bmNsdWRpbmcgdGhlIGF1dG8tZGV0ZWN0aW9uIGZlYXR1cmUsIHBlcmZvcm1hbmNlIG9wdGltaXph
+dGlvbnMgYW5kCmNvcm5lciBjYXNlIGNvdmVyYWdlLgoKPiA+ICguLi4pCj4gPiBTdXJlLCBpdCBk
+b2VzIHdvcmssIEkgYW0ganVzdCBub3Qgc3VyZSB3aGF0IHRoZSBiZW5lZml0cyBhcmUgb2YgaGF2
+aW5nIHR3bwo+ID4gbWFzdGVycyBpbiB0aGlzIHNjZW5hcmlvLgo+IAo+IE15IHRob3VnaHRzIGV4
+YWN0bHkuIEkgd291bGQgaGF2ZSBhdm9pZGVkIGl0LiBSaWdodCBub3cgSSBhbSB0cnlpbmcgdG8g
+aW1wcm92ZQo+IGFuZCBleGlzdGluZyBkZXNpZ24uCgpJdCBtaWdodCBiZSBhIGxpdHRsZSBsYXRl
+IG5vdywgYnV0IHlvdSBtYXkgd2FudCB0byBsb29rIGludG8gdGhlClBDQTk1NDEsIGZvciB3aGlj
+aCBHdWVudGVyIGhhcyB3cml0dGVuIGEgZHJpdmVyLgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
+aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
+cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
