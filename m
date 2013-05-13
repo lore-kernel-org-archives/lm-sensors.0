@@ -1,70 +1,54 @@
-From: =?iso-8859-1?Q?Jean-Fran=E7ois_Dagenais?= <jeff.dagenais@gmail.com>
-Date: Mon, 13 May 2013 13:54:47 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 13 May 2013 14:14:13 +0000
 Subject: Re: [lm-sensors] i2c multimaster and the device driver detect function
-Message-Id: <E43DA0E6-A130-4837-8343-EEC182A12EE6@gmail.com>
+Message-Id: <20130513161413.58ebc9e8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130212164811.GV8668@pengutronix.de> <3D8D1B67-2846-4B78-B402-6B9FD1CB10E6@gmail.com> <20130508175417.GB29689@roeck-us.net> <FCF1B5D0-FF63-40D5-B7B4-D5969628AAD3@gmail.com> <20130509035313.GA26817@roeck-us.net> <3322BACE-9434-4249-8621-C1AD0D340A8A@gmail.com> <20130513101150.0c9e4d30@endymion.delvare>
-In-Reply-To: <20130513101150.0c9e4d30-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+References: <20130212164811.GV8668@pengutronix.de>
+	<3D8D1B67-2846-4B78-B402-6B9FD1CB10E6@gmail.com>
+	<20130508175417.GB29689@roeck-us.net>
+	<FCF1B5D0-FF63-40D5-B7B4-D5969628AAD3@gmail.com>
+	<20130509035313.GA26817@roeck-us.net>
+	<3322BACE-9434-4249-8621-C1AD0D340A8A@gmail.com>
+	<20130513101150.0c9e4d30@endymion.delvare>
+	<E43DA0E6-A130-4837-8343-EEC182A12EE6@gmail.com>
+In-Reply-To: <E43DA0E6-A130-4837-8343-EEC182A12EE6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+To: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Dagenais <jeff.dagenais-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org
 
-Salut Jean, merci de participer!
-
-On 2013-05-13, at 4:11 AM, Jean Delvare wrote:
-
-> 
-> Guenter is right. You never have to disable auto-detection in the slave
-> drivers (jc42 etc.) All these slave drivers do is claim "I _can_ do
-> auto-detection", not "I _will_ do auto-detection." It's always up to the
-> I2C adapter driver, whether auto-detection will happen or not. And it
-> is disabled by default. So if you don't want it, just do not enable it
-> in the bus driver. You can even set it per adapter, when the driver
-> controls more than one adapter, and per bus segment, when multiplexing
-> is taking place.
-
-I am just wondering where the clean hook is for doing this. From what I can
-gather, the master driver(s I've seen) declare ".class = I2C_CLASS_HWMON |
-I2C_CLASS_SPD," pretty statically. Is it just that they are missing this
-flexibility? Something along the lines of patching the pdata of such a master
-driver to provide a 'class' variable in pdata? If so, one would have to take
-into account the existing users of the master which expect the previous class
-setting which may not be '0', thus requiring patching the existing upstreamed
-users...  Suggestions?
-
-> [...]
-> It might be a little late now, but you may want to look into the
-> PCA9541, for which Guenter has written a driver.
-
-Thanks for that. Unfortunately, I am bound to existing hardware on this
-platform. I will keep it in mind for future designs though.
-
-Since my first post, I have stumbled on more problems with multimaster. Namely,
-the master drivers are not consistent with the way they deal with arbitration
-loss. I've all but re-written i2c-xiic, and dealt with arblost by catching
-BusNotBusy interrupt and retrying the transfer. But the same cannot be said
-about i2c-kempld (Kontron's in-PLD i2c master). Even if I manage to get the
-kempld driver to handle this correctly, xiic still has some issues. The IP core
-seems to enter a state when scanning unpopulated addresses (i2cdetect) for which
-only a soft reset is required to recover, but this means it looses track of the
-peer start-stop sequences and it's detection of the bus being busy or not.
-
-I have decided to abandon the multimaster option for now as the hurdles are too
-great. The only time I need another i2c master is when I need to hot reset the
-fpga which houses the xiic core. (the reset pin is driven from gpo on an i2c i/o
-expander). I will therefore handle this special case in userspace by unloading
-i2c-xiic, then loading i2c-kempld. The slaves are arch declared on hard-coded
-bus 0, so this should just work.
-
-Thanks for all your help!
-/jfd
-
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAxMyBNYXkgMjAxMyAwOTo1NDo0NyAtMDQwMCwgSmVhbi1GcmFuw6dvaXMgRGFnZW5h
+aXMgd3JvdGU6Cj4gU2FsdXQgSmVhbiwgbWVyY2kgZGUgcGFydGljaXBlciEKPiAKPiBPbiAyMDEz
+LTA1LTEzLCBhdCA0OjExIEFNLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4gCj4gPiAKPiA+IEd1ZW50
+ZXIgaXMgcmlnaHQuIFlvdSBuZXZlciBoYXZlIHRvIGRpc2FibGUgYXV0by1kZXRlY3Rpb24gaW4g
+dGhlIHNsYXZlCj4gPiBkcml2ZXJzIChqYzQyIGV0Yy4pIEFsbCB0aGVzZSBzbGF2ZSBkcml2ZXJz
+IGRvIGlzIGNsYWltICJJIF9jYW5fIGRvCj4gPiBhdXRvLWRldGVjdGlvbiIsIG5vdCAiSSBfd2ls
+bF8gZG8gYXV0by1kZXRlY3Rpb24uIiBJdCdzIGFsd2F5cyB1cCB0byB0aGUKPiA+IEkyQyBhZGFw
+dGVyIGRyaXZlciwgd2hldGhlciBhdXRvLWRldGVjdGlvbiB3aWxsIGhhcHBlbiBvciBub3QuIEFu
+ZCBpdAo+ID4gaXMgZGlzYWJsZWQgYnkgZGVmYXVsdC4gU28gaWYgeW91IGRvbid0IHdhbnQgaXQs
+IGp1c3QgZG8gbm90IGVuYWJsZSBpdAo+ID4gaW4gdGhlIGJ1cyBkcml2ZXIuIFlvdSBjYW4gZXZl
+biBzZXQgaXQgcGVyIGFkYXB0ZXIsIHdoZW4gdGhlIGRyaXZlcgo+ID4gY29udHJvbHMgbW9yZSB0
+aGFuIG9uZSBhZGFwdGVyLCBhbmQgcGVyIGJ1cyBzZWdtZW50LCB3aGVuIG11bHRpcGxleGluZwo+
+ID4gaXMgdGFraW5nIHBsYWNlLgo+IAo+IEkgYW0ganVzdCB3b25kZXJpbmcgd2hlcmUgdGhlIGNs
+ZWFuIGhvb2sgaXMgZm9yIGRvaW5nIHRoaXMuIEZyb20gd2hhdCBJIGNhbgo+IGdhdGhlciwgdGhl
+IG1hc3RlciBkcml2ZXIocyBJJ3ZlIHNlZW4pIGRlY2xhcmUgIi5jbGFzcyA9IEkyQ19DTEFTU19I
+V01PTiB8Cj4gSTJDX0NMQVNTX1NQRCwiIHByZXR0eSBzdGF0aWNhbGx5LiBJcyBpdCBqdXN0IHRo
+YXQgdGhleSBhcmUgbWlzc2luZyB0aGlzCj4gZmxleGliaWxpdHk/IFNvbWV0aGluZyBhbG9uZyB0
+aGUgbGluZXMgb2YgcGF0Y2hpbmcgdGhlIHBkYXRhIG9mIHN1Y2ggYSBtYXN0ZXIKPiBkcml2ZXIg
+dG8gcHJvdmlkZSBhICdjbGFzcycgdmFyaWFibGUgaW4gcGRhdGE/CgpZZXMsIGV4YWN0bHkuCgo+
+IElmIHNvLCBvbmUgd291bGQgaGF2ZSB0byB0YWtlCj4gaW50byBhY2NvdW50IHRoZSBleGlzdGlu
+ZyB1c2VycyBvZiB0aGUgbWFzdGVyIHdoaWNoIGV4cGVjdCB0aGUgcHJldmlvdXMgY2xhc3MKPiBz
+ZXR0aW5nIHdoaWNoIG1heSBub3QgYmUgJzAnLCB0aHVzIHJlcXVpcmluZyBwYXRjaGluZyB0aGUg
+ZXhpc3RpbmcgdXBzdHJlYW1lZAo+IHVzZXJzLi4uICBTdWdnZXN0aW9ucz8KClllcywgeW91IGhh
+dmUgdG8gZG8gc29tZXRoaW5nIGxpa2UgdGhhdC4gVGhlIHN0YXRpYyBjbGFzcyBkZWNsYXJhdGlv
+bnMKY29tZSBmcm9tIHRoZSBQQyB3b3JsZCBkcml2ZXJzIHdoZXJlIHRoZXkgKGFsbW9zdCkgbmV2
+ZXIgY2hhbmdlLgpFbWJlZGRlZCBzeXN0ZW1zIGRlZmluaXRlbHkgd2FudCBhIHBlci1idXMgZGVj
+aXNpb24gYW5kIHNob3VsZCBhdm9pZApzdGF0aWMgZGVjbGFyYXRpb25zIGFzIG11Y2ggYXMgcG9z
+c2libGUuIEVzcGVjaWFsbHkgd2hlbiBpbiBtb3N0IGNhc2VzCnRoZXkga25vdyBleGFjdGx5IHdo
+YXQgc2xhdmVzIHRoZXkgYXJlIHNvIHRoZXkgZG9uJ3QgbmVlZAphdXRvLWRldGVjdGlvbi4gVGhl
+cmUncyBhIHJlYXNvbiB3aHkgYXV0by1kZXRlY3Rpb24gaXMgYW4gb3B0aW9uYWwKZmVhdHVyZS4u
+LgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3Jz
