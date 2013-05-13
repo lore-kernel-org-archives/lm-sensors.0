@@ -1,40 +1,27 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Mon, 13 May 2013 13:37:26 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (iio_hwmon) Fix null pointer dereference
-Message-Id: <1368452246.10208.0.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 13 May 2013 13:44:05 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (iio_hwmon) Fix null pointer dereference
+Message-Id: <20130513134405.GB31002@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1368452246.10208.0.camel@phoenix>
+In-Reply-To: <1368452246.10208.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch fixes the null pointer dereference in goto error_release_channels
-path when allocate memory for st fails.
+On Mon, May 13, 2013 at 09:37:26PM +0800, Axel Lin wrote:
+> This patch fixes the null pointer dereference in goto error_release_channels
+> path when allocate memory for st fails.
+> 
+> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/iio_hwmon.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+That was quick.
 
-diff --git a/drivers/hwmon/iio_hwmon.c b/drivers/hwmon/iio_hwmon.c
-index 368497f..52b77af 100644
---- a/drivers/hwmon/iio_hwmon.c
-+++ b/drivers/hwmon/iio_hwmon.c
-@@ -161,7 +161,7 @@ static int iio_hwmon_probe(struct platform_device *pdev)
- error_remove_group:
- 	sysfs_remove_group(&dev->kobj, &st->attr_group);
- error_release_channels:
--	iio_channel_release_all(st->channels);
-+	iio_channel_release_all(channels);
- 	return ret;
- }
- 
--- 
-1.8.1.2
+Applied, thanks.
 
-
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
