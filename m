@@ -1,65 +1,70 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 13 May 2013 08:11:50 +0000
+From: =?iso-8859-1?Q?Jean-Fran=E7ois_Dagenais?= <jeff.dagenais@gmail.com>
+Date: Mon, 13 May 2013 13:54:47 +0000
 Subject: Re: [lm-sensors] i2c multimaster and the device driver detect function
-Message-Id: <20130513101150.0c9e4d30@endymion.delvare>
+Message-Id: <E43DA0E6-A130-4837-8343-EEC182A12EE6@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130212164811.GV8668@pengutronix.de>
-	<3D8D1B67-2846-4B78-B402-6B9FD1CB10E6@gmail.com>
-	<20130508175417.GB29689@roeck-us.net>
-	<FCF1B5D0-FF63-40D5-B7B4-D5969628AAD3@gmail.com>
-	<20130509035313.GA26817@roeck-us.net>
-	<3322BACE-9434-4249-8621-C1AD0D340A8A@gmail.com>
-In-Reply-To: <3322BACE-9434-4249-8621-C1AD0D340A8A-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+References: <20130212164811.GV8668@pengutronix.de> <3D8D1B67-2846-4B78-B402-6B9FD1CB10E6@gmail.com> <20130508175417.GB29689@roeck-us.net> <FCF1B5D0-FF63-40D5-B7B4-D5969628AAD3@gmail.com> <20130509035313.GA26817@roeck-us.net> <3322BACE-9434-4249-8621-C1AD0D340A8A@gmail.com> <20130513101150.0c9e4d30@endymion.delvare>
+In-Reply-To: <20130513101150.0c9e4d30-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?SmVhbi1GcmFuw6dvaXM=?= Dagenais <jeff.dagenais-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 Cc: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org
 
-U2FsdXQgSmVhbi1GcmFuw6dvaXMsIGhpIEd1ZW50ZXIsCgpTb3JyeSBmb3IganVtcGluZyBpbiBh
-IGxpdHRsZSBsYXRlLCBJIGFtIGp1c3QgYmFjayBmcm9tIHZhY2F0aW9uLgoKT24gVGh1LCA5IE1h
-eSAyMDEzIDA4OjM4OjI4IC0wNDAwLCBKZWFuLUZyYW7Dp29pcyBEYWdlbmFpcyB3cm90ZToKPiBP
-biAyMDEzLTA1LTA4LCBhdCAxMTo1MyBQTSwgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IElzIG9u
-ZSBvZiB0aGUgSTJDIGFkYXB0ZXIgZHJpdmVycyB5b3VyIG93biA/IElmIHNvLCB5b3UgY2FuIGRp
-c2FibGUgYXV0by1kZXRlY3Rpb24KPiA+IGluIHRoZSBhZGFwdGVyIGNvZGUgYnkgc2V0dGluZyB0
-aGUgYWRhcHRlciBjbGFzcyB0byAwIChzcGVjaWZpY2FsbHksIGRvbid0IHNldCBpdAo+ID4gdG8g
-STJDX0NMQVNTX0hXTU9OKS4gWW91IGNhbiBkbyB0aGUgc2FtZSBpbiB0aGUgS29udHJvbiBkcml2
-ZXIgaWYgeW91IGhhdmUgdGhlCj4gPiBzb3VyY2UgKGl0IGlzIEdQTCBzbyB5b3Ugc2hvdWxkIGJl
-IGFibGUgdG8gZmluZCBpdCkuIFdoaWxlIG5vdCBwZXJmZWN0LCB0aGF0IHNob3VsZAo+ID4gYmUg
-YmV0dGVyIHRoYW4gZGlzYWJsaW5nIGF1dG8tZGV0ZWN0aW9uIGluIHRoZSBhZmZlY3RlZCBjaGlw
-IGRyaXZlcnMuCj4gCj4gVGhhdCdzIGdyZWF0IGFkdmljZSEhIEkgd2lsbCBsb29rIGludG8gdGhp
-cywgdGhhbmtzIQoKR3VlbnRlciBpcyByaWdodC4gWW91IG5ldmVyIGhhdmUgdG8gZGlzYWJsZSBh
-dXRvLWRldGVjdGlvbiBpbiB0aGUgc2xhdmUKZHJpdmVycyAoamM0MiBldGMuKSBBbGwgdGhlc2Ug
-c2xhdmUgZHJpdmVycyBkbyBpcyBjbGFpbSAiSSBfY2FuXyBkbwphdXRvLWRldGVjdGlvbiIsIG5v
-dCAiSSBfd2lsbF8gZG8gYXV0by1kZXRlY3Rpb24uIiBJdCdzIGFsd2F5cyB1cCB0byB0aGUKSTJD
-IGFkYXB0ZXIgZHJpdmVyLCB3aGV0aGVyIGF1dG8tZGV0ZWN0aW9uIHdpbGwgaGFwcGVuIG9yIG5v
-dC4gQW5kIGl0CmlzIGRpc2FibGVkIGJ5IGRlZmF1bHQuIFNvIGlmIHlvdSBkb24ndCB3YW50IGl0
-LCBqdXN0IGRvIG5vdCBlbmFibGUgaXQKaW4gdGhlIGJ1cyBkcml2ZXIuIFlvdSBjYW4gZXZlbiBz
-ZXQgaXQgcGVyIGFkYXB0ZXIsIHdoZW4gdGhlIGRyaXZlcgpjb250cm9scyBtb3JlIHRoYW4gb25l
-IGFkYXB0ZXIsIGFuZCBwZXIgYnVzIHNlZ21lbnQsIHdoZW4gbXVsdGlwbGV4aW5nCmlzIHRha2lu
-ZyBwbGFjZS4KClBsZWFzZSBhbHNvIG5vdGU6IHRoZSBqYzQyIGRyaXZlciBub3cgdXNlcyBJMkNf
-Q0xBU1NfU1BEIG5vdApJMkNfQ0xBU1NfSFdNT04sIGJlY2F1c2UgbWVtb3J5IG1vZHVsZXMgdHlw
-aWNhbGx5IHVzZSBhIHNpbmdsZSBjaGlwIGZvcgpTUEQgRUVQUk9NIGFuZCBKRURFQyBKQzQyLjIg
-dGVtcGVyYXR1cmUgc2Vuc29yLiBUaGluayBvZiBJMkNfQ0xBU1NfU1BECmFzICJJMkMgY2xhc3Mg
-Zm9yIG1lbW9yeSBtb2R1bGVzLiIKCj4gPiBOb3RlIHRoYXQgdGhlIEtvbnRyb24gZHJpdmVyIGFs
-c28gc2V0cyBJMkNfQ0xBU1NfU1BELCB3aGljaCBtZWFucyBFRVBST01zIGFyZQo+ID4gYXV0by1k
-ZXRlY3RlZCBvbiBhZGRyZXNzIDB4NTAuCj4gCj4gRnVubnksIEkgaGFkIHRvIGV4cGxpY2l0bHkg
-aW5qZWN0ICJJMkNfQk9BUkRfSU5GTygiMjRjMzIiLCAweDUwKSIgdG8gc2VlCj4gS29udHJvbidz
-IEpJREEgY2hpcC4KClRoZSBvbmx5IEVFUFJPTXMgd2hpY2ggYXJlIGF1dG8tZGV0ZWN0ZWQgYXJl
-IFNQRCBhbmQgRURJRCBFRVBST01zLiBUaGUKbGVnYWN5IGVlcHJvbSBkcml2ZXIgaXMgdXNlZCBm
-b3IgdGhlc2UuIFRoZSAyNEMzMiBpcyBhIGxhcmdlciBFRVBST00sCnlvdSBtdXN0IHVzZSB0aGUg
-YXQyNCBkcml2ZXIgZm9yIGl0IGFuZCBpdCBkb2Vzbid0IHN1cHBvcnQKYXV0by1kZXRlY3Rpb24g
-KHRoaXMgaXMgc2ltcGx5IG5vdCBwb3NzaWJsZS4pCgpJbiB0aGUgbG9uZyBydW4sIHRoZSBsZWdh
-Y3kgZWVwcm9tIGRyaXZlciBjb3VsZCBiZSBraWxsZWQsIGJ1dCBub3QKYmVmb3JlIHNvbWVvbmUg
-dmVyaWZpZXMgdGhhdCB0aGUgYXQyNCBkcml2ZXIgY2FuIHRha2Ugb3ZlciBjb21wbGV0ZWx5LApp
-bmNsdWRpbmcgdGhlIGF1dG8tZGV0ZWN0aW9uIGZlYXR1cmUsIHBlcmZvcm1hbmNlIG9wdGltaXph
-dGlvbnMgYW5kCmNvcm5lciBjYXNlIGNvdmVyYWdlLgoKPiA+ICguLi4pCj4gPiBTdXJlLCBpdCBk
-b2VzIHdvcmssIEkgYW0ganVzdCBub3Qgc3VyZSB3aGF0IHRoZSBiZW5lZml0cyBhcmUgb2YgaGF2
-aW5nIHR3bwo+ID4gbWFzdGVycyBpbiB0aGlzIHNjZW5hcmlvLgo+IAo+IE15IHRob3VnaHRzIGV4
-YWN0bHkuIEkgd291bGQgaGF2ZSBhdm9pZGVkIGl0LiBSaWdodCBub3cgSSBhbSB0cnlpbmcgdG8g
-aW1wcm92ZQo+IGFuZCBleGlzdGluZyBkZXNpZ24uCgpJdCBtaWdodCBiZSBhIGxpdHRsZSBsYXRl
-IG5vdywgYnV0IHlvdSBtYXkgd2FudCB0byBsb29rIGludG8gdGhlClBDQTk1NDEsIGZvciB3aGlj
-aCBHdWVudGVyIGhhcyB3cml0dGVuIGEgZHJpdmVyLgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Salut Jean, merci de participer!
+
+On 2013-05-13, at 4:11 AM, Jean Delvare wrote:
+
+> 
+> Guenter is right. You never have to disable auto-detection in the slave
+> drivers (jc42 etc.) All these slave drivers do is claim "I _can_ do
+> auto-detection", not "I _will_ do auto-detection." It's always up to the
+> I2C adapter driver, whether auto-detection will happen or not. And it
+> is disabled by default. So if you don't want it, just do not enable it
+> in the bus driver. You can even set it per adapter, when the driver
+> controls more than one adapter, and per bus segment, when multiplexing
+> is taking place.
+
+I am just wondering where the clean hook is for doing this. From what I can
+gather, the master driver(s I've seen) declare ".class = I2C_CLASS_HWMON |
+I2C_CLASS_SPD," pretty statically. Is it just that they are missing this
+flexibility? Something along the lines of patching the pdata of such a master
+driver to provide a 'class' variable in pdata? If so, one would have to take
+into account the existing users of the master which expect the previous class
+setting which may not be '0', thus requiring patching the existing upstreamed
+users...  Suggestions?
+
+> [...]
+> It might be a little late now, but you may want to look into the
+> PCA9541, for which Guenter has written a driver.
+
+Thanks for that. Unfortunately, I am bound to existing hardware on this
+platform. I will keep it in mind for future designs though.
+
+Since my first post, I have stumbled on more problems with multimaster. Namely,
+the master drivers are not consistent with the way they deal with arbitration
+loss. I've all but re-written i2c-xiic, and dealt with arblost by catching
+BusNotBusy interrupt and retrying the transfer. But the same cannot be said
+about i2c-kempld (Kontron's in-PLD i2c master). Even if I manage to get the
+kempld driver to handle this correctly, xiic still has some issues. The IP core
+seems to enter a state when scanning unpopulated addresses (i2cdetect) for which
+only a soft reset is required to recover, but this means it looses track of the
+peer start-stop sequences and it's detection of the bus being busy or not.
+
+I have decided to abandon the multimaster option for now as the hurdles are too
+great. The only time I need another i2c master is when I need to hot reset the
+fpga which houses the xiic core. (the reset pin is driven from gpo on an i2c i/o
+expander). I will therefore handle this special case in userspace by unloading
+i2c-xiic, then loading i2c-kempld. The slaves are arch declared on hard-coded
+bus 0, so this should just work.
+
+Thanks for all your help!
+/jfd
+
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
