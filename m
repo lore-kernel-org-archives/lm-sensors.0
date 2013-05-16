@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 16 May 2013 15:59:17 +0000
+Date: Thu, 16 May 2013 16:59:23 +0000
 Subject: Re: [lm-sensors] Linux drivers
-Message-Id: <20130516155917.GA16509@roeck-us.net>
+Message-Id: <20130516165923.GA17377@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BB68DB2AA0F98748814ADCB4C9FBCE4716BAAC18@DNCE04.ent.ti.com>
 In-Reply-To: <BB68DB2AA0F98748814ADCB4C9FBCE4716BAAC18@DNCE04.ent.ti.com>
@@ -9,6 +9,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Resending, as the previous one was rejected by some recipients due to
+spam block issues (which should hopefully be resolved by now).
 
 On Thu, May 16, 2013 at 01:37:11PM +0200, Jean Delvare wrote:
 > On Thu, 16 May 2013 12:53:09 +0200, Jean Delvare wrote:
