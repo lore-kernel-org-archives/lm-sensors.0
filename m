@@ -1,27 +1,36 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 03 May 2013 15:10:16 +0000
-Subject: Re: [lm-sensors] [PATCH 3/5] hwmon: i5k_amb: Remove redundant platform_set_drvdata()
-Message-Id: <20130503151016.GC8781@roeck-us.net>
+From: Robert Coulson <rob.coulson@gmail.com>
+Date: Thu, 16 May 2013 21:56:16 +0000
+Subject: [lm-sensors] [PATCH 0/2] Add ds1631 chip support to ds1621 driver
+Message-Id: <1368742242-15191-1-git-send-email-rob.coulson@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1367574220-15787-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367574220-15787-3-git-send-email-sachin.kamat@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, May 03, 2013 at 03:13:38PM +0530, Sachin Kamat wrote:
-> Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
-> driver is bound) removes the need to set driver data field to
-> NULL.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Cc: Darrick J. Wong <djwong@us.ibm.com>
+This set of patches adds ds1631 chip support into the ds1621 driver,
+documentation, and Kconfig.
 
-Applied to -next.
+It is based on the 3.9 source base and intended for hwmon-next since it is
+dependent on the previously applied ds1721 chip support patch set.
 
-Thanks,
-Guenter
+In addition, this code has been tested and validated with the ds1621,
+ds1625, ds1721, and ds1631 chips, using sensors, sensors-detect, and
+explicit device instantiation
+
+Robert Coulson (2):
+  hwmon (ds1621): Add ds1631 chip support to ds1621 driver
+  hwmon (ds1621): Add ds1631 information to ds1621 Documentation and
+    Kconfig
+
+ Documentation/hwmon/ds1621 |   27 ++++++++++++++++++++++++---
+ drivers/hwmon/Kconfig      |    1 +
+ drivers/hwmon/ds1621.c     |   27 ++++++++++++++++++++-------
+ 3 files changed, 45 insertions(+), 10 deletions(-)
+
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
