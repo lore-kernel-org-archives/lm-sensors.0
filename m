@@ -1,31 +1,60 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 03 May 2013 15:25:01 +0000
-Subject: Re: [lm-sensors] [PATCH 5/5] hwmon: w83627ehf: Remove redundant platform_set_drvdata()
-Message-Id: <20130503172501.4458fc6d@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 20 May 2013 03:48:35 +0000
+Subject: [lm-sensors] [PATCH] MAINTAINERS: Add myself as maintainer for LM95234 and TMP401 drivers
+Message-Id: <1369021715-31502-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1367574220-15787-5-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367574220-15787-5-git-send-email-sachin.kamat@linaro.org>
+References: <1365023631-9279-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1365023631-9279-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors <lm-sensors@lm-sensors.org>
+Cc: linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-On Fri, 3 May 2013 08:11:41 -0700, Guenter Roeck wrote:
-> On Fri, May 03, 2013 at 03:13:40PM +0530, Sachin Kamat wrote:
-> > Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
-> > driver is bound) removes the need to set driver data field to
-> > NULL.
-> > 
-> > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> 
-> Applied to -next. Jean, let me know if you want to take this one, and I'll drop
-> it.
+I wrote the LM95234 driver and extended the TMP401 driver substantially,
+and I have hardware to test both, so it makes sense to explicitly
+maintain them.
 
-No, I'm fine with this patch being in your tree.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ MAINTAINERS |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3d7782b..f0f3d20 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4976,6 +4976,13 @@ S:	Maintained
+ F:	Documentation/hwmon/lm90
+ F:	drivers/hwmon/lm90.c
+ 
++LM95234 HARDWARE MONITOR DRIVER
++M:	Guenter Roeck <linux@roeck-us.net>
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++F:	Documentation/hwmon/lm95234
++F:	drivers/hwmon/lm95234.c
++
+ LME2510 MEDIA DRIVER
+ M:	Malcolm Priestley <tvboxspy@gmail.com>
+ L:	linux-media@vger.kernel.org
+@@ -8182,6 +8189,13 @@ F:	drivers/mmc/host/sh_mobile_sdhi.c
+ F:	include/linux/mmc/tmio.h
+ F:	include/linux/mmc/sh_mobile_sdhi.h
+ 
++TMP401 HARDWARE MONITOR DRIVER
++M:	Guenter Roeck <linux@roeck-us.net>
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++F:	Documentation/hwmon/tmp401
++F:	drivers/hwmon/tmp401.c
++
+ TMPFS (SHMEM FILESYSTEM)
+ M:	Hugh Dickins <hughd@google.com>
+ L:	linux-mm@kvack.org
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
