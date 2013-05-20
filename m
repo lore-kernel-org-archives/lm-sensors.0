@@ -1,199 +1,106 @@
-From: Sebastian Werner <Sebastian.Werner@shd-online.de>
-Date: Wed, 08 May 2013 11:27:33 +0000
-Subject: Re: [lm-sensors] Getting correct temperature information from Intel 945GSE/ICH7M
-Message-Id: <CE0521C9E8FCC646A7D4D5C05886A0956050005E@SHDEXMBX1.shd-online.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 20 May 2013 22:29:21 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon (ds1621): Deprecate detection function
+Message-Id: <20130520222921.GA8207@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CE0521C9E8FCC646A7D4D5C05886A095604FFD4A@SHDEXMBX1.shd-online.de>
-In-Reply-To: <CE0521C9E8FCC646A7D4D5C05886A095604FFD4A@SHDEXMBX1.shd-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Tue, May 07, 2013 at 04:23:51PM +0000, Sebastian Werner wrote:
-> > > On Tue, May 07, 2013 at 12:54:21PM +0000, Sebastian Werner wrote:
-> > > > >
-> > > > >>On Mon, May 06, 2013 at 12:31:11PM +0000, Sebastian Werner
-> wrote:
-> > > > >> Hello,
-> > > > >>
-> > > > >> I am trying to get the right temperature from two different
-> > > > >> pieces of
-> > > hardware.
-> > > > >> The first, newest piece (http://www.jetwaycomputer.com/ITX-
-> > > JBC362F36.html) works right out of the box. Got lm-sensor on the
-> > > debian system, sensors-detect tells me to modprobe lm78 and the
-> > > temperature is roughly the same as the one shown in the bios.
-> > > > >>
-> > > > >> Acpitz-virtual-0
-> > > > >> Adapter: Virtual device
-> > > > >> Temp1:              +40.0=B0C  (crit =3D +127.0=B0C)
-> > > > >> Temp2:              +26.8=B0C  (crit =3D +127.0=B0C)
-> > > > >> Temp3:              +26.8=B0C  (crit =3D +100.0=B0C)
-> > > > >>
-> > > > >This output is not from the lm78 driver.
-> > > > >
-> > > > >The "coretemp" driver works with this CPU (Atom N2600). Load it
-> > > > >and see
-> > > what it reports.
-> > > >
-> > > > Weirdly enough, trying to load "coretemp" on the new hardware
-> > > > gives me a  "No such device" error ...
-> > > >
-> > > Old drivers, most likely. What is the output of /proc/cpuinfo ?
-> >
-> > old system:
-> > processor       : 0
-> > vendor_id       : GenuineIntel
-> > cpu family      : 6
-> > model           : 28
-> > model name      : Intel(R) Atom(TM) CPU N270   @ 1.60GHz
-> > stepping        : 2
-> > cpu MHz         : 1600.128
-> > cache size      : 512 KB
-> > physical id     : 0
-> > siblings        : 2
-> > core id         : 0
-> > cpu cores       : 1
-> > apicid          : 0
-> > initial apicid  : 0
-> > fdiv_bug        : no
-> > hlt_bug         : no
-> > f00f_bug        : no
-> > coma_bug        : no
-> > fpu             : yes
-> > fpu_exception   : yes
-> > cpuid level     : 10
-> > wp              : yes
-> > flags           : fpu vme de tsc msr pae mce cx8 apic sep mtrr pge mca =
-cmov pat
-> clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe constant_tsc arch_perfmon
-> pebs bts aperfmperf pni dtes64 monitor ds_cpl est tm2 ssse3 xtpr pdcm
-> movbe lahf_lm
-> > bogomips        : 3200.25
-> > clflush size    : 64
-> > cache_alignment : 64
-> > address sizes   : 32 bits physical, 32 bits virtual
-> > power management:
-> >
-> > new system:
-> > processor       : 0
-> > vendor_id       : GenuineIntel
-> > cpu family      : 6
-> > model           : 54
-> > model name      : Intel(R) Atom(TM) CPU N2600   @ 1.60GHz
-> > stepping        : 1
-> > cpu MHz         : 1596.218
-> > cache size      : 512 KB
-> > physical id     : 0
-> > siblings        : 4
-> > core id         : 0
-> > cpu cores       : 2
-> > apicid          : 0
-> > initial apicid  : 0
-> > fdiv_bug        : no
-> > hlt_bug         : no
-> > f00f_bug        : no
-> > coma_bug        : no
-> > fpu             : yes
-> > fpu_exception   : yes
-> > cpuid level     : 10
-> > wp              : yes
-> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge =
-mca cmov
-> pat pse36 clflush dts acpi mmx fxsr s
-> > se sse2 ss ht tm pbe nx lm constant_tsc arch_perfmon pebs bts
-> > nonstop_tsc aperfmperf pni dtes64 monitor ds_cpl est tm
-> > 2 ssse3 cx16 xtpr pdcm movbe lahf_lm arat
-> > bogomips        : 3192.43
-> > clflush size    : 64
-> > cache_alignment : 64
-> > address sizes   : 36 bits physical, 48 bits virtual
-> > power management:
-> >
-> Both are supported by the current version of the coretemp driver.
->=20
-> > > > Like Jean mentioned, I am running a rather old version, due to
-> > > > having old packages and all their baggage. I took the newest
-> > > > version from
-> > > > http://dl.lm- sensors.org/lm-sensors/files/sensors-detect and
-> > > > reran it on all the systems I have access to.
-> > > > sensors-detect output:
-> > > >
-> > > > Driver `coretemp':
-> > > >   * Chip `Intel digital thermal sensor' (confidence: 9)
-> > > >
-> > > > Driver `f71882fg':
-> > > >   * ISA bus, address 0x295
-> > > >     Chip `Fintek F71808A Super IO Sensors' (confidence: 9)
-> > > >
-> > > > #----cut here----
-> > > > # Chip drivers
-> > > > modprobe coretemp
-> > > > modprobe f71882fg
-> > > > /usr/bin/sensors -s
-> > > > #----cut here----
-> > > >
-> > > >
-> > > > >> Not temp2 and temp3 though. Both temperatures never change and
-> > > they have no connection to anything I can read in the bios.
-> > > > >> I presumed that those are 'dead wires' and I am at the moment
-> > > > >> ignoring
-> > > those, since temp1 is good enough for me.
-> > > > >>
-> > > > >The temperatures are reported by ACPI. No idea how that
-> > > > >translates to hardware temperatures. If the temperature never
-> > > > >changes, there may be a bug in the ACPI tables. Those are
-> > > > >controlled by the board manufacturer, and would be updated with
-> > > > >the BIOS. Do you have the
-> > > latest BIOS versions installed ?
-> > > > >
-> > > > >> The second, the older piece (http://www.jetwaycomputer.com/ITX-
-> > > JBC360F33-B.html) does not seem to work. Sensors-detect tells me to
-> > > load coretemp, using the latest version of sensors-detect from the
-> > > site wants to also me to load the f71882fg driver. That doesn't work
-> > > out with a 'No such device' error.
-> > > > >>
-> > > > >What is your kernel version, and what exactly does sensors-detect
-> > > > >report
-> > > ?
-> > > >
-> > > > I am on debian sqeeze, running 2.6.32-5-686
-> > > >
-> > > You will need a more recent kernel version, or install stand-alone
-> > > drivers for both coretemp and f71882fg. Not sure what the lm78
-> > > detection is about, but that doesn't look correct as Jean pointed out.
-> >
-> > That is sadly out of the question, at least for the foreseeable future.
-> > Which means I have to work with the coretemp on the old model and that
-> > one acpi value on the new.
-> >
-> Guess so. After all, 2.6.32 was released in December 2009, and you can not
-> expect it to support hardware released after that date (N2600 was released
-> in Q4/2011). Whoever makes release decisions in your company will have to
-> accept that.
->=20
-> Thanks,
-> Guenter
+On Mon, May 20, 2013 at 03:31:57PM -0700, Robert Coulson wrote:
+> Due to a lack of device and vendor identification registers, the
+> Dallas/Maxim DS16xx devices cannot be uniquely detected, sometimes
+> resulting in false positives. Therefore, the detection function is
+> being deprecated in favor of explicit device instatiation.
+> 
+Hi Rob,
 
-Thank you for the time you have taken to help me.
-I wish I had come to my mind earlier, that would have saved a lot of my tim=
-e.=20
-Let's see what else I can do in the future with lm-sensors. :)
+s/deprecated/removed/
 
-Best regards,
-Sebastian
+See http://en.wikipedia.org/wiki/Deprecation.
 
-***************************************************
-Automatisch angehangener Disclaimer von SHD
-aufgrund der aktuellen Rechtslage
-***************************************************
-SHD System-Haus-Dresden GmbH - Computerloesungen=20
-Geschaeftsfuehrer: Dr. Frank Karow, Dr. Falk Ambos
-Sitz der Gesellschaft ist Dresden
-Handelsregister: HRB Nr. 329 Amtsgericht Dresden
-Umsatzsteueridentifikationsnummer: DE140131570
-***************************************************
+Also please remove references to the detect function from
+Documentation/hwmon/ds1621.
+
+Thanks,
+Guenter
+
+> Signed-off-by: Robert Coulson <rob.coulson@gmail.com>
+> ---
+>  drivers/hwmon/ds1621.c |   43 -------------------------------------------
+>  1 file changed, 43 deletions(-)
+> 
+> diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+> index d4f02a8..124fc83 100644
+> --- a/drivers/hwmon/ds1621.c
+> +++ b/drivers/hwmon/ds1621.c
+> @@ -360,48 +360,6 @@ static const struct attribute_group ds1621_group = {
+>  	.is_visible = ds1621_attribute_visible
+>  };
+>  
+> -
+> -/* Return 0 if detection is successful, -ENODEV otherwise */
+> -static int ds1621_detect(struct i2c_client *client,
+> -			 struct i2c_board_info *info)
+> -{
+> -	struct i2c_adapter *adapter = client->adapter;
+> -	int conf, temp;
+> -	int i;
+> -
+> -	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
+> -				     | I2C_FUNC_SMBUS_WORD_DATA
+> -				     | I2C_FUNC_SMBUS_WRITE_BYTE))
+> -		return -ENODEV;
+> -
+> -	/*
+> -	 * Now, we do the remaining detection. It is lousy.
+> -	 *
+> -	 * The NVB bit should be low if no EEPROM write has been requested
+> -	 * during the latest 10ms, which is highly improbable in our case.
+> -	 */
+> -	conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
+> -	if (conf < 0 || conf & DS1621_REG_CONFIG_NVB)
+> -		return -ENODEV;
+> -	/*
+> -	 * The ds1621 & ds1625 use 9-bit resolution, so the 7 lowest bits
+> -	 * of the temperature should always be 0 (NOTE: The other chips
+> -	 * have multi-resolution support, so if they have 9-bit resolution
+> -	 * configured and the min/max temperature values set accordingly,
+> -	 * then if not explicitly instantiated, they *will* appear as and
+> -	 * emulate a ds1621 device).
+> -	 */
+> -	for (i = 0; i < ARRAY_SIZE(DS1621_REG_TEMP); i++) {
+> -		temp = i2c_smbus_read_word_data(client, DS1621_REG_TEMP[i]);
+> -		if (temp < 0 || (temp & 0x7f00))
+> -			return -ENODEV;
+> -	}
+> -
+> -	strlcpy(info->type, "ds1621", I2C_NAME_SIZE);
+> -
+> -	return 0;
+> -}
+> -
+>  static int ds1621_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+> @@ -467,7 +425,6 @@ static struct i2c_driver ds1621_driver = {
+>  	.probe		= ds1621_probe,
+>  	.remove		= ds1621_remove,
+>  	.id_table	= ds1621_id,
+> -	.detect		= ds1621_detect,
+>  	.address_list	= normal_i2c,
+>  };
+>  
+> -- 
+> 1.7.9.5
+> 
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> 
 
 _______________________________________________
 lm-sensors mailing list
