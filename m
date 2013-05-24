@@ -1,78 +1,58 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Date: Wed, 03 Apr 2013 12:18:08 +0000
-Subject: [lm-sensors] [PATCH v8 1/5] ab8500_btemp: make ab8500_btemp_get* interfaces public
-Message-Id: <1364991492-2421-2-git-send-email-hongbo.zhang@linaro.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 24 May 2013 06:59:27 +0000
+Subject: Re: [lm-sensors] W83L786G not detected on vx800
+Message-Id: <20130524085927.6f646a4d@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364991492-2421-1-git-send-email-hongbo.zhang@linaro.org>
-In-Reply-To: <1364991492-2421-1-git-send-email-hongbo.zhang@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, khali@linux-fr.org, lm-sensors@lm-sensors.org, cbou@mail.ru, dwmw2@infradead.org
-Cc: linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, linux-kernel@vger.kernel.org, Hongbo Zhang <hongbo.zhang@linaro.org>
+To: lm-sensors@vger.kernel.org
 
-Make ab8500_btemp_get_temp interface public, export it and also export the
-ab8500_btemp_get, ab8500_btemp_get_batctrl_temp interfaces, so that the ab8500
-hwmon driver can use them.
+Hi Richard,
 
-Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
----
- drivers/power/ab8500_btemp.c         | 5 ++++-
- include/linux/mfd/abx500/ab8500-bm.h | 1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+On Fri, 24 May 2013 03:21:29 -0700, rh wrote:
+> On the MB there is a winbond W83L786G but it is not detected
+> by sensors-detect.  The  kernel is monolithic (i.e. no modules)
+> and it is linux3.9.2.
 
-diff --git a/drivers/power/ab8500_btemp.c b/drivers/power/ab8500_btemp.c
-index a9486f1..d412d34 100644
---- a/drivers/power/ab8500_btemp.c
-+++ b/drivers/power/ab8500_btemp.c
-@@ -131,6 +131,7 @@ struct ab8500_btemp *ab8500_btemp_get(void)
- 
- 	return btemp;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get);
- 
- /**
-  * ab8500_btemp_batctrl_volt_to_res() - convert batctrl voltage to resistance
-@@ -815,7 +816,7 @@ static void ab8500_btemp_periodic(struct ab8500_btemp *di,
-  *
-  * Returns battery temperature
-  */
--static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
-+int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- {
- 	int temp = 0;
- 
-@@ -851,6 +852,7 @@ static int ab8500_btemp_get_temp(struct ab8500_btemp *di)
- 	}
- 	return temp;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_temp);
- 
- /**
-  * ab8500_btemp_get_batctrl_temp() - get the temperature
-@@ -862,6 +864,7 @@ int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp)
- {
- 	return btemp->bat_temp * 1000;
- }
-+EXPORT_SYMBOL(ab8500_btemp_get_batctrl_temp);
- 
- /**
-  * ab8500_btemp_get_property() - get the btemp properties
-diff --git a/include/linux/mfd/abx500/ab8500-bm.h b/include/linux/mfd/abx500/ab8500-bm.h
-index f5214dc..cc892a8 100644
---- a/include/linux/mfd/abx500/ab8500-bm.h
-+++ b/include/linux/mfd/abx500/ab8500-bm.h
-@@ -465,6 +465,7 @@ void ab8500_fg_reinit(void);
- void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
- struct ab8500_btemp *ab8500_btemp_get(void);
- int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
-+int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
- struct ab8500_fg *ab8500_fg_get(void);
- int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
- int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
+Running sensors-detect on a monolithic kernel is rather pointless. The
+whole purpose of sensors-detect is to tell you which kernel modules
+should be loaded. If you built a monolithic kernel you must already
+know that.
+
+> It seems that lmsensors is unable to see this device but it is there.
+
+"lmsensors" is a set of tools. Which tool(s) are you claiming can't see
+the device? sensors-detect? sensors? Both? Something else?
+
+What does "sensors" return?
+
+> cat /sys/class/hwmon/hwmon1/device/name
+> w83l786ng
+
+It is there indeed.
+
+> As I said the actual device is a w83l786g
+
+Should't matter, while the chips aren't 100% compatible they have the
+same chip ID so the same driver supports both.
+
+> # sensors-detect revision 6085 (2012-10-30 18:18:45 +0100)
+> # System: VIA Technologies Ltd. VX800 [1.0]
+> (...)
+> Next adapter: SMBus Via Pro adapter at 0500 (i2c-3)
+> Do you want to scan it? (YES/no/selectively): 
+> Client at address 0x2f can not be probed - unload all client drivers first!
+
+This is your W83L786G chip. sensors-detect would tell you if the driver
+was built as a module rather than embedded in the kernel.
+
+I have improved sensors-detect so that it can handle monolithic kernels
+better. Please give it a try and report the output:
+  http://khali.linux-fr.org/devel/lm-sensors/sensors-detect
+
 -- 
-1.8.0
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
