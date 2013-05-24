@@ -1,44 +1,45 @@
-From: Bruce Kettle <bfromcolo@gmail.com>
-Date: Fri, 24 May 2013 03:40:27 +0000
-Subject: [lm-sensors] lm-sensors help question
-Message-Id: <519EE12B.4030108@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 24 May 2013 07:03:51 +0000
+Subject: Re: [lm-sensors] lm-sensors help question
+Message-Id: <20130524090351.401f35fd@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <519EE12B.4030108@gmail.com>
+In-Reply-To: <519EE12B.4030108@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi I have a Biostar a780l3g motherboard with a Phenom II 840 processor. =20
-I have Ubuntu 12.04 32-bit installed and current patches (kernel=20
-3.5.0-30-generic).  I installed lm-sensors and ran sensors-detect, it=20
-properly detected the k10 sensors.  But when I run sensors the output is=20
-as follows:
-
-bruce@bruce-A780L3G:~$ sensors
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:        +32.0=B0C  (crit =3D +127.0=B0C)
-
-k10temp-pci-00c3
-Adapter: PCI adapter
-temp1:        +23.5=B0C  (high =3D +70.0=B0C)
-                        (crit =3D +90.0=B0C, hyst =3D +88.0=B0C)
-
-I was hoping to be able to read core temps, but I don't think either of=20
-these are that.
-
-It does not appear that Biostar provides Linux chipset drivers, although=20
-your FAQ indicates this should be supported in this version of the=20
-kernel.  Is there something I am doing wrong or is the board just not=20
-supported?  The sensors did work in Windows 7 in a variety of programs,=20
-so I don't think there is a hardware issue.
-
-Thanks
-
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQnJ1Y2UsCgpPbiBUaHUsIDIzIE1heSAyMDEzIDIxOjQwOjI3IC0wNjAwLCBCcnVjZSBLZXR0
+bGUgd3JvdGU6Cj4gSGkgSSBoYXZlIGEgQmlvc3RhciBhNzgwbDNnIG1vdGhlcmJvYXJkIHdpdGgg
+YSBQaGVub20gSUkgODQwIHByb2Nlc3Nvci4gIAo+IEkgaGF2ZSBVYnVudHUgMTIuMDQgMzItYml0
+IGluc3RhbGxlZCBhbmQgY3VycmVudCBwYXRjaGVzIChrZXJuZWwgCj4gMy41LjAtMzAtZ2VuZXJp
+YykuICBJIGluc3RhbGxlZCBsbS1zZW5zb3JzIGFuZCByYW4gc2Vuc29ycy1kZXRlY3QsIGl0IAo+
+IHByb3Blcmx5IGRldGVjdGVkIHRoZSBrMTAgc2Vuc29ycy4gIEJ1dCB3aGVuIEkgcnVuIHNlbnNv
+cnMgdGhlIG91dHB1dCBpcyAKPiBhcyBmb2xsb3dzOgo+IAo+IGJydWNlQGJydWNlLUE3ODBMM0c6
+fiQgc2Vuc29ycwo+IGFjcGl0ei12aXJ0dWFsLTAKPiBBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQo+
+IHRlbXAxOiAgICAgICAgKzMyLjDCsEMgIChjcml0ID0gKzEyNy4wwrBDKQo+IAo+IGsxMHRlbXAt
+cGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IHRlbXAxOiAgICAgICAgKzIzLjXCsEMg
+IChoaWdoID0gKzcwLjDCsEMpCj4gICAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArOTAu
+MMKwQywgaHlzdCA9ICs4OC4wwrBDKQo+IAo+IEkgd2FzIGhvcGluZyB0byBiZSBhYmxlIHRvIHJl
+YWQgY29yZSB0ZW1wcywgYnV0IEkgZG9uJ3QgdGhpbmsgZWl0aGVyIG9mIAo+IHRoZXNlIGFyZSB0
+aGF0LgoKazEwdGVtcCBpcyB0aGUgQ1BVIGNvcmUgdGVtcC4gVGhlIHZhbHVlIG1pZ2h0IGJlIGRp
+ZmZlcmVudCBmcm9tIHdoYXQgeW91CmV4cGVjdCBiZWNhdXNlIHRoZXNlIGVtYmVkZGVkIHNlbnNv
+cnMgaGF2ZSB2ZXJ5IHBvb3IgYWNjdXJhY3kgaW4gbG93CnRlbXBlcmF0dXJlIHJhbmdlcy4gV2hh
+dCB0aGUgYWJvdmUgdmFsdWUgcmVhbGx5IG1lYW5zIGlzIHRoYXQgeW91ciBDUFUKaXMgcHJvcGVy
+bHkgY29vbGVkIGFuZCB5b3UgZG8gbm90IGhhdmUgdG8gd29ycnkgYWJvdXQgb3ZlcmhlYXRpbmcK
+KHVubGVzcyB0aGUgdmFsdWUgZ2V0cyBjbG9zZSB0byA3MMKwQyB1bmRlciBoZWF2eSBsb2FkLikK
+Cj4gSXQgZG9lcyBub3QgYXBwZWFyIHRoYXQgQmlvc3RhciBwcm92aWRlcyBMaW51eCBjaGlwc2V0
+IGRyaXZlcnMsIGFsdGhvdWdoIAo+IHlvdXIgRkFRIGluZGljYXRlcyB0aGlzIHNob3VsZCBiZSBz
+dXBwb3J0ZWQgaW4gdGhpcyB2ZXJzaW9uIG9mIHRoZSAKPiBrZXJuZWwuCgpXaGF0ICJjaGlwc2V0
+IiBhcmUgeW91IHRhbGtpbmcgYWJvdXQsIHBsZWFzZT8KCj4gSXMgdGhlcmUgc29tZXRoaW5nIEkg
+YW0gZG9pbmcgd3Jvbmcgb3IgaXMgdGhlIGJvYXJkIGp1c3Qgbm90IAo+IHN1cHBvcnRlZD8gIFRo
+ZSBzZW5zb3JzIGRpZCB3b3JrIGluIFdpbmRvd3MgNyBpbiBhIHZhcmlldHkgb2YgcHJvZ3JhbXMs
+IAo+IHNvIEkgZG9uJ3QgdGhpbmsgdGhlcmUgaXMgYSBoYXJkd2FyZSBpc3N1ZS4KCldoYXQgbW9u
+aXRvcmluZyBjaGlwIGRvIHRoZXNlIHByb2dyYW1zIHJlcG9ydD8gSSBjYW4ndCBoZWxwIHlvdSBm
+dXJ0aGVyCndpdGhvdXQgdGhlIGNvbXBsZXRlIG91dHB1dCBvZiBhIHJlY2VudCB2ZXJzaW9uIG9m
+IHNlbnNvcnMtZGV0ZWN0IChmb3IKZXhhbXBsZSBodHRwOi8vZGwubG0tc2Vuc29ycy5vcmcvbG0t
+c2Vuc29ycy9maWxlcy9zZW5zb3JzLWRldGVjdCkgb24KeW91ciBzeXN0ZW0uCgotLSAKSmVhbiBE
+ZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
+aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
