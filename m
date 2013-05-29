@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 29 May 2013 12:31:03 +0000
+From: SZENTE Balint <balint@szentedwg.ro>
+Date: Wed, 29 May 2013 13:30:13 +0000
 Subject: Re: [lm-sensors] Configuration file for Intel D2500CC mini-ITX board
-Message-Id: <20130529143103.33366cef@endymion.delvare>
+Message-Id: <20130529163013.1ee5ab1a@obraro.integrasoft.ro>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130529150440.4e021553@obraro.integrasoft.ro>
 In-Reply-To: <20130529150440.4e021553@obraro.integrasoft.ro>
@@ -10,57 +10,101 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgQmFsaW50LAoKT24gV2VkLCAyOSBNYXkgMjAxMyAxNTowNDo0MCArMDMwMCwgU1pFTlRFIEJh
-bGludCB3cm90ZToKPiBBdHRhY2hlZCB5b3Ugd2lsbCBmaW5kIHRoZSBjb25maWd1cmF0aW9uIGZp
-bGUgZm9yIHRoZSBJbnRlbCBEMjUwMENDCj4gbWluaS1JVFggRGVza3RvcCBCb2FyZC4KPiAKPiBP
-dXRwdXQ6Cj4gCj4gdzgzNjI3dWhnLWlzYS0wMjkwCj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPiBW
-Y29yZTogICAgICAgICsxLjE5IFYgIChtaW4gPSAgKzAuNDAgViwgbWF4ID0gICsxLjYwIFYpCj4g
-KzMuM1Y6ICAgICAgICArMy4zMCBWICAobWluID0gICszLjAwIFYsIG1heCA9ICArMy42MSBWKQo+
-IEFWQ0M6ICAgICAgICAgKzUuMDMgViAgKG1pbiA9ICArNC40OSBWLCBtYXggPSAgKzUuNDkgVikK
-PiArNVY6ICAgICAgICAgICs1LjAzIFYgIChtaW4gPSAgKzQuNDkgViwgbWF4ID0gICs1LjUxIFYp
-Cj4gKzEyVjogICAgICAgICsxMi4xOSBWICAobWluID0gKzEwLjE4IFYsIG1heCA9ICsxMy44MiBW
-KQo+IFZkaW1tOiAgICAgICAgKzEuNTAgViAgKG1pbiA9ICArMS4wMCBWLCBtYXggPSAgKzIuMDAg
-VikKPiA1VlNCOiAgICAgICAgICs1LjAzIFYgIChtaW4gPSAgKzQuNDkgViwgbWF4ID0gICs1LjQ5
-IFYpCj4gVmJhdDogICAgICAgICArMy4zMyBWICAobWluID0gICsyLjY5IFYsIG1heCA9ICArMy42
-NCBWKQo+IFN5c3RlbSBGYW46ICAxNTYyIFJQTSAgKG1pbiA9ICAyNTEgUlBNLCBkaXYgPSAzMikK
-PiBESU1NIHRlbXA6ICAgICs1NC4wwrBDICAoaGlnaCA9ICs4MC4wwrBDLCBoeXN0ID0gKzc1LjDC
-sEMpICBzZW5zb3IgPSB0aGVybWFsIGRpb2RlCj4gVlIgdGVtcDogICAgICArNDIuMMKwQyAgKGhp
-Z2ggPSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vuc29yID0gdGhlcm1hbCBkaW9kZQo+
-IAo+IFBsZWFzZSBhZGQgaXQgdG8gdGhlIFdpa2kuCgpEb25lLCB0aGFua3MgZm9yIHlvdXIgY29u
-dHJpYnV0aW9uOgoKaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtpL0NvbmZpZ3VyYXRpb25z
-L0ludGVsL0QyNTAwQ0MKCkkgaGF2ZSBhIGZldyBxdWVzdGlvbnM6Cgo+ICMgSW50ZWwgRDI1MDBD
-QyBiYXNlZCBvbiBCSU9TIHZhbHVlcwo+ICMKPiAKPiBjaGlwICJ3ODM2Mjd1aGctKiIKPiAKPiAg
-ICAgaWdub3JlICBpbnRydXNpb24wCgpJZiB0aGlzIGZlYXR1cmUgbWlzc2luZyBvbiB0aGUgYm9h
-cmQgaXRzZWxmLCBvciBvbmx5IG9uIHlvdXIgY2hhc3Npcz8KSWYgaXQgaXMgcHJlc2VudCBvbiB0
-aGUgYm9hcmQgdGhlbiB3ZSBkb24ndCB3YW50IHRvIGlnbm9yZSBpdCBpbiB0aGUKY29uZmlndXJh
-dGlvbiBmaWxlIHByZXNlbnQgaW4gdGhlIHdpa2kuCgo+IAo+ICMgVm9sdGFnZXMKPiAKPiAgICAg
-IyBQcm9jZXNzb3IgVmNjCj4gICAgIGxhYmVsICAgaW4wICAgICAgICAgICAgIlZjb3JlIgo+ICAg
-ICBzZXQgICAgIGluMF9taW4gICAgICAgIDAuNDAKPiAgICAgc2V0ICAgICBpbjBfbWF4ICAgICAg
-ICAxLjYwCj4gCj4gICAgICMgKzMuM1YKPiAgICAgbGFiZWwgICBpbjEgICAgICAgICAgICAiKzMu
-M1YiCj4gICAgIGNvbXB1dGUgaW4xICAgICAgICAgICAgMy4yKkAsIEAvMy4yCj4gICAgIHNldCAg
-ICAgaW4xX21pbiAgICAgICAgMy4wMAo+ICAgICBzZXQgICAgIGluMV9tYXggICAgICAgIDMuNjAK
-PiAKPiAgICAgIyArNS4wVgo+ICAgICBsYWJlbCAgIGluMyAgICAgICAgICAgICIrNVYiCj4gICAg
-IHNldCAgICAgaW4zX21pbiAgICAgICAgNC42MAo+ICAgICBzZXQgICAgIGluM19tYXggICAgICAg
-IDUuNDAKPiAKPiAgICAgIyArMTIuMFYKPiAgICAgbGFiZWwgICBpbjQgICAgICAgICAgICAiKzEy
-ViIKPiAgICAgY29tcHV0ZSBpbjQgICAgICAgICAgICAxMipALCBALzEyCj4gICAgIHNldCAgICAg
-aW40X21pbiAgICAgICAgMTAuMjAKPiAgICAgc2V0ICAgICBpbjRfbWF4ICAgICAgICAxMy44MAoK
-VGhlc2UgKzMuM1YsICs1ViBhbmQgKzEyViBsaW1pdHMgYXJlIHdheSBiZXlvbmQgdGhlICsvLSA1
-JSBzcGVjaWZpZWQgYnkKQVRYLgoKPiAKPiAgICAgIyBNZW1vcnkgVmNjCj4gICAgIGxhYmVsICAg
-aW41ICAgICAgICAgICAgIlZkaW1tIgo+ICAgICBzZXQgICAgIGluNV9taW4gICAgICAgIDEuMDAK
-PiAgICAgc2V0ICAgICBpbjVfbWF4ICAgICAgICAyLjAwCgpUaGVzZSBsaW1pdHMgbWFrZSBubyBz
-ZW5zZSwgaXQncyBoYXJkbHkgYmV0dGVyIHRoYW4gaGF2aW5nIG5vIGxpbWl0cyBhdAphbGwuIElm
-IHRoZSBib2FyZCBpcyB1c2luZyBERFIzIG1lbW9yeSBtb2R1bGVzLCB5b3Ugc2hvdWxkIHVzZToK
-CiAgICBzZXQgICAgIGluNV9taW4gICAgICAgIDEuNSAqIDAuOTUKICAgIHNldCAgICAgaW41X21h
-eCAgICAgICAgMS41ICogMS4wNQoKPiAgICAgIyArNS4wViBTdGFuZGJ5Cj4gICAgIGxhYmVsICAg
-aW43ICAgICAgICAgICAgIjVWU0IiCj4gICAgIHNldCAgICAgaW43X21pbiAgICAgICAgNC42MAo+
-ICAgICBzZXQgICAgIGluN19tYXggICAgICAgIDUuNDAKPiAKPiAjIEZhbnMKPiAKPiAgICAgbGFi
-ZWwgICBmYW4xICAgICAgICAgICAiU3lzdGVtIEZhbiIKPiAgICAgc2V0ICAgICBmYW4xX21pbiAg
-ICAgICAyNTAKPiAgICAgaWdub3JlICBmYW4yCj4KPiAjIFRlbXBlcmF0dXJlcwo+IAo+ICAgICAj
-IE1lbW9yeSBUZW1wZXJhdHVyZQo+ICAgICBsYWJlbCAgIHRlbXAxICAgICAgICAgICJESU1NIHRl
-bXAiCj4gICAgIHNldCAgICAgdGVtcDFfbWF4ICAgICAgODAKPiAgICAgc2V0ICAgICB0ZW1wMV9t
-YXhfaHlzdCA3NQo+IAo+ICAgICAjIFZSIFRlbXBlcmF0dXJlCj4gICAgIGxhYmVsICAgdGVtcDIg
-ICAgICAgICAgIlZSIHRlbXAiCj4gICAgIHNldCAgICAgdGVtcDJfbWF4ICAgICAgODAKPiAgICAg
-c2V0ICAgICB0ZW1wMl9tYXhfaHlzdCA3NQoKCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcg
-bGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hello Jean!
+
+
+Thanks for your observations. Please find my answers below.
+
+On Wed, 29 May 2013 14:31:03 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
+
+> [...]
+> > chip "w83627uhg-*"
+> > 
+> >     ignore  intrusion0
+> 
+> If this feature missing on the board itself, or only on your chassis?
+> If it is present on the board then we don't want to ignore it in the
+> configuration file present in the wiki.
+
+I think it is actually missing from the board itself. I did not find
+any connector on the mainboard itself. Similar to the second fan input.
+I kindly ask you to verify it:
+<http://www.intel.com/support/motherboards/desktop/d2500cc/sb/CS-032623.htm>
+Chapter 1.10.1 -- Hardware Monitoring
+
+> [...]
+> >     # Processor Vcc
+> >     label   in0            "Vcore"
+> >     set     in0_min        0.40
+> >     set     in0_max        1.60
+
+Vcore is special. I noticed that it changes with SpeedStep (for
+example on D2800). However D2500 does not have SpeedStep. It is
+constantly on 1.19V. In case of D2800 for example it varies
+between 0.85V and 1.07V depending on the load.
+What would you recommend for min/max?
+
+> > 
+> >     # +3.3V
+> >     label   in1            "+3.3V"
+> >     compute in1            3.2*@, @/3.2
+> >     set     in1_min        3.00
+> >     set     in1_max        3.60
+> > 
+> >     # +5.0V
+> >     label   in3            "+5V"
+> >     set     in3_min        4.60
+> >     set     in3_max        5.40
+> > 
+> >     # +12.0V
+> >     label   in4            "+12V"
+> >     compute in4            12*@, @/12
+> >     set     in4_min        10.20
+> >     set     in4_max        13.80
+> 
+> These +3.3V, +5V and +12V limits are way beyond the +/- 5% specified
+> by ATX.
+
+I fully agree with you. I take these limits from the BIOS factory
+default values. Also without giving the min/max, the default range form
+the driver is almost the same. Please fix the wiki and write for all of
+them to <nominal value> *0.95 and *1.05, as you said.
+
+> > 
+> >     # Memory Vcc
+> >     label   in5            "Vdimm"
+> >     set     in5_min        1.00
+> >     set     in5_max        2.00
+> 
+> These limits make no sense, it's hardly better than having no limits
+> at all. If the board is using DDR3 memory modules, you should use:
+> 
+>     set     in5_min        1.5 * 0.95
+>     set     in5_max        1.5 * 1.05
+
+Yes it is DDR3. See the above for explanation. Please apply your
+correction to the wiki page.
+
+> >     # +5.0V Standby
+> >     label   in7            "5VSB"
+> >     set     in7_min        4.60
+> >     set     in7_max        5.40
+> > 
+> > # Fans
+> > 
+> >     label   fan1           "System Fan"
+> >     set     fan1_min       250
+> >     ignore  fan2
+
+Fan 2 is missing from the board, so I ignored it.
+
+Thank you.
+
+Regards,
+Balint
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
