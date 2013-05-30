@@ -1,42 +1,72 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 09 May 2013 20:37:44 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (nct6775) Do not create non-existing attributes
-Message-Id: <1368131864-32011-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 30 May 2013 13:20:01 +0000
+Subject: [lm-sensors] [PATCH 1/2] sensors-detect: Use modules.builtin instead of /sys/module
+Message-Id: <20130530152001.4f0b2554@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Overtemperature and hysteresis registers only exist for primary
-temperature registers, not for alternates, so do not assign
-those registers when initializing alternates.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+/sys/module doesn't actually contain all built-in modules, only the
+ones which have a version or at least one parameter. Better use file
+modules.builtin which is generated since kernel 2.6.33, it is complete
+and this will let us handle built-in modules properly.
 ---
- drivers/hwmon/nct6775.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ prog/detect/sensors-detect |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 137c8ce..a27e625 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -3427,8 +3427,10 @@ static int nct6775_probe(struct platform_device *pdev)
- 			data->have_temp |= 1 << i;
- 			data->have_temp_fixed |= 1 << i;
- 			data->reg_temp[0][i] = reg_temp_alternate[i];
--			data->reg_temp[1][i] = reg_temp_over[i];
--			data->reg_temp[2][i] = reg_temp_hyst[i];
-+			if (i < num_reg_temp) {
-+				data->reg_temp[1][i] = reg_temp_over[i];
-+				data->reg_temp[2][i] = reg_temp_hyst[i];
-+			}
- 			data->temp_src[i] = i + 1;
- 			continue;
+--- lm-sensors.orig/prog/detect/sensors-detect	2013-05-28 13:51:44.964830827 +0200
++++ lm-sensors/prog/detect/sensors-detect	2013-05-30 14:29:07.580744646 +0200
+@@ -2616,11 +2616,12 @@ sub initialize_conf
+ # [2] -> SUBLEVEL
+ # [3] -> EXTRAVERSION
+ #
+-use vars qw(@kernel_version $kernel_arch);
++use vars qw($kernel_version @kernel_version $kernel_arch);
+ 
+ sub initialize_kernel_version
+ {
+-	`uname -r` =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
++	chomp($kernel_version = `uname -r`);
++	$kernel_version =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
+ 	@kernel_version = ($1, $2, $3, $4);
+ 	chomp($kernel_arch = `uname -m`);
+ 
+@@ -2792,20 +2793,19 @@ use vars qw(%modules_list %modules_suppo
+ 
+ sub initialize_modules_list
+ {
+-	local $_;
++	local ($_, *INPUTFILE);
+ 
+-	# /sys/module contains built-in drivers too, but doesn't exist on
+-	# older kernels (added in kernel 2.6.7)
+-	if (opendir(local *MODULES, "$sysfs_root/module")) {
+-		while (defined($_ = readdir(MODULES))) {
+-			next if m/^\./;
+-			$modules_list{$1} = 1 if m/^(\S*)/;
++	# Starting with kernel 2.6.33, a list of built-in modules is available
++	if (open(*INPUTFILE, "/lib/modules/$kernel_version/modules.builtin")) {
++		while (<INPUTFILE>) {
++			tr/-/_/;
++			$modules_list{$1} = 1 if m/\/([^\/]+)\.ko$/;
  		}
--- 
-1.7.9.7
+-		return;
++		close(INPUTFILE);
+ 	}
+ 
+-	# Fall back to /proc/modules as it is always available
+-	open(local *INPUTFILE, "/proc/modules") or return;
++	# List all loaded modules
++	open(*INPUTFILE, "/proc/modules") or return;
+ 	while (<INPUTFILE>) {
+ 		$modules_list{$1} = 1 if m/^(\S*)/;
+ 	}
 
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
