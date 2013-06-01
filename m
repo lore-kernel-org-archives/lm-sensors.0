@@ -1,33 +1,56 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Date: Mon, 03 Jun 2013 14:15:22 +0000
-Subject: Re: [lm-sensors] [PATCHv3 0/3] Add G762/G763 PWM fan controller
-Message-Id: <20130603141522.GE3803@titan.lakedaemon.net>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 01 Jun 2013 04:20:53 +0000
+Subject: Re: [lm-sensors] [PATCH v3] hwmon (ds1621): Remove detection function
+Message-Id: <20130601042053.GC4081@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1370202835.git.arno@natisbad.org>
- <20130603023053.GA11723@roeck-us.net>
-In-Reply-To: <20130603023053.GA11723-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+References: <1369326142-30781-1-git-send-email-rob.coulson@gmail.com>
+In-Reply-To: <1369326142-30781-1-git-send-email-rob.coulson@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Olivier Mouchet <olivier.mouchet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Simon Guinot <simon.guinot-jKBdWWKqtFpg9hUCZPvPmw@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Arnaud Ebalard <arno-LkuqDEemtHBg9hUCZPvPmw@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 02, 2013 at 07:30:53PM -0700, Guenter Roeck wrote:
-> On Sun, Jun 02, 2013 at 10:14:05PM +0200, Arnaud Ebalard wrote:
-...
-> > note: this should not be an issue but this v3 is based on
-> >       jcooper/mvebu/fixes branch. 
+On Fri, May 31, 2013 at 08:09:01PM +0200, Jean Delvare wrote:
+> Hi Guenter,
+> 
+> On Fri, 24 May 2013 07:56:40 -0700, Guenter Roeck wrote:
+> > On Fri, May 24, 2013 at 09:05:50AM +0200, Jean Delvare wrote:
+> > > Hi Robert,
+> > > 
+> > > On Thu, 23 May 2013 09:22:22 -0700, Robert Coulson wrote:
+> > > > Due to a lack of device and vendor identification registers, the
+> > > > Dallas/Maxim DS16xx devices cannot be uniquely detected, sometimes
+> > > > resulting in false positives. Therefore, the detection function is
+> > > > being removed in favor of explicit device instantiation.
+> > > > 
+> > > > Signed-off-by: Robert Coulson <rob.coulson@gmail.com>
+> > > > ---
+> > > >  Documentation/hwmon/ds1621 |   25 +++++++++++------------
+> > > >  drivers/hwmon/ds1621.c     |   48 --------------------------------------------
+> > > >  2 files changed, 12 insertions(+), 61 deletions(-)
+> > > > 
+> > > > v2:
+> > > > - removed detect function references in ds1621 documentation
+> > > > - replaced deprecated with removed and fixed a spelling error
+> > > > v3:
+> > > > - removed scanned addresses info, tables, and list
+> > > > (...)
+> > > 
+> > > Thanks for the update, looks good to me.
+> > > 
+> > > Acked-by: Jean Delvare <khali@linux-fr.org>
+> > > 
+> > > Guenter, please pick and apply.
 > > 
-> I don't know about this branch/repository. If there are hwmon fixes in it,
-> they should be submitted to the lm-sensors mailing list.
+> > Applied to -next.
+> 
+> Was this patch lost somehow? I can't see it in your tree.
+> 
+Usually I keep it local for a day or two to ensure it passes nightly testing.
+In this case, I simply forgot to push the branch into the upstream repo.
+Too much work last week, sorry. It is now available.
 
-Yes, please, unless you *need* a patch to build/boot that isn't in
-mainline yet, always base off of one of Linus' tags, eg v3.10-rc4.  Then,
-if asked, rebase as needed.
-
-thx,
-
-Jason.
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
