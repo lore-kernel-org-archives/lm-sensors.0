@@ -1,44 +1,46 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sat, 08 Jun 2013 13:04:13 +0000
-Subject: Re: [lm-sensors] Missing Fintek F71868AD chip
-Message-Id: <51B32BCD.5040603@redhat.com>
+From: Paul Crawford <psc@sat.dundee.ac.uk>
+Date: Sat, 01 Jun 2013 10:27:25 +0000
+Subject: [lm-sensors] Module load order dependency
+Message-Id: <51A9CC8D.2010105@sat.dundee.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <51B329D9.30802@orange.fr>
-In-Reply-To: <51B329D9.30802@orange.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+I encountered a problem using the lm-sensors package along with the 
+fancontrol package where the various drivers for the temperature sensing 
+chips would be loaded in differing orders at boot time.
 
-On 06/08/2013 02:55 PM, Avrel Vor wrote:
-> Hello,
->
-> The mother board MSI FM2-A55M-E33 includes a Super I/O chip Fintek F71868AD.
-> So far it is not recognised by sensors-detect :
-> "
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-> Found unknown chip with ID 0x1106
-> "
-> Is it possible to test a modification of the script to force the use of the driver "f71882gf" with this ID ?
-> I am afraid of the risk of damaging the mother board...
->
+This leads to the abstracted paths of, for example, 
+'/sys/class/hwmon/hwmon0' and '/sys/class/hwmon/hwmon1' changing places 
+and the fancontrol package doing nothing as it believes the hardware is 
+different or misconfigured.
 
-I don't see a data-sheet for it here:
-http://www.fintek.com.tw/eng/products.asp?BID=1&SID
+This is also a risk for the Linux watchdog daemon that could be using 
+such a path for temperature sensing (I added the capability recently to 
+use lm-sensors outputs), leading to a far more irksome problem than 
+simply full-speed fans!
 
-So it is impossible to tell. The safe thing to do is to contact fintek for
-a datasheet, once we've that we can see if an existing driver can be
-easily modified to support this new chip.
+Is this enumeration something that lm-sensors performs, or is it a 
+kernel issue? As this appears to be quite important for actually using 
+the capabilities, what can be done to fix it?
 
-Note the 0x11 part of the id suggests it is a newer family then any of the
-ones which we do support, still it might be quite similar, we really cannot
-tell without a datasheet.
+I added my crude solution (to make sure all of the modules are in 
+/etc/modules, and not some auto-loaded and others explicitly added) to 
+the bug report here:
 
-Regards,
+https://bugs.launchpad.net/ubuntu/+source/lm-sensors-3/+bug/576602
 
-Hans
+Regards, Paul
+-- 
+  Dr. Paul S. Crawford
+  c/o Satellite Station
+  University of Dundee
+  Small's Wynd, Dundee, DD1 4HN
+  Email: psc@sat.dundee.ac.uk
+  Tel: +44 (0)1382 38 4687
+  The University of Dundee is a Scottish Registered Charity, No. SC015096
 
 _______________________________________________
 lm-sensors mailing list
