@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 02 Jun 2013 11:03:27 +0000
+Date: Sun, 02 Jun 2013 11:20:27 +0000
 Subject: Re: [lm-sensors] Module load order dependency
-Message-Id: <20130602130327.11bae18b@endymion.delvare>
+Message-Id: <20130602132027.3dffc1b1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <51A9CC8D.2010105@sat.dundee.ac.uk>
 In-Reply-To: <51A9CC8D.2010105@sat.dundee.ac.uk>
@@ -11,6 +11,9 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Paul,
+
+Please disregard my previous reply, it was accidentally sent before I
+was finished writing it :(
 
 On Sat, 01 Jun 2013 11:27:25 +0100, Paul Crawford wrote:
 > I encountered a problem using the lm-sensors package along with the 
@@ -55,17 +58,36 @@ relevant components are, in order: the hardware monitoring driver, the
 kernel core, the sysfs interface, libsensors and ultimately "sensors"
 or whatever application you're using. The kernel makes no guarantee
 about device name stability. Some subsystems (most notably the sound
-subsystem) have tried it but it simply doesn't work. For most subsystem this is now handles by udev, unfortunately hwmon devices have no node in /dev so udev is of no use in our case.
+subsystem) have tried it but it simply doesn't work. For most subsystems
+this is now handles by udev, unfortunately hwmon devices have no node
+in /dev so udev is of no use in our case.
 
-> 
+The persistent device naming is thus achieved by libsensors.
+Applications which care about stable device names (or getting
+everything right for that matter) should use libsensors.
+
 > I added my crude solution (to make sure all of the modules are in 
 > /etc/modules, and not some auto-loaded and others explicitly added) to 
 > the bug report here:
 > 
 > https://bugs.launchpad.net/ubuntu/+source/lm-sensors-3/+bug/576602
-> 
-> Regards, Paul
 
+The code there is horrible ;)
+
+/etc/modules is a Debian/Ubuntu specific approach. Your workaround
+should work fine as far as I can see, although this is obviously a step
+backwards (driver autoloading is a great feature.) Unfortunately we
+have not yet reached the point where all needed drivers can be
+auto-loaded. This would require at least 3 things: LPC/Super-IO device
+identification and instantiation at kernel level, SMBus ARP support and
+cooperation from the BIOS/firmware to enumerate remaining devices, in
+particular I2C-based ones.
+
+Note though that I do not have the problem you describe with openSUSE.
+Maybe I am just very lucky, or maybe Debian/Ubuntu starts more services
+in parallel. If they would wait for driver autoloading to be finished
+before starting the lm_sensors and then fancontrol services, that would
+probably solve your problem.
 
 -- 
 Jean Delvare
