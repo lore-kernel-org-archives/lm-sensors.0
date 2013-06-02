@@ -1,1120 +1,1305 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 14 Jun 2013 03:45:17 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: add support for SMSC EMC2305/03/02/01 fan controller
-Message-Id: <20130614034517.GB6980@roeck-us.net>
+From: Arnaud Ebalard <arno@natisbad.org>
+Date: Sun, 02 Jun 2013 20:14:19 +0000
+Subject: [lm-sensors] [PATCHv3 1/3] Add support for GMT G762/G763 PWM fan controller
+Message-Id: <a7bfda1de9cce8044434369428341d3fb05cf42c.1370202835.git.arno@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1371120019-1744-1-git-send-email-reinhard.pfau@gdsys.cc>
- <1371120019-1744-2-git-send-email-reinhard.pfau@gdsys.cc>
-In-Reply-To: <1371120019-1744-2-git-send-email-reinhard.pfau@gdsys.cc>
+References: <cover.1370202835.git.arno@natisbad.org>
+In-Reply-To: <cover.1370202835.git.arno@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Reinhard Pfau <reinhard.pfau@gdsys.cc>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Dirk Eibach <eibach@gdsys.de>, Dirk Eibach <dirk.eibach@gdsys.cc>, Reinhard Pfau <pfau@gdsys.de>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Olivier Mouchet <olivier.mouchet@gmail.com>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Jean Delvare <khali@linux-fr.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Simon Guinot <simon.guinot@sequanux.org>
 
-On Thu, Jun 13, 2013 at 12:40:19PM +0200, Reinhard Pfau wrote:
-> From: Reinhard Pfau <pfau@gdsys.de>
-> 
-> Add support for SMSC EMC2305, EMC2303, EMC2302, EMC2301 fan controller
-> chips.
-> The driver primary supports the EMC2305 chip which provides RPM-based
-> PWM control and monitoring for up to 5 fans.
-> 
-> According to the SMSC data sheets the EMC2303, EMC2302 and EMC2301 chips
-> have basically the same functionality and register layout, but support
-> less fans and (in case of EMC2302 and EMC2301) less possible I2C addresses.
-> The driver supports them, too.
-> 
-> The driver supports configuration via devicetree. This can also be used
-> to restrict the fans exposed via sysfs (see doc for details).
-> 
-> Signed-off-by: Reinhard Pfau <pfau@gdsys.de>
 
-Comments inline.
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+---
+ drivers/hwmon/Kconfig              |   10 +
+ drivers/hwmon/Makefile             |    1 +
+ drivers/hwmon/g762.c               | 1179 ++++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/g762.h |   51 ++
+ 4 files changed, 1241 insertions(+)
+ create mode 100644 drivers/hwmon/g762.c
+ create mode 100644 include/linux/platform_data/g762.h
 
-Guenter
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 0428e8a..142bdf8 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -456,6 +456,16 @@ config SENSORS_G760A
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called g760a.
+ 
++config SENSORS_G762
++	tristate "GMT G762 and G763"
++	depends on I2C
++	help
++	  If you say yes here you get support for Global Mixed-mode
++	  Technology Inc G762 and G763 fan speed PWM controller chips.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called g762.
++
+ config SENSORS_GL518SM
+ 	tristate "Genesys Logic GL518SM"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index d17d3e6..4f0fb52 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -60,6 +60,7 @@ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
+ obj-$(CONFIG_SENSORS_FAM15H_POWER) += fam15h_power.o
+ obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
+ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
++obj-$(CONFIG_SENSORS_G762)	+= g762.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-fan.o
+diff --git a/drivers/hwmon/g762.c b/drivers/hwmon/g762.c
+new file mode 100644
+index 0000000..6678a60
+--- /dev/null
++++ b/drivers/hwmon/g762.c
+@@ -0,0 +1,1179 @@
++/*
++ * g762 - Driver for the Global Mixed-mode Technology Inc. fan speed
++ *        PWM controller chips from G762 family, i.e. G762 and G763
++ *
++ * Copyright (C) 2013, Arnaud EBALARD <arno@natisbad.org>
++ *
++ * This work is based on a basic version for 2.6.31 kernel developed
++ * by Olivier Mouchet for LaCie. Updates and correction have been
++ * performed to run on recent kernels. Additional features, like the
++ * ability to configure various characteristics via .dts file, have
++ * been added. Detailed datasheet on which this development is based
++ * is available here:
++ *
++ *  http://natisbad.org/NAS/refs/GMT_EDS-762_763-080710-0.2.pdf
++ *
++ * Headers from previous developments have been kept below:
++ *
++ * Copyright (c) 2009 LaCie
++ *
++ * Author: Olivier Mouchet <olivier.mouchet@gmail.com>
++ *
++ * based on g760a code written by Herbert Valerio Riedel <hvr@gnu.org>
++ * Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
++ *
++ * g762: minimal datasheet available at:
++ *       http://www.gmt.com.tw/product/datasheet/EDS-762_3.pdf
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation.
++ */
++
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/kernel.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/platform_data/g762.h>
++
++#define DRVNAME "g762"
++
++static const struct i2c_device_id g762_id[] = {
++	{ "g762", 0 },
++	{ "g763", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, g762_id);
++
++enum g762_regs {
++	G762_REG_SET_CNT  = 0x00,
++	G762_REG_ACT_CNT  = 0x01,
++	G762_REG_FAN_STA  = 0x02,
++	G762_REG_SET_OUT  = 0x03,
++	G762_REG_FAN_CMD1 = 0x04,
++	G762_REG_FAN_CMD2 = 0x05,
++};
++
++/* Config register bits */
++#define G762_REG_FAN_CMD1_DET_FAN_FAIL  0x80 /* enable fan_fail signal */
++#define G762_REG_FAN_CMD1_DET_FAN_OOC   0x40 /* enable fan_out_of_control */
++#define G762_REG_FAN_CMD1_OUT_MODE      0x20 /* out mode, PWM or DC */
++#define G762_REG_FAN_CMD1_FAN_MODE      0x10 /* fan mode: closed/open loop */
++#define G762_REG_FAN_CMD1_CLK_DIV_ID1   0x08 /* clock divisor value */
++#define G762_REG_FAN_CMD1_CLK_DIV_ID0   0x04
++#define G762_REG_FAN_CMD1_PWM_POLARITY  0x02 /* PWM polarity */
++#define G762_REG_FAN_CMD1_PULSE_PER_REV 0x01 /* pulse per fan revolution */
++
++#define G762_REG_FAN_CMD2_GEAR_MODE_1   0x08 /* fan gear mode */
++#define G762_REG_FAN_CMD2_GEAR_MODE_0   0x04
++#define G762_REG_FAN_CMD2_FAN_STARTV_1  0x02 /* fan startup voltage */
++#define G762_REG_FAN_CMD2_FAN_STARTV_0  0x01
++
++#define G762_REG_FAN_STA_FAIL           0x02 /* fan fail */
++#define G762_REG_FAN_STA_OOC            0x01 /* fan out of control */
++
++/* config register values */
++#define OUT_MODE_PWM            1
++#define OUT_MODE_DC             0
++
++#define FAN_MODE_CLOSED_LOOP    2
++#define FAN_MODE_OPEN_LOOP      1
++
++/* register data is read (and cached) at most once per second */
++#define G762_UPDATE_INTERVAL    HZ
++
++/*
++ * extract pulse count per fan revolution value (2 or 4) from given
++ * FAN_CMD1 register value
++ */
++#define PULSE_FROM_REG(reg) \
++	((((reg) & G762_REG_FAN_CMD1_PULSE_PER_REV) + 1) << 1)
++
++/*
++ * extract fan clock divisor (1, 2, 4 or 8) from given FAN_CMD1
++ * register value
++ */
++#define CLKDIV_FROM_REG(reg) \
++	(1 << (((reg) & (G762_REG_FAN_CMD1_CLK_DIV_ID0 |	\
++			 G762_REG_FAN_CMD1_CLK_DIV_ID1)) >> 2))
++
++/*
++ * extract fan gear mode multiplier value (0, 2 or 4) from given
++ * FAN_CMD2 register value
++ */
++#define GEARMULT_FROM_REG(reg) \
++	(1 << (((reg) & (G762_REG_FAN_CMD2_GEAR_MODE_0 |	\
++			 G762_REG_FAN_CMD2_GEAR_MODE_1)) >> 2))
++
++struct g762_data {
++	struct i2c_client *client;
++	struct device *hwmon_dev;
++
++	/* update mutex */
++	struct mutex update_lock;
++
++	/* board specific parameters. */
++	u32 clk;
++
++	/* g762 register cache */
++	bool valid;
++	unsigned long last_updated; /* in jiffies */
++
++	u8 set_cnt;  /* controls fan rotation speed in closed-loop mode */
++	u8 act_cnt;  /* provides access to current fan RPM value */
++	u8 fan_sta;  /* bit 0: set when actual fan speed is more than
++		      *        25% outside requested fan speed
++		      * bit 1: set when no transition occurs on fan
++		      *        pin for 0.7s
++		      */
++	u8 set_out;  /* controls fan rotation speed in open-loop mode */
++	u8 fan_cmd1; /*   0: FG_PLS_ID0 FG pulses count per revolution
++		      *      0: 2 counts per revolution
++		      *      1: 4 counts per revolution
++		      *   1: PWM_POLARITY 1: negative_duty
++		      *                   0: positive_duty
++		      * 2,3: [FG_CLOCK_ID0, FG_CLK_ID1]
++		      *         00: Divide fan clock by 1
++		      *         01: Divide fan clock by 2
++		      *         10: Divide fan clock by 4
++		      *         11: Divide fan clock by 8
++		      *   4: FAN_MODE 1:closed-loop, 0:open-loop
++		      *   5: OUT_MODE 1:PWM, 0:DC
++		      *   6: DET_FAN_OOC enable "fan ooc" status
++		      *   7: DET_FAN_FAIL enable "fan fail" status
++		      */
++	u8 fan_cmd2; /* 0,1: FAN_STARTV 0,1,2,3 -> 0,32,64,96 dac_code
++		      * 2,3: FG_GEAR_MODE
++		      *         00: multiplier = 1
++		      *         01: multiplier = 2
++		      *         10: multiplier = 4
++		      *   4: Mask ALERT# (g763 only)
++		      */
++};
++
++/*
++ * sysfs PWM interface uses value from 0 to 255 when g762 FAN_SET_CNT register
++ * uses values from 255 (off) to 0 (full speed). Note that FAN_SET_OUT register
++ * uses values from 0 (off) to 255 (full speed), i.e. does not need translation.
++ */
++#define PWM_FROM_CNT(cnt)       (0xff - (cnt))
++#define PWM_TO_CNT(pwm)         (0xff - (pwm))
++
++/*
++ * Convert count value from fan controller registers (FAN_SET_CNT/FAN_ACT_CNT)
++ * into fan speed RPM value. Note that the datasheet documents a basic formula.
++ * Influence of additional parameters (fan clock divisor, fan gear mode) have
++ * been infered from examples in the datasheet and tests.
++ */
++static inline unsigned int rpm_from_cnt(u8 cnt, u32 clk, u16 p,
++					u8 clk_div, u8 gear_mult)
++{
++	if (cnt = 0xff)  /* cnt to 255 stops the fan */
++		return 0;
++
++	return (clk * 30 * gear_mult)/((cnt ? cnt : 1) * p * clk_div);
++}
++
++/*
++ * Convert fan RPM value from sysfs into count value for fan controller
++ * register (FAN_SET_CNT).
++ */
++static inline unsigned char cnt_from_rpm(u32 rpm, u32 clk, u16 p,
++					 u8 clk_div, u8 gear_mult)
++{
++	if (!rpm)         /* to stop the fan, set cnt to 255 */
++		return 0xff;
++
++	return clamp_val(((clk * 30 * gear_mult)/(rpm * p * clk_div)), 0, 255);
++}
++
++/*
++ * simple wrappers for i2c_smbus_{read,write}_byte_data() providing
++ * additional info on error
++ */
++static inline int g762_read_byte(const struct i2c_client *client, u8 reg,
++				 u8 *dest)
++{
++	int ret;
++
++	ret = i2c_smbus_read_byte_data(client, reg);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed to read reg %x02x, err %d\n",
++			(int)reg, ret);
++		return ret;
++	}
++	*dest = ret;
++
++	return 0;
++}
++
++static inline int g762_write_byte(const struct i2c_client *client, u8 reg,
++				  u8 val)
++{
++	int ret;
++
++	ret = i2c_smbus_write_byte_data(client, reg, val);
++	if (ret < 0)
++		dev_err(&client->dev, "failed to write reg %x02x, err %d\n",
++			(int)reg, ret);
++
++	return ret;
++}
++
++/* helper to grab and cache data, at most one time per second */
++static struct g762_data *g762_update_client(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = i2c_get_clientdata(client);
++	int ret = 0;
++
++	mutex_lock(&data->update_lock);
++	if (time_before(jiffies, data->last_updated + G762_UPDATE_INTERVAL) &&
++	    likely(data->valid))
++		goto out;
++
++	ret = g762_read_byte(client, G762_REG_SET_CNT, &data->set_cnt);
++	if (ret)
++		goto out;
++
++	ret = g762_read_byte(client, G762_REG_ACT_CNT, &data->act_cnt);
++	if (ret < 0)
++		goto out;
++
++	ret = g762_read_byte(client, G762_REG_FAN_STA, &data->fan_sta);
++	if (ret < 0)
++		goto out;
++
++	ret = g762_read_byte(client, G762_REG_SET_OUT, &data->set_out);
++	if (ret < 0)
++		goto out;
++
++	ret = g762_read_byte(client, G762_REG_FAN_CMD1, &data->fan_cmd1);
++	if (ret < 0)
++		goto out;
++
++	ret = g762_read_byte(client, G762_REG_FAN_CMD2, &data->fan_cmd2);
++	if (ret < 0)
++		goto out;
++
++	data->last_updated = jiffies;
++	data->valid = true;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	if (ret < 0) /* upon error, encode it in return value */
++		data = ERR_PTR(ret);
++
++	return data;
++}
++
++/*
++ * helpers for passing hardware characteristics via DT. Some of those
++ * are also used by sysfs handlers (write functions) later in the file.
++ */
++
++/* Set pwm mode. Accepts either 0 (PWM mode) or 1 (DC mode) */
++static int do_set_pwm_mode(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case OUT_MODE_PWM:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_OUT_MODE;
++		break;
++	case OUT_MODE_DC:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_OUT_MODE;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/*
++ * Set reference clock. Accepted values are between 0 and 0xffffff.
++ * Note that this is a characteristics of the system but an internal
++ * parameter, i.e. value is not passed to the device.
++ */
++static int do_set_pwm_freq(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = i2c_get_clientdata(client);
++
++	if (val > 0xffffff)
++		return -EINVAL;
++
++	data->clk = val;
++
++	return 0;
++}
++
++/* Set fan clock divisor. Accepted values are 1, 2, 4 and 8. */
++static int do_set_fan_div(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case 1:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID0;
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID1;
++		break;
++	case 2:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID0;
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID1;
++		break;
++	case 4:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID0;
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID1;
++		break;
++	case 8:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID0;
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID1;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Set fan gear mode. Accepted values are either 0, 1 or 2. */
++static int do_set_fan_gear_mode(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case 0:
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_0;
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_1;
++		break;
++	case 1:
++		data->fan_cmd2 |=  G762_REG_FAN_CMD2_GEAR_MODE_0;
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_1;
++		break;
++	case 2:
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_0;
++		data->fan_cmd2 |=  G762_REG_FAN_CMD2_GEAR_MODE_1;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD2, data->fan_cmd2);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Set pulse per revolution value. Accepts either 2 or 4. */
++static int do_set_fan_pulses(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case 2:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_PULSE_PER_REV;
++		break;
++	case 4:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_PULSE_PER_REV;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Set fan mode. Accepts either 1 (open-loop) or 2 (closed-loop). */
++static int do_set_pwm_enable(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case FAN_MODE_OPEN_LOOP:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_FAN_MODE;
++		break;
++	case FAN_MODE_CLOSED_LOOP:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_FAN_MODE;
++		break;
++	default:
++		goto out;
++	}
++
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Set PWM polarity (0 for negative duty, 1 for positive duty) */
++static int do_set_pwm_polarity(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case 0: /* i.e. negative duty */
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_PWM_POLARITY;
++		break;
++	case 1: /* i.e. positive duty */
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_PWM_POLARITY;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/*
++ * Set pwm value. Accepted values are between 0 (stops the fan) and 255 (full
++ * speed). Note that the chip register used for setting the value depends on
++ * current fan mode of the device (closed or open-loop).
++ */
++static int do_set_pwm(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret;
++	u8 reg;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	if (val > 255)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	if (data->fan_cmd1 & G762_REG_FAN_CMD1_FAN_MODE) { /* closed-loop */
++		val = PWM_TO_CNT(val);
++		data->set_cnt = val;
++		reg = G762_REG_SET_CNT;
++	} else {                                           /* open-loop */
++		data->set_out = val;
++		reg = G762_REG_SET_OUT;
++	}
++	ret = g762_write_byte(client, reg, (u8)val);
++	data->valid = false;
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Set fan RPM value. This only makes sense in closed-loop mode. */
++static int do_set_fan_target(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	if (data->fan_cmd1 & G762_REG_FAN_CMD1_FAN_MODE) { /* closed-loop */
++		data->set_cnt = cnt_from_rpm(val, data->clk,
++					     PULSE_FROM_REG(data->fan_cmd1),
++					     CLKDIV_FROM_REG(data->fan_cmd1),
++					     GEARMULT_FROM_REG(data->fan_cmd2));
++		ret = g762_write_byte(client, G762_REG_SET_CNT, data->set_cnt);
++		data->valid = false;
++	}
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Enable/disable fan failure detection. Accepted values are 1 and 0. */
++static int do_fan_failure_detection_toggle(struct device *dev,
++					   unsigned long enable)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (enable) {
++	case 0:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_DET_FAN_FAIL;
++		break;
++	case 1:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_DET_FAN_FAIL;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Enable/disable fan out of control detection. Accepted values are 1 and 0 */
++static int do_fan_ooc_detection_toggle(struct device *dev, unsigned int enable)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (enable) {
++	case 0:
++		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_DET_FAN_OOC;
++		break;
++	case 1:
++		data->fan_cmd1 |=  G762_REG_FAN_CMD1_DET_FAN_OOC;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD1, data->fan_cmd1);
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/* Set fan startup voltage. Accepted values are either 0, 1, 2 or 3. */
++static int do_set_fan_startv(struct device *dev, unsigned long val)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g762_data *data = g762_update_client(dev);
++	int ret = -EINVAL;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	switch (val) {
++	case 0:
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_0;
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_1;
++		data->valid = false;
++		break;
++	case 1:
++		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_0;
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_1;
++		data->valid = false;
++		break;
++	case 2:
++		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_0;
++		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_1;
++		data->valid = false;
++		break;
++	case 3:
++		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_0;
++		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_1;
++		data->valid = false;
++		break;
++	default:
++		goto out;
++	}
++	ret = g762_write_byte(client, G762_REG_FAN_CMD2, data->fan_cmd2);
++	data->valid = false;
++ out:
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++/*
++ * Configuration-related definitions
++ */
++
++static inline int g762_one_prop_commit(struct i2c_client *client,
++				       u32 pval, const char *pname,
++				       int (*psetter)(struct device *dev,
++						      unsigned long val))
++{
++	int ret = 0;
++
++	if (pval & G762_VAL_TEST_BIT) {
++		pval &= G762_VAL_TEST_MASK; /* recover val (clear test bit) */
++		if ((*psetter)(&client->dev, pval)) {
++			dev_err(&client->dev, "unable to set %s (%d)\n",
++				pname, pval);
++			ret = -EINVAL;
++		}
++	}
++
++	return ret;
++}
++
++static int g762_platform_data_commit(struct i2c_client *client,
++				     struct g762_platform_data *pdata)
++{
++	int ret;
++
++	ret = g762_one_prop_commit(client, pdata->fan_startv,
++				   "fan_startv", do_set_fan_startv);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->fan_div,
++				   "fan_div", do_set_fan_div);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->fan_pulses,
++				   "fan_pulses", do_set_fan_pulses);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->pwm_freq,
++				   "pwm_freq", do_set_pwm_freq);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->fan_gear_mode,
++				   "fan_gear_mode", do_set_fan_gear_mode);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->pwm_polarity,
++				   "pwm_polarity", do_set_pwm_polarity);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->pwm_mode,
++				   "pwm_mode", do_set_pwm_mode);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->pwm_enable,
++				   "pwm_enable", do_set_pwm_enable);
++	if (ret < 0)
++		return ret;
++
++	ret = g762_one_prop_commit(client, pdata->fan_target,
++				   "fan_target", do_set_fan_target);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/*
++ * Helpers to import hardware characteristics from .dts file and overload
++ * default platform data values.
++ */
++
++#ifdef CONFIG_OF
++static struct of_device_id g762_dt_match[] = {
++	{ .compatible = "gmt,g762" },
++	{ .compatible = "gmt,g763" },
++	{ },
++};
++
++static inline void g762_of_import_one_prop(struct i2c_client *client,
++					   u32 *dest, const char *pname)
++{
++	const __be32 *prop;
++	int len;
++
++	prop = of_get_property(client->dev.of_node, pname, &len);
++	if (prop && len = sizeof(u32)) {
++		*dest = G762_ATTR_VAL(be32_to_cpu(prop[0]));
++		dev_dbg(&client->dev, "found %s (%d)\n", pname, *dest);
++	}
++}
++
++static void g762_platform_data_of_overload(struct i2c_client *client,
++					   struct g762_platform_data *pdata)
++{
++	if (!client->dev.of_node)
++		return;
++
++	g762_of_import_one_prop(client, &pdata->fan_startv, "fan_startv");
++	g762_of_import_one_prop(client, &pdata->fan_gear_mode, "fan_gear_mode");
++	g762_of_import_one_prop(client, &pdata->fan_div, "fan_div");
++	g762_of_import_one_prop(client, &pdata->fan_pulses, "fan_pulses");
++	g762_of_import_one_prop(client, &pdata->fan_target, "fan_target");
++	g762_of_import_one_prop(client, &pdata->pwm_polarity, "pwm_polarity");
++	g762_of_import_one_prop(client, &pdata->pwm_enable, "pwm_enable");
++	g762_of_import_one_prop(client, &pdata->pwm_freq, "pwm_freq");
++	g762_of_import_one_prop(client, &pdata->pwm_mode, "pwm_mode");
++}
++#else
++static void g762_platform_data_of_overload(struct i2c_client *client,
++				    struct g762_platform_data *pdata) { }
++#endif
++
++/*
++ * helper to overload driver parameters from board init file for those
++ * not already converted to device tree
++ */
++static void g762_platform_data_overload(struct i2c_client *client,
++					struct g762_platform_data *pdata)
++{
++	struct g762_platform_data *opdata = client->dev.platform_data;
++
++	if (!opdata)
++		return;
++
++	if (opdata->fan_startv & G762_VAL_TEST_BIT)
++		pdata->fan_startv = opdata->fan_startv;
++	if (opdata->fan_gear_mode & G762_VAL_TEST_BIT)
++		pdata->fan_gear_mode = opdata->fan_gear_mode;
++	if (opdata->fan_div & G762_VAL_TEST_BIT)
++		pdata->fan_div = opdata->fan_div;
++	if (opdata->fan_pulses & G762_VAL_TEST_BIT)
++		pdata->fan_pulses = opdata->fan_pulses;
++	if (opdata->fan_target & G762_VAL_TEST_BIT)
++		pdata->fan_target = opdata->fan_target;
++	if (opdata->pwm_polarity & G762_VAL_TEST_BIT)
++		pdata->pwm_polarity = opdata->pwm_polarity;
++	if (opdata->pwm_enable & G762_VAL_TEST_BIT)
++		pdata->pwm_enable = opdata->pwm_enable;
++	if (opdata->pwm_freq & G762_VAL_TEST_BIT)
++		pdata->pwm_freq = opdata->pwm_freq;
++	if (opdata->pwm_mode & G762_VAL_TEST_BIT)
++		pdata->pwm_mode = opdata->pwm_mode;
++}
++
++/*
++ * sysfs attributes
++ */
++
++/*
++ * Read function for fan1_input sysfs file. Return current fan RPM value, or
++ * 0 if fan is out of control. The function is available in both closed and
++ * open-loop mode.
++ */
++static ssize_t get_fan_rpm(struct device *dev, struct device_attribute *da,
++			   char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++	unsigned int rpm = 0;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	/* reverse logic: fan out of control reporting is enabled low */
++	if (data->fan_sta & G762_REG_FAN_STA_OOC) {
++		rpm = rpm_from_cnt(data->act_cnt, data->clk,
++				   PULSE_FROM_REG(data->fan_cmd1),
++				   CLKDIV_FROM_REG(data->fan_cmd1),
++				   GEARMULT_FROM_REG(data->fan_cmd2));
++	}
++	mutex_unlock(&data->update_lock);
++
++	return sprintf(buf, "%u\n", rpm);
++}
++
++/*
++ * Read and write functions for pwm1_mode sysfs file. Get and set fan speed
++ * control mode i.e. PWM (1) or DC (0).
++ */
++static ssize_t get_pwm_mode(struct device *dev, struct device_attribute *da,
++			    char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%d\n",
++		       !!(data->fan_cmd1 & G762_REG_FAN_CMD1_OUT_MODE));
++}
++
++static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *da,
++			    const char *buf, size_t count)
++{
++	unsigned long val;
++	int ret;
++
++	if (kstrtoul(buf, 10, &val))
++		return -EINVAL;
++
++	ret = do_set_pwm_mode(dev, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++/*
++ * Read and write functions for fan1_div sysfs file. Get and set fan
++ * controller prescaler value
++ */
++static ssize_t get_fan_div(struct device *dev,
++			       struct device_attribute *da, char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%d\n", CLKDIV_FROM_REG(data->fan_cmd1));
++}
++
++static ssize_t set_fan_div(struct device *dev,
++			       struct device_attribute *da,
++			       const char *buf, size_t count)
++{
++	unsigned long val;
++	int ret;
++
++	if (kstrtoul(buf, 10, &val))
++		return -EINVAL;
++
++	ret = do_set_fan_div(dev, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++/*
++ * Read and write functions for pwm1_enable. Get and set the fan speed control
++ * mode (i.e. closed or open-loop).
++ *
++ * Following documentation about hwmon's sysfs interface, a pwm1_enable node
++ * should accept followings:
++ *
++ *  0 : no fan speed control (i.e. fan at full speed)
++ *  1 : manual fan speed control enabled (use pwm[1-*]) (open-loop)
++ *  2+: automatic fan speed control enabled (use fan[1-*]_target) (closed-loop)
++ *
++ * but we do not accept 0 as "no-control" mode is not supported by g762,
++ * -EINVAL is returned in this case.
++ */
++static ssize_t get_pwm_enable(struct device *dev,
++			      struct device_attribute *da, char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%d\n",
++		       (!!(data->fan_cmd1 & G762_REG_FAN_CMD1_FAN_MODE)) + 1);
++}
++
++static ssize_t set_pwm_enable(struct device *dev,
++			      struct device_attribute *da,
++			      const char *buf, size_t count)
++{
++	unsigned long val;
++	int ret;
++
++	if (kstrtoul(buf, 10, &val))
++		return -EINVAL;
++
++	ret = do_set_pwm_enable(dev, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++/*
++ * Read and write functions for pwm1 sysfs file. Get and set the fan speed
++ * in both open and closed-loop mode. Speed is given as a relative value
++ * between 0 and 255, where 255 is maximum speed. Note that due to rounding
++ * errors it is possible that you don't read back exactly the value you have
++ * set.
++ */
++static ssize_t get_pwm(struct device *dev, struct device_attribute *da,
++		       char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++	int val;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	if (data->fan_cmd1 & G762_REG_FAN_CMD1_FAN_MODE) /* closed-loop */
++		val = PWM_FROM_CNT(data->set_cnt);
++	else                                             /* open-loop */
++		val = data->set_out;
++	mutex_unlock(&data->update_lock);
++
++	return sprintf(buf, "%d\n", val);
++}
++
++static ssize_t set_pwm(struct device *dev, struct device_attribute *da,
++		       const char *buf, size_t count)
++{
++	unsigned long val;
++	int ret;
++
++	if (kstrtoul(buf, 10, &val))
++		return -EINVAL;
++
++	ret = do_set_pwm(dev, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++/*
++ * Read and write function for fan1_target sysfs file. Get/set the fan speed in
++ * closed-loop mode. Speed is given as a RPM value; then the chip will regulate
++ * the fan speed using pulses from fan tachometer. The functions both return
++ * -EINVAL when called in open-loop mode.
++ *
++ * Refer to rpm_from_cnt() implementation above to get info about count number
++ * calculation.
++ *
++ * Also note that due to rounding errors it is possible that you don't read
++ * back exactly the value you have set.
++ */
++static ssize_t get_fan_target(struct device *dev, struct device_attribute *da,
++			      char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++	ssize_t ret = -EINVAL;
++	unsigned int rpm;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	mutex_lock(&data->update_lock);
++	if (data->fan_cmd1 & G762_REG_FAN_CMD1_FAN_MODE) { /* closed-loop */
++		rpm = rpm_from_cnt(data->set_cnt, data->clk,
++				   PULSE_FROM_REG(data->fan_cmd1),
++				   CLKDIV_FROM_REG(data->fan_cmd1),
++				   GEARMULT_FROM_REG(data->fan_cmd2));
++		ret = sprintf(buf, "%u\n", rpm);
++	}
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
++static ssize_t set_fan_target(struct device *dev, struct device_attribute *da,
++			      const char *buf, size_t count)
++{
++	unsigned long val;
++	int ret;
++
++	if (kstrtoul(buf, 10, &val))
++		return -EINVAL;
++
++	ret = do_set_fan_target(dev, val);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++/* read function for fan1_fault sysfs file. */
++static ssize_t get_fan_failure(struct device *dev, struct device_attribute *da,
++			       char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%u\n", !!(data->fan_sta & G762_REG_FAN_STA_FAIL));
++}
++
++/*
++ * read function for fan1_alarm sysfs file. Note that OOC condition is
++ * enabled low
++ */
++static ssize_t get_fan_ooc(struct device *dev, struct device_attribute *da,
++			   char *buf)
++{
++	struct g762_data *data = g762_update_client(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%u\n", !(data->fan_sta & G762_REG_FAN_STA_OOC));
++}
++
++static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
++static DEVICE_ATTR(pwm1_mode, S_IWUSR | S_IRUGO, get_pwm_mode, set_pwm_mode);
++static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
++		   get_pwm_enable, set_pwm_enable);
++static DEVICE_ATTR(fan1_input, S_IRUGO, get_fan_rpm, NULL);
++static DEVICE_ATTR(fan1_alarm, S_IRUGO, get_fan_ooc, NULL);
++static DEVICE_ATTR(fan1_fault, S_IRUGO, get_fan_failure, NULL);
++static DEVICE_ATTR(fan1_target, S_IWUSR | S_IRUGO,
++		   get_fan_target, set_fan_target);
++static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, get_fan_div, set_fan_div);
++
++/* Driver data */
++static struct attribute *g762_attributes[] = {
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_alarm.attr,
++	&dev_attr_fan1_fault.attr,
++	&dev_attr_fan1_target.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_pwm1.attr,
++	&dev_attr_pwm1_mode.attr,
++	&dev_attr_pwm1_enable.attr,
++	NULL
++};
++
++static const struct attribute_group g762_group = {
++	.attrs = g762_attributes,
++};
++
++static int g762_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct g762_platform_data pdata = { .pwm_freq = G762_ATTR_VAL(32768) };
++	struct g762_data *data;
++	int err;
++
++	if (!i2c_check_functionality(client->adapter,
++				     I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	data = devm_kzalloc(&client->dev, sizeof(struct g762_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	data->client = client;
++	mutex_init(&data->update_lock);
++
++	/* Enable fan protection and fan fail detection by default */
++	do_fan_ooc_detection_toggle(&client->dev, 1);
++	do_fan_failure_detection_toggle(&client->dev, 1);
++
++	/*
++	 * Set default configuration values before passing the structure
++	 * first to overload routine used by boards non converted to DT and
++	 * then to OF helper (to overload them using those provided by .dts
++	 * file, if any). Final result is then commited.
++	 */
++	g762_platform_data_overload(client, &pdata);
++	g762_platform_data_of_overload(client, &pdata);
++	err = g762_platform_data_commit(client, &pdata);
++	if (err)
++		return err;
++
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&client->dev.kobj, &g762_group);
++	if (err)
++		return err;
++
++	data->hwmon_dev = (struct device *)hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto err_out;
++	}
++
++	return 0;
++
++ err_out:
++	sysfs_remove_group(&client->dev.kobj, &g762_group);
++	return err;
++}
++
++static int g762_remove(struct i2c_client *client)
++{
++	struct g762_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &g762_group);
++
++	return 0;
++}
++
++static struct i2c_driver g762_driver = {
++	.driver = {
++		.name = DRVNAME,
++		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(g762_dt_match),
++	},
++	.probe	  = g762_probe,
++	.remove	  = g762_remove,
++	.id_table = g762_id,
++};
++
++module_i2c_driver(g762_driver);
++
++MODULE_AUTHOR("Arnaud EBALARD <arno@natisbad.org>");
++MODULE_DESCRIPTION("GMT G762/G763 driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/platform_data/g762.h b/include/linux/platform_data/g762.h
+new file mode 100644
+index 0000000..a1f9e05
+--- /dev/null
++++ b/include/linux/platform_data/g762.h
+@@ -0,0 +1,51 @@
++/*
++ * Platform data structure for g762 fan controller driver
++ *
++ * Copyright (C) 2013, Arnaud EBALARD <arno@natisbad.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++#ifndef __LINUX_PLATFORM_DATA_G762_H__
++#define __LINUX_PLATFORM_DATA_G762_H__
++
++/*
++ * Following structure can be used to set g762 driver platform specific data
++ * during board init. Attributes must *always* be set using G762_ATTR_VAL()
++ * macro defined below, i.e. it is not possible to pass a value directly.
++ * Defining a sparse structure is possible. For instance, if one only needs
++ * to set pwm_freq to 8192 and fan_pulses to 2, the following can be done:
++ *
++ * static struct g762_platform_data pdata = { .pwm_freq = G762_ATTR_VAL(8192),
++ *                                            .fan_pulses = G762_ATTR_VAL(2), };
++ *
++ */
++
++#define G762_VAL_TEST_BIT  (1 << 31)
++#define G762_VAL_TEST_MASK (~G762_VAL_TEST_BIT)
++#define G762_ATTR_VAL(val) ((val) | G762_VAL_TEST_BIT)
++
++struct g762_platform_data {
++	u32 fan_startv;
++	u32 fan_gear_mode;
++	u32 fan_div;
++	u32 fan_pulses;
++	u32 fan_target;
++	u32 pwm_polarity;
++	u32 pwm_enable;
++	u32 pwm_freq;
++	u32 pwm_mode;
++};
++
++#endif /* __LINUX_PLATFORM_DATA_G762_H__ */
+-- 
+1.7.10.4
 
-> ---
->  .../devicetree/bindings/hwmon/emc2305.txt          |   61 ++
->  Documentation/hwmon/emc2305                        |   33 +
->  MAINTAINERS                                        |    8 +
->  drivers/hwmon/Kconfig                              |   10 +
->  drivers/hwmon/Makefile                             |    1 +
->  drivers/hwmon/emc2305.c                            |  800 ++++++++++++++++++++
->  6 files changed, 913 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/hwmon/emc2305.txt
->  create mode 100644 Documentation/hwmon/emc2305
->  create mode 100644 drivers/hwmon/emc2305.c
-> 
-> diff --git a/Documentation/devicetree/bindings/hwmon/emc2305.txt b/Documentation/devicetree/bindings/hwmon/emc2305.txt
-> new file mode 100644
-> index 0000000..8e0c0dd
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwmon/emc2305.txt
-> @@ -0,0 +1,61 @@
-> +EMC2305 (I2C)
-> +
-> +This device is a RPM-based PWM Fan Speed Controller for up to 5 fans.
-> +
-> +Each fan can beconfigured individually:
-> +
-> + - pwm-enable defines the PWM mode:
-> +    0: PWM is disabled
-> +    3: RPM based PWM
-> +
-> +  - fan-div sets the fan divisor (for RPM mesaurement)
-> +    1, 2 ,4 or 8
-> +
-> +  - fan-target sets the target RPM speed (for RPM based PWM mode)
-> +    max 16000 (according to data sheet)
-> +
-> +
-> +1) The /emc2305 node
-> +
-> +  Required properties:
-> +
-> +   - compatible : must be "smsc,emc2305"
-> +   - reg : I2C bus address of the device
-> +   - #address-cells : must be <1>
-> +   - #size-cells : must be <0>
-> +
-> +  The node may contain child nodes for each fan that the platform uses.
-> +  If no child nodes are given, all possible fan control channels are exposed.
-> +  If at least one child node is given, only the configured fans are exposed.
-> +
-> +  Example EMC2305 node:
-> +
-> +    emc2305@2C {
-> +	    compatible = "smsc,emc2305";
-> +	    reg = <0x2C>;
-> +	    #address-cells = <1>;
-> +	    #size-cells = <0>;
-> +
-> +	    [ child node definitions... ]
-> +    }
-> +
-> +2) fan nodes
-> +
-> +  Required properties:
-> +
-> +   - reg : the fan number (0 based)
-> +
-> +  Optional properties:
-> +
-> +   - fan-div : the fan divisor setting
-> +   - fan-target : the fan target speed
-> +   - pwm-enable : PWM mode
-> +
-> +  Example EMC2305 fan node:
-> +
-> +    fan@1 {
-> +	    reg = <1>;
-> +	    fan-div = <4>;
-> +	    pwm-enable = <0>;
-> +    };
-> +
-All those properties can and should be set through sysfs. I have done that
-myself a lot even in embedded systems; either use "sensors -s" with appropriate
-configuration file or a startup script which sets the desired values.
-
-I am not sure if supporting the same through devicetree at some point makes
-sense or not, but if we ever do it I would want to have a unified implementation
-in the hwmon subsystem, not per-driver code.
-
-I am fine with initialization data in devicetre, but that should be data
-necessary for chip initialization, not data to pre-set sysfs attributes.
-
-So please drop this.
-
-> diff --git a/Documentation/hwmon/emc2305 b/Documentation/hwmon/emc2305
-> new file mode 100644
-> index 0000000..4de033b
-> --- /dev/null
-> +++ b/Documentation/hwmon/emc2305
-> @@ -0,0 +1,33 @@
-> +Kernel driver emc2305
-> +==========> +
-> +Supported chips:
-> +  * SMSC EMC2305, EMC2303, EMC2302, EMC2301
-> +    Adresses scanned: I2C 0x2c, 0x2d, 0x2e, 0x2f, 0x4c, 0x4d
-> +    Prefixes: 'emc2305', 'emc2303', 'emc2302', 'emc2301'
-> +    Datasheet: Publicly available at the SMSC website :
-> +        http://www.smsc.com/Products/Thermal_and_Power_Management/Fan_Controllers
-> +
-> +Authors:
-> +        Reinhard Pfau, Guntermann & Drunck GmbH <pfau@gdsys.de>
-> +
-> +Description
-> +-----------
-> +
-> +The SMSC EMC2305 is a fan controller for up to 5 fans.
-> +The EMC2303 has the same functionality but supports only up to 3 fans.
-> +
-> +The EMC2302 supports 2 fans and the EMC2301 1 fan. These chips support less
-> +possible I2C addresses.
-> +
-> +Fan rotation speeds are reported in RPM.
-> +The driver supports the RPM based PWM control to keep a fan at a desired speed.
-> +To enable this function for a fan, write 3 to pwm<num>_enable and the desired
-> +fan speed to fan<num>_target.
-> +
-> +
-> +Devicetree
-> +----------
-> +
-> +Configuration is also possible via devicetree:
-> +Documentation/devicetree/bindings/hwmon/emc2305.txt
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 0c9dc71..41ddd67 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7435,6 +7435,14 @@ S:	Maintained
->  F:	Documentation/hwmon/emc2103
->  F:	drivers/hwmon/emc2103.c
->  
-> +SMSC EMC2305 HARDWARE MONITOR DRIVER
-> +M:	Reinhard Pfau <pfau@gdsys.de>
-> +L:	lm-sensors@lm-sensors.org
-> +S:	Maintained
-> +F:	Documentation/hwmon/emc2305
-> +F:	Documentation/devicetree/bindings/hwmon/emc2305.txt
-> +F:	drivers/hwmon/emc2305.c
-> +
->  SMSC SCH5627 HARDWARE MONITOR DRIVER
->  M:	Hans de Goede <hdegoede@redhat.com>
->  L:	lm-sensors@lm-sensors.org
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 0428e8a..6c72441 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1094,6 +1094,16 @@ config SENSORS_EMC2103
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called emc2103.
->  
-> +config SENSORS_EMC2305
-> +	tristate "SMSC EMC2305"
-> +	depends on I2C
-> +	help
-> +	  If you say yes here you get support for the SMSC EMC2305/EMC2303
-> +	  fan controller chips.
-> +
-> +	  This driver can also be built as a module.  If so, the module
-> +	  will be called emc2305.
-> +
->  config SENSORS_EMC6W201
->  	tristate "SMSC EMC6W201"
->  	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index d17d3e6..982752a 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -53,6 +53,7 @@ obj-$(CONFIG_SENSORS_DS620)	+= ds620.o
->  obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
->  obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
->  obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
-> +obj-$(CONFIG_SENSORS_EMC2305)	+= emc2305.o
->  obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
->  obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
->  obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
-> diff --git a/drivers/hwmon/emc2305.c b/drivers/hwmon/emc2305.c
-> new file mode 100644
-> index 0000000..29acead
-> --- /dev/null
-> +++ b/drivers/hwmon/emc2305.c
-> @@ -0,0 +1,800 @@
-> +/*
-> + * emc2305.c - hwmon driver for SMSC EMC2305 fan controller
-> + * (C) Copyright 2013
-> + * Reinhard Pfau, Guntermann & Drunck GmbH <pfau@gdsys.de>
-> + *
-> + * Based on emc2103 driver by SMSC.
-> + *
-> + * Datasheet available at:
-> + * http://www.smsc.com/Downloads/SMSC/Downloads_Public/Data_Sheets/2305.pdf
-> + *
-> + * Also supports the EMC2303 fan controller which has the same functionality
-> + * and register layout as EMC2305, but supports only up to 3 fans instead of 5.
-> + *
-> + * Also supports EMC2302 (up to 2 fans) and EMC2301 (1 fan) fan controller.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +/*
-> + * TODO / IDEAS:
-> + * - expose more of the configuration and features
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
-> +#include <linux/of.h>
-> +
-> +/*
-> + * Addresses scanned.
-> + * Listed in the same order as they appear in the EMC2305, EMC2303 data sheets.
-> + *
-> + * Note: these are the I2C adresses which are possible for EMC2305 and EMC2303
-> + * chips.
-> + * The EMC2302 supports only 0x2e (EMC2302-1) and 0x2f (EMC2302-2).
-> + * The EMC2301 supports only 0x2f.
-> + */
-> +static const unsigned short i2c_adresses[] = {
-> +	0x2E,
-> +	0x2F,
-> +	0x2C,
-> +	0x2D,
-> +	0x4C,
-> +	0x4D,
-> +	I2C_CLIENT_END
-
-Usually we keep those in order.
-
-> +};
-> +
-> +/*
-> + * global registers
-> + */
-> +enum {
-> +	REG_CONFIGURATION = 0x20,
-> +	REG_FAN_STATUS = 0x24,
-> +	REG_FAN_STALL_STATUS = 0x25,
-> +	REG_FAN_SPIN_STATUS = 0x26,
-> +	REG_DRIVE_FAIL_STATUS = 0x27,
-> +	REG_FAN_INTERRUPT_ENABLE = 0x29,
-> +	REG_PWM_POLARITY_CONFIG = 0x2a,
-> +	REG_PWM_OUTPUT_CONFIG = 0x2b,
-> +	REG_PWM_BASE_FREQ_1 = 0x2c,
-> +	REG_PWM_BASE_FREQ_2 = 0x2d,
-> +	REG_SOFTWARE_LOCK = 0xef,
-> +	REG_PRODUCT_FEATURES = 0xfc,
-> +	REG_PRODUCT_ID = 0xfd,
-> +	REG_MANUFACTURER_ID = 0xfe,
-> +	REG_REVISION = 0xff
-> +};
-> +
-> +/*
-> + * fan specific registers
-> + */
-> +enum {
-> +	REG_FAN_SETTING = 0x30,
-> +	REG_PWM_DIVIDE = 0x31,
-> +	REG_FAN_CONFIGURATION_1 = 0x32,
-> +	REG_FAN_CONFIGURATION_2 = 0x33,
-> +	REG_GAIN = 0x35,
-> +	REG_FAN_SPIN_UP_CONFIG = 0x36,
-> +	REG_FAN_MAX_STEP = 0x37,
-> +	REG_FAN_MINIMUM_DRIVE = 0x38,
-> +	REG_FAN_VALID_TACH_COUNT = 0x39,
-> +	REG_FAN_DRIVE_FAIL_BAND_LOW = 0x3a,
-> +	REG_FAN_DRIVE_FAIL_BAND_HIGH = 0x3b,
-> +	REG_TACH_TARGET_LOW = 0x3c,
-> +	REG_TACH_TARGET_HIGH = 0x3d,
-> +	REG_TACH_READ_HIGH = 0x3e,
-> +	REG_TACH_READ_LOW = 0x3f,
-> +};
-> +
-> +#define SEL_FAN(fan, reg) (reg + fan * 0x10)
-> +
-> +/*
-> + * Factor by equations [2] and [3] from data sheet; valid for fans where the
-> + * number of edges equals (poles * 2 + 1).
-> + */
-> +#define FAN_RPM_FACTOR 3932160
-> +
-> +
-Only one empty line, please
-
-> +struct emc2305_fan_data {
-> +	bool		enabled;
-> +	bool		valid;
-> +	unsigned long	last_updated;
-> +	bool		rpm_control;
-> +	u8		multiplier;
-> +	u8		poles;
-> +	u16		target;
-> +	u16		tach;
-> +	u16		rpm_factor;
-> +};
-> +
-> +struct emc2305_data {
-> +	struct device		*hwmon_dev;
-> +	struct mutex		update_lock;
-> +	int			fans;
-> +	struct emc2305_fan_data	fan[5];
-> +};
-> +
-> +static int read_u8_from_i2c(struct i2c_client *client, u8 i2c_reg, u8 *output)
-> +{
-> +	int status = i2c_smbus_read_byte_data(client, i2c_reg);
-> +	if (status < 0) {
-> +		dev_warn(&client->dev, "reg 0x%02x, err %d\n",
-> +			i2c_reg, status);
-> +	} else {
-> +		*output = status;
-> +	}
-> +	return status;
-> +}
-
-I am not in favor of this kind of code, where error return and return value are
-split and the return value is passed through a pointer.
-
-I won't complain about the waring, though I find it unnecessary, but there is no
-value in separating error code (negative) from value (u8), and I won't accept
-it.
-
-> +
-> +static void read_fan_from_i2c(struct i2c_client *client, u16 *output,
-> +			      u8 hi_addr, u8 lo_addr)
-> +{
-> +	u8 high_byte, lo_byte;
-> +
-> +	if (read_u8_from_i2c(client, hi_addr, &high_byte) < 0)
-> +		return;
-> +
-> +	if (read_u8_from_i2c(client, lo_addr, &lo_byte) < 0)
-> +		return;
-> +
-> +	*output = ((u16)high_byte << 5) | (lo_byte >> 3);
-
-Same here. Even worse, you are hiding the error returns here, meaning the
-calling process won't notice. As you find it important enough to fill the log
-with the error, I assume you'll want to notify userspace as well.
-
-> +}
-> +
-> +static void write_fan_target_to_i2c(struct i2c_client *client, int fan,
-> +				    u16 new_target)
-> +{
-> +	const u8 lo_reg = SEL_FAN(fan, REG_TACH_TARGET_LOW);
-> +	const u8 hi_reg = SEL_FAN(fan, REG_TACH_TARGET_HIGH);
-> +	u8 high_byte = (new_target & 0x1fe0) >> 5;
-> +	u8 low_byte = (new_target & 0x001f) << 3;
-
-an empty line doesn't hurt here.
-
-> +	i2c_smbus_write_byte_data(client, lo_reg, low_byte);
-> +	i2c_smbus_write_byte_data(client, hi_reg, high_byte);
-
-No error check here ? Then what is the point of error checking the reads and
-creating a log entry ?
-
-> +}
-> +
-> +static void read_fan_config_from_i2c(struct i2c_client *client, int fan)
-> +
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	u8 conf1;
-> +
-> +	if (read_u8_from_i2c(client, SEL_FAN(fan, REG_FAN_CONFIGURATION_1),
-> +			     &conf1) < 0)
-> +		return;
-> +
-> +	data->fan[fan].rpm_control = (conf1 & 0x80) != 0;
-
-	rpm_control is bool, so != 0 is unnecessary.
-
-> +	data->fan[fan].multiplier = 1 << ((conf1 & 0x60) >> 5);
-> +	data->fan[fan].poles = ((conf1 & 0x18) >> 3) + 1;
-> +}
-> +
-> +static void read_fan_data(struct i2c_client *client, int fan_idx)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +
-> +	read_fan_from_i2c(client, &data->fan[fan_idx].target,
-> +			  SEL_FAN(fan_idx, REG_TACH_TARGET_HIGH),
-> +			  SEL_FAN(fan_idx, REG_TACH_TARGET_LOW));
-> +	read_fan_from_i2c(client, &data->fan[fan_idx].tach,
-> +			  SEL_FAN(fan_idx, REG_TACH_READ_HIGH),
-> +			  SEL_FAN(fan_idx, REG_TACH_READ_LOW));
-> +}
-> +
-> +static struct emc2305_fan_data *
-> +emc2305_update_fan(struct i2c_client *client, int fan_idx)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	struct emc2305_fan_data *fan_data = &data->fan[fan_idx];
-> +
-> +	mutex_lock(&data->update_lock);
-> +
-> +	if (time_after(jiffies, fan_data->last_updated + HZ + HZ / 2)
-> +	    || !fan_data->valid) {
-> +		read_fan_config_from_i2c(client, fan_idx);
-> +		read_fan_data(client, fan_idx);
-
-Since the underlying code checks for error returns, you expect those to happen,
-and should return those errors to user space.
-
-> +		fan_data->valid = true;
-> +		fan_data->last_updated = jiffies;
-> +	}
-> +
-> +	mutex_unlock(&data->update_lock);
-> +	return fan_data;
-> +}
-> +
-> +static struct emc2305_fan_data *
-> +emc2305_update_device_fan(struct device *dev, struct device_attribute *da)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int fan_idx = to_sensor_dev_attr(da)->index;
-> +
-> +	return emc2305_update_fan(client, fan_idx);
-> +}
-> +
-> +/*
-> + * set/ config functions
-> + */
-> +
-> +/*
-> + * Note: we also update the fan target here, because its value is
-> + * determined in part by the fan clock divider.  This follows the principle
-> + * of least surprise; the user doesn't expect the fan target to change just
-> + * because the divider changed.
-> + */
-> +static int
-> +emc2305_set_fan_div(struct i2c_client *client, int fan_idx, long new_div)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	struct emc2305_fan_data *fan = emc2305_update_fan(client, fan_idx);
-> +	const u8 reg_conf1 = SEL_FAN(fan_idx, REG_FAN_CONFIGURATION_1);
-> +	int new_range_bits, old_div = 8 / fan->multiplier;
-> +	int status = 0;
-> +
-> +	if (new_div = old_div) /* No change */
-> +		return 0;
-> +
-> +	switch (new_div) {
-> +	case 1:
-> +		new_range_bits = 3;
-> +		break;
-> +	case 2:
-> +		new_range_bits = 2;
-> +		break;
-> +	case 4:
-> +		new_range_bits = 1;
-> +		break;
-> +	case 8:
-> +		new_range_bits = 0;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	mutex_lock(&data->update_lock);
-> +
-> +	status = i2c_smbus_read_byte_data(client, reg_conf1);
-> +	if (status < 0) {
-> +		dev_dbg(&client->dev, "reg 0x%02x, err %d\n",
-> +			reg_conf1, status);
-> +		status = -EIO;
-
-Please don't replace error codes.
-
-> +		goto exit_unlock;
-> +	}
-> +	status &= 0x9F;
-> +	status |= (new_range_bits << 5);
-> +	status = i2c_smbus_write_byte_data(client, reg_conf1, status);
-> +	if (status < 0) {
-> +		status = -EIO;
-
-Please don't replace error codes.
-
-> +		goto exit_invalidate;
-> +	}
-> +
-> +	fan->multiplier = 8 / new_div;
-> +
-> +	/* update fan target if high byte is not disabled */
-> +	if ((fan->target & 0x1fe0) != 0x1fe0) {
-> +		u16 new_target = (fan->target * old_div) / new_div;
-> +		fan->target = min_t(u16, new_target, 0x1fff);
-> +		write_fan_target_to_i2c(client, fan_idx, fan->target);
-> +	}
-> +
-> +exit_invalidate:
-> +	/* invalidate fan data to force re-read from hardware */
-> +	fan->valid = false;
-> +exit_unlock:
-> +	mutex_unlock(&data->update_lock);
-> +	return status;
-> +}
-> +
-> +static int
-> +emc2305_set_fan_target(struct i2c_client *client, int fan_idx, long rpm_target)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	struct emc2305_fan_data *fan = emc2305_update_fan(client, fan_idx);
-> +
-> +	/*
-> +	 * Datasheet states 16000 as maximum RPM target
-> +	 * (table 2.2 and section 4.3)
-> +	 */
-> +	if ((rpm_target < 0) || (rpm_target > 16000))
-> +		return -EINVAL;
-> +
-> +	mutex_lock(&data->update_lock);
-> +
-> +	if (rpm_target = 0)
-> +		fan->target = 0x1fff;
-> +	else
-> +		fan->target = clamp_val(
-> +			(FAN_RPM_FACTOR * fan->multiplier) / rpm_target,
-
-Nitpick, but the ( ) is unnecessary here.
-
-> +			0, 0x1fff);
-> +
-> +	write_fan_target_to_i2c(client, fan_idx, fan->target);
-> +
-> +	mutex_unlock(&data->update_lock);
-> +	return 0;
-> +}
-> +
-> +static int
-> +emc2305_set_pwm_enable(struct i2c_client *client, int fan_idx, long enable)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	struct emc2305_fan_data *fan = emc2305_update_fan(client, fan_idx);
-> +	const u8 reg_fan_conf1 = SEL_FAN(fan_idx, REG_FAN_CONFIGURATION_1);
-> +	int status = 0;
-> +	u8 conf_reg;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	switch (enable) {
-> +	case 0:
-> +		fan->rpm_control = false;
-> +		break;
-> +	case 3:
-> +		fan->rpm_control = true;
-> +		break;
-> +	default:
-> +		status = -EINVAL;
-> +		goto exit_unlock;
-> +	}
-> +
-> +	status = read_u8_from_i2c(client, reg_fan_conf1, &conf_reg);
-> +	if (status < 0) {
-> +		status = -EIO;
-
-Same as before and everywhere else. Don't ever replace error codes.
-
-> +		goto exit_unlock;
-> +	}
-> +
-> +	if (fan->rpm_control)
-> +		conf_reg |= 0x80;
-> +	else
-> +		conf_reg &= ~0x80;
-> +
-> +	status = i2c_smbus_write_byte_data(client, reg_fan_conf1, conf_reg);
-> +	if (status < 0)
-> +		status = -EIO;
-> +
-> +exit_unlock:
-> +	mutex_unlock(&data->update_lock);
-> +	return status;
-> +}
-> +
-> +
-> +/*
-> + * sysfs callback functions
-> + *
-> + * Note:
-> + * Naming of the funcs is modelled after the naming scheme described in
-> + * Documentation/hwmon/sysfs-interface:
-> + *
-> + * For a sysfs file <type><number>_<item> the functions are named like this:
-> + *    the show function: show_<type>_<item>
-> + *    the store function: set_<type>_<item>
-> + * For read only (RO) attributes of course only the show func is required.
-> + *
-> + * This convention allows us to define the sysfs attributes by using macros.
-
-Umm ... isn't this what every hwmon driver is doing ? Doesn't need an extra
-explanation.
-
-> + */
-> +
-> +static ssize_t
-> +show_fan_input(struct device *dev, struct device_attribute *da, char *buf)
-> +{
-> +	struct emc2305_fan_data *fan = emc2305_update_device_fan(dev, da);
-> +	int rpm = 0;
-> +	if (fan->tach != 0)
-> +		rpm = (FAN_RPM_FACTOR * fan->multiplier) / fan->tach;
-> +	return sprintf(buf, "%d\n", rpm);
-> +}
-> +
-> +static ssize_t
-> +show_fan_fault(struct device *dev, struct device_attribute *da, char *buf)
-> +{
-> +	struct emc2305_fan_data *fan = emc2305_update_device_fan(dev, da);
-> +	bool fault = ((fan->tach & 0x1fe0) = 0x1fe0);
-
-Extra ( )
-
-> +	return sprintf(buf, "%d\n", fault ? 1 : 0);
-
-fault is already 1 or 0. You could shorten the code to something like
-	return sprintf(buf, "%d\n", (fan->tach & 0x1fe0) = 0x1fe0);
-if you like, but just printing fault is fine.
-
-> +}
-> +
-> +static ssize_t
-> +show_fan_div(struct device *dev, struct device_attribute *da, char *buf)
-> +{
-> +	struct emc2305_fan_data *fan = emc2305_update_device_fan(dev, da);
-> +	int fan_div = 8 / fan->multiplier;
-
-I like seeing an empty line after variable declarations. Sometimes you do it,
-sometimes not. Consistency is better.
-
-> +	return sprintf(buf, "%d\n", fan_div);
-
-Variable is really unnecessary here. your call, though - code should be the same.
-
-> +}
-> +
-> +static ssize_t
-> +set_fan_div(struct device *dev, struct device_attribute *da,
-> +	    const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int fan_idx = to_sensor_dev_attr(da)->index;
-> +	long new_div;
-> +	int status;
-> +
-> +	status = kstrtol(buf, 10, &new_div);
-> +	if (status < 0)
-> +		return -EINVAL;
-> +
-		return status;
-
-> +	status = emc2305_set_fan_div(client, fan_idx, new_div);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	return count;
-> +}
-> +
-> +static ssize_t
-> +show_fan_target(struct device *dev, struct device_attribute *da, char *buf)
-> +{
-> +	struct emc2305_fan_data *fan = emc2305_update_device_fan(dev, da);
-> +	int rpm = 0;
-> +
-> +	/* high byte of 0xff indicates disabled so return 0 */
-> +	if ((fan->target != 0) && ((fan->target & 0x1fe0) != 0x1fe0))
-
-Unnecessary ( )
-
-> +		rpm = (FAN_RPM_FACTOR * fan->multiplier)
-> +			/ fan->target;
-> +
-> +	return sprintf(buf, "%d\n", rpm);
-> +}
-> +
-> +static ssize_t set_fan_target(struct device *dev, struct device_attribute *da,
-> +			      const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int fan_idx = to_sensor_dev_attr(da)->index;
-> +	long rpm_target;
-> +	int status;
-> +
-> +	status = kstrtol(buf, 10, &rpm_target);
-> +	if (status < 0)
-> +		return -EINVAL;
-> +
-> +	status = emc2305_set_fan_target(client, fan_idx, rpm_target);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	return count;
-> +}
-> +
-> +static ssize_t
-> +show_pwm_enable(struct device *dev, struct device_attribute *da, char *buf)
-> +{
-> +	struct emc2305_fan_data *fan = emc2305_update_device_fan(dev, da);
-> +	return sprintf(buf, "%d\n", fan->rpm_control ? 3 : 0);
-> +}
-> +
-> +static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *da,
-> +			      const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int fan_idx = to_sensor_dev_attr(da)->index;
-> +	long new_value;
-> +	int status;
-> +
-> +	status = kstrtol(buf, 10, &new_value);
-> +	if (status < 0)
-> +		return -EINVAL;
-> +	status = emc2305_set_pwm_enable(client, fan_idx, new_value);
-> +	return count;
-> +}
-> +
-> +/* define a read only attribute */
-> +#define EMC2305_ATTR_RO(_type, _item, _num)			\
-> +	SENSOR_ATTR(_type ## _num ## _ ## _item, S_IRUGO,	\
-> +		    show_## _type ## _ ## _item, NULL, _num - 1)
-> +
-> +/* define a read/write attribute */
-> +#define EMC2305_ATTR_RW(_type, _item, _num)				\
-> +	SENSOR_ATTR(_type ## _num ## _ ## _item, S_IRUGO | S_IWUSR,	\
-> +		    show_## _type ##_ ## _item,				\
-> +		    set_## _type ## _ ## _item, _num - 1)
-> +
-> +/* defines the attributes for a single fan */
-> +#define EMC2305_DEFINE_FAN_ATTRS(_num)					\
-> +	static const							\
-> +	struct sensor_device_attribute emc2305_attr_fan ## _num[] = {	\
-> +		EMC2305_ATTR_RO(fan, input, _num),			\
-> +		EMC2305_ATTR_RO(fan, fault, _num),			\
-> +		EMC2305_ATTR_RW(fan, div, _num),			\
-> +		EMC2305_ATTR_RW(fan, target, _num),			\
-> +		EMC2305_ATTR_RW(pwm, enable, _num)			\
-> +	}
-> +
-Please just use the standard defines for the attributes. Much easier to understand,
-and code is the same.
-
-> +#define EMC2305_NUM_FAN_ATTRS ARRAY_SIZE(emc2305_attr_fan1)
-> +
-> +/* common attributes for EMC2303 and EMC2305 */
-> +static const struct sensor_device_attribute emc2305_attr_common[] = {
-> +};
-> +
-> +/* fan attributes for the single fans */
-> +EMC2305_DEFINE_FAN_ATTRS(1);
-> +EMC2305_DEFINE_FAN_ATTRS(2);
-> +EMC2305_DEFINE_FAN_ATTRS(3);
-> +EMC2305_DEFINE_FAN_ATTRS(4);
-> +EMC2305_DEFINE_FAN_ATTRS(5);
-> +
-> +/* fan attributes */
-> +static const struct sensor_device_attribute *emc2305_fan_attrs[] = {
-> +	emc2305_attr_fan1,
-> +	emc2305_attr_fan2,
-> +	emc2305_attr_fan3,
-> +	emc2305_attr_fan4,
-> +	emc2305_attr_fan5,
-> +};
-> +
-> +/*
-> + * driver interface
-> + */
-> +
-> +static int emc2305_remove(struct i2c_client *client)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	int fan_idx, i;
-> +
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +
-> +	for (fan_idx = 0; fan_idx < data->fans; ++fan_idx)
-> +		for (i = 0; i < EMC2305_NUM_FAN_ATTRS; ++i)
-> +			device_remove_file(
-> +				&client->dev,
-> +				&emc2305_fan_attrs[fan_idx][i].dev_attr);
-> +
-> +	for (i = 0; i < ARRAY_SIZE(emc2305_attr_common); ++i)
-> +		device_remove_file(&client->dev,
-> +				   &emc2305_attr_common[i].dev_attr);
-> +
-> +	kfree(data);
-> +	return 0;
-> +}
-> +
-> +
-> +#ifdef CONFIG_OF
-> +/*
-> + * device tree support
-> + */
-> +
-> +struct of_fan_attribute {
-> +	const char *name;
-> +	int (*set)(struct i2c_client*, int, long);
-> +};
-> +
-> +struct of_fan_attribute of_fan_attributes[] = {
-> +	{"fan-div", emc2305_set_fan_div},
-> +	{"fan-target", emc2305_set_fan_target},
-> +	{"pwm-enable", emc2305_set_pwm_enable},
-> +	{NULL, NULL}
-> +};
-> +
-> +static int emc2305_config_of(struct i2c_client *client)
-> +{
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +	struct device_node *node;
-> +	unsigned int fan_idx;
-> +
-> +	if (!client->dev.of_node)
-> +		return -EINVAL;
-> +	if (!of_get_next_child(client->dev.of_node, NULL))
-> +		return  0;
-> +
-> +	for (fan_idx = 0; fan_idx < data->fans; ++fan_idx)
-> +		data->fan[fan_idx].enabled = false;
-> +
-> +	for_each_child_of_node(client->dev.of_node, node) {
-> +		const __be32 *property;
-> +		int len;
-> +		struct of_fan_attribute *attr;
-> +
-> +		property = of_get_property(node, "reg", &len);
-> +		if (!property || len != sizeof(int)) {
-> +			dev_err(&client->dev, "invalid reg on %s\n",
-> +				node->full_name);
-> +			continue;
-> +		}
-> +
-> +		fan_idx = be32_to_cpup(property);
-> +		if (fan_idx >= data->fans) {
-> +			dev_err(&client->dev,
-> +				"invalid fan index %d on %s\n",
-> +				fan_idx, node->full_name);
-> +			continue;
-> +		}
-> +
-> +		data->fan[fan_idx].enabled = true;
-> +
-> +		for (attr = of_fan_attributes; attr->name; ++attr) {
-> +			int status = 0;
-> +			long value;
-> +			property = of_get_property(node, attr->name, &len);
-> +			if (!property)
-> +				continue;
-> +			if (len != sizeof(int)) {
-> +				dev_err(&client->dev, "invalid %s on %s\n",
-> +					attr->name, node->full_name);
-> +				continue;
-> +			}
-> +			value = be32_to_cpup(property);
-> +			status = attr->set(client, fan_idx, value);
-> +			if (status = -EINVAL) {
-> +				dev_err(&client->dev,
-> +					"invalid value for %s on %s\n",
-> +					attr->name, node->full_name);
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +#endif
-> +
-> +static void emc2305_get_config(struct i2c_client *client)
-> +{
-> +	int i;
-> +	struct emc2305_data *data = i2c_get_clientdata(client);
-> +
-> +	for (i = 0; i < data->fans; ++i) {
-> +		data->fan[i].enabled = true;
-> +		emc2305_update_fan(client, i);
-> +	}
-> +
-> +#ifdef CONFIG_OF
-> +	emc2305_config_of(client);
-> +#endif
-> +
-> +}
-> +
-> +static int
-> +emc2305_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> +{
-> +	struct emc2305_data *data;
-> +	int status;
-> +	int i;
-> +	int fan_idx;
-> +
-> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -EIO;
-> +
-> +	data = kzalloc(sizeof(struct emc2305_data), GFP_KERNEL);
-
-Please use devm_kzalloc().
-
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, data);
-> +	mutex_init(&data->update_lock);
-> +
-> +	status = i2c_smbus_read_byte_data(client, REG_PRODUCT_ID);
-> +	switch (status) {
-> +	case 0x34: /* EMC2305 */
-> +		data->fans = 5;
-> +		break;
-> +	case 0x35: /* EMC2303 */
-> +		data->fans = 3;
-> +		break;
-> +	case 0x36: /* EMC2302 */
-> +		data->fans = 2;
-> +		break;
-> +	case 0x37: /* EMC2301 */
-> +		data->fans = 1;
-> +		break;
-> +	default:
-> +		if (status >= 0)
-> +			status = -EINVAL;
-> +		goto exit_free;
-> +	}
-> +
-> +	emc2305_get_config(client);
-> +
-> +	for (i = 0; i < ARRAY_SIZE(emc2305_attr_common); ++i) {
-> +		status = device_create_file(&client->dev,
-> +					    &emc2305_attr_common[i].dev_attr);
-> +		if (status)
-> +			goto exit_remove;
-> +	}
-> +	for (fan_idx = 0; fan_idx < data->fans; ++fan_idx)
-> +		for (i = 0; i < EMC2305_NUM_FAN_ATTRS; ++i) {
-> +			if (!data->fan[fan_idx].enabled)
-> +				continue;
-> +			status = device_create_file(
-> +				&client->dev,
-> +				&emc2305_fan_attrs[fan_idx][i].dev_attr);
-> +			if (status)
-> +				goto exit_remove_fans;
-> +		}
-
-Using sysfs_create_group() and is_visible would make a lot of sense here.
-
-> +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		status = PTR_ERR(data->hwmon_dev);
-> +		goto exit_remove_fans;
-> +	}
-> +
-> +	dev_info(&client->dev, "%s: sensor '%s'\n",
-> +		 dev_name(data->hwmon_dev), client->name);
-
-dev_info already prints the device name.
-
-> +
-> +	return 0;
-> +
-> +exit_remove_fans:
-> +	for (fan_idx = 0; fan_idx < data->fans; ++fan_idx)
-> +		for (i = 0; i < EMC2305_NUM_FAN_ATTRS; ++i)
-> +			device_remove_file(
-> +				&client->dev,
-> +				&emc2305_fan_attrs[fan_idx][i].dev_attr);
-> +
-> +exit_remove:
-> +	for (i = 0; i < ARRAY_SIZE(emc2305_attr_common); ++i)
-> +		device_remove_file(&client->dev,
-> +				   &emc2305_attr_common[i].dev_attr);
-> +exit_free:
-> +	kfree(data);
-> +	return status;
-> +}
-> +
-> +static const struct i2c_device_id emc2305_id[] = {
-> +	{ "emc2305", 0 },
-> +	{ "emc2303", 0 },
-> +	{ "emc2302", 0 },
-> +	{ "emc2301", 0 },
-
-It is customary to use device IDs here, and then to use that device id in the
-probe function to select per-device functionality.
-
-You should have a detect function to identify the device instead of identifying
-it in the probe function.
-
-Oh ... you do. Then identifying it again in the probe function is simply
-unnecessary.
-
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, emc2305_id);
-> +
-> +/* Return 0 if detection is successful, -ENODEV otherwise */
-> +static int
-> +emc2305_detect(struct i2c_client *new_client, struct i2c_board_info *info)
-> +{
-> +	struct i2c_adapter *adapter = new_client->adapter;
-> +	int manufacturer, product;
-> +
-> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -ENODEV;
-> +
-> +	manufacturer > +		i2c_smbus_read_byte_data(new_client, REG_MANUFACTURER_ID);
-> +	if (manufacturer != 0x5D)
-> +		return -ENODEV;
-> +
-> +	product = i2c_smbus_read_byte_data(new_client, REG_PRODUCT_ID);
-> +
-> +	switch (product) {
-> +	case 0x34:
-> +		strlcpy(info->type, "emc2305", I2C_NAME_SIZE);
-> +		break;
-> +	case 0x35:
-> +		strlcpy(info->type, "emc2303", I2C_NAME_SIZE);
-> +		break;
-> +	case 0x36:
-> +		strlcpy(info->type, "emc2302", I2C_NAME_SIZE);
-> +		break;
-> +	case 0x37:
-> +		strlcpy(info->type, "emc2301", I2C_NAME_SIZE);
-> +		break;
-> +	default:
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct i2c_driver emc2305_driver = {
-> +	.class		= I2C_CLASS_HWMON,
-> +	.driver = {
-> +		.name	= "emc2305",
-> +	},
-> +	.probe		= emc2305_probe,
-> +	.remove		= emc2305_remove,
-> +	.id_table	= emc2305_id,
-> +	.detect		= emc2305_detect,
-> +	.address_list	= i2c_adresses,
-> +};
-> +
-> +module_i2c_driver(emc2305_driver);
-> +
-> +MODULE_AUTHOR("Reinhard Pfau <pfau@gdsys.de>");
-> +MODULE_DESCRIPTION("SMSC EMC2305 hwmon driver");
-> +MODULE_LICENSE("GPL");
-> -- 
-> 1.7.2.5
-> 
-> 
 
 _______________________________________________
 lm-sensors mailing list
