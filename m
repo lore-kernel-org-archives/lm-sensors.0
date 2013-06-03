@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 02 Jun 2013 11:20:27 +0000
+From: Paul Crawford <psc@sat.dundee.ac.uk>
+Date: Mon, 03 Jun 2013 13:43:32 +0000
 Subject: Re: [lm-sensors] Module load order dependency
-Message-Id: <20130602132027.3dffc1b1@endymion.delvare>
+Message-Id: <51AC9D84.40701@sat.dundee.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <51A9CC8D.2010105@sat.dundee.ac.uk>
 In-Reply-To: <51A9CC8D.2010105@sat.dundee.ac.uk>
@@ -10,87 +10,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paul,
+Dear Jean,
+> The latest version of fancontrol supports absolute device paths, which
+> should help a bit in this respect. It isn't perfect yet, because:
+> 1* pwmconfig still writes relative paths so you have to
+>     edit /etc/fancontrol manually. I have just created a ticket for that:
+>     http://www.lm-sensors.org/ticket/2388
 
-Please disregard my previous reply, it was accidentally sent before I
-was finished writing it :(
+Thanks for that.
 
-On Sat, 01 Jun 2013 11:27:25 +0100, Paul Crawford wrote:
-> I encountered a problem using the lm-sensors package along with the 
-> fancontrol package where the various drivers for the temperature sensing 
-> chips would be loaded in differing orders at boot time.
+> 2* Absolute paths aren't necessarily persistent. PCI and platform
+>     device paths are persistent but I2C bus numbers are not. So using
+>     absolute paths doesn't guarantee that fancontrol will find the
+>     devices it looks for after every reboot.
 
-Yes, this can happen, depending on the hardware.
+OK, I had not realised there was yet another aspect to the enumeration 
+beyond the module load order :(
 
-> This leads to the abstracted paths of, for example, 
-> '/sys/class/hwmon/hwmon0' and '/sys/class/hwmon/hwmon1' changing places 
-> and the fancontrol package doing nothing as it believes the hardware is 
-> different or misconfigured.
+> "lm-sensors outputs"? If you need to access hardware monitoring
+> information, please use libsensors. The problems you mentioned with
+> fancontrol precisely come from the fact that it does not use
+> libsensors. libsensors gives hardware monitoring devices stable names.
 
-The latest version of fancontrol supports absolute device paths, which
-should help a bit in this respect. It isn't perfect yet, because:
-1* pwmconfig still writes relative paths so you have to
-   edit /etc/fancontrol manually. I have just created a ticket for that:
-   http://www.lm-sensors.org/ticket/2388
-2* Absolute paths aren't necessarily persistent. PCI and platform
-   device paths are persistent but I2C bus numbers are not. So using
-   absolute paths doesn't guarantee that fancontrol will find the
-   devices it looks for after every reboot.
+I will look in to that option, though a quick look at the man page shows 
+there is very little documentation on what you actually do with each 
+function.
 
-> This is also a risk for the Linux watchdog daemon that could be using 
-> such a path for temperature sensing (I added the capability recently to 
-> use lm-sensors outputs), leading to a far more irksome problem than 
-> simply full-speed fans!
+> subsystem) have tried it but it simply doesn't work. For most subsystems
+> this is now handles by udev, unfortunately hwmon devices have no node
+> in /dev so udev is of no use in our case.
 
-"lm-sensors outputs"? If you need to access hardware monitoring
-information, please use libsensors. The problems you mentioned with
-fancontrol precisely come from the fact that it does not use
-libsensors. libsensors gives hardware monitoring devices stable names.
-(See http://www.lm-sensors.org/ticket/2238 for one remaining issue
-though.)
+In the past the watchdog used /dev/temperature for a single reading 
+(though in unspecified units) and I had assumed the /sys/class/hwmon 
+devices could be used in a similar manner. It would be much nicer if 
+there was a /dev entry that had stable names for the underlying hardware.
 
-> Is this enumeration something that lm-sensors performs, or is it a 
-> kernel issue? As this appears to be quite important for actually using 
-> the capabilities, what can be done to fix it?
+> The code there is horrible ;)
 
-"lm-sensors" is a package name, it does not perform anything. The
-relevant components are, in order: the hardware monitoring driver, the
-kernel core, the sysfs interface, libsensors and ultimately "sensors"
-or whatever application you're using. The kernel makes no guarantee
-about device name stability. Some subsystems (most notably the sound
-subsystem) have tried it but it simply doesn't work. For most subsystems
-this is now handles by udev, unfortunately hwmon devices have no node
-in /dev so udev is of no use in our case.
+Indeed, but it seems to work!
 
-The persistent device naming is thus achieved by libsensors.
-Applications which care about stable device names (or getting
-everything right for that matter) should use libsensors.
+> /etc/modules is a Debian/Ubuntu specific approach. Your workaround
+> should work fine as far as I can see, although this is obviously a step
+> backwards (driver autoloading is a great feature.) Unfortunately we
 
-> I added my crude solution (to make sure all of the modules are in 
-> /etc/modules, and not some auto-loaded and others explicitly added) to 
-> the bug report here:
-> 
-> https://bugs.launchpad.net/ubuntu/+source/lm-sensors-3/+bug/576602
+autoloading is great until it shows up something unstable in the system 
+behaviour!
 
-The code there is horrible ;)
+> Note though that I do not have the problem you describe with openSUSE.
+> Maybe I am just very lucky, or maybe Debian/Ubuntu starts more services
+> in parallel. If they would wait for driver autoloading to be finished
+> before starting the lm_sensors and then fancontrol services, that would
+> probably solve your problem.
 
-/etc/modules is a Debian/Ubuntu specific approach. Your workaround
-should work fine as far as I can see, although this is obviously a step
-backwards (driver autoloading is a great feature.) Unfortunately we
-have not yet reached the point where all needed drivers can be
-auto-loaded. This would require at least 3 things: LPC/Super-IO device
-identification and instantiation at kernel level, SMBus ARP support and
-cooperation from the BIOS/firmware to enumerate remaining devices, in
-particular I2C-based ones.
+Ubuntu has gone to using the upstart system for start-up and one of its 
+selling features is the greater options for paralleled starting. 
+Unfortunately the last couple of years have shown lots of problems with 
+part-migrated packages that are not started properly due to dependencies 
+that have not been properly covered.
 
-Note though that I do not have the problem you describe with openSUSE.
-Maybe I am just very lucky, or maybe Debian/Ubuntu starts more services
-in parallel. If they would wait for driver autoloading to be finished
-before starting the lm_sensors and then fancontrol services, that would
-probably solve your problem.
+I think though the problem here is the autoload takes place along side 
+the manual load of /etc/modules and due to the enumeration issue who (of 
+the hardware modules) gets there first changes the system behaviour.
 
--- 
-Jean Delvare
+Regards, Paul
 
 _______________________________________________
 lm-sensors mailing list
