@@ -1,79 +1,73 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 18 Jun 2013 15:53:50 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ina2xx) Add device tree support to pass the shunt resistor
-Message-Id: <20130618155350.GA9554@roeck-us.net>
+From: Arnaud Ebalard <arno@natisbad.org>
+Date: Tue, 04 Jun 2013 07:15:07 +0000
+Subject: [lm-sensors] [PATCHv4 3/3] Add DT bindings documentation for g762 driver
+Message-Id: <0162ace15ab54e9b585af0f91588552fbd39ad39.1370327864.git.arno@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <cover.1340327864.git.arno@natisbad.org>
+In-Reply-To: <cover.1340327864.git.arno@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Simon Guinot <simon.guinot@sequanux.org>, Olivier Mouchet <olivier.mouchet@gmail.com>
 
-[ resending with copy to lm-sensors mailing list ]
 
-On Tue, Jun 18, 2013 at 03:42:26PM +0800, Yuantian.Tang@freescale.com wrote:
-> From: Tang Yuantian <yuantian.tang@freescale.com>
-> 
-> Adding another way that is device tree to pass the shunt resistor
-> value to driver except for platform data.
-> 
-> Signed-off-by: Tang Yuantian <Yuantian.Tang@freescale.com>
-> ---
->  Documentation/hwmon/ina2xx | 3 ++-
->  drivers/hwmon/ina2xx.c     | 6 ++++++
->  2 files changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
-> index 03444f9..6fb8b76 100644
-> --- a/Documentation/hwmon/ina2xx
-> +++ b/Documentation/hwmon/ina2xx
-> @@ -44,4 +44,5 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
->  The INA230 is a high or low side current shunt and power monitor with an I2C
->  interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
->  
-> -The shunt value in micro-ohms can be set via platform data.
-> +The shunt value in micro-ohms can be set via platform data or dts in which
-> +the property should be shunt-resistor-value.
-> diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-> index 4958b2f..ae2d27a 100644
-> --- a/drivers/hwmon/ina2xx.c
-> +++ b/drivers/hwmon/ina2xx.c
-> @@ -221,6 +221,7 @@ static int ina2xx_probe(struct i2c_client *client,
->  	struct ina2xx_data *data;
->  	struct ina2xx_platform_data *pdata;
->  	int ret;
-> +	u32 val;
->  	long shunt = 10000; /* default shunt value 10mOhms */
->  
->  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
-> @@ -234,6 +235,11 @@ static int ina2xx_probe(struct i2c_client *client,
->  		pdata >  		  (struct ina2xx_platform_data *)client->dev.platform_data;
->  		shunt = pdata->shunt_uohms;
-> +	} else if (client->dev.of_node) {
-> +		ret = of_property_read_u32(client->dev.of_node,
-> +				"shunt-resistor-value", &val);
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+---
+ Documentation/devicetree/bindings/hwmon/g762.txt |   41 ++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/g762.txt
 
-Please use "shunt-resistor"; this is what is used in the ina209 driver.
-Also, you don't have to check if client->dev.of_node is set;
-of_property_read_u32 does it for you. So you can simplify the code to
+diff --git a/Documentation/devicetree/bindings/hwmon/g762.txt b/Documentation/devicetree/bindings/hwmon/g762.txt
+new file mode 100644
+index 0000000..574524d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/g762.txt
+@@ -0,0 +1,41 @@
++GMT G762/G763 PWM Fan controller
++
++Required node properties:
++
++ - "compatible": must be either "gmt,g762" or "gmt,g763"
++ - "reg": I2C bus address of the device
++
++Optional properties:
++
++ - "pwm_freq": reference clock frequency for PWM mode in Hz. If not set,
++               default value is 32768.
++
++ - "fan_pulses": number of pulses per fan revolution. Supported values
++               are 2 and 4.
++
++ - "fan_startv": fan startup voltage. Accepted values are 0, 1, 2 and 3.
++               The higher the more.
++
++ - "pwm_polarity": pwm polarity. Accepted values are 0 (positive duty)
++               and 1 (negative duty).
++
++ - "fan_gear_mode": fan gear mode. Supported values are 0, 1 and 2.
++
++If an optional property is not set in .dts file, then current value is kept
++unmodified (e.g. u-boot installed value).
++
++Additional information on operational parameters for the device is available
++in Documentation/hwmon/g762. A detailed datasheet for the device is available
++at http://natisbad.org/NAS/refs/GMT_EDS-762_763-080710-0.2.pdf.
++
++Example g762 node:
++
++   g762: g762@3e {
++	compatible = "gmt,g762";
++	reg = <0x3e>;
++	pwm_freq = <8192>;   /* PWM reference clock freq */
++	fan_pulses = <2>;    /* 2 pulses per rev */
++	fan_gear_mode = <0>; /* chip default */
++	fan_startv = <1>;    /* chip default */
++	pwm_polarity = <0>;  /* chip default */
++   };
+-- 
+1.7.10.4
 
-	} else if (!of_property_read_u32(client->dev.of_node, "shunt-resistor",
-					&val) {
-		shunt = val;
-	}
-
-You should also add Documentation/devicetree/bindings/i2c/ina2xx.txt and update 
-Documentation/hwmon/ina2xx.
-
-Thanks,
-Guenter
-
-> +		if (ret = 0)
-> +			shunt = val;
->  	}
->  
->  	if (shunt <= 0)
-> -- 
-> 1.8.0
 
 _______________________________________________
 lm-sensors mailing list
