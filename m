@@ -1,36 +1,61 @@
 From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Date: Wed, 05 Jun 2013 11:43:07 +0000
+Date: Wed, 05 Jun 2013 12:01:58 +0000
 Subject: Re: [lm-sensors] =?utf-8?q?=5BPATCH_1/2=5D_hwmon=3A_mc13783-adc=3A_Re?=
-Message-Id: <1370432587.906000493@f233.mail.ru>
+Message-Id: <1370433718.509579856@f214.mail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1370422628-1073-1-git-send-email-shc_work@mail.ru>
  <1370430879.384973987@f91.mail.ru>
- <201306051336.49776.arnd@arndb.de>
-In-Reply-To: <201306051336.49776.arnd@arndb.de>
+ <20130605134530.12e8b7c2@endymion.delvare>
+In-Reply-To: <20130605134530.12e8b7c2@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-> On Wednesday 05 June 2013, Alexander Shiyan wrote:
-> > Well, let's leave the kconfig symbol as is. But about the rest, that mc13783_*
-> > symbols in the log (debug) will say a developer who does not know about
-> > mc13892 compatibility with mc13783? I still believe that this should be reflected.
-> 
-> If the log messages use dev_printk, they will use the correct device name already,
-> if not, that can be fixed.
-> 
-> I agree with Jean: we don't just rename things unless there is a significant
-> benefit, which I don't see here. There is also the risk that we need to support
-> a different chip named mc13xxx in the future that is different enough to require
-> a new driver and then the naming is even more screwed up.
-
-It is a pity that the revision and updating of the code of this driver died.
-Well, lets drop thesepatches.
-Thanks.
-
----
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+CgoK0KHRgNC10LTQsCwgIDUg0LjRjtC90Y8gMjAxMywgMTM6NDUgKzAyOjAwINC+0YIgSmVhbiBE
+ZWx2YXJlIDxraGFsaUBsaW51eC1mci5vcmc+Ogo+IE9uIFdlZCwgMDUgSnVuIDIwMTMgMTU6MTQ6
+MzkgKzA0MDAsIEFsZXhhbmRlciBTaGl5YW4gd3JvdGU6Cj4gPiA+IExldCdzIGxvb2sgYXQgaXQg
+ZnJvbSBhbm90aGVyIGFuZ2xlLiBXaGF0IHByb2JsZW0gYXJlIHlvdSB0cnlpbmcgdG8KPiA+ID4g
+c29sdmU/IEkgc2VlIGFic29sdXRlbHkgbm8gcHJvYmxlbSB3aXRoIHRoZSBjdXJyZW50IGZ1bmN0
+aW9uIGFuZCBmaWxlCj4gPiA+IG5hbWVzLiBBbG1vc3QgYWxsIExpbnV4IGtlcm5lbCBkcml2ZXJz
+IHN1cHBvcnQgbW9yZSBjaGlwcyB0aGFuIHRoZWlyCj4gPiA+IG5hbWUgc2F5cy4KPiA+ID4gCj4g
+PiA+IE9uIHRoZSBvdGhlciBoYW5kLCBjaGFuZ2luZyBhbGwgZnVuY3Rpb24gbmFtZXMgbWFrZXMg
+YmFja3BvcnRpbmcgZml4ZXMKPiA+ID4gaGFyZGVyLCBhbmQgY2hhbmdpbmcgS2NvbmZpZyBzeW1i
+b2wgbmFtZXMgbWFrZXMgdXBncmFkaW5nIHRvIHRoZSBuZXcKPiA+ID4ga2VybmVsIHZlcnNpb24g
+aGFyZGVyIGZvciBldmVyeW9uZS4KPiA+ID4gCj4gPiA+IFNvIHRoZSBjb3N0IG9mIHlvdXIgcHJv
+cG9zYWwgZmFyIG91dHdlaWdocyB0aGUgYmVuZWZpdHMuCj4gPiAKPiA+IFdlbGwsIGxldCdzIGxl
+YXZlIHRoZSBrY29uZmlnIHN5bWJvbCBhcyBpcy4gQnV0IGFib3V0IHRoZSByZXN0LCB0aGF0IG1j
+MTM3ODNfKgo+ID4gc3ltYm9scyBpbiB0aGUgbG9nIChkZWJ1Zykgd2lsbCBzYXkgYSBkZXZlbG9w
+ZXIgd2hvIGRvZXMgbm90IGtub3cgYWJvdXQKPiA+IG1jMTM4OTIgY29tcGF0aWJpbGl0eSB3aXRo
+IG1jMTM3ODM/IEkgc3RpbGwgYmVsaWV2ZSB0aGF0IHRoaXMgc2hvdWxkIGJlIHJlZmxlY3RlZC4K
+PiAKPiBZb3UncmUgc3BsaXR0aW5nIGhhaXJzIGhlcmUuIG1jMTM3ODNfKiBzeW1ib2xzIGluIHRo
+ZSBsb2cgbWVhbiB0aGlzCj4gY29tZXMgZnJvbSBhIGRyaXZlciBuYW1lZCBtYzEzNzgzLCBwZXJp
+b2QuIEEgZGV2ZWxvcGVyIGRyYXdpbmcKPiBjb25jbHVzaW9ucyBiZXlvbmQgdGhhdCBuZWVkcyB0
+byBiZSBlZHVjYXRlZC4gV2hpY2ggZGV2aWNlIHRoZSBkcml2ZXIKPiBpcyBkcml2aW5nIGNhbiBi
+ZSByZXRyaWVkIGZyb20gdGhlIGxvZyBpdHNlbGYsIG9yIGZyb20gc3lzZnMuIE9yIHRoZQo+IGhh
+cmR3YXJlIGJvYXJkIGRhdGFzaGVldC4gIm1jMTN4eHgiIHdvdWxkIHRlbGwgbm8gbW9yZSwgQlRX
+Lgo+IAo+IEFsc28gbm90ZSB0aGF0IHRoZSBuYW1lIG1jMTN4eHggaXMgd3JvbmcgYXMgd2VsbCwg
+YXMgdGhlIG1jMTN4eHgtaTJjCj4gYW5kIG1jMTN4eHgtc3BpIGRyaXZlcnMgaGFuZGxlIHRoZSBN
+QzM0NzA4IGNoaXAgdG9vLiBTbyB5b3UnZCBoYXZlIHRvCj4gbmFtZSBhbGwgdGhlc2UgZHJpdmVy
+cyBhbmQgZnVuY3Rpb25zIG1jeHh4eHgqIHRvIGNvdmVyIGFsbCB0aGUKPiBzdXBwb3J0ZWQgY2hp
+cC4gV2hpY2ggbWFrZXMgbm8gc2Vuc2UgYXQgYWxsLCBiZWNhdXNlIHNvIG1hbnkgeCdzIGFyZQo+
+IGNvbmZ1c2luZywgYW5kIGJlY2F1c2UgdGhlIG1hc2sgdGhlbiBtYXRjaGVzIG1hbnkgZGV2aWNl
+cyB0aGUgZHJpdmVycwo+IGRvIF9ub3RfIGhhbmRsZS4KPiAKPiBTbyBwbGVhc2UgZm9yZ2V0IGFi
+b3V0IHRoaXMgYW5kIG1vdmUgb24gdG8gc29tZXRoaW5nIGVsc2UuIFRoZXJlIGFyZQo+IG1hbnkg
+bWFueSBjb2RlIGNsZWFudXBzIGFuZCBpbXByb3ZlbWVudHMsIGFuZCBidWcgZml4ZXMsIGFsbCB3
+YXkgbW9yZQo+IGltcG9ydGFudCB0aGFuIHRoaXMuIFNvIEknbSBzdXJlIHlvdSBjYW4gZmluZCBi
+ZXR0ZXIgd2F5cyB0byBzcGVuZCB5b3VyCj4gdGltZSwgYW5kIG1pbmUuCgpBZ3JlZSwgd2UgaGF2
+ZSBhIGxvdCBvZiBwbGFjZXMgaW4gdGhlIGtlcm5lbCB0byBiZSBjbGVhcmVkLgpGb3IgdGhlIHNh
+bWUgZHJpdmVyIE1DMTNYWFgsIGF0IGxlYXN0IHdlIG5lZWQgdG8gcmVtb3ZlIGEgdXNlbGVzcyBz
+eW1ib2wKTUZEX00xMzc4MyB3aGljaCBpcyBzZWxlY3RlZCBhdXRvbWF0aWNhbGx5IGlmIHdlIHNl
+bGVjdCBNRkRfTUMxM1hYWCwgCm1jMTN4eHhfbG9jay91bmxvY2sgZnVuY3Rpb25zIGluIHRoZSBk
+cml2ZXIgaGFzIGxvbmcgYmVlbiBub3QgbmVlZGVkIGJlY2F1c2UKd2UgdXNlIHJlZ21hcCBldGMu
+CkJ1dCB0byBzdGFydCBpbiBteSBvcGluaW9uIHlvdSBuZWVkIHdpdGgganVzdCBzdWNoIHRyaWZs
+ZXMgYXMgcmVuYW1lIGV0Yy4uLgpCdXQgZXZlbiBhdCB0aGlzIHN0YWdlIG9mIG9ic3RhY2xlcyBo
+YXZlIGNvbWUgdXAgYWdhaW5zdCAuLi4KV2VsbCwgYnkgYW5kIGxhcmdlIGl0IGRvZXMgbm90IGNo
+YW5nZSBjb2RlIGJ1dCByYXRoZXIgYSBncm9vbWluZyBjb2RlLCAKc28gSSBjYW4gZWFzaWx5IGdp
+dmUgaXQgdXAuIEJ1dCwgaW4gbXkgb3BpbmlvbiwgdGhlIHB1cml0eSBhbmQgY2xhcml0eSBvZiB0
+aGUgY29kZQpoYXMgbmV2ZXIgaGFybWVkLgpPSywgbGV0cyBkcm9wIHRoZXNlIHBhdGNoZXMuClRo
+YW5rcy4KCi0tLQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
