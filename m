@@ -1,46 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 05 Jun 2013 10:53:08 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 05 Jun 2013 11:36:49 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: mc13783-adc: Refactor source to indicate various mc13xxx chips
-Message-Id: <20130605125308.36ba40ab@endymion.delvare>
+Message-Id: <201306051336.49776.arnd@arndb.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1370422628-1073-1-git-send-email-shc_work@mail.ru>
- <20130605110206.02fc09f3@endymion.delvare>
- <1370423952.906453652@f168.mail.ru>
-In-Reply-To: <1370423952.906453652@f168.mail.ru>
+ <20130605125308.36ba40ab@endymion.delvare> <1370430879.384973987@f91.mail.ru>
+In-Reply-To: <1370430879.384973987@f91.mail.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Wed, 05 Jun 2013 13:19:12 +0400, Alexander Shiyan wrote:
-> > On Wed,  5 Jun 2013 12:57:07 +0400, Alexander Shiyan wrote:
-> > > This patch renames structures, variables and functions to indicate support
-> > > for various MC13xxx chips.
-> > > 
-> > > Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> > > ---
-> > >  drivers/hwmon/mc13783-adc.c | 135 +++++++++++++++++++++-----------------------
-> > >  1 file changed, 63 insertions(+), 72 deletions(-)
-> > 
-> > Nack. This change serves absolutely no purpose, all it's doing it make
-> > everyone's life harder. Just don't do that, thanks.
-> 
-> I do not understand stubbornness here.
-> The driver works for different chips, it should be reflected in the code.
+On Wednesday 05 June 2013, Alexander Shiyan wrote:
+> Well, let's leave the kconfig symbol as is. But about the rest, that mc13783_*
+> symbols in the log (debug) will say a developer who does not know about
+> mc13892 compatibility with mc13783? I still believe that this should be reflected.
 
-Let's look at it from another angle. What problem are you trying to
-solve? I see absolutely no problem with the current function and file
-names. Almost all Linux kernel drivers support more chips than their
-name says.
+If the log messages use dev_printk, they will use the correct device name already,
+if not, that can be fixed.
 
-On the other hand, changing all function names makes backporting fixes
-harder, and changing Kconfig symbol names makes upgrading to the new
-kernel version harder for everyone.
+I agree with Jean: we don't just rename things unless there is a significant
+benefit, which I don't see here. There is also the risk that we need to support
+a different chip named mc13xxx in the future that is different enough to require
+a new driver and then the naming is even more screwed up.
 
-So the cost of your proposal far outweighs the benefits.
-
--- 
-Jean Delvare
+	Arnd
 
 _______________________________________________
 lm-sensors mailing list
