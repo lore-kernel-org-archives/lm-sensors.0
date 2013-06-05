@@ -1,95 +1,78 @@
-From: Arnaud Ebalard <arno@natisbad.org>
-Date: Sun, 02 Jun 2013 20:14:31 +0000
-Subject: [lm-sensors] [PATCHv3 2/3] Add documentation for g762 driver
-Message-Id: <2d61f652bc10de31aa26577ae3a9a58b393b540a.1370202835.git.arno@natisbad.org>
+From: Alexander Shiyan <shc_work@mail.ru>
+Date: Wed, 05 Jun 2013 08:57:08 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: mc13783-adc: Rename unit to indicate various MC13xxx chips support
+Message-Id: <1370422628-1073-2-git-send-email-shc_work@mail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1370202835.git.arno@natisbad.org>
-In-Reply-To: <cover.1370202835.git.arno@natisbad.org>
+References: <1370422628-1073-1-git-send-email-shc_work@mail.ru>
+In-Reply-To: <1370422628-1073-1-git-send-email-shc_work@mail.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, devicetree-discuss@lists.ozlabs.org, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Simon Guinot <simon.guinot@sequanux.org>, Olivier Mouchet <olivier.mouchet@gmail.com>
+To: linux-arm-kernel@lists.infradead.org
 
 
-Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 ---
- Documentation/hwmon/g762 |   64 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
- create mode 100644 Documentation/hwmon/g762
+ arch/arm/configs/imx_v4_v5_defconfig           |  2 +-
+ drivers/hwmon/Kconfig                          | 10 +++++-----
+ drivers/hwmon/Makefile                         |  2 +-
+ drivers/hwmon/{mc13783-adc.c => mc13xxx-adc.c} |  0
+ 4 files changed, 7 insertions(+), 7 deletions(-)
+ rename drivers/hwmon/{mc13783-adc.c => mc13xxx-adc.c} (100%)
 
-diff --git a/Documentation/hwmon/g762 b/Documentation/hwmon/g762
-new file mode 100644
-index 0000000..b749fe1
---- /dev/null
-+++ b/Documentation/hwmon/g762
-@@ -0,0 +1,64 @@
-+Kernel driver g762
-+=========
-+
-+The GMT G762 Fan Speed PWM Controller is connected directly to a fan
-+and performs closed-loop or open-loop control of the fan speed. Two
-+modes - PWM or DC - are supported by the device.
-+
-+For additional information, a detailed datasheet is available at
-+http://natisbad.org/NAS/ref/GMT_EDS-762_763-080710-0.2.pdf. sysfs
-+bindings are described in Documentation/hwmon/sysfs-interface.
-+
-+The following entries are available to the user in a subdirectory of
-+/sys/bus/i2c/drivers/g762/ to control the operation of the device.
-+This can be done manually using the following entries but is usually
-+done via a userland daemon like fancontrol.
-+
-+Note that those entries do not provide ways to setup the specific
-+hardware characteristics of the system (reference clock, pulses per
-+fan revolution, ...); Those can be modified via devicetree bindings
-+documented in Documentation/devicetree/bindings/hwmon/g762.txt.
-+
-+
-+  fan1_target: set desired fan speed. This only makes sense in closed-loop
-+            fan speed control (i.e. when pwm1_enable is set to 2).
-+
-+  fan1_input: provide current fan rotation value in RPM as reported by
-+            the fan to the device.
-+
-+  fan1_div: fan clock divisor. Supported value are 1, 2, 4 and 8.
-+
-+  fan1_fault: reports fan failure, i.e. no transition on fan gear pin for
-+            about 0.7s (if the fan is not voluntarily set off).
-+
-+  fan1_alarm: in closed-loop control mode, if fan RPM value is 25% out
-+            of the programmed value for over 6 seconds 'fan1_alarm' is
-+            set to 1.
-+
-+  pwm1_enable: set current fan speed control mode i.e. 1 for manual fan
-+            speed control (open-loop) via pwm1 described below, 2 for
-+            automatic fan speed control (closed-loop) via fan1_target
-+            above (pwm1 is also usable).
-+
-+  pwm1_mode: set or get fan driving mode: 1 for PWM mode, 0 for DC mode.
-+
-+  pwm1: get or set PWM fan control value. This is an integer value
-+            between 0 and 255. 0 stops the fan, 255 makes it run at
-+            full speed. Note that the fan speed control mode (open vs
-+            closed-loop) must be set prior via pwm1_enable prior to
-+            passing a value via pwm1.
-+
-+
-+Both in PWM mode ('pwm1_mode' set to 1) and DC mode ('pwm1_mode' set to 0),
-+when current fan speed control mode is open-loop ('pwm1_enable' set to 1),
-+the fan speed is programmed by setting a value between 0 and 255 via 'pwm1'
-+entry (0 stops the fan, 255 makes it run at full speed). In closed-loop mode
-+('pwm1_enable' set to 2), the expected rotation speed in RPM can be passed to
-+the chip via 'fan1_target'. In closed-loop mode, the target speed is compared
-+with current speed (available via 'fan1_input') by the device and a feedback
-+is performed to match that target value. The fan speed value is computed
-+based on the parameters associated with the physical characteristics of the
-+system: a reference clock source frequency, a number of pulses per fan
-+revolution, etc.
-+
-+Note that the driver will update its values at most once per second.
+diff --git a/arch/arm/configs/imx_v4_v5_defconfig b/arch/arm/configs/imx_v4_v5_defconfig
+index 7fd9f9b..ba5b640 100644
+--- a/arch/arm/configs/imx_v4_v5_defconfig
++++ b/arch/arm/configs/imx_v4_v5_defconfig
+@@ -114,7 +114,7 @@ CONFIG_W1=y
+ CONFIG_W1_MASTER_MXC=y
+ CONFIG_W1_SLAVE_THERM=y
+ CONFIG_HWMON=m
+-CONFIG_SENSORS_MC13783_ADC=m
++CONFIG_SENSORS_MC13XXX_ADC=m
+ CONFIG_WATCHDOG=y
+ CONFIG_IMX2_WDT=y
+ CONFIG_MFD_MC13XXX_SPI=y
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4f71370..c28a362 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1526,11 +1526,11 @@ config SENSORS_APPLESMC
+ 	  Say Y here if you have an applicable laptop and want to experience
+ 	  the awesome power of applesmc.
+ 
+-config SENSORS_MC13783_ADC
+-        tristate "Freescale MC13783/MC13892 ADC"
+-        depends on MFD_MC13XXX
+-        help
+-          Support for the A/D converter on MC13783 and MC13892 PMIC.
++config SENSORS_MC13XXX_ADC
++	tristate "Freescale MC13783/MC13892 ADC"
++	depends on MFD_MC13XXX
++	help
++	  Support for the A/D converter on MC13783 and MC13892 PMIC.
+ 
+ if ACPI
+ 
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index d17d3e6..b0cbc36f 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -106,7 +106,7 @@ obj-$(CONFIG_SENSORS_MAX6639)	+= max6639.o
+ obj-$(CONFIG_SENSORS_MAX6642)	+= max6642.o
+ obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+ obj-$(CONFIG_SENSORS_MAX6697)	+= max6697.o
+-obj-$(CONFIG_SENSORS_MC13783_ADC)+= mc13783-adc.o
++obj-$(CONFIG_SENSORS_MC13XXX_ADC)+= mc13xxx-adc.o
+ obj-$(CONFIG_SENSORS_MCP3021)	+= mcp3021.o
+ obj-$(CONFIG_SENSORS_NCT6775)	+= nct6775.o
+ obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
+diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13xxx-adc.c
+similarity index 100%
+rename from drivers/hwmon/mc13783-adc.c
+rename to drivers/hwmon/mc13xxx-adc.c
 -- 
-1.7.10.4
+1.8.1.5
 
 
 _______________________________________________
