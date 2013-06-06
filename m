@@ -1,25 +1,42 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 10 Jun 2013 16:20:43 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/iio_hwmon: add alias table
-Message-Id: <20130610162043.GA5016@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 06 Jun 2013 07:48:11 +0000
+Subject: Re: [lm-sensors] [lm-sensors 2/2] hwmon: (ds1621) Add ds1721 update interval sysfs attribute
+Message-Id: <20130606094811.4b3a3ebd@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1370879265-32196-1-git-send-email-bigeasy@linutronix.de>
-In-Reply-To: <1370879265-32196-1-git-send-email-bigeasy@linutronix.de>
+References: <1368078354-26298-3-git-send-email-rob.coulson@gmail.com>
+In-Reply-To: <1368078354-26298-3-git-send-email-rob.coulson@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jun 10, 2013 at 05:47:45PM +0200, Sebastian Andrzej Siewior wrote:
-> This helps the kernel to find the right module once the device is
-> created.
-> 
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Hi Robert, hi Guenter,
 
-Applied to -next.
+Sorry for joining the game a little late...
+
+On Wed, 8 May 2013 22:45:54 -0700, Robert Coulson wrote:
+> +static umode_t ds1621_attribute_visible(struct kobject *kobj,
+> +					struct attribute *attr, int index)
+> +{
+> +	struct device *dev = container_of(kobj, struct device, kobj);
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct ds1621_data *data = i2c_get_clientdata(client);
+> +	struct device_attribute *devattr;
+> +
+> +	devattr = container_of(attr, struct device_attribute, attr);
+> +	if (attr = &dev_attr_update_interval.attr)
+> +		if (data->kind != ds1721)
+> +			/* shhh, we're hiding update_interval */
+> +			return 0;
+> +	return attr->mode;
+> +}
+
+"make W=1" complains that devattr is defined but never used. And this is
+true, and should be fixed.
 
 Thanks,
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
