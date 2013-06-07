@@ -1,52 +1,44 @@
-From: Tang Yuantian-B29983 <B29983@freescale.com>
-Date: Thu, 20 Jun 2013 02:45:58 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ina2xx) Add device tree support to pass the shunt resistor
-Message-Id: <D07C73A334FF604B95B3CBD2A545D07B0B20DCBA@039-SN2MPN1-011.039d.mgd.msft.net>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 07 Jun 2013 19:45:26 +0000
+Subject: [lm-sensors] [PATCH] smbus_company_id: Add manufacturer IDs for JC 42.4 compliant temperature sensor
+Message-Id: <1370634326-10496-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1371624620-14254-1-git-send-email-Yuantian.Tang@freescale.com>
- <20130619154310.GA29516@roeck-us.net>
- <D07C73A334FF604B95B3CBD2A545D07B0B20DC69@039-SN2MPN1-011.039d.mgd.msft.net>
- <20130620024018.GA835@roeck-us.net>
-In-Reply-To: <20130620024018.GA835@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: "khali@linux-fr.org" <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEd1ZW50ZXIgUm9lY2sgW21h
-aWx0bzpsaW51eEByb2Vjay11cy5uZXRdDQo+IFNlbnQ6IDIwMTPlubQ25pyIMjDml6Ug5pif5pyf
-5ZubIDEwOjQwDQo+IFRvOiBUYW5nIFl1YW50aWFuLUIyOTk4Mw0KPiBDYzoga2hhbGlAbGludXgt
-ZnIub3JnOyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnOyBkZXZpY2V0cmVlLQ0KPiBkaXNjdXNz
-QGxpc3RzLm96bGFicy5vcmc7IGxpbnV4LWRvY0B2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDog
-UmU6IFtQQVRDSCB2Ml0gaHdtb246IChpbmEyeHgpIEFkZCBkZXZpY2UgdHJlZSBzdXBwb3J0IHRv
-IHBhc3MNCj4gdGhlIHNodW50IHJlc2lzdG9yDQo+IA0KPiBPbiBUaHUsIEp1biAyMCwgMjAxMyBh
-dCAwMjoyNzoxOEFNICswMDAwLCBUYW5nIFl1YW50aWFuLUIyOTk4MyB3cm90ZToNCj4gPg0KPiA+
-DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTogR3VlbnRlciBS
-b2VjayBbbWFpbHRvOmxpbnV4QHJvZWNrLXVzLm5ldF0NCj4gPiA+IFNlbnQ6IDIwMTPlubQ25pyI
-MTnml6Ug5pif5pyf5LiJIDIzOjQzDQo+ID4gPiBUbzogVGFuZyBZdWFudGlhbi1CMjk5ODMNCj4g
-PiA+IENjOiBraGFsaUBsaW51eC1mci5vcmc7IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc7IGRl
-dmljZXRyZWUtDQo+ID4gPiBkaXNjdXNzQGxpc3RzLm96bGFicy5vcmc7IGxpbnV4LWRvY0B2Z2Vy
-Lmtlcm5lbC5vcmcNCj4gPiA+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjJdIGh3bW9uOiAoaW5hMnh4
-KSBBZGQgZGV2aWNlIHRyZWUgc3VwcG9ydCB0bw0KPiA+ID4gcGFzcyB0aGUgc2h1bnQgcmVzaXN0
-b3INCj4gPiA+DQo+ID4gPiBPbiBXZWQsIEp1biAxOSwgMjAxMyBhdCAwMjo1MDoyMFBNICswODAw
-LA0KPiA+ID4gWXVhbnRpYW4uVGFuZ0BmcmVlc2NhbGUuY29tDQo+ID4gPiB3cm90ZToNCj4gPiA+
-ID4gRnJvbTogVGFuZyBZdWFudGlhbiA8eXVhbnRpYW4udGFuZ0BmcmVlc2NhbGUuY29tPg0KPiA+
-ID4gPg0KPiA+ID4gPiBBZGRpbmcgYW5vdGhlciB3YXkgdGhhdCBpcyBkZXZpY2UgdHJlZSB0byBw
-YXNzIHRoZSBzaHVudCByZXNpc3Rvcg0KPiA+ID4gPiB2YWx1ZSB0byBkcml2ZXIgZXhjZXB0IGZv
-ciBwbGF0Zm9ybSBkYXRhLg0KPiA+ID4gPg0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBUYW5nIFl1
-YW50aWFuIDxZdWFudGlhbi5UYW5nQGZyZWVzY2FsZS5jb20+DQo+ID4gPg0KPiA+ID4gSSBub3Rp
-Y2VkIHRoYXQgb2YuaCBpbmNsdWRlIHdhcyBtaXNzaW5nLiBObyBuZWVkIHRvIHJlLXNlbmQ7IEkg
-YWRkZWQNCj4gPiA+IGl0IG15c2VsZi4NCj4gPiA+IEFwcGxpZWQgdG8gLW5leHQuDQo+ID4gPg0K
-PiA+DQo+ID4gVGhhbmtzIGZvciB5b3VyIGhlbHAuIE9mLmggaXMgYWxyZWFkeSBpbmNsdWRlZCBp
-biBpMmMuaC4NCj4gPiBJZiBpdCBpcyByZWFsbHkgbmVlZGVkLCBJIHNob3VsZCBoYXZlIHNlZW4g
-dGhlIHdhcm5pbmcgb3IgZXJyb3Igd2hlbg0KPiBjb21waWxlLg0KPiA+IEluY2x1ZGluZyBpdCBl
-eHBsaWNpdGx5IGlzIGFsc28gYSBnb29kIHBvaW50Lg0KPiA+DQo+IENvbW1vbiBydWxlIGlzIHRv
-IGluY2x1ZGUgYSBmaWxlIGlmIGl0cyBkZWZpbml0aW9ucyBhcmUgdXNlZC4gV2UgY2FuIG5vdA0K
-PiByZWx5IG9uIHNvbWUgb3RoZXIgZmlsZSBpbmNsdWRpbmcgaXQgZm9yIHVzLCBzaW5jZSBpdCBp
-cyBub3QgZ3VhcmFudGVlZA0KPiB0aGF0IHRoaXMgd2lsbCBhbHdheXMgYmUgdGhlIGNhc2UuDQo+
-IA0KR29vZCBwb2ludCwgSSB3aWxsIGZvbGxvdyB0aGlzIHJ1bGUuIFRoYW5rcywNCg0KVGhhbmtz
-LA0KWXVhbnRpYW4NCg0KPiBUaGFua3MsDQo+IEd1ZW50ZXINCg0KX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
-c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
-bi9saXN0aW5mby9sbS1zZW5zb3Jz
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ doc/developers/smbus_company_id |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/doc/developers/smbus_company_id b/doc/developers/smbus_company_id
+index b4fd4ec..375a47e 100644
+--- a/doc/developers/smbus_company_id
++++ b/doc/developers/smbus_company_id
+@@ -26,3 +26,16 @@ This may help identify a chip after doing a 'i2cdump [bus] [address]'.
+ 0xDA	Dallas
+ 
+ [A-Z]{3} at 0x00-0x02: Fujitsu-Siemens
++
++
++Jedec JC 42.4 compliant temperature sensors provide the manufacturer ID
++in 16-bit register 0x06. Known manufacturer IDs are as follows.
++
++0x001F	Atmel
++0x004D	Maxim
++0x0054	Microchip
++0x00B3	IDT
++0x104A	ST Microelectronics
++0x1131	NXP (Philips)
++0x11D4	Analog Devices
++0x1B09	ON Semiconductor
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
