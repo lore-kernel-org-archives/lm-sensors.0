@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 09 Jun 2013 18:45:33 +0000
+Date: Mon, 10 Jun 2013 07:40:17 +0000
 Subject: Re: [lm-sensors] k10temp-pci-00c3 goes from 11 to 0 degrees
-Message-Id: <20130609204533.2a4b351a@endymion.delvare>
+Message-Id: <20130610094017.331ac1f1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CABp=A6OdWf_q8vcc65R532xJswsYQBnNgX9ZyyaLDy6hx4qWGA@mail.gmail.com>
 In-Reply-To: <CABp=A6OdWf_q8vcc65R532xJswsYQBnNgX9ZyyaLDy6hx4qWGA@mail.gmail.com>
@@ -10,38 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgU3RldmVuLAoKT24gU3VuLCA5IEp1biAyMDEzIDE1OjAyOjE4ICswMjAwLCBTdGV2ZW4gVmFu
-ZGVuIEJyYW5kZW4gd3JvdGU6Cj4gaGVsbG8sCj4gCj4gaW0gdHJ5aW5nIHRvIGdldCBteSBBbWQg
-QTQtNTMwMCBhcHUgdGVtcGVyYXR1cmUgcmVhZGluZ3MuCj4gCj4gQU1EIEE0LTUzMDAgQVBVIHdp
-dGggUmFkZW9uKHRtKSBIRCBHcmFwaGljcyAoZmFtOiAxNSwgbW9kZWw6IDEwLCBzdGVwcGluZzoK
-PiAwMSkKPiAKPiBpbSBydW5uaW5nIG9uOgo+IDMuOS40LTEtQVJDSAo+IGxtX3NlbnNvcnMtMy4z
-LjQtMQoKQWxsIHJlY2VudCBlbm91Z2gsIGdvb2QuCgo+IE1TSSBmbTItYTc1bWEtZTM1IG1vdGhl
-cmJvYXJkCj4gCj4gCj4gc2Vuc29yIG91dHB1dCAoaSBjaGFuZ2VkIHRvIEFQVSB0ZW1wIGxhYmVs
-KQo+IAo+ICMgc2Vuc29ycwo+IGsxMHRlbXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRl
-cgo+IEFQVSBUZW1wOiAgICAgICswLjBDICAoaGlnaCA9ICs3MC4wwrBDKQo+ICAgICAgICAgICAg
-ICAgICAgICAgICAgKGNyaXQgPSArNzAuMMKwQywgaHlzdCA9ICs2OS4wwrBDKQo+IAo+IAo+IHRo
-aXMgdmFsdWUgc2VlbXMgdG8gZ28gdXAgbGl0dGxlIGFmdGhlciB3YWl0aW5nLCB3aGVuIHJlcnVu
-bmluZyB0aGUgc2Vuc29ycwo+IGl0IGRyb3BzIGRvd24gYWdhaW4gdG8gMC4KCllvdSB3b3VsZG4n
-dCBiZSB0aGUgZmlyc3QgcGVyc29uIGNvbXBsYWluaW5nIGFib3V0IEFNRCBDUFUgaW50ZWdyYXRl
-ZAp0aGVybWFsIHNlbnNvcnMuCgo+IHNob3VsZCBpIHVzZSB0aGUgZmFtMTVoX3Bvd2VyIG1vZHVs
-ZT8gaSB0cmllZCBidXQgaXQgZG9lcyBub3Qgd29yayBlaXRoZXIuCgpQbGVhc2UgZGVzY3JpYmUg
-ImRvZXMgbm90IHdvcmsiIG1vcmUgYWNjdXJhdGVseS4KClRoZSBmYW0xNWhfcG93ZXIgbW9kdWxl
-IHdvdWxkIHJlcG9ydCBDUFUgcG93ZXIgY29uc3VtcHRpb24uIElmIHlvdSBhcmUKaW50ZXJlc3Rl
-ZCBpbiB0ZW1wZXJhdHVyZSwgdGhpcyB3b24ndCBoZWxwLgoKPiBpIHRyaWVkIG1hbnVhbGx5IGRl
-bGV0aW5nIGFuZCBmb3JjaW5nIGJvdGggbW9kdWxlcyBidXQgaXQgc2VlbXMgdGhlIHRoZQo+IG1v
-ZHVsZSBnZXRzIGxvYWRlZCByaWdodCBidXQgdGhlIHRlbXAgaXMgbm90IGdvb2QuCj4gCj4gSSBj
-b21maXJtIHRoZSBzZW5zb3Igd29ya2luZyBvbiB3aW5kb3dzIDcgYW5kIGluIHRoZSBiaW9zIHdp
-Y2ggaXMgdXBkYXRlIHRvCj4gdGhlIGxhdGVzdCB2ZXJzaW9uICgyLjApLgoKV2hpY2ggV2luZG93
-cyB0b29sIGFyZSB5b3UgcnVubmluZywgYW5kIHdoYXQgZG9lcyBpdCBkZXRlY3QgZXhhY3RseT8K
-Cj4gKC4uLikKPiBUcnlpbmcgZmFtaWx5IGBWSUEvV2luYm9uZC9OdXZvdG9uL0ZpbnRlaycuLi4g
-ICAgICAgICAgICAgICBZZXMKPiBGb3VuZCB1bmtub3duIGNoaXAgd2l0aCBJRCAweDExMDYKClNv
-IHlvdSBoYXZlIGFuIHVuc3VwcG9ydGVkIFN1cGVyLUkvTy4gV291bGQgYmUgZ3JlYXQgaWYgeW91
-IGNvdWxkIHRyeQp0byBmaW5kIG91dCB3aGF0IGl0IGlzLiBBbm90aGVyIHVzZXIgcmVwb3J0ZWQg
-YSBGaW50ZWsgRjcxODY4QUQgd2l0aAp0aGF0IGRldmljZSBJRC4gV2UgZG9uJ3Qgc3VwcG9ydCBp
-dCB5ZXQsIGFuZCB3aXRob3V0IGEgZGF0YXNoZWV0IHdlCmNhbid0IHN1cHBvcnQgaXQsIGJ1dCBt
-YXliZSB5b3VyIFdpbmRvd3MgbW9uaXRvcmluZyB0b29sIGhhcyBzdXBwb3J0CmFuZCB0aGUgZ29v
-ZCB0ZW1wZXJhdHVyZSByZWFkaW5nIHlvdSB3ZXJlIHNlZWluZyBpcyBmcm9tIHRoYXQgY2hpcCBh
-bmQKbm90IHRoZSBBTUQgQ1BVIGludGVncmF0ZWQgc2Vuc29ycy4KCi0tIApKZWFuIERlbHZhcmUK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
-cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
-LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Hi Steven,
+
+Please keep the list in Cc.
+
+On Mon, 10 Jun 2013 00:25:45 +0200, Steven Vanden Branden wrote:
+> Op zondag 9 juni 2013 20:45:33 schreef u:
+> > So you have an unsupported Super-I/O. Would be great if you could try
+> > to find out what it is. Another user reported a Fintek F71868AD with
+> > that device ID. We don't support it yet, and without a datasheet we
+> > can't support it, but maybe your Windows monitoring tool has support
+> > and the good temperature reading you were seeing is from that chip and
+> > not the AMD CPU integrated sensors.
+> 
+> I suppose that its the same i/o chip , and i also suppose the other user asked 
+> fintek for a datasheet?
+
+You shouldn't suppose, and I don't know.
+
+> The windows monitor is the msi control center. It shows 2 temperatures, one 
+> from the apu and 1 from inside the casing. I do not know if those 2 are 
+> controlled by that same chip.
+
+If the tool doesn't say, it's difficult to guess.
+
+> How does the reading of the temperature works for apu's? We probebly need that 
+> finteck chip to read the apu temperature also?
+
+Well normally all recent CPU have an embedded digital thermal sensor,
+but apparently it isn't returning proper values in your case.
+
+Note though that these integrated digital sensors are documented by
+both Intel and AMD as having very bad accuracy at low temperatures. As
+the sensor is can't return negative values, the "0" you get may simply
+mean that your CPU is very well cooled.
+
+But it is also possible that your CPU digital sensor is defective, I
+don't know. There have been many such cases reported in the past, for
+specific CPU lines.
+
+Either way, most boards also have a monitoring chip, which can monitor
+several temperatures, and often one of the temperature inputs is
+connected to an analog temperature inside or underneath the CPU. This
+may be what you're seeing in the BIOS / Windows.
+
+> Im very sure the sensor works nice because windows and bios work fine too! 
+> Also the fan can be controlled via windows or the BIOS. So i suppose that i 
+> also uses that same chip?
+
+Yes, it is likely that the Super-I/O is responsible for both
+temperature monitoring and fan control.
+
+> Please let me know if i have to send a mail to MSI or Finteck for that 
+> datasheet? You know where i can find a datasheet of the motherboard so i can 
+> verify the same chip is there?
+
+Best is to open the case and read the chip marking.
+
+Your motherboard's manual doesn't mention the Super-I/O chip name,
+unfortunately.
+
+Asking MSI and/or Fintek for a datasheet is always a good idea. But
+first you have to ensure this is a Fintek chip, and find the exact chip
+name.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
