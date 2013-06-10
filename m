@@ -1,36 +1,25 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date: Mon, 10 Jun 2013 15:47:45 +0000
-Subject: [lm-sensors] [PATCH] hwmon/iio_hwmon: add alias table
-Message-Id: <1370879265-32196-1-git-send-email-bigeasy@linutronix.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 10 Jun 2013 16:20:43 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/iio_hwmon: add alias table
+Message-Id: <20130610162043.GA5016@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1370879265-32196-1-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <1370879265-32196-1-git-send-email-bigeasy@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This helps the kernel to find the right module once the device is
-created.
+On Mon, Jun 10, 2013 at 05:47:45PM +0200, Sebastian Andrzej Siewior wrote:
+> This helps the kernel to find the right module once the device is
+> created.
+> 
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/hwmon/iio_hwmon.c |    1 +
- 1 file changed, 1 insertion(+)
+Applied to -next.
 
-diff --git a/drivers/hwmon/iio_hwmon.c b/drivers/hwmon/iio_hwmon.c
-index 52b77af..708081b 100644
---- a/drivers/hwmon/iio_hwmon.c
-+++ b/drivers/hwmon/iio_hwmon.c
-@@ -180,6 +180,7 @@ static struct of_device_id iio_hwmon_of_match[] = {
- 	{ .compatible = "iio-hwmon", },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(of, iio_hwmon_of_match);
- 
- static struct platform_driver __refdata iio_hwmon_driver = {
- 	.driver = {
--- 
-1.7.10.4
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
