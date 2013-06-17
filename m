@@ -1,18 +1,29 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 16 Jun 2013 21:58:59 +0000
+From: Simon Guinot <simon.guinot@sequanux.org>
+Date: Mon, 17 Jun 2013 10:19:48 +0000
 Subject: Re: [lm-sensors] [RESEND, PATCHv6 1/1] Add support for GMT G762/G763 PWM fan controllers
-Message-Id: <20130616215859.GA32107@roeck-us.net>
+Message-Id: <20130617101948.GY7626@kw.sim.vm.gnt>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0475600392891857882=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87sj0jhuhn.fsf@natisbad.org>
 In-Reply-To: <87sj0jhuhn.fsf@natisbad.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Arnaud Ebalard <arno@natisbad.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Olivier Mouchet <olivier.mouchet@gmail.com>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Jean Delvare <khali@linux-fr.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Simon Guinot <simon.guinot@sequanux.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Olivier Mouchet <olivier.mouchet@gmail.com>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Jean Delvare <khali@linux-fr.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+
+
+--===============0475600392891857882==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HENu/cXyPKFN4XCQ"
+Content-Disposition: inline
+
+
+--HENu/cXyPKFN4XCQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
-> 
+>=20
 > GMT G762/763 fan speed PWM controller is connected directly to a fan
 > and performs closed-loop or open-loop control of the fan speed. Two
 > modes - PWM or DC - are supported by the chip. Introduced driver
@@ -20,25 +31,57 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > sysfs interface). Specific characteristics of the system can be passed
 > either using board init code or via DT. Documentation for both the
 > driver and DT bindings are also provided.
-> 
+
+Hi Arnaud,
+
+I have tested this patch on my 2Big Network v2 board.
+
+Sometimes I get a weird "No such device" error while reading or writing
+the hwmon sysfs attributes. For example:
+
+# cat pwm1
+cat: read error: No such device
+# cat pwm1
+0
+
+Note, that if the same command is executed again (just after the faulty
+one), then it will succeed most of the time. The errors seems to happen
+quite randomly and not very often. I'd say one time over ten tries.
+I suppose this error is now visible due to the enhanced error path in
+g762_update_client. It looks like we learn something by checking the
+return value for i2c_smbus_read_byte_data :)
+
+Except that, all is working as expected. This new version fixes
+effectively open-loop driving when the set_cnt register is set to 0xff.
+
+Also I am planning (hopefully this Wednesday) to test your patch on my
+5Big Network v2 board. This last also embed a g762 controller but with a
+three wires fan instead. Then, I should be able to test the closed-loop
+mode behaviour.
+
+Thanks,
+
+Simon
+
+>=20
 > Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
 > ---
 > Hi Guenter,
-> 
+>=20
 > In the end, I think handling the clock properly for DT path
 > (clk_prepare_enable() and associated clk_disable_unprepare()
 > for both error and module unloading) adds some code but I
 > do not see how to spare this. Comments welcome.
-> 
+>=20
 > If you have additional comments and a new version is required,
 > I'll handle those with Simon's tests on its platform.
-> 
+>=20
 > Cheers,
-> 
+>=20
 > a+
-> 
+>=20
 > ps: this is a resend including g762.c in the commit this time.
-> 
+>=20
 > Changes since v5:
 >     fixed useless ret parameter init in various functions
 >     removed useless goto in favour of direct return
@@ -46,7 +89,7 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 >     fixed patch version (previous v5 was mistakenly named v4)
 >     correctly balance clk_prepare_enable() by clk_disable_unprepare()
 >     more tests w/o CONFIG_OF and with driver as module (load/unload)
-> 
+>=20
 > Changes since v4:
 >     Removed unused defines
 >     fixed some comments
@@ -61,15 +104,17 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 >     fixed reversed polarity setter logic
 >     simplified do_set_pwm()
 >     merged all three patches into one
->     Fixed issue reported by Simon (open-loop not working when set_cnt is 255)
-> 
+>     Fixed issue reported by Simon (open-loop not working when set_cnt is =
+255)
+>=20
 > Changes since v3:
 >     set is against current head of Linus tree
 >     removed dev_err() calls when i2c_smbus_read/write_byte_data() fails
->     pwm1 sets SET_OUT reg, fan1_target sets SET_CNT reg, both unconditionally
+>     pwm1 sets SET_OUT reg, fan1_target sets SET_CNT reg, both uncondition=
+ally
 >     removed all DT and platform_data knobs available via sysfs
 >     updated documentation files to reflect two previous changes
-> 
+>=20
 > Changes since v2:
 >     set ref_clk value to 32768 if not overloaded
 >     fixed multi-line comment format in g762.h
@@ -79,7 +124,7 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 >     remove { } is not needed in single-statement conditionals
 >     introduced G762_ATTR_VAL() to allow sparse init of platform_data struc
 >     changed missed reference to linear mode for DC mode
-> 
+>=20
 > Changes since v1
 >     Changed author
 >     removed bad tabs
@@ -90,19 +135,21 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 >     removed useless include of <linux/slab.h>
 >     removed useless parenthesis against HZ in define
 >     use spaces around binary operators
->     use i2c_smbus_{read,write}_byte_data() instead of g762_{read,write}_value()
+>     use i2c_smbus_{read,write}_byte_data() instead of g762_{read,write}_v=
+alue()
 >     use return value of i2c_smbus_write_byte_data()
 >     use true for initializing boolean
 >     removed useless blank lines
 >     do not enforce single return point rule where less readable
 >     use dev_err() and dev_dbg() instead of dev_info() when it makes sense
 >     remove leading '&' for function passed as pointers
->     allow passing parameter via platform_data struct for non-DT enabled boards
+>     allow passing parameter via platform_data struct for non-DT enabled b=
+oards
 >     set data->valid to false when config is modified
 >     s/linear/DC/ for mode (g762 datasheet uses linear)
 >     more tests on rpm_from_cnt() and cnt_from_rpm() formula
 >     dont overload
-> 
+>=20
 > Changes since v0
 >     removed forward declaration
 >     use bool for valid field instead of bit field.
@@ -111,9 +158,11 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 >     Added mention for G763 support in Kconfig
 >     fixed typo in driver name in Kconfig
 >     do not use DRVNAME in i2c_device_id g762_id[]
->     Following discussions, kept DEVICE_ATTR (no switch to SENSOR_DEVICE_ATTR)
+>     Following discussions, kept DEVICE_ATTR (no switch to SENSOR_DEVICE_A=
+TTR)
 >     removed useless casts when flipping bit values
->     Sanity check user input value (e.g. to prevent 256 to silenty become 0)
+>     Sanity check user input value (e.g. to prevent 256 to silenty become =
+0)
 >     Added extra lines for multi line comments when needed
 >     removed various testing knobs
 >     make removed knobs available via DT
@@ -121,21 +170,23 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 >     removed useless lock protection againt clk setting
 >     moved all setter at the beginning of the file
 >     removed bad (u16) casts in g762_write_value() calls
-> 
-> 
+>=20
+>=20
 >  Documentation/devicetree/bindings/hwmon/g762.txt |   47 +
 >  Documentation/hwmon/g762                         |   65 ++
 >  drivers/hwmon/Kconfig                            |   10 +
 >  drivers/hwmon/Makefile                           |    1 +
->  drivers/hwmon/g762.c                             | 1144 ++++++++++++++++++++++
+>  drivers/hwmon/g762.c                             | 1144 ++++++++++++++++=
+++++++
 >  include/linux/platform_data/g762.h               |   37 +
 >  6 files changed, 1304 insertions(+)
 >  create mode 100644 Documentation/devicetree/bindings/hwmon/g762.txt
 >  create mode 100644 Documentation/hwmon/g762
 >  create mode 100644 drivers/hwmon/g762.c
 >  create mode 100644 include/linux/platform_data/g762.h
-> 
-> diff --git a/Documentation/devicetree/bindings/hwmon/g762.txt b/Documentation/devicetree/bindings/hwmon/g762.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/hwmon/g762.txt b/Documenta=
+tion/devicetree/bindings/hwmon/g762.txt
 > new file mode 100644
 > index 0000000..25cc6d8
 > --- /dev/null
@@ -160,33 +211,36 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +
 > + - "fan_gear_mode": fan gear mode. Supported values are 0, 1 and 2.
 > +
-> +If an optional property is not set in .dts file, then current value is kept
+> +If an optional property is not set in .dts file, then current value is k=
+ept
 > +unmodified (e.g. u-boot installed value).
 > +
-> +Additional information on operational parameters for the device is available
-> +in Documentation/hwmon/g762. A detailed datasheet for the device is available
+> +Additional information on operational parameters for the device is avail=
+able
+> +in Documentation/hwmon/g762. A detailed datasheet for the device is avai=
+lable
 > +at http://natisbad.org/NAS/refs/GMT_EDS-762_763-080710-0.2.pdf.
 > +
 > +Example g762 node:
 > +
 > +   clocks {
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
+> +	#address-cells =3D <1>;
+> +	#size-cells =3D <0>;
 > +
 > +	g762_clk: fixedclk {
-> +		 compatible = "fixed-clock";
-> +		 #clock-cells = <0>;
-> +		 clock-frequency = <8192>;
+> +		 compatible =3D "fixed-clock";
+> +		 #clock-cells =3D <0>;
+> +		 clock-frequency =3D <8192>;
 > +	}
 > +   }
 > +
 > +   g762: g762@3e {
-> +	compatible = "gmt,g762";
-> +	reg = <0x3e>;
-> +	clocks = <&g762_clk>
-> +	fan_gear_mode = <0>; /* chip default */
-> +	fan_startv = <1>;    /* chip default */
-> +	pwm_polarity = <0>;  /* chip default */
+> +	compatible =3D "gmt,g762";
+> +	reg =3D <0x3e>;
+> +	clocks =3D <&g762_clk>
+> +	fan_gear_mode =3D <0>; /* chip default */
+> +	fan_startv =3D <1>;    /* chip default */
+> +	pwm_polarity =3D <0>;  /* chip default */
 > +   };
 > diff --git a/Documentation/hwmon/g762 b/Documentation/hwmon/g762
 > new file mode 100644
@@ -195,7 +249,7 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +++ b/Documentation/hwmon/g762
 > @@ -0,0 +1,65 @@
 > +Kernel driver g762
-> +=========
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 > +
 > +The GMT G762 Fan Speed PWM Controller is connected directly to a fan
 > +and performs closed-loop or open-loop control of the fan speed. Two
@@ -217,7 +271,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +using a specific platform_data structure in board initialization
 > +file (see include/linux/platform_data/g762.h).
 > +
-> +  fan1_target: set desired fan speed. This only makes sense in closed-loop
+> +  fan1_target: set desired fan speed. This only makes sense in closed-lo=
+op
 > +            fan speed control (i.e. when pwm1_enable is set to 2).
 > +
 > +  fan1_input: provide current fan rotation value in RPM as reported by
@@ -246,15 +301,23 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +            integer value between 0 and 255. 0 stops the fan, 255 makes
 > +            it run at full speed.
 > +
-> +Both in PWM mode ('pwm1_mode' set to 1) and DC mode ('pwm1_mode' set to 0),
-> +when current fan speed control mode is open-loop ('pwm1_enable' set to 1),
-> +the fan speed is programmed by setting a value between 0 and 255 via 'pwm1'
-> +entry (0 stops the fan, 255 makes it run at full speed). In closed-loop mode
-> +('pwm1_enable' set to 2), the expected rotation speed in RPM can be passed to
-> +the chip via 'fan1_target'. In closed-loop mode, the target speed is compared
-> +with current speed (available via 'fan1_input') by the device and a feedback
+> +Both in PWM mode ('pwm1_mode' set to 1) and DC mode ('pwm1_mode' set to =
+0),
+> +when current fan speed control mode is open-loop ('pwm1_enable' set to 1=
+),
+> +the fan speed is programmed by setting a value between 0 and 255 via 'pw=
+m1'
+> +entry (0 stops the fan, 255 makes it run at full speed). In closed-loop =
+mode
+> +('pwm1_enable' set to 2), the expected rotation speed in RPM can be pass=
+ed to
+> +the chip via 'fan1_target'. In closed-loop mode, the target speed is com=
+pared
+> +with current speed (available via 'fan1_input') by the device and a feed=
+back
 > +is performed to match that target value. The fan speed value is computed
-> +based on the parameters associated with the physical characteristics of the
+> +based on the parameters associated with the physical characteristics of =
+the
 > +system: a reference clock source frequency, a number of pulses per fan
 > +revolution, etc.
 > +
@@ -266,7 +329,7 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > @@ -456,6 +456,16 @@ config SENSORS_G760A
 >  	  This driver can also be built as a module.  If so, the module
 >  	  will be called g760a.
->  
+> =20
 > +config SENSORS_G762
 > +	tristate "GMT G762 and G763"
 > +	depends on I2C
@@ -284,14 +347,14 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > index d17d3e6..4f0fb52 100644
 > --- a/drivers/hwmon/Makefile
 > +++ b/drivers/hwmon/Makefile
-> @@ -60,6 +60,7 @@ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
->  obj-$(CONFIG_SENSORS_FAM15H_POWER) += fam15h_power.o
->  obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
->  obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
-> +obj-$(CONFIG_SENSORS_G762)	+= g762.o
->  obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
->  obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
->  obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-fan.o
+> @@ -60,6 +60,7 @@ obj-$(CONFIG_SENSORS_F75375S)	+=3D f75375s.o
+>  obj-$(CONFIG_SENSORS_FAM15H_POWER) +=3D fam15h_power.o
+>  obj-$(CONFIG_SENSORS_FSCHMD)	+=3D fschmd.o
+>  obj-$(CONFIG_SENSORS_G760A)	+=3D g760a.o
+> +obj-$(CONFIG_SENSORS_G762)	+=3D g762.o
+>  obj-$(CONFIG_SENSORS_GL518SM)	+=3D gl518sm.o
+>  obj-$(CONFIG_SENSORS_GL520SM)	+=3D gl520sm.o
+>  obj-$(CONFIG_SENSORS_GPIO_FAN)	+=3D gpio-fan.o
 > diff --git a/drivers/hwmon/g762.c b/drivers/hwmon/g762.c
 > new file mode 100644
 > index 0000000..9d486de
@@ -357,7 +420,7 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +
 > +#define DRVNAME "g762"
 > +
-> +static const struct i2c_device_id g762_id[] = {
+> +static const struct i2c_device_id g762_id[] =3D {
 > +	{ "g762", 0 },
 > +	{ "g763", 0 },
 > +	{ }
@@ -365,23 +428,26 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +MODULE_DEVICE_TABLE(i2c, g762_id);
 > +
 > +enum g762_regs {
-> +	G762_REG_SET_CNT  = 0x00,
-> +	G762_REG_ACT_CNT  = 0x01,
-> +	G762_REG_FAN_STA  = 0x02,
-> +	G762_REG_SET_OUT  = 0x03,
-> +	G762_REG_FAN_CMD1 = 0x04,
-> +	G762_REG_FAN_CMD2 = 0x05,
+> +	G762_REG_SET_CNT  =3D 0x00,
+> +	G762_REG_ACT_CNT  =3D 0x01,
+> +	G762_REG_FAN_STA  =3D 0x02,
+> +	G762_REG_SET_OUT  =3D 0x03,
+> +	G762_REG_FAN_CMD1 =3D 0x04,
+> +	G762_REG_FAN_CMD2 =3D 0x05,
 > +};
 > +
 > +/* Config register bits */
 > +#define G762_REG_FAN_CMD1_DET_FAN_FAIL  0x80 /* enable fan_fail signal */
-> +#define G762_REG_FAN_CMD1_DET_FAN_OOC   0x40 /* enable fan_out_of_control */
+> +#define G762_REG_FAN_CMD1_DET_FAN_OOC   0x40 /* enable fan_out_of_contro=
+l */
 > +#define G762_REG_FAN_CMD1_OUT_MODE      0x20 /* out mode: PWM or DC */
-> +#define G762_REG_FAN_CMD1_FAN_MODE      0x10 /* fan mode: closed/open-loop */
+> +#define G762_REG_FAN_CMD1_FAN_MODE      0x10 /* fan mode: closed/open-lo=
+op */
 > +#define G762_REG_FAN_CMD1_CLK_DIV_ID1   0x08 /* clock divisor value */
 > +#define G762_REG_FAN_CMD1_CLK_DIV_ID0   0x04
 > +#define G762_REG_FAN_CMD1_PWM_POLARITY  0x02 /* PWM polarity */
-> +#define G762_REG_FAN_CMD1_PULSE_PER_REV 0x01 /* pulse per fan revolution */
+> +#define G762_REG_FAN_CMD1_PULSE_PER_REV 0x01 /* pulse per fan revolution=
+ */
 > +
 > +#define G762_REG_FAN_CMD2_GEAR_MODE_1   0x08 /* fan gear mode */
 > +#define G762_REG_FAN_CMD2_GEAR_MODE_0   0x04
@@ -466,15 +532,16 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +		      */
 > +	u8 fan_cmd2; /* 0,1: FAN_STARTV 0,1,2,3 -> 0,32,64,96 dac_code
 > +		      * 2,3: FG_GEAR_MODE
-> +		      *         00: multiplier = 1
-> +		      *         01: multiplier = 2
-> +		      *         10: multiplier = 4
+> +		      *         00: multiplier =3D 1
+> +		      *         01: multiplier =3D 2
+> +		      *         10: multiplier =3D 4
 > +		      *   4: Mask ALERT# (g763 only)
 > +		      */
 > +};
 > +
 > +/*
-> + * Convert count value from fan controller register (FAN_SET_CNT) into fan
+> + * Convert count value from fan controller register (FAN_SET_CNT) into f=
+an
 > + * speed RPM value. Note that the datasheet documents a basic formula;
 > + * influence of additional parameters (fan clock divisor, fan gear mode)
 > + * have been infered from examples in the datasheet and tests.
@@ -482,7 +549,7 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +static inline unsigned int rpm_from_cnt(u8 cnt, u32 clk, u16 p,
 > +					u8 clk_div, u8 gear_mult)
 > +{
-> +	if (cnt = 0xff)  /* setting cnt to 255 stops the fan */
+> +	if (cnt =3D=3D 0xff)  /* setting cnt to 255 stops the fan */
 > +		return 0;
 > +
 > +	return (clk * 30 * gear_mult) / ((cnt ? cnt : 1) * p * clk_div);
@@ -505,52 +572,52 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* helper to grab and cache data, at most one time per second */
 > +static struct g762_data *g762_update_client(struct device *dev)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = i2c_get_clientdata(client);
-> +	int ret = 0;
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D i2c_get_clientdata(client);
+> +	int ret =3D 0;
 > +
 > +	mutex_lock(&data->update_lock);
 > +	if (time_before(jiffies, data->last_updated + G762_UPDATE_INTERVAL) &&
 > +	    likely(data->valid))
 > +		goto out;
 > +
-> +	ret = i2c_smbus_read_byte_data(client, G762_REG_SET_CNT);
+> +	ret =3D i2c_smbus_read_byte_data(client, G762_REG_SET_CNT);
 > +	if (ret < 0)
 > +		goto out;
-> +	data->set_cnt = ret;
+> +	data->set_cnt =3D ret;
 > +
-> +	ret = i2c_smbus_read_byte_data(client, G762_REG_ACT_CNT);
+> +	ret =3D i2c_smbus_read_byte_data(client, G762_REG_ACT_CNT);
 > +	if (ret < 0)
 > +		goto out;
-> +	data->act_cnt = ret;
+> +	data->act_cnt =3D ret;
 > +
-> +	ret = i2c_smbus_read_byte_data(client, G762_REG_FAN_STA);
+> +	ret =3D i2c_smbus_read_byte_data(client, G762_REG_FAN_STA);
 > +	if (ret < 0)
 > +		goto out;
-> +	data->fan_sta = ret;
+> +	data->fan_sta =3D ret;
 > +
-> +	ret = i2c_smbus_read_byte_data(client, G762_REG_SET_OUT);
+> +	ret =3D i2c_smbus_read_byte_data(client, G762_REG_SET_OUT);
 > +	if (ret < 0)
 > +		goto out;
-> +	data->set_out = ret;
+> +	data->set_out =3D ret;
 > +
-> +	ret = i2c_smbus_read_byte_data(client, G762_REG_FAN_CMD1);
+> +	ret =3D i2c_smbus_read_byte_data(client, G762_REG_FAN_CMD1);
 > +	if (ret < 0)
 > +		goto out;
-> +	data->fan_cmd1 = ret;
+> +	data->fan_cmd1 =3D ret;
 > +
-> +	ret = i2c_smbus_read_byte_data(client, G762_REG_FAN_CMD2);
+> +	ret =3D i2c_smbus_read_byte_data(client, G762_REG_FAN_CMD2);
 > +	if (ret < 0)
 > +		goto out;
-> +	data->fan_cmd2 = ret;
+> +	data->fan_cmd2 =3D ret;
 > +
-> +	data->last_updated = jiffies;
-> +	data->valid = true;
+> +	data->last_updated =3D jiffies;
+> +	data->valid =3D true;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	if (ret < 0) /* upon error, encode it in return value */
-> +		data = ERR_PTR(ret);
+> +		data =3D ERR_PTR(ret);
 > +
 > +	return data;
 > +}
@@ -558,22 +625,25 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* helpers for writing hardware parameters */
 > +
 > +/*
-> + * Set input clock frequency received on CLK pin of the chip. Accepted values
+> + * Set input clock frequency received on CLK pin of the chip. Accepted v=
+alues
 > + * are between 0 and 0xffffff. If zero is given, then default frequency
-> + * (32,768Hz) is used. Note that clock frequency is a characteristic of the
-> + * system but an internal parameter, i.e. value is not passed to the device.
+> + * (32,768Hz) is used. Note that clock frequency is a characteristic of =
+the
+> + * system but an internal parameter, i.e. value is not passed to the dev=
+ice.
 > + */
 > +static int do_set_clk_freq(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = i2c_get_clientdata(client);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D i2c_get_clientdata(client);
 > +
 > +	if (val > 0xffffff)
 > +		return -EINVAL;
 > +	if (!val)
-> +		val = 32768;
+> +		val =3D 32768;
 > +
-> +	data->clk = val;
+> +	data->clk =3D val;
 > +
 > +	return 0;
 > +}
@@ -581,8 +651,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* Set pwm mode. Accepts either 0 (PWM mode) or 1 (DC mode) */
 > +static int do_set_pwm_mode(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -591,18 +661,18 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case G762_OUT_MODE_PWM:
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_OUT_MODE;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_OUT_MODE;
 > +		break;
 > +	case G762_OUT_MODE_DC:
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_OUT_MODE;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_OUT_MODE;
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
 > +					data->fan_cmd1);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -612,8 +682,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* Set fan clock divisor. Accepts either 1, 2, 4 or 8. */
 > +static int do_set_fan_div(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -622,28 +692,28 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case 1:
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID0;
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID1;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_CLK_DIV_ID0;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_CLK_DIV_ID1;
 > +		break;
 > +	case 2:
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID0;
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID1;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_CLK_DIV_ID0;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_CLK_DIV_ID1;
 > +		break;
 > +	case 4:
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_CLK_DIV_ID0;
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID1;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_CLK_DIV_ID0;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_CLK_DIV_ID1;
 > +		break;
 > +	case 8:
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID0;
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_CLK_DIV_ID1;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_CLK_DIV_ID0;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_CLK_DIV_ID1;
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
 > +					data->fan_cmd1);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -653,8 +723,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* Set fan gear mode. Accepts either 0, 1 or 2. */
 > +static int do_set_fan_gear_mode(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -663,24 +733,24 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case 0:
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_0;
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_1;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_GEAR_MODE_0;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_GEAR_MODE_1;
 > +		break;
 > +	case 1:
-> +		data->fan_cmd2 |=  G762_REG_FAN_CMD2_GEAR_MODE_0;
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_1;
+> +		data->fan_cmd2 |=3D  G762_REG_FAN_CMD2_GEAR_MODE_0;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_GEAR_MODE_1;
 > +		break;
 > +	case 2:
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_GEAR_MODE_0;
-> +		data->fan_cmd2 |=  G762_REG_FAN_CMD2_GEAR_MODE_1;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_GEAR_MODE_0;
+> +		data->fan_cmd2 |=3D  G762_REG_FAN_CMD2_GEAR_MODE_1;
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD2,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD2,
 > +					data->fan_cmd2);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -690,8 +760,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* Set number of fan pulses per revolution. Accepts either 2 or 4. */
 > +static int do_set_fan_pulses(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -700,18 +770,18 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case 2:
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_PULSE_PER_REV;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_PULSE_PER_REV;
 > +		break;
 > +	case 4:
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_PULSE_PER_REV;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_PULSE_PER_REV;
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
 > +					data->fan_cmd1);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -721,8 +791,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* Set fan mode. Accepts either 1 (open-loop) or 2 (closed-loop). */
 > +static int do_set_pwm_enable(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -731,10 +801,10 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case G762_FAN_MODE_CLOSED_LOOP:
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_FAN_MODE;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_FAN_MODE;
 > +		break;
 > +	case G762_FAN_MODE_OPEN_LOOP:
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_FAN_MODE;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_FAN_MODE;
 > +		/*
 > +		 * BUG FIX: if SET_CNT register value is 255 then, for some
 > +		 * unknown reason, fan will not rotate as expected, no matter
@@ -742,29 +812,30 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +		 * only in PWM mode). To workaround this bug, we give SET_CNT
 > +		 * value of 254 if it is 255 when switching to open-loop.
 > +		 */
-> +		if (data->set_cnt = 0xff)
+> +		if (data->set_cnt =3D=3D 0xff)
 > +			i2c_smbus_write_byte_data(client, G762_REG_SET_CNT,
 > +						  254);
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
 > +
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
 > +					data->fan_cmd1);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return ret;
 > +}
 > +
-> +/* Set PWM polarity. Accepts either 0 (positive duty) or 1 (negative duty) */
+> +/* Set PWM polarity. Accepts either 0 (positive duty) or 1 (negative dut=
+y) */
 > +static int do_set_pwm_polarity(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -773,18 +844,18 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case G762_PWM_POLARITY_POSITIVE:
-> +		data->fan_cmd1 &= ~G762_REG_FAN_CMD1_PWM_POLARITY;
+> +		data->fan_cmd1 &=3D ~G762_REG_FAN_CMD1_PWM_POLARITY;
 > +		break;
 > +	case G762_PWM_POLARITY_NEGATIVE:
-> +		data->fan_cmd1 |=  G762_REG_FAN_CMD1_PWM_POLARITY;
+> +		data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_PWM_POLARITY;
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
 > +					data->fan_cmd1);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -797,16 +868,16 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > + */
 > +static int do_set_pwm(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = i2c_get_clientdata(client);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D i2c_get_clientdata(client);
 > +	int ret;
 > +
 > +	if (val > 255)
 > +		return -EINVAL;
 > +
 > +	mutex_lock(&data->update_lock);
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_SET_OUT, val);
-> +	data->valid = false;
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_SET_OUT, val);
+> +	data->valid =3D false;
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return ret;
@@ -818,21 +889,21 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > + */
 > +static int do_set_fan_target(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
 > +
 > +	mutex_lock(&data->update_lock);
-> +	data->set_cnt = cnt_from_rpm(val, data->clk,
+> +	data->set_cnt =3D cnt_from_rpm(val, data->clk,
 > +				     G762_PULSE_FROM_REG(data->fan_cmd1),
 > +				     G762_CLKDIV_FROM_REG(data->fan_cmd1),
 > +				     G762_GEARMULT_FROM_REG(data->fan_cmd2));
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_SET_CNT,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_SET_CNT,
 > +					data->set_cnt);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return ret;
@@ -841,8 +912,8 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +/* Set fan startup voltage. Accepted values are either 0, 1, 2 or 3. */
 > +static int do_set_fan_startv(struct device *dev, unsigned long val)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
@@ -851,28 +922,28 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	mutex_lock(&data->update_lock);
 > +	switch (val) {
 > +	case 0:
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_0;
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_1;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_FAN_STARTV_0;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_FAN_STARTV_1;
 > +		break;
 > +	case 1:
-> +		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_0;
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_1;
+> +		data->fan_cmd2 |=3D  G762_REG_FAN_CMD2_FAN_STARTV_0;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_FAN_STARTV_1;
 > +		break;
 > +	case 2:
-> +		data->fan_cmd2 &= ~G762_REG_FAN_CMD2_FAN_STARTV_0;
-> +		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_1;
+> +		data->fan_cmd2 &=3D ~G762_REG_FAN_CMD2_FAN_STARTV_0;
+> +		data->fan_cmd2 |=3D  G762_REG_FAN_CMD2_FAN_STARTV_1;
 > +		break;
 > +	case 3:
-> +		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_0;
-> +		data->fan_cmd2 |=  G762_REG_FAN_CMD2_FAN_STARTV_1;
+> +		data->fan_cmd2 |=3D  G762_REG_FAN_CMD2_FAN_STARTV_0;
+> +		data->fan_cmd2 |=3D  G762_REG_FAN_CMD2_FAN_STARTV_1;
 > +		break;
 > +	default:
-> +		ret = -EINVAL;
+> +		ret =3D -EINVAL;
 > +		goto out;
 > +	}
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD2,
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD2,
 > +					data->fan_cmd2);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > + out:
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -885,16 +956,19 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > + */
 > +
 > +#ifdef CONFIG_OF
-> +static struct of_device_id g762_dt_match[] = {
-> +	{ .compatible = "gmt,g762" },
-> +	{ .compatible = "gmt,g763" },
+> +static struct of_device_id g762_dt_match[] =3D {
+> +	{ .compatible =3D "gmt,g762" },
+> +	{ .compatible =3D "gmt,g763" },
 > +	{ },
 > +};
 > +
 > +/*
-> + * Grab clock (a required property), enable it, get (fixed) clock frequency
-> + * and store it. Note: upon success, clock has been prepared and enabled; it
-> + * must later be unprepared and disabled later (e.g. duringmodule unloading)
+> + * Grab clock (a required property), enable it, get (fixed) clock freque=
+ncy
+> + * and store it. Note: upon success, clock has been prepared and enabled=
+; it
+> + * must later be unprepared and disabled later (e.g. duringmodule unload=
+ing)
 > + * by a call to g762_of_clock_disable().
 > + */
 > +static int g762_of_clock_enable(struct i2c_client *client)
@@ -906,26 +980,20 @@ On Sun, Jun 16, 2013 at 12:36:20AM +0200, Arnaud Ebalard wrote:
 > +	if (!client->dev.of_node)
 > +		return 0;
 > +
-> +	clk = of_clk_get(client->dev.of_node, 0);
+> +	clk =3D of_clk_get(client->dev.of_node, 0);
 > +	if (IS_ERR(clk)) {
 > +		dev_err(&client->dev, "failed to get clock\n");
 > +		return PTR_ERR(clk);
 > +	}
 > +
-> +	ret = clk_prepare_enable(clk);
+> +	ret =3D clk_prepare_enable(clk);
 > +	if (ret) {
 > +		dev_err(&client->dev, "failed to enable clock\n");
-
-You'll need an error path here and call clk_put().
-
-Also, store clk in your private data structure so you don't have to call
-of_clk_get() again in the disable function.
-
 > +		return ret;
 > +	}
 > +
-> +	clk_freq = clk_get_rate(clk);
-> +	ret = do_set_clk_freq(&client->dev, clk_freq);
+> +	clk_freq =3D clk_get_rate(clk);
+> +	ret =3D do_set_clk_freq(&client->dev, clk_freq);
 > +	if (ret) {
 > +		dev_err(&client->dev, "invalid clock freq %lu\n", clk_freq);
 > +		clk_disable_unprepare(clk);
@@ -941,19 +1009,13 @@ of_clk_get() again in the disable function.
 > +	if (!client->dev.of_node)
 > +		return;
 > +
-> +	clk = of_clk_get(client->dev.of_node, 0);
-
-Better get it from your private data structure, or you'll need to call clk_put
-twice.
-
+> +	clk =3D of_clk_get(client->dev.of_node, 0);
 > +	if (IS_ERR(clk)) {
 > +		dev_err(&client->dev, "failed to disable clock\n");
 > +		return;
 > +	}
 > +
 > +	clk_disable_unprepare(clk);
-
-	clk_put(clk);
 > +}
 > +
 > +static int g762_of_prop_import_one(struct i2c_client *client,
@@ -965,13 +1027,13 @@ twice.
 > +	int len, ret;
 > +	u32 pval;
 > +
-> +	prop = of_get_property(client->dev.of_node, pname, &len);
-> +	if (!prop || len != sizeof(u32))
+> +	prop =3D of_get_property(client->dev.of_node, pname, &len);
+> +	if (!prop || len !=3D sizeof(u32))
 > +		return 0;
 > +
-> +	pval = be32_to_cpu(prop[0]);
+> +	pval =3D be32_to_cpu(prop[0]);
 > +	dev_dbg(&client->dev, "found %s (%d)\n", pname, pval);
-> +	ret = (*psetter)(&client->dev, pval);
+> +	ret =3D (*psetter)(&client->dev, pval);
 > +	if (ret)
 > +		dev_err(&client->dev, "unable to set %s (%d)\n", pname, pval);
 > +
@@ -985,12 +1047,12 @@ twice.
 > +	if (!client->dev.of_node)
 > +		return 0;
 > +
-> +	ret = g762_of_prop_import_one(client, "fan_gear_mode",
+> +	ret =3D g762_of_prop_import_one(client, "fan_gear_mode",
 > +				      do_set_fan_gear_mode);
 > +	if (ret)
 > +		return ret;
 > +
-> +	ret = g762_of_prop_import_one(client, "pwm_polarity",
+> +	ret =3D g762_of_prop_import_one(client, "pwm_polarity",
 > +				      do_set_pwm_polarity);
 > +	if (ret)
 > +		return ret;
@@ -1020,21 +1082,21 @@ twice.
 > +
 > +static int g762_pdata_prop_import(struct i2c_client *client)
 > +{
-> +	struct g762_platform_data *pdata = client->dev.platform_data;
+> +	struct g762_platform_data *pdata =3D client->dev.platform_data;
 > +	int ret;
 > +
 > +	if (!pdata)
 > +		return 0;
 > +
-> +	ret = do_set_fan_gear_mode(&client->dev, pdata->fan_gear_mode);
+> +	ret =3D do_set_fan_gear_mode(&client->dev, pdata->fan_gear_mode);
 > +	if (ret)
 > +		return ret;
 > +
-> +	ret = do_set_pwm_polarity(&client->dev, pdata->pwm_polarity);
+> +	ret =3D do_set_pwm_polarity(&client->dev, pdata->pwm_polarity);
 > +	if (ret)
 > +		return ret;
 > +
-> +	ret = do_set_fan_startv(&client->dev, pdata->fan_startv);
+> +	ret =3D do_set_fan_startv(&client->dev, pdata->fan_startv);
 > +	if (ret)
 > +		return ret;
 > +
@@ -1046,14 +1108,16 @@ twice.
 > + */
 > +
 > +/*
-> + * Read function for fan1_input sysfs file. Return current fan RPM value, or
+> + * Read function for fan1_input sysfs file. Return current fan RPM value=
+, or
 > + * 0 if fan is out of control.
 > + */
-> +static ssize_t get_fan_rpm(struct device *dev, struct device_attribute *da,
+> +static ssize_t get_fan_rpm(struct device *dev, struct device_attribute *=
+da,
 > +			   char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
-> +	unsigned int rpm = 0;
+> +	struct g762_data *data =3D g762_update_client(dev);
+> +	unsigned int rpm =3D 0;
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1061,7 +1125,7 @@ twice.
 > +	mutex_lock(&data->update_lock);
 > +	/* reverse logic: fan out of control reporting is enabled low */
 > +	if (data->fan_sta & G762_REG_FAN_STA_OOC) {
-> +		rpm = rpm_from_cnt(data->act_cnt, data->clk,
+> +		rpm =3D rpm_from_cnt(data->act_cnt, data->clk,
 > +				   G762_PULSE_FROM_REG(data->fan_cmd1),
 > +				   G762_CLKDIV_FROM_REG(data->fan_cmd1),
 > +				   G762_GEARMULT_FROM_REG(data->fan_cmd2));
@@ -1072,13 +1136,15 @@ twice.
 > +}
 > +
 > +/*
-> + * Read and write functions for pwm1_mode sysfs file. Get and set fan speed
+> + * Read and write functions for pwm1_mode sysfs file. Get and set fan sp=
+eed
 > + * control mode i.e. PWM (1) or DC (0).
 > + */
-> +static ssize_t get_pwm_mode(struct device *dev, struct device_attribute *da,
+> +static ssize_t get_pwm_mode(struct device *dev, struct device_attribute =
+*da,
 > +			    char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1087,7 +1153,8 @@ twice.
 > +		       !!(data->fan_cmd1 & G762_REG_FAN_CMD1_OUT_MODE));
 > +}
 > +
-> +static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *da,
+> +static ssize_t set_pwm_mode(struct device *dev, struct device_attribute =
+*da,
 > +			    const char *buf, size_t count)
 > +{
 > +	unsigned long val;
@@ -1096,7 +1163,7 @@ twice.
 > +	if (kstrtoul(buf, 10, &val))
 > +		return -EINVAL;
 > +
-> +	ret = do_set_pwm_mode(dev, val);
+> +	ret =3D do_set_pwm_mode(dev, val);
 > +	if (ret < 0)
 > +		return ret;
 > +
@@ -1110,7 +1177,7 @@ twice.
 > +static ssize_t get_fan_div(struct device *dev,
 > +			   struct device_attribute *da, char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1128,7 +1195,7 @@ twice.
 > +	if (kstrtoul(buf, 10, &val))
 > +		return -EINVAL;
 > +
-> +	ret = do_set_fan_div(dev, val);
+> +	ret =3D do_set_fan_div(dev, val);
 > +	if (ret < 0)
 > +		return ret;
 > +
@@ -1136,13 +1203,14 @@ twice.
 > +}
 > +
 > +/*
-> + * Read and write functions for fan1_pulses sysfs file. Get and set number
+> + * Read and write functions for fan1_pulses sysfs file. Get and set numb=
+er
 > + * of tachometer pulses per fan revolution.
 > + */
 > +static ssize_t get_fan_pulses(struct device *dev,
 > +			      struct device_attribute *da, char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1160,7 +1228,7 @@ twice.
 > +	if (kstrtoul(buf, 10, &val))
 > +		return -EINVAL;
 > +
-> +	ret = do_set_fan_pulses(dev, val);
+> +	ret =3D do_set_fan_pulses(dev, val);
 > +	if (ret < 0)
 > +		return ret;
 > +
@@ -1168,23 +1236,28 @@ twice.
 > +}
 > +
 > +/*
-> + * Read and write functions for pwm1_enable. Get and set fan speed control mode
+> + * Read and write functions for pwm1_enable. Get and set fan speed contr=
+ol mode
 > + * (i.e. closed or open-loop).
 > + *
-> + * Following documentation about hwmon's sysfs interface, a pwm1_enable node
+> + * Following documentation about hwmon's sysfs interface, a pwm1_enable =
+node
 > + * should accept followings:
 > + *
 > + *  0 : no fan speed control (i.e. fan at full speed)
 > + *  1 : manual fan speed control enabled (use pwm[1-*]) (open-loop)
-> + *  2+: automatic fan speed control enabled (use fan[1-*]_target) (closed-loop)
+> + *  2+: automatic fan speed control enabled (use fan[1-*]_target) (close=
+d-loop)
 > + *
-> + * but we do not accept 0 as this mode is not natively supported by the chip
-> + * and it is not emulated by g762 driver. -EINVAL is returned in this case.
+> + * but we do not accept 0 as this mode is not natively supported by the =
+chip
+> + * and it is not emulated by g762 driver. -EINVAL is returned in this ca=
+se.
 > + */
 > +static ssize_t get_pwm_enable(struct device *dev,
 > +			      struct device_attribute *da, char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1203,7 +1276,7 @@ twice.
 > +	if (kstrtoul(buf, 10, &val))
 > +		return -EINVAL;
 > +
-> +	ret = do_set_pwm_enable(dev, val);
+> +	ret =3D do_set_pwm_enable(dev, val);
 > +	if (ret < 0)
 > +		return ret;
 > +
@@ -1218,7 +1291,7 @@ twice.
 > +static ssize_t get_pwm(struct device *dev, struct device_attribute *da,
 > +		       char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1235,7 +1308,7 @@ twice.
 > +	if (kstrtoul(buf, 10, &val))
 > +		return -EINVAL;
 > +
-> +	ret = do_set_pwm(dev, val);
+> +	ret =3D do_set_pwm(dev, val);
 > +	if (ret < 0)
 > +		return ret;
 > +
@@ -1243,20 +1316,25 @@ twice.
 > +}
 > +
 > +/*
-> + * Read and write function for fan1_target sysfs file. Get/set the fan speed in
-> + * closed-loop mode. Speed is given as a RPM value; then the chip will regulate
+> + * Read and write function for fan1_target sysfs file. Get/set the fan s=
+peed in
+> + * closed-loop mode. Speed is given as a RPM value; then the chip will r=
+egulate
 > + * the fan speed using pulses from fan tachometer.
 > + *
-> + * Refer to rpm_from_cnt() implementation above to get info about count number
+> + * Refer to rpm_from_cnt() implementation above to get info about count =
+number
 > + * calculation.
 > + *
-> + * Also note that due to rounding errors it is possible that you don't read
+> + * Also note that due to rounding errors it is possible that you don't r=
+ead
 > + * back exactly the value you have set.
 > + */
-> +static ssize_t get_fan_target(struct device *dev, struct device_attribute *da,
+> +static ssize_t get_fan_target(struct device *dev, struct device_attribut=
+e *da,
 > +			      char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	unsigned int rpm;
 > +	ssize_t ret;
 > +
@@ -1264,17 +1342,18 @@ twice.
 > +		return PTR_ERR(data);
 > +
 > +	mutex_lock(&data->update_lock);
-> +	rpm = rpm_from_cnt(data->set_cnt, data->clk,
+> +	rpm =3D rpm_from_cnt(data->set_cnt, data->clk,
 > +			   G762_PULSE_FROM_REG(data->fan_cmd1),
 > +			   G762_CLKDIV_FROM_REG(data->fan_cmd1),
 > +			   G762_GEARMULT_FROM_REG(data->fan_cmd2));
-> +	ret = sprintf(buf, "%u\n", rpm);
+> +	ret =3D sprintf(buf, "%u\n", rpm);
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return ret;
 > +}
 > +
-> +static ssize_t set_fan_target(struct device *dev, struct device_attribute *da,
+> +static ssize_t set_fan_target(struct device *dev, struct device_attribut=
+e *da,
 > +			      const char *buf, size_t count)
 > +{
 > +	unsigned long val;
@@ -1283,7 +1362,7 @@ twice.
 > +	if (kstrtoul(buf, 10, &val))
 > +		return -EINVAL;
 > +
-> +	ret = do_set_fan_target(dev, val);
+> +	ret =3D do_set_fan_target(dev, val);
 > +	if (ret < 0)
 > +		return ret;
 > +
@@ -1291,10 +1370,11 @@ twice.
 > +}
 > +
 > +/* read function for fan1_fault sysfs file. */
-> +static ssize_t get_fan_failure(struct device *dev, struct device_attribute *da,
+> +static ssize_t get_fan_failure(struct device *dev, struct device_attribu=
+te *da,
 > +			       char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1306,10 +1386,11 @@ twice.
 > + * read function for fan1_alarm sysfs file. Note that OOC condition is
 > + * enabled low
 > + */
-> +static ssize_t get_fan_ooc(struct device *dev, struct device_attribute *da,
+> +static ssize_t get_fan_ooc(struct device *dev, struct device_attribute *=
+da,
 > +			   char *buf)
 > +{
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
@@ -1318,7 +1399,8 @@ twice.
 > +}
 > +
 > +static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
-> +static DEVICE_ATTR(pwm1_mode, S_IWUSR | S_IRUGO, get_pwm_mode, set_pwm_mode);
+> +static DEVICE_ATTR(pwm1_mode, S_IWUSR | S_IRUGO, get_pwm_mode, set_pwm_m=
+ode);
 > +static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
 > +		   get_pwm_enable, set_pwm_enable);
 > +static DEVICE_ATTR(fan1_input, S_IRUGO, get_fan_rpm, NULL);
@@ -1326,12 +1408,13 @@ twice.
 > +static DEVICE_ATTR(fan1_fault, S_IRUGO, get_fan_failure, NULL);
 > +static DEVICE_ATTR(fan1_target, S_IWUSR | S_IRUGO,
 > +		   get_fan_target, set_fan_target);
-> +static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, get_fan_div, set_fan_div);
+> +static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, get_fan_div, set_fan_div=
+);
 > +static DEVICE_ATTR(fan1_pulses, S_IWUSR | S_IRUGO,
 > +		   get_fan_pulses, set_fan_pulses);
 > +
 > +/* Driver data */
-> +static struct attribute *g762_attributes[] = {
+> +static struct attribute *g762_attributes[] =3D {
 > +	&dev_attr_fan1_input.attr,
 > +	&dev_attr_fan1_alarm.attr,
 > +	&dev_attr_fan1_fault.attr,
@@ -1344,32 +1427,33 @@ twice.
 > +	NULL
 > +};
 > +
-> +static const struct attribute_group g762_group = {
-> +	.attrs = g762_attributes,
+> +static const struct attribute_group g762_group =3D {
+> +	.attrs =3D g762_attributes,
 > +};
 > +
 > +/* Enable both fan failure detection and fan out of control protection */
 > +static inline int g762_fan_init(struct device *dev)
 > +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g762_data *data = g762_update_client(dev);
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct g762_data *data =3D g762_update_client(dev);
 > +	int ret;
 > +
 > +	if (IS_ERR(data))
 > +		return PTR_ERR(data);
 > +
 > +	mutex_lock(&data->update_lock);
-> +	data->fan_cmd1 |=  G762_REG_FAN_CMD1_DET_FAN_FAIL;
-> +	data->fan_cmd1 |=  G762_REG_FAN_CMD1_DET_FAN_OOC;
-> +	ret = i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
+> +	data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_DET_FAN_FAIL;
+> +	data->fan_cmd1 |=3D  G762_REG_FAN_CMD1_DET_FAN_OOC;
+> +	ret =3D i2c_smbus_write_byte_data(client, G762_REG_FAN_CMD1,
 > +					data->fan_cmd1);
-> +	data->valid = false;
+> +	data->valid =3D false;
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return ret;
 > +}
 > +
-> +static int g762_probe(struct i2c_client *client, const struct i2c_device_id *id)
+> +static int g762_probe(struct i2c_client *client, const struct i2c_device=
+_id *id)
 > +{
 > +	struct g762_data *data;
 > +	int ret;
@@ -1378,48 +1462,40 @@ twice.
 > +				     I2C_FUNC_SMBUS_BYTE_DATA))
 > +		return -ENODEV;
 > +
-> +	data = devm_kzalloc(&client->dev, sizeof(struct g762_data), GFP_KERNEL);
+> +	data =3D devm_kzalloc(&client->dev, sizeof(struct g762_data), GFP_KERNE=
+L);
 > +	if (!data)
 > +		return -ENOMEM;
 > +
 > +	i2c_set_clientdata(client, data);
-> +	data->client = client;
+> +	data->client =3D client;
 > +	mutex_init(&data->update_lock);
 > +
 > +	/* Enable fan failure detection and fan out of control protection */
-> +	ret = g762_fan_init(&client->dev);
+> +	ret =3D g762_fan_init(&client->dev);
 > +	if (ret)
 > +		return ret;
 > +
 > +	/* Get configuration via DT xor platform_data */
-
-xor ? Not really - it is (a || b).
-
-xor would mean that you would not use anything if both are present.
-
 > +	if (client->dev.of_node) {
-> +		ret = g762_of_clock_enable(client);
-
-I like the idea of checking client->dev.of_node in g762_of_clock_enable(),
-but checking it here _and_ there is really unnecessary.
-
+> +		ret =3D g762_of_clock_enable(client);
 > +		if (ret)
 > +			return ret;
-> +		ret = g762_of_prop_import(client);
+> +		ret =3D g762_of_prop_import(client);
 > +	} else {
-> +		ret = g762_pdata_prop_import(client);
+> +		ret =3D g762_pdata_prop_import(client);
 > +	}
 > +	if (ret)
 > +		goto clock_err;
 > +
 > +	/* Register sysfs hooks */
-> +	ret = sysfs_create_group(&client->dev.kobj, &g762_group);
+> +	ret =3D sysfs_create_group(&client->dev.kobj, &g762_group);
 > +	if (ret)
 > +		goto clock_err;
 > +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
+> +	data->hwmon_dev =3D hwmon_device_register(&client->dev);
 > +	if (IS_ERR(data->hwmon_dev)) {
-> +		ret = PTR_ERR(data->hwmon_dev);
+> +		ret =3D PTR_ERR(data->hwmon_dev);
 > +		goto sysfs_err;
 > +	}
 > +
@@ -1431,39 +1507,31 @@ but checking it here _and_ there is really unnecessary.
 > + clock_err:
 > +	if (client->dev.of_node)
 > +		g762_of_clock_disable(client);
-
-	same here - checking client->dev.of_node both here and in
-	g762_of_clock_disable is unnecessary. I prefer g762_of_clock_disable,
-	since it drops the test if OF is not configured.
-
 > +
 > +	return ret;
 > +}
 > +
 > +static int g762_remove(struct i2c_client *client)
 > +{
-> +	struct g762_data *data = i2c_get_clientdata(client);
+> +	struct g762_data *data =3D i2c_get_clientdata(client);
 > +
 > +	hwmon_device_unregister(data->hwmon_dev);
 > +	sysfs_remove_group(&client->dev.kobj, &g762_group);
 > +	if (client->dev.of_node)
 > +		g762_of_clock_disable(client);
-
-	Same as above.
-
 > +
 > +	return 0;
 > +}
 > +
-> +static struct i2c_driver g762_driver = {
-> +	.driver = {
-> +		.name = DRVNAME,
-> +		.owner = THIS_MODULE,
-> +		.of_match_table = of_match_ptr(g762_dt_match),
+> +static struct i2c_driver g762_driver =3D {
+> +	.driver =3D {
+> +		.name =3D DRVNAME,
+> +		.owner =3D THIS_MODULE,
+> +		.of_match_table =3D of_match_ptr(g762_dt_match),
 > +	},
-> +	.probe	  = g762_probe,
-> +	.remove	  = g762_remove,
-> +	.id_table = g762_id,
+> +	.probe	  =3D g762_probe,
+> +	.remove	  =3D g762_remove,
+> +	.id_table =3D g762_id,
 > +};
 > +
 > +module_i2c_driver(g762_driver);
@@ -1471,7 +1539,8 @@ but checking it here _and_ there is really unnecessary.
 > +MODULE_AUTHOR("Arnaud EBALARD <arno@natisbad.org>");
 > +MODULE_DESCRIPTION("GMT G762/G763 driver");
 > +MODULE_LICENSE("GPL");
-> diff --git a/include/linux/platform_data/g762.h b/include/linux/platform_data/g762.h
+> diff --git a/include/linux/platform_data/g762.h b/include/linux/platform_=
+data/g762.h
 > new file mode 100644
 > index 0000000..d3c5128
 > --- /dev/null
@@ -1494,15 +1563,19 @@ but checking it here _and_ there is really unnecessary.
 > + *
 > + * You should have received a copy of the GNU General Public License
 > + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 =
+ USA
 > + */
 > +#ifndef __LINUX_PLATFORM_DATA_G762_H__
 > +#define __LINUX_PLATFORM_DATA_G762_H__
 > +
 > +/*
-> + * Following structure can be used to set g762 driver platform specific data
-> + * during board init. Note that passing a sparse structure is possible but
-> + * will result in non-specified attributes to be set to default value, hence
+> + * Following structure can be used to set g762 driver platform specific =
+data
+> + * during board init. Note that passing a sparse structure is possible b=
+ut
+> + * will result in non-specified attributes to be set to default value, h=
+ence
 > + * overloading those installed during boot (e.g. by u-boot).
 > + */
 > +
@@ -1514,12 +1587,32 @@ but checking it here _and_ there is really unnecessary.
 > +};
 > +
 > +#endif /* __LINUX_PLATFORM_DATA_G762_H__ */
-> -- 
+> --=20
 > 1.7.10.4
-> 
-> 
+
+--HENu/cXyPKFN4XCQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlG+4sQACgkQgtp0PDeOcDoNaACfRQu9kfl0CuPRl7/Epepl4esU
+khQAnjW1FXRLzWBD33vgaou/B5qhmbc5
+=kaji
+-----END PGP SIGNATURE-----
+
+--HENu/cXyPKFN4XCQ--
+
+
+--===============0475600392891857882==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0475600392891857882==--
