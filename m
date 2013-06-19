@@ -1,141 +1,98 @@
-From: "" <swt@swtindustry.com>
-Date: Tue, 14 May 2013 21:04:11 +0000
-Subject: [lm-sensors] cerium/Erbium oxide for glass
-Message-Id: <20130515050422361563@mail85.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0758370462559876020=="
+From: <Yuantian.Tang@freescale.com>
+Date: Wed, 19 Jun 2013 06:50:20 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ina2xx) Add device tree support to pass the shunt resistor
+Message-Id: <1371624620-14254-1-git-send-email-Yuantian.Tang@freescale.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-This is a multi-part message in MIME format.
-
---===============0758370462559876020==
-Content-Type: multipart/alternative;
-	boundary="=====003_Dragon315431531538_====="
-
-This is a multi-part message in MIME format.
-
---=====003_Dragon315431531538_=====
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-
-RGVhciBwdXJjaGFzaW5nIG1hbmFnZXI6DQpOaWNlIHRpbWUgdG8geW91IQ0KDQpJdCBpcyBteSBi
-aWcgcGxlYXN1cmUgdG8gaGVhciB0aGF0IHlvdSBuZWVkIENlcml1bS9FcmJpdW0gT3hpZGUgZm9y
-IGdsYXNzDQp3ZSBhcmUgdGhlIGxlYWRpbmcgc3VwcGxpZXIgZnJvbSBDaGluYQ0Kd2UgaGF2ZSBj
-ZXJpdW0gb3hpZGUsIGVyYml1bSBveGlkZSwgYWx1bWl1bSBveGlkZSBhbmQgc28gb24NCklmIHlv
-dSBuZWVkIHBscyB0ZWxsIG1lIA0KDQpUaGVuIGkgY2FuIHRlbGwgeW91IG91ciBiZXN0IHByaWNl
-DQpQbHMgcmVwbHkgbWUgdGltZWx5DQpCZXN0IHdpc2hlcw0KSWRhDQoNCklkYSBDaGVuDQpTYWxl
-cyBNYW5hZ2VyDQpFQVNUIFNJV0VJVEUgSU5EVVNUUlkgQ08uLCBMSU1JVEVEIA0KU2t5cGU6IHNp
-d2VpdGUNCk1vYmlsZTogKzg2LTE4NjI4MjIxMDYzDQpFbWFpbDpzd3RAc3d0aW5kdXN0cnkuY29t
-
---=====003_Dragon315431531538_=====
-Content-Type: text/html;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MIHhtbG5zOm8gPSAidXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6
-b2ZmaWNlIj48SEVBRD4NCjxNRVRBIGNvbnRlbnQ9InRleHQvaHRtbDsgY2hhcnNldD11dGYtOCIg
-aHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBuYW1lPUdFTkVSQVRPUiBjb250ZW50PSJN
-U0hUTUwgOC4wMC42MDAxLjE5NDEyIj48L0hFQUQ+DQo8Qk9EWT48Rk9OVCBmYWNlPSJUaW1lcyBO
-ZXcgUm9tYW4iPg0KPERJVj4NCjxESVY+PEZPTlQgY29sb3I9YmxhY2sgc2l6ZT0yIGZhY2U9QXJp
-YWw+DQo8RElWPjxGT05UIHNpemU9MiBmYWNlPVZlcmRhbmE+PEZPTlQgc2l6ZT0yIGZhY2U9VmVy
-ZGFuYT4NCjxESVY+PEZPTlQgY29sb3I9ZGFya3JlZCBzaXplPTIgZmFjZT1WZXJkYW5hPkRlYXIg
-cHVyY2hhc2luZyANCm1hbmFnZXI6PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj1kYXJr
-cmVkPk5pY2UgdGltZSB0byB5b3UhPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jOGIw
-MDAwPjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgY29sb3I9IzhiMDAwMD5JdCBpcyBt
-eSBiaWcgcGxlYXN1cmUgdG8gaGVhciB0aGF0IHlvdSBuZWVkIDxTUEFOIA0KY2xhc3M9dGl0bGU+
-PFNUUk9ORz5DZXJpdW0vRXJiaXVtIE94aWRlIGZvciBnbGFzczwvU1RST05HPjwvU1BBTj48L0ZP
-TlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSM4YjAwMDA+PFNQQU4gY2xhc3M9dGl0bGU+PC9T
-UEFOPjwvRk9OVD48Rk9OVCANCmNvbG9yPSM4YjAwMDA+PFNQQU4gY2xhc3M9dGl0bGU+PC9TUEFO
-PjwvRk9OVD48Rk9OVCBjb2xvcj0jOGIwMDAwPjxTUEFOIA0KY2xhc3M9dGl0bGU+PC9TUEFOPjwv
-Rk9OVD48Rk9OVCBjb2xvcj0jOGIwMDAwPndlIGFyZSB0aGUgbGVhZGluZyBzdXBwbGllciBmcm9t
-IA0KQ2hpbmE8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSM4YjAwMDA+d2UgaGF2ZSZu
-YnNwO2Nlcml1bSBveGlkZSwgZXJiaXVtIG94aWRlLCBhbHVtaXVtIA0Kb3hpZGUmbmJzcDthbmQg
-c28gb248L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSM4YjAwMDA+SWYgeW91IG5lZWQg
-cGxzIHRlbGwgbWUgPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jOGIwMDAwPjwvRk9O
-VD4mbmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgY29sb3I9IzhiMDAwMD5UaGVuIGkgY2FuIHRlbGwg
-eW91IG91ciBiZXN0IHByaWNlPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jOGIwMDAw
-PlBscyByZXBseSBtZSB0aW1lbHk8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSM4YjAw
-MDA+QmVzdCB3aXNoZXM8L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSM4YjAwMDA+SWRh
-PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jOGIwMDAwPjwvRk9OVD4mbmJzcDs8L0RJ
-Vj4NCjxESVY+PC9GT05UPjwvRk9OVD48Rk9OVCBzaXplPTIgZmFjZT1WZXJkYW5hPjxGT05UIGNv
-bG9yPSNjMGMwYzAgc2l6ZT0yIA0KZmFjZT1WZXJkYW5hPjxTUEFOPjxGT05UIGNvbG9yPWRhcmty
-ZWQ+PFNQQU4gDQpzdHlsZT0iRk9OVC1GQU1JTFk6ICdUaW1lcyBOZXcgUm9tYW4nLCdzZXJpZic7
-IEZPTlQtU0laRTogOXB0IiANCmxhbmc9RU4tVVM+PFNUUk9ORz48QiBzdHlsZT0ibXNvLWJpZGkt
-Zm9udC13ZWlnaHQ6IG5vcm1hbCI+PFU+PFNQQU4gDQpzdHlsZT0iRk9OVC1GQU1JTFk6ICdUaW1l
-cyBOZXcgUm9tYW4nLCdzZXJpZic7IENPTE9SOiAjMDAyMDYwOyBGT05ULVNJWkU6IDEycHQ7IG1z
-by1mYXJlYXN0LWZvbnQtZmFtaWx5OiDlrovkvZM7IG1zby1hbnNpLWxhbmd1YWdlOiBUUjsgbXNv
-LWJpZGktZm9udC1zdHlsZTogaXRhbGljIiANCmxhbmc9VFI+PEZPTlQgY29sb3I9ZGFya3JlZD48
-QSBuYW1lPU9MRV9MSU5LMT48U1BBTiANCnN0eWxlPSJtc28tYm9va21hcms6IE9MRV9MSU5LMiI+
-PEIgc3R5bGU9Im1zby1iaWRpLWZvbnQtd2VpZ2h0OiBub3JtYWwiPjxVPjxTUEFOIA0Kc3R5bGU9
-IkZPTlQtRkFNSUxZOiAnVGltZXMgTmV3IFJvbWFuJywnc2VyaWYnOyBDT0xPUjogIzAwMjA2MDsg
-Rk9OVC1TSVpFOiAxMnB0OyBtc28tZmFyZWFzdC1mb250LWZhbWlseTog5a6L5L2TOyBtc28tYW5z
-aS1sYW5ndWFnZTogVFI7IG1zby1iaWRpLWZvbnQtc3R5bGU6IGl0YWxpYyIgDQpsYW5nPVRSPjxG
-T05UIGNvbG9yPWRhcmtyZWQ+SWRhIA0KQ2hlbjxvOnA+PC9vOnA+PC9GT05UPjwvU1BBTj48L1U+
-PC9CPjwvU1BBTj48L0E+PC9ESVY+DQo8RElWPg0KPERJVj4NCjxQIA0Kc3R5bGU9Ik1BUkdJTjog
-MGNtIDBjbSAwcHQ7IExBWU9VVC1HUklELU1PREU6IGJvdGg7IG1zby1sYXlvdXQtZ3JpZC1hbGln
-bjogYXV0byIgDQpjbGFzcz1Nc29Ob3JtYWw+PFNQQU4gc3R5bGU9Im1zby1ib29rbWFyazogT0xF
-X0xJTksxIj48U1BBTiANCnN0eWxlPSJtc28tYm9va21hcms6IE9MRV9MSU5LMiI+PEIgc3R5bGU9
-Im1zby1iaWRpLWZvbnQtd2VpZ2h0OiBub3JtYWwiPjxVPjxTUEFOIA0Kc3R5bGU9IkZPTlQtRkFN
-SUxZOiAnVGltZXMgTmV3IFJvbWFuJywnc2VyaWYnOyBDT0xPUjogIzAwMjA2MDsgRk9OVC1TSVpF
-OiAxMnB0OyBtc28tZmFyZWFzdC1mb250LWZhbWlseTog5a6L5L2TOyBtc28tYW5zaS1sYW5ndWFn
-ZTogVFI7IG1zby1iaWRpLWZvbnQtc3R5bGU6IGl0YWxpYyIgDQpsYW5nPVRSPjxGT05UIGNvbG9y
-PWRhcmtyZWQ+U2FsZXMgDQpNYW5hZ2VyPG86cD48L286cD48L0ZPTlQ+PC9TUEFOPjwvVT48L0I+
-PC9TUEFOPjwvU1BBTj48L1A+PFNQQU4gDQpzdHlsZT0ibXNvLWJvb2ttYXJrOiBPTEVfTElOSzIi
-PjwvU1BBTj48U1BBTiANCnN0eWxlPSJtc28tYm9va21hcms6IE9MRV9MSU5LMSI+PC9TUEFOPg0K
-PFAgDQpzdHlsZT0iTUFSR0lOOiAwY20gMGNtIDBwdDsgTEFZT1VULUdSSUQtTU9ERTogYm90aDsg
-bXNvLWxheW91dC1ncmlkLWFsaWduOiBhdXRvIiANCmNsYXNzPU1zb05vcm1hbD48QiBzdHlsZT0i
-bXNvLWJpZGktZm9udC13ZWlnaHQ6IG5vcm1hbCI+PFU+PFNQQU4gDQpzdHlsZT0iRk9OVC1GQU1J
-TFk6ICdUaW1lcyBOZXcgUm9tYW4nLCdzZXJpZic7IENPTE9SOiAjMDAyMDYwOyBGT05ULVNJWkU6
-IDEycHQ7IG1zby1mYXJlYXN0LWZvbnQtZmFtaWx5OiDlrovkvZM7IG1zby1hbnNpLWxhbmd1YWdl
-OiBUUjsgbXNvLWJpZGktZm9udC1zdHlsZTogaXRhbGljIiANCmxhbmc9VFI+PEZPTlQgY29sb3I9
-ZGFya3JlZD5FQVNUIFNJV0VJVEUgSU5EVVNUUlkgQ08uLCBMSU1JVEVEIA0KPG86cD48L286cD48
-L0ZPTlQ+PC9TUEFOPjwvVT48L0I+PC9QPg0KPFAgDQpzdHlsZT0iTUFSR0lOOiAwY20gMGNtIDBw
-dDsgTEFZT1VULUdSSUQtTU9ERTogYm90aDsgbXNvLWxheW91dC1ncmlkLWFsaWduOiBhdXRvIiAN
-CmNsYXNzPU1zb05vcm1hbD48QiBzdHlsZT0ibXNvLWJpZGktZm9udC13ZWlnaHQ6IG5vcm1hbCI+
-PFU+PFNQQU4gDQpzdHlsZT0iRk9OVC1GQU1JTFk6ICdUaW1lcyBOZXcgUm9tYW4nLCdzZXJpZic7
-IENPTE9SOiAjMDAyMDYwOyBGT05ULVNJWkU6IDEycHQ7IG1zby1mYXJlYXN0LWZvbnQtZmFtaWx5
-OiDlrovkvZM7IG1zby1hbnNpLWxhbmd1YWdlOiBUUjsgbXNvLWJpZGktZm9udC1zdHlsZTogaXRh
-bGljIiANCmxhbmc9VFI+PEZPTlQgY29sb3I9ZGFya3JlZD5Ta3lwZTogc2l3ZWl0ZTwvRk9OVD48
-L1NQQU4+PC9VPjwvQj48L1A+DQo8UCANCnN0eWxlPSJNQVJHSU46IDBjbSAwY20gMHB0OyBMQVlP
-VVQtR1JJRC1NT0RFOiBib3RoOyBtc28tbGF5b3V0LWdyaWQtYWxpZ246IGF1dG8iIA0KY2xhc3M9
-TXNvTm9ybWFsPjxCIHN0eWxlPSJtc28tYmlkaS1mb250LXdlaWdodDogbm9ybWFsIj48VT48U1BB
-TiANCnN0eWxlPSJGT05ULUZBTUlMWTogJ1RpbWVzIE5ldyBSb21hbicsJ3NlcmlmJzsgQ09MT1I6
-ICMwMDIwNjA7IEZPTlQtU0laRTogMTJwdDsgbXNvLWZhcmVhc3QtZm9udC1mYW1pbHk6IOWui+S9
-kzsgbXNvLWFuc2ktbGFuZ3VhZ2U6IFRSOyBtc28tYmlkaS1mb250LXN0eWxlOiBpdGFsaWMiIA0K
-bGFuZz1UUj48Rk9OVCBjb2xvcj1kYXJrcmVkPk1vYmlsZTogKzg2LTE4NjI4MjIxMDYzPC9GT05U
-PjwvU1BBTj48L1U+PC9CPjwvUD4NCjxQIA0Kc3R5bGU9Ik1BUkdJTjogMGNtIDBjbSAwcHQ7IExB
-WU9VVC1HUklELU1PREU6IGJvdGg7IG1zby1sYXlvdXQtZ3JpZC1hbGlnbjogYXV0byIgDQpjbGFz
-cz1Nc29Ob3JtYWw+PEIgc3R5bGU9Im1zby1iaWRpLWZvbnQtd2VpZ2h0OiBub3JtYWwiPjxVPjxT
-UEFOIA0Kc3R5bGU9IkZPTlQtRkFNSUxZOiAnVGltZXMgTmV3IFJvbWFuJywnc2VyaWYnOyBDT0xP
-UjogIzAwMjA2MDsgRk9OVC1TSVpFOiAxMnB0OyBtc28tZmFyZWFzdC1mb250LWZhbWlseTog5a6L
-5L2TOyBtc28tYW5zaS1sYW5ndWFnZTogVFI7IG1zby1iaWRpLWZvbnQtc3R5bGU6IGl0YWxpYyIg
-DQpsYW5nPVRSPjxGT05UIGNvbG9yPWRhcmtyZWQ+RW1haWw6PEEgDQpocmVmPSJtYWlsdG86c3d0
-QHN3dGluZHVzdHJ5LmNvbSI+c3d0QHN3dGluZHVzdHJ5LmNvbTwvQT48bzpwPjwvbzpwPjwvRk9O
-VD48L1NQQU4+PC9VPjwvQj48L1A+DQo8UCANCnN0eWxlPSJNQVJHSU46IDBjbSAwY20gMHB0OyBM
-QVlPVVQtR1JJRC1NT0RFOiBib3RoOyBtc28tbGF5b3V0LWdyaWQtYWxpZ246IGF1dG8iIA0KY2xh
-c3M9TXNvTm9ybWFsPjxBIA0KbmFtZT1PTEVfTElOSzE+PC9BPiZuYnNwOzwvUD48L0RJVj48L0ZP
-TlQ+PC9TUEFOPjwvVT48L0I+PC9ESVY+PC9ESVY+PC9TVFJPTkc+PC9TUEFOPjwvRk9OVD48L1NQ
-QU4+PC9GT05UPjwvRk9OVD48L0ZPTlQ+PC9ESVY+PC9ESVY+PC9GT05UPjwvQk9EWT48L0hUTUw+
-DQo=
-
---=====003_Dragon315431531538_=====--
-
-
-
-
---===============0758370462559876020==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: linux@roeck-us.net
+Cc: Tang Yuantian <Yuantian.Tang@freescale.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, lm-sensors@lm-sensors.org
+
+From: Tang Yuantian <yuantian.tang@freescale.com>
+
+Adding another way that is device tree to pass the shunt resistor
+value to driver except for platform data.
+
+Signed-off-by: Tang Yuantian <Yuantian.Tang@freescale.com>
+---
+v2:
+	- add device tree bindings file
+	- refine the code per Guenter's suggestion
+
+ Documentation/devicetree/bindings/i2c/ina2xx.txt | 22 ++++++++++++++++++++++
+ Documentation/hwmon/ina2xx                       |  4 +++-
+ drivers/hwmon/ina2xx.c                           |  4 ++++
+ 3 files changed, 29 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/ina2xx.txt
+
+diff --git a/Documentation/devicetree/bindings/i2c/ina2xx.txt b/Documentation/devicetree/bindings/i2c/ina2xx.txt
+new file mode 100644
+index 0000000..a2ad85d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/i2c/ina2xx.txt
+@@ -0,0 +1,22 @@
++ina2xx properties
++
++Required properties:
++- compatible: Must be one of the following:
++	- "ti,ina219" for ina219
++	- "ti,ina220" for ina220
++	- "ti,ina226" for ina226
++	- "ti,ina230" for ina230
++- reg: I2C address
++
++Optional properties:
++
++- shunt-resistor
++	Shunt resistor value in micro-Ohm
++
++Example:
++
++ina220@44 {
++	compatible = "ti,ina220";
++	reg = <0x44>;
++	shunt-resistor = <1000>;
++};
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 03444f9..4223c2d 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -44,4 +44,6 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
+ The INA230 is a high or low side current shunt and power monitor with an I2C
+ interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
+ 
+-The shunt value in micro-ohms can be set via platform data.
++The shunt value in micro-ohms can be set via platform data or device tree.
++Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
++if the device tree is used.
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 4958b2f..a52d5f0 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -221,6 +221,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	struct ina2xx_data *data;
+ 	struct ina2xx_platform_data *pdata;
+ 	int ret;
++	u32 val;
+ 	long shunt = 10000; /* default shunt value 10mOhms */
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+@@ -234,6 +235,9 @@ static int ina2xx_probe(struct i2c_client *client,
+ 		pdata  		  (struct ina2xx_platform_data *)client->dev.platform_data;
+ 		shunt = pdata->shunt_uohms;
++	} else if (!of_property_read_u32(client->dev.of_node,
++				"shunt-resistor", &val)) {
++			shunt = val;
+ 	}
+ 
+ 	if (shunt <= 0)
+-- 
+1.8.0
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0758370462559876020==--
-
-
