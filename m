@@ -1,84 +1,50 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Jun 2013 01:20:27 +0000
-Subject: Re: [lm-sensors] [RESEND, PATCHv6 1/1] Add support for GMT G762/G763 PWM fan controllers
-Message-Id: <20130620012027.GB29521@roeck-us.net>
+From: Joe Perches <joe@perches.com>
+Date: Thu, 20 Jun 2013 16:20:27 +0000
+Subject: [lm-sensors] [PATCH] MAINTAINERS: Remove Hans J. Koch entries
+Message-Id: <1371745227.2146.13.camel@joe-AO722>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87sj0jhuhn.fsf@natisbad.org>
- <20130617101948.GY7626@kw.sim.vm.gnt>
- <8761x9svpf.fsf@natisbad.org>
- <20130619205321.GA7625@roeck-us.net>
- <20130619212633.GC7626@kw.sim.vm.gnt>
-In-Reply-To: <20130619212633.GC7626@kw.sim.vm.gnt>
+References: <086bdaf83fe546bd3c7fe163e565a0887770770f.1369317710.git.michal.simek@xilinx.com>
+	 <71c482e15ee32fa304db73b984f6d5a63441cd92.1369317710.git.michal.simek@xilinx.com>
+	 <51A5E644.1040901@monstr.eu> <51AC8D43.100@monstr.eu>
+	 <20130603210513.GA22606@kroah.com>
+	 <20130620160126.GB22115@amd.pavel.ucw.cz>
+In-Reply-To: <20130620160126.GB22115@amd.pavel.ucw.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Simon Guinot <simon.guinot@sequanux.org>
-Cc: Arnaud Ebalard <arno@natisbad.org>, Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Olivier Mouchet <olivier.mouchet@gmail.com>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Jean Delvare <khali@linux-fr.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Michal Simek <monstr@monstr.eu>, "Hans J. Koch" <hjk@hansjkoch.de>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Wed, Jun 19, 2013 at 11:26:33PM +0200, Simon Guinot wrote:
-> On Wed, Jun 19, 2013 at 01:53:21PM -0700, Guenter Roeck wrote:
-> > On Wed, Jun 19, 2013 at 10:15:56PM +0200, Arnaud Ebalard wrote:
-> > > Hi Simon,
-> > > 
-> > > Simon Guinot <simon.guinot@sequanux.org> writes:
-> > > 
-> > > > I have tested this patch on my 2Big Network v2 board.
-> > > >
-> > > > Sometimes I get a weird "No such device" error while reading or writing
-> > > > the hwmon sysfs attributes. For example:
-> > > >
-> > > > # cat pwm1
-> > > > cat: read error: No such device
-> > > > # cat pwm1
-> > > > 0
-> > > 
-> > This is odd, since ENODEV should not be returned as error code from i2c read
-> > operations.
-> > 
-> > What is the i2c controller ?
-> 
-> The controller is the very same as for the ReadyNAS Duo v2. It is built
-> in the Marvell Kirkwood SoC and the driver is i2c-mv64xxx.
-> 
-> I will try an another board to see if I reproduce the error.
-> 
-Might be a flaky i2c connection or a problematic board. The i2c-mv64xxx driver
-does return ENODEV in error cases. I submitted a patch to change it to ENXIO;
-we'll see if it gets accepted.
+On Thu, 2013-06-20 at 18:01 +0200, Pavel Machek wrote:
+> Anyway, Hans disappeared, so Greg takes patches, again.
 
-Guenter
+Maybe this is appropriate then.
 
-> Regards,
-> 
-> Simon
-> 
-> > 
-> > Thanks,
-> > Guenter
-> > 
-> > > Weird, I cannot reproduce that at all on my ReadyNAS Duo v2.
-> > > 
-> > > > Note, that if the same command is executed again (just after the faulty
-> > > > one), then it will succeed most of the time. The errors seems to happen
-> > > > quite randomly and not very often. I'd say one time over ten tries.
-> > > > I suppose this error is now visible due to the enhanced error path in
-> > > > g762_update_client. It looks like we learn something by checking the
-> > > > return value for i2c_smbus_read_byte_data :)
-> > > >
-> > > > Except that, all is working as expected. This new version fixes
-> > > > effectively open-loop driving when the set_cnt register is set to 0xff.
-> > > >
-> > > > Also I am planning (hopefully this Wednesday) to test your patch on my
-> > > > 5Big Network v2 board. This last also embed a g762 controller but with a
-> > > > three wires fan instead. Then, I should be able to test the closed-loop
-> > > > mode behaviour.
-> > > 
-> > > Thanks for your tests, Simon.
-> > > 
-> > > Cheers,
-> > > 
-> > > a+ 
-> > > 
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 69fea4f..dc9d04a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5253,9 +5253,8 @@ F:	Documentation/hwmon/max16065
+ F:	drivers/hwmon/max16065.c
+ 
+ MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
+-M:	"Hans J. Koch" <hjk@hansjkoch.de>
+ L:	lm-sensors@lm-sensors.org
+-S:	Maintained
++S:	Orphan
+ F:	Documentation/hwmon/max6650
+ F:	drivers/hwmon/max6650.c
+ 
+@@ -8795,7 +8794,6 @@ F:	fs/hostfs/
+ F:	fs/hppfs/
+ 
+ USERSPACE I/O (UIO)
+-M:	"Hans J. Koch" <hjk@hansjkoch.de>
+ M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+ S:	Maintained
+ F:	Documentation/DocBook/uio-howto.tmpl
 
 
 
