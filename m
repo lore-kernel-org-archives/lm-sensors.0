@@ -1,82 +1,128 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 21 Jun 2013 07:47:38 +0000
+From: Michal Simek <monstr@monstr.eu>
+Date: Fri, 21 Jun 2013 09:15:20 +0000
 Subject: Re: [lm-sensors] [PATCH] MAINTAINERS: Remove Hans J. Koch entries
-Message-Id: <20130621094738.7216c29d@endymion.delvare>
+Message-Id: <51C419A8.3010707@monstr.eu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1755374638905216686=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <086bdaf83fe546bd3c7fe163e565a0887770770f.1369317710.git.michal.simek@xilinx.com>
-	<71c482e15ee32fa304db73b984f6d5a63441cd92.1369317710.git.michal.simek@xilinx.com>
-	<51A5E644.1040901@monstr.eu>
-	<51AC8D43.100@monstr.eu>
-	<20130603210513.GA22606@kroah.com>
-	<20130620160126.GB22115@amd.pavel.ucw.cz>
-	<1371745227.2146.13.camel@joe-AO722>
-	<20130621025031.GG4775@local>
+References: <086bdaf83fe546bd3c7fe163e565a0887770770f.1369317710.git.michal.simek@xilinx.com> <71c482e15ee32fa304db73b984f6d5a63441cd92.1369317710.git.michal.simek@xilinx.com> <51A5E644.1040901@monstr.eu> <51AC8D43.100@monstr.eu> <20130603210513.GA22606@kroah.com> <20130620160126.GB22115@amd.pavel.ucw.cz> <1371745227.2146.13.camel@joe-AO722> <20130621025031.GG4775@local>
 In-Reply-To: <20130621025031.GG4775@local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: "Hans J. Koch" <hjk@hansjkoch.de>
-Cc: Joe Perches <joe@perches.com>, Michal Simek <monstr@monstr.eu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Pavel Machek <pavel@ucw.cz>
+Cc: Joe Perches <joe@perches.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Hans and all,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--===============1755374638905216686==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="----enig2BBSWLHAESKEGKEXDECOW"
 
-On Fri, 21 Jun 2013 04:50:31 +0200, Hans J. Koch wrote:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+------enig2BBSWLHAESKEGKEXDECOW
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 06/21/2013 04:50 AM, Hans J. Koch wrote:
 > On Thu, Jun 20, 2013 at 09:20:27AM -0700, Joe Perches wrote:
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 69fea4f..dc9d04a 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -5253,9 +5253,8 @@ F:	Documentation/hwmon/max16065
-> >  F:	drivers/hwmon/max16065.c
-> >  
-> >  MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
-> > -M:	"Hans J. Koch" <hjk@hansjkoch.de>
-> >  L:	lm-sensors@lm-sensors.org
-> > -S:	Maintained
-> > +S:	Orphan
-> >  F:	Documentation/hwmon/max6650
-> >  F:	drivers/hwmon/max6650.c
-> 
-> ACK to that one. It was never my idea to have a MAINTAINERS entry for that.
-> Jean Delvare suggested it, so it came in. The MAX6650 was in a project I was
-> working on 6 years ago, and I wrote the driver at that time. Meanwhile, I
+>> On Thu, 2013-06-20 at 18:01 +0200, Pavel Machek wrote:
+>>> Anyway, Hans disappeared, so Greg takes patches, again.
+>=20
+> I wasn't able to take part in kernel development because I was heavily
+> involved in hardware development project. I always thought it would be =
+just
+> a few more days, but then it became half a year. I know I should have g=
+iven
+> an explanation and didn't. Sorry for that.
+>=20
+>>
+>> Maybe this is appropriate then.
+>>
+>> Signed-off-by: Joe Perches <joe@perches.com>
+>> ---
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 69fea4f..dc9d04a 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -5253,9 +5253,8 @@ F:	Documentation/hwmon/max16065
+>>  F:	drivers/hwmon/max16065.c
+>> =20
+>>  MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
+>> -M:	"Hans J. Koch" <hjk@hansjkoch.de>
+>>  L:	lm-sensors@lm-sensors.org
+>> -S:	Maintained
+>> +S:	Orphan
+>>  F:	Documentation/hwmon/max6650
+>>  F:	drivers/hwmon/max6650.c
+>=20
+> ACK to that one. It was never my idea to have a MAINTAINERS entry for t=
+hat.
+> Jean Delvare suggested it, so it came in. The MAX6650 was in a project =
+I was
+> working on 6 years ago, and I wrote the driver at that time. Meanwhile,=
+ I
 > don't even have hardware with a MAX6650 anymore.
+>=20
+> Does each little driver really need a MAINTAINERS entry? In my opinion,=
+ it
+> should only be there if it is clear that it's not just a short project =
+work.
+>=20
+>> =20
+>> @@ -8795,7 +8794,6 @@ F:	fs/hostfs/
+>>  F:	fs/hppfs/
+>> =20
+>>  USERSPACE I/O (UIO)
+>> -M:	"Hans J. Koch" <hjk@hansjkoch.de>
+>>  M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>  S:	Maintained
+>>  F:	Documentation/DocBook/uio-howto.tmpl
+>=20
+> Well, you can do that if you want. But I still feel associated with UIO=
 
-Back then I was maintaining the hwmon subsystem all by myself and had
-way more than I could handle on my plate. Contributors kept complaining
-that I was too slow reviewing new drivers and having them add
-themselves to MAINTAINERS was my way to help them understand that Linux
-wasn't only about adding new driver, and that every piece of code added
-to the kernel had to be maintained by someone for the years to come.
-And that someone was rather them than me.
+> and sincerely hope I'm back again to fulfill my duties as a maintainer.=
 
-That being said, I agree it only makes sense for as long as the
-original contributor (or anyone else wanting to step in) has the
-hardware, interest and knowledge for the driver in question. After
-several years it makes sense to drop these individual driver entries if
-these conditions are no longer met.
 
-> Does each little driver really need a MAINTAINERS entry? In my opinion, it
-> should only be there if it is clear that it's not just a short project work.
+ok then can you please comment my patches?
+I think it is not necessary to have one driver which support UIO without =
+IRQ
+and then second which support both cases.
 
-The number of drivers in all kernel subsystems keeps growing, and hwmon
-is no exception. The number of subsystem maintainers, OTOH, is not
-growing, it's typically one or two persons doing all the work. This is
-why I value individual driver maintainers, as they help make it all
-scale. If existing drivers each have their own maintainer, subsystem
-maintainers can focus on subsystem-wide cleanups and reviewing new
-drivers.
+Thanks,
+Michal
 
-But of course MAINTAINERS must reflect the reality and not my own
-fantasy world where every single driver would have a dedicated
-maintainer. If anyone listed as a driver maintainer in MAINTAINERS is
-not actually going to do the job for whatever reason, then the entry
-should be removed.
+--=20
+Michal Simek, Ing. (M.Eng), OpenPGP -> KeyID: FE3D1F91
+w: www.monstr.eu p: +42-0-721842854
+Maintainer of Linux kernel - Microblaze cpu - http://www.monstr.eu/fdt/
+Maintainer of Linux kernel - Xilinx Zynq ARM architecture
+Microblaze U-BOOT custodian and responsible for u-boot arm zynq platform
 
--- 
-Jean Delvare
+
+
+------enig2BBSWLHAESKEGKEXDECOW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iEYEARECAAYFAlHEGagACgkQykllyylKDCE2cQCfZIaEaxaIXON4fihbifxxswEL
+J8QAnjuhgaLaYS93c8ZWlD6DXuF7Lmk1
+=WXyB
+-----END PGP SIGNATURE-----
+
+------enig2BBSWLHAESKEGKEXDECOW--
+
+
+--===============1755374638905216686==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1755374638905216686==--
