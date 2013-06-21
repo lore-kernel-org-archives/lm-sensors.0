@@ -1,205 +1,186 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 24 Jun 2013 18:07:00 +0000
-Subject: [lm-sensors] [PATCH v2 2/4] hwmon: (nct6775) Support two SuperIO chips in the same system
-Message-Id: <1372097222-11289-3-git-send-email-linux@roeck-us.net>
+From: Ed Swierk <eswierk@bigswitch.com>
+Date: Fri, 21 Jun 2013 15:46:15 +0000
+Subject: [lm-sensors] [PATCH] Add support for SMSC EMC2305 fan controller
+Message-Id: <CAF5U64Bv6=agmOPZddv_PZLCfLavH06MWNsNfd8XWxYuq0EG_w@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="20cf307ca524f0fc7d04dfabf8f1"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Rebase to latest baseline
+--20cf307ca524f0fc7d04dfabf8f1
+Content-Type: text/plain; charset=UTF-8
 
- drivers/hwmon/nct6775.c |  113 ++++++++++++++++++++++++++---------------------
- 1 file changed, 63 insertions(+), 50 deletions(-)
+This patch adds support for the SMSC EMC2305 fan controller.
 
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 778772d..caff726 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -3484,11 +3484,11 @@ static const char * const nct6775_sio_names[] __initconst = {
- };
- 
- /* nct6775_find() looks for a '627 in the Super-I/O config space */
--static int __init nct6775_find(int sioaddr, unsigned short *addr,
--			       struct nct6775_sio_data *sio_data)
-+static int __init nct6775_find(int sioaddr, struct nct6775_sio_data *sio_data)
- {
- 	u16 val;
- 	int err;
-+	int addr;
- 
- 	err = superio_enter(sioaddr);
- 	if (err)
-@@ -3520,8 +3520,8 @@ static int __init nct6775_find(int sioaddr, unsigned short *addr,
- 	superio_select(sioaddr, NCT6775_LD_HWM);
- 	val = (superio_inb(sioaddr, SIO_REG_ADDR) << 8)
- 	    | superio_inb(sioaddr, SIO_REG_ADDR + 1);
--	*addr = val & IOREGION_ALIGNMENT;
--	if (*addr = 0) {
-+	addr = val & IOREGION_ALIGNMENT;
-+	if (addr = 0) {
- 		pr_err("Refusing to enable a Super-I/O device with a base I/O port 0\n");
- 		superio_exit(sioaddr);
- 		return -ENODEV;
-@@ -3535,11 +3535,11 @@ static int __init nct6775_find(int sioaddr, unsigned short *addr,
- 	}
- 
- 	superio_exit(sioaddr);
--	pr_info("Found %s or compatible chip at %#x\n",
--		nct6775_sio_names[sio_data->kind], *addr);
-+	pr_info("Found %s or compatible chip at %#x:%#x\n",
-+		nct6775_sio_names[sio_data->kind], sioaddr, addr);
- 	sio_data->sioreg = sioaddr;
- 
--	return 0;
-+	return addr;
- }
- 
- /*
-@@ -3548,14 +3548,20 @@ static int __init nct6775_find(int sioaddr, unsigned short *addr,
-  * track of the nct6775 driver. But since we platform_device_alloc(), we
-  * must keep track of the device
-  */
--static struct platform_device *pdev;
-+static struct platform_device *pdev[2];
- 
- static int __init sensors_nct6775_init(void)
- {
--	int err;
--	unsigned short address;
-+	int i, err;
-+	bool found = false;
-+	int address;
- 	struct resource res;
- 	struct nct6775_sio_data sio_data;
-+	int sioaddr[2] = { 0x2e, 0x4e };
-+
-+	err = platform_driver_register(&nct6775_driver);
-+	if (err)
-+		return err;
- 
- 	/*
- 	 * initialize sio_data->kind and sio_data->sioreg.
-@@ -3564,64 +3570,71 @@ static int __init sensors_nct6775_init(void)
- 	 * driver will probe 0x2e and 0x4e and auto-detect the presence of a
- 	 * nct6775 hardware monitor, and call probe()
- 	 */
--	if (nct6775_find(0x2e, &address, &sio_data) &&
--	    nct6775_find(0x4e, &address, &sio_data))
--		return -ENODEV;
--
--	err = platform_driver_register(&nct6775_driver);
--	if (err)
--		goto exit;
-+	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+		address = nct6775_find(sioaddr[i], &sio_data);
-+		if (address <= 0)
-+			continue;
- 
--	pdev = platform_device_alloc(DRVNAME, address);
--	if (!pdev) {
--		err = -ENOMEM;
--		pr_err("Device allocation failed\n");
--		goto exit_unregister;
--	}
-+		found = true;
- 
--	err = platform_device_add_data(pdev, &sio_data,
--				       sizeof(struct nct6775_sio_data));
--	if (err) {
--		pr_err("Platform data allocation failed\n");
--		goto exit_device_put;
--	}
-+		pdev[i] = platform_device_alloc(DRVNAME, address);
-+		if (!pdev[i]) {
-+			err = -ENOMEM;
-+			goto exit_device_put;
-+		}
- 
--	memset(&res, 0, sizeof(res));
--	res.name = DRVNAME;
--	res.start = address + IOREGION_OFFSET;
--	res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
--	res.flags = IORESOURCE_IO;
-+		err = platform_device_add_data(pdev[i], &sio_data,
-+					       sizeof(struct nct6775_sio_data));
-+		if (err)
-+			goto exit_device_put;
-+
-+		memset(&res, 0, sizeof(res));
-+		res.name = DRVNAME;
-+		res.start = address + IOREGION_OFFSET;
-+		res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
-+		res.flags = IORESOURCE_IO;
-+
-+		err = acpi_check_resource_conflict(&res);
-+		if (err) {
-+			platform_device_put(pdev[i]);
-+			pdev[i] = NULL;
-+			continue;
-+		}
- 
--	err = acpi_check_resource_conflict(&res);
--	if (err)
--		goto exit_device_put;
-+		err = platform_device_add_resources(pdev[i], &res, 1);
-+		if (err)
-+			goto exit_device_put;
- 
--	err = platform_device_add_resources(pdev, &res, 1);
--	if (err) {
--		pr_err("Device resource addition failed (%d)\n", err);
--		goto exit_device_put;
-+		/* platform_device_add calls probe() */
-+		err = platform_device_add(pdev[i]);
-+		if (err)
-+			goto exit_device_put;
- 	}
--
--	/* platform_device_add calls probe() */
--	err = platform_device_add(pdev);
--	if (err) {
--		pr_err("Device addition failed (%d)\n", err);
--		goto exit_device_put;
-+	if (!found) {
-+		err = -ENODEV;
-+		goto exit_unregister;
- 	}
- 
- 	return 0;
- 
- exit_device_put:
--	platform_device_put(pdev);
-+	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+		if (pdev[i])
-+			platform_device_put(pdev[i]);
-+	}
- exit_unregister:
- 	platform_driver_unregister(&nct6775_driver);
--exit:
- 	return err;
- }
- 
- static void __exit sensors_nct6775_exit(void)
- {
--	platform_device_unregister(pdev);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+		if (pdev[i])
-+			platform_device_unregister(pdev[i]);
-+	}
- 	platform_driver_unregister(&nct6775_driver);
- }
- 
--- 
-1.7.9.7
+The driver works well enough for sensors to show the fan speed, for
+pwmconfig to generate sensors3.conf, and fancontrol to adjust the fan
+speeds dynamically. But that's it--I'm no sensors expert and this
+should be considered preliminary work.
 
+The code is based on the data sheet available at
+http://www.smsc.com/media/Downloads_Public/Data_Sheets/2305.pdf .
+
+Signed-off-by: Ed Swierk <eswierk@bigswitch.com>
+
+--20cf307ca524f0fc7d04dfabf8f1
+Content-Type: application/octet-stream; name="hwmon-emc2305.patch"
+Content-Disposition: attachment; filename="hwmon-emc2305.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hi7jw4j10
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vS2NvbmZpZyBiL2RyaXZlcnMvaHdtb24vS2NvbmZp
+ZwppbmRleCBiYjhjOGU1Li41Mzc1Y2RkIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL0tjb25m
+aWcKKysrIGIvZHJpdmVycy9od21vbi9LY29uZmlnCkBAIC0xMDI4LDYgKzEwMjgsMTYgQEAgY29u
+ZmlnIFNFTlNPUlNfRU1DMjEwMwogCSAgVGhpcyBkcml2ZXIgY2FuIGFsc28gYmUgYnVpbHQgYXMg
+YSBtb2R1bGUuICBJZiBzbywgdGhlIG1vZHVsZQogCSAgd2lsbCBiZSBjYWxsZWQgZW1jMjEwMy4K
+IAorY29uZmlnIFNFTlNPUlNfRU1DMjMwNQorCXRyaXN0YXRlICJTTVNDIEVNQzIzMDUgZmFuIGNv
+bnRyb2xsZXIiCisJZGVwZW5kcyBvbiBJMkMKKwloZWxwCisJICBJZiB5b3Ugc2F5IHllcyBoZXJl
+IHlvdSBnZXQgc3VwcG9ydCBmb3IgdGhlIFNNU0MgRU1DMjMwNQorCSAgZmFuIGNvbnRyb2xsZXIu
+CisKKwkgIFRoaXMgZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEgbW9kdWxlLiAgSWYgc28s
+IHRoZSBtb2R1bGUKKwkgIHdpbGwgYmUgY2FsbGVkIGVtYzIzMDUuCisKIGNvbmZpZyBTRU5TT1JT
+X0VNQzZXMjAxCiAJdHJpc3RhdGUgIlNNU0MgRU1DNlcyMDEiCiAJZGVwZW5kcyBvbiBJMkMKZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vTWFrZWZpbGUgYi9kcml2ZXJzL2h3bW9uL01ha2VmaWxl
+CmluZGV4IDMwZDM4ZjEuLjQ5NjQyZTYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vTWFrZWZp
+bGUKKysrIGIvZHJpdmVycy9od21vbi9NYWtlZmlsZQpAQCAtNTAsNiArNTAsNyBAQCBvYmotJChD
+T05GSUdfU0VOU09SU19EUzYyMCkJKz0gZHM2MjAubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfRFMx
+NjIxKQkrPSBkczE2MjEubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfRU1DMTQwMykJKz0gZW1jMTQw
+My5vCiBvYmotJChDT05GSUdfU0VOU09SU19FTUMyMTAzKQkrPSBlbWMyMTAzLm8KK29iai0kKENP
+TkZJR19TRU5TT1JTX0VNQzIzMDUpCSs9IGVtYzIzMDUubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
+RU1DNlcyMDEpCSs9IGVtYzZ3MjAxLm8KIG9iai0kKENPTkZJR19TRU5TT1JTX0Y3MTgwNUYpCSs9
+IGY3MTgwNWYubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfRjcxODgyRkcpCSs9IGY3MTg4MmZnLm8K
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZW1jMjMwNS5jIGIvZHJpdmVycy9od21vbi9lbWMy
+MzA1LmMKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uMzFhZTQxMgotLS0gL2Rl
+di9udWxsCisrKyBiL2RyaXZlcnMvaHdtb24vZW1jMjMwNS5jCkBAIC0wLDAgKzEsMjI4IEBACisv
+KgorICogQSBod21vbiBkcml2ZXIgZm9yIHRoZSBTTVNDIEVNQzIzMDUgZmFuIGNvbnRyb2xsZXIK
+KyAqIENvcHlyaWdodCAyMDEzIEJpZyBTd2l0Y2ggTmV0d29ya3MsIEluYy4KKyAqCisgKiBUaGlz
+IHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29y
+IG1vZGlmeQorICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMg
+TGljZW5zZSBhcyBwdWJsaXNoZWQgYnkKKyAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247
+IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisgKiAoYXQgeW91ciBvcHRpb24p
+IGFueSBsYXRlciB2ZXJzaW9uLgorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBp
+biB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLAorICogYnV0IFdJVEhPVVQgQU5ZIFdB
+UlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKKyAqIE1FUkNIQU5U
+QUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKKyAq
+IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCisgKgorICogWW91
+IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExp
+Y2Vuc2UgYWxvbmcKKyAqIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBG
+cmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4sCisgKiA1MSBGcmFua2xpbiBTdHJlZXQsIEZp
+ZnRoIEZsb29yLCBCb3N0b24sIE1BIDAyMTEwLTEzMDEgVVNBLgorICoKKyAqIENvbXBsZXRlIGRh
+dGFzaGVldCBpcyBhdmFpbGFibGUgKDYvMjAxMykgYXQ6CisgKiBodHRwOi8vd3d3LnNtc2MuY29t
+L21lZGlhL0Rvd25sb2Fkc19QdWJsaWMvRGF0YV9TaGVldHMvMjMwNS5wZGYKKyAqLworCisjaW5j
+bHVkZSA8bGludXgvbW9kdWxlLmg+CisjaW5jbHVkZSA8bGludXgvaTJjLmg+CisjaW5jbHVkZSA8
+bGludXgvaHdtb24uaD4KKyNpbmNsdWRlIDxsaW51eC9od21vbi1zeXNmcy5oPgorI2luY2x1ZGUg
+PGxpbnV4L2Vyci5oPgorCitzdGF0aWMgY29uc3QgdW5zaWduZWQgc2hvcnQgbm9ybWFsX2kyY1td
+ID0geyAweDJDLCAweDJELCAweDJFLCAweDJGLCAweDRDLAorCQkJCQkgICAgIDB4NEQsIEkyQ19D
+TElFTlRfRU5EIH07CisKKyNkZWZpbmUgRU1DMjMwNV9SRUdfREVWSUNFIDB4RkQKKyNkZWZpbmUg
+RU1DMjMwNV9SRUdfVkVORE9SIDB4RkUKKworI2RlZmluZSBFTUMyMzA1X1JFR19GQU5fRFJJVkUo
+bikgKDB4MzAgKyAweDEwICogbikKKyNkZWZpbmUgRU1DMjMwNV9SRUdfRkFOX01JTl9EUklWRShu
+KSAoMHgzOCArIDB4MTAgKiBuKQorI2RlZmluZSBFTUMyMzA1X1JFR19GQU5fVEFDSChuKSAoMHgz
+RSArIDB4MTAgKiBuKQorCisjZGVmaW5lIEVNQzIzMDVfREVWSUNFIDB4MzQKKyNkZWZpbmUgRU1D
+MjMwNV9WRU5ET1IgMHg1RAorCitzdHJ1Y3QgZW1jMjMwNV9kYXRhIHsKKwlzdHJ1Y3QgZGV2aWNl
+CQkqaHdtb25fZGV2OworCXN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAJYXR0cnM7CisJc3RydWN0IG11
+dGV4CQlsb2NrOworfTsKKworc3RhdGljIGludCBlbWMyMzA1X3Byb2JlKHN0cnVjdCBpMmNfY2xp
+ZW50ICpjbGllbnQsCisJCQkgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKTsKK3N0YXRp
+YyBpbnQgZW1jMjMwNV9kZXRlY3Qoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKKwkJCSAgc3Ry
+dWN0IGkyY19ib2FyZF9pbmZvICppbmZvKTsKK3N0YXRpYyBpbnQgZW1jMjMwNV9yZW1vdmUoc3Ry
+dWN0IGkyY19jbGllbnQgKmNsaWVudCk7CisKK3N0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX2Rldmlj
+ZV9pZCBlbWMyMzA1X2lkW10gPSB7CisJeyAiZW1jMjMwNSIsIDAgfSwKKwl7IH0KK307CitNT0RV
+TEVfREVWSUNFX1RBQkxFKGkyYywgZW1jMjMwNV9pZCk7CisKK3N0YXRpYyBzdHJ1Y3QgaTJjX2Ry
+aXZlciBlbWMyMzA1X2RyaXZlciA9IHsKKwkuY2xhc3MJCT0gSTJDX0NMQVNTX0hXTU9OLAorCS5k
+cml2ZXIgPSB7CisJCS5uYW1lCT0gImVtYzIzMDUiLAorCX0sCisJLnByb2JlCQk9IGVtYzIzMDVf
+cHJvYmUsCisJLnJlbW92ZQkJPSBlbWMyMzA1X3JlbW92ZSwKKwkuaWRfdGFibGUJPSBlbWMyMzA1
+X2lkLAorCS5kZXRlY3QJCT0gZW1jMjMwNV9kZXRlY3QsCisJLmFkZHJlc3NfbGlzdAk9IG5vcm1h
+bF9pMmMsCit9OworCitzdGF0aWMgc3NpemVfdCBzaG93X2ZhbihzdHJ1Y3QgZGV2aWNlICpkZXYs
+IHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLAorCQkJY2hhciAqYnVmKQoreworCXN0
+cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciA9IHRvX3NlbnNvcl9kZXZfYXR0cihk
+ZXZhdHRyKTsKKwlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYp
+OworCXN0cnVjdCBlbWMyMzA1X2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50
+KTsKKwlpbnQgdmFsOworCisJbXV0ZXhfbG9jaygmZGF0YS0+bG9jayk7CisJdmFsID0gaTJjX3Nt
+YnVzX3JlYWRfd29yZF9zd2FwcGVkKGNsaWVudCwKKwkJCQkJICBFTUMyMzA1X1JFR19GQU5fVEFD
+SChhdHRyLT5pbmRleCkpOworCW11dGV4X3VubG9jaygmZGF0YS0+bG9jayk7CisJcmV0dXJuIHNw
+cmludGYoYnVmLCAiJWRcbiIsIDM5MzIxNjAgKiAyIC8gKHZhbCA+IDAgPyB2YWwgOiAxKSk7Cit9
+CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfcHdtKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRl
+dmljZV9hdHRyaWJ1dGUgKmRldmF0dHIsCisJCQljaGFyICpidWYpCit7CisJc3RydWN0IHNlbnNv
+cl9kZXZpY2VfYXR0cmlidXRlICphdHRyID0gdG9fc2Vuc29yX2Rldl9hdHRyKGRldmF0dHIpOwor
+CXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CisJc3RydWN0
+IGVtYzIzMDVfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCWludCB2
+YWw7CisKKwltdXRleF9sb2NrKCZkYXRhLT5sb2NrKTsKKwl2YWwgPSBpMmNfc21idXNfcmVhZF9i
+eXRlX2RhdGEoY2xpZW50LAorCQkJCSAgICAgICBFTUMyMzA1X1JFR19GQU5fRFJJVkUoYXR0ci0+
+aW5kZXgpKTsKKwltdXRleF91bmxvY2soJmRhdGEtPmxvY2spOworCXJldHVybiBzcHJpbnRmKGJ1
+ZiwgIiVkXG4iLCB2YWwpOworfQorCitzdGF0aWMgc3NpemVfdCBzZXRfcHdtKHN0cnVjdCBkZXZp
+Y2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0dHIsCisJCSAgICAgICBjb25z
+dCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkKK3sKKwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRy
+aWJ1dGUgKmF0dHIgPSB0b19zZW5zb3JfZGV2X2F0dHIoZGV2YXR0cik7CisJc3RydWN0IGkyY19j
+bGllbnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsKKwlzdHJ1Y3QgZW1jMjMwNV9kYXRh
+ICpkYXRhID0gaTJjX2dldF9jbGllbnRkYXRhKGNsaWVudCk7CisJdW5zaWduZWQgbG9uZyB2YWw7
+CisJaW50IHJldDsKKworCXJldCA9IGtzdHJ0b3VsKGJ1ZiwgMTAsICZ2YWwpOworCWlmIChyZXQp
+CisJCXJldHVybiByZXQ7CisJaWYgKHZhbCA+IDI1NSkKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwlt
+dXRleF9sb2NrKCZkYXRhLT5sb2NrKTsKKwlpMmNfc21idXNfd3JpdGVfYnl0ZV9kYXRhKGNsaWVu
+dCwKKwkJCQkgIEVNQzIzMDVfUkVHX0ZBTl9EUklWRShhdHRyLT5pbmRleCksCisJCQkJICB2YWwp
+OworCW11dGV4X3VubG9jaygmZGF0YS0+bG9jayk7CisJcmV0dXJuIGNvdW50OworfQorCitzdGF0
+aWMgU0VOU09SX0RFVklDRV9BVFRSKGZhbjFfaW5wdXQsIFNfSVJVR08sIHNob3dfZmFuLCBOVUxM
+LCAwKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIoZmFuMl9pbnB1dCwgU19JUlVHTywgc2hv
+d19mYW4sIE5VTEwsIDEpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihmYW4zX2lucHV0LCBT
+X0lSVUdPLCBzaG93X2ZhbiwgTlVMTCwgMik7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKGZh
+bjRfaW5wdXQsIFNfSVJVR08sIHNob3dfZmFuLCBOVUxMLCAzKTsKK3N0YXRpYyBTRU5TT1JfREVW
+SUNFX0FUVFIoZmFuNV9pbnB1dCwgU19JUlVHTywgc2hvd19mYW4sIE5VTEwsIDQpOworc3RhdGlj
+IFNFTlNPUl9ERVZJQ0VfQVRUUihwd20xLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHNl
+dF9wd20sIDApOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihwd20yLCBTX0lXVVNSIHwgU19J
+UlVHTywgc2hvd19wd20sIHNldF9wd20sIDEpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihw
+d20zLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHNldF9wd20sIDIpOworc3RhdGljIFNF
+TlNPUl9ERVZJQ0VfQVRUUihwd200LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHNldF9w
+d20sIDMpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihwd201LCBTX0lXVVNSIHwgU19JUlVH
+Tywgc2hvd19wd20sIHNldF9wd20sIDQpOworCitzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqZW1j
+MjMwNV9hdHRyW10gPSB7CisJJnNlbnNvcl9kZXZfYXR0cl9mYW4xX2lucHV0LmRldl9hdHRyLmF0
+dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9mYW4yX2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNv
+cl9kZXZfYXR0cl9mYW4zX2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9m
+YW40X2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9mYW41X2lucHV0LmRl
+dl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9wd20xLmRldl9hdHRyLmF0dHIsCisJJnNl
+bnNvcl9kZXZfYXR0cl9wd20yLmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9wd20z
+LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9wd200LmRldl9hdHRyLmF0dHIsCisJ
+JnNlbnNvcl9kZXZfYXR0cl9wd201LmRldl9hdHRyLmF0dHIsCisJTlVMTAorfTsKKworc3RhdGlj
+IGludCBlbWMyMzA1X2RldGVjdChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LAorCQkJICBzdHJ1
+Y3QgaTJjX2JvYXJkX2luZm8gKmluZm8pCit7CisJc3RydWN0IGkyY19hZGFwdGVyICphZGFwdGVy
+ID0gY2xpZW50LT5hZGFwdGVyOworCWludCB2ZW5kb3IsIGRldmljZTsKKworCWlmICghaTJjX2No
+ZWNrX2Z1bmN0aW9uYWxpdHkoYWRhcHRlciwgSTJDX0ZVTkNfU01CVVNfQllURV9EQVRBIHwKKwkJ
+CQkgICAgIEkyQ19GVU5DX1NNQlVTX1dPUkRfREFUQSkpCisJCXJldHVybiAtRU5PREVWOworCisJ
+dmVuZG9yID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwgRU1DMjMwNV9SRUdfVkVO
+RE9SKTsKKwlpZiAodmVuZG9yICE9IEVNQzIzMDVfVkVORE9SKQorCQlyZXR1cm4gLUVOT0RFVjsK
+KworCWRldmljZSA9IGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YShjbGllbnQsIEVNQzIzMDVfUkVH
+X0RFVklDRSk7CisJaWYgKGRldmljZSAhPSBFTUMyMzA1X0RFVklDRSkKKwkJcmV0dXJuIC1FTk9E
+RVY7CisKKwlzdHJsY3B5KGluZm8tPnR5cGUsICJlbWMyMzA1IiwgSTJDX05BTUVfU0laRSk7CisK
+KwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBlbWMyMzA1X3Byb2JlKHN0cnVjdCBpMmNfY2xp
+ZW50ICpjbGllbnQsCisJCQkgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKQoreworCXN0
+cnVjdCBlbWMyMzA1X2RhdGEgKmRhdGE7CisJaW50IGVycjsKKwlpbnQgaTsKKworCWRhdGEgPSBk
+ZXZtX2t6YWxsb2MoJmNsaWVudC0+ZGV2LCBzaXplb2Yoc3RydWN0IGVtYzIzMDVfZGF0YSksCisJ
+CQkgICAgR0ZQX0tFUk5FTCk7CisJaWYgKCFkYXRhKQorCQlyZXR1cm4gLUVOT01FTTsKKworCWky
+Y19zZXRfY2xpZW50ZGF0YShjbGllbnQsIGRhdGEpOworCW11dGV4X2luaXQoJmRhdGEtPmxvY2sp
+OworCisJZGV2X2luZm8oJmNsaWVudC0+ZGV2LCAiJXMgY2hpcCBmb3VuZFxuIiwgY2xpZW50LT5u
+YW1lKTsKKworCWRhdGEtPmF0dHJzLmF0dHJzID0gZW1jMjMwNV9hdHRyOworCWVyciA9IHN5c2Zz
+X2NyZWF0ZV9ncm91cCgmY2xpZW50LT5kZXYua29iaiwgJmRhdGEtPmF0dHJzKTsKKwlpZiAoZXJy
+KQorCQlyZXR1cm4gZXJyOworCisJZGF0YS0+aHdtb25fZGV2ID0gaHdtb25fZGV2aWNlX3JlZ2lz
+dGVyKCZjbGllbnQtPmRldik7CisJaWYgKElTX0VSUihkYXRhLT5od21vbl9kZXYpKSB7CisJCWVy
+ciA9IFBUUl9FUlIoZGF0YS0+aHdtb25fZGV2KTsKKwkJZ290byBleGl0X3JlbW92ZTsKKwl9CisK
+Kwlmb3IgKGkgPSAwOyBpIDwgNTsgaSsrKSB7CisJCS8qIHNldCBtaW5pbXVtIGRyaXZlIHRvIDIw
+JSAqLworCQlpMmNfc21idXNfd3JpdGVfYnl0ZV9kYXRhKGNsaWVudCwKKwkJCQkJICBFTUMyMzA1
+X1JFR19GQU5fTUlOX0RSSVZFKGkpLAorCQkJCQkgIDB4MzMpOworCX0KKworCXJldHVybiAwOwor
+CitleGl0X3JlbW92ZToKKwlzeXNmc19yZW1vdmVfZ3JvdXAoJmNsaWVudC0+ZGV2LmtvYmosICZk
+YXRhLT5hdHRycyk7CisJcmV0dXJuIGVycjsKK30KKworc3RhdGljIGludCBlbWMyMzA1X3JlbW92
+ZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KQoreworCXN0cnVjdCBlbWMyMzA1X2RhdGEgKmRh
+dGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKKworCWh3bW9uX2RldmljZV91bnJlZ2lz
+dGVyKGRhdGEtPmh3bW9uX2Rldik7CisJc3lzZnNfcmVtb3ZlX2dyb3VwKCZjbGllbnQtPmRldi5r
+b2JqLCAmZGF0YS0+YXR0cnMpOworCXJldHVybiAwOworfQorCittb2R1bGVfaTJjX2RyaXZlcihl
+bWMyMzA1X2RyaXZlcik7CisKK01PRFVMRV9BVVRIT1IoIkVkIFN3aWVyayA8ZXN3aWVya0BiaWdz
+d2l0Y2guY29tPiIpOworTU9EVUxFX0RFU0NSSVBUSU9OKCJTTVNDIEVNQzIzMDUgZmFuIGNvbnRy
+b2xsZXIgZHJpdmVyIik7CitNT0RVTEVfTElDRU5TRSgiR1BMIik7Cg==
+--20cf307ca524f0fc7d04dfabf8f1
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--20cf307ca524f0fc7d04dfabf8f1--
