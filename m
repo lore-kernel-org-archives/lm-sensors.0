@@ -1,186 +1,143 @@
-From: Ed Swierk <eswierk@bigswitch.com>
-Date: Fri, 21 Jun 2013 15:46:15 +0000
-Subject: [lm-sensors] [PATCH] Add support for SMSC EMC2305 fan controller
-Message-Id: <CAF5U64Bv6=agmOPZddv_PZLCfLavH06MWNsNfd8XWxYuq0EG_w@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="20cf307ca524f0fc7d04dfabf8f1"
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 24 Jun 2013 18:07:02 +0000
+Subject: [lm-sensors] [PATCH v2 4/4] hwmon: (nct6775) Add support for critical low/high temperature limits on
+Message-Id: <1372097222-11289-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---20cf307ca524f0fc7d04dfabf8f1
-Content-Type: text/plain; charset=UTF-8
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Rebase to latest baseline
 
-This patch adds support for the SMSC EMC2305 fan controller.
+ drivers/hwmon/nct6775.c |   43 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 9 deletions(-)
 
-The driver works well enough for sensors to show the fan speed, for
-pwmconfig to generate sensors3.conf, and fancontrol to adjust the fan
-speeds dynamically. But that's it--I'm no sensors expert and this
-should be considered preliminary work.
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index bebddbb..1560f23 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -472,7 +472,11 @@ static const u16 NCT6106_REG_TEMP[] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15 };
+ static const u16 NCT6106_REG_TEMP_HYST[] = {
+ 	0xc3, 0xc7, 0xcb, 0xcf, 0xd3, 0xd7 };
+ static const u16 NCT6106_REG_TEMP_OVER[] = {
+-	0xc2, 0xc6, 0xca, 0xce, 0xd2, 0xd4 };
++	0xc2, 0xc6, 0xca, 0xce, 0xd2, 0xd6 };
++static const u16 NCT6106_REG_TEMP_CRIT_L[] = {
++	0xc0, 0xc4, 0xc8, 0xcc, 0xd0, 0xd4 };
++static const u16 NCT6106_REG_TEMP_CRIT_H[] = {
++	0xc1, 0xc5, 0xc9, 0xcf, 0xd1, 0xd5 };
+ static const u16 NCT6106_REG_TEMP_OFFSET[] = { 0x311, 0x312, 0x313 };
+ static const u16 NCT6106_REG_TEMP_CONFIG[] = {
+ 	0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc };
+@@ -647,8 +651,8 @@ struct nct6775_data {
+ 	struct attribute_group *group_temp;
+ 	struct attribute_group *group_pwm;
+ 
+-	u16 reg_temp[4][NUM_TEMP]; /* 0=temp, 1=temp_over, 2=temp_hyst,
+-				    * 3=temp_crit
++	u16 reg_temp[5][NUM_TEMP]; /* 0=temp, 1=temp_over, 2=temp_hyst,
++				    * 3=temp_crit, 4=temp_lcrit
+ 				    */
+ 	u8 temp_src[NUM_TEMP];
+ 	u16 reg_temp_config[NUM_TEMP];
+@@ -1851,8 +1855,8 @@ static umode_t nct6775_temp_is_visible(struct kobject *kobj,
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	struct nct6775_data *data = dev_get_drvdata(dev);
+-	int temp = index / 8;	/* temp index */
+-	int nr = index % 8;	/* attribute index */
++	int temp = index / 9;	/* temp index */
++	int nr = index % 9;	/* attribute index */
+ 
+ 	if (!(data->have_temp & (1 << temp)))
+ 		return 0;
+@@ -1869,7 +1873,11 @@ static umode_t nct6775_temp_is_visible(struct kobject *kobj,
+ 	if (nr = 5 && !data->reg_temp[3][temp])	/* crit */
+ 		return 0;
+ 
+-	if (nr > 5 && !(data->have_temp_fixed & (1 << temp)))
++	if (nr = 6 && !data->reg_temp[4][temp])	/* lcrit */
++		return 0;
++
++	/* offset and type only apply to fixed sensors */
++	if (nr > 6 && !(data->have_temp_fixed & (1 << temp)))
+ 		return 0;
+ 
+ 	return attr->mode;
+@@ -1883,6 +1891,8 @@ SENSOR_TEMPLATE_2(temp_max_hyst, "temp%d_max_hyst", S_IRUGO | S_IWUSR,
+ 		  show_temp, store_temp, 0, 2);
+ SENSOR_TEMPLATE_2(temp_crit, "temp%d_crit", S_IRUGO | S_IWUSR, show_temp,
+ 		  store_temp, 0, 3);
++SENSOR_TEMPLATE_2(temp_lcrit, "temp%d_lcrit", S_IRUGO | S_IWUSR, show_temp,
++		  store_temp, 0, 4);
+ SENSOR_TEMPLATE(temp_offset, "temp%d_offset", S_IRUGO | S_IWUSR,
+ 		show_temp_offset, store_temp_offset, 0);
+ SENSOR_TEMPLATE(temp_type, "temp%d_type", S_IRUGO | S_IWUSR, show_temp_type,
+@@ -1901,8 +1911,9 @@ static struct sensor_device_template *nct6775_attributes_temp_template[] = {
+ 	&sensor_dev_template_temp_max,		/* 3 */
+ 	&sensor_dev_template_temp_max_hyst,	/* 4 */
+ 	&sensor_dev_template_temp_crit,		/* 5 */
+-	&sensor_dev_template_temp_offset,	/* 6 */
+-	&sensor_dev_template_temp_type,		/* 7 */
++	&sensor_dev_template_temp_lcrit,	/* 6 */
++	&sensor_dev_template_temp_offset,	/* 7 */
++	&sensor_dev_template_temp_type,		/* 8 */
+ 	NULL
+ };
+ 
+@@ -3054,6 +3065,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 	int src, mask, available;
+ 	const u16 *reg_temp, *reg_temp_over, *reg_temp_hyst, *reg_temp_config;
+ 	const u16 *reg_temp_alternate, *reg_temp_crit;
++	const u16 *reg_temp_crit_l = NULL, *reg_temp_crit_h = NULL;
+ 	int num_reg_temp;
+ 	u8 cr2a;
+ 	struct attribute_group *group;
+@@ -3138,6 +3150,8 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		reg_temp_config = NCT6106_REG_TEMP_CONFIG;
+ 		reg_temp_alternate = NCT6106_REG_TEMP_ALTERNATE;
+ 		reg_temp_crit = NCT6106_REG_TEMP_CRIT;
++		reg_temp_crit_l = NCT6106_REG_TEMP_CRIT_L;
++		reg_temp_crit_h = NCT6106_REG_TEMP_CRIT_H;
+ 
+ 		break;
+ 	case nct6775:
+@@ -3406,6 +3420,13 @@ static int nct6775_probe(struct platform_device *pdev)
+ 			data->reg_temp[0][src - 1] = reg_temp[i];
+ 			data->reg_temp[1][src - 1] = reg_temp_over[i];
+ 			data->reg_temp[2][src - 1] = reg_temp_hyst[i];
++			if (reg_temp_crit_h && reg_temp_crit_h[i])
++				data->reg_temp[3][src - 1] = reg_temp_crit_h[i];
++			else if (reg_temp_crit[src - 1])
++				data->reg_temp[3][src - 1]
++				  = reg_temp_crit[src - 1];
++			if (reg_temp_crit_l && reg_temp_crit_l[i])
++				data->reg_temp[4][src - 1] = reg_temp_crit_l[i];
+ 			data->reg_temp_config[src - 1] = reg_temp_config[i];
+ 			data->temp_src[src - 1] = src;
+ 			continue;
+@@ -3420,8 +3441,12 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->reg_temp[1][s] = reg_temp_over[i];
+ 		data->reg_temp[2][s] = reg_temp_hyst[i];
+ 		data->reg_temp_config[s] = reg_temp_config[i];
+-		if (reg_temp_crit[src - 1])
++		if (reg_temp_crit_h && reg_temp_crit_h[i])
++			data->reg_temp[3][s] = reg_temp_crit_h[i];
++		else if (reg_temp_crit[src - 1])
+ 			data->reg_temp[3][s] = reg_temp_crit[src - 1];
++		if (reg_temp_crit_l && reg_temp_crit_l[i])
++			data->reg_temp[4][s] = reg_temp_crit_l[i];
+ 
+ 		data->temp_src[s] = src;
+ 		s++;
+-- 
+1.7.9.7
 
-The code is based on the data sheet available at
-http://www.smsc.com/media/Downloads_Public/Data_Sheets/2305.pdf .
-
-Signed-off-by: Ed Swierk <eswierk@bigswitch.com>
-
---20cf307ca524f0fc7d04dfabf8f1
-Content-Type: application/octet-stream; name="hwmon-emc2305.patch"
-Content-Disposition: attachment; filename="hwmon-emc2305.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hi7jw4j10
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vS2NvbmZpZyBiL2RyaXZlcnMvaHdtb24vS2NvbmZp
-ZwppbmRleCBiYjhjOGU1Li41Mzc1Y2RkIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL0tjb25m
-aWcKKysrIGIvZHJpdmVycy9od21vbi9LY29uZmlnCkBAIC0xMDI4LDYgKzEwMjgsMTYgQEAgY29u
-ZmlnIFNFTlNPUlNfRU1DMjEwMwogCSAgVGhpcyBkcml2ZXIgY2FuIGFsc28gYmUgYnVpbHQgYXMg
-YSBtb2R1bGUuICBJZiBzbywgdGhlIG1vZHVsZQogCSAgd2lsbCBiZSBjYWxsZWQgZW1jMjEwMy4K
-IAorY29uZmlnIFNFTlNPUlNfRU1DMjMwNQorCXRyaXN0YXRlICJTTVNDIEVNQzIzMDUgZmFuIGNv
-bnRyb2xsZXIiCisJZGVwZW5kcyBvbiBJMkMKKwloZWxwCisJICBJZiB5b3Ugc2F5IHllcyBoZXJl
-IHlvdSBnZXQgc3VwcG9ydCBmb3IgdGhlIFNNU0MgRU1DMjMwNQorCSAgZmFuIGNvbnRyb2xsZXIu
-CisKKwkgIFRoaXMgZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEgbW9kdWxlLiAgSWYgc28s
-IHRoZSBtb2R1bGUKKwkgIHdpbGwgYmUgY2FsbGVkIGVtYzIzMDUuCisKIGNvbmZpZyBTRU5TT1JT
-X0VNQzZXMjAxCiAJdHJpc3RhdGUgIlNNU0MgRU1DNlcyMDEiCiAJZGVwZW5kcyBvbiBJMkMKZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vTWFrZWZpbGUgYi9kcml2ZXJzL2h3bW9uL01ha2VmaWxl
-CmluZGV4IDMwZDM4ZjEuLjQ5NjQyZTYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vTWFrZWZp
-bGUKKysrIGIvZHJpdmVycy9od21vbi9NYWtlZmlsZQpAQCAtNTAsNiArNTAsNyBAQCBvYmotJChD
-T05GSUdfU0VOU09SU19EUzYyMCkJKz0gZHM2MjAubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfRFMx
-NjIxKQkrPSBkczE2MjEubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfRU1DMTQwMykJKz0gZW1jMTQw
-My5vCiBvYmotJChDT05GSUdfU0VOU09SU19FTUMyMTAzKQkrPSBlbWMyMTAzLm8KK29iai0kKENP
-TkZJR19TRU5TT1JTX0VNQzIzMDUpCSs9IGVtYzIzMDUubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
-RU1DNlcyMDEpCSs9IGVtYzZ3MjAxLm8KIG9iai0kKENPTkZJR19TRU5TT1JTX0Y3MTgwNUYpCSs9
-IGY3MTgwNWYubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfRjcxODgyRkcpCSs9IGY3MTg4MmZnLm8K
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZW1jMjMwNS5jIGIvZHJpdmVycy9od21vbi9lbWMy
-MzA1LmMKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uMzFhZTQxMgotLS0gL2Rl
-di9udWxsCisrKyBiL2RyaXZlcnMvaHdtb24vZW1jMjMwNS5jCkBAIC0wLDAgKzEsMjI4IEBACisv
-KgorICogQSBod21vbiBkcml2ZXIgZm9yIHRoZSBTTVNDIEVNQzIzMDUgZmFuIGNvbnRyb2xsZXIK
-KyAqIENvcHlyaWdodCAyMDEzIEJpZyBTd2l0Y2ggTmV0d29ya3MsIEluYy4KKyAqCisgKiBUaGlz
-IHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29y
-IG1vZGlmeQorICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMg
-TGljZW5zZSBhcyBwdWJsaXNoZWQgYnkKKyAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247
-IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisgKiAoYXQgeW91ciBvcHRpb24p
-IGFueSBsYXRlciB2ZXJzaW9uLgorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBp
-biB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLAorICogYnV0IFdJVEhPVVQgQU5ZIFdB
-UlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKKyAqIE1FUkNIQU5U
-QUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKKyAq
-IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCisgKgorICogWW91
-IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExp
-Y2Vuc2UgYWxvbmcKKyAqIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBG
-cmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4sCisgKiA1MSBGcmFua2xpbiBTdHJlZXQsIEZp
-ZnRoIEZsb29yLCBCb3N0b24sIE1BIDAyMTEwLTEzMDEgVVNBLgorICoKKyAqIENvbXBsZXRlIGRh
-dGFzaGVldCBpcyBhdmFpbGFibGUgKDYvMjAxMykgYXQ6CisgKiBodHRwOi8vd3d3LnNtc2MuY29t
-L21lZGlhL0Rvd25sb2Fkc19QdWJsaWMvRGF0YV9TaGVldHMvMjMwNS5wZGYKKyAqLworCisjaW5j
-bHVkZSA8bGludXgvbW9kdWxlLmg+CisjaW5jbHVkZSA8bGludXgvaTJjLmg+CisjaW5jbHVkZSA8
-bGludXgvaHdtb24uaD4KKyNpbmNsdWRlIDxsaW51eC9od21vbi1zeXNmcy5oPgorI2luY2x1ZGUg
-PGxpbnV4L2Vyci5oPgorCitzdGF0aWMgY29uc3QgdW5zaWduZWQgc2hvcnQgbm9ybWFsX2kyY1td
-ID0geyAweDJDLCAweDJELCAweDJFLCAweDJGLCAweDRDLAorCQkJCQkgICAgIDB4NEQsIEkyQ19D
-TElFTlRfRU5EIH07CisKKyNkZWZpbmUgRU1DMjMwNV9SRUdfREVWSUNFIDB4RkQKKyNkZWZpbmUg
-RU1DMjMwNV9SRUdfVkVORE9SIDB4RkUKKworI2RlZmluZSBFTUMyMzA1X1JFR19GQU5fRFJJVkUo
-bikgKDB4MzAgKyAweDEwICogbikKKyNkZWZpbmUgRU1DMjMwNV9SRUdfRkFOX01JTl9EUklWRShu
-KSAoMHgzOCArIDB4MTAgKiBuKQorI2RlZmluZSBFTUMyMzA1X1JFR19GQU5fVEFDSChuKSAoMHgz
-RSArIDB4MTAgKiBuKQorCisjZGVmaW5lIEVNQzIzMDVfREVWSUNFIDB4MzQKKyNkZWZpbmUgRU1D
-MjMwNV9WRU5ET1IgMHg1RAorCitzdHJ1Y3QgZW1jMjMwNV9kYXRhIHsKKwlzdHJ1Y3QgZGV2aWNl
-CQkqaHdtb25fZGV2OworCXN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAJYXR0cnM7CisJc3RydWN0IG11
-dGV4CQlsb2NrOworfTsKKworc3RhdGljIGludCBlbWMyMzA1X3Byb2JlKHN0cnVjdCBpMmNfY2xp
-ZW50ICpjbGllbnQsCisJCQkgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKTsKK3N0YXRp
-YyBpbnQgZW1jMjMwNV9kZXRlY3Qoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKKwkJCSAgc3Ry
-dWN0IGkyY19ib2FyZF9pbmZvICppbmZvKTsKK3N0YXRpYyBpbnQgZW1jMjMwNV9yZW1vdmUoc3Ry
-dWN0IGkyY19jbGllbnQgKmNsaWVudCk7CisKK3N0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX2Rldmlj
-ZV9pZCBlbWMyMzA1X2lkW10gPSB7CisJeyAiZW1jMjMwNSIsIDAgfSwKKwl7IH0KK307CitNT0RV
-TEVfREVWSUNFX1RBQkxFKGkyYywgZW1jMjMwNV9pZCk7CisKK3N0YXRpYyBzdHJ1Y3QgaTJjX2Ry
-aXZlciBlbWMyMzA1X2RyaXZlciA9IHsKKwkuY2xhc3MJCT0gSTJDX0NMQVNTX0hXTU9OLAorCS5k
-cml2ZXIgPSB7CisJCS5uYW1lCT0gImVtYzIzMDUiLAorCX0sCisJLnByb2JlCQk9IGVtYzIzMDVf
-cHJvYmUsCisJLnJlbW92ZQkJPSBlbWMyMzA1X3JlbW92ZSwKKwkuaWRfdGFibGUJPSBlbWMyMzA1
-X2lkLAorCS5kZXRlY3QJCT0gZW1jMjMwNV9kZXRlY3QsCisJLmFkZHJlc3NfbGlzdAk9IG5vcm1h
-bF9pMmMsCit9OworCitzdGF0aWMgc3NpemVfdCBzaG93X2ZhbihzdHJ1Y3QgZGV2aWNlICpkZXYs
-IHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLAorCQkJY2hhciAqYnVmKQoreworCXN0
-cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciA9IHRvX3NlbnNvcl9kZXZfYXR0cihk
-ZXZhdHRyKTsKKwlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYp
-OworCXN0cnVjdCBlbWMyMzA1X2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50
-KTsKKwlpbnQgdmFsOworCisJbXV0ZXhfbG9jaygmZGF0YS0+bG9jayk7CisJdmFsID0gaTJjX3Nt
-YnVzX3JlYWRfd29yZF9zd2FwcGVkKGNsaWVudCwKKwkJCQkJICBFTUMyMzA1X1JFR19GQU5fVEFD
-SChhdHRyLT5pbmRleCkpOworCW11dGV4X3VubG9jaygmZGF0YS0+bG9jayk7CisJcmV0dXJuIHNw
-cmludGYoYnVmLCAiJWRcbiIsIDM5MzIxNjAgKiAyIC8gKHZhbCA+IDAgPyB2YWwgOiAxKSk7Cit9
-CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfcHdtKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRl
-dmljZV9hdHRyaWJ1dGUgKmRldmF0dHIsCisJCQljaGFyICpidWYpCit7CisJc3RydWN0IHNlbnNv
-cl9kZXZpY2VfYXR0cmlidXRlICphdHRyID0gdG9fc2Vuc29yX2Rldl9hdHRyKGRldmF0dHIpOwor
-CXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CisJc3RydWN0
-IGVtYzIzMDVfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCWludCB2
-YWw7CisKKwltdXRleF9sb2NrKCZkYXRhLT5sb2NrKTsKKwl2YWwgPSBpMmNfc21idXNfcmVhZF9i
-eXRlX2RhdGEoY2xpZW50LAorCQkJCSAgICAgICBFTUMyMzA1X1JFR19GQU5fRFJJVkUoYXR0ci0+
-aW5kZXgpKTsKKwltdXRleF91bmxvY2soJmRhdGEtPmxvY2spOworCXJldHVybiBzcHJpbnRmKGJ1
-ZiwgIiVkXG4iLCB2YWwpOworfQorCitzdGF0aWMgc3NpemVfdCBzZXRfcHdtKHN0cnVjdCBkZXZp
-Y2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0dHIsCisJCSAgICAgICBjb25z
-dCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkKK3sKKwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRy
-aWJ1dGUgKmF0dHIgPSB0b19zZW5zb3JfZGV2X2F0dHIoZGV2YXR0cik7CisJc3RydWN0IGkyY19j
-bGllbnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsKKwlzdHJ1Y3QgZW1jMjMwNV9kYXRh
-ICpkYXRhID0gaTJjX2dldF9jbGllbnRkYXRhKGNsaWVudCk7CisJdW5zaWduZWQgbG9uZyB2YWw7
-CisJaW50IHJldDsKKworCXJldCA9IGtzdHJ0b3VsKGJ1ZiwgMTAsICZ2YWwpOworCWlmIChyZXQp
-CisJCXJldHVybiByZXQ7CisJaWYgKHZhbCA+IDI1NSkKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwlt
-dXRleF9sb2NrKCZkYXRhLT5sb2NrKTsKKwlpMmNfc21idXNfd3JpdGVfYnl0ZV9kYXRhKGNsaWVu
-dCwKKwkJCQkgIEVNQzIzMDVfUkVHX0ZBTl9EUklWRShhdHRyLT5pbmRleCksCisJCQkJICB2YWwp
-OworCW11dGV4X3VubG9jaygmZGF0YS0+bG9jayk7CisJcmV0dXJuIGNvdW50OworfQorCitzdGF0
-aWMgU0VOU09SX0RFVklDRV9BVFRSKGZhbjFfaW5wdXQsIFNfSVJVR08sIHNob3dfZmFuLCBOVUxM
-LCAwKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIoZmFuMl9pbnB1dCwgU19JUlVHTywgc2hv
-d19mYW4sIE5VTEwsIDEpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihmYW4zX2lucHV0LCBT
-X0lSVUdPLCBzaG93X2ZhbiwgTlVMTCwgMik7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKGZh
-bjRfaW5wdXQsIFNfSVJVR08sIHNob3dfZmFuLCBOVUxMLCAzKTsKK3N0YXRpYyBTRU5TT1JfREVW
-SUNFX0FUVFIoZmFuNV9pbnB1dCwgU19JUlVHTywgc2hvd19mYW4sIE5VTEwsIDQpOworc3RhdGlj
-IFNFTlNPUl9ERVZJQ0VfQVRUUihwd20xLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHNl
-dF9wd20sIDApOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihwd20yLCBTX0lXVVNSIHwgU19J
-UlVHTywgc2hvd19wd20sIHNldF9wd20sIDEpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihw
-d20zLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHNldF9wd20sIDIpOworc3RhdGljIFNF
-TlNPUl9ERVZJQ0VfQVRUUihwd200LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHNldF9w
-d20sIDMpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihwd201LCBTX0lXVVNSIHwgU19JUlVH
-Tywgc2hvd19wd20sIHNldF9wd20sIDQpOworCitzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqZW1j
-MjMwNV9hdHRyW10gPSB7CisJJnNlbnNvcl9kZXZfYXR0cl9mYW4xX2lucHV0LmRldl9hdHRyLmF0
-dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9mYW4yX2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNv
-cl9kZXZfYXR0cl9mYW4zX2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9m
-YW40X2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9mYW41X2lucHV0LmRl
-dl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9wd20xLmRldl9hdHRyLmF0dHIsCisJJnNl
-bnNvcl9kZXZfYXR0cl9wd20yLmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9wd20z
-LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9wd200LmRldl9hdHRyLmF0dHIsCisJ
-JnNlbnNvcl9kZXZfYXR0cl9wd201LmRldl9hdHRyLmF0dHIsCisJTlVMTAorfTsKKworc3RhdGlj
-IGludCBlbWMyMzA1X2RldGVjdChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LAorCQkJICBzdHJ1
-Y3QgaTJjX2JvYXJkX2luZm8gKmluZm8pCit7CisJc3RydWN0IGkyY19hZGFwdGVyICphZGFwdGVy
-ID0gY2xpZW50LT5hZGFwdGVyOworCWludCB2ZW5kb3IsIGRldmljZTsKKworCWlmICghaTJjX2No
-ZWNrX2Z1bmN0aW9uYWxpdHkoYWRhcHRlciwgSTJDX0ZVTkNfU01CVVNfQllURV9EQVRBIHwKKwkJ
-CQkgICAgIEkyQ19GVU5DX1NNQlVTX1dPUkRfREFUQSkpCisJCXJldHVybiAtRU5PREVWOworCisJ
-dmVuZG9yID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwgRU1DMjMwNV9SRUdfVkVO
-RE9SKTsKKwlpZiAodmVuZG9yICE9IEVNQzIzMDVfVkVORE9SKQorCQlyZXR1cm4gLUVOT0RFVjsK
-KworCWRldmljZSA9IGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YShjbGllbnQsIEVNQzIzMDVfUkVH
-X0RFVklDRSk7CisJaWYgKGRldmljZSAhPSBFTUMyMzA1X0RFVklDRSkKKwkJcmV0dXJuIC1FTk9E
-RVY7CisKKwlzdHJsY3B5KGluZm8tPnR5cGUsICJlbWMyMzA1IiwgSTJDX05BTUVfU0laRSk7CisK
-KwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBlbWMyMzA1X3Byb2JlKHN0cnVjdCBpMmNfY2xp
-ZW50ICpjbGllbnQsCisJCQkgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKQoreworCXN0
-cnVjdCBlbWMyMzA1X2RhdGEgKmRhdGE7CisJaW50IGVycjsKKwlpbnQgaTsKKworCWRhdGEgPSBk
-ZXZtX2t6YWxsb2MoJmNsaWVudC0+ZGV2LCBzaXplb2Yoc3RydWN0IGVtYzIzMDVfZGF0YSksCisJ
-CQkgICAgR0ZQX0tFUk5FTCk7CisJaWYgKCFkYXRhKQorCQlyZXR1cm4gLUVOT01FTTsKKworCWky
-Y19zZXRfY2xpZW50ZGF0YShjbGllbnQsIGRhdGEpOworCW11dGV4X2luaXQoJmRhdGEtPmxvY2sp
-OworCisJZGV2X2luZm8oJmNsaWVudC0+ZGV2LCAiJXMgY2hpcCBmb3VuZFxuIiwgY2xpZW50LT5u
-YW1lKTsKKworCWRhdGEtPmF0dHJzLmF0dHJzID0gZW1jMjMwNV9hdHRyOworCWVyciA9IHN5c2Zz
-X2NyZWF0ZV9ncm91cCgmY2xpZW50LT5kZXYua29iaiwgJmRhdGEtPmF0dHJzKTsKKwlpZiAoZXJy
-KQorCQlyZXR1cm4gZXJyOworCisJZGF0YS0+aHdtb25fZGV2ID0gaHdtb25fZGV2aWNlX3JlZ2lz
-dGVyKCZjbGllbnQtPmRldik7CisJaWYgKElTX0VSUihkYXRhLT5od21vbl9kZXYpKSB7CisJCWVy
-ciA9IFBUUl9FUlIoZGF0YS0+aHdtb25fZGV2KTsKKwkJZ290byBleGl0X3JlbW92ZTsKKwl9CisK
-Kwlmb3IgKGkgPSAwOyBpIDwgNTsgaSsrKSB7CisJCS8qIHNldCBtaW5pbXVtIGRyaXZlIHRvIDIw
-JSAqLworCQlpMmNfc21idXNfd3JpdGVfYnl0ZV9kYXRhKGNsaWVudCwKKwkJCQkJICBFTUMyMzA1
-X1JFR19GQU5fTUlOX0RSSVZFKGkpLAorCQkJCQkgIDB4MzMpOworCX0KKworCXJldHVybiAwOwor
-CitleGl0X3JlbW92ZToKKwlzeXNmc19yZW1vdmVfZ3JvdXAoJmNsaWVudC0+ZGV2LmtvYmosICZk
-YXRhLT5hdHRycyk7CisJcmV0dXJuIGVycjsKK30KKworc3RhdGljIGludCBlbWMyMzA1X3JlbW92
-ZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KQoreworCXN0cnVjdCBlbWMyMzA1X2RhdGEgKmRh
-dGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKKworCWh3bW9uX2RldmljZV91bnJlZ2lz
-dGVyKGRhdGEtPmh3bW9uX2Rldik7CisJc3lzZnNfcmVtb3ZlX2dyb3VwKCZjbGllbnQtPmRldi5r
-b2JqLCAmZGF0YS0+YXR0cnMpOworCXJldHVybiAwOworfQorCittb2R1bGVfaTJjX2RyaXZlcihl
-bWMyMzA1X2RyaXZlcik7CisKK01PRFVMRV9BVVRIT1IoIkVkIFN3aWVyayA8ZXN3aWVya0BiaWdz
-d2l0Y2guY29tPiIpOworTU9EVUxFX0RFU0NSSVBUSU9OKCJTTVNDIEVNQzIzMDUgZmFuIGNvbnRy
-b2xsZXIgZHJpdmVyIik7CitNT0RVTEVfTElDRU5TRSgiR1BMIik7Cg==
---20cf307ca524f0fc7d04dfabf8f1
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---20cf307ca524f0fc7d04dfabf8f1--
