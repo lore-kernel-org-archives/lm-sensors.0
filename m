@@ -1,55 +1,240 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 05 Jun 2013 11:45:30 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: mc13783-adc: Refactor source to indicate various mc13xxx chips
-Message-Id: <20130605134530.12e8b7c2@endymion.delvare>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 24 Jun 2013 19:30:31 +0000
+Subject: [lm-sensors] [PATCH 26/32] hwmon: delete __cpuinit usage from all hwmon files
+Message-Id: <1372102237-8757-27-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1370422628-1073-1-git-send-email-shc_work@mail.ru>
- <1370423952.906453652@f168.mail.ru>
- <20130605125308.36ba40ab@endymion.delvare>
- <1370430879.384973987@f91.mail.ru>
-In-Reply-To: <1370430879.384973987@f91.mail.ru>
+References: <1372102237-8757-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1372102237-8757-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Fenghua Yu <fenghua.yu@intel.com>, lm-sensors@lm-sensors.org
 
-On Wed, 05 Jun 2013 15:14:39 +0400, Alexander Shiyan wrote:
-> > Let's look at it from another angle. What problem are you trying to
-> > solve? I see absolutely no problem with the current function and file
-> > names. Almost all Linux kernel drivers support more chips than their
-> > name says.
-> > 
-> > On the other hand, changing all function names makes backporting fixes
-> > harder, and changing Kconfig symbol names makes upgrading to the new
-> > kernel version harder for everyone.
-> > 
-> > So the cost of your proposal far outweighs the benefits.
-> 
-> Well, let's leave the kconfig symbol as is. But about the rest, that mc13783_*
-> symbols in the log (debug) will say a developer who does not know about
-> mc13892 compatibility with mc13783? I still believe that this should be reflected.
+The __cpuinit type of throwaway sections might have made sense
+some time ago when RAM was more constrained, but now the savings
+do not offset the cost and complications.  For example, the fix in
+commit 5e427ec2d0 ("x86: Fix bit corruption at CPU resume time")
+is a good example of the nasty type of bugs that can be created
+with improper use of the various __init prefixes.
 
-You're splitting hairs here. mc13783_* symbols in the log mean this
-comes from a driver named mc13783, period. A developer drawing
-conclusions beyond that needs to be educated. Which device the driver
-is driving can be retried from the log itself, or from sysfs. Or the
-hardware board datasheet. "mc13xxx" would tell no more, BTW.
+After a discussion on LKML[1] it was decided that cpuinit should go
+the way of devinit and be phased out.  Once all the users are gone,
+we can then finally remove the macros themselves from linux/init.h.
 
-Also note that the name mc13xxx is wrong as well, as the mc13xxx-i2c
-and mc13xxx-spi drivers handle the MC34708 chip too. So you'd have to
-name all these drivers and functions mcxxxxx* to cover all the
-supported chip. Which makes no sense at all, because so many x's are
-confusing, and because the mask then matches many devices the drivers
-do _not_ handle.
+This removes all the drivers/hwmon uses of the __cpuinit macros
+from all C files.
 
-So please forget about this and move on to something else. There are
-many many code cleanups and improvements, and bug fixes, all way more
-important than this. So I'm sure you can find better ways to spend your
-time, and mine.
+[1] https://lkml.org/lkml/2013/5/20/589
 
-Thanks,
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: lm-sensors@lm-sensors.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+
+[This commit is part of the __cpuinit removal work.  If you don't see
+ any problems with it, then you don't have to do anything ; it will be
+ submitted with all the rest of the __cpuinit removal work.  On the
+ other hand, if you want to carry this patch in with your other pending
+ changes so as to handle conflicts with other pending work yourself, then
+ that is fine too, as the commits can largely be treated independently.
+ For more information, please see: https://lkml.org/lkml/2013/6/20/513 ]
+
+ drivers/hwmon/coretemp.c    | 39 ++++++++++++++++++---------------------
+ drivers/hwmon/via-cputemp.c |  8 ++++----
+ 2 files changed, 22 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index ade35cf..2e5e2dc 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -195,7 +195,7 @@ struct tjmax {
+ 	int tjmax;
+ };
+ 
+-static const struct tjmax __cpuinitconst tjmax_table[] = {
++static const struct tjmax tjmax_table[] = {
+ 	{ "CPU  230", 100000 },		/* Model 0x1c, stepping 2	*/
+ 	{ "CPU  330", 125000 },		/* Model 0x1c, stepping 2	*/
+ 	{ "CPU CE4110", 110000 },	/* Model 0x1c, stepping 10 Sodaville */
+@@ -211,7 +211,7 @@ struct tjmax_model {
+ 
+ #define ANY 0xff
+ 
+-static const struct tjmax_model __cpuinitconst tjmax_model_table[] = {
++static const struct tjmax_model tjmax_model_table[] = {
+ 	{ 0x1c, 10, 100000 },	/* D4xx, K4xx, N4xx, D5xx, K5xx, N5xx */
+ 	{ 0x1c, ANY, 90000 },	/* Z5xx, N2xx, possibly others
+ 				 * Note: Also matches 230 and 330,
+@@ -226,8 +226,7 @@ static const struct tjmax_model __cpuinitconst tjmax_model_table[] = {
+ 	{ 0x36, ANY, 100000 },	/* Atom Cedar Trail/Cedarview (N2xxx, D2xxx) */
+ };
+ 
+-static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
+-				  struct device *dev)
++static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+ {
+ 	/* The 100C is default for both mobile and non mobile CPUs */
+ 
+@@ -317,8 +316,7 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
+ 	return tjmax;
+ }
+ 
+-static int __cpuinit get_tjmax(struct cpuinfo_x86 *c, u32 id,
+-			       struct device *dev)
++static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+ {
+ 	int err;
+ 	u32 eax, edx;
+@@ -367,8 +365,8 @@ static int create_name_attr(struct platform_data *pdata,
+ 	return device_create_file(dev, &pdata->name_attr);
+ }
+ 
+-static int __cpuinit create_core_attrs(struct temp_data *tdata,
+-				       struct device *dev, int attr_no)
++static int create_core_attrs(struct temp_data *tdata, struct device *dev,
++			     int attr_no)
+ {
+ 	int err, i;
+ 	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
+@@ -401,7 +399,7 @@ exit_free:
+ }
+ 
+ 
+-static int __cpuinit chk_ucode_version(unsigned int cpu)
++static int chk_ucode_version(unsigned int cpu)
+ {
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+@@ -417,7 +415,7 @@ static int __cpuinit chk_ucode_version(unsigned int cpu)
+ 	return 0;
+ }
+ 
+-static struct platform_device __cpuinit *coretemp_get_pdev(unsigned int cpu)
++static struct platform_device *coretemp_get_pdev(unsigned int cpu)
+ {
+ 	u16 phys_proc_id = TO_PHYS_ID(cpu);
+ 	struct pdev_entry *p;
+@@ -434,8 +432,7 @@ static struct platform_device __cpuinit *coretemp_get_pdev(unsigned int cpu)
+ 	return NULL;
+ }
+ 
+-static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
+-						  int pkg_flag)
++static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
+ {
+ 	struct temp_data *tdata;
+ 
+@@ -453,8 +450,8 @@ static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
+ 	return tdata;
+ }
+ 
+-static int __cpuinit create_core_data(struct platform_device *pdev,
+-				unsigned int cpu, int pkg_flag)
++static int create_core_data(struct platform_device *pdev, unsigned int cpu,
++			    int pkg_flag)
+ {
+ 	struct temp_data *tdata;
+ 	struct platform_data *pdata = platform_get_drvdata(pdev);
+@@ -524,7 +521,7 @@ exit_free:
+ 	return err;
+ }
+ 
+-static void __cpuinit coretemp_add_core(unsigned int cpu, int pkg_flag)
++static void coretemp_add_core(unsigned int cpu, int pkg_flag)
+ {
+ 	struct platform_device *pdev = coretemp_get_pdev(cpu);
+ 	int err;
+@@ -607,7 +604,7 @@ static struct platform_driver coretemp_driver = {
+ 	.remove = coretemp_remove,
+ };
+ 
+-static int __cpuinit coretemp_device_add(unsigned int cpu)
++static int coretemp_device_add(unsigned int cpu)
+ {
+ 	int err;
+ 	struct platform_device *pdev;
+@@ -651,7 +648,7 @@ exit:
+ 	return err;
+ }
+ 
+-static void __cpuinit coretemp_device_remove(unsigned int cpu)
++static void coretemp_device_remove(unsigned int cpu)
+ {
+ 	struct pdev_entry *p, *n;
+ 	u16 phys_proc_id = TO_PHYS_ID(cpu);
+@@ -667,7 +664,7 @@ static void __cpuinit coretemp_device_remove(unsigned int cpu)
+ 	mutex_unlock(&pdev_list_mutex);
+ }
+ 
+-static bool __cpuinit is_any_core_online(struct platform_data *pdata)
++static bool is_any_core_online(struct platform_data *pdata)
+ {
+ 	int i;
+ 
+@@ -681,7 +678,7 @@ static bool __cpuinit is_any_core_online(struct platform_data *pdata)
+ 	return false;
+ }
+ 
+-static void __cpuinit get_core_online(unsigned int cpu)
++static void get_core_online(unsigned int cpu)
+ {
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	struct platform_device *pdev = coretemp_get_pdev(cpu);
+@@ -723,7 +720,7 @@ static void __cpuinit get_core_online(unsigned int cpu)
+ 	coretemp_add_core(cpu, 0);
+ }
+ 
+-static void __cpuinit put_core_offline(unsigned int cpu)
++static void put_core_offline(unsigned int cpu)
+ {
+ 	int i, indx;
+ 	struct platform_data *pdata;
+@@ -771,7 +768,7 @@ static void __cpuinit put_core_offline(unsigned int cpu)
+ 		coretemp_device_remove(cpu);
+ }
+ 
+-static int __cpuinit coretemp_cpu_callback(struct notifier_block *nfb,
++static int coretemp_cpu_callback(struct notifier_block *nfb,
+ 				 unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long) hcpu;
+diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
+index 76f157b..38944e9 100644
+--- a/drivers/hwmon/via-cputemp.c
++++ b/drivers/hwmon/via-cputemp.c
+@@ -221,7 +221,7 @@ struct pdev_entry {
+ static LIST_HEAD(pdev_list);
+ static DEFINE_MUTEX(pdev_list_mutex);
+ 
+-static int __cpuinit via_cputemp_device_add(unsigned int cpu)
++static int via_cputemp_device_add(unsigned int cpu)
+ {
+ 	int err;
+ 	struct platform_device *pdev;
+@@ -262,7 +262,7 @@ exit:
+ 	return err;
+ }
+ 
+-static void __cpuinit via_cputemp_device_remove(unsigned int cpu)
++static void via_cputemp_device_remove(unsigned int cpu)
+ {
+ 	struct pdev_entry *p;
+ 
+@@ -279,8 +279,8 @@ static void __cpuinit via_cputemp_device_remove(unsigned int cpu)
+ 	mutex_unlock(&pdev_list_mutex);
+ }
+ 
+-static int __cpuinit via_cputemp_cpu_callback(struct notifier_block *nfb,
+-				 unsigned long action, void *hcpu)
++static int via_cputemp_cpu_callback(struct notifier_block *nfb,
++				    unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long) hcpu;
+ 
 -- 
-Jean Delvare
+1.8.1.2
+
 
 _______________________________________________
 lm-sensors mailing list
