@@ -1,47 +1,52 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Date: Wed, 26 Jun 2013 08:51:13 +0000
-Subject: [lm-sensors] [PATCH 4/4] arm: mxs: Add mxs internal temp sensor to cfa-10036
-Message-Id: <1372236673-20725-5-git-send-email-alexandre.belloni@free-electrons.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 24 Jun 2013 17:23:29 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (nct6775) Drop unsupported fan alarm attributes for NCT6775
+Message-Id: <1372094609-8620-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
-In-Reply-To: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Shawn Guo <shawn.guo@linaro.org>, Jean Delvare <khali@linux-fr.org>
-Cc: jimwall@q.com, brian@crystalfontz.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Guenter Roeck <linux@roeck-us.net>, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
+To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+NCT6775 does not support alarms for fans 4 and 5. Drop the attributes.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- arch/arm/boot/dts/imx28-cfa10036.dts | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/hwmon/nct6775.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx28-cfa10036.dts b/arch/arm/boot/dts/imx28-cfa10036.dts
-index 802e0e9..5afb945 100644
---- a/arch/arm/boot/dts/imx28-cfa10036.dts
-+++ b/arch/arm/boot/dts/imx28-cfa10036.dts
-@@ -95,7 +95,7 @@
- 				status = "okay";
- 			};
- 
--			lradc@80050000 {
-+			lradc: lradc@80050000 {
- 				status = "okay";
- 			};
- 		};
-@@ -121,4 +121,10 @@
- 			default-state = "on";
- 		};
- 	};
-+
-+	temp {
-+		compatible = "fsl,mxs-internal-temp";
-+		io-channels = <&lradc 8>, <&lradc 9>;
-+		io-channel-names = "min", "max";
-+	};
- };
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 2405ab4..99cec18 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -199,7 +199,7 @@ static const s8 NCT6775_ALARM_BITS[] = {
+ 	0, 1, 2, 3, 8, 21, 20, 16,	/* in0.. in7 */
+ 	17, -1, -1, -1, -1, -1, -1,	/* in8..in14 */
+ 	-1,				/* unused */
+-	6, 7, 11, 10, 23,		/* fan1..fan5 */
++	6, 7, 11, -1, -1,		/* fan1..fan5 */
+ 	-1, -1, -1,			/* unused */
+ 	4, 5, 13, -1, -1, -1,		/* temp1..temp6 */
+ 	12, -1 };			/* intrusion0, intrusion1 */
+@@ -3877,10 +3877,12 @@ static int nct6775_probe(struct platform_device *pdev)
+ 						 &sda_fan_input[i].dev_attr);
+ 			if (err)
+ 				goto exit_remove;
+-			err = device_create_file(dev,
+-						 &sda_fan_alarm[i].dev_attr);
+-			if (err)
+-				goto exit_remove;
++			if (data->ALARM_BITS[FAN_ALARM_BASE + i] >= 0) {
++				err = device_create_file(dev,
++						&sda_fan_alarm[i].dev_attr);
++				if (err)
++					goto exit_remove;
++			}
+ 			if (data->kind != nct6776 &&
+ 			    data->kind != nct6779) {
+ 				err = device_create_file(dev,
 -- 
-1.8.1.2
+1.7.9.7
 
 
 _______________________________________________
