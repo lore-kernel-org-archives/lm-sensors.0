@@ -1,8 +1,10 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 25 Jun 2013 17:09:31 +0000
+Date: Tue, 25 Jun 2013 17:11:08 +0000
 Subject: [lm-sensors] [PATCH 1/2] hwmon: (nct6775) Add support for beep attributes
-Message-Id: <1372180172-3159-1-git-send-email-linux@roeck-us.net>
+Message-Id: <1372180269-3213-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1372180172-3159-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1372180172-3159-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
