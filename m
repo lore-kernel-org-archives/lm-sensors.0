@@ -1,56 +1,50 @@
-From: "Eike Bastiansson" <e.bastiansson@web.de>
-Date: Wed, 05 Jun 2013 12:29:48 +0000
-Subject: [lm-sensors] Configuration contribution: Supermicro X7SPE-HF-D525 and similar
-Message-Id: <trinity-d18e9866-130d-4f00-b062-47a2a050d770-1370435388453@3capp-webde-bs26>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Date: Wed, 26 Jun 2013 08:51:13 +0000
+Subject: [lm-sensors] [PATCH 4/4] arm: mxs: Add mxs internal temp sensor to cfa-10036
+Message-Id: <1372236673-20725-5-git-send-email-alexandre.belloni@free-electrons.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
+In-Reply-To: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Shawn Guo <shawn.guo@linaro.org>, Jean Delvare <khali@linux-fr.org>
+Cc: jimwall@q.com, brian@crystalfontz.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Guenter Roeck <linux@roeck-us.net>, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-SGksCsKgCmkgd2FudCB0byBjb250cmlidXRlIG15IGNvbmZpZ3VyYXRpb24gZm9yIHRoZSBTdXBl
-cm1pY3JvIFg3U1BFLUhGLUQ1MjUgTWFpbmJvcmQuIChJIGhhdmUgbm8gd2lraSBhY2NvdW50LCBz
-byBpIGNhbid0IGFkZCBpdCB0aGVyZSBteXNlbGYuKQrCoApUaGlzIGNvbmZpZ3VyYXRpb24gc2hv
-dWxkIHdvcmsgd2l0aDoKWDdTUEEtSC1ENTI1Clg3U1BBLUhGLUQ1MjUKWDdTUEUtSC1ENTI1Clg3
-U1BFLUhGLUQ1MjUKwqAKVGhhbmtzIGEgbG90IGZvciBwcm92aWRpbmcgbG1fc2Vuc29ycyBhbmQg
-a2VlcCB1cCB0aGUgZ29vZCB3b3JrIQrCoApSZWdhcmRzLArCoApFaWtlCsKgCioqKioqIHN0YXJ0
-IHNlbnNvcnMzLmNvbmYgKioqKioKIwojIFNlbnNvcnMgY29uZmlndXJhdGlvbgojCiMgU1VJVEFC
-TEUgRk9SOgojIFN1cGVybWljcm/CriBYN1NQQS1ILUQ1MjUKIyBTdXBlcm1pY3Jvwq4gWDdTUEEt
-SEYtRDUyNQojIFN1cGVybWljcm/CriBYN1NQRS1ILUQ1MjUKIyBTdXBlcm1pY3Jvwq4gWDdTUEUt
-SEYtRDUyNQojCiMgQVRURU5USU9OOiBPbiBYN1NQQS1IRi1ENTI1IGFuZCBYN1NQRS1IRi1ENTI1
-IE1vZGVscywKIyB0aGUgQmFzZWJvYXJkIE1hbmFnZW1lbnQgQ29udHJvbGxlciAoQk1DKSBoYXMg
-dG8gYmUKIyBkZWFjdGl2YXRlZCBieSBqdW1wZXIgaW4gb3JkZXIgdG8gYXZvaWQgY29uY3VycmVu
-dAojIGFjY2VzcyB0byB0aGUgdzgzNjI3ZGhnIHNlbnNvcnMgY2hpcCEgKFBsZWFzZSBSZWZlcgoj
-IHRvIHlvdXIgbWFpbmJvYXJkIG1hbnVhbCwgdG8gbG9jYXRlIHRoZSBCTUMganVtcGVyKQojCiMg
-RGVmYXVsdCB2b2x0YWdlIHJhbmdlOiArLy0gMTAlCiMgQmF0dGVyeSB2b2x0YWdlIHJhbmdlOiAr
-Ly0gMjAlCiMgVGVtcGVyYXR1cmUgaHlzdGVyZXNpcyB0aHJlc2hvbGQ6IDXCsEMgYmVsb3cgbWF4
-CiMKCiMgV2luYm9uZCBXODM2MjdESEcgU3VwZXIgSU8gU2Vuc29ycwpjaGlwICJ3ODM2MjdkaGct
-KiIKCglsYWJlbCBpbjAgIkNQVSBWY29yZSIKCQkjIEludGVswq4gQXRvbeKEoiBwcm9jZXNzb3Ig
-RDUyNSBTcGVjaWZpY2F0aW9ucyAoaHR0cDovL2Fyay5pbnRlbC5jb20vcHJvZHVjdHMvNDk0OTAp
-CgkJc2V0IGluMF9taW4gIDAuOAoJCXNldCBpbjBfbWF4ICAxLjE3NQoJbGFiZWwgaW4xICJWaWNo
-Y29yZSIKCQlzZXQgaW4xX21pbiAgMS4wNSAqIDAuOTAKCQlzZXQgaW4xX21heCAgMS4wNSAqIDEu
-MTAKCWxhYmVsIGluMiAiQVZDQyIKCQlzZXQgaW4yX21pbiAgMy4zICogMC45MAoJCXNldCBpbjJf
-bWF4ICAzLjMgKiAxLjEwCglsYWJlbCBpbjMgIiszLjNWQ0MiCgkJc2V0IGluM19taW4gMy4zICog
-MC45MAoJCXNldCBpbjNfbWF4IDMuMyAqIDEuMTAKCWxhYmVsIGluNCAiVkRJTU0iCgkJc2V0IGlu
-NF9taW4gMS41ICogMC45MAoJCXNldCBpbjRfbWF4IDEuNSAqIDEuMTAKCWxhYmVsIGluNSAiKzVW
-IgoJCWNvbXB1dGUgaW41IEAqKDMyLzgpLCBALygzMi84KQoJCXNldCBpbjVfbWluIDUgKiAwLjkw
-CgkJc2V0IGluNV9tYXggNSAqIDEuMTAKCWxhYmVsIGluNiAiKzEyViIKCQljb21wdXRlIGluNiBA
-Kig1My84KSxALyg1My84KQoJCXNldCBpbjZfbWluIDEyICogMC45MAoJCXNldCBpbjZfbWF4IDEy
-ICogMS4xMAoJbGFiZWwgaW43ICIrMy4zVlNCIgoJCXNldCBpbjdfbWluIDMuMyAqIDAuOTAKCQlz
-ZXQgaW43X21heCAzLjMgKiAxLjEwCglsYWJlbCBpbjggIlZCQVQiCgkJc2V0IGluOF9taW4gMyAq
-IDAuODAKCQlzZXQgaW44X21heCAzICogMS4yMAoKCWlnbm9yZSBmYW4xCglsYWJlbCBmYW4yICJD
-YXNlIEZhbiIKCWlnbm9yZSBmYW4zCglsYWJlbCBmYW40ICJQU1UgRmFuIgoJaWdub3JlIGZhbjUK
-CglsYWJlbCB0ZW1wMSAiU3lzdGVtIFRlbXAiCgkJIyBJbnRlbMKuIElDSDkgVGhlcm1hbCBTcGVj
-aWZpY2F0aW9ucyAoaHR0cDovL3d3dy5pbnRlbC5jb20vY29udGVudC9kYW0vZG9jL2Rlc2lnbi1n
-dWlkZS9pby1jb250cm9sbGVyLWh1Yi05LWZhbWlseS1ndWlkZWxpbmVzLnBkZikKCQlzZXQgdGVt
-cDFfbWF4IDk2CgkJc2V0IHRlbXAxX21heF9oeXN0IDkxCglsYWJlbCB0ZW1wMiAiQ1BVIFRlbXAi
-CgkJIyBJbnRlbMKuIEF0b23ihKIgcHJvY2Vzc29yIEQ1MjUgU3BlY2lmaWNhdGlvbnMgKGh0dHA6
-Ly9hcmsuaW50ZWwuY29tL3Byb2R1Y3RzLzQ5NDkwKQoJCXNldCB0ZW1wMl9tYXggMTAwCgkJc2V0
-IHRlbXAyX21heF9oeXN0IDk1CglsYWJlbCB0ZW1wMyAiQ2FzZSBUZW1wIgoJCSMgU3VwZXJtaWNy
-b8KuIFg3U1BFLUhGLUQ1MjUgRW52aXJvbm1lbnRhbCBTcGVjaWZpY2F0aW9ucyAoaHR0cDovL3d3
-dy5zdXBlcm1pY3JvLmNvbS9wcm9kdWN0cy9tb3RoZXJib2FyZC9hdG9tL2ljaDkveDdzcGUtaGYt
-ZDUyNS5jZm0pCgkJc2V0IHRlbXAzX21heCA1NQoJCXNldCB0ZW1wM19tYXhfaHlzdCA1MAoKCWln
-bm9yZSBjcHUwX3ZpZAoJaWdub3JlIGludHJ1c2lvbjAKKioqKiogZW5kIHNlbnNvcnMzLmNvbmYg
-KioqKioKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
-LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
-c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+---
+ arch/arm/boot/dts/imx28-cfa10036.dts | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/imx28-cfa10036.dts b/arch/arm/boot/dts/imx28-cfa10036.dts
+index 802e0e9..5afb945 100644
+--- a/arch/arm/boot/dts/imx28-cfa10036.dts
++++ b/arch/arm/boot/dts/imx28-cfa10036.dts
+@@ -95,7 +95,7 @@
+ 				status = "okay";
+ 			};
+ 
+-			lradc@80050000 {
++			lradc: lradc@80050000 {
+ 				status = "okay";
+ 			};
+ 		};
+@@ -121,4 +121,10 @@
+ 			default-state = "on";
+ 		};
+ 	};
++
++	temp {
++		compatible = "fsl,mxs-internal-temp";
++		io-channels = <&lradc 8>, <&lradc 9>;
++		io-channel-names = "min", "max";
++	};
+ };
+-- 
+1.8.1.2
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
