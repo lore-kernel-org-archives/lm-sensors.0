@@ -1,253 +1,95 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 24 Jun 2013 20:11:44 +0000
-Subject: Re: [lm-sensors] [PATCH 26/32] hwmon: delete __cpuinit usage from all hwmon files
-Message-Id: <20130624201144.GA13922@roeck-us.net>
+From: "Joe" <joexinshang@gmail.com>
+Date: Wed, 26 Jun 2013 20:31:42 +0000
+Subject: Re: [lm-sensors] About The Led light
+Message-Id: <20130627043155187834@mail003.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8313139628596731004=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1372102237-8757-1-git-send-email-paul.gortmaker@windriver.com>
- <1372102237-8757-27-git-send-email-paul.gortmaker@windriver.com>
-In-Reply-To: <1372102237-8757-27-git-send-email-paul.gortmaker@windriver.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+
+--===============8313139628596731004==
+Content-Type: multipart/alternative;
+	boundary="=====003_Dragon318872742510_====="
+
+This is a multi-part message in MIME format.
+
+--=====003_Dragon318872742510_=====
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+
+RGVhciBNYW5hZ2VyLA0KDQpIb3BlIHlvdSBhbGwgZmluZSENCg0KR2xhZCB0byBsZWFybiB5b3Ug
+b24gdGhlIG1hcmtldCBvZiBsZWQgbGlnaHQuV2Ugc3BlY2lhbGl6ZSBpbiB0aGlzIGZpZWxkLHdp
+dGggdGhlIHN0cmVuZ2ggb2YgbGVkICx3aGljaCBhcmUgZ29vZCBxdWFsaXR5IHdpdGggY29tcGV0
+aXRpdmUgcHJpY2UuDQoNCk91ciBtYWluIHByb2R1Y3RzIGNvdmVyIGxlZCBsaWdodCxsZWQgdHVi
+ZSxsZWQgYnVsYiBhbmQgc28gb24uDQoNCklmIGFueSBwcm9kdWN0IG1lZXQgeW91ciBkZW1lbmQs
+cGxzIGZlZWwgZnJlZSB0byBjb250YWN0IHVzLkNhdGFsb2cgJiBGcmVlIHNhbXBsZSBjYW4gYmUg
+b2ZmZXJlZCBpZiBwcmljZSBjb250ZW50Lg0KDQpXZSdyZSBzdXJlIHlvdXIgYW55IGlucXVpcnkg
+b3IgcmVxdWlyZW1lbnQgd2lsbCBnZXQgcHJvbXB0IGF0dGVudGlvbi4NCg0KQmVzdCBSZWdhcmRz
+DQpKb2U=
+
+--=====003_Dragon318872742510_=====
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXV0
+Zi04IiBodHRwLWVxdWl2PUNvbnRlbnQtVHlwZT4NCjxNRVRBIG5hbWU9R0VORVJBVE9SIGNvbnRl
+bnQ9Ik1TSFRNTCA4LjAwLjYwMDEuMTg3MDIiPjwvSEVBRD4NCjxCT0RZPjxGT05UIHNpemU9MiBm
+YWNlPUFyaWFsPg0KPERJVj48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyBmYWNlPUNhbGlicmk+
+PEZPTlQgY29sb3I9IzAwMDAwMCBzaXplPTMgDQpmYWNlPUNhbGlicmk+RGVhciBNYW5hZ2VyLDwv
+Rk9OVD48L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIGZhY2U9
+Q2FsaWJyaT48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyANCmZhY2U9Q2FsaWJyaT48L0ZPTlQ+
+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyBmYWNl
+PUNhbGlicmk+PEZPTlQgY29sb3I9IzAwMDAwMCBzaXplPTMgDQpmYWNlPUNhbGlicmk+SG9wZSB5
+b3UgYWxsIGZpbmUhPC9GT05UPjwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgY29sb3I9IzAwMDAw
+MCBzaXplPTMgZmFjZT1DYWxpYnJpPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIA0KZmFjZT1D
+YWxpYnJpPjwvRk9OVD48L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSMwMDAw
+MDAgc2l6ZT0zIGZhY2U9Q2FsaWJyaT48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyANCmZhY2U9
+Q2FsaWJyaT5HbGFkIHRvIGxlYXJuIHlvdSBvbiB0aGUgbWFya2V0IG9mIGxlZCBsaWdodC5XZSBz
+cGVjaWFsaXplIGluIHRoaXMgDQpmaWVsZCx3aXRoIHRoZSBzdHJlbmdoIG9mIGxlZCAsd2hpY2gg
+YXJlIGdvb2QgcXVhbGl0eSB3aXRoIGNvbXBldGl0aXZlIA0KcHJpY2UuPC9GT05UPjwvRk9OVD48
+L0RJVj4NCjxESVY+PEZPTlQgc2l6ZT0zIGZhY2U9Q2FsaWJyaT48L0ZPTlQ+Jm5ic3A7PC9ESVY+
+DQo8RElWPjxGT05UIHNpemU9MyBmYWNlPUNhbGlicmk+PC9GT05UPjxGT05UIGNvbG9yPSMwMDAw
+MDAgc2l6ZT0zIA0KZmFjZT1DYWxpYnJpPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIGZhY2U9
+Q2FsaWJyaT5PdXIgbWFpbiBwcm9kdWN0cyBjb3ZlciBsZWQgDQpsaWdodCxsZWQgdHViZSxsZWQg
+YnVsYiA8L0ZPTlQ+PC9GT05UPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIA0KZmFjZT1DYWxp
+YnJpPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIGZhY2U9Q2FsaWJyaT5hbmQgc28gDQpvbi48
+L0ZPTlQ+PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyBmYWNl
+PUNhbGlicmk+PEZPTlQgY29sb3I9IzAwMDAwMCBzaXplPTMgDQpmYWNlPUNhbGlicmk+PC9GT05U
+PjwvRk9OVD4mbmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgY29sb3I9IzAwMDAwMCBzaXplPTMgZmFj
+ZT1DYWxpYnJpPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIA0KZmFjZT1DYWxpYnJpPklmIGFu
+eSBwcm9kdWN0IG1lZXQgeW91ciBkZW1lbmQscGxzIGZlZWwgZnJlZSB0byBjb250YWN0IHVzLkNh
+dGFsb2cgDQomYW1wOyBGcmVlIHNhbXBsZSBjYW4gYmUgb2ZmZXJlZCBpZiBwcmljZSBjb250ZW50
+LjwvRk9OVD48L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIGNvbG9yPSMwMDAwMDAgc2l6ZT0zIGZh
+Y2U9Q2FsaWJyaT48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyANCmZhY2U9Q2FsaWJyaT48L0ZP
+TlQ+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jMDAwMDAwIHNpemU9MyBm
+YWNlPUNhbGlicmk+PEZPTlQgY29sb3I9IzAwMDAwMCBzaXplPTMgDQpmYWNlPUNhbGlicmk+V2Un
+cmUgc3VyZSB5b3VyIGFueSBpbnF1aXJ5IG9yIHJlcXVpcmVtZW50IHdpbGwgZ2V0IHByb21wdCAN
+CmF0dGVudGlvbi48L0ZPTlQ+PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBjb2xvcj0jMDAwMDAw
+IHNpemU9MyBmYWNlPUNhbGlicmk+PEZPTlQgY29sb3I9IzAwMDAwMCBzaXplPTMgDQpmYWNlPUNh
+bGlicmk+Jm5ic3A7PC9ESVY+DQo8RElWPg0KPERJVj4NCjxESVY+QmVzdCZuYnNwO1JlZ2FyZHM8
+L0RJVj4NCjxESVY+Sm9lPC9GT05UPjwvRk9OVD48QlI+PEJSPjwvRElWPjwvRElWPjwvRElWPjwv
+Rk9OVD48L0JPRFk+PC9IVE1MPg0K
+
+--=====003_Dragon318872742510_=====--
+
+
+
+
+--===============8313139628596731004==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Fenghua Yu <fenghua.yu@intel.com>
-
-On Mon, Jun 24, 2013 at 03:30:31PM -0400, Paul Gortmaker wrote:
-> The __cpuinit type of throwaway sections might have made sense
-> some time ago when RAM was more constrained, but now the savings
-> do not offset the cost and complications.  For example, the fix in
-> commit 5e427ec2d0 ("x86: Fix bit corruption at CPU resume time")
-> is a good example of the nasty type of bugs that can be created
-> with improper use of the various __init prefixes.
-> 
-> After a discussion on LKML[1] it was decided that cpuinit should go
-> the way of devinit and be phased out.  Once all the users are gone,
-> we can then finally remove the macros themselves from linux/init.h.
-> 
-> This removes all the drivers/hwmon uses of the __cpuinit macros
-> from all C files.
-> 
-> [1] https://lkml.org/lkml/2013/5/20/589
-> 
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: lm-sensors@lm-sensors.org
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-
-> ---
-> 
-> [This commit is part of the __cpuinit removal work.  If you don't see
->  any problems with it, then you don't have to do anything ; it will be
->  submitted with all the rest of the __cpuinit removal work.  On the
->  other hand, if you want to carry this patch in with your other pending
->  changes so as to handle conflicts with other pending work yourself, then
->  that is fine too, as the commits can largely be treated independently.
->  For more information, please see: https://lkml.org/lkml/2013/6/20/513 ]
-> 
->  drivers/hwmon/coretemp.c    | 39 ++++++++++++++++++---------------------
->  drivers/hwmon/via-cputemp.c |  8 ++++----
->  2 files changed, 22 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> index ade35cf..2e5e2dc 100644
-> --- a/drivers/hwmon/coretemp.c
-> +++ b/drivers/hwmon/coretemp.c
-> @@ -195,7 +195,7 @@ struct tjmax {
->  	int tjmax;
->  };
->  
-> -static const struct tjmax __cpuinitconst tjmax_table[] = {
-> +static const struct tjmax tjmax_table[] = {
->  	{ "CPU  230", 100000 },		/* Model 0x1c, stepping 2	*/
->  	{ "CPU  330", 125000 },		/* Model 0x1c, stepping 2	*/
->  	{ "CPU CE4110", 110000 },	/* Model 0x1c, stepping 10 Sodaville */
-> @@ -211,7 +211,7 @@ struct tjmax_model {
->  
->  #define ANY 0xff
->  
-> -static const struct tjmax_model __cpuinitconst tjmax_model_table[] = {
-> +static const struct tjmax_model tjmax_model_table[] = {
->  	{ 0x1c, 10, 100000 },	/* D4xx, K4xx, N4xx, D5xx, K5xx, N5xx */
->  	{ 0x1c, ANY, 90000 },	/* Z5xx, N2xx, possibly others
->  				 * Note: Also matches 230 and 330,
-> @@ -226,8 +226,7 @@ static const struct tjmax_model __cpuinitconst tjmax_model_table[] = {
->  	{ 0x36, ANY, 100000 },	/* Atom Cedar Trail/Cedarview (N2xxx, D2xxx) */
->  };
->  
-> -static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
-> -				  struct device *dev)
-> +static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
->  {
->  	/* The 100C is default for both mobile and non mobile CPUs */
->  
-> @@ -317,8 +316,7 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
->  	return tjmax;
->  }
->  
-> -static int __cpuinit get_tjmax(struct cpuinfo_x86 *c, u32 id,
-> -			       struct device *dev)
-> +static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
->  {
->  	int err;
->  	u32 eax, edx;
-> @@ -367,8 +365,8 @@ static int create_name_attr(struct platform_data *pdata,
->  	return device_create_file(dev, &pdata->name_attr);
->  }
->  
-> -static int __cpuinit create_core_attrs(struct temp_data *tdata,
-> -				       struct device *dev, int attr_no)
-> +static int create_core_attrs(struct temp_data *tdata, struct device *dev,
-> +			     int attr_no)
->  {
->  	int err, i;
->  	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
-> @@ -401,7 +399,7 @@ exit_free:
->  }
->  
->  
-> -static int __cpuinit chk_ucode_version(unsigned int cpu)
-> +static int chk_ucode_version(unsigned int cpu)
->  {
->  	struct cpuinfo_x86 *c = &cpu_data(cpu);
->  
-> @@ -417,7 +415,7 @@ static int __cpuinit chk_ucode_version(unsigned int cpu)
->  	return 0;
->  }
->  
-> -static struct platform_device __cpuinit *coretemp_get_pdev(unsigned int cpu)
-> +static struct platform_device *coretemp_get_pdev(unsigned int cpu)
->  {
->  	u16 phys_proc_id = TO_PHYS_ID(cpu);
->  	struct pdev_entry *p;
-> @@ -434,8 +432,7 @@ static struct platform_device __cpuinit *coretemp_get_pdev(unsigned int cpu)
->  	return NULL;
->  }
->  
-> -static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
-> -						  int pkg_flag)
-> +static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
->  {
->  	struct temp_data *tdata;
->  
-> @@ -453,8 +450,8 @@ static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
->  	return tdata;
->  }
->  
-> -static int __cpuinit create_core_data(struct platform_device *pdev,
-> -				unsigned int cpu, int pkg_flag)
-> +static int create_core_data(struct platform_device *pdev, unsigned int cpu,
-> +			    int pkg_flag)
->  {
->  	struct temp_data *tdata;
->  	struct platform_data *pdata = platform_get_drvdata(pdev);
-> @@ -524,7 +521,7 @@ exit_free:
->  	return err;
->  }
->  
-> -static void __cpuinit coretemp_add_core(unsigned int cpu, int pkg_flag)
-> +static void coretemp_add_core(unsigned int cpu, int pkg_flag)
->  {
->  	struct platform_device *pdev = coretemp_get_pdev(cpu);
->  	int err;
-> @@ -607,7 +604,7 @@ static struct platform_driver coretemp_driver = {
->  	.remove = coretemp_remove,
->  };
->  
-> -static int __cpuinit coretemp_device_add(unsigned int cpu)
-> +static int coretemp_device_add(unsigned int cpu)
->  {
->  	int err;
->  	struct platform_device *pdev;
-> @@ -651,7 +648,7 @@ exit:
->  	return err;
->  }
->  
-> -static void __cpuinit coretemp_device_remove(unsigned int cpu)
-> +static void coretemp_device_remove(unsigned int cpu)
->  {
->  	struct pdev_entry *p, *n;
->  	u16 phys_proc_id = TO_PHYS_ID(cpu);
-> @@ -667,7 +664,7 @@ static void __cpuinit coretemp_device_remove(unsigned int cpu)
->  	mutex_unlock(&pdev_list_mutex);
->  }
->  
-> -static bool __cpuinit is_any_core_online(struct platform_data *pdata)
-> +static bool is_any_core_online(struct platform_data *pdata)
->  {
->  	int i;
->  
-> @@ -681,7 +678,7 @@ static bool __cpuinit is_any_core_online(struct platform_data *pdata)
->  	return false;
->  }
->  
-> -static void __cpuinit get_core_online(unsigned int cpu)
-> +static void get_core_online(unsigned int cpu)
->  {
->  	struct cpuinfo_x86 *c = &cpu_data(cpu);
->  	struct platform_device *pdev = coretemp_get_pdev(cpu);
-> @@ -723,7 +720,7 @@ static void __cpuinit get_core_online(unsigned int cpu)
->  	coretemp_add_core(cpu, 0);
->  }
->  
-> -static void __cpuinit put_core_offline(unsigned int cpu)
-> +static void put_core_offline(unsigned int cpu)
->  {
->  	int i, indx;
->  	struct platform_data *pdata;
-> @@ -771,7 +768,7 @@ static void __cpuinit put_core_offline(unsigned int cpu)
->  		coretemp_device_remove(cpu);
->  }
->  
-> -static int __cpuinit coretemp_cpu_callback(struct notifier_block *nfb,
-> +static int coretemp_cpu_callback(struct notifier_block *nfb,
->  				 unsigned long action, void *hcpu)
->  {
->  	unsigned int cpu = (unsigned long) hcpu;
-> diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
-> index 76f157b..38944e9 100644
-> --- a/drivers/hwmon/via-cputemp.c
-> +++ b/drivers/hwmon/via-cputemp.c
-> @@ -221,7 +221,7 @@ struct pdev_entry {
->  static LIST_HEAD(pdev_list);
->  static DEFINE_MUTEX(pdev_list_mutex);
->  
-> -static int __cpuinit via_cputemp_device_add(unsigned int cpu)
-> +static int via_cputemp_device_add(unsigned int cpu)
->  {
->  	int err;
->  	struct platform_device *pdev;
-> @@ -262,7 +262,7 @@ exit:
->  	return err;
->  }
->  
-> -static void __cpuinit via_cputemp_device_remove(unsigned int cpu)
-> +static void via_cputemp_device_remove(unsigned int cpu)
->  {
->  	struct pdev_entry *p;
->  
-> @@ -279,8 +279,8 @@ static void __cpuinit via_cputemp_device_remove(unsigned int cpu)
->  	mutex_unlock(&pdev_list_mutex);
->  }
->  
-> -static int __cpuinit via_cputemp_cpu_callback(struct notifier_block *nfb,
-> -				 unsigned long action, void *hcpu)
-> +static int via_cputemp_cpu_callback(struct notifier_block *nfb,
-> +				    unsigned long action, void *hcpu)
->  {
->  	unsigned int cpu = (unsigned long) hcpu;
->  
-> -- 
-> 1.8.1.2
-> 
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8313139628596731004==--
+
+
