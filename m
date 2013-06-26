@@ -1,83 +1,146 @@
-From: arno@natisbad.org (Arnaud Ebalard)
-Date: Sun, 23 Jun 2013 18:07:08 +0000
-Subject: Re: [lm-sensors] [PATCHv8 1/1] Add support for GMT G762/G763 PWM fan controllers
-Message-Id: <87r4fsem5v.fsf@natisbad.org>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Date: Wed, 26 Jun 2013 08:51:12 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: Add a simple driver to read the MXS SoC temperature
+Message-Id: <1372236673-20725-4-git-send-email-alexandre.belloni@free-electrons.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87a9mkttxr.fsf@natisbad.org>
-	<20130623153931.GD7626@kw.sim.vm.gnt>
-	<20130623160659.GB17536@roeck-us.net>
-In-Reply-To: <20130623160659.GB17536@roeck-us.net> (Guenter Roeck's message of
-	"Sun, 23 Jun 2013 09:06:59 -0700")
+References: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
+In-Reply-To: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Simon Guinot <simon.guinot@sequanux.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Olivier Mouchet <olivier.mouchet@gmail.com>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Jean Delvare <khali@linux-fr.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Shawn Guo <shawn.guo@linaro.org>, Jean Delvare <khali@linux-fr.org>
+Cc: jimwall@q.com, brian@crystalfontz.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Guenter Roeck <linux@roeck-us.net>, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-Hi,
-
-Guenter Roeck <linux@roeck-us.net> writes:
-
-> On Sun, Jun 23, 2013 at 05:39:32PM +0200, Simon Guinot wrote:
->> On Thu, Jun 20, 2013 at 10:21:04PM +0200, Arnaud Ebalard wrote:
->> > 
->> > GMT G762/763 fan speed PWM controller is connected directly to a fan
->> > and performs closed-loop or open-loop control of the fan speed. Two
->> > modes - PWM or DC - are supported by the chip. Introduced driver
->> > provides various knobs to control the operations of the chip (via
->> > sysfs interface). Specific characteristics of the system can be passed
->> > either using board init code or via DT. Documentation for both the
->> > driver and DT bindings are also provided.
->> > 
->> > Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
->> > ---
->> > Hi Guenter,
->> > 
->> > I guess we can wait for Simon's tests against its 5Big Network to check
->> > everything is ok on another platform. Note that I also tested the patch
->> > on my (Armada 370 based) ReadyNAS 102 and it works as expected.
->> > 
->> > To be very accurate, I had to revert eda6bee6c7 to get both an out of
->> > tree driver for ISL 12057 chip and the g762 work *on the 102*, but this
->> > is an unrelated story (Debian bug #622325 [1] has more on the topic) for
->> > which I will create a separate thread. Simon, the symptom you reported
->> > for your read failures are different from those I get so I don't think
->> > the revert will fix your problem but it may be worth trying it.
->> > 
->> > [1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bugb2325
->> 
->> Hi Arnaud and Guenter,
->> 
->> Actually, reverting the commit eda6bee6c7 seems to solve the -ENODEV
->> issue...
->> 
-> Did you let the i2c maintainers know ?
-
-As I wrote, I will create a separate thread on the topic. It is good to
-have another unrelated example for which the problem is solved by
-reverting this commit. I will keep both of you in the CC: list if you
-want to follow the discussion.
-
-
->> Then, I have been able to test successfully the g762 driver against the
->> following boards:
->> 
->> - 2Big NAS (open-loop mode)
->> - 2Big Network v2 (open-loop mode)
->> - 5Big Network v2 (closed-loop mode)
->> 
->> For the last, I have also been able to configure the clock frequency
->> through the platform_data structure.
->> 
->> Tested-by: Simon Guinot <simon.guinot@sequanux.org>
-
-Thanks for your time and efforts, Simon.
-
-Cheers,
-
-a+
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIGxvdyByZXNvbHV0aW9uIEFEQyBvZiB0aGUgbXhzIGlzIGFibGUgdG8gcmVhZCBhbiBpbnRl
+cm5hbCB0ZW1wZXJhdHVyZQpzZW5zb3IsIGV4cG9zZSB0aGF0IHVzaW5nIGh3bW9uLgoKU2lnbmVk
+LW9mZi1ieTogQWxleGFuZHJlIEJlbGxvbmkgPGFsZXhhbmRyZS5iZWxsb25pQGZyZWUtZWxlY3Ry
+b25zLmNvbT4KLS0tCiAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy9od21vbi9teHMtY3B1dGVtcC50
+eHQgICAgICB8ICAxOCArKysKIERvY3VtZW50YXRpb24vaHdtb24vbXhzLWNwdXRlbXAgICAgICAg
+ICAgICAgICAgICAgIHwgIDI5ICsrKysrCiBkcml2ZXJzL2h3bW9uL0tjb25maWcgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICB8ICAxMCArKwogZHJpdmVycy9od21vbi9NYWtlZmlsZSAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDEgKwogZHJpdmVycy9od21vbi9teHMtY3B1dGVt
+cC5jICAgICAgICAgICAgICAgICAgICAgICAgfCAxMzIgKysrKysrKysrKysrKysrKysrKysrCiA1
+IGZpbGVzIGNoYW5nZWQsIDE5MCBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2h3bW9uL214cy1jcHV0ZW1wLnR4dAogY3Jl
+YXRlIG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vaHdtb24vbXhzLWNwdXRlbXAKIGNyZWF0ZSBt
+b2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL214cy1jcHV0ZW1wLmMKCmRpZmYgLS1naXQgYS9Eb2N1
+bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvaHdtb24vbXhzLWNwdXRlbXAudHh0IGIvRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2h3bW9uL214cy1jcHV0ZW1wLnR4dApuZXcg
+ZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi43ZDNhZTQ3Ci0tLSAvZGV2L251bGwKKysr
+IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2h3bW9uL214cy1jcHV0ZW1wLnR4
+dApAQCAtMCwwICsxLDE4IEBACitteHMgY3B1dGVtcCBod21vbiBzZW5zb3JzCistLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tCisKK1NlZTogRG9jdW1lbnRhdGlvbi9od21vbi9teHMtY3B1dGVtcAor
+CitSZXF1aXJlZCBwcm9wZXJ0aWVzOgorLSBjb21wYXRpYmxlOiBzaG91bGQgYmUgImZzbCxteHMt
+aW50ZXJuYWwtdGVtcCIKKy0gaW8tY2hhbm5lbHM6IHNob3VsZCBsaXN0IHRoZSB0d28gYWRjIGNo
+YW5uZWxzIG5lZWRlZCB0byBjYWxjdWxhdGUgdGhlCisJICAgICAgIHRlbXBlcmF0dXJlCistIGlv
+LWNoYW5uZWwtbmFtZXM6IHNob3VsZCBtYXAgdGhlIHByZXZpb3VzbHkgbGlzdGVkIGFkYyBjaGFu
+bmVscyB0byB0aGUgIm1pbiIKKwkJICAgIGFuZCAibWF4IiB2YWx1ZQorCitFeGFtcGxlOgorCXRl
+bXAgeworCQljb21wYXRpYmxlID0gImZzbCxteHMtaW50ZXJuYWwtdGVtcCI7CisJCWlvLWNoYW5u
+ZWxzID0gPCZscmFkYyA4PiwgPCZscmFkYyA5PjsKKwkJaW8tY2hhbm5lbC1uYW1lcyA9ICJtaW4i
+LCAibWF4IjsKKwl9OwpkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9od21vbi9teHMtY3B1dGVt
+cCBiL0RvY3VtZW50YXRpb24vaHdtb24vbXhzLWNwdXRlbXAKbmV3IGZpbGUgbW9kZSAxMDA2NDQK
+aW5kZXggMDAwMDAwMC4uNmM2MjAxZgotLS0gL2Rldi9udWxsCisrKyBiL0RvY3VtZW50YXRpb24v
+aHdtb24vbXhzLWNwdXRlbXAKQEAgLTAsMCArMSwyOSBAQAorS2VybmVsIGRyaXZlciBteHMtY3B1
+dGVtcAorPT09PT09PT09PT09PT09PT09PT09PT09PQorCitTdXBwb3J0ZWQgY2hpcHM6CisgICog
+RnJlZXNjYWxlIGkubXgyOAorICAgIERhdGFzaGVldDogaS5NWDI4IEFwcGxpY2F0aW9ucyBQcm9j
+ZXNzb3IgUmVmZXJlbmNlIE1hbnVhbCwgUmV2LiAxLCAyMDEwCisgICAgCSAgICAgICBodHRwOi8v
+Y2FjaGUuZnJlZXNjYWxlLmNvbS9maWxlcy9kc3AvZG9jL3JlZl9tYW51YWwvTUNJTVgyOFJNLnBk
+ZgorCitBdXRob3I6IEFsZXhhbmRyZSBCZWxsb25pCisKK0Rlc2NyaXB0aW9uCistLS0tLS0tLS0t
+LQorVGhpcyBkcml2ZXIgcGVybWl0cyByZWFkaW5nIHRoZSBpbnRlcm5hbCBkaWUgdGVtcGVyYXR1
+cmUgc2Vuc29yIGVtYmVkZGVkIGluc2lkZQorRnJlZXNjYWxlIGkubXgyOCBTb0NzLiBUaGlzIHNl
+bnNvciBpcyByZWFkIHRocm91Z2ggdHdvIGNoYW5uZWxzIG9mIHRoZSBvbiBjaGlwCitMb3ctUmVz
+b2x1dGlvbiBBREMuIEFmdGVyIGNhbGN1bGF0aW9uLCB0aGUgdGhyZWUtc2lnbWEgZXJyb3Igb2Yg
+dGhlIHRlbXBlcmF0dXJlCitzZW5zb3Igc2hvdWxkIGJlIHdpdGhpbiDCsSAxLjUlIGluIGRlZ3Jl
+ZXMgS2VsdmluLiBBZGRpdGlvbmFsbHksIHRoZSB0ZW1wZXJhdHVyZQorc2FtcGxpbmcgaGFzIGEg
+dGhyZWUtc2lnbWEgc2FtcGxlLXRvLXNhbXBsZSB2YXJpYXRpb24gb2YgMiBkZWdyZWVzIEtlbHZp
+bi4gSWYKK2Rlc2lyZWQsIHRoaXMgZXJyb3IgY2FuIGJlIHJlbW92ZWQgYnkgb3ZlcnNhbXBsaW5n
+IGFuZCBhdmVyYWdpbmcgdGhlIHRlbXBlcmF0dXJlCityZXN1bHQuCisKK1RoZSBmb3JtdWxhIGlz
+OgorCShDaGFubmVsOSDigJMgQ2hhbm5lbDgpICogR2Fpbl9jb3JyZWN0aW9uLzQKKworQXMgcmVj
+b21tZW5kZWQgYnkgdGhlIGRhdGFzaGVldCwgR2Fpbl9jb3JyZWN0aW9uIGlzIGVxdWFsIHRvIDEu
+MDEyLgorCitzeXNmcyBlbnRyaWVzCistLS0tLS0tLS0tLS0tCit0ZW1wMV9pbnB1dAlNZWFzdXJl
+ZCBhbmQgY29ycmVjdGVkIHRlbXBlcmF0dXJlIGluIG1pbGxpZGVncmVlcyBDZWxzaXVzCisKZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vS2NvbmZpZyBiL2RyaXZlcnMvaHdtb24vS2NvbmZpZwpp
+bmRleCAwNDI4ZThhLi4yZGFmNzk0IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL0tjb25maWcK
+KysrIGIvZHJpdmVycy9od21vbi9LY29uZmlnCkBAIC05MjksNiArOTI5LDE2IEBAIGNvbmZpZyBT
+RU5TT1JTX01DUDMwMjEKIAkgIFRoaXMgZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEgbW9k
+dWxlLiAgSWYgc28sIHRoZSBtb2R1bGUKIAkgIHdpbGwgYmUgY2FsbGVkIG1jcDMwMjEuCiAKK2Nv
+bmZpZyBTRU5TT1JTX01YU19DUFUKKwl0cmlzdGF0ZSAiTVhTIGludGVybmFsIENQVSB0ZW1wZXJh
+dHVyZSBzZW5zb3IiCisJZGVwZW5kcyBvbiBNWFNfTFJBREMKKwloZWxwCisJICBJZiB5b3Ugc2F5
+IHllcyBoZXJlIHlvdSBnZXQgc3VwcG9ydCBmb3IgdGhlIGkubXgyOCBpbnRlcm5hbAorCSAgdGVt
+cGVyYXR1cmUgc2Vuc29yLgorCisJICBUaGlzIGRyaXZlciBjYW4gYWxzbyBiZSBidWlsdCBhcyBh
+IG1vZHVsZS4gIElmIHNvLCB0aGUgbW9kdWxlCisJICB3aWxsIGJlIGNhbGxlZCBteHMtY3B1dGVt
+cAorCiBjb25maWcgU0VOU09SU19OQ1Q2Nzc1CiAJdHJpc3RhdGUgIk51dm90b24gTkNUNjc3NUYg
+YW5kIGNvbXBhdGlibGVzIgogCWRlcGVuZHMgb24gIVBQQwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9o
+d21vbi9NYWtlZmlsZSBiL2RyaXZlcnMvaHdtb24vTWFrZWZpbGUKaW5kZXggZDE3ZDNlNi4uMzY2
+YzkyZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9NYWtlZmlsZQorKysgYi9kcml2ZXJzL2h3
+bW9uL01ha2VmaWxlCkBAIC0xMDgsNiArMTA4LDcgQEAgb2JqLSQoQ09ORklHX1NFTlNPUlNfTUFY
+NjY1MCkJKz0gbWF4NjY1MC5vCiBvYmotJChDT05GSUdfU0VOU09SU19NQVg2Njk3KQkrPSBtYXg2
+Njk3Lm8KIG9iai0kKENPTkZJR19TRU5TT1JTX01DMTM3ODNfQURDKSs9IG1jMTM3ODMtYWRjLm8K
+IG9iai0kKENPTkZJR19TRU5TT1JTX01DUDMwMjEpCSs9IG1jcDMwMjEubworb2JqLSQoQ09ORklH
+X1NFTlNPUlNfTVhTX0NQVSkJKz0gbXhzLWNwdXRlbXAubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
+TkNUNjc3NSkJKz0gbmN0Njc3NS5vCiBvYmotJChDT05GSUdfU0VOU09SU19OVENfVEhFUk1JU1RP
+UikJKz0gbnRjX3RoZXJtaXN0b3Iubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfUEM4NzM2MCkJKz0g
+cGM4NzM2MC5vCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL214cy1jcHV0ZW1wLmMgYi9kcml2
+ZXJzL2h3bW9uL214cy1jcHV0ZW1wLmMKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAw
+MC4uYTMxMmZiNQotLS0gL2Rldi9udWxsCisrKyBiL2RyaXZlcnMvaHdtb24vbXhzLWNwdXRlbXAu
+YwpAQCAtMCwwICsxLDEzMiBAQAorLyoKKyAqIERyaXZlciBmb3IgdGhlIG14cyBpbnRlcm5hbCB0
+ZW1wZXJhdHVyZSBzZW5zb3IKKyAqCisgKiBDb3B5cmlnaHQgMjAxMyBGcmVlIEVsZWN0cm9ucwor
+ICoKKyAqIExpY2Vuc2VkIHVuZGVyIHRoZSBHUEx2MiBvciBsYXRlci4KKyAqLworCisjZGVmaW5l
+IERSVk5BTUUgIm14cy1od21vbiIKKworI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPgorI2luY2x1
+ZGUgPGxpbnV4L2Vyci5oPgorI2luY2x1ZGUgPGxpbnV4L2h3bW9uLmg+CisjaW5jbHVkZSA8bGlu
+dXgvaHdtb24tc3lzZnMuaD4KKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KKyNpbmNsdWRlIDxs
+aW51eC9vZi5oPgorI2luY2x1ZGUgPGxpbnV4L29mX2RldmljZS5oPgorI2luY2x1ZGUgPGxpbnV4
+L3BsYXRmb3JtX2RldmljZS5oPgorI2luY2x1ZGUgPGxpbnV4L2lpby9jb25zdW1lci5oPgorCisj
+ZGVmaW5lIEdBSU5fQ09SUkVDVElPTiAxMDEyCisKKy8qIFRoZSB2YWx1ZSB3ZSBjYWxjdWxhdGUg
+ZnJvbSB0aGUgQURDcyBpcyBpbiBLZWx2aW5zLCBkb24ndCBmb3JnZXQgdG8gY29udmVydAorICog
+aXQgdG8gQ2Vsc2l1cyAqLworI2RlZmluZSBWQUxVRVNfVE9fTUlMTElDKG1pbiwgbWF4KSAoKG1h
+eCAtIG1pbikgKiBHQUlOX0NPUlJFQ1RJT04gLyA0IC0gMjcyMTUwKQorCitzdHJ1Y3QgbXhzX2h3
+bW9uX2RhdGEgeworCXN0cnVjdCBkZXZpY2UgKmh3bW9uX2RldjsKKwlzdHJ1Y3QgaWlvX2NoYW5u
+ZWwgKmNoYW5fbWluOworCXN0cnVjdCBpaW9fY2hhbm5lbCAqY2hhbl9tYXg7Cit9OworCitzdGF0
+aWMgaW50IG14c19od21vbl9zaG93X3RlbXAoc3RydWN0IGRldmljZSAqZGV2LAorCQkJICAgICAg
+IHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpCit7CisJaW50IGVyciwg
+dmFsX21pbiwgdmFsX21heDsKKworCXN0cnVjdCBteHNfaHdtb25fZGF0YSAqZGF0YSA9IGRldl9n
+ZXRfZHJ2ZGF0YShkZXYpOworCisJZXJyID0gaWlvX3JlYWRfY2hhbm5lbF9yYXcoZGF0YS0+Y2hh
+bl9taW4sICZ2YWxfbWluKTsKKwlpZiAoZXJyIDwgMCkKKwkJcmV0dXJuIGVycjsKKworCWVyciA9
+IGlpb19yZWFkX2NoYW5uZWxfcmF3KGRhdGEtPmNoYW5fbWF4LCAmdmFsX21heCk7CisJaWYgKGVy
+ciA8IDApCisJCXJldHVybiBlcnI7CisKKwlyZXR1cm4gc3ByaW50ZihidWYsICIldVxuIiwgVkFM
+VUVTX1RPX01JTExJQyh2YWxfbWluLCB2YWxfbWF4KSk7Cit9CisKK3N0YXRpYyBERVZJQ0VfQVRU
+Uih0ZW1wMV9pbnB1dCwgU19JUlVHTywgbXhzX2h3bW9uX3Nob3dfdGVtcCwgTlVMTCk7CisKK3N0
+YXRpYyBpbnQgbXhzX2h3bW9uX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCit7
+CisJaW50IGVycjsKKwlzdHJ1Y3QgbXhzX2h3bW9uX2RhdGEgKmRhdGE7CisKKwlkYXRhID0gZGV2
+bV9remFsbG9jKCZwZGV2LT5kZXYsIHNpemVvZigqZGF0YSksIEdGUF9LRVJORUwpOworCWlmICgh
+ZGF0YSkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlwbGF0Zm9ybV9zZXRfZHJ2ZGF0YShwZGV2LCBk
+YXRhKTsKKworCWVyciA9IGRldmljZV9jcmVhdGVfZmlsZSgmcGRldi0+ZGV2LCAmZGV2X2F0dHJf
+dGVtcDFfaW5wdXQpOworCWlmIChlcnIpCisJCXJldHVybiBlcnI7CisKKwlkYXRhLT5jaGFuX21p
+biA9IGlpb19jaGFubmVsX2dldCgmcGRldi0+ZGV2LCAibWluIik7CisJaWYgKElTX0VSUihkYXRh
+LT5jaGFuX21pbikpIHsKKwkJZXJyID0gUFRSX0VSUihkYXRhLT5jaGFuX21pbik7CisJCWdvdG8g
+ZXJyb3JfY2hhbl9taW47CisJfQorCisJZGF0YS0+Y2hhbl9tYXggPSBpaW9fY2hhbm5lbF9nZXQo
+JnBkZXYtPmRldiwgIm1heCIpOworCWlmIChJU19FUlIoZGF0YS0+Y2hhbl9tYXgpKSB7CisJCWVy
+ciA9IFBUUl9FUlIoZGF0YS0+Y2hhbl9tYXgpOworCQlnb3RvIGVycm9yX2NoYW5fbWF4OworCX0K
+KworCWRhdGEtPmh3bW9uX2RldiA9IGh3bW9uX2RldmljZV9yZWdpc3RlcigmcGRldi0+ZGV2KTsK
+KwlpZiAoSVNfRVJSKGRhdGEtPmh3bW9uX2RldikpIHsKKwkJZXJyID0gUFRSX0VSUihkYXRhLT5o
+d21vbl9kZXYpOworCQlnb3RvIGVycm9yX2h3bW9uOworCX0KKworCXJldHVybiAwOworCitlcnJv
+cl9od21vbjoKKwlpaW9fY2hhbm5lbF9yZWxlYXNlKGRhdGEtPmNoYW5fbWF4KTsKK2Vycm9yX2No
+YW5fbWF4OgorCWlpb19jaGFubmVsX3JlbGVhc2UoZGF0YS0+Y2hhbl9taW4pOworZXJyb3JfY2hh
+bl9taW46CisJZGV2aWNlX3JlbW92ZV9maWxlKCZwZGV2LT5kZXYsICZkZXZfYXR0cl90ZW1wMV9p
+bnB1dCk7CisKKwlyZXR1cm4gZXJyOworfQorCitzdGF0aWMgaW50IG14c19od21vbl9yZW1vdmUo
+c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKK3sKKwlzdHJ1Y3QgbXhzX2h3bW9uX2RhdGEg
+KmRhdGEgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKKworCWlpb19jaGFubmVsX3JlbGVh
+c2UoZGF0YS0+Y2hhbl9taW4pOworCWlpb19jaGFubmVsX3JlbGVhc2UoZGF0YS0+Y2hhbl9tYXgp
+OworCWh3bW9uX2RldmljZV91bnJlZ2lzdGVyKGRhdGEtPmh3bW9uX2Rldik7CisKKwlkZXZpY2Vf
+cmVtb3ZlX2ZpbGUoJnBkZXYtPmRldiwgJmRldl9hdHRyX3RlbXAxX2lucHV0KTsKKworCXJldHVy
+biAwOworfQorCitzdGF0aWMgc3RydWN0IG9mX2RldmljZV9pZCBteHNfaHdtb25fb2ZfbWF0Y2hb
+XSA9IHsKKwl7IC5jb21wYXRpYmxlID0gImZzbCxteHMtaW50ZXJuYWwtdGVtcCIsIH0sCisJe30K
+K307CitNT0RVTEVfREVWSUNFX1RBQkxFKG9mLCBteHNfaHdtb25fb2ZfbWF0Y2gpOworCitzdGF0
+aWMgc3RydWN0IHBsYXRmb3JtX2RyaXZlciBteHNfaHdtb25fZHJpdmVyID0geworCS5wcm9iZSA9
+IG14c19od21vbl9wcm9iZSwKKwkucmVtb3ZlID0gbXhzX2h3bW9uX3JlbW92ZSwKKwkuZHJpdmVy
+CT0geworCQkubmFtZSA9IERSVk5BTUUsCisJCS5vd25lciA9IFRISVNfTU9EVUxFLAorCQkub2Zf
+bWF0Y2hfdGFibGUgPSBteHNfaHdtb25fb2ZfbWF0Y2gsCisJfSwKK307CisKK21vZHVsZV9wbGF0
+Zm9ybV9kcml2ZXIobXhzX2h3bW9uX2RyaXZlcik7CisKK01PRFVMRV9BVVRIT1IoIkFsZXhhbmRy
+ZSBCZWxsb25pIDxhbGV4YW5kcmUuYmVsbG9uaUBmcmVlLWVsZWN0cm9ucy5jb20+Iik7CitNT0RV
+TEVfREVTQ1JJUFRJT04oIkZyZWVzY2FsZSBpLk1YMjggaHdtb24gc2Vuc29yIGRyaXZlciIpOwor
+TU9EVUxFX0xJQ0VOU0UoIkdQTCB2MiIpOworTU9EVUxFX0FMSUFTKCJwbGF0Zm9ybTpteHMtaHdt
+b24iKTsKLS0gCjEuOC4xLjIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMu
+b3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNv
+cnM
