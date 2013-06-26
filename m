@@ -1,187 +1,66 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 24 Jun 2013 17:23:28 +0000
-Subject: [lm-sensors] [PATCH v2 1/2] hwmon: (nct6775) Fix temperature alarm attributes
-Message-Id: <1372094609-8620-1-git-send-email-linux@roeck-us.net>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Date: Wed, 26 Jun 2013 08:51:11 +0000
+Subject: [lm-sensors] [PATCH 2/4] arm: mxs: add lradc to cfa10036
+Message-Id: <1372236673-20725-3-git-send-email-alexandre.belloni@free-electrons.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
+In-Reply-To: <1372236673-20725-1-git-send-email-alexandre.belloni@free-electrons.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Shawn Guo <shawn.guo@linaro.org>, Jean Delvare <khali@linux-fr.org>
+Cc: jimwall@q.com, brian@crystalfontz.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Guenter Roeck <linux@roeck-us.net>, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-Driver displays wrong alarms for temperature attributes.
+The lradc is actually available on the Crystalfontz cfa-10036.
 
-Turns out that temperature alarm bits are not fixed, but determined
-by temperature source mapping. To fix the problem, walk through
-the temperature sources to determine the correct alarm bit associated
-with a given attribute.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 ---
-v2: Only create temperature alarm attributes if alarms are supported for a
-    given temperature.
-    Number of temperature alarms is either 2 (NCT6779) or 3 (other chips).
-    Introduce function to determine temperature source for a given alarim.
-    The limit is passed as parameter, since we'll use the same function later
-    for temperature beeps.
+ arch/arm/boot/dts/imx28-cfa10036.dts | 4 ++++
+ arch/arm/boot/dts/imx28-cfa10049.dts | 1 -
+ arch/arm/boot/dts/imx28-cfa10055.dts | 1 -
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
- drivers/hwmon/nct6775.c |   80 +++++++++++++++++++++++++++++++++--------------
- 1 file changed, 57 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 04638ae..2405ab4 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -625,6 +625,7 @@ struct nct6775_data {
- 	u8 has_fan_min;		/* some fans don't have min register */
- 	bool has_fan_div;
- 
-+	u8 num_temp_alarms;	/* 2 or 3 */
- 	u8 temp_fixed_num;	/* 3 or 6 */
- 	u8 temp_type[NUM_TEMP_FIXED];
- 	s8 temp_offset[NUM_TEMP_FIXED];
-@@ -1193,6 +1194,42 @@ show_alarm(struct device *dev, struct device_attribute *attr, char *buf)
- 		       (unsigned int)((data->alarms >> nr) & 0x01));
- }
- 
-+static int find_temp_source(struct nct6775_data *data, int index, int count)
-+{
-+	int source = data->temp_src[index];
-+	int nr;
+diff --git a/arch/arm/boot/dts/imx28-cfa10036.dts b/arch/arm/boot/dts/imx28-cfa10036.dts
+index 5e5213f..802e0e9 100644
+--- a/arch/arm/boot/dts/imx28-cfa10036.dts
++++ b/arch/arm/boot/dts/imx28-cfa10036.dts
+@@ -94,6 +94,10 @@
+ 			usbphy0: usbphy@8007c000 {
+ 				status = "okay";
+ 			};
 +
-+	for (nr = 0; nr < count; nr++) {
-+		int src;
-+
-+		src = nct6775_read_value(data,
-+					 data->REG_TEMP_SOURCE[nr]) & 0x1f;
-+		if (src = source)
-+			return nr;
-+	}
-+	return -1;
-+}
-+
-+static ssize_t
-+show_temp_alarm(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
-+	struct nct6775_data *data = nct6775_update_device(dev);
-+	unsigned int alarm = 0;
-+	int nr;
-+
-+	/*
-+	 * For temperatures, there is no fixed mapping from registers to alarm
-+	 * bits. Alarm bits are determined by the temperature source mapping.
-+	 */
-+	nr = find_temp_source(data, sattr->index, data->num_temp_alarms);
-+	if (nr >= 0) {
-+		int bit = data->ALARM_BITS[nr + TEMP_ALARM_BASE];
-+		alarm = (data->alarms >> bit) & 0x01;
-+	}
-+	return sprintf(buf, "%u\n", alarm);
-+}
-+
- static SENSOR_DEVICE_ATTR_2(in0_input, S_IRUGO, show_in_reg, NULL, 0, 0);
- static SENSOR_DEVICE_ATTR_2(in1_input, S_IRUGO, show_in_reg, NULL, 1, 0);
- static SENSOR_DEVICE_ATTR_2(in2_input, S_IRUGO, show_in_reg, NULL, 2, 0);
-@@ -1874,22 +1911,18 @@ static struct sensor_device_attribute sda_temp_type[] = {
- };
++			lradc@80050000 {
++				status = "okay";
++			};
+ 		};
+ 	};
  
- static struct sensor_device_attribute sda_temp_alarm[] = {
--	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL,
--		    TEMP_ALARM_BASE),
--	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL,
--		    TEMP_ALARM_BASE + 1),
--	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL,
--		    TEMP_ALARM_BASE + 2),
--	SENSOR_ATTR(temp4_alarm, S_IRUGO, show_alarm, NULL,
--		    TEMP_ALARM_BASE + 3),
--	SENSOR_ATTR(temp5_alarm, S_IRUGO, show_alarm, NULL,
--		    TEMP_ALARM_BASE + 4),
--	SENSOR_ATTR(temp6_alarm, S_IRUGO, show_alarm, NULL,
--		    TEMP_ALARM_BASE + 5),
-+	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_temp_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_temp_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_temp_alarm, NULL, 2),
-+	SENSOR_ATTR(temp4_alarm, S_IRUGO, show_temp_alarm, NULL, 3),
-+	SENSOR_ATTR(temp5_alarm, S_IRUGO, show_temp_alarm, NULL, 4),
-+	SENSOR_ATTR(temp6_alarm, S_IRUGO, show_temp_alarm, NULL, 5),
-+	SENSOR_ATTR(temp7_alarm, S_IRUGO, show_temp_alarm, NULL, 6),
-+	SENSOR_ATTR(temp8_alarm, S_IRUGO, show_temp_alarm, NULL, 7),
-+	SENSOR_ATTR(temp9_alarm, S_IRUGO, show_temp_alarm, NULL, 8),
-+	SENSOR_ATTR(temp10_alarm, S_IRUGO, show_temp_alarm, NULL, 9),
- };
+diff --git a/arch/arm/boot/dts/imx28-cfa10049.dts b/arch/arm/boot/dts/imx28-cfa10049.dts
+index c26676b..4d3c0a6 100644
+--- a/arch/arm/boot/dts/imx28-cfa10049.dts
++++ b/arch/arm/boot/dts/imx28-cfa10049.dts
+@@ -215,7 +215,6 @@
+ 			};
  
--#define NUM_TEMP_ALARM	ARRAY_SIZE(sda_temp_alarm)
--
- static ssize_t
- show_pwm_mode(struct device *dev, struct device_attribute *attr, char *buf)
- {
-@@ -3215,13 +3248,11 @@ static void nct6775_device_remove_files(struct device *dev)
- 		device_remove_file(dev, &sda_temp_max[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_max_hyst[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_crit[i].dev_attr);
-+		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
- 		if (!(data->have_temp_fixed & (1 << i)))
- 			continue;
- 		device_remove_file(dev, &sda_temp_type[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_offset[i].dev_attr);
--		if (i >= NUM_TEMP_ALARM)
--			continue;
--		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
- 	}
+ 			lradc@80050000 {
+-				status = "okay";
+ 				fsl,lradc-touchscreen-wires = <4>;
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/imx28-cfa10055.dts b/arch/arm/boot/dts/imx28-cfa10055.dts
+index 1581112..e0de1aa 100644
+--- a/arch/arm/boot/dts/imx28-cfa10055.dts
++++ b/arch/arm/boot/dts/imx28-cfa10055.dts
+@@ -136,7 +136,6 @@
+ 		apbx@80040000 {
+ 			lradc@80050000 {
+ 				fsl,lradc-touchscreen-wires = <4>;
+-				status = "okay";
+ 			};
  
- 	device_remove_file(dev, &sda_caseopen[0].dev_attr);
-@@ -3419,6 +3450,7 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->auto_pwm_num = 6;
- 		data->has_fan_div = true;
- 		data->temp_fixed_num = 3;
-+		data->num_temp_alarms = 3;
- 
- 		data->ALARM_BITS = NCT6775_ALARM_BITS;
- 
-@@ -3483,6 +3515,7 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->auto_pwm_num = 4;
- 		data->has_fan_div = false;
- 		data->temp_fixed_num = 3;
-+		data->num_temp_alarms = 3;
- 
- 		data->ALARM_BITS = NCT6776_ALARM_BITS;
- 
-@@ -3547,6 +3580,7 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->auto_pwm_num = 4;
- 		data->has_fan_div = false;
- 		data->temp_fixed_num = 6;
-+		data->num_temp_alarms = 2;
- 
- 		data->ALARM_BITS = NCT6779_ALARM_BITS;
- 
-@@ -3897,6 +3931,12 @@ static int nct6775_probe(struct platform_device *pdev)
- 			if (err)
- 				goto exit_remove;
- 		}
-+		if (find_temp_source(data, i, data->num_temp_alarms) >= 0) {
-+			err = device_create_file(dev,
-+						 &sda_temp_alarm[i].dev_attr);
-+			if (err)
-+				goto exit_remove;
-+		}
- 		if (!(data->have_temp_fixed & (1 << i)))
- 			continue;
- 		err = device_create_file(dev, &sda_temp_type[i].dev_attr);
-@@ -3905,12 +3945,6 @@ static int nct6775_probe(struct platform_device *pdev)
- 		err = device_create_file(dev, &sda_temp_offset[i].dev_attr);
- 		if (err)
- 			goto exit_remove;
--		if (i >= NUM_TEMP_ALARM ||
--		    data->ALARM_BITS[TEMP_ALARM_BASE + i] < 0)
--			continue;
--		err = device_create_file(dev, &sda_temp_alarm[i].dev_attr);
--		if (err)
--			goto exit_remove;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(sda_caseopen); i++) {
+ 			pwm: pwm@80064000 {
 -- 
-1.7.9.7
+1.8.1.2
 
 
 _______________________________________________
