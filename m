@@ -1,21 +1,23 @@
 From: "Joe" <joexinshang@gmail.com>
-Date: Wed, 26 Jun 2013 20:31:42 +0000
+Date: Fri, 28 Jun 2013 00:06:11 +0000
 Subject: Re: [lm-sensors] About The Led light
-Message-Id: <20130627043155187834@mail003.com>
+Message-Id: <20130628080623333332@mail003.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8313139628596731004=="
+Content-Type: multipart/mixed; boundary="===============7327006078159257630=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20130627043155187834@mail003.com>
+In-Reply-To: <20130627043155187834@mail003.com>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============8313139628596731004==
+--===============7327006078159257630==
 Content-Type: multipart/alternative;
-	boundary="=====003_Dragon318872742510_====="
+	boundary="=====003_Dragon014534773042_====="
 
 This is a multi-part message in MIME format.
 
---=====003_Dragon318872742510_=====
+--=====003_Dragon014534773042_=====
 Content-Type: text/plain;
 	charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -30,7 +32,7 @@ b2ZmZXJlZCBpZiBwcmljZSBjb250ZW50Lg0KDQpXZSdyZSBzdXJlIHlvdXIgYW55IGlucXVpcnkg
 b3IgcmVxdWlyZW1lbnQgd2lsbCBnZXQgcHJvbXB0IGF0dGVudGlvbi4NCg0KQmVzdCBSZWdhcmRz
 DQpKb2U=
 
---=====003_Dragon318872742510_=====
+--=====003_Dragon014534773042_=====
 Content-Type: text/html;
 	charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -75,12 +77,12 @@ bGlicmk+Jm5ic3A7PC9ESVY+DQo8RElWPg0KPERJVj4NCjxESVY+QmVzdCZuYnNwO1JlZ2FyZHM8
 L0RJVj4NCjxESVY+Sm9lPC9GT05UPjwvRk9OVD48QlI+PEJSPjwvRElWPjwvRElWPjwvRElWPjwv
 Rk9OVD48L0JPRFk+PC9IVE1MPg0K
 
---=====003_Dragon318872742510_=====--
+--=====003_Dragon014534773042_=====--
 
 
 
 
---===============8313139628596731004==
+--===============7327006078159257630==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -90,6 +92,6 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8313139628596731004==--
+--===============7327006078159257630==--
 
 
