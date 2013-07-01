@@ -1,51 +1,71 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Tue, 09 Jul 2013 08:58:51 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] ARM: dt: t30 cardhu: add dt entry for lm90
-Message-Id: <51DBD0CB.2000504@nvidia.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 01 Jul 2013 05:05:02 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6681D, NCT6682D, and NCT6683D
+Message-Id: <1372655102-8946-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1372928979-26938-1-git-send-email-wni@nvidia.com> <1372928979-26938-2-git-send-email-wni@nvidia.com> <51D70483.70203@wwwdotorg.org>	<51DA6BD4.1040300@nvidia.com> <20130708095024.041a6d57@endymion.delvare>	<51DA8805.50709@nvidia.com> <20130708131421.GB21638@roeck-us.net>	<20130709062112.GC17499@mithrandir> <51DBC058.2040904@nvidia.com> <20130709095525.5158a0a5@endymion.delvare>
-In-Reply-To: <20130709095525.5158a0a5-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+References: <20110217195640.GA20934@ericsson.com>
+In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alex Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 07/09/2013 03:55 PM, Jean Delvare wrote:
-> On Tue, 9 Jul 2013 15:48:40 +0800, Wei Ni wrote:
->> On 07/09/2013 02:21 PM, Thierry Reding wrote:
->>> It should work out of the box. As a matter of fact the same chip is used
->>> on Tamonten and the DTS files use "onnn,nct1008". That used to work. If
->>> it no longer does then that's a regression.
->>
->> I synced the linux-next from:
->> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
->> and use the tag v3.10-rc7, but in the lm90.c it doesn't have DT support,
->> such as "onnn,nct1008".
->> I googled it and found there has patch:
->> [PATCH] hwmon: (lm90) Add device tree support , which is in:
->> http://lists.lm-sensors.org/pipermail/lm-sensors/2013-February/038099.html
->> , but it didn't be merged into the linux-next.
-> 
-> It was not, because of the next reply in the same thread:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2013-February/038100.html
-> 
->> which git repository and branch should I use ?
-> 
-> It is supposed to just work. What doesn't work for you exactly?
-> 
+NCT6683D is found on recent Intel mainboards (eg DH87MC, DH87RL).
+NCT6681D is mentioned on the Nuvoton web site. NCT6682D is similar
+to NCT6681D with added support for current monitoring.
 
-Oh, yes, the "onnn,nct1008" can work. I read the i2c driver and the
-of_i2c.c carefully, I understand why the lm90 can be loaded by setting
-"onnn,nct1008". Indeed, we can set the vendor string to anything, even
-"xxx,nct1008", the lm90 also can be loaded correctly.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    |    1 +
+ prog/detect/sensors-detect |   14 ++++++++++++++
+ 2 files changed, 15 insertions(+)
 
-Anyway, I will use the "onnn,nct1008" in my next version.
-
-Thanks for your comments.
-Wei.
-
-
+diff --git a/CHANGES b/CHANGES
+index b264f41..59ea06a 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -7,6 +7,7 @@ SVN HEAD
+                   Use modules.builtin instead of /sys/module
+                   Handle built-in modules properly
+                   Add detection of NCT6791D
++                  Add detection of NCT6681D, NCT6682D, and NCT6683D
+ 
+ 3.3.4 (2013-05-27)
+   sensors.conf.5: Mention "sensors -u" to get the raw feature names
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index 9c213b6..14c092a 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -2031,6 +2031,13 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		logdev => 0x0b,
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
++		name => "Nuvoton NCT6681D/NCT6682D eSIO",
++		driver => "to-be-written",
++		devid => 0xB270,
++		devid_mask => 0xFFF0,
++		logdev => 0x0b,
++		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++	}, {
+ 		name => "Nuvoton W83667HG-B (NCT5571D) Super IO Sensors",
+ 		driver => "w83627ehf",
+ 		devid => 0xB350,
+@@ -2063,6 +2070,13 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		logdev => 0x0b,
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
++		name => "Nuvoton NCT6683D eSIO",
++		driver => "to-be-written",
++		devid => 0xC730,
++		devid_mask => 0xFFF0,
++		logdev => 0x0b,
++		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++	}, {
+ 		name => "Nuvoton NCT6791D Super IO Sensors",
+ 		driver => "nct6775",
+ 		devid => 0xC800,
+-- 
+1.7.9.7
 
 
 _______________________________________________
