@@ -1,21 +1,25 @@
-From: "Denton, Emmy" <emmy.smaragda.denton@ti.com>
-Date: Tue, 02 Jul 2013 10:11:42 +0000
-Subject: [lm-sensors] Request for driver for ADC128D818
-Message-Id: <F4488DEEAABFCF49A2596990AFD4F4ECB47D5D@DFLE09.ent.ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 02 Jul 2013 16:45:25 +0000
+Subject: Re: [lm-sensors] Request for driver for ADC128D818
+Message-Id: <20130702164525.GA26145@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <F4488DEEAABFCF49A2596990AFD4F4ECB47D5D@DFLE09.ent.ti.com>
+In-Reply-To: <F4488DEEAABFCF49A2596990AFD4F4ECB47D5D@DFLE09.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-I work for TI and we recently got a request for an ADC128D818 I2C linux driver. The ADC128D818 is very similar (actually a subset with more ADC resolution) of the LM96080. Therefore, it should be a simple modification of that driver. Thank you in advance for any help you can give us.
+On Tue, Jul 02, 2013 at 10:11:42AM +0000, Denton, Emmy wrote:
+> Hi,
+> I work for TI and we recently got a request for an ADC128D818 I2C linux driver. The ADC128D818 is very similar (actually a subset with more ADC resolution) of the LM96080. Therefore, it should be a simple modification of that driver. Thank you in advance for any help you can give us.
+> 
 
-Take care,
-Emmy Denton
-Temp Sensor Applications
-Texas Instruments
-408-721-3267
+Could you provide an evaluation board ?
+
+Thanks,
+Guenter
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
