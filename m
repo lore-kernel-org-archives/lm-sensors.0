@@ -1,81 +1,159 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 03 Jul 2013 02:52:30 +0000
+From: killghost <killghost@msn.com>
+Date: Wed, 03 Jul 2013 02:56:44 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6791D
-Message-Id: <20130703025230.GA2282@roeck-us.net>
+Message-Id: <BLU176-W73714E013A26D9B81B1BDA0730@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3928101016430907044=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jul 02, 2013 at 09:10:52AM -0700, David Bartley wrote:
-> The value of CR[20]/CR[21] on my board is 0xc8/0x03, and the physical chip
-> itself has "NCT6791D" printed on it.
-> 
+--===============3928101016430907044==
+Content-Type: multipart/alternative;
+	boundary="_afab96ff-9efa-40b5-92a5-25d309b5d616_"
 
-Hi Jean and David,
+--_afab96ff-9efa-40b5-92a5-25d309b5d616_
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Nuvoton confirms that 0xc803 is the correct chip ID.
+bWF5YmUgY2hpcCBpZCBpcyAweGM4MDINCg0KPiBEYXRlOiBUdWUsIDIgSnVsIDIwMTMgMTk6NTI6
+MzAgLTA3MDANCj4gRnJvbTogbGludXhAcm9lY2stdXMubmV0DQo+IFRvOiBhbmRhcmVlZEBnbWFp
+bC5jb20NCj4gQ0M6IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcNCj4gU3ViamVjdDogUmU6IFts
+bS1zZW5zb3JzXSBbUEFUQ0hdIHNlbnNvcnMtZGV0ZWN0OiBBZGQgZGV0ZWN0aW9uIG9mIE5DVDY3
+OTFEDQo+IA0KPiBPbiBUdWUsIEp1bCAwMiwgMjAxMyBhdCAwOToxMDo1MkFNIC0wNzAwLCBEYXZp
+ZCBCYXJ0bGV5IHdyb3RlOg0KPiA+IFRoZSB2YWx1ZSBvZiBDUlsyMF0vQ1JbMjFdIG9uIG15IGJv
+YXJkIGlzIDB4YzgvMHgwMywgYW5kIHRoZSBwaHlzaWNhbCBjaGlwDQo+ID4gaXRzZWxmIGhhcyAi
+TkNUNjc5MUQiIHByaW50ZWQgb24gaXQuDQo+ID4gDQo+IA0KPiBIaSBKZWFuIGFuZCBEYXZpZCwN
+Cj4gDQo+IE51dm90b24gY29uZmlybXMgdGhhdCAweGM4MDMgaXMgdGhlIGNvcnJlY3QgY2hpcCBJ
+RC4NCj4gDQo+IFRoYW5rcywNCj4gR3VlbnRlcg0KPiANCj4gPiANCj4gPiBPbiBUdWUsIEp1bCAy
+LCAyMDEzIGF0IDc6MzYgQU0sIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4gd3Jv
+dGU6DQo+ID4gDQo+ID4gPiBPbiBUdWUsIEp1bCAwMiwgMjAxMyBhdCAxMDoyNDoyMkFNICswMjAw
+LCBKZWFuIERlbHZhcmUgd3JvdGU6DQo+ID4gPiA+IEhpIEd1ZW50ZXIsDQo+ID4gPiA+DQo+ID4g
+PiA+IE9uIE1vbiwgMjQgSnVuIDIwMTMgMTM6MTk6MzkgLTA3MDAsIEd1ZW50ZXIgUm9lY2sgd3Jv
+dGU6DQo+ID4gPiA+ID4gTmV3IHN1cGVyaW8gY2hpcCwgZm91bmQgb24gcmVjZW50IEFTVVMgYm9h
+cmRzLg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8
+bGludXhAcm9lY2stdXMubmV0Pg0KPiA+ID4gPiA+IC0tLQ0KPiA+ID4gPiA+ICBDSEFOR0VTICAg
+ICAgICAgICAgICAgICAgICB8ICAgIDEgKw0KPiA+ID4gPiA+ICBwcm9nL2RldGVjdC9zZW5zb3Jz
+LWRldGVjdCB8ICAgIDcgKysrKysrKw0KPiA+ID4gPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDggaW5z
+ZXJ0aW9ucygrKQ0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gZGlmZiAtLWdpdCBhL0NIQU5HRVMgYi9D
+SEFOR0VTDQo+ID4gPiA+ID4gaW5kZXggNzAzNmFmZS4uYjI2NGY0MSAxMDA2NDQNCj4gPiA+ID4g
+PiAtLS0gYS9DSEFOR0VTDQo+ID4gPiA+ID4gKysrIGIvQ0hBTkdFUw0KPiA+ID4gPiA+IEBAIC02
+LDYgKzYsNyBAQCBTVk4gSEVBRA0KPiA+ID4gPiA+ICAgIHNlbnNvcnMtZGV0ZWN0OiBSZXBvcnQg
+YnVpbHQtaW4gZHJpdmVycyBhcyBzdWNoDQo+ID4gPiA+ID4gICAgICAgICAgICAgICAgICAgIFVz
+ZSBtb2R1bGVzLmJ1aWx0aW4gaW5zdGVhZCBvZiAvc3lzL21vZHVsZQ0KPiA+ID4gPiA+ICAgICAg
+ICAgICAgICAgICAgICBIYW5kbGUgYnVpbHQtaW4gbW9kdWxlcyBwcm9wZXJseQ0KPiA+ID4gPiA+
+ICsgICAgICAgICAgICAgICAgICBBZGQgZGV0ZWN0aW9uIG9mIE5DVDY3OTFEDQo+ID4gPiA+ID4N
+Cj4gPiA+ID4gPiAgMy4zLjQgKDIwMTMtMDUtMjcpDQo+ID4gPiA+ID4gICAgc2Vuc29ycy5jb25m
+LjU6IE1lbnRpb24gInNlbnNvcnMgLXUiIHRvIGdldCB0aGUgcmF3IGZlYXR1cmUgbmFtZXMNCj4g
+PiA+ID4gPiBkaWZmIC0tZ2l0IGEvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRlY3QgYi9wcm9nL2Rl
+dGVjdC9zZW5zb3JzLWRldGVjdA0KPiA+ID4gPiA+IGluZGV4IDk0NjQ1ZGMuLjljMjEzYjYgMTAw
+NzU1DQo+ID4gPiA+ID4gLS0tIGEvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRlY3QNCj4gPiA+ID4g
+PiArKysgYi9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdA0KPiA+ID4gPiA+IEBAIC0yMDYzLDYg
+KzIwNjMsMTMgQEAgdXNlIGNvbnN0YW50IEZFQVRfU01CVVMgICAgICA9PiAoMSA8PCA3KTsNCj4g
+PiA+ID4gPiAgICAgICAgICAgICBsb2dkZXYgPT4gMHgwYiwNCj4gPiA+ID4gPiAgICAgICAgICAg
+ICBmZWF0dXJlcyA9PiBGRUFUX0lOIHwgRkVBVF9GQU4gfCBGRUFUX1RFTVAsDQo+ID4gPiA+ID4g
+ICAgIH0sIHsNCj4gPiA+ID4gPiArICAgICAgICAgICBuYW1lID0+ICJOdXZvdG9uIE5DVDY3OTFE
+IFN1cGVyIElPIFNlbnNvcnMiLA0KPiA+ID4gPiA+ICsgICAgICAgICAgIGRyaXZlciA9PiAibmN0
+Njc3NSIsDQo+ID4gPiA+ID4gKyAgICAgICAgICAgZGV2aWQgPT4gMHhDODAwLA0KPiA+ID4gPg0K
+PiA+ID4gPiBUaGUgZGF0YXNoZWV0IHNheXMgMHhDNTYwLiBXaG8gaXMgcmlnaHQ/DQo+ID4gPiA+
+DQo+ID4gPiBUaGF0IHdvdWxkIGJlIHRoZSBzYW1lIGFzIG5jdDY3NzlkLCB3aGljaCBzZWVtcyB1
+bmxpa2VseS4gRHJpdmVyIGNvZGUgaXMNCj4gPiA+IGZyb20gRGF2aWQgQmFydGxleSwgd2hvIEkg
+YW0gc3VyZSB0ZXN0ZWQgaXQgd2l0aCBoaXMgYm9hcmQuDQo+ID4gPg0KPiA+ID4gRGF2aWQsIGNh
+biB5b3UgY29tbWVudCA/DQo+ID4gPg0KPiA+ID4gT25jZSB3ZSBrbm93IGZvciBzdXJlIEknbGwg
+Z2V0IGluIHRvdWNoIHdpdGggTnV2b3RvbiBhbmQgYXNrIGZvcg0KPiA+ID4gY2xhcmlmaWNhdGlv
+bi4NCj4gPiA+DQo+ID4gPiBUaGFua3MsDQo+ID4gPiBHdWVudGVyDQo+ID4gPg0KPiANCj4gX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCj4gbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QNCj4gbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZw0KPiBodHRwOi8vbGlz
+dHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzDQogCQkgCSAgIAkJ
+ICA=
 
-Thanks,
-Guenter
+--_afab96ff-9efa-40b5-92a5-25d309b5d616_
+Content-Type: text/html; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-> 
-> On Tue, Jul 2, 2013 at 7:36 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-> 
-> > On Tue, Jul 02, 2013 at 10:24:22AM +0200, Jean Delvare wrote:
-> > > Hi Guenter,
-> > >
-> > > On Mon, 24 Jun 2013 13:19:39 -0700, Guenter Roeck wrote:
-> > > > New superio chip, found on recent ASUS boards.
-> > > >
-> > > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > > > ---
-> > > >  CHANGES                    |    1 +
-> > > >  prog/detect/sensors-detect |    7 +++++++
-> > > >  2 files changed, 8 insertions(+)
-> > > >
-> > > > diff --git a/CHANGES b/CHANGES
-> > > > index 7036afe..b264f41 100644
-> > > > --- a/CHANGES
-> > > > +++ b/CHANGES
-> > > > @@ -6,6 +6,7 @@ SVN HEAD
-> > > >    sensors-detect: Report built-in drivers as such
-> > > >                    Use modules.builtin instead of /sys/module
-> > > >                    Handle built-in modules properly
-> > > > +                  Add detection of NCT6791D
-> > > >
-> > > >  3.3.4 (2013-05-27)
-> > > >    sensors.conf.5: Mention "sensors -u" to get the raw feature names
-> > > > diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> > > > index 94645dc..9c213b6 100755
-> > > > --- a/prog/detect/sensors-detect
-> > > > +++ b/prog/detect/sensors-detect
-> > > > @@ -2063,6 +2063,13 @@ use constant FEAT_SMBUS      => (1 << 7);
-> > > >             logdev => 0x0b,
-> > > >             features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
-> > > >     }, {
-> > > > +           name => "Nuvoton NCT6791D Super IO Sensors",
-> > > > +           driver => "nct6775",
-> > > > +           devid => 0xC800,
-> > >
-> > > The datasheet says 0xC560. Who is right?
-> > >
-> > That would be the same as nct6779d, which seems unlikely. Driver code is
-> > from David Bartley, who I am sure tested it with his board.
-> >
-> > David, can you comment ?
-> >
-> > Once we know for sure I'll get in touch with Nuvoton and ask for
-> > clarification.
-> >
-> > Thanks,
-> > Guenter
-> >
+PGh0bWw+DQo8aGVhZD4NCjxzdHlsZT48IS0tDQouaG1tZXNzYWdlIFANCnsNCm1hcmdpbjowcHg7
+DQpwYWRkaW5nOjBweA0KfQ0KYm9keS5obW1lc3NhZ2UNCnsNCmZvbnQtc2l6ZTogMTJwdDsNCmZv
+bnQtZmFtaWx5Os6iyO3RxbraDQp9DQotLT48L3N0eWxlPjwvaGVhZD4NCjxib2R5IGNsYXNzPSdo
+bW1lc3NhZ2UnPjxkaXYgZGlyPSdsdHInPm1heWJlIGNoaXAgaWQgaXMmbmJzcDsweGM4MDI8YnI+
+PGJyPjxkaXY+Jmd0OyBEYXRlOiBUdWUsIDIgSnVsIDIwMTMgMTk6NTI6MzAgLTA3MDA8YnI+Jmd0
+OyBGcm9tOiBsaW51eEByb2Vjay11cy5uZXQ8YnI+Jmd0OyBUbzogYW5kYXJlZWRAZ21haWwuY29t
+PGJyPiZndDsgQ0M6IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc8YnI+Jmd0OyBTdWJqZWN0OiBS
+ZTogW2xtLXNlbnNvcnNdIFtQQVRDSF0gc2Vuc29ycy1kZXRlY3Q6IEFkZCBkZXRlY3Rpb24gb2Yg
+TkNUNjc5MUQ8YnI+Jmd0OyA8YnI+Jmd0OyBPbiBUdWUsIEp1bCAwMiwgMjAxMyBhdCAwOToxMDo1
+MkFNIC0wNzAwLCBEYXZpZCBCYXJ0bGV5IHdyb3RlOjxicj4mZ3Q7ICZndDsgVGhlIHZhbHVlIG9m
+IENSWzIwXS9DUlsyMV0gb24gbXkgYm9hcmQgaXMgMHhjOC8weDAzLCBhbmQgdGhlIHBoeXNpY2Fs
+IGNoaXA8YnI+Jmd0OyAmZ3Q7IGl0c2VsZiBoYXMgIk5DVDY3OTFEIiBwcmludGVkIG9uIGl0Ljxi
+cj4mZ3Q7ICZndDsgPGJyPiZndDsgPGJyPiZndDsgSGkgSmVhbiBhbmQgRGF2aWQsPGJyPiZndDsg
+PGJyPiZndDsgTnV2b3RvbiBjb25maXJtcyB0aGF0IDB4YzgwMyBpcyB0aGUgY29ycmVjdCBjaGlw
+IElELjxicj4mZ3Q7IDxicj4mZ3Q7IFRoYW5rcyw8YnI+Jmd0OyBHdWVudGVyPGJyPiZndDsgPGJy
+PiZndDsgJmd0OyA8YnI+Jmd0OyAmZ3Q7IE9uIFR1ZSwgSnVsIDIsIDIwMTMgYXQgNzozNiBBTSwg
+R3VlbnRlciBSb2VjayAmbHQ7bGludXhAcm9lY2stdXMubmV0Jmd0OyB3cm90ZTo8YnI+Jmd0OyAm
+Z3Q7IDxicj4mZ3Q7ICZndDsgJmd0OyBPbiBUdWUsIEp1bCAwMiwgMjAxMyBhdCAxMDoyNDoyMkFN
+ICswMjAwLCBKZWFuIERlbHZhcmUgd3JvdGU6PGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgSGkgR3Vl
+bnRlciw8YnI+Jmd0OyAmZ3Q7ICZndDsgJmd0Ozxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7IE9uIE1v
+biwgMjQgSnVuIDIwMTMgMTM6MTk6MzkgLTA3MDAsIEd1ZW50ZXIgUm9lY2sgd3JvdGU6PGJyPiZn
+dDsgJmd0OyAmZ3Q7ICZndDsgJmd0OyBOZXcgc3VwZXJpbyBjaGlwLCBmb3VuZCBvbiByZWNlbnQg
+QVNVUyBib2FyZHMuPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0Ozxicj4mZ3Q7ICZndDsgJmd0
+OyAmZ3Q7ICZndDsgU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayAmbHQ7bGludXhAcm9lY2st
+dXMubmV0Jmd0Ozxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgLS0tPGJyPiZndDsgJmd0OyAm
+Z3Q7ICZndDsgJmd0OyAgQ0hBTkdFUyAgICAgICAgICAgICAgICAgICAgfCAgICAxICs8YnI+Jmd0
+OyAmZ3Q7ICZndDsgJmd0OyAmZ3Q7ICBwcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdCB8ICAgIDcg
+KysrKysrKzxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgIDIgZmlsZXMgY2hhbmdlZCwgOCBp
+bnNlcnRpb25zKCspPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0Ozxicj4mZ3Q7ICZndDsgJmd0
+OyAmZ3Q7ICZndDsgZGlmZiAtLWdpdCBhL0NIQU5HRVMgYi9DSEFOR0VTPGJyPiZndDsgJmd0OyAm
+Z3Q7ICZndDsgJmd0OyBpbmRleCA3MDM2YWZlLi5iMjY0ZjQxIDEwMDY0NDxicj4mZ3Q7ICZndDsg
+Jmd0OyAmZ3Q7ICZndDsgLS0tIGEvQ0hBTkdFUzxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsg
+KysrIGIvQ0hBTkdFUzxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgQEAgLTYsNiArNiw3IEBA
+IFNWTiBIRUFEPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0OyAgICBzZW5zb3JzLWRldGVjdDog
+UmVwb3J0IGJ1aWx0LWluIGRyaXZlcnMgYXMgc3VjaDxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZn
+dDsgICAgICAgICAgICAgICAgICAgIFVzZSBtb2R1bGVzLmJ1aWx0aW4gaW5zdGVhZCBvZiAvc3lz
+L21vZHVsZTxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgICAgICAgICAgICAgICAgICAgIEhh
+bmRsZSBidWlsdC1pbiBtb2R1bGVzIHByb3Blcmx5PGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0
+OyArICAgICAgICAgICAgICAgICAgQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRDxicj4mZ3Q7ICZn
+dDsgJmd0OyAmZ3Q7ICZndDs8YnI+Jmd0OyAmZ3Q7ICZndDsgJmd0OyAmZ3Q7ICAzLjMuNCAoMjAx
+My0wNS0yNyk8YnI+Jmd0OyAmZ3Q7ICZndDsgJmd0OyAmZ3Q7ICAgIHNlbnNvcnMuY29uZi41OiBN
+ZW50aW9uICJzZW5zb3JzIC11IiB0byBnZXQgdGhlIHJhdyBmZWF0dXJlIG5hbWVzPGJyPiZndDsg
+Jmd0OyAmZ3Q7ICZndDsgJmd0OyBkaWZmIC0tZ2l0IGEvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRl
+Y3QgYi9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdDxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZn
+dDsgaW5kZXggOTQ2NDVkYy4uOWMyMTNiNiAxMDA3NTU8YnI+Jmd0OyAmZ3Q7ICZndDsgJmd0OyAm
+Z3Q7IC0tLSBhL3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0PGJyPiZndDsgJmd0OyAmZ3Q7ICZn
+dDsgJmd0OyArKysgYi9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdDxicj4mZ3Q7ICZndDsgJmd0
+OyAmZ3Q7ICZndDsgQEAgLTIwNjMsNiArMjA2MywxMyBAQCB1c2UgY29uc3RhbnQgRkVBVF9TTUJV
+UyAgICAgID0mZ3Q7ICgxICZsdDsmbHQ7IDcpOzxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsg
+ICAgICAgICAgICAgbG9nZGV2ID0mZ3Q7IDB4MGIsPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0
+OyAgICAgICAgICAgICBmZWF0dXJlcyA9Jmd0OyBGRUFUX0lOIHwgRkVBVF9GQU4gfCBGRUFUX1RF
+TVAsPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0OyAgICAgfSwgezxicj4mZ3Q7ICZndDsgJmd0
+OyAmZ3Q7ICZndDsgKyAgICAgICAgICAgbmFtZSA9Jmd0OyAiTnV2b3RvbiBOQ1Q2NzkxRCBTdXBl
+ciBJTyBTZW5zb3JzIiw8YnI+Jmd0OyAmZ3Q7ICZndDsgJmd0OyAmZ3Q7ICsgICAgICAgICAgIGRy
+aXZlciA9Jmd0OyAibmN0Njc3NSIsPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0OyArICAgICAg
+ICAgICBkZXZpZCA9Jmd0OyAweEM4MDAsPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDs8YnI+Jmd0OyAm
+Z3Q7ICZndDsgJmd0OyBUaGUgZGF0YXNoZWV0IHNheXMgMHhDNTYwLiBXaG8gaXMgcmlnaHQ/PGJy
+PiZndDsgJmd0OyAmZ3Q7ICZndDs8YnI+Jmd0OyAmZ3Q7ICZndDsgVGhhdCB3b3VsZCBiZSB0aGUg
+c2FtZSBhcyBuY3Q2Nzc5ZCwgd2hpY2ggc2VlbXMgdW5saWtlbHkuIERyaXZlciBjb2RlIGlzPGJy
+PiZndDsgJmd0OyAmZ3Q7IGZyb20gRGF2aWQgQmFydGxleSwgd2hvIEkgYW0gc3VyZSB0ZXN0ZWQg
+aXQgd2l0aCBoaXMgYm9hcmQuPGJyPiZndDsgJmd0OyAmZ3Q7PGJyPiZndDsgJmd0OyAmZ3Q7IERh
+dmlkLCBjYW4geW91IGNvbW1lbnQgPzxicj4mZ3Q7ICZndDsgJmd0Ozxicj4mZ3Q7ICZndDsgJmd0
+OyBPbmNlIHdlIGtub3cgZm9yIHN1cmUgSSdsbCBnZXQgaW4gdG91Y2ggd2l0aCBOdXZvdG9uIGFu
+ZCBhc2sgZm9yPGJyPiZndDsgJmd0OyAmZ3Q7IGNsYXJpZmljYXRpb24uPGJyPiZndDsgJmd0OyAm
+Z3Q7PGJyPiZndDsgJmd0OyAmZ3Q7IFRoYW5rcyw8YnI+Jmd0OyAmZ3Q7ICZndDsgR3VlbnRlcjxi
+cj4mZ3Q7ICZndDsgJmd0Ozxicj4mZ3Q7IDxicj4mZ3Q7IF9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fPGJyPiZndDsgbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3Q8
+YnI+Jmd0OyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnPGJyPiZndDsgaHR0cDovL2xpc3RzLmxt
+LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29yczxicj48L2Rpdj4gCQkgCSAg
+IAkJICA8L2Rpdj48L2JvZHk+DQo8L2h0bWw+
+
+--_afab96ff-9efa-40b5-92a5-25d309b5d616_--
+
+
+--===============3928101016430907044==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3928101016430907044==--
