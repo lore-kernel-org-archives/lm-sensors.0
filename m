@@ -1,257 +1,275 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 03 Jul 2013 20:56:54 +0000
+From: "Justin Piszcz" <jpiszcz@lucidpixels.com>
+Date: Wed, 03 Jul 2013 20:59:37 +0000
 Subject: Re: [lm-sensors] 3.10: NCT6776F sensor question with Supermicro X9SRL-F motherboard
-Message-Id: <20130703205654.GA30588@roeck-us.net>
+Message-Id: <00ad01ce7830$3b135890$b13a09b0$@lucidpixels.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8580252658023592817=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <002901ce77e9$dfac4f20$9f04ed60$@lucidpixels.com>
- <20130703144201.GA10323@roeck-us.net>
- <007101ce7807$88cfb160$9a6f1420$@lucidpixels.com>
- <20130703163311.GB12506@roeck-us.net>
- <008001ce780d$0d1a79f0$274f6dd0$@lucidpixels.com>
- <20130703171713.GA26555@roeck-us.net>
- <008e01ce7811$b50c9180$1f25b480$@lucidpixels.com>
-In-Reply-To: <008e01ce7811$b50c9180$1f25b480$@lucidpixels.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Justin Piszcz <jpiszcz@lucidpixels.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+In-Reply-To: <002901ce77e9$dfac4f20$9f04ed60$@lucidpixels.com>
+To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 03, 2013 at 01:21:06PM -0400, Justin Piszcz wrote:
-> 
-> 
-> -----Original Message-----
-> From: Guenter Roeck [mailto:linux@roeck-us.net] 
-> Sent: Wednesday, July 03, 2013 1:17 PM
-> To: Justin Piszcz
-> Cc: linux-kernel@vger.kernel.org; lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] 3.10: NCT6776F sensor question with Supermicro
-> X9SRL-F motherboard
-> 
-> [ .. ]
-> 
-> Can you try http://roeck-us.net/linux/bin/superiotool ?
-> 
-> Sure, below:
-> 
-> $ sudo ./superiotool 
-> superiotool r4.0-2514-gf419483
-> Found Nuvoton WPCM450 (id=0x1a11, rev=0x00) at 0x164e
-> Found Nuvoton NCT6776F (C) (id=0xc333) at 0x2e
-> $ sudo ./superiotool -V -e
-> Probing for Nuvoton Super I/O (sid=0xfc) at 0x164e...
-> Found Nuvoton WPCM450 (id=0x1a11, rev=0x00) at 0x164e
-> Probing for Nuvoton Super I/O at 0x2e...
-> Found Nuvoton NCT6776F (C) (id=0xc333) at 0x2e
-> Bank 0:
->     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 00: 03 33 03 33 00 ff ff ff ff ff ff ff ff ff ff ff 
-> 01: 04 ff 00 00 00 00 ff ff 00 00 00 00 00 83 00 00 
-> 02: 69 e6 ce ce bc 9e 84 2b ff ff ff ba 43 f9 cb e3 
-> 03: ba e3 ba ce a9 ac 8d a8 73 4b 46 ff ff ff ff ff 
-> 04: 03 fe 58 ff ff 80 3f ff 2d ff ff ff 10 05 00 a3 
-> 05: ff ff ff ff ff ff ff ff c1 ff ff ff ff 01 00 ff 
-> 06: 00 ff ff ff ff 01 07 ff ff ff ff ff ff ff ff ff 
-> 07: 00 0a 00 21 00 00 00 17 00 ff ff ff ff ff ff ff 
-> 08: ff 03 1f 0f ff 3c 3c 3c 00 00 00 00 00 00 00 00 
+This is a multipart message in MIME format.
+
+--===============8580252658023592817==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_00AE_01CE780E.B402A2F0"
+Content-language: en-us
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_00AE_01CE780E.B402A2F0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+ 
+
+ 
+
+-----Original Message-----
+From: Guenter Roeck [mailto:linux@roeck-us.net] 
+Sent: Wednesday, July 03, 2013 4:57 PM
+To: Justin Piszcz
+Cc: linux-kernel@vger.kernel.org; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] 3.10: NCT6776F sensor question with Supermicro
+X9SRL-F motherboard
+
+ 
+
+[ .. ]
+
+ 
+
 > 09: 0a 00 00 00 00 0a 0a 0a 0a aa ef 80 ff 40 46 c4 
+
 > 0a: 0e 01 00 00 ff 00 00 ff 00 00 80 66 66 06 01 01 
+
                                                 ^^
+
 This shows that PECI Agent 0 is supposed to be enabled.
 
-> 0b: 00 00 00 00 02 01 35 00 1c 00 00 04 38 c0 c4 ff 
-> 0c: 01 00 00 00 00 00 00 00 00 07 02 ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> Bank 1:
->     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 00: 82 00 00 01 01 28 01 3c ff 33 ff ff 00 ff ff ff 
-> 01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 02: 01 23 28 37 37 ff ff 28 51 ff ff ff ff ff ff ff 
-> 03: ff 00 ff ff 00 55 ff ff 05 01 00 00 00 00 00 00 
-> 04: ff ff ff ff ff d9 03 ff ff ff ff ff ff ff 01 ff 
-> 05: 00 00 00 5c 00 5f 00 ff ff ff ff ff ff ff ff ff 
-> 06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+ 
+
 > Bank 2:
+
 >     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
+
 > 00: 8c 32 00 01 01 33 01 3c ff 33 ff ff 00 ff ff ff 
+
       ^^
+
 This value suggests that the second temperature sensor (the one creating
-the alarm) is supposed to be the PECI source (which reports the CPU temperature
+
+the alarm) is supposed to be the PECI source (which reports the CPU
+temperature
+
 to the NCT6776), and that it is supposed to be used to control the speed
+
 of the CPU fan.
+
             ^^
+
 Fan control is in manual mode. Did you set this ?
+
 It is quite unusual.
 
-> 01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 02: 01 32 5a 5a 5a ff ff 33 ff ff ff ff ff ff ff ff 
-> 03: ff 00 ff ff 00 5f ff ff 03 01 00 00 00 00 00 00 
-> 04: ff ff ff ff ff 2c 05 ff ff ff ff ff ff ff 02 ff 
-> 05: 21 00 00 5c 00 5f 00 ff ff ff ff ff ff ff ff ff 
-> 06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> Bank 3:
->     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 00: 03 00 00 0a 0a 01 01 3c ff ff ff ff 00 ff ff ff 
-> 01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 02: 00 19 23 2d 37 ff ff 8c aa c8 e6 ff ff ff ff ff 
-> 03: ff 00 ff ff 00 3c ff ff 00 01 00 00 00 00 00 00 
-> 04: ff ff ff ff ff 48 04 ff ff ff ff ff ff ff 03 ff 
-> 05: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> Bank 4:
->     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 01: 00 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff 
-> 02: ff ff ff 96 64 96 64 e1 96 ff ff ff ff ff ff ff 
-> 03: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 04: 3f 00 03 ff ff ff ff ff ff ff ff ff ff ff 04 ff 
-> 05: 31 13 ff ff 00 00 00 ff 00 20 12 00 09 ff ff ff 
-> 06: ff 01 00 00 00 00 00 00 ff ff ff ff ff ff ff ff 
-> 07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> Bank 5:
->     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 00: ff ff 00 00 00 00 ff ff ff ff ff ff ff 00 00 ff 
-> 01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 02: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 03: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 04: ff ff ff ff ff ff ff ff ff ff ff ff ff ff 05 ff 
-> 05: df d9 c0 ff e3 ba e3 a9 ff ff ff ff ff ff ff ff 
-> 06: 00 00 00 00 00 00 07 01 01 ff ff ff ff ff ff ff 
-> 07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> Bank 6:
->     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 00: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 02: ff 01 0c 02 03 01 01 ff 00 00 00 17 2b 2b 00 ff 
-> 03: 2a 1a 1f 1c 26 0f 26 1f 2a 04 3c 06 3c 06 3c 06 
-> 04: 3c 06 3c 06 02 02 02 ff ff ff ff ff ff ff 06 ff 
-> 05: 7f 7f 7f 7f 7f 7f 03 d9 05 2b 04 48 04 3a 03 e9 
-> 06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 07: 7f 7f 50 4b 04 7f 7f 50 4b 04 7f 7f 50 4b 04 ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+ 
+
+Setting:                
+
+Current FAN Mode is Optimal.
+
+Set Fan to Standard Speed
+
+Set Fan to Full Speed
+
+Set Fan to Optimal Speed
+
+ 
+
 > Bank 7:
+
 >     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
+
 > 00: ff 95 02 10 00 00 00 00 00 64 00 00 00 00 00 00 
+
 > 01: 00 00 00 00 00 00 00 f8 80 f8 80 f8 80 f8 80 00 
+
                                                    ^^
-00 here shows that the PECI source is not active, ie the CPU does not deliver
+
+00 here shows that the PECI source is not active, ie the CPU does not
+deliver
+
 PECI data to the NCT6776. This explains the alarm.
 
-Practical impact is probably limited as fan control is configured to be manual
+ 
+
+Practical impact is probably limited as fan control is configured to be
+manual
+
 anyway, but I wonder why PECI doesn't work on your board. PECI configuration
+
 is identical to my Supermicro board.
+
+ 
 
 Guenter
 
-> 02: 28 00 06 00 00 09 00 00 00 ef 00 00 00 00 00 00 
-> 03: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 04: ff ff ff ff ff ff ff ff ff ff ff ff ff ff 07 ff 
-> 05: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> 0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-> Probing for Nuvoton Super I/O at 0x4e...
->   Failed. Returned data: chip_id=0xffff
-> Probing for Nuvoton Super I/O (sid=0xfc) at 0x4e...
-> 
-> 
-> > [ .. ]
-> > 
-> > You have to specify the raw attribute names, not the symbolic ones.
-> > You see the raw attribute names with "sensors -u".
-> > 
-> It has to be
-> 	ignore temp8
-> 	ignore temp9
-> 	ignore temp10
-> 
-> Woohoo! Thank you.
-> 
-> nct6776-isa-0a30
-> Adapter: ISA adapter
-> Vcore:        +0.83 V  (min =  +0.54 V, max =  +1.49 V)
-> in1:          +1.85 V  (min =  +1.62 V, max =  +1.99 V)
-> AVCC:         +3.30 V  (min =  +2.98 V, max =  +3.63 V)
-> +3.3V:        +3.28 V  (min =  +2.98 V, max =  +3.63 V)
-> in4:          +1.50 V  (min =  +1.35 V, max =  +1.65 V)
-> in5:          +1.26 V  (min =  +1.13 V, max =  +1.38 V)
-> in6:          +1.06 V  (min =  +0.92 V, max =  +1.34 V)
-> 3VSB:         +3.57 V  (min =  +2.98 V, max =  +3.63 V)
-> Vbat:         +3.47 V  (min =  +2.70 V, max =  +3.63 V)
-> fan1:        1010 RPM  (min =  700 RPM)
-> fan2:        1324 RPM  (min =  700 RPM)
-> fan3:        1102 RPM  (min =  700 RPM)
-> fan4:        1062 RPM  (min =  700 RPM)
-> fan5:         991 RPM  (min =  700 RPM)
-> SYSTIN:       +43.0 C  (high = +75.0 C, hyst = +70.0 C)  sensor = thermistor
-> CPUTIN:       +33.0 C  (high = +95.0 C, hyst = +92.0 C)  ALARM  sensor > thermistor
-> AUXTIN:       +23.0 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor
-> 
-> Justin.
-> 
-> 
-> 
+
+------=_NextPart_000_00AE_01CE780E.B402A2F0
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40"><head><META =
+HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii"><meta name=3DGenerator content=3D"Microsoft Word 14 =
+(filtered medium)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:#0563C1;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:#954F72;
+	text-decoration:underline;}
+p.MsoPlainText, li.MsoPlainText, div.MsoPlainText
+	{mso-style-priority:99;
+	mso-style-link:"Plain Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-priority:99;
+	mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+span.PlainTextChar
+	{mso-style-name:"Plain Text Char";
+	mso-style-priority:99;
+	mso-style-link:"Plain Text";
+	font-family:"Calibri","sans-serif";}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-priority:99;
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US =
+link=3D"#0563C1" vlink=3D"#954F72"><div class=3DWordSection1><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p =
+class=3DMsoPlainText>-----Original Message-----<br>From: Guenter Roeck =
+[mailto:linux@roeck-us.net] <br>Sent: Wednesday, July 03, 2013 4:57 =
+PM<br>To: Justin Piszcz<br>Cc: linux-kernel@vger.kernel.org; =
+lm-sensors@lm-sensors.org<br>Subject: Re: [lm-sensors] 3.10: NCT6776F =
+sensor question with Supermicro X9SRL-F motherboard</p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p class=3DMsoPlainText>[ .. =
+]<o:p></o:p></p><p class=3DMsoPlainText><span =
+style=3D'color:black'><o:p>&nbsp;</o:p></span></p><p =
+class=3DMsoPlainText>&gt; 09: 0a 00 00 00 00 0a 0a 0a 0a aa ef 80 ff 40 =
+46 c4 <o:p></o:p></p><p class=3DMsoPlainText>&gt; 0a: 0e 01 00 00 ff 00 =
+00 ff 00 00 80 66 66 06 01 01 <o:p></o:p></p><p =
+class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;^^<o:p></o:p></p><p class=3DMsoPlainText>This shows =
+that PECI Agent 0 is supposed to be enabled.<o:p></o:p></p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p class=3DMsoPlainText>&gt; =
+Bank 2:<o:p></o:p></p><p =
+class=3DMsoPlainText>&gt;&nbsp;&nbsp;&nbsp;&nbsp; 00 01 02 03 04 05 06 =
+07 08 09 0a 0b 0c 0d 0e 0f <o:p></o:p></p><p class=3DMsoPlainText>&gt; =
+00: 8c 32 00 01 01 33 01 3c ff 33 ff ff 00 ff ff ff <o:p></o:p></p><p =
+class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^^<o:p></o:p></p=
+><p class=3DMsoPlainText>This value suggests that the second temperature =
+sensor (the one creating<o:p></o:p></p><p class=3DMsoPlainText>the =
+alarm) is supposed to be the PECI source (which reports the CPU =
+temperature<o:p></o:p></p><p class=3DMsoPlainText>to the NCT6776), and =
+that it is supposed to be used to control the speed<o:p></o:p></p><p =
+class=3DMsoPlainText>of the CPU fan.<o:p></o:p></p><p =
+class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp; ^^<o:p></o:p></p><p class=3DMsoPlainText>Fan control is =
+in manual mode. Did you set this ?<o:p></o:p></p><p =
+class=3DMsoPlainText>It is quite unusual.<o:p></o:p></p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p class=3DMsoPlainText><span =
+style=3D'color:black'>Setting:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <o:p></o:p></span></p><p =
+class=3DMsoPlainText><span style=3D'color:black'>Current FAN Mode is =
+Optimal.<o:p></o:p></span></p><p class=3DMsoPlainText><span =
+style=3D'color:black'>Set Fan to Standard Speed<o:p></o:p></span></p><p =
+class=3DMsoPlainText><span style=3D'color:black'>Set Fan to Full =
+Speed<o:p></o:p></span></p><p class=3DMsoPlainText><span =
+style=3D'color:black'>Set Fan to Optimal Speed<o:p></o:p></span></p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p class=3DMsoPlainText>&gt; =
+Bank 7:<o:p></o:p></p><p =
+class=3DMsoPlainText>&gt;&nbsp;&nbsp;&nbsp;&nbsp; 00 01 02 03 04 05 06 =
+07 08 09 0a 0b 0c 0d 0e 0f <o:p></o:p></p><p class=3DMsoPlainText>&gt; =
+00: ff 95 02 10 00 00 00 00 00 64 00 00 00 00 00 00 <o:p></o:p></p><p =
+class=3DMsoPlainText>&gt; 01: 00 00 00 00 00 00 00 f8 80 f8 80 f8 80 f8 =
+80 00 <o:p></o:p></p><p =
+class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^^<o:p></o:p></p><p =
+class=3DMsoPlainText>00 here shows that the PECI source is not active, =
+ie the CPU does not deliver<o:p></o:p></p><p class=3DMsoPlainText>PECI =
+data to the NCT6776. This explains the alarm.<o:p></o:p></p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p =
+class=3DMsoPlainText>Practical impact is probably limited as fan control =
+is configured to be manual<o:p></o:p></p><p class=3DMsoPlainText>anyway, =
+but I wonder why PECI doesn't work on your board. PECI =
+configuration<o:p></o:p></p><p class=3DMsoPlainText>is identical to my =
+Supermicro board.<o:p></o:p></p><p =
+class=3DMsoPlainText><o:p>&nbsp;</o:p></p><p =
+class=3DMsoPlainText>Guenter<o:p></o:p></p><p class=3DMsoPlainText> =
+<o:p></o:p></p></div></body></html>
+------=_NextPart_000_00AE_01CE780E.B402A2F0--
+
+
+
+--===============8580252658023592817==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8580252658023592817==--
+
