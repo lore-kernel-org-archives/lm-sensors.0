@@ -1,86 +1,129 @@
-From: killghost <killghost@msn.com>
-Date: Wed, 03 Jul 2013 06:32:49 +0000
+From: David Bartley <andareed@gmail.com>
+Date: Wed, 03 Jul 2013 06:42:13 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6791D
-Message-Id: <BLU176-W219482B6F85ABEA0513D8A0730@phx.gbl>
+Message-Id: <CAM9zjRMAdEkLN2bNgPGBD36r4CswMiHy73QoHk2OH-h7TAr_+Q@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1855241809584978760=="
+Content-Type: multipart/mixed; boundary="===============5100375336162062924=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
 To: lm-sensors@vger.kernel.org
 
---===============1855241809584978760==
-Content-Type: multipart/alternative;
-	boundary="_ea35c008-be59-4a85-aba6-3c56d6ce51e1_"
+--===============5100375336162062924==
+Content-Type: multipart/alternative; boundary=047d7b6d82723f406004e095c457
 
---_ea35c008-be59-4a85-aba6-3c56d6ce51e1_
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+--047d7b6d82723f406004e095c457
+Content-Type: text/plain; charset=ISO-8859-1
 
-TkNUNjc5MSBhZGRlZCAxMjJieXRlIHJlYWQtb25seSByZWdpc3RlcnMgZm9yIEhhcmR3YXJlIE1v
-bml0b3IuIFRoZSBiYXNlIGFkZHJlc3MgaXMgc3BlY2lmaWVkIGluIHJlZ2lzdGVyc0NSWzY0aF0g
-YW5kIENSWzY1aF0gb2YgTG9naWNhbCBEZXZpY2UgQiwgdGhlIGhhcmR3YXJlIG1vbml0b3IgZGV2
-aWNlLiBDUls2NGhdIGlzIHRoZSBoaWdoIGJ5dGUsIGFuZCBDUls2NWhdIGlzdGhlIGxvdyBieXRl
-LiBUaGUgbGVhc3QgYnl0ZSBvZiB0aGUgYmFzZSBhZGRyZXNzIHJlY29tbWVuZCB0byBiZSB6ZXJv
-LiBGb3IgZXhhbXBsZSwge0NSWzY0aF0sIENSWzY1aF19ID17WFgwMGh9Lg0KDQp3aG8ga25vdyB0
-aGF0IGhvdyB0byByZWFkIHRoaXMgZGF0YT8gDQoNCg0KDQo+IERhdGU6IFdlZCwgMyBKdWwgMjAx
-MyAwODoyMzo1MiArMDIwMA0KPiBGcm9tOiBraGFsaUBsaW51eC1mci5vcmcNCj4gVG86IGxpbnV4
-QHJvZWNrLXVzLm5ldA0KPiBDQzogYW5kYXJlZWRAZ21haWwuY29tOyBsbS1zZW5zb3JzQGxtLXNl
-bnNvcnMub3JnDQo+IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBzZW5zb3JzLWRl
-dGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRA0KPiANCj4gT24gVHVlLCAyIEp1bCAyMDEz
-IDE5OjUyOjMwIC0wNzAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOg0KPiA+IE9uIFR1ZSwgSnVsIDAy
-LCAyMDEzIGF0IDA5OjEwOjUyQU0gLTA3MDAsIERhdmlkIEJhcnRsZXkgd3JvdGU6DQo+ID4gPiBU
-aGUgdmFsdWUgb2YgQ1JbMjBdL0NSWzIxXSBvbiBteSBib2FyZCBpcyAweGM4LzB4MDMsIGFuZCB0
-aGUgcGh5c2ljYWwgY2hpcA0KPiA+ID4gaXRzZWxmIGhhcyAiTkNUNjc5MUQiIHByaW50ZWQgb24g
-aXQuDQo+ID4gDQo+ID4gSGkgSmVhbiBhbmQgRGF2aWQsDQo+ID4gDQo+ID4gTnV2b3RvbiBjb25m
-aXJtcyB0aGF0IDB4YzgwMyBpcyB0aGUgY29ycmVjdCBjaGlwIElELg0KPiANCj4gT0ssIEkgc3Vw
-cG9zZSB0aGV5IHdpbGwgZml4IGl0IGluIHRoZSBuZXh0IHZlcnNpb24gb2YgdGhlIGRhdGFzaGVl
-dC4NCj4gTWVhbndoaWxlIHlvdSBjYW4gY29tbWl0IHlvdXIgcGF0Y2guDQo+IA0KPiBUaGFua3Ms
-DQo+IC0tIA0KPiBKZWFuIERlbHZhcmUNCj4gDQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fDQo+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0DQo+IGxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcNCj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw0KIAkJIAkgICAJCSAg
-
---_ea35c008-be59-4a85-aba6-3c56d6ce51e1_
-Content-Type: text/html; charset="gb2312"
-Content-Transfer-Encoding: base64
-
-PGh0bWw+DQo8aGVhZD4NCjxzdHlsZT48IS0tDQouaG1tZXNzYWdlIFANCnsNCm1hcmdpbjowcHg7
-DQpwYWRkaW5nOjBweA0KfQ0KYm9keS5obW1lc3NhZ2UNCnsNCmZvbnQtc2l6ZTogMTJwdDsNCmZv
-bnQtZmFtaWx5Os6iyO3RxbraDQp9DQotLT48L3N0eWxlPjwvaGVhZD4NCjxib2R5IGNsYXNzPSdo
-bW1lc3NhZ2UnPjxkaXYgZGlyPSdsdHInPjxkaXY+TkNUNjc5MSBhZGRlZCAxMjJieXRlIHJlYWQt
-b25seSByZWdpc3RlcnMgZm9yIEhhcmR3YXJlIE1vbml0b3IuIFRoZSBiYXNlIGFkZHJlc3MgaXMg
-c3BlY2lmaWVkIGluIHJlZ2lzdGVyczwvZGl2PjxkaXY+Q1JbNjRoXSBhbmQgQ1JbNjVoXSBvZiBM
-b2dpY2FsIERldmljZSBCLCB0aGUgaGFyZHdhcmUgbW9uaXRvciBkZXZpY2UuIENSWzY0aF0gaXMg
-dGhlIGhpZ2ggYnl0ZSwgYW5kIENSWzY1aF0gaXM8L2Rpdj48ZGl2PnRoZSBsb3cgYnl0ZS4gVGhl
-IGxlYXN0IGJ5dGUgb2YgdGhlIGJhc2UgYWRkcmVzcyByZWNvbW1lbmQgdG8gYmUgemVyby4gRm9y
-IGV4YW1wbGUsIHtDUls2NGhdLCBDUls2NWhdfSA9PC9kaXY+PGRpdj57WFgwMGh9Ljxicj48YnI+
-d2hvIGtub3cgdGhhdCBob3cgdG8gcmVhZCB0aGlzIGRhdGE/Jm5ic3A7PGJyPjxicj48YnI+PC9k
-aXY+PGJyPjxkaXY+Jmd0OyBEYXRlOiBXZWQsIDMgSnVsIDIwMTMgMDg6MjM6NTIgKzAyMDA8YnI+
-Jmd0OyBGcm9tOiBraGFsaUBsaW51eC1mci5vcmc8YnI+Jmd0OyBUbzogbGludXhAcm9lY2stdXMu
-bmV0PGJyPiZndDsgQ0M6IGFuZGFyZWVkQGdtYWlsLmNvbTsgbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
-Lm9yZzxicj4mZ3Q7IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBzZW5zb3JzLWRl
-dGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRDxicj4mZ3Q7IDxicj4mZ3Q7IE9uIFR1ZSwg
-MiBKdWwgMjAxMyAxOTo1MjozMCAtMDcwMCwgR3VlbnRlciBSb2VjayB3cm90ZTo8YnI+Jmd0OyAm
-Z3Q7IE9uIFR1ZSwgSnVsIDAyLCAyMDEzIGF0IDA5OjEwOjUyQU0gLTA3MDAsIERhdmlkIEJhcnRs
-ZXkgd3JvdGU6PGJyPiZndDsgJmd0OyAmZ3Q7IFRoZSB2YWx1ZSBvZiBDUlsyMF0vQ1JbMjFdIG9u
-IG15IGJvYXJkIGlzIDB4YzgvMHgwMywgYW5kIHRoZSBwaHlzaWNhbCBjaGlwPGJyPiZndDsgJmd0
-OyAmZ3Q7IGl0c2VsZiBoYXMgIk5DVDY3OTFEIiBwcmludGVkIG9uIGl0Ljxicj4mZ3Q7ICZndDsg
-PGJyPiZndDsgJmd0OyBIaSBKZWFuIGFuZCBEYXZpZCw8YnI+Jmd0OyAmZ3Q7IDxicj4mZ3Q7ICZn
-dDsgTnV2b3RvbiBjb25maXJtcyB0aGF0IDB4YzgwMyBpcyB0aGUgY29ycmVjdCBjaGlwIElELjxi
-cj4mZ3Q7IDxicj4mZ3Q7IE9LLCBJIHN1cHBvc2UgdGhleSB3aWxsIGZpeCBpdCBpbiB0aGUgbmV4
-dCB2ZXJzaW9uIG9mIHRoZSBkYXRhc2hlZXQuPGJyPiZndDsgTWVhbndoaWxlIHlvdSBjYW4gY29t
-bWl0IHlvdXIgcGF0Y2guPGJyPiZndDsgPGJyPiZndDsgVGhhbmtzLDxicj4mZ3Q7IC0tIDxicj4m
-Z3Q7IEplYW4gRGVsdmFyZTxicj4mZ3Q7IDxicj4mZ3Q7IF9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fPGJyPiZndDsgbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3Q8
-YnI+Jmd0OyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnPGJyPiZndDsgaHR0cDovL2xpc3RzLmxt
-LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29yczxicj48L2Rpdj4gCQkgCSAg
-IAkJICA8L2Rpdj48L2JvZHk+DQo8L2h0bWw+
-
---_ea35c008-be59-4a85-aba6-3c56d6ce51e1_--
+I can provide register dumps if there's interest, but it seemed like these
+read-only registers were mostly just copies of parts of bank 4.
 
 
---===============1855241809584978760==
+On Tue, Jul 2, 2013 at 11:32 PM, killghost <killghost@msn.com> wrote:
+
+> NCT6791 added 122byte read-only registers for Hardware Monitor. The base
+> address is specified in registers
+> CR[64h] and CR[65h] of Logical Device B, the hardware monitor device.
+> CR[64h] is the high byte, and CR[65h] is
+> the low byte. The least byte of the base address recommend to be zero. For
+> example, {CR[64h], CR[65h]} =
+> {XX00h}.
+>
+> who know that how to read this data?
+>
+>
+>
+> > Date: Wed, 3 Jul 2013 08:23:52 +0200
+> > From: khali@linux-fr.org
+> > To: linux@roeck-us.net
+> > CC: andareed@gmail.com; lm-sensors@lm-sensors.org
+>
+> > Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of
+> NCT6791D
+> >
+> > On Tue, 2 Jul 2013 19:52:30 -0700, Guenter Roeck wrote:
+> > > On Tue, Jul 02, 2013 at 09:10:52AM -0700, David Bartley wrote:
+> > > > The value of CR[20]/CR[21] on my board is 0xc8/0x03, and the
+> physical chip
+> > > > itself has "NCT6791D" printed on it.
+> > >
+> > > Hi Jean and David,
+> > >
+> > > Nuvoton confirms that 0xc803 is the correct chip ID.
+> >
+> > OK, I suppose they will fix it in the next version of the datasheet.
+> > Meanwhile you can commit your patch.
+> >
+> > Thanks,
+> > --
+> > Jean Delvare
+> >
+> > _______________________________________________
+> > lm-sensors mailing list
+> > lm-sensors@lm-sensors.org
+> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
+
+--047d7b6d82723f406004e095c457
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">I can provide register dumps if there&#39;s interest, but =
+it seemed like these read-only registers were mostly just copies of parts o=
+f bank 4.</div><div class=3D"gmail_extra"><br><br><div class=3D"gmail_quote=
+">On Tue, Jul 2, 2013 at 11:32 PM, killghost <span dir=3D"ltr">&lt;<a href=
+=3D"mailto:killghost@msn.com" target=3D"_blank">killghost@msn.com</a>&gt;</=
+span> wrote:<br>
+
+<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
+x #ccc solid;padding-left:1ex">
+
+
+<div><div dir=3D"ltr"><div>NCT6791 added 122byte read-only registers for Ha=
+rdware Monitor. The base address is specified in registers</div><div>CR[64h=
+] and CR[65h] of Logical Device B, the hardware monitor device. CR[64h] is =
+the high byte, and CR[65h] is</div>
+
+<div>the low byte. The least byte of the base address recommend to be zero.=
+ For example, {CR[64h], CR[65h]} =3D</div><div>{XX00h}.<br><br>who know tha=
+t how to read this data?=A0<br><br><br></div><br><div>&gt; Date: Wed, 3 Jul=
+ 2013 08:23:52 +0200<br>
+
+&gt; From: <a href=3D"mailto:khali@linux-fr.org" target=3D"_blank">khali@li=
+nux-fr.org</a><br>&gt; To: <a href=3D"mailto:linux@roeck-us.net" target=3D"=
+_blank">linux@roeck-us.net</a><br>&gt; CC: <a href=3D"mailto:andareed@gmail=
+.com" target=3D"_blank">andareed@gmail.com</a>; <a href=3D"mailto:lm-sensor=
+s@lm-sensors.org" target=3D"_blank">lm-sensors@lm-sensors.org</a><div class=
+=3D"im">
+
+<br>&gt; Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of=
+ NCT6791D<br>&gt; <br></div><div><div class=3D"h5">&gt; On Tue, 2 Jul 2013 =
+19:52:30 -0700, Guenter Roeck wrote:<br>&gt; &gt; On Tue, Jul 02, 2013 at 0=
+9:10:52AM -0700, David Bartley wrote:<br>
+
+&gt; &gt; &gt; The value of CR[20]/CR[21] on my board is 0xc8/0x03, and the=
+ physical chip<br>&gt; &gt; &gt; itself has &quot;NCT6791D&quot; printed on=
+ it.<br>&gt; &gt; <br>&gt; &gt; Hi Jean and David,<br>&gt; &gt; <br>&gt; &g=
+t; Nuvoton confirms that 0xc803 is the correct chip ID.<br>
+
+&gt; <br>&gt; OK, I suppose they will fix it in the next version of the dat=
+asheet.<br>&gt; Meanwhile you can commit your patch.<br>&gt; <br>&gt; Thank=
+s,<br>&gt; -- <br>&gt; Jean Delvare<br>&gt; <br></div></div><div class=3D"i=
+m">
+
+&gt; _______________________________________________<br>&gt; lm-sensors mai=
+ling list<br>&gt; <a href=3D"mailto:lm-sensors@lm-sensors.org" target=3D"_b=
+lank">lm-sensors@lm-sensors.org</a><br>&gt; <a href=3D"http://lists.lm-sens=
+ors.org/mailman/listinfo/lm-sensors" target=3D"_blank">http://lists.lm-sens=
+ors.org/mailman/listinfo/lm-sensors</a><br>
+
+</div></div> 		 	   		  </div></div>
+</blockquote></div><br></div>
+
+--047d7b6d82723f406004e095c457--
+
+
+--===============5100375336162062924==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -90,4 +133,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1855241809584978760==--
+--===============5100375336162062924==--
