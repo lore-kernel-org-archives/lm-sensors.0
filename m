@@ -1,137 +1,189 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 01 Jul 2013 14:09:25 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.11
-Message-Id: <20130701140925.GA30297@roeck-us.net>
+From: Jaromir Capik <jcapik@redhat.com>
+Date: Wed, 03 Jul 2013 15:51:20 +0000
+Subject: [lm-sensors] [PATCH] Introducing missing manual pages for eepro* tools / missing i2cset -r option
+Message-Id: <1648191895.33145221.1372866680846.JavaMail.root@redhat.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2252695805829505069=="
+Content-Type: multipart/mixed; boundary="----=_Part_33145219_57511188.1372866680844"
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
+------=_Part_33145219_57511188.1372866680844
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
---===============2252695805829505069==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
-Content-Disposition: inline
+Hello.
 
+The attached patch introduces 3 manpages for eepro* tools
+and adds missing -r option to the help function of the 'i2cset' tool.
 
---y0ulUmNC+osPPQO6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The patch is directly applicable on the latest sources.
+Please, merge it.
 
-Hi Linus,
+Thanks in advance.
 
-Please pull hwmon updates for Linux 3.11 from signed tag:
+Regards,
+Jaromir. 
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+--
+Jaromir Capik
+Red Hat Czech, s.r.o.
+Software Engineer / BaseOS
 
-Thanks,
-Guenter
-------
+Email: jcapik@redhat.com
+Web: www.cz.redhat.com
+Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
+IC: 27690016 
 
-The following changes since commit 7d132055814ef17a6c7b69f342244c410a5e000f:
+------=_Part_33145219_57511188.1372866680844
+Content-Type: text/x-patch; name=i2c-tools-3.1-man-eeproX.patch
+Content-Disposition: attachment; filename=i2c-tools-3.1-man-eeproX.patch
+Content-Transfer-Encoding: base64
 
-  Linux 3.10-rc6 (2013-06-15 11:51:07 -1000)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to a50d9a4d9ad3c71341788099d733e4151b8a511b:
-
-  hwmon: (ds1621) Fix temperature rounding operations (2013-06-28 06:43:55 -0700)
-
-----------------------------------------------------------------
-New driver to support GMT G762/G763 pwm fan controllers
-Add support for DS1631, DS1721, and DS1731 to ds1621 driver
-Remove detect function from ds1621 driver as unreliable
-Bug fixes in nct6775, iio_hwmon, and adm1021 drivers
-Remove redundant platform_set_drvdata in various drivers
-Add device tree support to ina2xx driver
-
-----------------------------------------------------------------
-Arnaud Ebalard (1):
-      Add support for GMT G762/G763 PWM fan controllers
-
-Guenter Roeck (4):
-      hwmon: (adm1021) Do not create min sysfs attributes for LM84
-      hwmon: (nct6775) Fix temperature alarm attributes
-      hwmon: (nct6775) Drop unsupported fan alarm attributes for NCT6775
-      hwmon: (ds1621) Fix temperature rounding operations
-
-Robert Coulson (6):
-      hwmon: (ds1621) Add ds1721 chip support
-      hwmon: (ds1621) Add ds1721 update interval sysfs attribute
-      hwmon: (ds1621) Add ds1631 chip support to ds1621 driver and documentation
-      hwmon: (ds1621) Remove detect function
-      hwmon: (ds1621) Add DS1731 chip support to ds1621 driver
-      hwmon: (ds1621) Update documentation
-
-Sachin Kamat (5):
-      hwmon: (abituguru3) Remove redundant platform_set_drvdata()
-      hwmon: (coretemp) Remove redundant platform_set_drvdata()
-      hwmon: (i5k_amb) Remove redundant platform_set_drvdata()
-      hwmon: (ntc_thermistor) Remove redundant platform_set_drvdata()
-      hwmon: (w83627ehf) Remove redundant platform_set_drvdata()
-
-Sebastian Andrzej Siewior (1):
-      hwmon: (iio_hwmon) add alias table
-
-Tang Yuantian (1):
-      hwmon: (ina2xx) Add device tree support to pass the shunt resistor
-
- Documentation/devicetree/bindings/hwmon/g762.txt |   47 +
- Documentation/devicetree/bindings/i2c/ina2xx.txt |   22 +
- Documentation/hwmon/ds1621                       |  144 ++-
- Documentation/hwmon/g762                         |   65 ++
- Documentation/hwmon/ina2xx                       |    4 +-
- drivers/hwmon/Kconfig                            |   21 +-
- drivers/hwmon/Makefile                           |    1 +
- drivers/hwmon/abituguru3.c                       |    1 -
- drivers/hwmon/adm1021.c                          |   32 +-
- drivers/hwmon/coretemp.c                         |    2 -
- drivers/hwmon/ds1621.c                           |  226 ++++-
- drivers/hwmon/g762.c                             | 1149 ++++++++++++++++++++++
- drivers/hwmon/i5k_amb.c                          |    2 -
- drivers/hwmon/iio_hwmon.c                        |    1 +
- drivers/hwmon/ina2xx.c                           |    5 +
- drivers/hwmon/nct6775.c                          |   92 +-
- drivers/hwmon/ntc_thermistor.c                   |    1 -
- drivers/hwmon/w83627ehf.c                        |    2 -
- include/linux/platform_data/g762.h               |   37 +
- 19 files changed, 1743 insertions(+), 111 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/hwmon/g762.txt
- create mode 100644 Documentation/devicetree/bindings/i2c/ina2xx.txt
- create mode 100644 Documentation/hwmon/g762
- create mode 100644 drivers/hwmon/g762.c
- create mode 100644 include/linux/platform_data/g762.h
-
---y0ulUmNC+osPPQO6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR0Y2VAAoJEMsfJm/On5mBo48P/2NyHO5Bx4wFSB3O7m1/0rrr
-FWZOk+Z+PihPEE2KSq+xY05OsexUU6PVy24BVA1mlcrue4mcnRFNE26XCw41rjx9
-E8fVh3rwMGzis75dmFABtP3e3gytYA0jEL3Ygge8IEyfvYtGGxycah6pgTr2nBRN
-rZPmlerk/aZUuERGvQ+h/wYSPAijE5DBuHeKQQ9Mlo5aMGCFvEQZWc7bnSpkqWXV
-e8wUGFxYKU1gTUorRzaR6Nb+WQCz/aeiRvZZL3iQmb7VMPcjJK7x8yADgY3kUc5+
-LJVbj+yIhNPbFur+p4S3dD3Jdp9NgdN5bslMILM5F07oy3NvKQTPc7qnLaIT7/dQ
-y0gZ374ZIuUKMiFPSIaQJG8R4EdnDQAapiMSkmA4Qe9U4SjlcBqxCo7AYVrOI4vN
-2F7SO2ncy7nAQNnl3iCcFZXaTvGojUKFBYO3QLwWa2Ps2SLwIESXNXb2zNyvmfBt
-nU3c6167hpU8hB5GQhyOHCuOorp/+2lbBDr0MzLhPh5/u+ivHgMVgGbGFxnGqG5n
-o/1cK7UqZhYfWjTkSprwN78uEE6sQIk524PwYvHVmAIq22v2ZmzxiwF8VPb6R0iX
-VPTbObd+xY8MlIL792DVLhzd2WmvPU7qU09SvOVrxH8Jm/fxeUVd+OwQVGvGOjzT
-BxuMMET8EErSS16xDeBS
-=MJg0
------END PGP SIGNATURE-----
-
---y0ulUmNC+osPPQO6--
-
-
---===============2252695805829505069==
+ZGlmZiAtTmF1ciBpMmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXByb2cuOCBpMmMtdG9v
+bHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9nLjgKLS0tIGkyYy10b29scy0zLjEuMC5vcmlnL2VlcHJv
+bWVyL2VlcHJvZy44CTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBpMmMt
+dG9vbHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9nLjgJMjAxMy0wNy0wMyAxNzoxMDo0Ni4xOTM3ODc4
+MzYgKzAyMDAKQEAgLTAsMCArMSwxMDUgQEAKKy5cIgorLlwiICBlZXByb2cuOCAtIG1hbnBhZ2Ug
+Zm9yIHRoZSBpMmMtdG9vbHMvZWVwcm9nIHV0aWxpdHkKKy5cIiAgQ29weXJpZ2h0IChDKSAyMDEz
+ICBKYXJvbWlyIENhcGlrCisuXCIKKy5cIiAgVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7
+IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKKy5cIiAgaXQgdW5kZXIgdGhl
+IHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkK
+Ky5cIiAgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgZWl0aGVyIHZlcnNpb24gMiBvZiB0
+aGUgTGljZW5zZSwgb3IKKy5cIiAgKGF0IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4K
+Ky5cIgorLlwiICBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBp
+dCB3aWxsIGJlIHVzZWZ1bCwKKy5cIiAgYnV0IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0
+IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKKy5cIiAgTUVSQ0hBTlRBQklMSVRZIG9yIEZJ
+VE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRoZQorLlwiICBHTlUgR2VuZXJh
+bCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgorLlwiCisuXCIgIFlvdSBzaG91bGQg
+aGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFs
+b25nCisuXCIgIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBGcmVlIFNv
+ZnR3YXJlIEZvdW5kYXRpb24sIEluYy4sCisuXCIgIDUxIEZyYW5rbGluIFN0cmVldCwgRmlmdGgg
+Rmxvb3IsIEJvc3RvbiwgTUEgMDIxMTAtMTMwMSBVU0EuCisuXCIKKy5USCBlZXByb2cgIjgiICJK
+dWwgMjAxMyIgImkyYy10b29scyIgIlN5c3RlbSBBZG1pbmlzdHJhdGlvbiIKKy5TSCBOQU1FCitl
+ZXByb2cgXC0gcmVhZHMgYW5kIHdyaXRlcyAyNEN4eCBFRVBST01zIGNvbm5lY3RlZCB0byBJMkMg
+c2VyaWFsIGJ1cy4KKy5TSCBTWU5PUFNJUworLkIgZWVwcm9nCitbLWZxeGRoXSBbLTE2fC04XSBb
+LXIgYWRkcls6Y291bnRdfC13IGFkZHJdIDxkZXZpY2U+IDxpMmMtYWRkcj4KKy5TSCBERVNDUklQ
+VElPTgorLkIgZWVwcm9nCit1c2VzIHRoZSBTTUJ1cyBwcm90b2NvbCB1c2VkIGJ5IG1vc3Qgb2Yg
+dGhlIHJlY2VudCBjaGlwc2V0cy4KKy5TSCBOT1RFCitEb24ndCBmb3JnZXQgdG8gbG9hZCB5b3Vy
+IGkyYyBjaGlwc2V0IGFuZCB0aGUgaTJjLWRldiBkcml2ZXJzLgorLlAKK1RoZSBmb2xsb3dpbmcg
+ZW52aXJvbm1lbnQgdmFyaWFibGVzIGNvdWxkIGJlIHNldCBpbnN0ZWFkIG9mIHRoZSBjb21tYW5k
+IGxpbmUgYXJndW1lbnRzOgorLlAKKyAgICBFRVBST0dfREVWICAgICAgICAgICAgICBkZXZpY2UK
+Ky5icgorICAgIEVFUFJPR19JMkNfQUREUiAgICAgICAgIGkyYy1hZGRyCisuU0ggUEFSQU1FVEVS
+UworLkkgQWRkcmVzcyBtb2RlcworLlRQCisuQiBcLTgKK1VzZSA4Yml0IGFkZHJlc3MgbW9kZSBm
+b3IgMjRjMHguLi4yNEMxNiBbZGVmYXVsdF0KKy5UUAorLkIgXC0xNgorVXNlIDE2Yml0IGFkZHJl
+c3MgbW9kZSBmb3IgMjRjMzIuLi4yNEMyNTYKKy5UUAorLkkgQWN0aW9ucworLlRQCisuQiBcLXIg
+YWRkcls6Y291bnRdCitSZWFkCisuQiBjb3VudAorKDEgaWYgb21pdHRlZCkgYnl0ZXMgZnJvbQor
+LkIgYWRkcgorYW5kIHByaW50IHRoZW0gdG8gdGhlIHN0YW5kYXJkIG91dHB1dAorLlRQCisuQiBc
+LXcgYWRkcgorV3JpdGUgaW5wdXQgKHN0ZGluKSBhdCBhZGRyZXNzCisuQiBhZGRyCitvZiB0aGUg
+RUVQUk9NCisuVFAKKy5CIFwtaAorUHJpbnQgdGhpcyBoZWxwCisuVFAKKy5JIE9wdGlvbnMKKy5U
+UAorLkIgXC14CitTZXQgaGV4IG91dHB1dCBtb2RlCisuVFAKKy5CIFwtZAorRHVtbXkgbW9kZSwg
+ZGlzcGxheSB3aGF0ICp3b3VsZCogaGF2ZSBiZWVuIGRvbmUKKy5UUAorLkIgXC1mCitEaXNhYmxl
+IHdhcm5pbmdzIGFuZCBkb24ndCBhc2sgY29uZmlybWF0aW9uCisuVFAKKy5CIFwtcQorUXVpZXQg
+bW9kZQorLlRQCisuSSBCdXMKKy5UUAorLkIgZGV2aWNlCitEZXZpY2UgZmlsZSByZXByZXNlbnRp
+bmcgdGhlIEkyQyBidXMgKGVnLiAvZGV2L2kyYy0wKQorLlRQCisuQiBpMmMtYWRkcgorSTJDIGJ1
+cyBhZGRyZXNzIG9mIHRoZSBFRVBST00gKGVnLiAweDNBKQorLlNIIEVYQU1QTEVTCitSZWFkIDY0
+IGJ5dGVzIGZyb20gdGhlIEVFUFJPTSBhdCBhZGRyZXNzIDB4NTQgb24gYnVzIDAgc3RhcnRpbmcg
+YXQgYWRkcmVzcyAxMjMgKGRlY2ltYWwpCisuUAorLkIgCWVlcHJvZworL2Rldi9pMmMtMCAweDU0
+IC1yIDEyMzo2NAorLlAKK1ByaW50IHRoZSBoZXggY29kZXMgb2YgdGhlIGZpcnN0IDMyIGJ5dGVz
+IHJlYWQgZnJvbSBidXMgMSBhdCBhZGRyZXNzIDB4MjIKKy5QCisuQiAJZWVwcm9nCisvZGV2L2ky
+Yy0xIDB4NTEgLXggLXIgMHgyMjoweDIwCisuUAorV3JpdGUgdGhlIGN1cnJlbnQgdGltZXN0YW1w
+IGF0IGFkZHJlc3MgMHgyMDAgb2YgdGhlIEVFUFJPTSBvbiBidXMgMCBhdCBhZGRyZXNzIDB4MzMK
+Ky5QCisgCWRhdGUgfAorLkIgZWVwcm9nCisvZGV2L2kyYy0wIDB4MzMgLXcgMHgyMDAKKy5TSCBT
+RUUgQUxTTworLkJSIGVlcHJvbSAoOCkKKy5CUiBlZXByb21lciAoOCkKKy5TSCBBVVRIT1IKKy5V
+UiBzdGVmYW5vQGNvZGVzaW5rLm9yZworU3RlZmFubyBCYXJiYXRvCisuVUUKZGlmZiAtTmF1ciBp
+MmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXByb21lci44IGkyYy10b29scy0zLjEuMC9l
+ZXByb21lci9lZXByb21lci44Ci0tLSBpMmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXBy
+b21lci44CTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBpMmMtdG9vbHMt
+My4xLjAvZWVwcm9tZXIvZWVwcm9tZXIuOAkyMDEzLTA3LTAzIDE3OjI1OjM1LjA2NzQ4NzMyNCAr
+MDIwMApAQCAtMCwwICsxLDYzIEBACisuXCIKKy5cIiAgZWVwcm9tLjggLSBtYW5wYWdlIGZvciB0
+aGUgaTJjLXRvb2xzL2VlcHJvbSB1dGlsaXR5CisuXCIgIENvcHlyaWdodCAoQykgMjAxMyAgSmFy
+b21pciBDYXBpaworLlwiCisuXCIgIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3Ug
+Y2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisuXCIgIGl0IHVuZGVyIHRoZSB0ZXJt
+cyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5CisuXCIg
+IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExp
+Y2Vuc2UsIG9yCisuXCIgIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uCisuXCIK
+Ky5cIiAgVGhpcyBwcm9ncmFtIGlzIGRpc3RyaWJ1dGVkIGluIHRoZSBob3BlIHRoYXQgaXQgd2ls
+bCBiZSB1c2VmdWwsCisuXCIgIGJ1dCBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVu
+IHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCisuXCIgIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNT
+IEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKKy5cIiAgR05VIEdlbmVyYWwgUHVi
+bGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWlscy4KKy5cIgorLlwiICBZb3Ugc2hvdWxkIGhhdmUg
+cmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhbG9uZwor
+LlwiICB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2Fy
+ZSBGb3VuZGF0aW9uLCBJbmMuLAorLlwiICA1MSBGcmFua2xpbiBTdHJlZXQsIEZpZnRoIEZsb29y
+LCBCb3N0b24sIE1BIDAyMTEwLTEzMDEgVVNBLgorLlwiCisuVEggZWVwcm9tZXIgIjgiICJKdWwg
+MjAxMyIgImkyYy10b29scyIgIlN5c3RlbSBBZG1pbmlzdHJhdGlvbiIKKy5TSCBOQU1FCitlZXBy
+b21lciBcLSByZWFkcyBhbmQgd3JpdGVzIDI0Q3h4IEVFUFJPTXMgY29ubmVjdGVkIHRvIEkyQyBz
+ZXJpYWwgYnVzLgorLlNIIFNZTk9QU0lTCisuQiBlZXByb21lcgorWy1yfC13fC1lfC1wXSAtZiA8
+ZGV2aWNlPiA8aTJjLWFkZHI+CisuU0ggREVTQ1JJUFRJT04KK1RoZSBFRVBST00gbXVzdCBiZSBh
+IGxhcmdlIEVFUFJPTSB3aGljaCB1c2VzIGEgMi1ieXRlIGFkZHJlc3MKK2ZpZWxkICgyNEMzMiBv
+ciBsYXJnZXIpLiBJdCB3aWxsIE5PVCBXT1JLIG9uIHNtYWxsIEVFUFJPTXMKKygyNEMwMSAtIDI0
+QzE2KSBzdWNoIGFzIHRob3NlIHVzZWQgb24gU0RSQU0gRElNTXMuCisuU0ggTk9URQorRG9uJ3Qg
+Zm9yZ2V0IHRvIGxvYWQgeW91ciBpMmMgY2hpcHNldCBhbmQgdGhlIGkyYy1kZXYgZHJpdmVycy4K
+Ky5QCitUZXN0ZWQgb25seSBvbiAyNEMyNTYuCisuUAorLlNIIFBBUkFNRVRFUlMKKy5UUAorLkkg
+QWN0aW9ucworLlRQCisuQiBcLXIKK1JlYWQKKy5UUAorLkIgXC13CitXcml0ZQorLlRQCisuQiBc
+LWUKK0VyYXNlCisuVFAKKy5CIFwtcAorUHJpbnQgaGVhZGVyCisuVFAKKy5JIEJ1cworLlRQCisu
+QiBcLWYgZGV2aWNlCitEZXZpY2UgZmlsZSByZXByZXNlbnRpbmcgdGhlIEkyQyBidXMgKGVnLiAv
+ZGV2L2kyYy0wKQorLlRQCisuQiBpMmMtYWRkcgorSTJDIGJ1cyBhZGRyZXNzIG9mIHRoZSBFRVBS
+T00gKGVnLiAweDNBKQorLlNIIFNFRSBBTFNPCisuQlIgZWVwcm9nICg4KQorLkJSIGVlcHJvbSAo
+OCkKKy5TSCBBVVRIT1IKKy5VUiBtYXJ2aW5Ac2l0b3VyLmN6CitEYW5pZWwgU21vbGlrCisuVUUK
+ZGlmZiAtTmF1ciBpMmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXByb20uOCBpMmMtdG9v
+bHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9tLjgKLS0tIGkyYy10b29scy0zLjEuMC5vcmlnL2VlcHJv
+bWVyL2VlcHJvbS44CTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBpMmMt
+dG9vbHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9tLjgJMjAxMy0wNy0wMyAxNzoxNDoyMi44NTIzODM5
+NDEgKzAyMDAKQEAgLTAsMCArMSw2NCBAQAorLlwiCisuXCIgIGVlcHJvbS44IC0gbWFucGFnZSBm
+b3IgdGhlIGkyYy10b29scy9lZXByb20gdXRpbGl0eQorLlwiICBDb3B5cmlnaHQgKEMpIDIwMTMg
+IEphcm9taXIgQ2FwaWsKKy5cIgorLlwiICBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsg
+eW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorLlwiICBpdCB1bmRlciB0aGUg
+dGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieQor
+LlwiICB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRo
+ZSBMaWNlbnNlLCBvcgorLlwiICAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgor
+LlwiCisuXCIgIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0
+IHdpbGwgYmUgdXNlZnVsLAorLlwiICBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhvdXQg
+ZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgorLlwiICBNRVJDSEFOVEFCSUxJVFkgb3IgRklU
+TkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlCisuXCIgIEdOVSBHZW5lcmFs
+IFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCisuXCIKKy5cIiAgWW91IHNob3VsZCBo
+YXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYWxv
+bmcKKy5cIiAgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwgd3JpdGUgdG8gdGhlIEZyZWUgU29m
+dHdhcmUgRm91bmRhdGlvbiwgSW5jLiwKKy5cIiAgNTEgRnJhbmtsaW4gU3RyZWV0LCBGaWZ0aCBG
+bG9vciwgQm9zdG9uLCBNQSAwMjExMC0xMzAxIFVTQS4KKy5cIgorLlRIIGVlcHJvbSAiOCIgIkp1
+bCAyMDEzIiAiaTJjLXRvb2xzIiAiU3lzdGVtIEFkbWluaXN0cmF0aW9uIgorLlNIIE5BTUUKK2Vl
+cHJvbSBcLSByZWFkcyBhbmQgd3JpdGVzIDI0Q3h4IEVFUFJPTXMgY29ubmVjdGVkIHRvIEkyQyBz
+ZXJpYWwgYnVzLgorLlNIIFNZTk9QU0lTCisuQiBlZXByb20KK1stZCBkZXZdIFstYSBhZHJdIFst
+cCBwZ3NdIFstd10gWy15XSBbLWYgZmlsZV0KKy5TSCBERVNDUklQVElPTgorLkIgZWVwcm9tCitj
+YW4gYmUgdXNlZCBmb3IgcmVhZGluZyBmcm9tIC8gd3JpdGluZyB0byBpMmMtZWVwcm9tcyBsaWtl
+IHRoZSBwb3B1bGFyCisyNEMxNiwgMjRDMDgsIDI0QzA0LCBldGMuCitJbiBjb250cmFzdCB0byBl
+ZXByb21tZXIgd2hpY2ggc3VwcG9ydHMgMjRDMjU2LXR5cGUgZWVwcm9tcyAoMjRDMTZzKQordGhp
+cyB0b29sIHdvcmtzIHdpdGggMS1ieXRlIGFkZHJlc3NlcyEKKy5TSCBOT1RFCitEb24ndCBmb3Jn
+ZXQgdG8gbG9hZCB5b3VyIGkyYyBjaGlwc2V0IGFuZCB0aGUgaTJjLWRldiBkcml2ZXJzLgorLlAK
+K1BhZ2VzL2FkZHJlc3NlczoKKyAgICBlZXByb21zIHdpdGggbW9yZSB0aGFuIDI1NiBieXRlcyBh
+cHBlYXIgYXMgaWYgdGhleQorICAgIHdlcmUgc2V2ZXJhbCBlZXByb21zIHdpdGggY29uc2VjdXRp
+dmUgYWRkcmVzc2VzIG9uIHRoZSBidXMKKyAgICBzbyB3ZSBtaWdodCBhcyB3ZWxsIGFkZHJlc3Mg
+c2V2ZXJhbCBzZXBhcmF0ZSBlZXByb21zIHdpdGgKKyAgICBpbmNyZWFzaW5nIGFkZHJlc3Nlcwor
+LlNIIFBBUkFNRVRFUlMKKy5UUAorLkIgZGV2CitkZXZpY2UsIGUuZy4gL2Rldi9pMmMtMCAgICAo
+ZGVmKQorLlRQCisuQiBhZHIKK2Jhc2UgYWRkcmVzcyBvZiBlZXByb20sIGVnIDB4QTAgKGRlZikK
+Ky5UUAorLkIgcGdzCitudW1iZXIgb2YgcGFnZXMgdG8gcmVhZCwgZWcgOCAoZGVmKQorLlRQCisu
+QiBcLXcKK3dyaXRlIHRvIGVlcHJvbSAoZGVmYXVsdCBpcyByZWFkaW5nISkKKy5UUAorLkIgXC15
+CitzdXBwcmVzcyB3YXJuaW5nIHdoZW4gd3JpdGluZyAoZGVmYXVsdCBpcyB0byB3YXJuISkKKy5U
+UAorLkIgXC1mIGZpbGUKK2NvcHkgZWVwcm9tIGNvbnRlbnRzIHRvL2Zyb20gZmlsZSAoZGVmYXVs
+dCBmb3IgcmVhZCBpcyB0ZXN0IG9ubHk7IGZvciB3cml0ZSBpcyBhbGwgemVyb3MpCisuU0ggU0VF
+IEFMU08KKy5CUiBlZXByb2cgKDgpCisuQlIgZWVwcm9tZXIgKDgpCisuU0ggQVVUSE9SCisuVVIg
+Y2hyaXNAaGVkb25pc20uY3gKK0NocmlzdGlhbiBWb2dlbAorLlVFCmRpZmYgLU5hdXIgaTJjLXRv
+b2xzLTMuMS4wLm9yaWcvdG9vbHMvaTJjc2V0LmMgaTJjLXRvb2xzLTMuMS4wL3Rvb2xzL2kyY3Nl
+dC5jCi0tLSBpMmMtdG9vbHMtMy4xLjAub3JpZy90b29scy9pMmNzZXQuYwkyMDExLTAyLTE1IDE3
+OjEyOjI3LjAwMDAwMDAwMCArMDEwMAorKysgaTJjLXRvb2xzLTMuMS4wL3Rvb2xzL2kyY3NldC5j
+CTIwMTMtMDYtMTkgMTI6NDU6NTUuODUyNDkwMTk1ICswMjAwCkBAIC0zNSw3ICszNSwxMiBAQAog
+c3RhdGljIHZvaWQgaGVscCh2b2lkKQogewogCWZwcmludGYoc3RkZXJyLAotCQkiVXNhZ2U6IGky
+Y3NldCBbLWZdIFsteV0gWy1tIE1BU0tdIEkyQ0JVUyBDSElQLUFERFJFU1MgREFUQS1BRERSRVNT
+IFtWQUxVRV0gLi4uIFtNT0RFXVxuIgorCQkiVXNhZ2U6IGkyY3NldCBbT1BUSU9OU10gSTJDQlVT
+IENISVAtQUREUkVTUyBEQVRBLUFERFJFU1MgW1ZBTFVFXSAuLi4gW01PREVdXG4iCisJCSIgIE9Q
+VElPTlMgYXJlXG4iCisJCSIgICAgLWYgKGZvcmNlIGFjY2VzcyB3aGVuIGJ1c3kpXG4iCisJCSIg
+ICAgLXkgKGRpc2FibGUgaW50ZXJhY3RpdmUgbW9kZSlcbiIKKwkJIiAgICAtbSBNQVNLICh2YWx1
+ZSB3cml0ZSBtYXNrIC0gYml0cyBzZXQgdG8gMCBhcmUgcHJlc2VydmVkIGlmIHBvc3NpYmxlKVxu
+IgorCQkiICAgIC1yICh3cml0ZSB2ZXJpZmljYXRpb24gYnkgcmVhZGluZyBiYWNrKVxuIgogCQki
+ICBJMkNCVVMgaXMgYW4gaW50ZWdlciBvciBhbiBJMkMgYnVzIG5hbWVcbiIKIAkJIiAgQUREUkVT
+UyBpcyBhbiBpbnRlZ2VyICgweDAzIC0gMHg3NylcbiIKIAkJIiAgTU9ERSBpcyBvbmUgb2Y6XG4i
+Cg==
+------=_Part_33145219_57511188.1372866680844
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -141,4 +193,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2252695805829505069==--
+------=_Part_33145219_57511188.1372866680844--
