@@ -1,32 +1,93 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 03 Jul 2013 06:23:52 +0000
+From: killghost <killghost@msn.com>
+Date: Wed, 03 Jul 2013 06:32:49 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6791D
-Message-Id: <20130703082352.1c9ecefe@endymion.delvare>
+Message-Id: <BLU176-W219482B6F85ABEA0513D8A0730@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1855241809584978760=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2 Jul 2013 19:52:30 -0700, Guenter Roeck wrote:
-> On Tue, Jul 02, 2013 at 09:10:52AM -0700, David Bartley wrote:
-> > The value of CR[20]/CR[21] on my board is 0xc8/0x03, and the physical chip
-> > itself has "NCT6791D" printed on it.
-> 
-> Hi Jean and David,
-> 
-> Nuvoton confirms that 0xc803 is the correct chip ID.
+--===============1855241809584978760==
+Content-Type: multipart/alternative;
+	boundary="_ea35c008-be59-4a85-aba6-3c56d6ce51e1_"
 
-OK, I suppose they will fix it in the next version of the datasheet.
-Meanwhile you can commit your patch.
+--_ea35c008-be59-4a85-aba6-3c56d6ce51e1_
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Thanks,
--- 
-Jean Delvare
+TkNUNjc5MSBhZGRlZCAxMjJieXRlIHJlYWQtb25seSByZWdpc3RlcnMgZm9yIEhhcmR3YXJlIE1v
+bml0b3IuIFRoZSBiYXNlIGFkZHJlc3MgaXMgc3BlY2lmaWVkIGluIHJlZ2lzdGVyc0NSWzY0aF0g
+YW5kIENSWzY1aF0gb2YgTG9naWNhbCBEZXZpY2UgQiwgdGhlIGhhcmR3YXJlIG1vbml0b3IgZGV2
+aWNlLiBDUls2NGhdIGlzIHRoZSBoaWdoIGJ5dGUsIGFuZCBDUls2NWhdIGlzdGhlIGxvdyBieXRl
+LiBUaGUgbGVhc3QgYnl0ZSBvZiB0aGUgYmFzZSBhZGRyZXNzIHJlY29tbWVuZCB0byBiZSB6ZXJv
+LiBGb3IgZXhhbXBsZSwge0NSWzY0aF0sIENSWzY1aF19ID17WFgwMGh9Lg0KDQp3aG8ga25vdyB0
+aGF0IGhvdyB0byByZWFkIHRoaXMgZGF0YT8gDQoNCg0KDQo+IERhdGU6IFdlZCwgMyBKdWwgMjAx
+MyAwODoyMzo1MiArMDIwMA0KPiBGcm9tOiBraGFsaUBsaW51eC1mci5vcmcNCj4gVG86IGxpbnV4
+QHJvZWNrLXVzLm5ldA0KPiBDQzogYW5kYXJlZWRAZ21haWwuY29tOyBsbS1zZW5zb3JzQGxtLXNl
+bnNvcnMub3JnDQo+IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBzZW5zb3JzLWRl
+dGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRA0KPiANCj4gT24gVHVlLCAyIEp1bCAyMDEz
+IDE5OjUyOjMwIC0wNzAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOg0KPiA+IE9uIFR1ZSwgSnVsIDAy
+LCAyMDEzIGF0IDA5OjEwOjUyQU0gLTA3MDAsIERhdmlkIEJhcnRsZXkgd3JvdGU6DQo+ID4gPiBU
+aGUgdmFsdWUgb2YgQ1JbMjBdL0NSWzIxXSBvbiBteSBib2FyZCBpcyAweGM4LzB4MDMsIGFuZCB0
+aGUgcGh5c2ljYWwgY2hpcA0KPiA+ID4gaXRzZWxmIGhhcyAiTkNUNjc5MUQiIHByaW50ZWQgb24g
+aXQuDQo+ID4gDQo+ID4gSGkgSmVhbiBhbmQgRGF2aWQsDQo+ID4gDQo+ID4gTnV2b3RvbiBjb25m
+aXJtcyB0aGF0IDB4YzgwMyBpcyB0aGUgY29ycmVjdCBjaGlwIElELg0KPiANCj4gT0ssIEkgc3Vw
+cG9zZSB0aGV5IHdpbGwgZml4IGl0IGluIHRoZSBuZXh0IHZlcnNpb24gb2YgdGhlIGRhdGFzaGVl
+dC4NCj4gTWVhbndoaWxlIHlvdSBjYW4gY29tbWl0IHlvdXIgcGF0Y2guDQo+IA0KPiBUaGFua3Ms
+DQo+IC0tIA0KPiBKZWFuIERlbHZhcmUNCj4gDQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fDQo+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0DQo+IGxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcNCj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
+YW4vbGlzdGluZm8vbG0tc2Vuc29ycw0KIAkJIAkgICAJCSAg
+
+--_ea35c008-be59-4a85-aba6-3c56d6ce51e1_
+Content-Type: text/html; charset="gb2312"
+Content-Transfer-Encoding: base64
+
+PGh0bWw+DQo8aGVhZD4NCjxzdHlsZT48IS0tDQouaG1tZXNzYWdlIFANCnsNCm1hcmdpbjowcHg7
+DQpwYWRkaW5nOjBweA0KfQ0KYm9keS5obW1lc3NhZ2UNCnsNCmZvbnQtc2l6ZTogMTJwdDsNCmZv
+bnQtZmFtaWx5Os6iyO3RxbraDQp9DQotLT48L3N0eWxlPjwvaGVhZD4NCjxib2R5IGNsYXNzPSdo
+bW1lc3NhZ2UnPjxkaXYgZGlyPSdsdHInPjxkaXY+TkNUNjc5MSBhZGRlZCAxMjJieXRlIHJlYWQt
+b25seSByZWdpc3RlcnMgZm9yIEhhcmR3YXJlIE1vbml0b3IuIFRoZSBiYXNlIGFkZHJlc3MgaXMg
+c3BlY2lmaWVkIGluIHJlZ2lzdGVyczwvZGl2PjxkaXY+Q1JbNjRoXSBhbmQgQ1JbNjVoXSBvZiBM
+b2dpY2FsIERldmljZSBCLCB0aGUgaGFyZHdhcmUgbW9uaXRvciBkZXZpY2UuIENSWzY0aF0gaXMg
+dGhlIGhpZ2ggYnl0ZSwgYW5kIENSWzY1aF0gaXM8L2Rpdj48ZGl2PnRoZSBsb3cgYnl0ZS4gVGhl
+IGxlYXN0IGJ5dGUgb2YgdGhlIGJhc2UgYWRkcmVzcyByZWNvbW1lbmQgdG8gYmUgemVyby4gRm9y
+IGV4YW1wbGUsIHtDUls2NGhdLCBDUls2NWhdfSA9PC9kaXY+PGRpdj57WFgwMGh9Ljxicj48YnI+
+d2hvIGtub3cgdGhhdCBob3cgdG8gcmVhZCB0aGlzIGRhdGE/Jm5ic3A7PGJyPjxicj48YnI+PC9k
+aXY+PGJyPjxkaXY+Jmd0OyBEYXRlOiBXZWQsIDMgSnVsIDIwMTMgMDg6MjM6NTIgKzAyMDA8YnI+
+Jmd0OyBGcm9tOiBraGFsaUBsaW51eC1mci5vcmc8YnI+Jmd0OyBUbzogbGludXhAcm9lY2stdXMu
+bmV0PGJyPiZndDsgQ0M6IGFuZGFyZWVkQGdtYWlsLmNvbTsgbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZzxicj4mZ3Q7IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBzZW5zb3JzLWRl
+dGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRDxicj4mZ3Q7IDxicj4mZ3Q7IE9uIFR1ZSwg
+MiBKdWwgMjAxMyAxOTo1MjozMCAtMDcwMCwgR3VlbnRlciBSb2VjayB3cm90ZTo8YnI+Jmd0OyAm
+Z3Q7IE9uIFR1ZSwgSnVsIDAyLCAyMDEzIGF0IDA5OjEwOjUyQU0gLTA3MDAsIERhdmlkIEJhcnRs
+ZXkgd3JvdGU6PGJyPiZndDsgJmd0OyAmZ3Q7IFRoZSB2YWx1ZSBvZiBDUlsyMF0vQ1JbMjFdIG9u
+IG15IGJvYXJkIGlzIDB4YzgvMHgwMywgYW5kIHRoZSBwaHlzaWNhbCBjaGlwPGJyPiZndDsgJmd0
+OyAmZ3Q7IGl0c2VsZiBoYXMgIk5DVDY3OTFEIiBwcmludGVkIG9uIGl0Ljxicj4mZ3Q7ICZndDsg
+PGJyPiZndDsgJmd0OyBIaSBKZWFuIGFuZCBEYXZpZCw8YnI+Jmd0OyAmZ3Q7IDxicj4mZ3Q7ICZn
+dDsgTnV2b3RvbiBjb25maXJtcyB0aGF0IDB4YzgwMyBpcyB0aGUgY29ycmVjdCBjaGlwIElELjxi
+cj4mZ3Q7IDxicj4mZ3Q7IE9LLCBJIHN1cHBvc2UgdGhleSB3aWxsIGZpeCBpdCBpbiB0aGUgbmV4
+dCB2ZXJzaW9uIG9mIHRoZSBkYXRhc2hlZXQuPGJyPiZndDsgTWVhbndoaWxlIHlvdSBjYW4gY29t
+bWl0IHlvdXIgcGF0Y2guPGJyPiZndDsgPGJyPiZndDsgVGhhbmtzLDxicj4mZ3Q7IC0tIDxicj4m
+Z3Q7IEplYW4gRGVsdmFyZTxicj4mZ3Q7IDxicj4mZ3Q7IF9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fPGJyPiZndDsgbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3Q8
+YnI+Jmd0OyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnPGJyPiZndDsgaHR0cDovL2xpc3RzLmxt
+LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29yczxicj48L2Rpdj4gCQkgCSAg
+IAkJICA8L2Rpdj48L2JvZHk+DQo8L2h0bWw+
+
+--_ea35c008-be59-4a85-aba6-3c56d6ce51e1_--
+
+
+--===============1855241809584978760==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1855241809584978760==--
