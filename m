@@ -1,20 +1,115 @@
-From: Larry <g.talk.g@gmail.com>
-Date: Thu, 04 Jul 2013 14:18:23 +0000
-Subject: Re: [lm-sensors] i8k: non-standard fan control
-Message-Id: <51D5842F.6010502@gmail.com>
+From: "Leslie Rhorer" <lrhorer@mygrande.net>
+Date: Thu, 04 Jul 2013 21:28:23 +0000
+Subject: [lm-sensors] sensors quit working
+Message-Id: <201307042128.r64LSOcp022588@mail01.lsn.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_NextPart_000_0006_01CE78D3.81CCD380"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <50596069.9030904@0x01b.net>
-In-Reply-To: <50596069.9030904@0x01b.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I also use Vostro 3400 laptop, and don't like i8k default behavior; can 
-you provide the latest solution how to control the fan speed on dell 
-vostro laptop. As you said, i8k is NON-standard method for this case.
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0006_01CE78D3.81CCD380
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+I had sensors working pretty well, but then I upgraded my distro and it quit
+working completely.  I tried running sensors-detect, and it reports I need
+to load it87, k10temp, and fam15_power in order to run sensors.  I can load
+k10temp, but sensors does not find any monitor points when I do.
+
+Attempting to load it87 give an error: FATAL: "Error inserting it87
+(/lib/modules/2.6.32-5-amd64/kernel/drivers/hwmon/it87.ko): No such device"
+
+The module fam15_power.o does not exist.  I vaguely recall having some
+issues with fam15_power when I installed this motherboard several months
+ago, but I also recall it did not seem to do very much that I needed.
+
+There are backup versions of it87.ko and k10temp.ko in the
+/lib/modules/2.6.32-5-amd64/kernel/drivers/hwmon directory.
+
+How should I proceed?
+
+I'm running Debian Squeeze, kernel 2.6.32-5-amd64, sensors version 3.3.3,
+and libsensors version 3.3.3
+
+------=_NextPart_000_0006_01CE78D3.81CCD380
+Content-Type: application/ms-tnef;
+	name="winmail.dat"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="winmail.dat"
+
+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
+AAAARgAAAAADhQAAAAAAAAMAA4AIIAYAAAAAAMAAAAAAAABGAAAAABCFAAAAAAAACwAPgAggBgAA
+AAAAwAAAAAAAAEYAAAAABoUAAAAAAAADABCACCAGAAAAAADAAAAAAAAARgAAAAABhQAAAAAAAEAA
+EoAIIAYAAAAAAMAAAAAAAABGAAAAAGCFAAAAcJpKMgAAAAsAGYAIIAYAAAAAAMAAAAAAAABGAAAA
+AA6FAAAAAAAAAwAcgAggBgAAAAAAwAAAAAAAAEYAAAAAGIUAAAAAAAALADSACCAGAAAAAADAAAAA
+AAAARgAAAACChQAAAAAAAAsAHw4BAAAAAgH4DwEAAAAQAAAA9z9u3oOOKkqz3RROjP9aRAIB+g8B
+AAAAEAAAAPc/bt6DjipKs90UToz/WkQDAP4PBQAAAAMADTT9PwUAAwAPNP0/BQACARQ0AQAAABAA
+AABOSVRB+b+4AQCqADfZbgAAAgF/AAEAAAAxAAAAMDAwMDAwMDBGNzNGNkVERTgzOEUyQTRBQjNE
+RDE0NEU4Q0ZGNUE0NDI0OTczQzAwAAAAAAMABhBN4wRZAwAHEN8CAAADABAQAAAAAAMAERAAAAAA
+HgAIEAEAAABlAAAASUhBRFNFTlNPUlNXT1JLSU5HUFJFVFRZV0VMTCxCVVRUSEVOSVVQR1JBREVE
+TVlESVNUUk9BTkRJVFFVSVRXT1JLSU5HQ09NUExFVEVMWUlUUklFRFJVTk5JTkdTRU5TT1JTLQAA
+AACkog==
+
+------=_NextPart_000_0006_01CE78D3.81CCD380
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_NextPart_000_0006_01CE78D3.81CCD380--
+
