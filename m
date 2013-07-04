@@ -1,38 +1,29 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Wed, 10 Jul 2013 11:25:36 +0000
-Subject: [lm-sensors] [PATCH v2 0/3] Lm90 Enhancements
-Message-Id: <1373455539-2831-1-git-send-email-wni@nvidia.com>
+Date: Thu, 04 Jul 2013 09:09:37 +0000
+Subject: [lm-sensors] [PATCH 0/2] Enable lm90 in Tegra30 and Tegra114.
+Message-Id: <1372928979-26938-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Cc: MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-This patch set enhance the lm90 driver,
-it make the driver more readable and easier to use thermal framework.
+Enable thermal sensor lm90 for Tegra30 Cardhu and Tegra114 Dalmore.
 
-This series is v2, previous version patches:
-[RFC]: http://thread.gmane.org/gmane.linux.power-management.general/31056
-[v1]: http://thread.gmane.org/gmane.linux.ports.tegra/11710/
-
-Changes from v1:
-1. change the string "irq" to "IRQ"
-2. add macro defines for the alarm status
-3. consider the shared IRQ.
+This series is v1, based on [RFC 1/9] submitted here:
+http://thread.gmane.org/gmane.linux.power-management.general/31056
 
 Changes from RFC:
-1. change _show_temp() to read_temp(), _set_temp() to write_temp().
-2. simply return value for the read_temp(), not use pointer.
-3. use devm_request_threaded_irq() to request irq and set flag IRQF_ONESHOT.
+1. Enable it for Tegra114 Dalmore.
 
-Wei Ni (3):
-  hwmon: (lm90) split set&show temp as common codes
-  hwmon: (lm90) add support to handle IRQ.
-  hwmon: (lm90) use enums for the indexes of temp8 and temp11
+Wei Ni (2):
+  ARM: dt: t30 cardhu: add dt entry for lm90
+  ARM: dt: t114 dalmore: add dt entry for lm90
 
- drivers/hwmon/lm90.c |  374 ++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 253 insertions(+), 121 deletions(-)
+ arch/arm/boot/dts/tegra114-dalmore.dts |    7 +++++++
+ arch/arm/boot/dts/tegra30-cardhu.dtsi  |    7 +++++++
+ 2 files changed, 14 insertions(+)
 
 -- 
 1.7.9.5
