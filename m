@@ -1,198 +1,148 @@
-From: David Bartley <andareed@gmail.com>
-Date: Fri, 05 Jul 2013 07:16:43 +0000
+From: killghost <killghost@msn.com>
+Date: Fri, 05 Jul 2013 10:08:18 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6791D
-Message-Id: <CAM9zjROp8SgXF0Y=oF+pBqcn_BTx83JVoKCWa=zxXk6v4eD2cQ@mail.gmail.com>
+Message-Id: <BLU176-W1329882A4F72BCCAA17815A07D0@phx.gbl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2492140836923902468=="
+Content-Type: multipart/mixed; boundary="===============7997761095138480919=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
 To: lm-sensors@vger.kernel.org
 
---===============2492140836923902468==
-Content-Type: multipart/alternative; boundary=047d7b86f03677191704e0be7b5a
+--===============7997761095138480919==
+Content-Type: multipart/alternative;
+	boundary="_f737bf05-43b9-423e-a76a-1068f21195b7_"
 
---047d7b86f03677191704e0be7b5a
-Content-Type: text/plain; charset=ISO-8859-1
+--_f737bf05-43b9-423e-a76a-1068f21195b7_
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-On Wed, Jul 3, 2013 at 1:26 AM, killghost <killghost@msn.com> wrote:
+VGhhbmsgeW91o6ENCg0KRnJvbTogYW5kYXJlZWRAZ21haWwuY29tDQpEYXRlOiBGcmksIDUgSnVs
+IDIwMTMgMDA6MTY6NDMgLTA3MDANClN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBz
+ZW5zb3JzLWRldGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRA0KVG86IGtpbGxnaG9zdEBt
+c24uY29tDQpDQzoga2hhbGlAbGludXgtZnIub3JnOyBsaW51eEByb2Vjay11cy5uZXQ7IGxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcNCg0KT24gV2VkLCBKdWwgMywgMjAxMyBhdCAxOjI2IEFNLCBr
+aWxsZ2hvc3QgPGtpbGxnaG9zdEBtc24uY29tPiB3cm90ZToNCgoKCgoKCkkgbmVlZCB0aGlzLGFu
+ZCBIb3cgdG8gcmVhZCA/DQoNCmh0dHA6Ly9jc2NsdWIudXdhdGVybG9vLmNhL35kdGJhcnRsZS9u
+Y3Q2NzkxZC8KCgoNCiAKRnJvbTogYW5kYXJlZWRAZ21haWwuY29tDQpEYXRlOiBUdWUsIDIgSnVs
+IDIwMTMgMjM6NDI6MTMgLTA3MDANClN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBz
+ZW5zb3JzLWRldGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRA0KCgoKVG86IGtpbGxnaG9z
+dEBtc24uY29tDQpDQzoga2hhbGlAbGludXgtZnIub3JnOyBsaW51eEByb2Vjay11cy5uZXQ7IGxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKCgoNCg0KSSBjYW4gcHJvdmlkZSByZWdpc3RlciBkdW1w
+cyBpZiB0aGVyZSdzIGludGVyZXN0LCBidXQgaXQgc2VlbWVkIGxpa2UgdGhlc2UgcmVhZC1vbmx5
+IHJlZ2lzdGVycyB3ZXJlIG1vc3RseSBqdXN0IGNvcGllcyBvZiBwYXJ0cyBvZiBiYW5rIDQuDQoN
+Ck9uIFR1ZSwgSnVsIDIsIDIwMTMgYXQgMTE6MzIgUE0sIGtpbGxnaG9zdCA8a2lsbGdob3N0QG1z
+bi5jb20+IHdyb3RlOg0KCgoKCgoKCgpOQ1Q2NzkxIGFkZGVkIDEyMmJ5dGUgcmVhZC1vbmx5IHJl
+Z2lzdGVycyBmb3IgSGFyZHdhcmUgTW9uaXRvci4gVGhlIGJhc2UgYWRkcmVzcyBpcyBzcGVjaWZp
+ZWQgaW4gcmVnaXN0ZXJzQ1JbNjRoXSBhbmQgQ1JbNjVoXSBvZiBMb2dpY2FsIERldmljZSBCLCB0
+aGUgaGFyZHdhcmUgbW9uaXRvciBkZXZpY2UuIENSWzY0aF0gaXMgdGhlIGhpZ2ggYnl0ZSwgYW5k
+IENSWzY1aF0gaXMKCgoKCnRoZSBsb3cgYnl0ZS4gVGhlIGxlYXN0IGJ5dGUgb2YgdGhlIGJhc2Ug
+YWRkcmVzcyByZWNvbW1lbmQgdG8gYmUgemVyby4gRm9yIGV4YW1wbGUsIHtDUls2NGhdLCBDUls2
+NWhdfSA9e1hYMDBofS4NCg0Kd2hvIGtub3cgdGhhdCBob3cgdG8gcmVhZCB0aGlzIGRhdGE/IA0K
+DQoNCg0KPiBEYXRlOiBXZWQsIDMgSnVsIDIwMTMgMDg6MjM6NTIgKzAyMDANCgoKCgoKPiBGcm9t
+OiBraGFsaUBsaW51eC1mci5vcmcNCj4gVG86IGxpbnV4QHJvZWNrLXVzLm5ldA0KPiBDQzogYW5k
+YXJlZWRAZ21haWwuY29tOyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCgoKCgoNCj4gU3ViamVj
+dDogUmU6IFtsbS1zZW5zb3JzXSBbUEFUQ0hdIHNlbnNvcnMtZGV0ZWN0OiBBZGQgZGV0ZWN0aW9u
+IG9mIE5DVDY3OTFEDQo+IA0KPiBPbiBUdWUsIDIgSnVsIDIwMTMgMTk6NTI6MzAgLTA3MDAsIEd1
+ZW50ZXIgUm9lY2sgd3JvdGU6DQo+ID4gT24gVHVlLCBKdWwgMDIsIDIwMTMgYXQgMDk6MTA6NTJB
+TSAtMDcwMCwgRGF2aWQgQmFydGxleSB3cm90ZToNCgoKCgoKPiA+ID4gVGhlIHZhbHVlIG9mIENS
+WzIwXS9DUlsyMV0gb24gbXkgYm9hcmQgaXMgMHhjOC8weDAzLCBhbmQgdGhlIHBoeXNpY2FsIGNo
+aXANCj4gPiA+IGl0c2VsZiBoYXMgIk5DVDY3OTFEIiBwcmludGVkIG9uIGl0Lg0KPiA+IA0KPiA+
+IEhpIEplYW4gYW5kIERhdmlkLA0KPiA+IA0KPiA+IE51dm90b24gY29uZmlybXMgdGhhdCAweGM4
+MDMgaXMgdGhlIGNvcnJlY3QgY2hpcCBJRC4NCgoKCgoKPiANCj4gT0ssIEkgc3VwcG9zZSB0aGV5
+IHdpbGwgZml4IGl0IGluIHRoZSBuZXh0IHZlcnNpb24gb2YgdGhlIGRhdGFzaGVldC4NCj4gTWVh
+bndoaWxlIHlvdSBjYW4gY29tbWl0IHlvdXIgcGF0Y2guDQo+IA0KPiBUaGFua3MsDQo+IC0tIA0K
+PiBKZWFuIERlbHZhcmUNCj4gDQoKCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18NCj4gbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QNCj4gbG0tc2Vuc29yc0Bs
+bS1zZW5zb3JzLm9yZw0KPiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3JzDQoKCgoKCiAJCSAJICAgCQkgIAoNCiAJCSAJICAgCQkgIAoNCiAJCSAJ
+ICAgCQkgIA==
 
-> I need this,and How to read ?
->
+--_f737bf05-43b9-423e-a76a-1068f21195b7_
+Content-Type: text/html; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-http://csclub.uwaterloo.ca/~dtbartle/nct6791d/
+PGh0bWw+DQo8aGVhZD4NCjxzdHlsZT48IS0tDQouaG1tZXNzYWdlIFANCnsNCm1hcmdpbjowcHg7
+DQpwYWRkaW5nOjBweA0KfQ0KYm9keS5obW1lc3NhZ2UNCnsNCmZvbnQtc2l6ZTogMTJwdDsNCmZv
+bnQtZmFtaWx5Os6iyO3RxbraDQp9DQotLT48L3N0eWxlPjwvaGVhZD4NCjxib2R5IGNsYXNzPSdo
+bW1lc3NhZ2UnPjxkaXYgZGlyPSdsdHInPlRoYW5rIHlvdaOhPGJyPjxicj48ZGl2PjxociBpZD0i
+c3RvcFNwZWxsaW5nIj5Gcm9tOiBhbmRhcmVlZEBnbWFpbC5jb208YnI+RGF0ZTogRnJpLCA1IEp1
+bCAyMDEzIDAwOjE2OjQzIC0wNzAwPGJyPlN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENI
+XSBzZW5zb3JzLWRldGVjdDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRDxicj5Ubzoga2lsbGdo
+b3N0QG1zbi5jb208YnI+Q0M6IGtoYWxpQGxpbnV4LWZyLm9yZzsgbGludXhAcm9lY2stdXMubmV0
+OyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnPGJyPjxicj48ZGl2IGRpcj0ibHRyIj5PbiBXZWQs
+IEp1bCAzLCAyMDEzIGF0IDE6MjYgQU0sIGtpbGxnaG9zdCA8c3BhbiBkaXI9Imx0ciI+Jmx0Ozxh
+IGhyZWY9Im1haWx0bzpraWxsZ2hvc3RAbXNuLmNvbSIgdGFyZ2V0PSJfYmxhbmsiPmtpbGxnaG9z
+dEBtc24uY29tPC9hPiZndDs8L3NwYW4+IHdyb3RlOjxicj48ZGl2IGNsYXNzPSJlY3hnbWFpbF9l
+eHRyYSI+PGRpdiBjbGFzcz0iZWN4Z21haWxfcXVvdGUiPjxibG9ja3F1b3RlIGNsYXNzPSJlY3hn
+bWFpbF9xdW90ZSIgc3R5bGU9ImJvcmRlci1sZWZ0OjFweCAjY2NjIHNvbGlkO3BhZGRpbmctbGVm
+dDoxZXg7Ij4KCgoKCgo8ZGl2PjxkaXYgZGlyPSJsdHIiPkkgbmVlZCB0aGlzLGFuZCBIb3cgdG8g
+cmVhZCA/PGJyPjwvZGl2PjwvZGl2PjwvYmxvY2txdW90ZT48ZGl2Pjxicj48L2Rpdj48ZGl2Pjxh
+IGhyZWY9Imh0dHA6Ly9jc2NsdWIudXdhdGVybG9vLmNhL35kdGJhcnRsZS9uY3Q2NzkxZC8iIHRh
+cmdldD0iX2JsYW5rIj5odHRwOi8vY3NjbHViLnV3YXRlcmxvby5jYS9+ZHRiYXJ0bGUvbmN0Njc5
+MWQvPC9hPjwvZGl2PgoKCjxkaXY+PGJyPjwvZGl2PjxkaXY+Jm5ic3A7PC9kaXY+PGJsb2NrcXVv
+dGUgY2xhc3M9ImVjeGdtYWlsX3F1b3RlIiBzdHlsZT0iYm9yZGVyLWxlZnQ6MXB4ICNjY2Mgc29s
+aWQ7cGFkZGluZy1sZWZ0OjFleDsiPjxkaXY+CjxkaXYgZGlyPSJsdHIiPjxkaXY+PGhyPkZyb206
+IDxhIGhyZWY9Im1haWx0bzphbmRhcmVlZEBnbWFpbC5jb20iIHRhcmdldD0iX2JsYW5rIj5hbmRh
+cmVlZEBnbWFpbC5jb208L2E+PGJyPkRhdGU6IFR1ZSwgMiBKdWwgMjAxMyAyMzo0MjoxMyAtMDcw
+MDxkaXY+PGJyPlN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIXSBzZW5zb3JzLWRldGVj
+dDogQWRkIGRldGVjdGlvbiBvZiBOQ1Q2NzkxRDxicj4KCgo8L2Rpdj5UbzogPGEgaHJlZj0ibWFp
+bHRvOmtpbGxnaG9zdEBtc24uY29tIiB0YXJnZXQ9Il9ibGFuayI+a2lsbGdob3N0QG1zbi5jb208
+L2E+PGJyPkNDOiA8YSBocmVmPSJtYWlsdG86a2hhbGlAbGludXgtZnIub3JnIiB0YXJnZXQ9Il9i
+bGFuayI+a2hhbGlAbGludXgtZnIub3JnPC9hPjsgPGEgaHJlZj0ibWFpbHRvOmxpbnV4QHJvZWNr
+LXVzLm5ldCIgdGFyZ2V0PSJfYmxhbmsiPmxpbnV4QHJvZWNrLXVzLm5ldDwvYT47IDxhIGhyZWY9
+Im1haWx0bzpsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnIiB0YXJnZXQ9Il9ibGFuayI+bG0tc2Vu
+c29yc0BsbS1zZW5zb3JzLm9yZzwvYT48ZGl2PgoKCjxkaXY+PGJyPjxicj48ZGl2IGRpcj0ibHRy
+Ij5JIGNhbiBwcm92aWRlIHJlZ2lzdGVyIGR1bXBzIGlmIHRoZXJlJ3MgaW50ZXJlc3QsIGJ1dCBp
+dCBzZWVtZWQgbGlrZSB0aGVzZSByZWFkLW9ubHkgcmVnaXN0ZXJzIHdlcmUgbW9zdGx5IGp1c3Qg
+Y29waWVzIG9mIHBhcnRzIG9mIGJhbmsgNC48L2Rpdj48ZGl2Pjxicj48YnI+PGRpdj5PbiBUdWUs
+IEp1bCAyLCAyMDEzIGF0IDExOjMyIFBNLCBraWxsZ2hvc3QgPHNwYW4gZGlyPSJsdHIiPiZsdDs8
+YSBocmVmPSJtYWlsdG86a2lsbGdob3N0QG1zbi5jb20iIHRhcmdldD0iX2JsYW5rIj5raWxsZ2hv
+c3RAbXNuLmNvbTwvYT4mZ3Q7PC9zcGFuPiB3cm90ZTo8YnI+CgoKCgo8YmxvY2txdW90ZSBzdHls
+ZT0iYm9yZGVyLWxlZnQ6MXB4ICNjY2Mgc29saWQ7cGFkZGluZy1sZWZ0OjFleDsiPgoKCjxkaXY+
+PGRpdiBkaXI9Imx0ciI+PGRpdj5OQ1Q2NzkxIGFkZGVkIDEyMmJ5dGUgcmVhZC1vbmx5IHJlZ2lz
+dGVycyBmb3IgSGFyZHdhcmUgTW9uaXRvci4gVGhlIGJhc2UgYWRkcmVzcyBpcyBzcGVjaWZpZWQg
+aW4gcmVnaXN0ZXJzPC9kaXY+PGRpdj5DUls2NGhdIGFuZCBDUls2NWhdIG9mIExvZ2ljYWwgRGV2
+aWNlIEIsIHRoZSBoYXJkd2FyZSBtb25pdG9yIGRldmljZS4gQ1JbNjRoXSBpcyB0aGUgaGlnaCBi
+eXRlLCBhbmQgQ1JbNjVoXSBpczwvZGl2PgoKCgoKPGRpdj50aGUgbG93IGJ5dGUuIFRoZSBsZWFz
+dCBieXRlIG9mIHRoZSBiYXNlIGFkZHJlc3MgcmVjb21tZW5kIHRvIGJlIHplcm8uIEZvciBleGFt
+cGxlLCB7Q1JbNjRoXSwgQ1JbNjVoXX0gPTwvZGl2PjxkaXY+e1hYMDBofS48YnI+PGJyPndobyBr
+bm93IHRoYXQgaG93IHRvIHJlYWQgdGhpcyBkYXRhPyZuYnNwOzxicj48YnI+PGJyPjwvZGl2Pjxi
+cj48ZGl2PiZndDsgRGF0ZTogV2VkLCAzIEp1bCAyMDEzIDA4OjIzOjUyICswMjAwPGJyPgoKCgoK
+Jmd0OyBGcm9tOiA8YSBocmVmPSJtYWlsdG86a2hhbGlAbGludXgtZnIub3JnIiB0YXJnZXQ9Il9i
+bGFuayI+a2hhbGlAbGludXgtZnIub3JnPC9hPjxicj4mZ3Q7IFRvOiA8YSBocmVmPSJtYWlsdG86
+bGludXhAcm9lY2stdXMubmV0IiB0YXJnZXQ9Il9ibGFuayI+bGludXhAcm9lY2stdXMubmV0PC9h
+Pjxicj4mZ3Q7IENDOiA8YSBocmVmPSJtYWlsdG86YW5kYXJlZWRAZ21haWwuY29tIiB0YXJnZXQ9
+Il9ibGFuayI+YW5kYXJlZWRAZ21haWwuY29tPC9hPjsgPGEgaHJlZj0ibWFpbHRvOmxtLXNlbnNv
+cnNAbG0tc2Vuc29ycy5vcmciIHRhcmdldD0iX2JsYW5rIj5sbS1zZW5zb3JzQGxtLXNlbnNvcnMu
+b3JnPC9hPjxkaXY+CgoKCgo8YnI+Jmd0OyBTdWJqZWN0OiBSZTogW2xtLXNlbnNvcnNdIFtQQVRD
+SF0gc2Vuc29ycy1kZXRlY3Q6IEFkZCBkZXRlY3Rpb24gb2YgTkNUNjc5MUQ8YnI+Jmd0OyA8YnI+
+PC9kaXY+PGRpdj48ZGl2PiZndDsgT24gVHVlLCAyIEp1bCAyMDEzIDE5OjUyOjMwIC0wNzAwLCBH
+dWVudGVyIFJvZWNrIHdyb3RlOjxicj4mZ3Q7ICZndDsgT24gVHVlLCBKdWwgMDIsIDIwMTMgYXQg
+MDk6MTA6NTJBTSAtMDcwMCwgRGF2aWQgQmFydGxleSB3cm90ZTo8YnI+CgoKCgomZ3Q7ICZndDsg
+Jmd0OyBUaGUgdmFsdWUgb2YgQ1JbMjBdL0NSWzIxXSBvbiBteSBib2FyZCBpcyAweGM4LzB4MDMs
+IGFuZCB0aGUgcGh5c2ljYWwgY2hpcDxicj4mZ3Q7ICZndDsgJmd0OyBpdHNlbGYgaGFzICJOQ1Q2
+NzkxRCIgcHJpbnRlZCBvbiBpdC48YnI+Jmd0OyAmZ3Q7IDxicj4mZ3Q7ICZndDsgSGkgSmVhbiBh
+bmQgRGF2aWQsPGJyPiZndDsgJmd0OyA8YnI+Jmd0OyAmZ3Q7IE51dm90b24gY29uZmlybXMgdGhh
+dCAweGM4MDMgaXMgdGhlIGNvcnJlY3QgY2hpcCBJRC48YnI+CgoKCgomZ3Q7IDxicj4mZ3Q7IE9L
+LCBJIHN1cHBvc2UgdGhleSB3aWxsIGZpeCBpdCBpbiB0aGUgbmV4dCB2ZXJzaW9uIG9mIHRoZSBk
+YXRhc2hlZXQuPGJyPiZndDsgTWVhbndoaWxlIHlvdSBjYW4gY29tbWl0IHlvdXIgcGF0Y2guPGJy
+PiZndDsgPGJyPiZndDsgVGhhbmtzLDxicj4mZ3Q7IC0tIDxicj4mZ3Q7IEplYW4gRGVsdmFyZTxi
+cj4mZ3Q7IDxicj48L2Rpdj48L2Rpdj48ZGl2PgoKJmd0OyBfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXzxicj4mZ3Q7IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
+PGJyPiZndDsgPGEgaHJlZj0ibWFpbHRvOmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmciIHRhcmdl
+dD0iX2JsYW5rIj5sbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnPC9hPjxicj4mZ3Q7IDxhIGhyZWY9
+Imh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMi
+IHRhcmdldD0iX2JsYW5rIj5odHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3JzPC9hPjxicj4KCgoKCjwvZGl2PjwvZGl2PiAJCSAJICAgCQkgIDwvZGl2
+PjwvZGl2Pgo8L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPjwvZGl2PjwvZGl2PjwvZGl2PjwvZGl2PiAJ
+CSAJICAgCQkgIDwvZGl2PjwvZGl2Pgo8L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPjwvZGl2PjwvZGl2
+PjwvZGl2PiAJCSAJICAgCQkgIDwvZGl2PjwvYm9keT4NCjwvaHRtbD4=
 
-
-
-> ------------------------------
-> From: andareed@gmail.com
-> Date: Tue, 2 Jul 2013 23:42:13 -0700
->
-> Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6791D
-> To: killghost@msn.com
-> CC: khali@linux-fr.org; linux@roeck-us.net; lm-sensors@lm-sensors.org
->
->
-> I can provide register dumps if there's interest, but it seemed like these
-> read-only registers were mostly just copies of parts of bank 4.
->
->
-> On Tue, Jul 2, 2013 at 11:32 PM, killghost <killghost@msn.com> wrote:
->
-> NCT6791 added 122byte read-only registers for Hardware Monitor. The base
-> address is specified in registers
-> CR[64h] and CR[65h] of Logical Device B, the hardware monitor device.
-> CR[64h] is the high byte, and CR[65h] is
-> the low byte. The least byte of the base address recommend to be zero. For
-> example, {CR[64h], CR[65h]} =
-> {XX00h}.
->
-> who know that how to read this data?
->
->
->
-> > Date: Wed, 3 Jul 2013 08:23:52 +0200
-> > From: khali@linux-fr.org
-> > To: linux@roeck-us.net
-> > CC: andareed@gmail.com; lm-sensors@lm-sensors.org
->
-> > Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of
-> NCT6791D
-> >
-> > On Tue, 2 Jul 2013 19:52:30 -0700, Guenter Roeck wrote:
-> > > On Tue, Jul 02, 2013 at 09:10:52AM -0700, David Bartley wrote:
-> > > > The value of CR[20]/CR[21] on my board is 0xc8/0x03, and the
-> physical chip
-> > > > itself has "NCT6791D" printed on it.
-> > >
-> > > Hi Jean and David,
-> > >
-> > > Nuvoton confirms that 0xc803 is the correct chip ID.
-> >
-> > OK, I suppose they will fix it in the next version of the datasheet.
-> > Meanwhile you can commit your patch.
-> >
-> > Thanks,
-> > --
-> > Jean Delvare
-> >
-> > _______________________________________________
-> > lm-sensors mailing list
-> > lm-sensors@lm-sensors.org
-> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
->
->
-
---047d7b86f03677191704e0be7b5a
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr">On Wed, Jul 3, 2013 at 1:26 AM, killghost <span dir=3D"ltr=
-">&lt;<a href=3D"mailto:killghost@msn.com" target=3D"_blank">killghost@msn.=
-com</a>&gt;</span> wrote:<br><div class=3D"gmail_extra"><div class=3D"gmail=
-_quote"><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border=
--left:1px #ccc solid;padding-left:1ex">
-
-
-
-
-
-<div><div dir=3D"ltr">I need this,and How to read ?<br></div></div></blockq=
-uote><div><br></div><div><a href=3D"http://csclub.uwaterloo.ca/~dtbartle/nc=
-t6791d/" target=3D"_blank">http://csclub.uwaterloo.ca/~dtbartle/nct6791d/</=
-a></div>
-
-
-<div><br></div><div>=A0</div><blockquote class=3D"gmail_quote" style=3D"mar=
-gin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><div>
-<div dir=3D"ltr"><div><hr>From: <a href=3D"mailto:andareed@gmail.com" targe=
-t=3D"_blank">andareed@gmail.com</a><br>Date: Tue, 2 Jul 2013 23:42:13 -0700=
-<div><br>Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of=
- NCT6791D<br>
-
-
-</div>To: <a href=3D"mailto:killghost@msn.com" target=3D"_blank">killghost@=
-msn.com</a><br>CC: <a href=3D"mailto:khali@linux-fr.org" target=3D"_blank">=
-khali@linux-fr.org</a>; <a href=3D"mailto:linux@roeck-us.net" target=3D"_bl=
-ank">linux@roeck-us.net</a>; <a href=3D"mailto:lm-sensors@lm-sensors.org" t=
-arget=3D"_blank">lm-sensors@lm-sensors.org</a><div>
-
-
-<div><br><br><div dir=3D"ltr">I can provide register dumps if there&#39;s i=
-nterest, but it seemed like these read-only registers were mostly just copi=
-es of parts of bank 4.</div><div><br><br><div>On Tue, Jul 2, 2013 at 11:32 =
-PM, killghost <span dir=3D"ltr">&lt;<a href=3D"mailto:killghost@msn.com" ta=
-rget=3D"_blank">killghost@msn.com</a>&gt;</span> wrote:<br>
-
-
-
-
-<blockquote style=3D"border-left:1px #ccc solid;padding-left:1ex">
-
-
-<div><div dir=3D"ltr"><div>NCT6791 added 122byte read-only registers for Ha=
-rdware Monitor. The base address is specified in registers</div><div>CR[64h=
-] and CR[65h] of Logical Device B, the hardware monitor device. CR[64h] is =
-the high byte, and CR[65h] is</div>
-
-
-
-
-<div>the low byte. The least byte of the base address recommend to be zero.=
- For example, {CR[64h], CR[65h]} =3D</div><div>{XX00h}.<br><br>who know tha=
-t how to read this data?=A0<br><br><br></div><br><div>&gt; Date: Wed, 3 Jul=
- 2013 08:23:52 +0200<br>
+--_f737bf05-43b9-423e-a76a-1068f21195b7_--
 
 
-
-
-&gt; From: <a href=3D"mailto:khali@linux-fr.org" target=3D"_blank">khali@li=
-nux-fr.org</a><br>&gt; To: <a href=3D"mailto:linux@roeck-us.net" target=3D"=
-_blank">linux@roeck-us.net</a><br>&gt; CC: <a href=3D"mailto:andareed@gmail=
-.com" target=3D"_blank">andareed@gmail.com</a>; <a href=3D"mailto:lm-sensor=
-s@lm-sensors.org" target=3D"_blank">lm-sensors@lm-sensors.org</a><div>
-
-
-
-
-<br>&gt; Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of=
- NCT6791D<br>&gt; <br></div><div><div>&gt; On Tue, 2 Jul 2013 19:52:30 -070=
-0, Guenter Roeck wrote:<br>&gt; &gt; On Tue, Jul 02, 2013 at 09:10:52AM -07=
-00, David Bartley wrote:<br>
-
-
-
-
-&gt; &gt; &gt; The value of CR[20]/CR[21] on my board is 0xc8/0x03, and the=
- physical chip<br>&gt; &gt; &gt; itself has &quot;NCT6791D&quot; printed on=
- it.<br>&gt; &gt; <br>&gt; &gt; Hi Jean and David,<br>&gt; &gt; <br>&gt; &g=
-t; Nuvoton confirms that 0xc803 is the correct chip ID.<br>
-
-
-
-
-&gt; <br>&gt; OK, I suppose they will fix it in the next version of the dat=
-asheet.<br>&gt; Meanwhile you can commit your patch.<br>&gt; <br>&gt; Thank=
-s,<br>&gt; -- <br>&gt; Jean Delvare<br>&gt; <br></div></div><div>
-
-&gt; _______________________________________________<br>&gt; lm-sensors mai=
-ling list<br>&gt; <a href=3D"mailto:lm-sensors@lm-sensors.org" target=3D"_b=
-lank">lm-sensors@lm-sensors.org</a><br>&gt; <a href=3D"http://lists.lm-sens=
-ors.org/mailman/listinfo/lm-sensors" target=3D"_blank">http://lists.lm-sens=
-ors.org/mailman/listinfo/lm-sensors</a><br>
-
-
-
-
-</div></div> 		 	   		  </div></div>
-</blockquote></div><br></div></div></div></div> 		 	   		  </div></div>
-</blockquote></div><br></div></div>
-
---047d7b86f03677191704e0be7b5a--
-
-
---===============2492140836923902468==
+--===============7997761095138480919==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -202,4 +152,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2492140836923902468==--
+--===============7997761095138480919==--
