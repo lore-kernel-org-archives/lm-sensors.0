@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 06 Jul 2013 19:54:58 +0000
+Date: Sat, 06 Jul 2013 19:59:57 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 3/5] hwmon: (ds1621) Convert to use hwmon_device_register_groups
-Message-Id: <20130706215458.64753cd0@endymion.delvare>
+Message-Id: <20130706215957.70ae1fdc@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 	<1373131495-13465-4-git-send-email-linux@roeck-us.net>
@@ -9,30 +9,25 @@ References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 	<20130706200151.70b7ac3d@endymion.delvare>
 	<20130706191816.GA15066@roeck-us.net>
 	<20130706193142.GA9778@kroah.com>
-In-Reply-To: <20130706193142.GA9778@kroah.com>
+	<20130706194803.GA15473@roeck-us.net>
+In-Reply-To: <20130706194803.GA15473@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Sat, 6 Jul 2013 12:31:42 -0700, Greg Kroah-Hartman wrote:
-> On Sat, Jul 06, 2013 at 12:18:16PM -0700, Guenter Roeck wrote:
-> > Yes, and I tested it with the new nct6775 driver to make sure that it works.
-> > The i2c and spi drivers need some more work, though - the name attribute is
-> > now missing and will have to be created for the hwmon device itself. If you have
-> > an idea how to do that without adding it in every driver, please let me know.
-> 
-> Why do you need a name attribute at all?  Shouldn't that just be the
-> name of the device, or the parent?
+On Sat, 6 Jul 2013 12:48:03 -0700, Guenter Roeck wrote:
+> Another option would be to create a class attribute to return the parent driver
+> name for spi and i2c devices and otherwise the hwmon driver name. This would
+> reduce the amount of code needed in the drivers. Jean, do you see a problem with
+> that approach (except that we would have to remove explicit name attributes from
+> existing drivers) ?
 
-libsensors expects the hwmon attributes and the name attribute at the
-same place.
-
-> Can you make the name be part of the groups always?
-
-Sounds good, but then we have to make the hwmon core handles it. So far
-each driver (or its bus type subsystem) was responsible for it.
+A class attribute is what I had in mind in my previous reply. However I
+do not understand the "hwmon driver name" in your sentence above.
+Device name != driver name. But well I'm sure I'll understand what you
+mean as soon as you show us a candidate implementation ;)
 
 -- 
 Jean Delvare
