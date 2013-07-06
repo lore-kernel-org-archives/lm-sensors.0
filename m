@@ -1,136 +1,46 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 06 Jul 2013 17:24:51 +0000
-Subject: [lm-sensors] [RFC PATCH 1/5] driver core: Introduce device_create_groups
-Message-Id: <1373131495-13465-2-git-send-email-linux@roeck-us.net>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Sat, 06 Jul 2013 17:47:58 +0000
+Subject: Re: [lm-sensors] [RFC PATCH 1/5] driver core: Introduce device_create_groups
+Message-Id: <20130706174758.GA8122@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
+ <1373131495-13465-2-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1373131495-13465-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-device_create_groups lets callers create devices as well as associated
-sysfs attributes with a single call. This avoids race conditions seen
-if sysfs attributes on new devices are created later.
+On Sat, Jul 06, 2013 at 10:24:51AM -0700, Guenter Roeck wrote:
+> device_create_groups lets callers create devices as well as associated
+> sysfs attributes with a single call. This avoids race conditions seen
+> if sysfs attributes on new devices are created later.
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/base/core.c    |   60 +++++++++++++++++++++++++++++++++++++++++++++---
+>  include/linux/device.h |    4 ++++
+>  2 files changed, 61 insertions(+), 3 deletions(-)
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/base/core.c    |   60 +++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/device.h |    4 ++++
- 2 files changed, 61 insertions(+), 3 deletions(-)
+Ok, in reading the code, it makes more sense to me now.  That looks
+good, but the name is a bit rough.  How many device_create() calls do we
+have in the kernel today?
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index dc3ea23..dd82645 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -1692,9 +1692,11 @@ static void device_create_release(struct device *dev)
-  * Note: the struct class passed to this function must have previously
-  * been created with a call to class_create().
-  */
--struct device *device_create_vargs(struct class *class, struct device *parent,
--				   dev_t devt, void *drvdata, const char *fmt,
--				   va_list args)
-+static struct device *
-+device_create_groups_vargs(struct class *class, struct device *parent,
-+			   dev_t devt, void *drvdata,
-+			   const struct attribute_group **groups,
-+			   const char *fmt, va_list args)
- {
- 	struct device *dev = NULL;
- 	int retval = -ENODEV;
-@@ -1711,6 +1713,7 @@ struct device *device_create_vargs(struct class *class, struct device *parent,
- 	dev->devt = devt;
- 	dev->class = class;
- 	dev->parent = parent;
-+	dev->groups = groups;
- 	dev->release = device_create_release;
- 	dev_set_drvdata(dev, drvdata);
- 
-@@ -1728,6 +1731,14 @@ error:
- 	put_device(dev);
- 	return ERR_PTR(retval);
- }
-+
-+struct device *device_create_vargs(struct class *class, struct device *parent,
-+				   dev_t devt, void *drvdata, const char *fmt,
-+				   va_list args)
-+{
-+	return device_create_groups_vargs(class, parent, devt, drvdata, NULL,
-+					  fmt, args);
-+}
- EXPORT_SYMBOL_GPL(device_create_vargs);
- 
- /**
-@@ -1767,6 +1778,49 @@ struct device *device_create(struct class *class, struct device *parent,
- }
- EXPORT_SYMBOL_GPL(device_create);
- 
-+/**
-+ * device_create_groups - creates a device and registers it with sysfs
-+ * @class: pointer to the struct class that this device should be registered to
-+ * @parent: pointer to the parent struct device of this new device, if any
-+ * @devt: the dev_t for the char device to be added
-+ * @drvdata: the data to be added to the device for callbacks
-+ * @groups: NULL-terminated list of attribute groups to be created
-+ * @fmt: string for the device's name
-+ *
-+ * This function can be used by char device classes.  A struct device
-+ * will be created in sysfs, registered to the specified class.
-+ * Additional attributes specified in the groups parameter will also
-+ * be created automatically.
-+ *
-+ * A "dev" file will be created, showing the dev_t for the device, if
-+ * the dev_t is not 0,0.
-+ * If a pointer to a parent struct device is passed in, the newly created
-+ * struct device will be a child of that device in sysfs.
-+ * The pointer to the struct device will be returned from the call.
-+ * Any further sysfs files that might be required can be created using this
-+ * pointer.
-+ *
-+ * Returns &struct device pointer on success, or ERR_PTR() on error.
-+ *
-+ * Note: the struct class passed to this function must have previously
-+ * been created with a call to class_create().
-+ */
-+struct device *device_create_groups(struct class *class, struct device *parent,
-+				    dev_t devt, void *drvdata,
-+				    const struct attribute_group **groups,
-+				    const char *fmt, ...)
-+{
-+	va_list vargs;
-+	struct device *dev;
-+
-+	va_start(vargs, fmt);
-+	dev = device_create_groups_vargs(class, parent, devt, drvdata, groups,
-+					 fmt, vargs);
-+	va_end(vargs);
-+	return dev;
-+}
-+EXPORT_SYMBOL_GPL(device_create_groups);
-+
- static int __match_devt(struct device *dev, const void *data)
- {
- 	const dev_t *devt = data;
-diff --git a/include/linux/device.h b/include/linux/device.h
-index bcf8c0d..573ddb6 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -924,6 +924,10 @@ extern __printf(5, 6)
- struct device *device_create(struct class *cls, struct device *parent,
- 			     dev_t devt, void *drvdata,
- 			     const char *fmt, ...);
-+struct device *device_create_groups(struct class *cls, struct device *parent,
-+			     dev_t devt, void *drvdata,
-+			     const struct attribute_group **groups,
-+			     const char *fmt, ...);
- extern void device_destroy(struct class *cls, dev_t devt);
- 
- /*
--- 
-1.7.9.7
+$ git grep -w device_create | wc -l
+127
 
+That's really not that many, I wonder how many of those should be using
+something like this as well?  A quick look showed that the sound core
+should be using this, but maybe not all that many others...
+
+My objection to the name is at first glance, it sounds like you are
+creating "groups", not a device + groups.
+"device_create_with_groups()"?
+
+Ick, naming is hard...
+
+greg k-h
 
 _______________________________________________
 lm-sensors mailing list
