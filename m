@@ -1,46 +1,80 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Jul 2013 05:51:30 +0000
-Subject: Re: [lm-sensors] Bug Report: Bus substitution causing a problem
-Message-Id: <20130709075130.775cd0fe@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 06 Jul 2013 17:24:53 +0000
+Subject: [lm-sensors] [RFC PATCH 3/5] hwmon: (ds1621) Convert to use hwmon_device_register_groups
+Message-Id: <1373131495-13465-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <51DAC98E.3090203@aeryon.com>
-	<51DB2CB6.4060303@aeryon.com>
-	<20130709000013.1ca77b1d@endymion.delvare>
-	<20130708222732.GA10676@roeck-us.net>
-In-Reply-To: <20130708222732.GA10676-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: Chris Pattenden <chris-XAaQGU7qChDQT0dZR+AlfA@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-On Mon, 8 Jul 2013 15:27:32 -0700, Guenter Roeck wrote:
-> On Tue, Jul 09, 2013 at 12:00:13AM +0200, Jean Delvare wrote:
-> > The problem here is that your i2c bus driver is evil and attributes the
-> > same name to two different buses. It should not do that. This is a bug
-> > in the i2c-omap driver. It should give each bus a distinct name, for
-> > example by including the base I/O address in it.
->
-> Unfortunately it is not the only such driver.
-> 
-> Same output on P2020:
-> 
-> i2c-0   i2c             MPC adapter                             I2C adapter
-> i2c-1   i2c             MPC adapter                             I2C adapter
-> 
-> And on P5040:
-> 
-> i2c-0   i2c             MPC adapter                             I2C adapter
-> i2c-1   i2c             MPC adapter                             I2C adapter
-> i2c-2   i2c             MPC adapter                             I2C adapter
-> i2c-3   i2c             MPC adapter                             I2C adapter
-> 
-> Question is ... would a patch to fix that be accepted by the i2c maintainers ?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ds1621.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
-I think it would, yes, as long as you explain why it is needed.
-
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index a26ba7a..f1d0fa0 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -358,11 +358,15 @@ static const struct attribute_group ds1621_group = {
+ 	.is_visible = ds1621_attribute_visible
+ };
+ 
++static const struct attribute_group *ds1621_groups[] = {
++	&ds1621_group,
++	NULL
++};
++
+ static int ds1621_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+ 	struct ds1621_data *data;
+-	int err;
+ 
+ 	data = devm_kzalloc(&client->dev, sizeof(struct ds1621_data),
+ 			    GFP_KERNEL);
+@@ -377,22 +381,12 @@ static int ds1621_probe(struct i2c_client *client,
+ 	/* Initialize the DS1621 chip */
+ 	ds1621_init_client(client);
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&client->dev.kobj, &ds1621_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
++	data->hwmon_dev = hwmon_device_register_groups(&client->dev, data,
++						       ds1621_groups);
++	if (IS_ERR(data->hwmon_dev))
++		return PTR_ERR(data->hwmon_dev);
+ 
+ 	return 0;
+-
+- exit_remove_files:
+-	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
+-	return err;
+ }
+ 
+ static int ds1621_remove(struct i2c_client *client)
+@@ -400,7 +394,6 @@ static int ds1621_remove(struct i2c_client *client)
+ 	struct ds1621_data *data = i2c_get_clientdata(client);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
+ 
+ 	return 0;
+ }
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
