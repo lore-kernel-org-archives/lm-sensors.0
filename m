@@ -1,109 +1,82 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:02:52 +0000
-Subject: [lm-sensors] [PATCH 8/9] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <1374073374-30946-17-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 06 Jul 2013 17:24:52 +0000
+Subject: [lm-sensors] [RFC PATCH 2/5] hwmon: Introduce hwmon_device_register_groups
+Message-Id: <1373131495-13465-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
+References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree-discuss@lists.ozlabs.org
-Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-This patch adds to lm75 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+hwmon_device_register_groups() lets callers register a hwmon device
+together with all sysfs attributes in a single call.
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm75 DT node. Otherwise, the driver behavior
-will be the same.
-
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm75.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ drivers/hwmon/hwmon.c |   14 +++++++++++---
+ include/linux/hwmon.h |    4 ++++
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-index c03b490..0aa5e28 100644
---- a/drivers/hwmon/lm75.c
-+++ b/drivers/hwmon/lm75.c
-@@ -27,6 +27,8 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/thermal.h>
-+#include <linux/of.h>
- #include "lm75.h"
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+index 646314f..e94a053 100644
+--- a/drivers/hwmon/hwmon.c
++++ b/drivers/hwmon/hwmon.c
+@@ -38,7 +38,9 @@ static DEFINE_IDA(hwmon_ida);
+  *
+  * Returns the pointer to the new device.
+  */
+-struct device *hwmon_device_register(struct device *dev)
++struct device *
++hwmon_device_register_groups(struct device *dev, void *drvdata,
++			     const struct attribute_group **groups)
+ {
+ 	struct device *hwdev;
+ 	int id;
+@@ -47,14 +49,20 @@ struct device *hwmon_device_register(struct device *dev)
+ 	if (id < 0)
+ 		return ERR_PTR(id);
  
+-	hwdev = device_create(hwmon_class, dev, MKDEV(0, 0), NULL,
+-			      HWMON_ID_FORMAT, id);
++	hwdev = device_create_groups(hwmon_class, dev, MKDEV(0, 0), drvdata,
++				     groups, HWMON_ID_FORMAT, id);
  
-@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
- /* Each client has this additional data */
- struct lm75_data {
- 	struct device		*hwmon_dev;
-+	struct thermal_zone_device	*tz;
- 	struct mutex		update_lock;
- 	u8			orig_conf;
- 	u8			resolution;	/* In bits, between 9 and 12 */
-@@ -92,6 +95,19 @@ static struct lm75_data *lm75_update_device(struct device *dev);
+ 	if (IS_ERR(hwdev))
+ 		ida_simple_remove(&hwmon_ida, id);
  
- /* sysfs attributes for hwmon */
- 
-+static int lm75_read_temp(void *dev, unsigned long *temp)
+ 	return hwdev;
+ }
++EXPORT_SYMBOL_GPL(hwmon_device_register_groups);
++
++struct device *hwmon_device_register(struct device *dev)
 +{
-+	struct lm75_data *data = lm75_update_device(dev);
-+
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
-+			(data->resolution - 8);
-+
-+	return 0;
++	return hwmon_device_register_groups(dev, NULL, NULL);
 +}
-+
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
-@@ -271,11 +287,23 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto exit_remove;
- 	}
+ EXPORT_SYMBOL_GPL(hwmon_device_register);
  
-+	if (of_find_node_by_name(client->dev.of_node, "thermal_zone")) {
-+		data->tz = thermal_zone_of_device_register(&client->dev,
-+							   &client->dev,
-+							   lm75_read_temp);
-+		if (IS_ERR(data->tz)) {
-+			status = PTR_ERR(data->tz);
-+			goto exit_hwmon;
-+		}
-+	}
-+
- 	dev_info(&client->dev, "%s: sensor '%s'\n",
- 		 dev_name(data->hwmon_dev), client->name);
+ /**
+diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
+index b2514f7..ad91c45 100644
+--- a/include/linux/hwmon.h
++++ b/include/linux/hwmon.h
+@@ -15,8 +15,12 @@
+ #define _HWMON_H_
  
- 	return 0;
+ struct device;
++struct attribute_group;
  
-+exit_hwmon:
-+	hwmon_device_unregister(data->hwmon_dev);
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	return status;
-@@ -285,6 +313,7 @@ static int lm75_remove(struct i2c_client *client)
- {
- 	struct lm75_data *data = i2c_get_clientdata(client);
+ struct device *hwmon_device_register(struct device *dev);
++struct device *
++hwmon_device_register_groups(struct device *dev, void *drvdata,
++			     const struct attribute_group **groups);
  
-+	thermal_zone_device_unregister(data->tz);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
+ void hwmon_device_unregister(struct device *dev);
+ 
 -- 
-1.8.2.1.342.gfa7285d
+1.7.9.7
 
 
 _______________________________________________
