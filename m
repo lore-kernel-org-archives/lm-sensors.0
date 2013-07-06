@@ -1,84 +1,136 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 29 Jul 2013 15:48:31 +0000
-Subject: Re: [lm-sensors] [PATCH v3 4/4] hwmon: (lm90) use enums for the indexes of temp8 and temp11
-Message-Id: <20130729174831.207ed356@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 06 Jul 2013 17:24:51 +0000
+Subject: [lm-sensors] [RFC PATCH 1/5] driver core: Introduce device_create_groups
+Message-Id: <1373131495-13465-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
- <1373615287-18502-5-git-send-email-wni@nvidia.com>
- <20130727173830.14cb5b21@endymion.delvare>
- <51F64EC0.800@nvidia.com>
-In-Reply-To: <51F64EC0.800-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Hi Wei,
+device_create_groups lets callers create devices as well as associated
+sysfs attributes with a single call. This avoids race conditions seen
+if sysfs attributes on new devices are created later.
 
-On Mon, 29 Jul 2013 19:15:12 +0800, Wei Ni wrote:
-> On 07/27/2013 11:38 PM, Jean Delvare wrote:
-> > On Fri, 12 Jul 2013 15:48:07 +0800, Wei Ni wrote:
-> >> +/*
-> >> + * TEMP11 register index
-> >> + */
-> >> +enum lm90_temp11_reg_index {
-> >> +     TEMP11_REMOTE_TEMP = 0, /* 0: remote input */
-> >> +     TEMP11_REMOTE_LOW,      /* 1: remote low limit */
-> >> +     TEMP11_REMOTE_HIGH,     /* 2: remote high limit */
-> >> +     TEMP11_REMOTE_OFFSET,   /* 3: remote offset
-> >> +                              * (except max6646, max6657/58/59,
-> >> +                              *  and max6695/96)
-> >> +                              */
-> >> +     TEMP11_LOCAL_TEMP,      /* 4: local input */
-> >> +     TEMP11_REMOTE2_TEMP,    /* 5: remote 2 input (max6695/96 only) */
-> >> +     TEMP11_REMOTE2_LOW,     /* 6: remote 2 low limit (max6695/96 only) */
-> >> +     TEMP11_REMOTE2_HIGH,    /* 7: remote 2 high limit (max6695/96 only) */
-> >> +     TEMP11_REG_NUM
-> >> +};
-> > (...)
-> > Also, the comments are mostly useless now, they were there to document
-> > what each number was referring to, but now this is exactly what the new
-> > constants are doing.
->
-> Yes, we can remove these comments, but I think it's better to remain
-> those exception and only things.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/base/core.c    |   60 +++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/device.h |    4 ++++
+ 2 files changed, 61 insertions(+), 3 deletions(-)
 
-Yes, I agree.
-
-> >> +
-> >> +/*
-> >> + * TEMP11 register NR
-> >> + */
-> >> +enum lm90_temp11_reg_nr {
-> >> +     NR_CHAN_0_REMOTE_LOW = 0,       /* 0: channel 0, remote low limit */
-> >> +     NR_CHAN_0_REMOTE_HIGH,          /* 1: channel 0, remote high limit */
-> >> +     NR_CHAN_0_REMOTE_OFFSET,        /* 2: channel 0, remote offset */
-> >> +     NR_CHAN_1_REMOTE_LOW,           /* 3: channel 1, remote low limit */
-> >> +     NR_CHAN_1_REMOTE_HIGH,          /* 4: channel 1, remote high limit */
-> > 
-> > The conventions used in the descriptions diverge from the ones used
-> > above. "channel 0 remote" here is just "remove" above, and "channel 1
-> > remote" is "remote 2" above. This is quite confusing.
-> > 
-> >> +     NR_NUM                          /* number of the NRs for temp11 */
-> > 
-> > The fact that you were unable to come up with a proper name for this
-> > number is a clear indication that this enum should not exist in the
-> > first place.
-> > 
-> > These numbers are used only once, to pass specific information to
-> > set_temp11. This was easy enough when these were just numbers and I
-> > really had no reason not to do that.
-> 
-> Ok, so how about to remove these changes, and keep the original codes to
-> use numbers.
-
-Fine with me. We can always change the code later to use the TEMP11
-index values instead if anyone cares, this can be done separately.
-
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index dc3ea23..dd82645 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1692,9 +1692,11 @@ static void device_create_release(struct device *dev)
+  * Note: the struct class passed to this function must have previously
+  * been created with a call to class_create().
+  */
+-struct device *device_create_vargs(struct class *class, struct device *parent,
+-				   dev_t devt, void *drvdata, const char *fmt,
+-				   va_list args)
++static struct device *
++device_create_groups_vargs(struct class *class, struct device *parent,
++			   dev_t devt, void *drvdata,
++			   const struct attribute_group **groups,
++			   const char *fmt, va_list args)
+ {
+ 	struct device *dev = NULL;
+ 	int retval = -ENODEV;
+@@ -1711,6 +1713,7 @@ struct device *device_create_vargs(struct class *class, struct device *parent,
+ 	dev->devt = devt;
+ 	dev->class = class;
+ 	dev->parent = parent;
++	dev->groups = groups;
+ 	dev->release = device_create_release;
+ 	dev_set_drvdata(dev, drvdata);
+ 
+@@ -1728,6 +1731,14 @@ error:
+ 	put_device(dev);
+ 	return ERR_PTR(retval);
+ }
++
++struct device *device_create_vargs(struct class *class, struct device *parent,
++				   dev_t devt, void *drvdata, const char *fmt,
++				   va_list args)
++{
++	return device_create_groups_vargs(class, parent, devt, drvdata, NULL,
++					  fmt, args);
++}
+ EXPORT_SYMBOL_GPL(device_create_vargs);
+ 
+ /**
+@@ -1767,6 +1778,49 @@ struct device *device_create(struct class *class, struct device *parent,
+ }
+ EXPORT_SYMBOL_GPL(device_create);
+ 
++/**
++ * device_create_groups - creates a device and registers it with sysfs
++ * @class: pointer to the struct class that this device should be registered to
++ * @parent: pointer to the parent struct device of this new device, if any
++ * @devt: the dev_t for the char device to be added
++ * @drvdata: the data to be added to the device for callbacks
++ * @groups: NULL-terminated list of attribute groups to be created
++ * @fmt: string for the device's name
++ *
++ * This function can be used by char device classes.  A struct device
++ * will be created in sysfs, registered to the specified class.
++ * Additional attributes specified in the groups parameter will also
++ * be created automatically.
++ *
++ * A "dev" file will be created, showing the dev_t for the device, if
++ * the dev_t is not 0,0.
++ * If a pointer to a parent struct device is passed in, the newly created
++ * struct device will be a child of that device in sysfs.
++ * The pointer to the struct device will be returned from the call.
++ * Any further sysfs files that might be required can be created using this
++ * pointer.
++ *
++ * Returns &struct device pointer on success, or ERR_PTR() on error.
++ *
++ * Note: the struct class passed to this function must have previously
++ * been created with a call to class_create().
++ */
++struct device *device_create_groups(struct class *class, struct device *parent,
++				    dev_t devt, void *drvdata,
++				    const struct attribute_group **groups,
++				    const char *fmt, ...)
++{
++	va_list vargs;
++	struct device *dev;
++
++	va_start(vargs, fmt);
++	dev = device_create_groups_vargs(class, parent, devt, drvdata, groups,
++					 fmt, vargs);
++	va_end(vargs);
++	return dev;
++}
++EXPORT_SYMBOL_GPL(device_create_groups);
++
+ static int __match_devt(struct device *dev, const void *data)
+ {
+ 	const dev_t *devt = data;
+diff --git a/include/linux/device.h b/include/linux/device.h
+index bcf8c0d..573ddb6 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -924,6 +924,10 @@ extern __printf(5, 6)
+ struct device *device_create(struct class *cls, struct device *parent,
+ 			     dev_t devt, void *drvdata,
+ 			     const char *fmt, ...);
++struct device *device_create_groups(struct class *cls, struct device *parent,
++			     dev_t devt, void *drvdata,
++			     const struct attribute_group **groups,
++			     const char *fmt, ...);
+ extern void device_destroy(struct class *cls, dev_t devt);
+ 
+ /*
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
