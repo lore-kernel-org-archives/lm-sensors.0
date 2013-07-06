@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 06 Jul 2013 17:23:02 +0000
+Date: Sat, 06 Jul 2013 17:24:50 +0000
 Subject: [lm-sensors] [RFC PATCH 0/5] Introduce and use device_create_groups
-Message-Id: <1373131387-13342-1-git-send-email-linux@roeck-us.net>
+Message-Id: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1373131376-13293-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1373131376-13293-1-git-send-email-linux@roeck-us.net>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
 This patch series introduces the new driver core API function
 device_create_groups().
