@@ -1,32 +1,128 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 04 Jul 2013 09:09:37 +0000
-Subject: [lm-sensors] [PATCH 0/2] Enable lm90 in Tegra30 and Tegra114.
-Message-Id: <1372928979-26938-1-git-send-email-wni@nvidia.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 06 Jul 2013 17:24:55 +0000
+Subject: [lm-sensors] [RFC PATCH 5/5] hwmon: (ltc4245) Convert to use hwmon_device_register_groups
+Message-Id: <1373131495-13465-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
-Cc: MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Enable thermal sensor lm90 for Tegra30 Cardhu and Tegra114 Dalmore.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ltc4245.c |   58 +++++++++++------------------------------------
+ 1 file changed, 13 insertions(+), 45 deletions(-)
 
-This series is v1, based on [RFC 1/9] submitted here:
-http://thread.gmane.org/gmane.linux.power-management.general/31056
-
-Changes from RFC:
-1. Enable it for Tegra114 Dalmore.
-
-Wei Ni (2):
-  ARM: dt: t30 cardhu: add dt entry for lm90
-  ARM: dt: t114 dalmore: add dt entry for lm90
-
- arch/arm/boot/dts/tegra114-dalmore.dts |    7 +++++++
- arch/arm/boot/dts/tegra30-cardhu.dtsi  |    7 +++++++
- 2 files changed, 14 insertions(+)
-
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index cdc1ecc..53b01abe 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -53,6 +53,8 @@ enum ltc4245_cmd {
+ struct ltc4245_data {
+ 	struct device *hwmon_dev;
+ 
++	const struct attribute_group *groups[3];
++
+ 	struct mutex update_lock;
+ 	bool valid;
+ 	unsigned long last_updated; /* in jiffies */
+@@ -455,41 +457,16 @@ static const struct attribute_group ltc4245_gpio_group = {
+ 	.attrs = ltc4245_gpio_attributes,
+ };
+ 
+-static int ltc4245_sysfs_create_groups(struct i2c_client *client)
++static void ltc4245_sysfs_add_groups(struct i2c_client *client)
+ {
+ 	struct ltc4245_data *data = i2c_get_clientdata(client);
+-	struct device *dev = &client->dev;
+-	int ret;
+-
+-	/* register the standard sysfs attributes */
+-	ret = sysfs_create_group(&dev->kobj, &ltc4245_std_group);
+-	if (ret) {
+-		dev_err(dev, "unable to register standard attributes\n");
+-		return ret;
+-	}
+-
+-	/* if we're using the extra gpio support, register it's attributes */
+-	if (data->use_extra_gpios) {
+-		ret = sysfs_create_group(&dev->kobj, &ltc4245_gpio_group);
+-		if (ret) {
+-			dev_err(dev, "unable to register gpio attributes\n");
+-			sysfs_remove_group(&dev->kobj, &ltc4245_std_group);
+-			return ret;
+-		}
+-	}
+ 
+-	return 0;
+-}
+-
+-static void ltc4245_sysfs_remove_groups(struct i2c_client *client)
+-{
+-	struct ltc4245_data *data = i2c_get_clientdata(client);
+-	struct device *dev = &client->dev;
++	/* standard sysfs attributes */
++	data->groups[0] = &ltc4245_std_group;
+ 
++	/* if we're using the extra gpio support, register it's attributes */
+ 	if (data->use_extra_gpios)
+-		sysfs_remove_group(&dev->kobj, &ltc4245_gpio_group);
+-
+-	sysfs_remove_group(&dev->kobj, &ltc4245_std_group);
++		data->groups[1] = &ltc4245_gpio_group;
+ }
+ 
+ static bool ltc4245_use_extra_gpios(struct i2c_client *client)
+@@ -517,7 +494,6 @@ static int ltc4245_probe(struct i2c_client *client,
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct ltc4245_data *data;
+-	int ret;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -534,22 +510,15 @@ static int ltc4245_probe(struct i2c_client *client,
+ 	i2c_smbus_write_byte_data(client, LTC4245_FAULT1, 0x00);
+ 	i2c_smbus_write_byte_data(client, LTC4245_FAULT2, 0x00);
+ 
+-	/* Register sysfs hooks */
+-	ret = ltc4245_sysfs_create_groups(client);
+-	if (ret)
+-		return ret;
++	/* Add sysfs hooks */
++	ltc4245_sysfs_add_groups(client);
+ 
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		ret = PTR_ERR(data->hwmon_dev);
+-		goto out_hwmon_device_register;
+-	}
++	data->hwmon_dev = hwmon_device_register_groups(&client->dev, data,
++						       data->groups);
++	if (IS_ERR(data->hwmon_dev))
++		return PTR_ERR(data->hwmon_dev);
+ 
+ 	return 0;
+-
+-out_hwmon_device_register:
+-	ltc4245_sysfs_remove_groups(client);
+-	return ret;
+ }
+ 
+ static int ltc4245_remove(struct i2c_client *client)
+@@ -557,7 +526,6 @@ static int ltc4245_remove(struct i2c_client *client)
+ 	struct ltc4245_data *data = i2c_get_clientdata(client);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	ltc4245_sysfs_remove_groups(client);
+ 
+ 	return 0;
+ }
 -- 
-1.7.9.5
+1.7.9.7
 
 
 _______________________________________________
