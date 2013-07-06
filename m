@@ -1,32 +1,37 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 18 Jul 2013 21:26:32 +0000
-Subject: Re: [lm-sensors] [patch v2] hwmon: (nct6775) make an array larger
-Message-Id: <20130718212632.GD4110@roeck-us.net>
+Date: Sat, 06 Jul 2013 17:22:51 +0000
+Subject: [lm-sensors] [RFC PATCH 0/5] Introduce and use device_create_groups
+Message-Id: <1373131376-13293-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130718150111.GA11991@elgon.mountain>
-In-Reply-To: <20130718150111.GA11991@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Thu, Jul 18, 2013 at 06:01:11PM +0300, Dan Carpenter wrote:
-> Smatch complains that we have a array overflow:
-> 
-> 	drivers/hwmon/nct6775.c:1456 nct6775_update_device()
-> 		error: buffer overflow 'data->temp' 4 <= 4
-> 
-> Guenter Roeck says that the array should have been made larger in
-> 7cbbd6aee6 (Add support for critical low/high temperature limits on
-> NCT6106).  This patch does that.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+This patch series introduces the new driver core API function
+device_create_groups().
 
-Applied. Thanks a lot for the patch.
+device_create_groups() lets callers create devices as well as associated
+sysfs attributes with a single call. This avoids potential race conditions
+seen if sysfs attributes on new devices are created later.
 
-I really need to enable smatch on my nightly builds :(
+The rationale for the new API is that sysfs attributes should be created
+synchronously with device creation to avoid race conditions, as outlined in
+http://www.linuxfoundation.org/news-media/blogs/browse/2013/06/how-create-sysfs-file-correctly.
 
-Guenter
+Unfortunately, the only API function to create a device dynamically is
+device_create, which does not support the notion of adding sysfs attributes
+when creating a device. The new API call is similar but lets the caller provide
+a list of sysfs attribute groups.
+
+The first patch in the series introduces the new driver core API function.
+
+The second patch introduces hwmon_device_register_groups(), which uses the new
+API call.
+
+The remaining patches convert some hwmon drivers to use the new API to show and
+test its use.
 
 _______________________________________________
 lm-sensors mailing list
