@@ -1,42 +1,29 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 04 Jul 2013 09:09:39 +0000
-Subject: [lm-sensors] [PATCH 2/2] ARM: dt: t114 dalmore: add dt entry for lm90
-Message-Id: <1372928979-26938-3-git-send-email-wni@nvidia.com>
+From: Chris Pattenden <chris@aeryon.com>
+Date: Mon, 08 Jul 2013 14:15:42 +0000
+Subject: [lm-sensors] Displaying Voltage as Temperature?!?
+Message-Id: <51DAC98E.3090203@aeryon.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1372928979-26938-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1372928979-26938-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
-Cc: MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-Enable thermal sensor lm90 for t114 dalmore.
+Howdy.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
----
- arch/arm/boot/dts/tegra114-dalmore.dts |    7 +++++++
- 1 file changed, 7 insertions(+)
+I have a thermistor connected to a voltage sensing port (in0_input) on 
+my ADC chip. I have everything running (i.e, /etc/sensors.conf has the 
+voltage->temperature conversion curve programmed into a 'convert' line 
+and 'sensors' is displaying the correct temperature) but the temperature 
+is being displayed as "+21.0 V". Obviously, I'd like to display "+21.0 C".
 
-diff --git a/arch/arm/boot/dts/tegra114-dalmore.dts b/arch/arm/boot/dts/tegra114-dalmore.dts
-index cb640eb..8325797 100644
---- a/arch/arm/boot/dts/tegra114-dalmore.dts
-+++ b/arch/arm/boot/dts/tegra114-dalmore.dts
-@@ -738,6 +738,13 @@
- 			realtek,ldo1-en-gpios  				<&gpio TEGRA_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
- 		};
-+
-+		nct1008: nct1008 {
-+			compatible = "lm90,nct1008";
-+			reg = <0x4c>;
-+			interrupt-parent = <&gpio>;
-+			interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
-+		};
- 	};
- 
- 	i2c@7000d000 {
--- 
-1.7.9.5
+Is there any way to force sensors to display the reading as a 
+temperature without rewriting my ADC driver to fake a temperature 
+sensing device (which it isn't)?
+
+Thanks,
+Chris
+
+
 
 
 _______________________________________________
