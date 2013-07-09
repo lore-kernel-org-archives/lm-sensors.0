@@ -1,47 +1,99 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Tue, 09 Jul 2013 07:54:51 +0000
+Date: Tue, 09 Jul 2013 07:58:54 +0000
 Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (lm90) add support to handle irq
-Message-Id: <51DBC1CB.8070407@nvidia.com>
+Message-Id: <51DBC2BE.6050000@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1372924670-16355-1-git-send-email-wni@nvidia.com> <1372924670-16355-3-git-send-email-wni@nvidia.com> <51D703C9.1060607@wwwdotorg.org> <20130705194728.GA24946@roeck-us.net> <51DADEE1.1030408@wwwdotorg.org> <20130708200623.GA1506@roeck-us.net>
-In-Reply-To: <20130708200623.GA1506-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+References: <1372924670-16355-1-git-send-email-wni@nvidia.com> <1372924670-16355-3-git-send-email-wni@nvidia.com> <20130709061514.GB17499@mithrandir>
+In-Reply-To: <20130709061514.GB17499@mithrandir>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Alex Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org" <linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Alex Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org" <linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 
-On 07/09/2013 04:06 AM, Guenter Roeck wrote:
-> On Mon, Jul 08, 2013 at 09:46:41AM -0600, Stephen Warren wrote:
->> On 07/05/2013 01:47 PM, Guenter Roeck wrote:
->>> On Fri, Jul 05, 2013 at 11:35:05AM -0600, Stephen Warren wrote:
->>>> On 07/04/2013 01:57 AM, Wei Ni wrote:
->>>>> Add support to handle irq. When the temperature touch
->>>>> the limit value, the driver can handle the interrupt.
->>>>
->>>>> +	if (client->irq >= 0) {
->>>>
->>>> 0 isn't a valid IRQ, so you can write that as simply if (client->irq).
->>>>
->>> If I recall correctly, it is valid on some platforms.
->>
->> I thought ARM (just some ARM sub-architectures?) might have been the
->> last architecture, and even irrespective of that, we were trying not to
->> introduce any new code that relies on this strangeness, so it doesn't
->> propagate?
->>
-> Sounds good to me. Another problem, though, may be that NO_IRQ is sometimes
-> defined as -1, sometimes as 0, sometimes as 0xffffffff, and sometimes as INT_MAX.
-> Which of course is another mess :(.
+On 07/09/2013 02:15 PM, Thierry Reding wrote:
+> * PGP Signed by an unknown key
 > 
-> Guenter
+> On Thu, Jul 04, 2013 at 03:57:49PM +0800, Wei Ni wrote:
+>> Add support to handle irq. When the temperature touch
 > 
+> Nit: This first sentence can be dropped. It merely repeats the subject.
+> And another nit: "irq" -> "IRQ"
 
-Ok, so I will use the "if (client->irq)".
+Ok, I will update in my next version.
 
-Thanks.
-Wei.
+> 
+>> the limit value, the driver can handle the interrupt.
+>>
+>> Signed-off-by: Wei Ni <wni@nvidia.com>
+>> ---
+>>  drivers/hwmon/lm90.c |   25 +++++++++++++++++++++++++
+>>  1 file changed, 25 insertions(+)
+>>
+>> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+>> index 2cb7f8e..fce9dfa 100644
+>> --- a/drivers/hwmon/lm90.c
+>> +++ b/drivers/hwmon/lm90.c
+>> @@ -89,6 +89,7 @@
+>>  #include <linux/err.h>
+>>  #include <linux/mutex.h>
+>>  #include <linux/sysfs.h>
+>> +#include <linux/interrupt.h>
+>>  
+>>  /*
+>>   * Addresses to scan
+>> @@ -1423,6 +1424,18 @@ static void lm90_init_client(struct i2c_client *client)
+>>  		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
+>>  }
+>>  
+>> +static void lm90_alert(struct i2c_client *client, unsigned int flag);
+> 
+> Any reason why the implementation of lm90_alert() can't be moved here.
+> Granted, it'll make the diff larger but at least it'll allow us to get
+> rid of the forward declaration.
 
+Ok, you are right, I will move it.
+
+> 
+>> +static irqreturn_t lm90_irq_thread(int irq, void *dev_id)
+>> +{
+>> +	struct lm90_data *data = dev_id;
+>> +	struct i2c_client *client = to_i2c_client(data->hwmon_dev->parent);
+>> +
+>> +	lm90_alert(client, 0);
+>> +
+>> +	return IRQ_HANDLED;
+>> +}
+> 
+> Isn't this potentially dangerous, since if the IRQ was shared, IRQ
+> processing will always stop after this handler. Shouldn't you check
+> whether the device actually triggered an interrupt (by reading the
+> interrupt status register)?
+
+Yes, it has potential dangerous, I didn't consider it carefully.
+I will check the interrupt status.
+
+> 
+>> +
+>>  static int lm90_probe(struct i2c_client *client,
+>>  		      const struct i2c_device_id *id)
+>>  {
+>> @@ -1499,6 +1512,18 @@ static int lm90_probe(struct i2c_client *client,
+>>  		goto exit_remove_files;
+>>  	}
+>>  
+>> +	if (client->irq >= 0) {
+>> +		dev_dbg(dev, "lm90 irq: %d\n", client->irq);
+> 
+> Nit: "irq" -> "IRQ"
+
+Ok, got it.
+
+> 
+> Thierry
+> 
+> * Unknown Key
+> * 0x7F3EB3A1
 > 
 
 
