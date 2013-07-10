@@ -1,60 +1,74 @@
-From: Satoshi Imamura <s.imamura@qub.ac.uk>
-Date: Thu, 18 Jul 2013 14:51:33 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon, fam15h_power: Tweak runavg_range on resume
-Message-Id: <E6436667-B728-4226-A061-5768E2462900@qub.ac.uk>
+From: Shane Huang <shane.huang@amd.com>
+Date: Wed, 10 Jul 2013 09:38:10 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83792d) Update module author
+Message-Id: <1373450783-2940-1-git-send-email-shane.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120920103408.GD4602@alberich>
-In-Reply-To: <20120920103408.GD4602@alberich>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+w83792d was written by me in 2004, I'd like to update my first name
+into my current one to keep consistent, and delete invalid address.
 
-Thank you very much for your cooperation.
+Signed-off-by: Shane Huang <shane.huang@amd.com>
+---
+ Documentation/hwmon/w83791d | 2 +-
+ Documentation/hwmon/w83792d | 3 +--
+ drivers/hwmon/w83792d.c     | 4 ++--
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-Regards,
-
-Satoshi
-
+diff --git a/Documentation/hwmon/w83791d b/Documentation/hwmon/w83791d
+index 90387c3..f4021a2 100644
+--- a/Documentation/hwmon/w83791d
++++ b/Documentation/hwmon/w83791d
+@@ -17,7 +17,7 @@ Credits:
+     Philip Edelbrock <phil@netroedge.com>,
+     and Mark Studebaker <mdsxyz123@yahoo.com>
+   w83792d.c:
+-    Chunhao Huang <DZShen@Winbond.com.tw>,
++    Shane Huang (Winbond),
+     Rudolf Marek <r.marek@assembler.cz>
+ 
+ Additional contributors:
+diff --git a/Documentation/hwmon/w83792d b/Documentation/hwmon/w83792d
+index 8a023ce..53f7b68 100644
+--- a/Documentation/hwmon/w83792d
++++ b/Documentation/hwmon/w83792d
+@@ -7,8 +7,7 @@ Supported chips:
+     Addresses scanned: I2C 0x2c - 0x2f
+     Datasheet: http://www.winbond.com.tw
+ 
+-Author: Chunhao Huang
+-Contact: DZShen <DZShen@Winbond.com.tw>
++Author: Shane Huang (Winbond)
+ 
+ 
+ Module Parameters
+diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
+index 0b80489..6267dec 100644
+--- a/drivers/hwmon/w83792d.c
++++ b/drivers/hwmon/w83792d.c
+@@ -2,7 +2,7 @@
+  * w83792d.c - Part of lm_sensors, Linux kernel modules for hardware
+  *	       monitoring
+  * Copyright (C) 2004, 2005 Winbond Electronics Corp.
+- *			    Chunhao Huang <DZShen@Winbond.com.tw>,
++ *			    Shane Huang,
+  *			    Rudolf Marek <r.marek@assembler.cz>
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -1665,6 +1665,6 @@ static void w83792d_print_debug(struct w83792d_data *data, struct device *dev)
+ 
+ module_i2c_driver(w83792d_driver);
+ 
+-MODULE_AUTHOR("Chunhao Huang @ Winbond <DZShen@Winbond.com.tw>");
++MODULE_AUTHOR("Shane Huang (Winbond)");
+ MODULE_DESCRIPTION("W83792AD/D driver for linux-2.6");
+ MODULE_LICENSE("GPL");
 -- 
-Satoshi Imamura
-Visiting Researcher
-School of Electronics, Electrical Engineering and Computer Science
-Queen's University of Belfast
-Email: s.imamura@qub.ac.uk
+1.8.1.2
 
-On Jul 18, 2013, at 3:47 PM, Jean Delvare <khali@linux-fr.org> wrote:
-
-> Hi Satoshi,
-> 
-> On Wed, 17 Jul 2013 21:35:43 +0000 (UTC), Satoshi Imamura wrote:
->> Hello Mr. Andreas Herrmann,
-> 
-> I don't think Andreas is still reading the lm-sensors list, so I am
-> adding him to Cc.
-> 
->> I'm trying to measure power consumption of AMD Opteron 6272 using fam15h_power.
->> Linux kernel version is 3.9.4.
->> Even when all cores are idle, fam15h_power shows about 85W.
->> However, the power consumption decreases to about 74W
->> when a process is executed with all cores.
->> 
->> For Linux kernel 3.9.4, the patch for fam15h_power is already applied.
->> Moreover, "RunAvgRange" (p. 460 of BKDG for Family 15h) is 
->> appropriately set to "0x9" as following:
->> 
->> % setpci -s 00:18.5 0xe0.l
->> % 00372c99
->> 
->> Why is the power consumption so high (85W) when all cores are idle?
->> Why does it decrease when a process is executed with all cores?
->> I would appreciate if you could give me a advice.
->> 
->> Sincerely yours,
->> 
->> Satoshi
 
 
 _______________________________________________
