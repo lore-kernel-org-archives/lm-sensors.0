@@ -1,34 +1,44 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:17:23 +0000
-Subject: [lm-sensors] [RESEND PATCH V1 4/9] arm: dts: flag omap4430 with needs-cooling for cpu node
-Message-Id: <1374074248-31690-5-git-send-email-eduardo.valentin@ti.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 10 Jul 2013 11:25:36 +0000
+Subject: [lm-sensors] [PATCH v2 0/3] Lm90 Enhancements
+Message-Id: <1373455539-2831-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree-discuss@lists.ozlabs.org
-Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
-ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
-cyBwYXRjaCBhZGRzIHRoZSBmbGFnIHNvIHRoYXQgY3B1ZnJlcS1jcHUwIGRyaXZlcgpsb2FkcyB0
-aGUgY29vbGluZyBkZXZpY2UgdG8gdXNlIGNwdWZyZXEgb24gT01BUDQ0MzAuCgpDYzogIkJlbm/D
-rnQgQ291c3NvbiIgPGItY291c3NvbkB0aS5jb20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0
-b21pZGUuY29tPgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzog
-bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWUtZGlzY3Vzc0BsaXN0cy5v
-emxhYnMub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxp
-bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRp
-biA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0
-M3guZHRzaSB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0
-IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0M3guZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29t
-YXA0NDN4LmR0c2kKaW5kZXggYmNmNDU1ZS4uNGE0ZGNjMyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDQ0M3guZHRzaQorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQzeC5k
-dHNpCkBAIC0yMiw2ICsyMiw3IEBACiAJCQkJMTAwODAwMCAxMzc1MDAwCiAJCQk+OwogCQkJY2xv
-Y2stbGF0ZW5jeSA9IDwzMDAwMDA+OyAvKiBGcm9tIGxlZ2FjeSBkcml2ZXIgKi8KKwkJCW5lZWRz
-LWNvb2xpbmc7IC8qIG1ha2Ugc3VyZSB3ZSBoYXZlIGNwdWZyZXEtY29vbGluZyAqLwogCQl9Owog
-CX07CiAKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
-c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
-aW5mby9sbS1zZW5zb3Jz
+This patch set enhance the lm90 driver,
+it make the driver more readable and easier to use thermal framework.
+
+This series is v2, previous version patches:
+[RFC]: http://thread.gmane.org/gmane.linux.power-management.general/31056
+[v1]: http://thread.gmane.org/gmane.linux.ports.tegra/11710/
+
+Changes from v1:
+1. change the string "irq" to "IRQ"
+2. add macro defines for the alarm status
+3. consider the shared IRQ.
+
+Changes from RFC:
+1. change _show_temp() to read_temp(), _set_temp() to write_temp().
+2. simply return value for the read_temp(), not use pointer.
+3. use devm_request_threaded_irq() to request irq and set flag IRQF_ONESHOT.
+
+Wei Ni (3):
+  hwmon: (lm90) split set&show temp as common codes
+  hwmon: (lm90) add support to handle IRQ.
+  hwmon: (lm90) use enums for the indexes of temp8 and temp11
+
+ drivers/hwmon/lm90.c |  374 ++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 253 insertions(+), 121 deletions(-)
+
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
