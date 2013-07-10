@@ -1,46 +1,44 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 18 Jul 2013 20:43:23 +0000
-Subject: Re: [lm-sensors] [patch] hwmon: using wrong ARRAY_SIZE() limit
-Message-Id: <20130718204323.GA4110@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 10 Jul 2013 11:29:57 +0000
+Subject: [lm-sensors] [PATCH v2 1/2] ARM: dt: t30 cardhu: add dt entry for nct1008
+Message-Id: <1373455798-2944-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130717084317.GA4851@elgon.mountain>
-In-Reply-To: <20130717084317.GA4851@elgon.mountain>
+References: <1373455798-2944-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1373455798-2944-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: khali@linux-fr.org, swarren@wwwdotorg.org, linux@roeck-us.net, thierry.reding@gmail.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On Thu, Jul 18, 2013 at 05:41:08PM +0200, walter harms wrote:
-> 
-> 
-> Am 18.07.2013 01:36, schrieb Guenter Roeck:
-> > On Wed, Jul 17, 2013 at 03:26:14PM +0300, Dan Carpenter wrote:
-> >> We cleaned up this code to use ARRAY_SIZE() instead of just the number
-> >> 4.  The problem is that data->reg_temp[] has 5 elements and we actually
-> >> wanted ARRAY_SIZE(data->temp) which has 4 elements.
-> >>
-> >> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> >>
-> > Hi Dan,
-> > 
-> > good catch, except that the array size of data->temp[] should be 5, not 4.
-> > So the real culprit is commit 7cbbd6a (Add support for critical low/high
-> > temperature limits on NCT6106) which increased the size of reg_temp but not the
-> > size of temp.
-> > 
-> > Do you want to send me a patch fixing that, or should I take care of it ?
-> > 
-> > Thanks,
-> > Guenter
-> 
-> hi Guenther,
-> is an array the way to go here ? To avoid that kind of problems they sould be
-> connected some how. Is it possible to replace the array with a malloc() ?
-> 
-To clean it up I should probably add a define for the array sizes. A malloc
-would be overkill.
+Enable thermal sensor nct1008 for t30 cardhu.
 
-Guenter
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra30-cardhu.dtsi |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm/boot/dts/tegra30-cardhu.dtsi b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+index f65b53d..3d568a1 100644
+--- a/arch/arm/boot/dts/tegra30-cardhu.dtsi
++++ b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+@@ -286,6 +286,13 @@
+ 				};
+ 			};
+ 		};
++
++		nct1008: nct1008 {
++			compatible = "onnn,nct1008";
++			reg = <0x4c>;
++			interrupt-parent = <&gpio>;
++			interrupts = <TEGRA_GPIO(CC, 2) IRQ_TYPE_LEVEL_LOW>;
++		};
+ 	};
+ 
+ 	spi@7000da00 {
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
