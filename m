@@ -1,32 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 16 Jul 2013 15:21:10 +0000
-Subject: Re: [lm-sensors] Missing Fintek F71868AD chip
-Message-Id: <20130716172110.43dfcc51@endymion.delvare>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Thu, 11 Jul 2013 05:03:00 +0000
+Subject: [lm-sensors] [PATCH 1/1] hwmon: (abx500) Staticize abx500_temp_attributes
+Message-Id: <1373518260-13344-1-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <51B329D9.30802@orange.fr>
-In-Reply-To: <51B329D9.30802@orange.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 13 Jul 2013 13:02:51 +0000 (UTC), zthomas wrote:
-> Hans de Goede <hdegoede <at> redhat.com> writes:
-> 
-> > So it is impossible to tell. The safe thing to do is to contact fintek 
-> for
-> > a datasheet, once we've that we can see if an existing driver can be
-> > easily modified to support this new chip.
-> 
-> 
-> My MSI Z77-G43 seems to have the same chip.  I am willing
-> to test whatever driver you create.  My kernel is 3.8.13.
+abx500_temp_attributes is used only in this file. Make it static.
 
-We have a datasheet now but no driver yet. I have added you to the
-request list in the wiki.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/hwmon/abx500.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/hwmon/abx500.c b/drivers/hwmon/abx500.c
+index eee1134..769fe20 100644
+--- a/drivers/hwmon/abx500.c
++++ b/drivers/hwmon/abx500.c
+@@ -315,7 +315,7 @@ static SENSOR_DEVICE_ATTR(temp4_max_hyst, S_IWUSR | S_IRUGO,
+ static SENSOR_DEVICE_ATTR(temp4_min_alarm, S_IRUGO, show_min_alarm, NULL, 3);
+ static SENSOR_DEVICE_ATTR(temp4_max_alarm, S_IRUGO, show_max_alarm, NULL, 3);
+ 
+-struct attribute *abx500_temp_attributes[] = {
++static struct attribute *abx500_temp_attributes[] = {
+ 	&sensor_dev_attr_name.dev_attr.attr,
+ 
+ 	&sensor_dev_attr_temp1_label.dev_attr.attr,
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
