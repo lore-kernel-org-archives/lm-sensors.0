@@ -1,107 +1,141 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:02:53 +0000
-Subject: [lm-sensors] [PATCH 8/8] hwmon: tmp102: expose to thermal fw via DT nodes
-Message-Id: <1374073374-30946-18-git-send-email-eduardo.valentin@ti.com>
+From: Maximilian Seesslen <mes@seesslen.net>
+Date: Fri, 12 Jul 2013 17:12:51 +0000
+Subject: [lm-sensors] [PATCH] fix fancontrol to survive a system suspend
+Message-Id: <201307121912.51382.mes@seesslen.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Boundary-00=_TkD4RQJEOFN7dlf"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+--Boundary-00=_TkD4RQJEOFN7dlf
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree-discuss@lists.ozlabs.org
-Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
 
-This patch adds to tmp102 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+Hello,
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the tmp102 DT node. Otherwise, the driver behavior
-will be the same.
+find attached a patch that fixes fancontrol to survive a system suspend. 
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/hwmon/tmp102.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+If the daemon can not set the pwm values but it did it already in the past 
+successfully, it tries to reenable the pwm output instead of quitting.
 
-diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
-index d7b47ab..621093b 100644
---- a/drivers/hwmon/tmp102.c
-+++ b/drivers/hwmon/tmp102.c
-@@ -27,6 +27,8 @@
- #include <linux/mutex.h>
- #include <linux/device.h>
- #include <linux/jiffies.h>
-+#include <linux/thermal.h>
-+#include <linux/of.h>
+
+Regards,
+   Max
+
+
+--
+Maximilian Seesslen
+
+--Boundary-00=_TkD4RQJEOFN7dlf
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="fix-fancontrol-to-survive-a-system-suspend-hibernate.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="fix-fancontrol-to-survive-a-system-suspend-hibernate.diff"
+
+Index: prog/pwm/fancontrol
+===================================================================
+--- prog/pwm/fancontrol	(Revision 6189)
++++ prog/pwm/fancontrol	(Arbeitskopie)
+@@ -42,6 +42,7 @@
  
- #define	DRIVER_NAME "tmp102"
+ #DEBUG=1
+ MAX=255
++DID_FIRSTRUN=0
  
-@@ -50,6 +52,7 @@
- 
- struct tmp102 {
- 	struct device *hwmon_dev;
-+	struct thermal_zone_device *tz;
- 	struct mutex lock;
- 	u16 config_orig;
- 	unsigned long last_update;
-@@ -93,6 +96,15 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
- 	return tmp102;
+ function LoadConfig
+ {
+@@ -490,7 +491,12 @@
+ 		if [ $? -ne 0 ]
+ 		then
+ 			echo "Error writing PWM value to $DIR/$pwmo" >&2
+-			restorefans 1
++			[ "$DID_FIRSTRUN" == "0" ] && restorefans 1
++			# Ignoring write error. System probably was syspended and has to reanable pwm.
++			echo "Ignoring, i try reanabling PWM."
++			pwmenable $pwmo
++			# Write values again to keep failure short
++			echo $pwmval > $pwmo # write new value to pwm output
+ 		fi
+ 		if [ "$DEBUG" != "" ]
+ 		then
+@@ -498,6 +504,8 @@
+ 		fi
+ 		let fcvcount=$fcvcount+1
+ 	done
++	
++	DID_FIRSTRUN=1
  }
  
-+static int tmp102_read_temp(void *dev, unsigned long *temp)
-+{
-+	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
-+
-+	*temp = tmp102->temp[0];
-+
-+	return 0;
-+}
-+
- static ssize_t tmp102_show_temp(struct device *dev,
- 				struct device_attribute *attr,
- 				char *buf)
-@@ -204,10 +216,22 @@ static int tmp102_probe(struct i2c_client *client,
- 		goto fail_remove_sysfs;
- 	}
- 
-+	if (of_find_node_by_name(client->dev.of_node, "thermal_zone")) {
-+		tmp102->tz = thermal_zone_of_device_register(&client->dev,
-+							     &client->dev,
-+							     tmp102_read_temp);
-+		if (IS_ERR(tmp102->tz)) {
-+			status = PTR_ERR(tmp102->tz);
-+			goto exit_hwmon;
-+		}
-+	}
-+
- 	dev_info(&client->dev, "initialized\n");
- 
- 	return 0;
- 
-+exit_hwmon:
-+	hwmon_device_unregister(tmp102->hwmon_dev);
- fail_remove_sysfs:
- 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
- fail_restore_config:
-@@ -220,6 +244,7 @@ static int tmp102_remove(struct i2c_client *client)
- {
- 	struct tmp102 *tmp102 = i2c_get_clientdata(client);
- 
-+	thermal_zone_device_unregister(tmp102->tz);
- 	hwmon_device_unregister(tmp102->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
- 
--- 
-1.8.2.1.342.gfa7285d
+ echo 'Enabling PWM on fans...'
 
+--Boundary-00=_TkD4RQJEOFN7dlf
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="0001-fix-fancontrol-to-survive-a-system-suspend-hibernate.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="0001-fix-fancontrol-to-survive-a-system-suspend-hibernate.patch"
+
+=46rom 46940390c8f9fcc4325710867c95b2e28aebaf81 Mon Sep 17 00:00:00 2001
+=46rom: Maximilian Seesslen <mes@seesslen.net>
+Date: Fri, 12 Jul 2013 18:59:49 +0200
+Subject: [PATCH] fix fancontrol to survive a system suspend/hibernate
+
+=2D--
+ prog/pwm/fancontrol |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/prog/pwm/fancontrol b/prog/pwm/fancontrol
+index 2771139..3e57901 100755
+=2D-- a/prog/pwm/fancontrol
++++ b/prog/pwm/fancontrol
+@@ -42,6 +42,7 @@ PIDFILE=3D"/var/run/fancontrol.pid"
+=20
+ #DEBUG=3D1
+ MAX=3D255
++DID_FIRSTRUN=3D0
+=20
+ function LoadConfig
+ {
+@@ -490,7 +491,12 @@ function UpdateFanSpeeds
+ 		if [ $? -ne 0 ]
+ 		then
+ 			echo "Error writing PWM value to $DIR/$pwmo" >&2
+=2D			restorefans 1
++			[ "$DID_FIRSTRUN" =3D=3D "0" ] && restorefans 1
++			# Ignoring write error. System probably was syspended and has to reanab=
+le pwm.
++			echo "Ignoring, i try reanabling PWM."
++			pwmenable $pwmo
++			# Write values again to keep failure short
++			echo $pwmval > $pwmo # write new value to pwm output
+ 		fi
+ 		if [ "$DEBUG" !=3D "" ]
+ 		then
+@@ -498,6 +504,8 @@ function UpdateFanSpeeds
+ 		fi
+ 		let fcvcount=3D$fcvcount+1
+ 	done
++=09
++	DID_FIRSTRUN=3D1
+ }
+=20
+ echo 'Enabling PWM on fans...'
+=2D-=20
+1.7.10.4
+
+
+--Boundary-00=_TkD4RQJEOFN7dlf
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--Boundary-00=_TkD4RQJEOFN7dlf--
