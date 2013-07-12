@@ -1,39 +1,41 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 23 Jul 2013 10:58:14 +0000
-Subject: Re: [lm-sensors] Few queries about lm-sensors and core temp.c
-Message-Id: <20130723125814.71db0112@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Fri, 12 Jul 2013 07:49:22 +0000
+Subject: [lm-sensors] [PATCH v3 0/2] Enable lm90 in Tegra30 and Tegra114.
+Message-Id: <1373615364-18559-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D137AD88-0DA4-4CF3-889D-862386B3C35A@brown.edu>
-In-Reply-To: <D137AD88-0DA4-4CF3-889D-862386B3C35A@brown.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, swarren@wwwdotorg.org, linux@roeck-us.net, thierry.reding@gmail.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-Hi Kapil, Guenter,
+Enable thermal sensor lm90 for Tegra30 Cardhu and Tegra114 Dalmore.
 
-On Mon, 22 Jul 2013 02:27:56 -0700, Guenter Roeck wrote:
-> On Sun, Jul 21, 2013 at 11:23:00PM -0400, Kapil Dev wrote:
-> > I am using 2.6.39-020639-generic  kernel and I am running Ubuntu 9.04. I couldn't find /etc/sensors.d/coretemp.config file. I am using 3450S intel i5 processor, which has Tjmax of 103C (sorry for the typo in my original email), based on http://users.sosdg.org/~qiyong/lxr/source/Documentation/hwmon/coretemp?a=um . 
-> > 
-> > I found that for some processors, IA32_TEMPERATURE_TARGET MSR has the Tjmax value; I assume that the coretemp.c tries to read this register and if it doesn't succeed then, it uses the heuristic value. 
-> 
-> Might as well be that the kernel version is too old. Can you update to a more
-> recent kernel ?
+This series is v2, previous version patches:
+[RFC 1/9]: http://thread.gmane.org/gmane.linux.power-management.general/31056
+[v1]: http://thread.gmane.org/gmane.linux.ports.tegra/11713/
+[v2]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg465561.html
 
-He doesn't have to update the whole kernel, just building an up-to-date
-coretemp driver would do. I have made the kernel v3.10 version of the
-coretemp driver available at:
+Changes from v2:
+1. remove the label "nct1008".
 
-  http://khali.linux-fr.org/devel/lm-sensors/drivers/coretemp/
+Changes from v1:
+1. add vendor strings "onnn" for nct1008 node.
 
-Instructions at:
+Changes from RFC:
+1. Enable it for Tegra114 Dalmore.
 
-  http://khali.linux-fr.org/devel/lm-sensors/drivers/INSTALL
+Wei Ni (2):
+  ARM: dt: t30 cardhu: add dt entry for nct1008
+  ARM: dt: t114 dalmore: add dt entry for nct1008
+
+ arch/arm/boot/dts/tegra114-dalmore.dts |    7 +++++++
+ arch/arm/boot/dts/tegra30-cardhu.dtsi  |    7 +++++++
+ 2 files changed, 14 insertions(+)
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
