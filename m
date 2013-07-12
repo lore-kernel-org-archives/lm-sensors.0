@@ -1,236 +1,218 @@
-From: "AP" <mail@netintinfo.info>
-Date: Sat, 27 Jul 2013 09:29:06 +0000
-Subject: [lm-sensors] Community & educational development
-Message-Id: <1374866153cf4b5c44207be79895e785522bde20e2_@netintinfo.info>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6631852799415523018=="
+From: Wei Ni <wni@nvidia.com>
+Date: Fri, 12 Jul 2013 07:48:04 +0000
+Subject: [lm-sensors] [PATCH v3 1/4] hwmon: (lm90) split set&show temp as common codes
+Message-Id: <1373615287-18502-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1364307844cf4b5c44207be79895e785522bde20e2_@combcstint.info>
-In-Reply-To: <1364307844cf4b5c44207be79895e785522bde20e2_@combcstint.info>
-To: lm-sensors@vger.kernel.org
-
-This is a multi-part message in MIME format.
-
---===============6631852799415523018==
-Content-Type: multipart/alternative;
-	boundary="--=_NextPart_287524DC.20111108_ECAMP_8.0.60.1672"
-
-This is a multi-part message in MIME format.
-
-----=_NextPart_287524DC.20111108_ECAMP_8.0.60.1672
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-PRESS RELEASE
-
-The American Grants and Loans Catalog is now available. Our new and revised
-2013 edition contains more than 2800 financial programs, subsidies, scholarships,
-grants and loans offered by the US federal government.
-
-In addition you will also have access to over 2400 programs funded by private
-corporations and foundations. That is over 5200 programs available through
-various sources of financial providing organizations.
-
-NEW: You will also have access to our live Database that is updated on a daily
-basis. This product also provides daily email alerts as programs are announced.
-
-The Database is also available with IP recognition. This allows you to login
-without a username or password (Great for libraries or educational institutions
-who want their users to access the database).
-
-Businesses, students, researchers, scientists, teachers, doctors, private individuals,
-municipalities, government departments, educational institutions, law enforcement
-agencies, nonprofits, foundations and associations will find a wealth of information
-that will help them with their new ventures or existing projects.
-
-The document is a fully searchable PDF file for easy access to your particular
-needs and interests. Simply enter your keywords to search through the publication.
-
-It is the perfect tool for libraries and educational institutions to use as a
-reference guide for students who require funds to pursue their education.
-
-
-Contents of the Directory:
-
--Web link to program announcement page
--Web link to Federal agency or foundation administering the program
--Authorization upon which a program is based
--Objectives and goals of the program
--Types of financial assistance offered under a program
--Uses and restrictions placed upon a program
--Eligibility requirements
--Application and award process
--Regulations, guidelines and literature relevant to a program
--Information contacts at the headquarters, regional, and local offices
--Programs that are related based upon program objectives and uses
-
-
-Programs in the Catalog provide a wide range of benefits and services
-for categories such as:
-
-Agriculture
-Business and Commerce
-Community Development
-Consumer Protection
-Cultural Affairs
-Disaster Prevention and Relief
-Education
-Employment, Labor and Training
-Energy
-Environmental Quality
-Food and Nutrition
-Health
-Housing
-Income Security and Social Services
-Information and Statistics
-Law, Justice, and Legal Services
-Natural Resources
-Regional Development
-Science and Technology
-Transportation
-
-
-CD version: $69.95
-Printed version: $149.95
-
-To order please call: 1 (800) 610-4543
-
-
-Please do not reply to the sender's email address as this address is only for outgoing mail.
-
-If you do not wish to receive information from us in the future please reply here:
-remove@bcstnet.info
-
-This is a CANSPAM ACT compliant advertising broadcast sent by:
-American Publishing Inc. , 7025 County Rd. 46A, Suite 1071, Lake Mary, FL, 32746-4753
-
-----=_NextPart_287524DC.20111108_ECAMP_8.0.60.1672
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"=
- "http://www.w3.org/TR/html4/loose.dtd">
-<HTML><HEAD><META http-equiv=3D"Content-Type" content=3D"text/html; charset=
-=3Diso-8859-1">
-<STYLE>
-body,p,div,td { font-family: Arial; }
-</STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV align=3Dcenter><FONT size=3D2>PRESS RELEASE</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>The American Grants and Loans Catalog is=
- now
-available. Our new and revised<BR>2013 edition contains more than 2800=
- financial
-programs, subsidies, scholarships,<BR>grants and loans offered by the US=
- federal
-government.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>In addition you will also have access to=
- over
-2400 programs funded by private<BR>corporations and foundations. That is over
-5200 programs available through<BR>various sources of financial providing
-organizations.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>NEW: You will also have access to our live
-Database that is updated on a daily<BR>basis. This product also provides=
- daily
-email alerts as programs are announced.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>The Database is also available with IP
-recognition. This allows you to login<BR>without a username or password=
- (Great
-for libraries or educational institutions<BR>who want their users to access=
- the
-database).</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>Businesses, students, researchers,=
- scientists,
-teachers, doctors, private individuals,<BR>municipalities, government
-departments, educational institutions, law enforcement<BR>agencies,=
- nonprofits,
-foundations and associations will find a wealth of information<BR>that will=
- help
-them with their new ventures or existing projects.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>The document is a fully searchable PDF=
- file for
-easy access to your particular<BR>needs and interests. Simply enter your
-keywords to search through the publication.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>It is the perfect tool for libraries and
-educational institutions to use as a<BR>reference guide for students who=
- require
-funds to pursue their education.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><BR><FONT size=3D2>Contents of the=
- Directory:</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>-Web link to program announcement=
- page<BR>-Web
-link to Federal agency or foundation administering the=
- program<BR>-Authorization
-upon which a program is based<BR>-Objectives and goals of the=
- program<BR>-Types
-of financial assistance offered under a program<BR>-Uses and restrictions=
- placed
-upon a program<BR>-Eligibility requirements<BR>-Application and award
-process<BR>-Regulations, guidelines and literature relevant to a
-program<BR>-Information contacts at the headquarters, regional, and local
-offices<BR>-Programs that are related based upon program objectives and
-uses</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><BR><FONT size=3D2>Programs in the Catalog provide a wide=
- range
-of benefits and services<BR>for categories such as:</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>Agriculture<BR>Business and=
- Commerce<BR>Community
-Development<BR>Consumer Protection<BR>Cultural Affairs<BR>Disaster Prevention
-and Relief<BR>Education<BR>Employment, Labor and
-Training<BR>Energy<BR>Environmental Quality<BR>Food and
-Nutrition<BR>Health<BR>Housing<BR>Income Security and Social
-Services<BR>Information and Statistics<BR>Law, Justice, and Legal
-Services<BR>Natural Resources<BR>Regional Development<BR>Science and
-Technology<BR>Transportation</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><BR><FONT size=3D2>CD version: $69.95<BR>Printed version:
-$149.95</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>To order please call: 1 (800)
-610-4543</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><BR><FONT size=3D2>Please do not reply to the sender's=
- email
-address as this address is only for outgoing mail.</FONT></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>If you do not wish to receive information=
- from us
-in the future please reply here:<BR></FONT><A
-href=3D"mailto:remove@bcstnet.info"><FONT
-size=3D2>remove@bcstnet.info</FONT></A></DIV>
-<DIV align=3Dcenter>&nbsp;</DIV>
-<DIV align=3Dcenter><FONT size=3D2>This is a CANSPAM ACT compliant=
- advertising
-broadcast sent by:<BR>American Publishing Inc. , 7025 County Rd. 46A, Suite
-1071, Lake Mary, FL, 32746-4753</FONT></DIV></BODY></HTML>
-
-----=_NextPart_287524DC.20111108_ECAMP_8.0.60.1672--
-
-
-
---===============6631852799415523018==
-Content-Type: text/plain; charset="us-ascii"
+References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1373615287-18502-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: khali@linux-fr.org, linux@roeck-us.net, thierry.reding@gmail.com
+Cc: linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+Split set&show temp codes as common functions, so we can use it directly when
+implement linux thermal framework.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |  112 +++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 69 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 8eeb141..5f30f90 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -702,29 +702,34 @@ static u16 temp_to_u16_adt7461(struct lm90_data *data, long val)
+  * Sysfs stuff
+  */
+ 
+-static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
+-			  char *buf)
++static int read_temp8(struct device *dev, int index)
+ {
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct lm90_data *data = lm90_update_device(dev);
+ 	int temp;
+ 
+ 	if (data->kind = adt7461)
+-		temp = temp_from_u8_adt7461(data, data->temp8[attr->index]);
++		temp = temp_from_u8_adt7461(data, data->temp8[index]);
+ 	else if (data->kind = max6646)
+-		temp = temp_from_u8(data->temp8[attr->index]);
++		temp = temp_from_u8(data->temp8[index]);
+ 	else
+-		temp = temp_from_s8(data->temp8[attr->index]);
++		temp = temp_from_s8(data->temp8[index]);
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 && attr->index = 3)
++	if (data->kind = lm99 && index = 3)
+ 		temp += 16000;
+ 
+-	return sprintf(buf, "%d\n", temp);
++	return temp;
+ }
+ 
+-static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+-			 const char *buf, size_t count)
++static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
++			  char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++
++	return sprintf(buf, "%d\n", read_temp8(dev, attr->index));
++}
++
++static void write_temp8(struct device *dev, int index, long val)
+ {
+ 	static const u8 reg[8] = {
+ 		LM90_REG_W_LOCAL_LOW,
+@@ -737,60 +742,73 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+ 		MAX6659_REG_W_REMOTE_EMERG,
+ 	};
+ 
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	int nr = attr->index;
+-	long val;
+-	int err;
+-
+-	err = kstrtol(buf, 10, &val);
+-	if (err < 0)
+-		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 && attr->index = 3)
++	if (data->kind = lm99 && index = 3)
+ 		val -= 16000;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	if (data->kind = adt7461)
+-		data->temp8[nr] = temp_to_u8_adt7461(data, val);
++		data->temp8[index] = temp_to_u8_adt7461(data, val);
+ 	else if (data->kind = max6646)
+-		data->temp8[nr] = temp_to_u8(val);
++		data->temp8[index] = temp_to_u8(val);
+ 	else
+-		data->temp8[nr] = temp_to_s8(val);
++		data->temp8[index] = temp_to_s8(val);
+ 
+-	lm90_select_remote_channel(client, data, nr >= 6);
+-	i2c_smbus_write_byte_data(client, reg[nr], data->temp8[nr]);
++	lm90_select_remote_channel(client, data, index >= 6);
++	i2c_smbus_write_byte_data(client, reg[index], data->temp8[index]);
+ 	lm90_select_remote_channel(client, data, 0);
+ 
+ 	mutex_unlock(&data->update_lock);
++}
++
++static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
++			 const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	int index = attr->index;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	write_temp8(dev, index, val);
++
+ 	return count;
+ }
+ 
+-static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
+-			   char *buf)
++static int read_temp11(struct device *dev, int index)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct lm90_data *data = lm90_update_device(dev);
+ 	int temp;
+ 
+ 	if (data->kind = adt7461)
+-		temp = temp_from_u16_adt7461(data, data->temp11[attr->index]);
++		temp = temp_from_u16_adt7461(data, data->temp11[index]);
+ 	else if (data->kind = max6646)
+-		temp = temp_from_u16(data->temp11[attr->index]);
++		temp = temp_from_u16(data->temp11[index]);
+ 	else
+-		temp = temp_from_s16(data->temp11[attr->index]);
++		temp = temp_from_s16(data->temp11[index]);
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 &&  attr->index <= 2)
++	if (data->kind = lm99 &&  index <= 2)
+ 		temp += 16000;
+ 
+-	return sprintf(buf, "%d\n", temp);
++	return temp;
+ }
+ 
+-static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+-			  const char *buf, size_t count)
++static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
++			   char *buf)
++{
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++
++	return sprintf(buf, "%d\n", read_temp11(dev, attr->index));
++}
++
++static void write_temp11(struct device *dev, int nr, int index, long val)
+ {
+ 	struct {
+ 		u8 high;
+@@ -804,17 +822,8 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 		{ LM90_REG_W_REMOTE_HIGHH, LM90_REG_W_REMOTE_HIGHL, 1 }
+ 	};
+ 
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	int nr = attr->nr;
+-	int index = attr->index;
+-	long val;
+-	int err;
+-
+-	err = kstrtol(buf, 10, &val);
+-	if (err < 0)
+-		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+ 	if (data->kind = lm99 && index <= 2)
+@@ -839,6 +848,23 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 	lm90_select_remote_channel(client, data, 0);
+ 
+ 	mutex_unlock(&data->update_lock);
++}
++
++static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
++			  const char *buf, size_t count)
++{
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++	int nr = attr->nr;
++	int index = attr->index;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	write_temp11(dev, nr, index, val);
++
+ 	return count;
+ }
+ 
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6631852799415523018==--
-
