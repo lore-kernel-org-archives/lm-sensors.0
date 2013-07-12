@@ -1,155 +1,130 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Wed, 17 Jul 2013 16:25:11 +0000
-Subject: Re: [lm-sensors] [RESEND PATCH V1 3/9] thermal: thermal_core: allow	binding with limits on bind_para
-Message-Id: <4D68720C2E767A4AA6A8796D42C8EB59CED41F@BGSMSX101.gar.corp.intel.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Fri, 12 Jul 2013 07:48:05 +0000
+Subject: [lm-sensors] [PATCH v3 2/4] hwmon: (lm90) use macro defines for the status bit
+Message-Id: <1373615287-18502-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
- <1374074248-31690-4-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374074248-31690-4-git-send-email-eduardo.valentin@ti.com>
+References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1373615287-18502-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
-Cc: "wni@nvidia.com" <wni@nvidia.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "Zhang, Rui" <rui.zhang@intel.com>, "l.stach@pengutronix.de" <l.stach@pengutronix.de>
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-> -----Original Message-----
-> From: lm-sensors-bounces@lm-sensors.org [mailto:lm-sensors-bounces@lm-
-> sensors.org] On Behalf Of Eduardo Valentin
-> Sent: Wednesday, July 17, 2013 8:47 PM
-> To: devicetree-discuss@lists.ozlabs.org
-> Cc: wni@nvidia.com; linux-pm@vger.kernel.org; linux-kernel@vger.kernel.org;
-> lm-sensors@lm-sensors.org; Eduardo Valentin; Zhang, Rui;
-> l.stach@pengutronix.de
-> Subject: [lm-sensors] [RESEND PATCH V1 3/9] thermal: thermal_core: allow
-> binding with limits on bind_params
-> 
-> When registering a thermal zone device using platform information
-> via bind_params, the thermal framework will always perform the
-> cdev binding using the lowest and highest limits (THERMAL_NO_LIMIT).
-> 
-> This patch changes the data structures so that it is possible
-> to inform what are the desired limits for each trip point
-> inside a bind_param. The way the binding is performed is also
-> changed so that it uses the new data structure.
-> 
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Add bit defines for the status register.
 
-This patch looks good to me.
-Acked-by: Durgadoss R <durgadoss.r@intel.com>
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |   72 ++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 49 insertions(+), 23 deletions(-)
 
-Thanks,
-Durga
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 5f30f90..c90037f 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -179,6 +179,19 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+ #define LM90_HAVE_TEMP3		(1 << 6) /* 3rd temperature sensor	*/
+ #define LM90_HAVE_BROKEN_ALERT	(1 << 7) /* Broken alert		*/
+ 
++/* LM90 status */
++#define LM90_STATUS_LTHRM	(1 << 0) /* local THERM limit tripped */
++#define LM90_STATUS_RTHRM	(1 << 1) /* remote THERM limit tripped */
++#define LM90_STATUS_OPEN	(1 << 2) /* remote is an open circuit */
++#define LM90_STATUS_RLOW	(1 << 3) /* remote low temp limit tripped */
++#define LM90_STATUS_RHIGH	(1 << 4) /* remote high temp limit tripped */
++#define LM90_STATUS_LLOW	(1 << 5) /* local low temp limit tripped */
++#define LM90_STATUS_LHIGH	(1 << 6) /* local high temp limit tripped */
++#define LM90_STATUS_BUSY	(1 << 7) /* ADC is converting */
++
++#define MAX6696_STATUS2_RLOW	(1 << 3) /* remote2 low temp limit tripped */
++#define MAX6696_STATUS2_RHIGH	(1 << 4) /* remote2 high temp limit tripped */
++
+ /*
+  * Driver data (common to all clients)
+  */
+@@ -1417,6 +1430,36 @@ static void lm90_init_client(struct i2c_client *client)
+ 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
+ }
+ 
++static bool lm90_is_tripped(struct i2c_client *client)
++{
++	struct lm90_data *data = i2c_get_clientdata(client);
++	u8 status, status2 = 0;
++
++	lm90_read_reg(client, LM90_REG_R_STATUS, &status);
++
++	if (data->kind = max6696)
++		lm90_read_reg(client, MAX6696_REG_R_STATUS2, &status2);
++
++	if ((status & 0x7f) = 0 && (status2 & 0xfe) = 0)
++		return false;
++
++	if (status & (LM90_STATUS_LLOW | LM90_STATUS_LHIGH | LM90_STATUS_LTHRM))
++		dev_warn(&client->dev,
++			 "temp%d out of range, please check!\n", 1);
++	if (status & (LM90_STATUS_RLOW | LM90_STATUS_RHIGH | LM90_STATUS_RTHRM))
++		dev_warn(&client->dev,
++			 "temp%d out of range, please check!\n", 2);
++	if (status & LM90_STATUS_OPEN)
++		dev_warn(&client->dev,
++			 "temp%d diode open, please check!\n", 2);
++
++	if (status2 & (MAX6696_STATUS2_RLOW | MAX6696_STATUS2_RHIGH))
++		dev_warn(&client->dev,
++			 "temp%d out of range, please check!\n", 3);
++
++	return true;
++}
++
+ static int lm90_probe(struct i2c_client *client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1515,36 +1558,19 @@ static int lm90_remove(struct i2c_client *client)
+ 
+ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ {
+-	struct lm90_data *data = i2c_get_clientdata(client);
+-	u8 config, alarms, alarms2 = 0;
+-
+-	lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
+-
+-	if (data->kind = max6696)
+-		lm90_read_reg(client, MAX6696_REG_R_STATUS2, &alarms2);
+-
+-	if ((alarms & 0x7f) = 0 && (alarms2 & 0xfe) = 0) {
++	if (!lm90_is_tripped(client)) {
+ 		dev_info(&client->dev, "Everything OK\n");
+ 	} else {
+-		if (alarms & 0x61)
+-			dev_warn(&client->dev,
+-				 "temp%d out of range, please check!\n", 1);
+-		if (alarms & 0x1a)
+-			dev_warn(&client->dev,
+-				 "temp%d out of range, please check!\n", 2);
+-		if (alarms & 0x04)
+-			dev_warn(&client->dev,
+-				 "temp%d diode open, please check!\n", 2);
+-
+-		if (alarms2 & 0x18)
+-			dev_warn(&client->dev,
+-				 "temp%d out of range, please check!\n", 3);
+-
+ 		/*
+ 		 * Disable ALERT# output, because these chips don't implement
+ 		 * SMBus alert correctly; they should only hold the alert line
+ 		 * low briefly.
+ 		 */
++		struct lm90_data *data = i2c_get_clientdata(client);
++		u8 config, alarms;
++
++		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
++
+ 		if ((data->flags & LM90_HAVE_BROKEN_ALERT)
+ 		 && (alarms & data->alert_alarms)) {
+ 			dev_dbg(&client->dev, "Disabling ALERT#\n");
+-- 
+1.7.9.5
 
-> ---
->  Documentation/thermal/sysfs-api.txt |  7 +++++++
->  drivers/thermal/thermal_core.c      | 19 +++++++++++++++----
->  include/linux/thermal.h             | 10 ++++++++++
->  3 files changed, 32 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/thermal/sysfs-api.txt
-> b/Documentation/thermal/sysfs-api.txt
-> index a71bd5b..2ad50e7 100644
-> --- a/Documentation/thermal/sysfs-api.txt
-> +++ b/Documentation/thermal/sysfs-api.txt
-> @@ -134,6 +134,13 @@ temperature) and throttle appropriate devices.
->                 this thermal zone and cdev, for a particular trip point.
->                 If nth bit is set, then the cdev and thermal zone are bound
->                 for trip point n.
-> +    .limits: This is an array of cooling state limits. Must have exactly
-> +         2 * thermal_zone.number_of_trip_points. It is an array consisting
-> +         of tuples <lower-state upper-state> of state limits. Each trip
-> +         will be associated with one state limit tuple when binding.
-> +         A NULL pointer means <THERMAL_NO_LIMITS THERMAL_NO_LIMITS>
-> +         on all trips. These limits are used when binding a cdev to a
-> +         trip point.
->      .match: This call back returns success(0) if the 'tz and cdev' need to
->  	    be bound, as per platform data.
->  1.4.2 struct thermal_zone_params
-> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-> index 247528b..096c8be 100644
-> --- a/drivers/thermal/thermal_core.c
-> +++ b/drivers/thermal/thermal_core.c
-> @@ -202,14 +202,23 @@ static void print_bind_err_msg(struct
-> thermal_zone_device *tz,
->  }
-> 
->  static void __bind(struct thermal_zone_device *tz, int mask,
-> -			struct thermal_cooling_device *cdev)
-> +			struct thermal_cooling_device *cdev,
-> +			unsigned long *limits)
->  {
->  	int i, ret;
-> 
->  	for (i = 0; i < tz->trips; i++) {
->  		if (mask & (1 << i)) {
-> +			unsigned long upper, lower;
-> +
-> +			upper = THERMAL_NO_LIMIT;
-> +			lower = THERMAL_NO_LIMIT;
-> +			if (limits) {
-> +				lower = limits[i * 2];
-> +				upper = limits[i * 2 + 1];
-> +			}
->  			ret = thermal_zone_bind_cooling_device(tz, i, cdev,
-> -					THERMAL_NO_LIMIT,
-> THERMAL_NO_LIMIT);
-> +							       upper, lower);
->  			if (ret)
->  				print_bind_err_msg(tz, cdev, ret);
->  		}
-> @@ -254,7 +263,8 @@ static void bind_cdev(struct thermal_cooling_device
-> *cdev)
->  			if (tzp->tbp[i].match(pos, cdev))
->  				continue;
->  			tzp->tbp[i].cdev = cdev;
-> -			__bind(pos, tzp->tbp[i].trip_mask, cdev);
-> +			__bind(pos, tzp->tbp[i].trip_mask, cdev,
-> +			       tzp->tbp[i].binding_limits);
->  		}
->  	}
-> 
-> @@ -292,7 +302,8 @@ static void bind_tz(struct thermal_zone_device *tz)
->  			if (tzp->tbp[i].match(tz, pos))
->  				continue;
->  			tzp->tbp[i].cdev = pos;
-> -			__bind(tz, tzp->tbp[i].trip_mask, pos);
-> +			__bind(tz, tzp->tbp[i].trip_mask, pos,
-> +			       tzp->tbp[i].binding_limits);
->  		}
->  	}
->  exit:
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index a386a1c..39575eb 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -207,6 +207,16 @@ struct thermal_bind_params {
->  	 * See Documentation/thermal/sysfs-api.txt for more information.
->  	 */
->  	int trip_mask;
-> +
-> +	/*
-> +	 * This is an array of cooling state limits. Must have exactly
-> +	 * 2 * thermal_zone.number_of_trip_points. It is an array consisting
-> +	 * of tuples <lower-state upper-state> of state limits. Each trip
-> +	 * will be associated with one state limit tuple when binding.
-> +	 * A NULL pointer means <THERMAL_NO_LIMITS THERMAL_NO_LIMITS>
-> +	 * on all trips.
-> +	 */
-> +	unsigned long *binding_limits;
->  	int (*match) (struct thermal_zone_device *tz,
->  			struct thermal_cooling_device *cdev);
->  };
-> --
-> 1.8.2.1.342.gfa7285d
-> 
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
