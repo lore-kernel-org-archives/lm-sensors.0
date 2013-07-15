@@ -1,41 +1,20 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Fri, 12 Jul 2013 07:49:22 +0000
-Subject: [lm-sensors] [PATCH v3 0/2] Enable lm90 in Tegra30 and Tegra114.
-Message-Id: <1373615364-18559-1-git-send-email-wni@nvidia.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Date: Mon, 15 Jul 2013 16:48:49 +0000
+Subject: Re: [lm-sensors] [PATCH v3 0/2] Enable lm90 in Tegra30 and Tegra114.
+Message-Id: <51E427F1.9010106@wwwdotorg.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1373615364-18559-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1373615364-18559-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org, swarren@wwwdotorg.org, linux@roeck-us.net, thierry.reding@gmail.com
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Enable thermal sensor lm90 for Tegra30 Cardhu and Tegra114 Dalmore.
+On 07/12/2013 01:49 AM, Wei Ni wrote:
+> Enable thermal sensor lm90 for Tegra30 Cardhu and Tegra114 Dalmore.
 
-This series is v2, previous version patches:
-[RFC 1/9]: http://thread.gmane.org/gmane.linux.power-management.general/31056
-[v1]: http://thread.gmane.org/gmane.linux.ports.tegra/11713/
-[v2]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg465561.html
-
-Changes from v2:
-1. remove the label "nct1008".
-
-Changes from v1:
-1. add vendor strings "onnn" for nct1008 node.
-
-Changes from RFC:
-1. Enable it for Tegra114 Dalmore.
-
-Wei Ni (2):
-  ARM: dt: t30 cardhu: add dt entry for nct1008
-  ARM: dt: t114 dalmore: add dt entry for nct1008
-
- arch/arm/boot/dts/tegra114-dalmore.dts |    7 +++++++
- arch/arm/boot/dts/tegra30-cardhu.dtsi  |    7 +++++++
- 2 files changed, 14 insertions(+)
-
--- 
-1.7.9.5
-
+I have applied the series to Tegra's for-3.12/dt branch.
 
 _______________________________________________
 lm-sensors mailing list
