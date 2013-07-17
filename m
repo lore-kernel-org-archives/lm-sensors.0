@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:02:40 +0000
-Subject: [lm-sensors] [PATCH 2/9] thermal: hwmon: move hwmon support to single file
-Message-Id: <1374073374-30946-5-git-send-email-eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:02:38 +0000
+Subject: [lm-sensors] [PATCH 1/8] thermal: hwmon: move hwmon support to single file
+Message-Id: <1374073374-30946-3-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
 In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
@@ -28,10 +28,10 @@ Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
  drivers/thermal/Kconfig         |   9 ++
  drivers/thermal/Makefile        |   3 +
- drivers/thermal/thermal_core.c  | 255 +------------------------------------
- drivers/thermal/thermal_hwmon.c | 269 ++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/thermal_core.c  | 255 +-------------------------------------
+ drivers/thermal/thermal_hwmon.c | 268 ++++++++++++++++++++++++++++++++++++++++
  drivers/thermal/thermal_hwmon.h |  49 ++++++++
- 5 files changed, 331 insertions(+), 254 deletions(-)
+ 5 files changed, 330 insertions(+), 254 deletions(-)
  create mode 100644 drivers/thermal/thermal_hwmon.c
  create mode 100644 drivers/thermal/thermal_hwmon.h
 
@@ -346,10 +346,10 @@ index 1f02e8e..247528b 100644
   * @tz:		pointer to struct thermal_zone_device
 diff --git a/drivers/thermal/thermal_hwmon.c b/drivers/thermal/thermal_hwmon.c
 new file mode 100644
-index 0000000..ab52a96
+index 0000000..576de84
 --- /dev/null
 +++ b/drivers/thermal/thermal_hwmon.c
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,268 @@
 +/*
 + *  thermal_hwmon.c - Generic Thermal Management hwmon support.
 + *
@@ -381,7 +381,6 @@ index 0000000..ab52a96
 +#include <linux/thermal.h>
 +#include <linux/slab.h>
 +#include <linux/err.h>
-+#include "thermal_hwmon.h"
 +
 +/* hwmon sys I/F */
 +/* thermal zone devices with the same type share one hwmon device */
