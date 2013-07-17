@@ -1,196 +1,112 @@
-From: Jaromir Capik <jcapik@redhat.com>
-Date: Wed, 03 Jul 2013 15:51:20 +0000
-Subject: [lm-sensors] [PATCH] Introducing missing manual pages for eepro* tools / missing i2cset -r option
-Message-Id: <1648191895.33145221.1372866680846.JavaMail.root@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_33145219_57511188.1372866680844"
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:02:51 +0000
+Subject: [lm-sensors] [PATCH 7/8] hwmon: lm75: expose to thermal fw via DT nodes
+Message-Id: <1374073374-30946-16-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-------=_Part_33145219_57511188.1372866680844
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-Hello.
-
-The attached patch introduces 3 manpages for eepro* tools
-and adds missing -r option to the help function of the 'i2cset' tool.
-
-The patch is directly applicable on the latest sources.
-Please, merge it.
-
-Thanks in advance.
-
-Regards,
-Jaromir. 
-
---
-Jaromir Capik
-Red Hat Czech, s.r.o.
-Software Engineer / BaseOS
-
-Email: jcapik@redhat.com
-Web: www.cz.redhat.com
-Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
-IC: 27690016 
-
-------=_Part_33145219_57511188.1372866680844
-Content-Type: text/x-patch; name=i2c-tools-3.1-man-eeproX.patch
-Content-Disposition: attachment; filename=i2c-tools-3.1-man-eeproX.patch
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtTmF1ciBpMmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXByb2cuOCBpMmMtdG9v
-bHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9nLjgKLS0tIGkyYy10b29scy0zLjEuMC5vcmlnL2VlcHJv
-bWVyL2VlcHJvZy44CTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBpMmMt
-dG9vbHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9nLjgJMjAxMy0wNy0wMyAxNzoxMDo0Ni4xOTM3ODc4
-MzYgKzAyMDAKQEAgLTAsMCArMSwxMDUgQEAKKy5cIgorLlwiICBlZXByb2cuOCAtIG1hbnBhZ2Ug
-Zm9yIHRoZSBpMmMtdG9vbHMvZWVwcm9nIHV0aWxpdHkKKy5cIiAgQ29weXJpZ2h0IChDKSAyMDEz
-ICBKYXJvbWlyIENhcGlrCisuXCIKKy5cIiAgVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7
-IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKKy5cIiAgaXQgdW5kZXIgdGhl
-IHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkK
-Ky5cIiAgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgZWl0aGVyIHZlcnNpb24gMiBvZiB0
-aGUgTGljZW5zZSwgb3IKKy5cIiAgKGF0IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4K
-Ky5cIgorLlwiICBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBp
-dCB3aWxsIGJlIHVzZWZ1bCwKKy5cIiAgYnV0IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0
-IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKKy5cIiAgTUVSQ0hBTlRBQklMSVRZIG9yIEZJ
-VE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRoZQorLlwiICBHTlUgR2VuZXJh
-bCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgorLlwiCisuXCIgIFlvdSBzaG91bGQg
-aGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFs
-b25nCisuXCIgIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBGcmVlIFNv
-ZnR3YXJlIEZvdW5kYXRpb24sIEluYy4sCisuXCIgIDUxIEZyYW5rbGluIFN0cmVldCwgRmlmdGgg
-Rmxvb3IsIEJvc3RvbiwgTUEgMDIxMTAtMTMwMSBVU0EuCisuXCIKKy5USCBlZXByb2cgIjgiICJK
-dWwgMjAxMyIgImkyYy10b29scyIgIlN5c3RlbSBBZG1pbmlzdHJhdGlvbiIKKy5TSCBOQU1FCitl
-ZXByb2cgXC0gcmVhZHMgYW5kIHdyaXRlcyAyNEN4eCBFRVBST01zIGNvbm5lY3RlZCB0byBJMkMg
-c2VyaWFsIGJ1cy4KKy5TSCBTWU5PUFNJUworLkIgZWVwcm9nCitbLWZxeGRoXSBbLTE2fC04XSBb
-LXIgYWRkcls6Y291bnRdfC13IGFkZHJdIDxkZXZpY2U+IDxpMmMtYWRkcj4KKy5TSCBERVNDUklQ
-VElPTgorLkIgZWVwcm9nCit1c2VzIHRoZSBTTUJ1cyBwcm90b2NvbCB1c2VkIGJ5IG1vc3Qgb2Yg
-dGhlIHJlY2VudCBjaGlwc2V0cy4KKy5TSCBOT1RFCitEb24ndCBmb3JnZXQgdG8gbG9hZCB5b3Vy
-IGkyYyBjaGlwc2V0IGFuZCB0aGUgaTJjLWRldiBkcml2ZXJzLgorLlAKK1RoZSBmb2xsb3dpbmcg
-ZW52aXJvbm1lbnQgdmFyaWFibGVzIGNvdWxkIGJlIHNldCBpbnN0ZWFkIG9mIHRoZSBjb21tYW5k
-IGxpbmUgYXJndW1lbnRzOgorLlAKKyAgICBFRVBST0dfREVWICAgICAgICAgICAgICBkZXZpY2UK
-Ky5icgorICAgIEVFUFJPR19JMkNfQUREUiAgICAgICAgIGkyYy1hZGRyCisuU0ggUEFSQU1FVEVS
-UworLkkgQWRkcmVzcyBtb2RlcworLlRQCisuQiBcLTgKK1VzZSA4Yml0IGFkZHJlc3MgbW9kZSBm
-b3IgMjRjMHguLi4yNEMxNiBbZGVmYXVsdF0KKy5UUAorLkIgXC0xNgorVXNlIDE2Yml0IGFkZHJl
-c3MgbW9kZSBmb3IgMjRjMzIuLi4yNEMyNTYKKy5UUAorLkkgQWN0aW9ucworLlRQCisuQiBcLXIg
-YWRkcls6Y291bnRdCitSZWFkCisuQiBjb3VudAorKDEgaWYgb21pdHRlZCkgYnl0ZXMgZnJvbQor
-LkIgYWRkcgorYW5kIHByaW50IHRoZW0gdG8gdGhlIHN0YW5kYXJkIG91dHB1dAorLlRQCisuQiBc
-LXcgYWRkcgorV3JpdGUgaW5wdXQgKHN0ZGluKSBhdCBhZGRyZXNzCisuQiBhZGRyCitvZiB0aGUg
-RUVQUk9NCisuVFAKKy5CIFwtaAorUHJpbnQgdGhpcyBoZWxwCisuVFAKKy5JIE9wdGlvbnMKKy5U
-UAorLkIgXC14CitTZXQgaGV4IG91dHB1dCBtb2RlCisuVFAKKy5CIFwtZAorRHVtbXkgbW9kZSwg
-ZGlzcGxheSB3aGF0ICp3b3VsZCogaGF2ZSBiZWVuIGRvbmUKKy5UUAorLkIgXC1mCitEaXNhYmxl
-IHdhcm5pbmdzIGFuZCBkb24ndCBhc2sgY29uZmlybWF0aW9uCisuVFAKKy5CIFwtcQorUXVpZXQg
-bW9kZQorLlRQCisuSSBCdXMKKy5UUAorLkIgZGV2aWNlCitEZXZpY2UgZmlsZSByZXByZXNlbnRp
-bmcgdGhlIEkyQyBidXMgKGVnLiAvZGV2L2kyYy0wKQorLlRQCisuQiBpMmMtYWRkcgorSTJDIGJ1
-cyBhZGRyZXNzIG9mIHRoZSBFRVBST00gKGVnLiAweDNBKQorLlNIIEVYQU1QTEVTCitSZWFkIDY0
-IGJ5dGVzIGZyb20gdGhlIEVFUFJPTSBhdCBhZGRyZXNzIDB4NTQgb24gYnVzIDAgc3RhcnRpbmcg
-YXQgYWRkcmVzcyAxMjMgKGRlY2ltYWwpCisuUAorLkIgCWVlcHJvZworL2Rldi9pMmMtMCAweDU0
-IC1yIDEyMzo2NAorLlAKK1ByaW50IHRoZSBoZXggY29kZXMgb2YgdGhlIGZpcnN0IDMyIGJ5dGVz
-IHJlYWQgZnJvbSBidXMgMSBhdCBhZGRyZXNzIDB4MjIKKy5QCisuQiAJZWVwcm9nCisvZGV2L2ky
-Yy0xIDB4NTEgLXggLXIgMHgyMjoweDIwCisuUAorV3JpdGUgdGhlIGN1cnJlbnQgdGltZXN0YW1w
-IGF0IGFkZHJlc3MgMHgyMDAgb2YgdGhlIEVFUFJPTSBvbiBidXMgMCBhdCBhZGRyZXNzIDB4MzMK
-Ky5QCisgCWRhdGUgfAorLkIgZWVwcm9nCisvZGV2L2kyYy0wIDB4MzMgLXcgMHgyMDAKKy5TSCBT
-RUUgQUxTTworLkJSIGVlcHJvbSAoOCkKKy5CUiBlZXByb21lciAoOCkKKy5TSCBBVVRIT1IKKy5V
-UiBzdGVmYW5vQGNvZGVzaW5rLm9yZworU3RlZmFubyBCYXJiYXRvCisuVUUKZGlmZiAtTmF1ciBp
-MmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXByb21lci44IGkyYy10b29scy0zLjEuMC9l
-ZXByb21lci9lZXByb21lci44Ci0tLSBpMmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXBy
-b21lci44CTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBpMmMtdG9vbHMt
-My4xLjAvZWVwcm9tZXIvZWVwcm9tZXIuOAkyMDEzLTA3LTAzIDE3OjI1OjM1LjA2NzQ4NzMyNCAr
-MDIwMApAQCAtMCwwICsxLDYzIEBACisuXCIKKy5cIiAgZWVwcm9tLjggLSBtYW5wYWdlIGZvciB0
-aGUgaTJjLXRvb2xzL2VlcHJvbSB1dGlsaXR5CisuXCIgIENvcHlyaWdodCAoQykgMjAxMyAgSmFy
-b21pciBDYXBpaworLlwiCisuXCIgIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3Ug
-Y2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisuXCIgIGl0IHVuZGVyIHRoZSB0ZXJt
-cyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5CisuXCIg
-IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExp
-Y2Vuc2UsIG9yCisuXCIgIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uCisuXCIK
-Ky5cIiAgVGhpcyBwcm9ncmFtIGlzIGRpc3RyaWJ1dGVkIGluIHRoZSBob3BlIHRoYXQgaXQgd2ls
-bCBiZSB1c2VmdWwsCisuXCIgIGJ1dCBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVu
-IHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCisuXCIgIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNT
-IEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKKy5cIiAgR05VIEdlbmVyYWwgUHVi
-bGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWlscy4KKy5cIgorLlwiICBZb3Ugc2hvdWxkIGhhdmUg
-cmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhbG9uZwor
-LlwiICB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2Fy
-ZSBGb3VuZGF0aW9uLCBJbmMuLAorLlwiICA1MSBGcmFua2xpbiBTdHJlZXQsIEZpZnRoIEZsb29y
-LCBCb3N0b24sIE1BIDAyMTEwLTEzMDEgVVNBLgorLlwiCisuVEggZWVwcm9tZXIgIjgiICJKdWwg
-MjAxMyIgImkyYy10b29scyIgIlN5c3RlbSBBZG1pbmlzdHJhdGlvbiIKKy5TSCBOQU1FCitlZXBy
-b21lciBcLSByZWFkcyBhbmQgd3JpdGVzIDI0Q3h4IEVFUFJPTXMgY29ubmVjdGVkIHRvIEkyQyBz
-ZXJpYWwgYnVzLgorLlNIIFNZTk9QU0lTCisuQiBlZXByb21lcgorWy1yfC13fC1lfC1wXSAtZiA8
-ZGV2aWNlPiA8aTJjLWFkZHI+CisuU0ggREVTQ1JJUFRJT04KK1RoZSBFRVBST00gbXVzdCBiZSBh
-IGxhcmdlIEVFUFJPTSB3aGljaCB1c2VzIGEgMi1ieXRlIGFkZHJlc3MKK2ZpZWxkICgyNEMzMiBv
-ciBsYXJnZXIpLiBJdCB3aWxsIE5PVCBXT1JLIG9uIHNtYWxsIEVFUFJPTXMKKygyNEMwMSAtIDI0
-QzE2KSBzdWNoIGFzIHRob3NlIHVzZWQgb24gU0RSQU0gRElNTXMuCisuU0ggTk9URQorRG9uJ3Qg
-Zm9yZ2V0IHRvIGxvYWQgeW91ciBpMmMgY2hpcHNldCBhbmQgdGhlIGkyYy1kZXYgZHJpdmVycy4K
-Ky5QCitUZXN0ZWQgb25seSBvbiAyNEMyNTYuCisuUAorLlNIIFBBUkFNRVRFUlMKKy5UUAorLkkg
-QWN0aW9ucworLlRQCisuQiBcLXIKK1JlYWQKKy5UUAorLkIgXC13CitXcml0ZQorLlRQCisuQiBc
-LWUKK0VyYXNlCisuVFAKKy5CIFwtcAorUHJpbnQgaGVhZGVyCisuVFAKKy5JIEJ1cworLlRQCisu
-QiBcLWYgZGV2aWNlCitEZXZpY2UgZmlsZSByZXByZXNlbnRpbmcgdGhlIEkyQyBidXMgKGVnLiAv
-ZGV2L2kyYy0wKQorLlRQCisuQiBpMmMtYWRkcgorSTJDIGJ1cyBhZGRyZXNzIG9mIHRoZSBFRVBS
-T00gKGVnLiAweDNBKQorLlNIIFNFRSBBTFNPCisuQlIgZWVwcm9nICg4KQorLkJSIGVlcHJvbSAo
-OCkKKy5TSCBBVVRIT1IKKy5VUiBtYXJ2aW5Ac2l0b3VyLmN6CitEYW5pZWwgU21vbGlrCisuVUUK
-ZGlmZiAtTmF1ciBpMmMtdG9vbHMtMy4xLjAub3JpZy9lZXByb21lci9lZXByb20uOCBpMmMtdG9v
-bHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9tLjgKLS0tIGkyYy10b29scy0zLjEuMC5vcmlnL2VlcHJv
-bWVyL2VlcHJvbS44CTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBpMmMt
-dG9vbHMtMy4xLjAvZWVwcm9tZXIvZWVwcm9tLjgJMjAxMy0wNy0wMyAxNzoxNDoyMi44NTIzODM5
-NDEgKzAyMDAKQEAgLTAsMCArMSw2NCBAQAorLlwiCisuXCIgIGVlcHJvbS44IC0gbWFucGFnZSBm
-b3IgdGhlIGkyYy10b29scy9lZXByb20gdXRpbGl0eQorLlwiICBDb3B5cmlnaHQgKEMpIDIwMTMg
-IEphcm9taXIgQ2FwaWsKKy5cIgorLlwiICBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsg
-eW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorLlwiICBpdCB1bmRlciB0aGUg
-dGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieQor
-LlwiICB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRo
-ZSBMaWNlbnNlLCBvcgorLlwiICAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgor
-LlwiCisuXCIgIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0
-IHdpbGwgYmUgdXNlZnVsLAorLlwiICBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhvdXQg
-ZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgorLlwiICBNRVJDSEFOVEFCSUxJVFkgb3IgRklU
-TkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlCisuXCIgIEdOVSBHZW5lcmFs
-IFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCisuXCIKKy5cIiAgWW91IHNob3VsZCBo
-YXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYWxv
-bmcKKy5cIiAgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwgd3JpdGUgdG8gdGhlIEZyZWUgU29m
-dHdhcmUgRm91bmRhdGlvbiwgSW5jLiwKKy5cIiAgNTEgRnJhbmtsaW4gU3RyZWV0LCBGaWZ0aCBG
-bG9vciwgQm9zdG9uLCBNQSAwMjExMC0xMzAxIFVTQS4KKy5cIgorLlRIIGVlcHJvbSAiOCIgIkp1
-bCAyMDEzIiAiaTJjLXRvb2xzIiAiU3lzdGVtIEFkbWluaXN0cmF0aW9uIgorLlNIIE5BTUUKK2Vl
-cHJvbSBcLSByZWFkcyBhbmQgd3JpdGVzIDI0Q3h4IEVFUFJPTXMgY29ubmVjdGVkIHRvIEkyQyBz
-ZXJpYWwgYnVzLgorLlNIIFNZTk9QU0lTCisuQiBlZXByb20KK1stZCBkZXZdIFstYSBhZHJdIFst
-cCBwZ3NdIFstd10gWy15XSBbLWYgZmlsZV0KKy5TSCBERVNDUklQVElPTgorLkIgZWVwcm9tCitj
-YW4gYmUgdXNlZCBmb3IgcmVhZGluZyBmcm9tIC8gd3JpdGluZyB0byBpMmMtZWVwcm9tcyBsaWtl
-IHRoZSBwb3B1bGFyCisyNEMxNiwgMjRDMDgsIDI0QzA0LCBldGMuCitJbiBjb250cmFzdCB0byBl
-ZXByb21tZXIgd2hpY2ggc3VwcG9ydHMgMjRDMjU2LXR5cGUgZWVwcm9tcyAoMjRDMTZzKQordGhp
-cyB0b29sIHdvcmtzIHdpdGggMS1ieXRlIGFkZHJlc3NlcyEKKy5TSCBOT1RFCitEb24ndCBmb3Jn
-ZXQgdG8gbG9hZCB5b3VyIGkyYyBjaGlwc2V0IGFuZCB0aGUgaTJjLWRldiBkcml2ZXJzLgorLlAK
-K1BhZ2VzL2FkZHJlc3NlczoKKyAgICBlZXByb21zIHdpdGggbW9yZSB0aGFuIDI1NiBieXRlcyBh
-cHBlYXIgYXMgaWYgdGhleQorICAgIHdlcmUgc2V2ZXJhbCBlZXByb21zIHdpdGggY29uc2VjdXRp
-dmUgYWRkcmVzc2VzIG9uIHRoZSBidXMKKyAgICBzbyB3ZSBtaWdodCBhcyB3ZWxsIGFkZHJlc3Mg
-c2V2ZXJhbCBzZXBhcmF0ZSBlZXByb21zIHdpdGgKKyAgICBpbmNyZWFzaW5nIGFkZHJlc3Nlcwor
-LlNIIFBBUkFNRVRFUlMKKy5UUAorLkIgZGV2CitkZXZpY2UsIGUuZy4gL2Rldi9pMmMtMCAgICAo
-ZGVmKQorLlRQCisuQiBhZHIKK2Jhc2UgYWRkcmVzcyBvZiBlZXByb20sIGVnIDB4QTAgKGRlZikK
-Ky5UUAorLkIgcGdzCitudW1iZXIgb2YgcGFnZXMgdG8gcmVhZCwgZWcgOCAoZGVmKQorLlRQCisu
-QiBcLXcKK3dyaXRlIHRvIGVlcHJvbSAoZGVmYXVsdCBpcyByZWFkaW5nISkKKy5UUAorLkIgXC15
-CitzdXBwcmVzcyB3YXJuaW5nIHdoZW4gd3JpdGluZyAoZGVmYXVsdCBpcyB0byB3YXJuISkKKy5U
-UAorLkIgXC1mIGZpbGUKK2NvcHkgZWVwcm9tIGNvbnRlbnRzIHRvL2Zyb20gZmlsZSAoZGVmYXVs
-dCBmb3IgcmVhZCBpcyB0ZXN0IG9ubHk7IGZvciB3cml0ZSBpcyBhbGwgemVyb3MpCisuU0ggU0VF
-IEFMU08KKy5CUiBlZXByb2cgKDgpCisuQlIgZWVwcm9tZXIgKDgpCisuU0ggQVVUSE9SCisuVVIg
-Y2hyaXNAaGVkb25pc20uY3gKK0NocmlzdGlhbiBWb2dlbAorLlVFCmRpZmYgLU5hdXIgaTJjLXRv
-b2xzLTMuMS4wLm9yaWcvdG9vbHMvaTJjc2V0LmMgaTJjLXRvb2xzLTMuMS4wL3Rvb2xzL2kyY3Nl
-dC5jCi0tLSBpMmMtdG9vbHMtMy4xLjAub3JpZy90b29scy9pMmNzZXQuYwkyMDExLTAyLTE1IDE3
-OjEyOjI3LjAwMDAwMDAwMCArMDEwMAorKysgaTJjLXRvb2xzLTMuMS4wL3Rvb2xzL2kyY3NldC5j
-CTIwMTMtMDYtMTkgMTI6NDU6NTUuODUyNDkwMTk1ICswMjAwCkBAIC0zNSw3ICszNSwxMiBAQAog
-c3RhdGljIHZvaWQgaGVscCh2b2lkKQogewogCWZwcmludGYoc3RkZXJyLAotCQkiVXNhZ2U6IGky
-Y3NldCBbLWZdIFsteV0gWy1tIE1BU0tdIEkyQ0JVUyBDSElQLUFERFJFU1MgREFUQS1BRERSRVNT
-IFtWQUxVRV0gLi4uIFtNT0RFXVxuIgorCQkiVXNhZ2U6IGkyY3NldCBbT1BUSU9OU10gSTJDQlVT
-IENISVAtQUREUkVTUyBEQVRBLUFERFJFU1MgW1ZBTFVFXSAuLi4gW01PREVdXG4iCisJCSIgIE9Q
-VElPTlMgYXJlXG4iCisJCSIgICAgLWYgKGZvcmNlIGFjY2VzcyB3aGVuIGJ1c3kpXG4iCisJCSIg
-ICAgLXkgKGRpc2FibGUgaW50ZXJhY3RpdmUgbW9kZSlcbiIKKwkJIiAgICAtbSBNQVNLICh2YWx1
-ZSB3cml0ZSBtYXNrIC0gYml0cyBzZXQgdG8gMCBhcmUgcHJlc2VydmVkIGlmIHBvc3NpYmxlKVxu
-IgorCQkiICAgIC1yICh3cml0ZSB2ZXJpZmljYXRpb24gYnkgcmVhZGluZyBiYWNrKVxuIgogCQki
-ICBJMkNCVVMgaXMgYW4gaW50ZWdlciBvciBhbiBJMkMgYnVzIG5hbWVcbiIKIAkJIiAgQUREUkVT
-UyBpcyBhbiBpbnRlZ2VyICgweDAzIC0gMHg3NylcbiIKIAkJIiAgTU9ERSBpcyBvbmUgb2Y6XG4i
-Cg==
-------=_Part_33145219_57511188.1372866680844
-Content-Type: text/plain; charset="us-ascii"
+References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: devicetree-discuss@lists.ozlabs.org
+Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+
+This patch adds to lm75 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
+
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the lm75 DT node. Otherwise, the driver behavior
+will be the same.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/hwmon/lm75.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index c03b490..0aa5e28 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -27,6 +27,8 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/thermal.h>
++#include <linux/of.h>
+ #include "lm75.h"
+ 
+ 
+@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct device		*hwmon_dev;
++	struct thermal_zone_device	*tz;
+ 	struct mutex		update_lock;
+ 	u8			orig_conf;
+ 	u8			resolution;	/* In bits, between 9 and 12 */
+@@ -92,6 +95,19 @@ static struct lm75_data *lm75_update_device(struct device *dev);
+ 
+ /* sysfs attributes for hwmon */
+ 
++static int lm75_read_temp(void *dev, unsigned long *temp)
++{
++	struct lm75_data *data = lm75_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
++			(data->resolution - 8);
++
++	return 0;
++}
++
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
+ {
+@@ -271,11 +287,23 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto exit_remove;
+ 	}
+ 
++	if (of_find_node_by_name(client->dev.of_node, "thermal_zone")) {
++		data->tz = thermal_zone_of_device_register(&client->dev,
++							   &client->dev,
++							   lm75_read_temp);
++		if (IS_ERR(data->tz)) {
++			status = PTR_ERR(data->tz);
++			goto exit_hwmon;
++		}
++	}
++
+ 	dev_info(&client->dev, "%s: sensor '%s'\n",
+ 		 dev_name(data->hwmon_dev), client->name);
+ 
+ 	return 0;
+ 
++exit_hwmon:
++	hwmon_device_unregister(data->hwmon_dev);
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	return status;
+@@ -285,6 +313,7 @@ static int lm75_remove(struct i2c_client *client)
+ {
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+ 
++	thermal_zone_device_unregister(data->tz);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
+-- 
+1.8.2.1.342.gfa7285d
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_33145219_57511188.1372866680844--
