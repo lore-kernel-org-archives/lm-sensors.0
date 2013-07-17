@@ -1,107 +1,132 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:02:51 +0000
-Subject: [lm-sensors] [PATCH 7/8] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <1374073374-30946-16-git-send-email-eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:17:25 +0000
+Subject: [lm-sensors] [RESEND PATCH V1 6/9] thermal: ti-soc-thermal: use thermal DT infrastructure
+Message-Id: <1374074248-31690-7-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
+References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: devicetree-discuss@lists.ozlabs.org
-Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>
 
-This patch adds to lm75 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+This patch improves the ti-soc-thermal driver by adding the
+support to build the thermal zones based on DT nodes.
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm75 DT node. Otherwise, the driver behavior
-will be the same.
+The driver will have two options now to build the thermal
+zones. The first option is the zones originally coded
+in this driver. So, the driver behavior will be same
+if there is no DT node describing the zones. The second
+option, when it is found a DT node with thermal data,
+will used the common infrastructure to build the thermal
+zone and bind its cooling devices.
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org
+In case the driver loads thermal data using the legacy
+mode, this driver still adds to the system
+a cpufreq cooling device. Loading the thermal data from
+DT, the driver assumes someone else will add the cpufreq
+cooling device, like the cpufreq driver.
+
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/hwmon/lm75.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 46 +++++++++++++++++-----
+ 1 file changed, 36 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-index c03b490..0aa5e28 100644
---- a/drivers/hwmon/lm75.c
-+++ b/drivers/hwmon/lm75.c
-@@ -27,6 +27,8 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/thermal.h>
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 4c5f55c37..de4e138 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -31,6 +31,7 @@
+ #include <linux/cpufreq.h>
+ #include <linux/cpumask.h>
+ #include <linux/cpu_cooling.h>
 +#include <linux/of.h>
- #include "lm75.h"
  
+ #include "ti-thermal.h"
+ #include "ti-bandgap.h"
+@@ -75,11 +76,10 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
  
-@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
- /* Each client has this additional data */
- struct lm75_data {
- 	struct device		*hwmon_dev;
-+	struct thermal_zone_device	*tz;
- 	struct mutex		update_lock;
- 	u8			orig_conf;
- 	u8			resolution;	/* In bits, between 9 and 12 */
-@@ -92,6 +95,19 @@ static struct lm75_data *lm75_update_device(struct device *dev);
+ /* thermal zone ops */
+ /* Get temperature callback function for thermal zone*/
+-static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
+-				      unsigned long *temp)
++static inline int __ti_thermal_get_temp(void *devdata, unsigned long *temp)
+ {
+ 	struct thermal_zone_device *pcb_tz = NULL;
+-	struct ti_thermal_data *data = thermal->devdata;
++	struct ti_thermal_data *data = devdata;
+ 	struct ti_bandgap *bgp;
+ 	const struct ti_temp_sensor *s;
+ 	int ret, tmp, slope, constant;
+@@ -117,6 +117,14 @@ static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
+ 	return ret;
+ }
  
- /* sysfs attributes for hwmon */
- 
-+static int lm75_read_temp(void *dev, unsigned long *temp)
++static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
++				      unsigned long *temp)
 +{
-+	struct lm75_data *data = lm75_update_device(dev);
++	struct ti_thermal_data *data = thermal->devdata;
 +
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
-+			(data->resolution - 8);
-+
-+	return 0;
++	return __ti_thermal_get_temp(data, temp);
 +}
 +
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
-@@ -271,11 +287,23 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto exit_remove;
- 	}
+ /* Bind callback functions for thermal zone */
+ static int ti_thermal_bind(struct thermal_zone_device *thermal,
+ 			   struct thermal_cooling_device *cdev)
+@@ -302,17 +310,27 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
+ 	if (!data)
+ 		return -EINVAL;
  
-+	if (of_find_node_by_name(client->dev.of_node, "thermal_zone")) {
-+		data->tz = thermal_zone_of_device_register(&client->dev,
-+							   &client->dev,
-+							   lm75_read_temp);
-+		if (IS_ERR(data->tz)) {
-+			status = PTR_ERR(data->tz);
-+			goto exit_hwmon;
+-	/* Create thermal zone */
+-	data->ti_thermal = thermal_zone_device_register(domain,
++	/* in case this is specified by DT */
++	if (of_find_node_by_name(bgp->dev->of_node, "thermal_zone")) {
++		data->ti_thermal = thermal_zone_of_device_register(bgp->dev,
++						data, __ti_thermal_get_temp);
++		if (IS_ERR(data->ti_thermal)) {
++			dev_err(bgp->dev, "failed to build of thermal zone\n");
++			return PTR_ERR(data->ti_thermal);
 +		}
-+	}
-+
- 	dev_info(&client->dev, "%s: sensor '%s'\n",
- 		 dev_name(data->hwmon_dev), client->name);
++	} else {
++		/* Create thermal zone */
++		data->ti_thermal = thermal_zone_device_register(domain,
+ 				OMAP_TRIP_NUMBER, 0, data, &ti_thermal_ops,
+ 				NULL, FAST_TEMP_MONITORING_RATE,
+ 				FAST_TEMP_MONITORING_RATE);
+-	if (IS_ERR(data->ti_thermal)) {
+-		dev_err(bgp->dev, "thermal zone device is NULL\n");
+-		return PTR_ERR(data->ti_thermal);
++		if (IS_ERR(data->ti_thermal)) {
++			dev_err(bgp->dev, "thermal zone device is NULL\n");
++			return PTR_ERR(data->ti_thermal);
++		}
++		data->ti_thermal->polling_delay = FAST_TEMP_MONITORING_RATE;
++		ti_bandgap_set_sensor_data(bgp, id, data);
+ 	}
+-	data->ti_thermal->polling_delay = FAST_TEMP_MONITORING_RATE;
+-	ti_bandgap_set_sensor_data(bgp, id, data);
  
  	return 0;
- 
-+exit_hwmon:
-+	hwmon_device_unregister(data->hwmon_dev);
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	return status;
-@@ -285,6 +313,7 @@ static int lm75_remove(struct i2c_client *client)
+ }
+@@ -343,6 +361,14 @@ int ti_thermal_register_cpu_cooling(struct ti_bandgap *bgp, int id)
  {
- 	struct lm75_data *data = i2c_get_clientdata(client);
+ 	struct ti_thermal_data *data;
  
-+	thermal_zone_device_unregister(data->tz);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
++	/*
++	 * We are assuming here that if one deploys the zone
++	 * using DT, then it must be aware that the cooling device
++	 * loading has to happen via cpufreq driver.
++	 */
++	if (of_find_node_by_name(bgp->dev->of_node, "thermal_zone"))
++		return 0;
++
+ 	data = ti_bandgap_get_sensor_data(bgp, id);
+ 	if (!data || IS_ERR(data))
+ 		data = ti_thermal_build_data(bgp, id);
 -- 
 1.8.2.1.342.gfa7285d
 
