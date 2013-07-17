@@ -1,331 +1,126 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 04 Jul 2013 07:57:50 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (lm90) use enums for the indexes of temp8 and temp11
-Message-Id: <1372924670-16355-4-git-send-email-wni@nvidia.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:02:39 +0000
+Subject: [lm-sensors] [PATCH 1/8] thermal: thermal_core: allow binding with limits on bind_params
+Message-Id: <1374073374-30946-4-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1372924670-16355-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1372924670-16355-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org
-Cc: swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>
 
-Using enums for the indexes and nrs of temp8 and temp11.
-This make the code much more readable.
+When registering a thermal zone device using platform information
+via bind_params, the thermal framework will always perform the
+cdev binding using the lowest and highest limits (THERMAL_NO_LIMIT).
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
+This patch changes the data structures so that it is possible
+to inform what are the desired limits for each trip point
+inside a bind_param. The way the binding is performed is also
+changed so that it uses the new data structure.
+
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/hwmon/lm90.c |  179 ++++++++++++++++++++++++++++++++------------------
- 1 file changed, 114 insertions(+), 65 deletions(-)
+ Documentation/thermal/sysfs-api.txt |  7 +++++++
+ drivers/thermal/thermal_core.c      | 19 +++++++++++++++----
+ include/linux/thermal.h             | 10 ++++++++++
+ 3 files changed, 32 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index fce9dfa..97fe83a 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -297,6 +297,59 @@ static const struct lm90_params lm90_params[] = {
- };
- 
- /*
-+ * TEMP8 register index
-+ */
-+enum lm90_temp8_reg_index {
-+	TEMP8_LOCAL_LOW = 0,	/* 0: local low limit */
-+	TEMP8_LOCAL_HIGH,	/* 1: local high limit */
-+	TEMP8_LOCAL_CRIT,	/* 2: local critical limit */
-+	TEMP8_REMOTE_CRIT,	/* 3: remote critical limit */
-+	TEMP8_LOCAL_EMERG,	/* 4: local emergency limit
-+				 * (max6659 and max6695/96)
-+				 */
-+	TEMP8_REMOTE_EMERG,	/* 5: remote emergency limit
-+				 * (max6659 and max6695/96)
-+				 */
-+	TEMP8_REMOTE2_CRIT,	/* 6: remote 2 critical limit
-+				 * (max6695/96 only)
-+				 */
-+	TEMP8_REMOTE2_EMERG,	/* 7: remote 2 emergency limit
-+				 * (max6695/96 only)
-+				 */
-+	TEMP8_REG_NUM
-+};
-+
-+/*
-+ * TEMP11 register index
-+ */
-+enum lm90_temp11_reg_index {
-+	TEMP11_REMOTE_TEMP = 0,	/* 0: remote input */
-+	TEMP11_REMOTE_LOW,	/* 1: remote low limit */
-+	TEMP11_REMOTE_HIGH,	/* 2: remote high limit */
-+	TEMP11_REMOTE_OFFSET,	/* 3: remote offset
-+				 * (except max6646, max6657/58/59,
-+				 *  and max6695/96)
-+				 */
-+	TEMP11_LOCAL_TEMP,	/* 4: local input */
-+	TEMP11_REMOTE2_TEMP,	/* 5: remote 2 input (max6695/96 only) */
-+	TEMP11_REMOTE2_LOW,	/* 6: remote 2 low limit (max6695/96 only) */
-+	TEMP11_REMOTE2_HIGH,	/* 7: remote 2 high limit (max6695/96 only) */
-+	TEMP11_REG_NUM
-+};
-+
-+/*
-+ * TEMP11 register NR
-+ */
-+enum lm90_temp11_reg_nr {
-+	NR_CHAN_0_REMOTE_LOW = 0,	/* 0: channel 0, remote low limit */
-+	NR_CHAN_0_REMOTE_HIGH,		/* 1: channel 0, remote high limit */
-+	NR_CHAN_0_REMOTE_OFFSET,	/* 2: channel 0, remote offset */
-+	NR_CHAN_1_REMOTE_LOW,		/* 3: channel 1, remote low limit */
-+	NR_CHAN_1_REMOTE_HIGH,		/* 4: channel 1, remote high limit */
-+	NR_NUM				/* number of the NRs for temp11 */
-+};
-+
-+/*
-  * Client data (each client gets its own)
-  */
- 
-@@ -318,25 +371,8 @@ struct lm90_data {
- 	u8 reg_local_ext;	/* local extension register offset */
- 
- 	/* registers values */
--	s8 temp8[8];	/* 0: local low limit
--			 * 1: local high limit
--			 * 2: local critical limit
--			 * 3: remote critical limit
--			 * 4: local emergency limit (max6659 and max6695/96)
--			 * 5: remote emergency limit (max6659 and max6695/96)
--			 * 6: remote 2 critical limit (max6695/96 only)
--			 * 7: remote 2 emergency limit (max6695/96 only)
--			 */
--	s16 temp11[8];	/* 0: remote input
--			 * 1: remote low limit
--			 * 2: remote high limit
--			 * 3: remote offset (except max6646, max6657/58/59,
--			 *		     and max6695/96)
--			 * 4: local input
--			 * 5: remote 2 input (max6695/96 only)
--			 * 6: remote 2 low limit (max6695/96 only)
--			 * 7: remote 2 high limit (max6695/96 only)
--			 */
-+	s8 temp8[TEMP8_REG_NUM];
-+	s16 temp11[TEMP11_REG_NUM];
- 	u8 temp_hyst;
- 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
- };
-@@ -478,37 +514,42 @@ static struct lm90_data *lm90_update_device(struct device *dev)
- 		u8 alarms;
- 
- 		dev_dbg(&client->dev, "Updating lm90 data.\n");
--		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW, &data->temp8[0]);
--		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH, &data->temp8[1]);
--		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT, &data->temp8[2]);
--		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[3]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW,
-+				&data->temp8[TEMP8_LOCAL_LOW]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH,
-+				&data->temp8[TEMP8_LOCAL_HIGH]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT,
-+				&data->temp8[TEMP8_LOCAL_CRIT]);
-+		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
-+				&data->temp8[TEMP8_REMOTE_CRIT]);
- 		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
- 
- 		if (data->reg_local_ext) {
- 			lm90_read16(client, LM90_REG_R_LOCAL_TEMP,
- 				    data->reg_local_ext,
--				    &data->temp11[4]);
-+				    &data->temp11[TEMP11_LOCAL_TEMP]);
- 		} else {
- 			if (lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP,
- 					  &h) = 0)
--				data->temp11[4] = h << 8;
-+				data->temp11[TEMP11_LOCAL_TEMP] = h << 8;
- 		}
- 		lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
--			    LM90_REG_R_REMOTE_TEMPL, &data->temp11[0]);
-+			LM90_REG_R_REMOTE_TEMPL,
-+			&data->temp11[TEMP11_REMOTE_TEMP]);
- 
- 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h) = 0) {
--			data->temp11[1] = h << 8;
-+			data->temp11[TEMP11_REMOTE_LOW] = h << 8;
- 			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
- 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL,
- 					  &l) = 0)
--				data->temp11[1] |= l;
-+				data->temp11[TEMP11_REMOTE_LOW] |= l;
- 		}
- 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h) = 0) {
--			data->temp11[2] = h << 8;
-+			data->temp11[TEMP11_REMOTE_HIGH] = h << 8;
- 			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
- 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL,
- 					  &l) = 0)
--				data->temp11[2] |= l;
-+				data->temp11[TEMP11_REMOTE_HIGH] |= l;
- 		}
- 
- 		if (data->flags & LM90_HAVE_OFFSET) {
-@@ -516,13 +557,14 @@ static struct lm90_data *lm90_update_device(struct device *dev)
- 					  &h) = 0
- 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSL,
- 					  &l) = 0)
--				data->temp11[3] = (h << 8) | l;
-+				data->temp11[TEMP11_REMOTE_OFFSET] +								(h << 8) | l;
- 		}
- 		if (data->flags & LM90_HAVE_EMERGENCY) {
- 			lm90_read_reg(client, MAX6659_REG_R_LOCAL_EMERG,
--				      &data->temp8[4]);
-+				      &data->temp8[TEMP8_LOCAL_EMERG]);
- 			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
--				      &data->temp8[5]);
-+				      &data->temp8[TEMP8_REMOTE_EMERG]);
- 		}
- 		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
- 		data->alarms = alarms;	/* save as 16 bit value */
-@@ -530,15 +572,16 @@ static struct lm90_data *lm90_update_device(struct device *dev)
- 		if (data->kind = max6696) {
- 			lm90_select_remote_channel(client, data, 1);
- 			lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
--				      &data->temp8[6]);
-+				      &data->temp8[TEMP8_REMOTE2_CRIT]);
- 			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
--				      &data->temp8[7]);
-+				      &data->temp8[TEMP8_REMOTE2_EMERG]);
- 			lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
--				    LM90_REG_R_REMOTE_TEMPL, &data->temp11[5]);
-+					LM90_REG_R_REMOTE_TEMPL,
-+					&data->temp11[TEMP11_REMOTE2_TEMP]);
- 			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h))
--				data->temp11[6] = h << 8;
-+				data->temp11[TEMP11_REMOTE2_LOW] = h << 8;
- 			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h))
--				data->temp11[7] = h << 8;
-+				data->temp11[TEMP11_REMOTE2_HIGH] = h << 8;
- 			lm90_select_remote_channel(client, data, 0);
- 
- 			if (!lm90_read_reg(client, MAX6696_REG_R_STATUS2,
-@@ -735,7 +778,7 @@ static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
- 
- static void write_temp8(struct device *dev, int index, long val)
- {
--	static const u8 reg[8] = {
-+	static const u8 reg[TEMP8_REG_NUM] = {
- 		LM90_REG_W_LOCAL_LOW,
- 		LM90_REG_W_LOCAL_HIGH,
- 		LM90_REG_W_LOCAL_CRIT,
-@@ -821,7 +864,7 @@ static void write_temp11(struct device *dev, int nr, int index, long val)
- 		u8 high;
- 		u8 low;
- 		int channel;
--	} reg[5] = {
-+	} reg[NR_NUM] = {
- 		{ LM90_REG_W_REMOTE_LOWH, LM90_REG_W_REMOTE_LOWL, 0 },
- 		{ LM90_REG_W_REMOTE_HIGHH, LM90_REG_W_REMOTE_HIGHL, 0 },
- 		{ LM90_REG_W_REMOTE_OFFSH, LM90_REG_W_REMOTE_OFFSL, 0 },
-@@ -912,11 +955,12 @@ static ssize_t set_temphyst(struct device *dev, struct device_attribute *dummy,
- 
- 	mutex_lock(&data->update_lock);
- 	if (data->kind = adt7461)
--		temp = temp_from_u8_adt7461(data, data->temp8[2]);
-+		temp = temp_from_u8_adt7461(data,
-+					data->temp8[TEMP8_LOCAL_CRIT]);
- 	else if (data->kind = max6646)
--		temp = temp_from_u8(data->temp8[2]);
-+		temp = temp_from_u8(data->temp8[TEMP8_LOCAL_CRIT]);
- 	else
--		temp = temp_from_s8(data->temp8[2]);
-+		temp = temp_from_s8(data->temp8[TEMP8_LOCAL_CRIT]);
- 
- 	data->temp_hyst = hyst_to_reg(temp - val);
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_TCRIT_HYST,
-@@ -970,25 +1014,28 @@ static ssize_t set_update_interval(struct device *dev,
- 	return count;
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index a71bd5b..2ad50e7 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -134,6 +134,13 @@ temperature) and throttle appropriate devices.
+                this thermal zone and cdev, for a particular trip point.
+                If nth bit is set, then the cdev and thermal zone are bound
+                for trip point n.
++    .limits: This is an array of cooling state limits. Must have exactly
++         2 * thermal_zone.number_of_trip_points. It is an array consisting
++         of tuples <lower-state upper-state> of state limits. Each trip
++         will be associated with one state limit tuple when binding.
++         A NULL pointer means <THERMAL_NO_LIMITS THERMAL_NO_LIMITS>
++         on all trips. These limits are used when binding a cdev to a
++         trip point.
+     .match: This call back returns success(0) if the 'tz and cdev' need to
+ 	    be bound, as per platform data.
+ 1.4.2 struct thermal_zone_params
+diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+index 247528b..eadb901 100644
+--- a/drivers/thermal/thermal_core.c
++++ b/drivers/thermal/thermal_core.c
+@@ -202,14 +202,23 @@ static void print_bind_err_msg(struct thermal_zone_device *tz,
  }
  
--static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
--static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL,
-+	NR_CHAN_0_REMOTE_LOW, TEMP11_LOCAL_TEMP);
-+static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL,
-+	NR_CHAN_0_REMOTE_LOW, TEMP11_REMOTE_TEMP);
- static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 0);
-+	set_temp8, TEMP8_LOCAL_LOW);
- static SENSOR_DEVICE_ATTR_2(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 0, 1);
-+	set_temp11, NR_CHAN_0_REMOTE_LOW, TEMP11_REMOTE_LOW);
- static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 1);
-+	set_temp8, TEMP8_LOCAL_HIGH);
- static SENSOR_DEVICE_ATTR_2(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 1, 2);
-+	set_temp11, NR_CHAN_0_REMOTE_HIGH, TEMP11_REMOTE_HIGH);
- static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 2);
-+	set_temp8, TEMP8_LOCAL_CRIT);
- static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 3);
-+	set_temp8, TEMP8_REMOTE_CRIT);
- static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
--	set_temphyst, 2);
--static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 3);
-+	set_temphyst, TEMP8_LOCAL_CRIT);
-+static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL,
-+	TEMP8_REMOTE_CRIT);
- static SENSOR_DEVICE_ATTR_2(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 2, 3);
-+	set_temp11, NR_CHAN_0_REMOTE_OFFSET, TEMP11_REMOTE_OFFSET);
+ static void __bind(struct thermal_zone_device *tz, int mask,
+-			struct thermal_cooling_device *cdev)
++			struct thermal_cooling_device *cdev,
++			unsigned long *limits)
+ {
+ 	int i, ret;
  
- /* Individual alarm files */
- static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-@@ -1036,13 +1083,13 @@ static const struct attribute_group lm90_group = {
-  * Additional attributes for devices with emergency sensors
-  */
- static SENSOR_DEVICE_ATTR(temp1_emergency, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 4);
-+	set_temp8, TEMP8_LOCAL_EMERG);
- static SENSOR_DEVICE_ATTR(temp2_emergency, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 5);
-+	set_temp8, TEMP8_REMOTE_EMERG);
- static SENSOR_DEVICE_ATTR(temp1_emergency_hyst, S_IRUGO, show_temphyst,
--			  NULL, 4);
-+			  NULL, TEMP8_LOCAL_EMERG);
- static SENSOR_DEVICE_ATTR(temp2_emergency_hyst, S_IRUGO, show_temphyst,
--			  NULL, 5);
-+			  NULL, TEMP8_REMOTE_EMERG);
+ 	for (i = 0; i < tz->trips; i++) {
+ 		if (mask & (1 << i)) {
++			unsigned long upper, lower;
++
++			upper = THERMAL_NO_LIMIT;
++			lower = THERMAL_NO_LIMIT;
++			if (limits) {
++				lower = limits[i * 2];
++				upper = limits[i * 2 + 1];
++			}
+ 			ret = thermal_zone_bind_cooling_device(tz, i, cdev,
+-					THERMAL_NO_LIMIT, THERMAL_NO_LIMIT);
++							       lower, upper);
+ 			if (ret)
+ 				print_bind_err_msg(tz, cdev, ret);
+ 		}
+@@ -254,7 +263,8 @@ static void bind_cdev(struct thermal_cooling_device *cdev)
+ 			if (tzp->tbp[i].match(pos, cdev))
+ 				continue;
+ 			tzp->tbp[i].cdev = cdev;
+-			__bind(pos, tzp->tbp[i].trip_mask, cdev);
++			__bind(pos, tzp->tbp[i].trip_mask, cdev,
++			       tzp->tbp[i].binding_limits);
+ 		}
+ 	}
  
- static struct attribute *lm90_emergency_attributes[] = {
- 	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
-@@ -1072,18 +1119,20 @@ static const struct attribute_group lm90_emergency_alarm_group = {
- /*
-  * Additional attributes for devices with 3 temperature sensors
-  */
--static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp11, NULL, 0, 5);
-+static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp11, NULL,
-+	NR_CHAN_0_REMOTE_LOW, TEMP11_REMOTE2_TEMP);
- static SENSOR_DEVICE_ATTR_2(temp3_min, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 3, 6);
-+	set_temp11, NR_CHAN_1_REMOTE_LOW, TEMP11_REMOTE2_LOW);
- static SENSOR_DEVICE_ATTR_2(temp3_max, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 4, 7);
-+	set_temp11, NR_CHAN_1_REMOTE_HIGH, TEMP11_REMOTE2_HIGH);
- static SENSOR_DEVICE_ATTR(temp3_crit, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 6);
--static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temphyst, NULL, 6);
-+	set_temp8, TEMP8_REMOTE2_CRIT);
-+static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temphyst, NULL,
-+	TEMP8_REMOTE2_CRIT);
- static SENSOR_DEVICE_ATTR(temp3_emergency, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 7);
-+	set_temp8, TEMP8_REMOTE2_EMERG);
- static SENSOR_DEVICE_ATTR(temp3_emergency_hyst, S_IRUGO, show_temphyst,
--			  NULL, 7);
-+			  NULL, TEMP8_REMOTE2_EMERG);
- 
- static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 9);
- static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 10);
+@@ -292,7 +302,8 @@ static void bind_tz(struct thermal_zone_device *tz)
+ 			if (tzp->tbp[i].match(tz, pos))
+ 				continue;
+ 			tzp->tbp[i].cdev = pos;
+-			__bind(tz, tzp->tbp[i].trip_mask, pos);
++			__bind(tz, tzp->tbp[i].trip_mask, pos,
++			       tzp->tbp[i].binding_limits);
+ 		}
+ 	}
+ exit:
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index a386a1c..39575eb 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -207,6 +207,16 @@ struct thermal_bind_params {
+ 	 * See Documentation/thermal/sysfs-api.txt for more information.
+ 	 */
+ 	int trip_mask;
++
++	/*
++	 * This is an array of cooling state limits. Must have exactly
++	 * 2 * thermal_zone.number_of_trip_points. It is an array consisting
++	 * of tuples <lower-state upper-state> of state limits. Each trip
++	 * will be associated with one state limit tuple when binding.
++	 * A NULL pointer means <THERMAL_NO_LIMITS THERMAL_NO_LIMITS>
++	 * on all trips.
++	 */
++	unsigned long *binding_limits;
+ 	int (*match) (struct thermal_zone_device *tz,
+ 			struct thermal_cooling_device *cdev);
+ };
 -- 
-1.7.9.5
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
