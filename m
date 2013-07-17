@@ -1,43 +1,34 @@
-From: "Wendy" <sales9@jidianyitihua.com>
-Date: Fri, 05 Jul 2013 18:13:43 +0000
-Subject: Re: [lm-sensors] Fuji frontier laser(fw 2:13:43)
-Message-Id: <201307060213439660123@jidianyitihua.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:17:23 +0000
+Subject: [lm-sensors] [RESEND PATCH V1 4/9] arm: dts: flag omap4430 with needs-cooling for cpu node
+Message-Id: <1374074248-31690-5-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-We repair minilab aom driver,power supply,laser head & PCB. if you have any, please send to us for repair. 
-
-Accessories & necessities:
-Epson 13Y/13U(45g/gg5) LCD driver  /LCD         USD1000 brand new
-Noritsu /Fuji 135/240 negative carrier             USD850
-Motor drive                                   USD85
-Motor box                                   USD100
-Film picker metallic type             USD3.5
-Hand photo cutter all sizes          USD18
-Lower turn belt                             USD15
-
-We are professional exporter and collecter of:
- 
- ****  used minilab machine/aom driver/laser head
-
- ****  minilab spare parts and accessories, used/ original/ China made
-
- ****  photoshop necessities like paper magazine, lens, tape, twin checker lable,etc
-
- ****  photo frame
-
- ****  digital carrier 
-
-We will be glad to receive your inquiry at any time.
-
-Thanks
-
-Wendy
-Email: minilabmachine@gmail.com
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
+ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
+cyBwYXRjaCBhZGRzIHRoZSBmbGFnIHNvIHRoYXQgY3B1ZnJlcS1jcHUwIGRyaXZlcgpsb2FkcyB0
+aGUgY29vbGluZyBkZXZpY2UgdG8gdXNlIGNwdWZyZXEgb24gT01BUDQ0MzAuCgpDYzogIkJlbm/D
+rnQgQ291c3NvbiIgPGItY291c3NvbkB0aS5jb20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0
+b21pZGUuY29tPgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzog
+bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWUtZGlzY3Vzc0BsaXN0cy5v
+emxhYnMub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxp
+bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRp
+biA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0
+M3guZHRzaSB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0
+IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0M3guZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29t
+YXA0NDN4LmR0c2kKaW5kZXggYmNmNDU1ZS4uNGE0ZGNjMyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0v
+Ym9vdC9kdHMvb21hcDQ0M3guZHRzaQorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQzeC5k
+dHNpCkBAIC0yMiw2ICsyMiw3IEBACiAJCQkJMTAwODAwMCAxMzc1MDAwCiAJCQk+OwogCQkJY2xv
+Y2stbGF0ZW5jeSA9IDwzMDAwMDA+OyAvKiBGcm9tIGxlZ2FjeSBkcml2ZXIgKi8KKwkJCW5lZWRz
+LWNvb2xpbmc7IC8qIG1ha2Ugc3VyZSB3ZSBoYXZlIGNwdWZyZXEtY29vbGluZyAqLwogCQl9Owog
+CX07CiAKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
