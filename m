@@ -1,56 +1,109 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 11 Jul 2013 08:34:41 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] ARM: dt: t30 cardhu: add dt entry for nct1008
-Message-Id: <51DE6E21.7090305@nvidia.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:17:27 +0000
+Subject: [lm-sensors] [RESEND PATCH V1 8/9] hwmon: lm75: expose to thermal fw via DT nodes
+Message-Id: <1374074248-31690-9-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1373455798-2944-1-git-send-email-wni@nvidia.com> <1373455798-2944-2-git-send-email-wni@nvidia.com> <20130710171319.GB15665@dhcp-172-17-186-34.nvidia.com>
-In-Reply-To: <20130710171319.GB15665-RcKxWJ4Cfj3FNiLNb7+IINdj8bHVeoWogfoxzgwHRXE@public.gmane.org>
+References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
 
-On 07/11/2013 01:13 AM, Thierry Reding wrote:
-> * PGP Signed by an unknown key
-> 
-> On Wed, Jul 10, 2013 at 07:29:57PM +0800, Wei Ni wrote:
->> Enable thermal sensor nct1008 for t30 cardhu.
-> 
-> Nit: "Tegra30 Cardhu"
-> 
->> diff --git a/arch/arm/boot/dts/tegra30-cardhu.dtsi b/arch/arm/boot/dts/tegra30-cardhu.dtsi
-> [...]
->>  				};
->>  			};
->>  		};
->> +
->> +		nct1008: nct1008 {
-> 
-> I don't think it's very likely that this chip will need to be referenced
-> by a phandle, in which case the "nct1008:" label can be dropped. Even if
-> it was used at some point in the future, it's better to add it at that
-> time.
+This patch adds to lm75 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
 
-Ok, I will remove it.
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the lm75 DT node. Otherwise, the driver behavior
+will be the same.
 
-In the future, I may use this node in the thermal framework, something like:
-thermal_zone {
-sensor = <&nct1008>;
-cooling = <&xxxx>;
-....
-}
-So, at that time I will try to add it again.
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/hwmon/lm75.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-Thanks.
-Wei.
-
-> 
-> Thierry
-> 
-> * Unknown Key
-> * 0x7F3EB3A1
-> 
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index c03b490..0aa5e28 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -27,6 +27,8 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/thermal.h>
++#include <linux/of.h>
+ #include "lm75.h"
+ 
+ 
+@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct device		*hwmon_dev;
++	struct thermal_zone_device	*tz;
+ 	struct mutex		update_lock;
+ 	u8			orig_conf;
+ 	u8			resolution;	/* In bits, between 9 and 12 */
+@@ -92,6 +95,19 @@ static struct lm75_data *lm75_update_device(struct device *dev);
+ 
+ /* sysfs attributes for hwmon */
+ 
++static int lm75_read_temp(void *dev, unsigned long *temp)
++{
++	struct lm75_data *data = lm75_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
++			(data->resolution - 8);
++
++	return 0;
++}
++
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
+ {
+@@ -271,11 +287,23 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto exit_remove;
+ 	}
+ 
++	if (of_find_node_by_name(client->dev.of_node, "thermal_zone")) {
++		data->tz = thermal_zone_of_device_register(&client->dev,
++							   &client->dev,
++							   lm75_read_temp);
++		if (IS_ERR(data->tz)) {
++			status = PTR_ERR(data->tz);
++			goto exit_hwmon;
++		}
++	}
++
+ 	dev_info(&client->dev, "%s: sensor '%s'\n",
+ 		 dev_name(data->hwmon_dev), client->name);
+ 
+ 	return 0;
+ 
++exit_hwmon:
++	hwmon_device_unregister(data->hwmon_dev);
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	return status;
+@@ -285,6 +313,7 @@ static int lm75_remove(struct i2c_client *client)
+ {
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+ 
++	thermal_zone_device_unregister(data->tz);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
+-- 
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
