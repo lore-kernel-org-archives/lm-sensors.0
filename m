@@ -1,70 +1,110 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 15 Jul 2013 17:52:52 +0000
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Wed, 17 Jul 2013 04:26:20 +0000
 Subject: Re: [lm-sensors] [PATCH v3 1/4] hwmon: (lm90) split set&show temp as common codes
-Message-Id: <20130715195252.5d2064d7@endymion.delvare>
+Message-Id: <20130717042618.GA11359@mithrandir>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1169383685661124212=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
-	<1373615287-18502-2-git-send-email-wni@nvidia.com>
-	<20130712152615.23464a6b@endymion.delvare>
-	<20130712135000.GA3386@roeck-us.net>
-	<20130712163034.1fc1cd66@endymion.delvare>
-	<20130712144011.GC3629@roeck-us.net>
-	<51E395D9.6070000@nvidia.com>
-	<20130715092415.6d082aa2@endymion.delvare>
-	<51E3BD5F.6060806@nvidia.com>
-In-Reply-To: <51E3BD5F.6060806-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-MIME-Version: 1.0
+ <1373615287-18502-2-git-send-email-wni@nvidia.com>
+ <20130712152615.23464a6b@endymion.delvare>
+ <20130712135000.GA3386@roeck-us.net>
+ <20130712163034.1fc1cd66@endymion.delvare>
+ <20130712144011.GC3629@roeck-us.net>
+ <51E395D9.6070000@nvidia.com>
+ <20130715092415.6d082aa2@endymion.delvare>
+In-Reply-To: <20130715092415.6d082aa2@endymion.delvare>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Wei Ni <wni@nvidia.com>, Guenter Roeck <linux@roeck-us.net>, rui.zhang@intel.com, lm-sensors@lm-sensors.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org
+
+
+--===============1169383685661124212==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
+Content-Disposition: inline
+
+
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jul 15, 2013 at 09:24:15AM +0200, Jean Delvare wrote:
+> On Mon, 15 Jul 2013 14:25:29 +0800, Wei Ni wrote:
+> > On 07/12/2013 10:40 PM, Guenter Roeck wrote:
+> > > On Fri, Jul 12, 2013 at 04:30:34PM +0200, Jean Delvare wrote:
+> > >> If that means that for example the ACPI thermal zone is no longer
+> > >> displayed by "sensors", then I strongly object - unless it is
+> > >> explicitly registered as a separate hwmon device from now on, of cou=
+rse.
+> > >
+> > > If I recall correctly that was the idea. Of course, in practice that =
+will mean
+> > > that devices will _not_ get exposed as hwmon devices, as implementers=
+ won't
+> > > bother doing both.
+> > >=20
+> > >> My idea was to make the bridge optional - you decide when you regist=
+er
+> > >> a thermal device if it should be exposed as hwmon or not.
+> > >
+> > > Yes, that would be a much better solution.
+> >=20
+> > I think we can decide it in the DT, we can add a dt property in the lm90
+> > device node, such as:
+> > sys-interface =3D SYS_HWMON;
+> > or
+> > sys-interface =3D SYS_THERMAL;
+> > So we register it as the hwmon or thermal device
+>=20
+> This is an option, but please keep in mind that DT is not the only way
+> to instantiate LM90-like devices, and we should not expose duplicate
+> inputs by default. It is fine with me if the default is to create only a
+> HWMON device (as the lm90 driver was doing so far), and only
+> DT-instantiated devices have the choice.
+
+I don't think this information belongs in the device tree. Whether the
+device is exposed as hwmon or thermal device (or both) is entirely a
+software issue whereas DT is a means to describe the hardware.
+
+It seems to me that the earlier proposal of communicating to the bridge
+whether or not a device should be exposed as hwmon device is the right
+thing to do here.
+
+Thierry
+
+--+HP7ph2BbKc20aGI
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR5hzqAAoJEN0jrNd/PrOhQXgP/jYIUYFfrCEVA0amd99jVdp9
+Tas04q9u/pBOoGmse32QaSrmNmxRkbCEzyGT+HWaij8+LYnd5NUPj1B9Z7pnd/hh
+DikqXGgoogJQksVpLNTdYfkMcxCwtI/L0P2pm7yx/YCSRYJhGwfOqXHEy9XLpoey
+/6MlXVWsA1iOvAvXynCjapk+feklF16gmGK3Wbc3bBavTGHZ8DvxlFs6WbVF2Eem
+Wyc/kYVYnsRPy0xoSEyjycLnpyR/x3NuaIhxJs45fdinKoPzWtjStr+iE+6/R3Mo
+dfQ2BIjIOtMDBmOQYS/dLAWraPKwfZItBte/mIxDkEUq0vVvF5IvvI/VZNtv4P6p
+2nzFGf80h6G7UKrxQ7+8XCnuWH52hZz5UsrDlAOkcOPKobVRCcDMcfWbiydn9D6I
+y5gugQ41RgnYZrt4/HZLU8xzbwcxviqrwxH2K0C5wzGmAwDCSEw+V1o6KZ4zD7sf
+K00c9CwsaXi3+Hv6kgiKDe74gNb8nbSQFppp9zvYGOkLXRamwzTiJixnUu6nJ2+B
+FyOBAp2YtM9XBm65K541blJXJhTVb9MaGgN2Sdlflo9QSJ9CZWHM0nowHfug1jYC
+hMsbhaq1Rm4d/hR2TaZhj12gDdB9gPC/6jjk67LMoZ9pq9O5u/o7oGcVeXhSD7vM
+TBSBiKomeTIEIVoz4gDs
+=69qf
+-----END PGP SIGNATURE-----
+
+--+HP7ph2BbKc20aGI--
+
+
+--===============1169383685661124212==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-
-Hi Wei,
-
-On Mon, 15 Jul 2013 17:14:07 +0800, Wei Ni wrote:
-> On 07/15/2013 03:24 PM, Jean Delvare wrote:
-> > On Mon, 15 Jul 2013 14:25:29 +0800, Wei Ni wrote:
-> >> I think we can decide it in the DT, we can add a dt property in the lm90
-> >> device node, such as:
-> >> sys-interface = SYS_HWMON;
-> >> or
-> >> sys-interface = SYS_THERMAL;
-> >> So we register it as the hwmon or thermal device
-> > 
-> > This is an option, but please keep in mind that DT is not the only way
-> > to instantiate LM90-like devices, and we should not expose duplicate
-> > inputs by default. It is fine with me if the default is to create only a
-> > HWMON device (as the lm90 driver was doing so far), and only
-> > DT-instantiated devices have the choice.
-> 
-> Yes, we should not expose duplicate inputs, we may have tree permutation:
-> 1. only hwmon device:
-> for this items, we just need to call hwmon_device_register().
-> 2. only thermal device + virtual hwmon device:
-> for this items, we just need to call thermal_zone_device_register().
-> 
-> We can set #1 as the default, and if use DT, we provide option to choice
-> #1 or #2.
-
-#2 makes little sense IMHO, for a driver which properly implements
-hwmon support. The point of the virtual hwmon device created for
-thermal zones was to not put an extra burden on thermal driver authors
-by asking them to additionally implement the hwmon interface. But the
-hwmon interface it richer than the thermal interface in some respects
-so native hwmon implementations are preferred when available. Thus I
-think your option #3 below is what we want in addition to #1, and we
-don't need #2.
-
-> 3. hwmon device + thermal device:
-> for this items, we doesn't need the virtual hwmon which registered by
-> the thermal fw, how to handle this one? Add flag when register as
-> thermal device to indicate if want virtual hwmon device or not,
-> something like your below another option.
-
--- 
-Jean Delvare
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1169383685661124212==--
