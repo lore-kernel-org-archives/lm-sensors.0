@@ -1,116 +1,109 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Mon, 29 Jul 2013 20:32:00 +0000
-Subject: Re: [lm-sensors] [PATCH v4 2/2] i2c_imc: New driver for Intel's iMC, found on LGA2011 chips
-Message-Id: <CALCETrVh8SardUtoSL68aBxW8W4FWphOQovW_-v2TtfPiRdgKQ@mail.gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Wed, 17 Jul 2013 15:17:20 +0000
+Subject: [lm-sensors] [RESEND PATCH V1 1/9] cpufreq: cpufreq-cpu0: add dt node parsing for 'needs-cooling'
+Message-Id: <1374074248-31690-2-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1374171757.git.luto@amacapital.net> <c4bb014e8793e8d0059ecf5633f01ab9e15409d2.1374171757.git.luto@amacapital.net>
- <20130718213331.GA6237@roeck-us.net> <CALCETrUUkSenOD1KS7rrVV1czjhTJ-c1sFebrDygcCB+5Y2upA@mail.gmail.com>
- <20130718224008.GA7314@roeck-us.net>
-In-Reply-To: <20130718224008.GA7314-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, James Ralston <james.d.ralston-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, cpufreq@vger.kernel.org
 
-On Thu, Jul 18, 2013 at 3:40 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> On Thu, Jul 18, 2013 at 02:37:40PM -0700, Andy Lutomirski wrote:
->> On Thu, Jul 18, 2013 at 2:33 PM, Guenter Roeck <linux@roeck-us.net> wrote:
->> > On Thu, Jul 18, 2013 at 11:36:54AM -0700, Andy Lutomirski wrote:
->> >> Sandy Bridge Xeon and Extreme chips have integrated memory controllers
->> >> with (rather limited) onboard SMBUS masters.  This driver gives access
->> >> to the bus.
->> >>
->> >> Signed-off-by: Andy Lutomirski <luto@amacapital.net>
->> >> ---
->> >>  drivers/i2c/busses/Kconfig   |  15 ++
->> >>  drivers/i2c/busses/Makefile  |   1 +
->> >>  drivers/i2c/busses/i2c-imc.c | 548 +++++++++++++++++++++++++++++++++++++++++++
->> >>  3 files changed, 564 insertions(+)
->> >>  create mode 100644 drivers/i2c/busses/i2c-imc.c
->> >>
->> >> diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
->> >> index e837f0e..7636782 100644
->> >> --- a/drivers/i2c/busses/Kconfig
->> >> +++ b/drivers/i2c/busses/Kconfig
->> >> @@ -137,6 +137,21 @@ config I2C_DIMM_BUS
->> >>         tristate
->> >>         default n
->> >>
->> >> +config I2C_IMC
->> >> +     tristate "Intel iMC (LGA 2011) SMBus Controller"
->> >> +     depends on PCI && X86
->> >> +     select I2C_DIMM_BUS
->> >> +     help
->> >> +       If you say yes to this option, support will be included for the Intel
->> >> +       Integrated Memory Controller SMBus host controller interface.  This
->> >> +       controller is found on LGA 2011 Xeons and Core i7 Extremes.
->> >> +
->> >> +       It is possibly, although unlikely, that the use of this driver will
->> >> +       interfere with your platform's RAM thermal management.
->> >> +
->> >> +       This driver can also be built as a module.  If so, the module will be
->> >> +       called i2c-imc.
->> >> +
->> >>  config I2C_PIIX4
->> >>       tristate "Intel PIIX4 and compatible (ATI/AMD/Serverworks/Broadcom/SMSC)"
->> >>       depends on PCI
->> >> diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
->> >> index 226bb2e..790b63d 100644
->> >> --- a/drivers/i2c/busses/Makefile
->> >> +++ b/drivers/i2c/busses/Makefile
->> >> @@ -15,6 +15,7 @@ obj-$(CONFIG_I2C_AMD8111)   += i2c-amd8111.o
->> >>  obj-$(CONFIG_I2C_I801)               += i2c-i801.o
->> >>  obj-$(CONFIG_I2C_ISCH)               += i2c-isch.o
->> >>  obj-$(CONFIG_I2C_ISMT)               += i2c-ismt.o
->> >> +obj-$(CONFIG_I2C_IMC)                += i2c-imc.o
->> >>  obj-$(CONFIG_I2C_NFORCE2)    += i2c-nforce2.o
->> >>  obj-$(CONFIG_I2C_NFORCE2_S4985)      += i2c-nforce2-s4985.o
->> >>  obj-$(CONFIG_I2C_PIIX4)              += i2c-piix4.o
->> >> diff --git a/drivers/i2c/busses/i2c-imc.c b/drivers/i2c/busses/i2c-imc.c
->> >> new file mode 100644
->> >> index 0000000..9643aeb
->> >> --- /dev/null
->> >> +++ b/drivers/i2c/busses/i2c-imc.c
->> >
->> > [ ... ]
->> >
->> >> +
->> >> +     i2c_scan_dimm_bus(&ch->adapter);
->> >> +
->> > Wonder if this should (can) be part of the infrastructure, eg by introducing
->> > I2C_CLASS_DIMM.
->>
->> If so, it'll have to work differently than the current class bits.
->> All they do is determine which drivers get detected, and that
->> detection happens by completely generic means that's not really
->> applicable to DIMMs (and doesn't work on this bus).
->>
-> In i2c_detect_address:
->
->         if (adap->class & I2C_CLASS_DIMM)
->                 return i2c_detect_dimm();
->
->
-> or in i2c_default_probe, call a dimm specific probe function and then
-> depend on the device detect functions (if that is possible).
->
-> Sure, the i2c core code would have to change a bit to accomodate the new
-> I2C_CLASS_DIMM, but I personally would prefer that to calling
-> the detect function from the adapter driver.
->
-> Personal preference, though; this ultimately depends on the i2c maintainers.
->
-> Thanks,
-> Guenter
+This patch changes the cpufreq-cpu0 driver to consider if
+a cpu needs cooling (with cpufreq). In case the cooling is needed,
+it can be flagged at the cpu0 device tree node, with the boolean
+property 'needs-cooling'.
 
-Jean?
+In case this boolean is present, the driver will
+load a cpufreq cooling device in the system. The cpufreq-cpu0
+driver is not interested in determining how the system should
+be using the cooling device. The driver is responsible
+only of loading the cooling device.
 
-I have some driver changes pending for v5, but I'd like to nail down
-whether the current scanning approach is acceptable first.
+Describing how the cooling device will be used can be
+accomplished by setting up a thermal zone that references
+and is composed by the cpufreq cooling device.
 
-Thanks,
-Andy
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: cpufreq@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt | 3 +++
+ drivers/cpufreq/cpufreq-cpu0.c                             | 8 ++++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+index 051f764..e8ff916 100644
+--- a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
++++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+@@ -15,6 +15,8 @@ Optional properties:
+ - clock-latency: Specify the possible maximum transition latency for clock,
+   in unit of nanoseconds.
+ - voltage-tolerance: Specify the CPU voltage tolerance in percentage.
++- needs-cooling: The generic cpu cooling (freq clipping) is loaded by the
++generic cpufreq-cpu0 driver in case the device tree node has this boolean.
+ 
+ Examples:
+ 
+@@ -33,6 +35,7 @@ cpus {
+ 			198000  850000
+ 		>;
+ 		clock-latency = <61036>; /* two CLK32 periods */
++		needs-cooling;
+ 	};
+ 
+ 	cpu@1 {
+diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-cpu0.c
+index ad1fde2..4a8747a 100644
+--- a/drivers/cpufreq/cpufreq-cpu0.c
++++ b/drivers/cpufreq/cpufreq-cpu0.c
+@@ -20,6 +20,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/thermal.h>
++#include <linux/cpu_cooling.h>
++#include <linux/cpumask.h>
+ 
+ static unsigned int transition_latency;
+ static unsigned int voltage_tolerance; /* in percentage */
+@@ -28,6 +31,7 @@ static struct device *cpu_dev;
+ static struct clk *cpu_clk;
+ static struct regulator *cpu_reg;
+ static struct cpufreq_frequency_table *freq_table;
++static struct thermal_cooling_device *cdev;
+ 
+ static int cpu0_verify_speed(struct cpufreq_policy *policy)
+ {
+@@ -268,6 +272,9 @@ static int cpu0_cpufreq_probe(struct platform_device *pdev)
+ 		goto out_free_table;
+ 	}
+ 
++	if (of_property_read_bool(np, "needs-cooling"))
++		cdev = cpufreq_cooling_register(cpu_present_mask);
++
+ 	of_node_put(np);
+ 	of_node_put(parent);
+ 	return 0;
+@@ -283,6 +290,7 @@ out_put_parent:
+ 
+ static int cpu0_cpufreq_remove(struct platform_device *pdev)
+ {
++	cpufreq_cooling_unregister(cdev);
+ 	cpufreq_unregister_driver(&cpu0_cpufreq_driver);
+ 	opp_free_cpufreq_table(cpu_dev, &freq_table);
+ 
+-- 
+1.8.2.1.342.gfa7285d
+
 
 _______________________________________________
 lm-sensors mailing list
