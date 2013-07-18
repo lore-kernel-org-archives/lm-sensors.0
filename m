@@ -1,52 +1,55 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 18 Jul 2013 08:11:02 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 18 Jul 2013 08:38:05 +0000
 Subject: Re: [lm-sensors] Module asus_atk0110 - Fan speed often shows zero instead of correct value
-Message-Id: <20130718081102.GB9880@roeck-us.net>
+Message-Id: <20130718103805.08525746@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CA+1DPT0KNOJht7djog8oK61Fs=ConqJpe_O9zJ9csg1jUNA2Sg@mail.gmail.com>
 In-Reply-To: <CA+1DPT0KNOJht7djog8oK61Fs=ConqJpe_O9zJ9csg1jUNA2Sg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jul 16, 2013 at 07:04:39PM +0200, Simon Sandstr=F6m wrote:
-> Hello
->=20
-> I'm having trouble with the asus_atk0110 kernel module. The speed for fan3
-> (CHASSI2 FAN) often just shows zero, but once in awhile it shows the actu=
-al
-> speed of the fan. I've checked the fan, and it does spin at all time and =
-it
-> also shows the correct speed at all time in BIOS.
->=20
-> There is also a slight delay when reading the input with "cat
-> /sys/class/hwmon/hwmon0/fan3_input". When the speed is zero, it takes
-> approx. 0.3s and when it shows the correct speed (700RPM) it takes 0.1s.
-> All other fan inputs respond with no delay (0.001s).
->=20
-> $ uname -a
-> Linux 3.2.0-4-amd64 #1 SMP Debian 3.2.46-1 x86_64 GNU/Linux
->=20
-> $ lsmod | grep asus_atk0110
-> asus_atk0110           17297  0
->=20
-> $ sensors --version
-> sensors version 3.3.2 with libsensors version 3.3.2
->=20
-> Does anyone else have this problem, or any similar problem? I could just
-> connect the fan to fan4 and ignore fan3, but for some reason the minimum
-> speed for fan4 is 800RPM (the others are 600RPM), and I like my fans
-> running at 700RPM..
->=20
-This is all determined by ACPI, not by the driver. So I don't think there is
-anything we can do about it.
-
-Can you set the minimum fan speed in the BIOS ?
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgU2ltb24sCgpPbiBUdWUsIDE2IEp1bCAyMDEzIDE5OjA0OjM5ICswMjAwLCBTaW1vbiBTYW5k
+c3Ryw7ZtIHdyb3RlOgo+IEknbSBoYXZpbmcgdHJvdWJsZSB3aXRoIHRoZSBhc3VzX2F0azAxMTAg
+a2VybmVsIG1vZHVsZS4gVGhlIHNwZWVkIGZvciBmYW4zCj4gKENIQVNTSTIgRkFOKSBvZnRlbiBq
+dXN0IHNob3dzIHplcm8sIGJ1dCBvbmNlIGluIGF3aGlsZSBpdCBzaG93cyB0aGUgYWN0dWFsCj4g
+c3BlZWQgb2YgdGhlIGZhbi4gSSd2ZSBjaGVja2VkIHRoZSBmYW4sIGFuZCBpdCBkb2VzIHNwaW4g
+YXQgYWxsIHRpbWUgYW5kIGl0Cj4gYWxzbyBzaG93cyB0aGUgY29ycmVjdCBzcGVlZCBhdCBhbGwg
+dGltZSBpbiBCSU9TLgoKV2hpY2ggbW90aGVyYm9hcmQgaXMgaXQ/IE9uIHNvbWUgYm9hcmRzIHBh
+c3NpbmcgbW9kdWxlIHBhcmFtZXRlcgpuZXdfaWY9MSBoZWxwcywgeW91IG1heSB3YW50IHRvIGdp
+dmUgaXQgYSB0cnkuCgpBbHNvLCB0aGUgYXN1c19hdGswMTEwIGRyaXZlciBoZWF2aWx5IHJlbGll
+cyBvbiB0aGUgQklPUywgc28gYSBCSU9TCnVwZGF0ZSBtYXkgaGVscC4KCk5vdGUgdGhhdCB0aGUg
+ZmFjdCB0aGF0IHRoZSBzcGVlZCBpbiB0aGUgQklPUyBpcyByaWdodCBkb2Vzbid0Cm5lY2Vzc2Fy
+aWx5IG1lYW4gdGhhdCB0aGUgQklPUyBpcyByaWdodCBhbmQgdGhlIGFzdXNfYXRrMDExMCBMaW51
+eAprZXJuZWwgZHJpdmVyIGlzIHdyb25nLiBJZiB0aGUgZmFuIGhhcyBhbnkgZm9ybSBvZiBhdXRv
+bWF0aWMgc3BlZWQKY29udHJvbCBhcHBsaWVkLCBpdCBtaWdodCBzaW1wbHkgYmUgdGhhdCB0aGUg
+QklPUyBrZWVwcyB5b3VyIG1hY2hpbmUKYnVzeSBlbm91Z2ggZm9yIHRoZSBmYW4gdG8gc3RheSBp
+biB0aGUgbWVhc3VyYWJsZSBzcGVlZCBhcmVhLiBEaWQgeW91CmVuYWJsZSBmYW4gc3BlZWQgY29u
+dHJvbCBpbiB0aGUgQklPUz8gRG9lcyB0aGUgcHJvYmxlbSBnbyBhd2F5IGlmIHlvdQoodGVtcG9y
+YXJpbHkpIGRpc2FibGUgaXQ/CgpGb3IgMy1waW4gZmFucywgc3BlZWQgbWVhc3VyZW1lbnQgaXMg
+ZWFzeSBhbmQgcmVsaWFibGUgd2hlbiB0aGUgZmFuCnJ1bnMgYXQgZnVsbCBzcGVlZC4gSG93ZXZl
+ciBhcyBzb29uIGFzIGNvbnRyb2wgaXMgYXBwbGllZCwgbWVhc3VyZW1lbnQKYmVjb21lcyBoYXJk
+ZXIuIFRoaXMgaXMgdHJ1ZSB3aGVuIFBXTSBjb250cm9sIGlzIHVzZWQsIGJ1dCBldmVuIG1vcmUK
+d2hlbiBEQyBjb250cm9sIGlzIHVzZWQ6IHRoZSBzcGVlZCBzaWduYWwgd2Vha2VucyBhcyB0aGUg
+dm9sdGFnZSBpcwpsb3dlcmVkLCBhbmQgYWZ0ZXIgc29tZSBwb2ludCBpdCdzIGRpZmZpY3VsdCBm
+b3IgdGhlIG1vbml0b3JpbmcgY2hpcCB0bwpkaXN0aW5ndWlzaCBiZXR3ZWVuIHRoZSBzcGVlZCBz
+aWduYWwgYW5kIHRoZSBub2lzZS4KClNvIG1heWJlIHlvdXIgZmFuIGlzIHNwaW5uaW5nIGF0IHRo
+ZSBib3JkZXIgYmV0d2VlbiByZWFkYWJsZSBhbmQKdW5yZWFkYWJsZS4KCj4gVGhlcmUgaXMgYWxz
+byBhIHNsaWdodCBkZWxheSB3aGVuIHJlYWRpbmcgdGhlIGlucHV0IHdpdGggImNhdAo+IC9zeXMv
+Y2xhc3MvaHdtb24vaHdtb24wL2ZhbjNfaW5wdXQiLiBXaGVuIHRoZSBzcGVlZCBpcyB6ZXJvLCBp
+dCB0YWtlcwo+IGFwcHJveC4gMC4zcyBhbmQgd2hlbiBpdCBzaG93cyB0aGUgY29ycmVjdCBzcGVl
+ZCAoNzAwUlBNKSBpdCB0YWtlcyAwLjFzLgo+IEFsbCBvdGhlciBmYW4gaW5wdXRzIHJlc3BvbmQg
+d2l0aCBubyBkZWxheSAoMC4wMDFzKS4KCk5vdCBuZWNlc3NhcmlseSBzdXJwcmlzaW5nLiBJIGRv
+bid0IGtub3cgaG93IGV4YWN0bHkgdGhlIEFzdXMgQklPUyBjb2RlCndvcmtzLCBidXQgSSBjYW4g
+aW1hZ2luZSB0aGF0IHRoZXkgdHJ5IGhhcmRlciB3aGVuIHRoZSBmYW4gc3BlZWQgdGhleQpyZWFk
+IGF0IGZpcnN0IGxvb2tzIHN1c3BpY2lvdXMuIFRoaXMgd291bGQgZXhwbGFpbiB0aGUgZXh0cmEg
+ZGVsYXkuCgo+ICguLi4pCj4gRG9lcyBhbnlvbmUgZWxzZSBoYXZlIHRoaXMgcHJvYmxlbSwgb3Ig
+YW55IHNpbWlsYXIgcHJvYmxlbT8gSSBjb3VsZCBqdXN0Cj4gY29ubmVjdCB0aGUgZmFuIHRvIGZh
+bjQgYW5kIGlnbm9yZSBmYW4zLCBidXQgZm9yIHNvbWUgcmVhc29uIHRoZSBtaW5pbXVtCj4gc3Bl
+ZWQgZm9yIGZhbjQgaXMgODAwUlBNICh0aGUgb3RoZXJzIGFyZSA2MDBSUE0pLCBhbmQgSSBsaWtl
+IG15IGZhbnMKPiBydW5uaW5nIGF0IDcwMFJQTS4uCgpIb3cgZG8geW91IGtlZXAgdGhlbSBhdCBl
+eGFjdGx5IDcwMCBSUE0/CgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
+b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xtLXNlbnNvcnM
