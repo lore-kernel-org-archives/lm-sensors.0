@@ -1,53 +1,41 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 06 Jul 2013 19:22:21 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 1/5] driver core: Introduce device_create_groups
-Message-Id: <20130706192221.GB15066@roeck-us.net>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Thu, 18 Jul 2013 15:01:11 +0000
+Subject: [lm-sensors] [patch v2] hwmon: (nct6775) make an array larger
+Message-Id: <20130718150111.GA11991@elgon.mountain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1373131495-13465-1-git-send-email-linux@roeck-us.net>
- <1373131495-13465-2-git-send-email-linux@roeck-us.net>
- <20130706174758.GA8122@kroah.com>
-In-Reply-To: <20130706174758.GA8122@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-On Sat, Jul 06, 2013 at 10:47:58AM -0700, Greg Kroah-Hartman wrote:
-> On Sat, Jul 06, 2013 at 10:24:51AM -0700, Guenter Roeck wrote:
-> > device_create_groups lets callers create devices as well as associated
-> > sysfs attributes with a single call. This avoids race conditions seen
-> > if sysfs attributes on new devices are created later.
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  drivers/base/core.c    |   60 +++++++++++++++++++++++++++++++++++++++++++++---
-> >  include/linux/device.h |    4 ++++
-> >  2 files changed, 61 insertions(+), 3 deletions(-)
-> 
-> Ok, in reading the code, it makes more sense to me now.  That looks
-> good, but the name is a bit rough.  How many device_create() calls do we
-> have in the kernel today?
-> 
-> $ git grep -w device_create | wc -l
-> 127
-> 
-> That's really not that many, I wonder how many of those should be using
-> something like this as well?  A quick look showed that the sound core
-> should be using this, but maybe not all that many others...
-> 
-Pretty much all hwmon devices. Given that, another option would be to not use
-device_create in the hwmon core code, but more or less re-write it there.
-I don't think that would be such a good idea, but it is my fallback option.
+Smatch complains that we have a array overflow:
 
-> My objection to the name is at first glance, it sounds like you are
-> creating "groups", not a device + groups.
-> "device_create_with_groups()"?
-> 
-No problem. You pick the name ...
+	drivers/hwmon/nct6775.c:1456 nct6775_update_device()
+		error: buffer overflow 'data->temp' 4 <= 4
 
-Thanks,
-Guenter
+Guenter Roeck says that the array should have been made larger in
+7cbbd6aee6 (Add support for critical low/high temperature limits on
+NCT6106).  This patch does that.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: the first version was wrong
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index f0941d7..25e2c7b 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -813,8 +813,8 @@ struct nct6775_data {
+ 	u8 temp_fixed_num;	/* 3 or 6 */
+ 	u8 temp_type[NUM_TEMP_FIXED];
+ 	s8 temp_offset[NUM_TEMP_FIXED];
+-	s16 temp[4][NUM_TEMP]; /* 0=temp, 1=temp_over, 2=temp_hyst,
+-				* 3=temp_crit */
++	s16 temp[5][NUM_TEMP]; /* 0=temp, 1=temp_over, 2=temp_hyst,
++				* 3=temp_crit, 4=temp_lcrit */
+ 	u64 alarms;
+ 	u64 beeps;
+ 
 
 _______________________________________________
 lm-sensors mailing list
