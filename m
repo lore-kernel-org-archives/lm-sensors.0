@@ -1,91 +1,62 @@
-From: =?ISO-8859-1?Q?Hakan_T=DCR=DCT?= <hakanturut@gmail.com>
-Date: Mon, 29 Jul 2013 11:07:37 +0000
-Subject: Re: [lm-sensors] HM65 chipset fan control
-Message-Id: <CABeCqAHbMst61vKDhEzMg=LmhR6Q0H5Ehm22J=ZbLAfm7pzMQQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7720206918302729423=="
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Thu, 18 Jul 2013 18:36:52 +0000
+Subject: [lm-sensors] [PATCH v4 0/2] iMC SMBUS and DIMM bus probing
+Message-Id: <cover.1374171757.git.luto@amacapital.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CABeCqAFg+BMZrB=eJFMwSFJEkeLOhmUMFgTi2r0cBYOjaNhoiA@mail.gmail.com>
-In-Reply-To: <CABeCqAFg+BMZrB=eJFMwSFJEkeLOhmUMFgTi2r0cBYOjaNhoiA@mail.gmail.com>
-To: lm-sensors@vger.kernel.org
-
---===============7720206918302729423==
-Content-Type: multipart/alternative; boundary=001a11c1efa60fcc9504e2a48028
-
---001a11c1efa60fcc9504e2a48028
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Thanks Guenter , i hope someone starts working on that soon.
-
-
-2013/7/29 Guenter Roeck <linux@roeck-us.net>
-
-> On 07/29/2013 02:16 AM, Hakan T=DCR=DCT wrote:
->
->> Hello,
->> I have a laptop with i5 cpu and hm65 chipset.There is a problem with fan
->> control.I asked to manufacture  of my laptop what chipset is used in
->> this pc for control the fan ? They said "Your southbridge controlling
->> it(HM65 chipset)."lm-sensors auto detect does not detect any fan or
->> voltage.Is there any path or something ?
->>
->>  Most likely it is through the Intel Management Engine (MEI).
-> Unfortunately there is no Linux driver available yet to support MEI fan
-> control.
->
-> Guenter
->
->
->
-
---001a11c1efa60fcc9504e2a48028
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-family:verdana,=
-sans-serif;font-size:large">Thanks Guenter , i hope someone starts working =
-on that soon.<br></div><div class=3D"gmail_extra"><br><br><div class=3D"gma=
-il_quote">
-2013/7/29 Guenter Roeck <span dir=3D"ltr">&lt;<a href=3D"mailto:linux@roeck=
--us.net" target=3D"_blank">linux@roeck-us.net</a>&gt;</span><br><blockquote=
- class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc soli=
-d;padding-left:1ex">
-<div class=3D"HOEnZb"><div class=3D"h5">On 07/29/2013 02:16 AM, Hakan T=DCR=
-=DCT wrote:<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex">
-Hello,<br>
-I have a laptop with i5 cpu and hm65 chipset.There is a problem with fan<br=
->
-control.I asked to manufacture =A0of my laptop what chipset is used in<br>
-this pc for control the fan ? They said &quot;Your southbridge controlling<=
-br>
-it(HM65 chipset).&quot;lm-sensors auto detect does not detect any fan or<br=
->
-voltage.Is there any path or something ?<br>
-<br>
-</blockquote></div></div>
-Most likely it is through the Intel Management Engine (MEI).<br>
-Unfortunately there is no Linux driver available yet to support MEI fan<br>
-control.<span class=3D"HOEnZb"><font color=3D"#888888"><br>
-<br>
-Guenter<br>
-<br>
-<br>
-</font></span></blockquote></div><br></div></div>
-
---001a11c1efa60fcc9504e2a48028--
-
-
---===============7720206918302729423==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Cc: James Ralston <james.d.ralston-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7720206918302729423==--
+SW50ZWwgTEdBMjAxMSBtYWNoaW5lcyBoYXZlIGRlZGljYXRlZCBTTUJVUyBjb250cm9sbGVycyBm
+b3IgRElNTQpzb2NrZXRzLiAgQmVjYXVzZSB0aGV5J3JlIGRlZGljYXRlZCwgdGhleSBjYW4gYmUg
+c2FmZWx5IGFuZCBhY2N1cmF0ZWx5CnByb2JlZCwgc2luY2UgYWxsIGRldmljZXMgb24gdGhlbSBh
+cmUga25vd24gdG8gYmUgYXR0YWNoZWQgdG8gRElNTXMuClRoZSBkZXZpY2VzIGZvdW5kIGFyZToK
+IC0gU1BEIEVFUFJPTXMKIC0gVFNPRHMgKFRlbXBlcmF0dXJlIFNlbnNvciBvbiBESU1NcykKIC0g
+T3RoZXIgaW50ZXJlc3RpbmcgdGhpbmdzLCB3aXRoIGRyaXZlcnMgaG9wZWZ1bGx5IHRvIGZvbGxv
+dy4uLgoKVGhpcyBwYXRjaCBzZXJpZXMgYWRkcyBhIHNpbXBsZSBnZW5lcmljIGxheWVyIGZvciBw
+cm9iaW5nIGZvciBESU1NcyBvdmVyClNNQlVTIGFuZCBhbiBpMmMgYnVzIGRyaXZlciBmb3IgdGhl
+IGlNQyBjb250cm9sbGVyIGZvdW5kIG9uIEludGVsCkxHQTIwMTEgY2hpcHMuCgpJdCBub3cgdXNl
+cyBvbmx5IG1vZGVybiBpbmZyYXN0cnVjdHVyZSAtLSBuZXctc3R5bGUgSTJDIHByb2JpbmcgYW5k
+IHRoZQphdDI0IChpbnN0ZWFkIG9mIGVlcHJvbSkgZHJpdmVyLgoKSSd2ZSB0ZXN0ZWQgdGhpcyBv
+biBhIENvcmUgaTcgRXh0cmVtZSBhbmQgb24gYSBYZW9uIEU1IHNlcnZlci4KV2l0aCB0aGlzIHNl
+cmllcyBhcHBsaWVkLCBzZW5zb3JzIHNob3dzIChvbiB0aGUgWGVvbiBFNSk6CgpqYzQyLWkyYy0x
+LTE4CkFkYXB0ZXI6IGlNQyBzb2NrZXQgMCBjaGFubmVsIDAKdGVtcDE6ICAgICAgICArMzMuMMKw
+QyAgKGxvdyAgPSAgKzAuMMKwQykgICAgICAgICAgICAgICAgICBBTEFSTSAoSElHSCkKICAgICAg
+ICAgICAgICAgICAgICAgICAoaGlnaCA9ICArMC4wwrBDLCBoeXN0ID0gICswLjDCsEMpCiAgICAg
+ICAgICAgICAgICAgICAgICAgKGNyaXQgPSArMTAwLjDCsEMsIGh5c3QgPSArMTAwLjDCsEMpCgpq
+YzQyLWkyYy0xLTFjCkFkYXB0ZXI6IGlNQyBzb2NrZXQgMCBjaGFubmVsIDAKdGVtcDE6ICAgICAg
+ICArMzUuMsKwQyAgKGxvdyAgPSAgKzAuMMKwQykgICAgICAgICAgICAgICAgICBBTEFSTSAoSElH
+SCkKICAgICAgICAgICAgICAgICAgICAgICAoaGlnaCA9ICArMC4wwrBDLCBoeXN0ID0gICswLjDC
+sEMpCiAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArMTAwLjDCsEMsIGh5c3QgPSArMTAw
+LjDCsEMpCgpqYzQyLWkyYy0zLTE4CkFkYXB0ZXI6IGlNQyBzb2NrZXQgMSBjaGFubmVsIDAKdGVt
+cDE6ICAgICAgICArMjcuMMKwQyAgKGxvdyAgPSAgKzAuMMKwQykgICAgICAgICAgICAgICAgICBB
+TEFSTSAoSElHSCkKICAgICAgICAgICAgICAgICAgICAgICAoaGlnaCA9ICArMC4wwrBDLCBoeXN0
+ID0gICswLjDCsEMpCiAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArMTAwLjDCsEMsIGh5
+c3QgPSArMTAwLjDCsEMpCgpqYzQyLWkyYy0zLTFjCkFkYXB0ZXI6IGlNQyBzb2NrZXQgMSBjaGFu
+bmVsIDAKdGVtcDE6ICAgICAgICArMzMuMsKwQyAgKGxvdyAgPSAgKzAuMMKwQykgICAgICAgICAg
+ICAgICAgICBBTEFSTSAoSElHSCkKICAgICAgICAgICAgICAgICAgICAgICAoaGlnaCA9ICArMC4w
+wrBDLCBoeXN0ID0gICswLjDCsEMpCiAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArMTAw
+LjDCsEMsIGh5c3QgPSArMTAwLjDCsEMpCgp3aXRoIG5vIG5lZWQgZm9yIGFueSB1c2Vyc3BhY2Ug
+cHJvYmluZyBvciBtYW51YWwgbW9kdWxlIGxvYWRpbmcuCmRlY29kZS1kaW1tcyB3b3JrcyBvbiBi
+b3RoIG1hY2hpbmVzLCBhZ2FpbiB3aXRob3V0IGFueSBtYW51YWwgbW9kdWxlCmxvYWRpbmcuCgpU
+aGUgd2hvbGUgc2VyaWVzIGlzIGF2YWlsYWJsZSBvbiBnaXQgaGVyZSAoYWdhaW5zdCB2My45Ljcp
+OgpodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC9sdXRvL2xpbnV4
+LmdpdC9sb2cvP2g9aTJjX2ltYy9wYXRjaF92NAoKSSdtIG5vdCBlbnRpcmVseSBhdHRhY2hlZCB0
+aGUgdG8gdGhlIHByb2JpbmcgYXBwcm9hY2ggaW4gcGF0Y2ggMSAtLSBzZWUKY29tbWVudHMgdGhl
+cmUuCgpDaGFuZ2VzIGZyb20gdjM6CiAtIERyb3BwZWQgcmVkdW5kYW50ICJ0c29kIiBkcml2ZXIK
+IC0gRHJvcHBlZCBlZXByb20gbW9kYWxpYXMKIC0gU3dpdGNoZWQgdG8gcHJvYmluZyBmb3IgdGhl
+ICJlZXByb20iIGFuZCAiamM0MiIKCkFuZHkgTHV0b21pcnNraSAoMik6CiAgaTJjOiBBZGQgRElN
+TSBidXMgY29kZQogIGkyY19pbWM6IE5ldyBkcml2ZXIgZm9yIEludGVsJ3MgaU1DLCBmb3VuZCBv
+biBMR0EyMDExIGNoaXBzCgogZHJpdmVycy9pMmMvYnVzc2VzL0tjb25maWcgICAgfCAgMTkgKysK
+IGRyaXZlcnMvaTJjL2J1c3Nlcy9NYWtlZmlsZSAgIHwgICA1ICsKIGRyaXZlcnMvaTJjL2J1c3Nl
+cy9kaW1tLWJ1cy5jIHwgIDk3ICsrKysrKysrCiBkcml2ZXJzL2kyYy9idXNzZXMvaTJjLWltYy5j
+ICB8IDU0OCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGluY2x1
+ZGUvbGludXgvaTJjL2RpbW0tYnVzLmggIHwgIDI0ICsrCiA1IGZpbGVzIGNoYW5nZWQsIDY5MyBp
+bnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9pMmMvYnVzc2VzL2RpbW0t
+YnVzLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2kyYy9idXNzZXMvaTJjLWltYy5jCiBj
+cmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9saW51eC9pMmMvZGltbS1idXMuaAoKLS0gCjEuOC4x
+LjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
