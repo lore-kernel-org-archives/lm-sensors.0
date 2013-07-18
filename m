@@ -1,145 +1,58 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 18 Jul 2013 21:11:54 +0000
+Date: Thu, 18 Jul 2013 21:21:08 +0000
 Subject: Re: [lm-sensors] [RESEND PATCH V1 0/9] thermal: introduce DT thermal zone build
-Message-Id: <20130718211154.GB4110@roeck-us.net>
+Message-Id: <20130718212108.GC4110@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
  <20130717220942.GB990@roeck-us.net>
  <51E7F341.8020508@ti.com>
-In-Reply-To: <51E7F341.8020508@ti.com>
+ <51E8234D.1020607@wwwdotorg.org>
+In-Reply-To: <51E8234D.1020607@wwwdotorg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, l.stach@pengutronix.de
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, l.stach@pengutronix.de
 
-On Thu, Jul 18, 2013 at 09:53:05AM -0400, Eduardo Valentin wrote:
-> Hello Guenter,
-> 
-> On 17-07-2013 18:09, Guenter Roeck wrote:
-> > On Wed, Jul 17, 2013 at 11:17:19AM -0400, Eduardo Valentin wrote:
-> >> Hello all,
-> >>
-> >> As you noticed, I am working in a way to represent thermal data
-> >> using device tree [1]. Essentially, this should be a way to say
-> >> what to do with a sensor and how to associate (cooling) actions
-> >> with it.
-> >>
-> > Seems to me that goes way beyond the supposed scope of devicetree data.
-> > Devicetree data is supposed to describe hardware, not its configuration or use.
-> > This is clearly a use case.
-> 
-> Thanks for rising your voice here. It is important to know what hwmon
-> ppl think about this.
-> 
-Sorry, I don't know what ppl stands for.
-
+On Thu, Jul 18, 2013 at 11:18:05AM -0600, Stephen Warren wrote:
+> On 07/18/2013 07:53 AM, Eduardo Valentin wrote:
+> > Hello Guenter,
 > > 
-> > Guenter
+> > On 17-07-2013 18:09, Guenter Roeck wrote:
+> >> On Wed, Jul 17, 2013 at 11:17:19AM -0400, Eduardo Valentin
+> >> wrote:
+> >>> Hello all,
+> >>> 
+> >>> As you noticed, I am working in a way to represent thermal
+> >>> data using device tree [1]. Essentially, this should be a way
+> >>> to say what to do with a sensor and how to associate (cooling)
+> >>> actions with it.
+> >>> 
+> >> Seems to me that goes way beyond the supposed scope of devicetree
+> >> data. Devicetree data is supposed to describe hardware, not its
+> >> configuration or use. This is clearly a use case.
+> > 
+> > Thanks for rising your voice here. It is important to know what
+> > hwmon ppl think about this.
 > 
-> As your answers to the series are giving same argument, I chose to
-> answer on patch 0. I would be happier if you could elaborate a bit more
-> on your concern, specially if you take hwmon cap here, and give your
-> view with that perspective.
-> 
-> I also considered that this work could be abusing of DT purposes. But
-> let me explain why I still think it makes sense to have it.
-> 
-Ultimately, you are making my point here. If you considered it, did you ask
-devicetree experts for an opinion ? Did you discuss the subject on the
-devicetree-discuss mailing list ? If so, what was the result ?
+> I meant to find time to read Guenter's original email where he
+> initially objected to putting data into DT, and determine exactly what
+> was being objected to. I still haven't:-( However, the arguments that
+> Eduardo stated in his email do make sense to me; I agree that
+> temperature limits really are a description of HW. Details of which
+> cooling methods to invoke when certain temperature limits are reached
+> is also part of the HW/system design, and hence I would tend to agree
+> that they're appropriate to include in DT. Anyway, that's just my 2
+> cents on the matter:-)
 
-> First thing is that this series intend to describe the thermal data
-> required for a specific board. That means, considering your board
-> layout, mechanics, power dissipation and composition of your ICs, etc,
-> that will impose thermal requirements on your system. That is not
-> configuration, but part of your board design and non-functional
-> requirement. To me, configuration would be something like saying you
-> want to use a specific keyboard layout, or defining your wifi card
-> channel, or display size, etc.
-> 
-> Here what is described and setup may get confused with configuration,
-> but it is not because what goes in DT in this case must be actually
-> derived from your HW needs. Putting a sensor  close to your battery has
-> a strong meaning behind. Same if you put a sensor close to your
-> processor. For instance, we have cases we need to consider external heat
-> in order to properly determine our CPU hotspot level, using a board
-> sensor. That is what I mean by HW requirement/need.
-> 
-> Again, just to refresh our minds, this is about protecting your board
-> and ICs from operating out of their spec and extending their lifetime.
-> This is not about configuring something just because user has chosen to.
-> That is definitely not a configuration.
-> 
-> Being a use case, well, these new DT nodes can still be seen as a use
-> case, yes. But depends on your understanding of use case. Because a
-> sensor device may be used on different needs, composing different use
-> cases. But still here we are talking about HW needs and composition. And
-> yes, if you take that perspective, there are use cases already described
-> in DT.
-> 
-> For instance, just because you use an LDO to power a MMC, does it mean
-> you always will use it to power MMC on all boards. Would that be a use
-> case? And in that example, because your MMC requires 2.8V, if you have a
-> DT property to say that, does it mean it is  configuration? Well, yes,
-> but that is based on HW needs, otherwise it wont operate properly. Same
-> thing here, leave your hw operating out of temperature specs and you
-> will see what is the outcome.
-> 
-> Similar example would be cpufreq, or OPPs for opp layer. Defining an OPP
-> in DT could be considered a configuration?  Well in theory yes, one can
-> pick what ever configuration for your (D)PLL then match with a
-> minimalist voltage level. And in theory, a voltage level can sustain
-> more than one frequency level. An OPP is still a virtual concept, and we
-> still describe it in DT. Why? To me is because it is a HW need, because
-> HW folks have actually validated that configuration of PLL (frequency)
-> and voltage level. Sometimes they have even optimized it (for low power
-> consumption for instance), as one may achieve same OPP with different
-> configuration. Then why thermal data, which is again, a 'HW
-> configuration' that has been optimized by HW folks, known to be a HW
-> requirement, cannot be described in DT?
-> 
-> Similar argument goes to the fact that one may think this is subsystem
-> specific. Again, describing your OPPs is not OPP layer specific?
-> Besides, one can still read the device tree nodes I have written for
-> describing thermal data and implement the HW requirement elsewhere, if
-> wanted (say in user land). I don't see as subsystem specific.
-> 
-> Keep in mind that these very same concepts are actually derived from
-> ACPI specification. They don't come from nowhere. And just because your
-> system does not have ACPI support, does not mean it won't have a need to
-> describe thermal?
-> 
-> So, because with this work (i) we are describing something that is
-> required for properly usage of your HW (and not choice of the user),
-> because (ii) same data is used on different specification (that is used
-> on different OSes too), because (iii) you don't need thermal fw to read
-> this data and you could implement the HW requirement elsewhere, because
-> (iv) there are other similar requirements already implemented via DT; I
-> still think this work is within DT scope. And that is based on evidence
-> of existing work not because DT is nice and I would want to use it.
-> 
-> Hope that clarifies.
-> 
-> Of course it is always welcome to hear ppl opinion. I would be really
-> interested to know what ppl from OF think about this topic.
-> 
-Yes, me too, or more widely the devicetree community. This is exactly
-why I brought it up.
-
-> If still, this does not fit DT, I would like to understand a proper
-> argument. Better than, this is configuration/use case.
-> 
-
-I am not a devicetree expert. One of the complaints by the devicetree
-folks is that much is added to devicetree which should not be there.
-I find this use case questionable. Maybe I am wrong and it isn't,
-which may well be. But you thought about it as well, so I don't think
-I am that far off track.
-
-This needs to be discussed and determined by devicetree experts, not me.
-I'll be happy with your patch series if you get an agreement or an Ack
-by the devicetree maintainer for your patch series.
+Many systems have multiple profiles for various use cases (high performance,
+low power etc), and limits are different based on the use case. If that means
+you are going to have multiple devicetree variants based on the profile,
+I would argue that you crossed the line. With thermal profiles it gets even more
+complicated, as those parameters may be played around with and changed
+multiple times to find the best settings to achieve optimal cooling.
+Does this describe hardware ? I don't think so, but, as I mentioned before,
+maybe I am wrong.
 
 Guenter
 
