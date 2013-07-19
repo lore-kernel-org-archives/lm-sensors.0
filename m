@@ -1,83 +1,122 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Date: Fri, 19 Jul 2013 18:48:39 +0000
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 19 Jul 2013 18:56:19 +0000
 Subject: Re: [lm-sensors] [RESEND PATCH V1 0/9] thermal: introduce DT thermal zone build
-Message-Id: <51E98A07.4050402@wwwdotorg.org>
+Message-Id: <51E98BD3.8000307@ti.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0636610180137043109=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com> <20130717220942.GB990@roeck-us.net> <51E7F341.8020508@ti.com> <51E8234D.1020607@wwwdotorg.org> <20130718212108.GC4110@roeck-us.net>
-In-Reply-To: <20130718212108.GC4110@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, l.stach@pengutronix.de
+References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com> <20130717220942.GB990@roeck-us.net> <51E7F341.8020508@ti.com> <20130718211154.GB4110@roeck-us.net> <51E9413C.2080007@ti.com> <51E98941.2090306@wwwdotorg.org>
+In-Reply-To: <51E98941.2090306@wwwdotorg.org>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Guenter Roeck <linux@roeck-us.net>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, l.stach@pengutronix.de
 
-On 07/18/2013 03:21 PM, Guenter Roeck wrote:
-> On Thu, Jul 18, 2013 at 11:18:05AM -0600, Stephen Warren wrote:
->> On 07/18/2013 07:53 AM, Eduardo Valentin wrote:
->>> Hello Guenter,
+--===============0636610180137043109==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="----enig2EJNRIGLQXUVRFXKOPBFB"
+
+------enig2EJNRIGLQXUVRFXKOPBFB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 19-07-2013 14:45, Stephen Warren wrote:
+> On 07/19/2013 07:38 AM, Eduardo Valentin wrote:
+>> On 18-07-2013 17:11, Guenter Roeck wrote:
+>>> On Thu, Jul 18, 2013 at 09:53:05AM -0400, Eduardo Valentin
+>>> wrote:
+>>>> Hello Guenter,
+>>>>
+>>>> On 17-07-2013 18:09, Guenter Roeck wrote:
+>>>>> On Wed, Jul 17, 2013 at 11:17:19AM -0400, Eduardo Valentin
+>>>>> wrote:
+>>>>>> Hello all,
+>>>>>>
+>>>>>> As you noticed, I am working in a way to represent thermal
+>>>>>> data using device tree [1]. Essentially, this should be a
+>>>>>> way to say what to do with a sensor and how to associate
+>>>>>> (cooling) actions with it.
+>>>>>>
+>>>>> Seems to me that goes way beyond the supposed scope of
+>>>>> devicetree data. Devicetree data is supposed to describe
+>>>>> hardware, not its configuration or use. This is clearly a use
+>>>>> case.
+>>>>
+>>>> Thanks for rising your voice here. It is important to know what
+>>>> hwmon ppl think about this.
+>>>>
+>>> Sorry, I don't know what ppl stands for.
 >>>
->>> On 17-07-2013 18:09, Guenter Roeck wrote:
->>>> On Wed, Jul 17, 2013 at 11:17:19AM -0400, Eduardo Valentin
->>>> wrote:
->>>>> Hello all,
 >>>>>
->>>>> As you noticed, I am working in a way to represent thermal
->>>>> data using device tree [1]. Essentially, this should be a way
->>>>> to say what to do with a sensor and how to associate (cooling)
->>>>> actions with it.
->>>>>
->>>> Seems to me that goes way beyond the supposed scope of devicetree
->>>> data. Devicetree data is supposed to describe hardware, not its
->>>> configuration or use. This is clearly a use case.
->>>
->>> Thanks for rising your voice here. It is important to know what
->>> hwmon ppl think about this.
+>>>>> Guenter
+>>>>
+>>>> As your answers to the series are giving same argument, I chose
+>>>> to answer on patch 0. I would be happier if you could elaborate
+>>>> a bit more on your concern, specially if you take hwmon cap
+>>>> here, and give your view with that perspective.
+>>>>
+>>>> I also considered that this work could be abusing of DT
+>>>> purposes. But let me explain why I still think it makes sense
+>>>> to have it.
+>>>>
+>>> Ultimately, you are making my point here. If you considered it,
+>>> did you ask devicetree experts for an opinion ? Did you discuss
+>>> the subject on the devicetree-discuss mailing list ? If so, what
+>>> was the result ?
 >>
->> I meant to find time to read Guenter's original email where he
->> initially objected to putting data into DT, and determine exactly what
->> was being objected to. I still haven't:-( However, the arguments that
->> Eduardo stated in his email do make sense to me; I agree that
->> temperature limits really are a description of HW. Details of which
->> cooling methods to invoke when certain temperature limits are reached
->> is also part of the HW/system design, and hence I would tend to agree
->> that they're appropriate to include in DT. Anyway, that's just my 2
->> cents on the matter:-)
-> 
-> Many systems have multiple profiles for various use cases (high performance,
-> low power etc), and limits are different based on the use case. If that means
-> you are going to have multiple devicetree variants based on the profile,
-> I would argue that you crossed the line.
+>> Although I have asked, I didn't get any feedback.=20
+>> https://lkml.org/lkml/2013/4/11/760
+>>
+>> But now I am requesting feedback in a formal (patch) way.
+>>
+>> Consider this patch series as official request for (devicetree
+>> experts and everyone involved) opinions.
+>=20
+> I might suggest (a) sending the email "To" the DT maintainer, rather
+> than just CC'ing him, (b) perhaps start a new thread just to present
+> the proposed DT binding, and get feedback on that. A thread with a new
+> subject like "[RFC] DT binding for thermal zones" might get more
+> attention than a patch submission; the subject line of this patch
+> doesn't stand much (since it implies to me it's more about build
+> issues than DT bindings even though it does mention DT).
+>=20
 
-Yes, I can see that argument. However, a counter-point:
+OK. I will do that.  Sounds reasonable. Resending this series as RFC
+again, but now addressed to DT folks.
 
-* I believe we do need a DT binding to describe the absolute thermal
-limits of a system, for safety/correctness of system operation.
+>=20
 
-* We need to define a syntax/schema to represent that.
 
-* If we then want to implement additional profiles with stricter limits,
-do we really want to invent a different syntax/schema to represent
-those? Representing them in the same way seems like good use of the
-design, mind-share, etc.
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
 
-* Perhaps that doesn't mean that the additional profiles have to be in
-DT though; just that we somehow make any other representation of those
-profiles as close to the DT representation in syntax/structure as we
-can, to get maximum re-use.
+Eduardo Valentin
 
-> With thermal profiles it gets even more
-> complicated, as those parameters may be played around with and changed
-> multiple times to find the best settings to achieve optimal cooling.
 
-To me, that sounds more like fixing a bug in the initial data, rather
-than something which fundamentally affects how the data should be
-represented.
+------enig2EJNRIGLQXUVRFXKOPBFB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> Does this describe hardware ? I don't think so, but, as I mentioned before,
-> maybe I am wrong.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
+iF4EAREIAAYFAlHpi9MACgkQCXcVR3XQvP0SygD9E4+vYpXP4fXBPyphBsmiXA7P
+uJGfRTR/JxqVNuAe2WgBAMNH4RaYCQfr2IiTGC+HIvlpbyv0jviLDXFxBrDbo4QS
+=vAfR
+-----END PGP SIGNATURE-----
+
+------enig2EJNRIGLQXUVRFXKOPBFB--
+
+
+--===============0636610180137043109==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0636610180137043109==--
