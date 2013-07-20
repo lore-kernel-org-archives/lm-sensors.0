@@ -1,135 +1,43 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:17:25 +0000
-Subject: [lm-sensors] [RESEND PATCH V1 6/9] thermal: ti-soc-thermal: use thermal DT infrastructure
-Message-Id: <1374074248-31690-7-git-send-email-eduardo.valentin@ti.com>
+From: Insop Song <insop.song@gmail.com>
+Date: Sat, 20 Jul 2013 17:25:01 +0000
+Subject: [lm-sensors] Configuring PMbus VOUT_COMMAND
+Message-Id: <CACzyEJ9tdP9PhnPFmcS9VoEtr+27HZfoLPdxZ0O_O=wfYEQ6wA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree-discuss@lists.ozlabs.org
-Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>
+To: lm-sensors@vger.kernel.org
 
-This patch improves the ti-soc-thermal driver by adding the
-support to build the thermal zones based on DT nodes.
+Hi Guenter,
 
-The driver will have two options now to build the thermal
-zones. The first option is the zones originally coded
-in this driver. So, the driver behavior will be same
-if there is no DT node describing the zones. The second
-option, when it is found a DT node with thermal data,
-will used the common infrastructure to build the thermal
-zone and bind its cooling devices.
+I am using "pmbus/ltc2978.c" to use ltc3880
+(http://cds.linear.com/docs/en/datasheet/3880fa.pdf)
 
-In case the driver loads thermal data using the legacy
-mode, this driver still adds to the system
-a cpufreq cooling device. Loading the thermal data from
-DT, the driver assumes someone else will add the cpufreq
-cooling device, like the cpufreq driver.
+I wanted to configure VOUT_COMMAND (0x21, nominal output voltage set
+point) to adjust supply voltage per device.
 
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 46 +++++++++++++++++-----
- 1 file changed, 36 insertions(+), 10 deletions(-)
+VOUT_COMMAND is not exposed to sysfs for the right reasons, such as
+hwmon/pmbus subsystem is for mainly monitoring not commanding;
+moreover, to avoid error-prone operations to critical configurations.
+And I've read Documentation/hwmon/sysfs-interface recommendation.
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 4c5f55c37..de4e138 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -31,6 +31,7 @@
- #include <linux/cpufreq.h>
- #include <linux/cpumask.h>
- #include <linux/cpu_cooling.h>
-+#include <linux/of.h>
- 
- #include "ti-thermal.h"
- #include "ti-bandgap.h"
-@@ -75,11 +76,10 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
- 
- /* thermal zone ops */
- /* Get temperature callback function for thermal zone*/
--static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
--				      unsigned long *temp)
-+static inline int __ti_thermal_get_temp(void *devdata, unsigned long *temp)
- {
- 	struct thermal_zone_device *pcb_tz = NULL;
--	struct ti_thermal_data *data = thermal->devdata;
-+	struct ti_thermal_data *data = devdata;
- 	struct ti_bandgap *bgp;
- 	const struct ti_temp_sensor *s;
- 	int ret, tmp, slope, constant;
-@@ -117,6 +117,14 @@ static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
- 	return ret;
- }
- 
-+static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
-+				      unsigned long *temp)
-+{
-+	struct ti_thermal_data *data = thermal->devdata;
-+
-+	return __ti_thermal_get_temp(data, temp);
-+}
-+
- /* Bind callback functions for thermal zone */
- static int ti_thermal_bind(struct thermal_zone_device *thermal,
- 			   struct thermal_cooling_device *cdev)
-@@ -302,17 +310,27 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 	if (!data)
- 		return -EINVAL;
- 
--	/* Create thermal zone */
--	data->ti_thermal = thermal_zone_device_register(domain,
-+	/* in case this is specified by DT */
-+	if (of_find_node_by_name(bgp->dev->of_node, "thermal_zone")) {
-+		data->ti_thermal = thermal_zone_of_device_register(bgp->dev,
-+						data, __ti_thermal_get_temp);
-+		if (IS_ERR(data->ti_thermal)) {
-+			dev_err(bgp->dev, "failed to build of thermal zone\n");
-+			return PTR_ERR(data->ti_thermal);
-+		}
-+	} else {
-+		/* Create thermal zone */
-+		data->ti_thermal = thermal_zone_device_register(domain,
- 				OMAP_TRIP_NUMBER, 0, data, &ti_thermal_ops,
- 				NULL, FAST_TEMP_MONITORING_RATE,
- 				FAST_TEMP_MONITORING_RATE);
--	if (IS_ERR(data->ti_thermal)) {
--		dev_err(bgp->dev, "thermal zone device is NULL\n");
--		return PTR_ERR(data->ti_thermal);
-+		if (IS_ERR(data->ti_thermal)) {
-+			dev_err(bgp->dev, "thermal zone device is NULL\n");
-+			return PTR_ERR(data->ti_thermal);
-+		}
-+		data->ti_thermal->polling_delay = FAST_TEMP_MONITORING_RATE;
-+		ti_bandgap_set_sensor_data(bgp, id, data);
- 	}
--	data->ti_thermal->polling_delay = FAST_TEMP_MONITORING_RATE;
--	ti_bandgap_set_sensor_data(bgp, id, data);
- 
- 	return 0;
- }
-@@ -343,6 +361,14 @@ int ti_thermal_register_cpu_cooling(struct ti_bandgap *bgp, int id)
- {
- 	struct ti_thermal_data *data;
- 
-+	/*
-+	 * We are assuming here that if one deploys the zone
-+	 * using DT, then it must be aware that the cooling device
-+	 * loading has to happen via cpufreq driver.
-+	 */
-+	if (of_find_node_by_name(bgp->dev->of_node, "thermal_zone"))
-+		return 0;
-+
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 	if (!data || IS_ERR(data))
- 		data = ti_thermal_build_data(bgp, id);
--- 
-1.8.2.1.342.gfa7285d
+So instead of adding it to sysfs, I take a different direction and
+I've made a change within ltc2978.c to accommodate my need as follows:
+- add miscdevice to ltc2978
+- use ioctl to configure VOUT_COMMAND
 
+A quick prototype works fine, and before I proceed any further, I want
+to ask your inputs and suggestions on this directions.
+
+A patch sending out should be a next step, once I get your input.
+
+Please let me know what you think,
+
+Thank you,
+
+Regards,
+
+Insop Song
 
 _______________________________________________
 lm-sensors mailing list
