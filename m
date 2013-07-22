@@ -1,23 +1,29 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 22 Jul 2013 14:19:46 +0000
+Date: Mon, 22 Jul 2013 14:25:39 +0000
 Subject: [lm-sensors] RFC: device thermal limits represented in device tree nodes
-Message-Id: <51ED3F82.5040702@ti.com>
+Message-Id: <51ED40E3.5020703@ti.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0965049006788869434=="
+Content-Type: multipart/mixed; boundary="===============7944818027226243257=="
 List-Id: <lm-sensors.vger.kernel.org>
-To: Grant Likely <grant.likely@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Guenter Roeck <linux@roeck-us.net>, Stephen Warren <swarren@wwwdotorg.org>, Durgadoss R <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, Wei Ni <wni@nvidia.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, eduardo.valentin@ti.com
+References: <51ED3F82.5040702@ti.com>
+In-Reply-To: <51ED3F82.5040702@ti.com>
+To: Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Guenter Roeck <linux@roeck-us.net>, Stephen Warren <swarren@wwwdotorg.org>, Durgadoss R <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, Wei Ni <wni@nvidia.com>
+Cc: eduardo.valentin@ti.com, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
---===============0965049006788869434==
+--===============7944818027226243257==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="----enig2PNFQQMCWODEPWMXRIUUC"
+	boundary="----enig2GMSSEWKGMJVHNNELKSIB"
 
-------enig2PNFQQMCWODEPWMXRIUUC
+------enig2GMSSEWKGMJVHNNELKSIB
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
 Hello Grant and Rob,
+
+(Resending, as I got a message saying:
+<devicetree-discuss@lists.ozlabs.org>: Recipient address rejected: User
+has moved to devicetree at vger.kernel.org)
 
 I am writing this email to you specifically to ask your technical
 assessment with respect to representing device thermal limits as device
@@ -170,7 +176,9 @@ You have got to be excited about what you are doing. (L. Lamport)
 Eduardo Valentin
 
 
-------enig2PNFQQMCWODEPWMXRIUUC
+
+
+------enig2GMSSEWKGMJVHNNELKSIB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -179,15 +187,15 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iF4EAREIAAYFAlHtP4gACgkQCXcVR3XQvP1y2AD/c8kTeOpdhBoGIf4ZeLiNr8XZ
-dV8mn1D42TOXBYoFVHkBANvhqYIPI1imJbGg1Laf+kHD6umvcYw/rvcOTJBD/PqQ
-=cUC9
+iF4EAREIAAYFAlHtQOQACgkQCXcVR3XQvP2MXQD+J+QCiegC3ZlsjubbV/pz2AYJ
++x13MdKcHshyhdm8Rc4A/Ru+e0NG2kBIjSSS1a5qLj6O9fywxAhccc3IyS03LCFK
+=bDq5
 -----END PGP SIGNATURE-----
 
-------enig2PNFQQMCWODEPWMXRIUUC--
+------enig2GMSSEWKGMJVHNNELKSIB--
 
 
---===============0965049006788869434==
+--===============7944818027226243257==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -197,4 +205,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0965049006788869434==--
+--===============7944818027226243257==--
