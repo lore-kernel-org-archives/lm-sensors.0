@@ -1,44 +1,82 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Date: Mon, 22 Jul 2013 19:43:43 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 22 Jul 2013 21:46:47 +0000
 Subject: Re: [lm-sensors] [RESEND PATCH V1 0/9] thermal: introduce DT thermal zone build
-Message-Id: <51ED8B6F.6020700@wwwdotorg.org>
+Message-Id: <20130722214647.GA15765@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com> <20130717220942.GB990@roeck-us.net> <51E7F341.8020508@ti.com> <51E8234D.1020607@wwwdotorg.org> <20130718212108.GC4110@roeck-us.net> <51E98A07.4050402@wwwdotorg.org> <20130721110807.GC24303@roeck-us.net>
-In-Reply-To: <20130721110807.GC24303@roeck-us.net>
+References: <1374074248-31690-1-git-send-email-eduardo.valentin@ti.com>
+ <20130717220942.GB990@roeck-us.net>
+ <51E7F341.8020508@ti.com>
+ <51E8234D.1020607@wwwdotorg.org>
+ <20130718212108.GC4110@roeck-us.net>
+ <51E98A07.4050402@wwwdotorg.org>
+ <20130721110807.GC24303@roeck-us.net>
+ <51ED8B6F.6020700@wwwdotorg.org>
+In-Reply-To: <51ED8B6F.6020700@wwwdotorg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, devicetree-discuss@lists.ozlabs.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, l.stach@pengutronix.de
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, devicetree@vger.kernel.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, l.stach@pengutronix.de
 
-On 07/21/2013 04:08 AM, Guenter Roeck wrote:
-> ... [a bunch of good points re: why DT shouldn't describe thermal
-> profiles]
+On Mon, Jul 22, 2013 at 12:43:43PM -0700, Stephen Warren wrote:
+> On 07/21/2013 04:08 AM, Guenter Roeck wrote:
+> > ... [a bunch of good points re: why DT shouldn't describe thermal
+> > profiles]
+> 
+> Yes, lots of good arguments there.
+> 
+> So, where/how in your opinion should thermal profiles be defined, and
+> how should they get into the kernel? The nice thing about DT is that
+> it's a single place that describes the platform, with a well-defined
+> method of getting that information into the kernel. What alternatives exist?
+> 
+Excellent but quite different question. Quite frankly, I would love to be able
+to use DT to describe a platform and its configuration and use instead of just
+its hardware. Just like with thermal data, it would be great if I could use
+devicetree information to describe limits for hwmon devices and configuration
+information for all kinds of devices. This would simplify my life a lot.
+Unfortunately, that is not how it works, so one ends up with pre-configuring
+devices on ROMMON or secondary methods such as sensors.conf for hwmon devices.
+Sure, that all works, but for embedded devices it means I have to re-build the
+root file system each time a limit is changed. It _would_ be much simpler to
+just be able to change the limit(s) in devicetree data and be done.
 
-Yes, lots of good arguments there.
+So, no, I don't have a good other solution. I have seen attempts to implement a
+user-space 'parallel' devicetree, or the above mentioned sensors.conf file, but
+nothing comprehensive. If you find a good generic solution, let me know.
 
-So, where/how in your opinion should thermal profiles be defined, and
-how should they get into the kernel? The nice thing about DT is that
-it's a single place that describes the platform, with a well-defined
-method of getting that information into the kernel. What alternatives exist?
+Note that ACPI is an attempt to do that, but its scope is not limited to
+describing the hardware, and it is not available on non-Intel embedded systems.
+Also, it is typically controlled by another entity in a company (the BIOS
+engineers), who tend to be highly resistive to changes. Modifying ACPI
+data tends to be way more difficult than modifying devicetree data.
 
-> Other but related subject .. from a thermal / hwmon driver's perspective, if
-> such a driver supports thermal subsystem, it should just register itself as
-> thermal sensor device, because that is what it is. If and how it is tied to
-> cooling devices should be part of the thermal subsystem and be decided there.
+> > Other but related subject .. from a thermal / hwmon driver's perspective, if
+> > such a driver supports thermal subsystem, it should just register itself as
+> > thermal sensor device, because that is what it is. If and how it is tied to
+> > cooling devices should be part of the thermal subsystem and be decided there.
+> 
+> For audio, we have individual DT nodes that represent individual
+> audio-related components such as audio controllers, audio CODECs, etc.
+> We also have a "virtual" node that describes how those components
+> interact and create a complete sound card. Would it make sense to do
+> something similar with thermal sensors and cooling devices; represent
+> them all individually, have them register themselves with the
+> thermal/hwmon subsystem as you describe, but then have another "system
+> level" node that describes how the system designer intended them to
+> interact?
+> 
+For device registration itself, definitely. An instance of a sensor driver
+should not have to know how (or if) it is used by the system, just like a gpio
+driver does not have to know if and how the gpio pins it provides are used.
 
-For audio, we have individual DT nodes that represent individual
-audio-related components such as audio controllers, audio CODECs, etc.
-We also have a "virtual" node that describes how those components
-interact and create a complete sound card. Would it make sense to do
-something similar with thermal sensors and cooling devices; represent
-them all individually, have them register themselves with the
-thermal/hwmon subsystem as you describe, but then have another "system
-level" node that describes how the system designer intended them to
-interact?
+Binding is the tricky question here, as it is all virtual and, as you said
+yourself, describes the interaction and thus use of the various sensors and
+cooling devices to accomplish the ultimate goal of keeping the system in an
+acceptable temperature range. Hopefully you'll get an answer from the
+devicetree experts if your intended devicetree usage of it is acceptable.
 
-If you don't think so, how would the kernel represent and gain that
-higher-level knowledge?
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
