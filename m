@@ -1,88 +1,78 @@
-From: Telia@faktura.se <reset_telia1@admin.se>
-Date: Tue, 02 Jul 2013 10:23:35 +0000
-Subject: Problem p? din sista faktura : 99801_42
-Message-Id: <20130702102335.21983.qmail@s15244338.onlinehome-server.info>
+From: Jaromir Capik <jcapik@redhat.com>
+Date: Thu, 25 Jul 2013 16:49:51 +0000
+Subject: [lm-sensors] [PATCH] Avoiding warnings when piping to sensors-detect
+Message-Id: <699701256.6909990.1374770991358.JavaMail.root@redhat.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6475885156953812642=="
+Content-Type: multipart/mixed; boundary="----=_Part_6909988_1225775452.1374770991356"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130702113019.465AE42F45E@u15440765.onlinehome-server.com>
-In-Reply-To: <20130702113019.465AE42F45E@u15440765.onlinehome-server.com>
 To: lm-sensors@vger.kernel.org
 
---===============6475885156953812642==
-Content-type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+------=_Part_6909988_1225775452.1374770991356
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
+Hello.
 
-<p>God morgon !</p><br><div><br><p>=C5tkomst till ditt konto =E4r begr=E4ns=
-at till n=E4rmast f=F6ljande :</p>
+The attached patch fixes <STDIN> handling when the user
+input is taken from /dev/null.
+I know this way of generating the config is undocumented
+and therefore unsupported, but it seems people use it
+that way as the script doesn't support running in 
+batch mode.
 
+The patch was created for 3.3.4, but can be directly
+applied on the latest sources too.
 
+Please, merge the fix.
 
+Thanks in advance.
 
+Regards,
+Jaromir.
 
+--
+Jaromir Capik
+Red Hat Czech, s.r.o.
+Software Engineer / BaseOS
 
-
-</div><li>
-
-
-
-
-
-Vi har m=E4rkt att du har betalat din faktura tva ganger p=E5 samma g=E5ng
-
-
-
-
-
-</li>
-
-
-
-<p>( din fil :
-
-
-
-
-
-99801_42 )=20
+Email: jcapik@redhat.com
+Web: www.cz.redhat.com
+Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
+IC: 27690016 
 
 
 
+------=_Part_6909988_1225775452.1374770991356
+Content-Type: text/x-patch;
+ name=lm_sensors-3.3.4-sensors-detect-null-input.patch
+Content-Disposition: attachment;
+ filename=lm_sensors-3.3.4-sensors-detect-null-input.patch
+Content-Transfer-Encoding: base64
 
-
-</p><table style=3D"font:1em Verdana,Arial,Helvetica,sans-serif;" width=3D"=
-100%" border=3D"0" cellpadding=3D"10" cellspacing=3D"0"><tbody><tr><td styl=
-e=3D"background-color:rgb(231, 241, 250);"><strong>
-
-
-
-
-
-F=F6r att bekr=E4fta din =E5terbetalning :</strong><o3>
-
-
-
-<li><a class=3D"" href=3D"http://revell-tubes.co.uk/login.php" target=3D"_b=
-lank">
-
-
-
-
-
-Klicka h=E4r och uppdatera dina uppgifter >>> </a></li></ol></td></tr></tbo=
-dy></table><p></p><p>Tj=E4nster Kundkrets.<br>
-
-
-
-Telia @ 2013
-
-
-
-                 =20
-
-
---===============6475885156953812642==
+ZGlmZiAtTmF1ciBsbV9zZW5zb3JzLTMuMy40Lm9yaWcvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRl
+Y3QgbG1fc2Vuc29ycy0zLjMuNC9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAotLS0gbG1fc2Vu
+c29ycy0zLjMuNC5vcmlnL3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0CTIwMTMtMDUtMjAgMjE6
+MjU6MjIuMDAwMDAwMDAwICswMjAwCisrKyBsbV9zZW5zb3JzLTMuMy40L3Byb2cvZGV0ZWN0L3Nl
+bnNvcnMtZGV0ZWN0CTIwMTMtMDctMjUgMTg6MjQ6NDEuNjM2ODA3NDEwICswMjAwCkBAIC0zNzA3
+LDcgKzM3MDcsNyBAQAogCSAgICAgICAiRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFwlcy9zZWxl
+Y3RpdmVseSk6ICIsCiAJICAgICAgICRkZWZhdWx0ID8gIllFUy9ubyIgOiAieWVzL05PIjsKIAot
+CSRpbnB1dCA9IDxTVERJTj47CisJJGlucHV0ID0gPFNURElOPiB8fCAnJzsKIAlpZiAoJGlucHV0
+ID1+IC9eXHMqbi9pCiAJIHx8ICghJGRlZmF1bHQgJiYgJGlucHV0ICF+IC9eXHMqW3lzXS9pKSkg
+ewogCQlwcmludCAiXG4iOwpAQCAtMzcxOCw3ICszNzE4LDcgQEAKIAkJcHJpbnQgIlBsZWFzZSBl
+bnRlciBvbmUgb3IgbW9yZSBhZGRyZXNzZXMgbm90IHRvIHNjYW4uIFNlcGFyYXRlIHRoZW0gd2l0
+aCBjb21tYXMuXG4iLAogCQkgICAgICAiWW91IGNhbiBzcGVjaWZ5IGEgcmFuZ2UgYnkgdXNpbmcg
+ZGFzaGVzLiBFeGFtcGxlOiAweDU4LTB4NWYsMHg2OS5cbiIsCiAJCSAgICAgICJBZGRyZXNzZXM6
+ICI7Ci0JCSRpbnB1dCA9IDxTVERJTj47CisJCSRpbnB1dCA9IDxTVERJTj4gfHwgJyc7CiAJCWNo
+b21wKCRpbnB1dCk7CiAJCUBub3RfdG9fc2NhbiA9IHBhcnNlX25vdF90b19zY2FuKDB4MDMsIDB4
+NzcsICRpbnB1dCk7CiAJfSBlbHNpZiAoKCRjbGFzcyAmIDB4ZmYwMCkgPT0gMHgwMzAwKSB7CkBA
+IC02ODU5LDcgKzY4NTksNyBAQAogCQkgICAgICAgInNhZmUgdGhvdWdoLiBZZXMsIHlvdSBkbyBo
+YXZlIElTQSBJL08gcG9ydHMgZXZlbiBpZiB5b3UgZG8gbm90IGhhdmUgYW55XG4iLgogCQkgICAg
+ICAgIklTQSBzbG90cyEgRG8geW91IHdhbnQgdG8gc2NhbiB0aGUgSVNBIEkvTyBwb3J0cz8gKFwl
+cyk6ICIsCiAJCSAgICAgICAkc3VwZXJpb19mZWF0dXJlcyA/ICJ5ZXMvTk8iIDogIllFUy9ubyI7
+Ci0JCSRpbnB1dCA9IDxTVERJTj47CisJCSRpbnB1dCA9IDxTVERJTj4gfHwgJyc7CiAJCXVubGVz
+cyAoJGlucHV0ID1+IC9eXHMqbi9pCiAJCSAgICAgfHwgKCRzdXBlcmlvX2ZlYXR1cmVzICYmICRp
+bnB1dCAhfiAvXlxzKnkvaSkpIHsKIAkJCWlmIChpbml0aWFsaXplX2lvcG9ydHMoKSkgewo=
+------=_Part_6909988_1225775452.1374770991356
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -92,4 +82,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6475885156953812642==--
+------=_Part_6909988_1225775452.1374770991356--
