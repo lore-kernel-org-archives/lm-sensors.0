@@ -1,7 +1,7 @@
-From: Jaromir Capik <jcapik@redhat.com>
-Date: Fri, 26 Jul 2013 10:01:30 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 26 Jul 2013 12:58:38 +0000
 Subject: Re: [lm-sensors] [PATCH] Avoiding warnings when piping to sensors-detect
-Message-Id: <496833531.7275762.1374832890632.JavaMail.root@redhat.com>
+Message-Id: <20130726145838.261d4096@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <699701256.6909990.1374770991358.JavaMail.root@redhat.com>
 In-Reply-To: <699701256.6909990.1374770991358.JavaMail.root@redhat.com>
@@ -10,70 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean.
+Hi Jaromir,
 
-> Hi Jaromir,
-> 
-> On Thu, 25 Jul 2013 12:49:51 -0400 (EDT), Jaromir Capik wrote:
-> > The attached patch fixes <STDIN> handling when the user
-> > input is taken from /dev/null.
-> > I know this way of generating the config is undocumented
-> > and therefore unsupported, but it seems people use it
-> > that way as the script doesn't support running in
-> > batch mode.
+On Fri, 26 Jul 2013 06:01:30 -0400 (EDT), Jaromir Capik wrote:
+> > Hmm, as far as I can see this solves the same problem as this patch of
+> > mine I posted some months ago:
+> > http://marc.info/?l=lm-sensors&m5091022118747&w=2
 > > 
-> > The patch was created for 3.3.4, but can be directly
-> > applied on the latest sources too.
+> > The only reason why I did not commit it yet is that I was waiting for
+> > feedback, but the original requester never provided it :(
 > > 
-> > Please, merge the fix.
+> > If my patch works for you and your users then I'll just apply it.
 > 
-> Hmm, as far as I can see this solves the same problem as this patch of
-> mine I posted some months ago:
-> http://marc.info/?l=lm-sensors&m5091022118747&w=2
+> I was unable to apply your patch directly, but
+> I believe it must work correctly.
+
+Maybe the list archive corrupted it. I have made it available at:
+http://khali.linux-fr.org/devel/lm-sensors/sensors-detect-implement-auto-mode.patch
+
+> Having a switch is always better than piping.
+> However, I know about users who already built their
+> solution with redirection and that's why I'd like to
+> propose one tiny modification of your patch in order
+> to make it more robust for cases like that.
 > 
-> The only reason why I did not commit it yet is that I was waiting for
-> feedback, but the original requester never provided it :(
+> Please, teplace the following line:
 > 
-> If my patch works for you and your users then I'll just apply it.
+> 	return <STDIN>;
+> 
+> with this:
+> 
+> 	return <STDIN> || '';
+> 
+> 
+> This would prevent the script from printing warnings about uninitialised
+> value. <STDIN> acts as uninitialised value when there are no more data
+> on the standard input. The modified expression returns empty string instead.
 
-I was unable to apply your patch directly, but
-I believe it must work correctly.
-Having a switch is always better than piping.
-However, I know about users who already built their
-solution with redirection and that's why I'd like to
-propose one tiny modification of your patch in order
-to make it more robust for cases like that.
+Yes, I understand that. However I'm not sure we want to encourage
+people to use this. --auto has the advantage that we could decide to
+change the behavior based on feedback, maybe adding different
+sub-options for different use cases or diverging from the interactive
+defaults. OTOH piping is out of our control and will just use the
+default answer to all interactive questions.
 
-Please, teplace the following line:
+But I do agree that the warnings are ugly and should be avoided in all
+cases. My proposal would be to first detect when <STDIN> can't be read
+(eof(STDIN) should do) and bail out with an error message pointing the
+user to the new --auto parameter.
 
-	return <STDIN>;
+Would it be OK with you? Or do you prefer that we keep supporting the
+old way, even if it was never documented? If so, we could still print a
+warning but go on, and remove support for piping in a couple years,
+when everyone have updated their scripts.
 
-with this:
-
-	return <STDIN> || '';
-
-
-This would prevent the script from printing warnings about uninitialised
-value. <STDIN> acts as uninitialised value when there are no more data
-on the standard input. The modified expression returns empty string instead.
-
-Regardless of the fact, that users should not use it that way,
-it's more safe/correct.
-
-Thanks in advance.
-
-Regards,
-Jaromir.
-
---
-Jaromir Capik
-Red Hat Czech, s.r.o.
-Software Engineer / BaseOS
-
-Email: jcapik@redhat.com
-Web: www.cz.redhat.com
-Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
-IC: 27690016 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
