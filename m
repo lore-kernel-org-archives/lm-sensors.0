@@ -1,178 +1,121 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 17 Jul 2013 15:10:54 +0000
-Subject: Re: [lm-sensors] [PATCH 0/9] thermal: introduce DT thermal zone build
-Message-Id: <51E6B3FE.2010000@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1628929844818514013=="
+From: Harald Judt <h.judt@gmx.at>
+Date: Sun, 28 Jul 2013 20:43:36 +0000
+Subject: Re: [lm-sensors] w83627ehf: Wrong values reported after resuming from suspend/hibernation
+Message-Id: <51F58278.7070600@gmx.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============1628929844818514013==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="----enig2TXBWLCJPUHKTMKLIHDHX"
-
-------enig2TXBWLCJPUHKTMKLIHDHX
-Content-Type: text/plain; charset=UTF-8
+References: <50856051.5070803@gmx.at>
+In-Reply-To: <50856051.5070803@gmx.at>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
 Hi,
 
-On 17-07-2013 11:02, Eduardo Valentin wrote:
-> Hello all,
+Am 22.10.2012 23:40, schrieb Guenter Roeck:
+> On Mon, Oct 22, 2012 at 05:03:45PM +0200, Harald Judt wrote:
+>> Hi,
+>>
+>> After resuming from suspend or hibernation, the Vbat value is
+>> reported to be 0.0. Before that, it reported the correct value.
+>> Min/max values are wrong too.
+>>
+>> Linux-3.6.2, ASRock Z77 Extreme4 BIOS v1.80.
+>>
+>> Before suspend:
+>> nct6776-isa-0290
+>> Adapter: ISA adapter
+>> Vcore:         +0.97 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+>> in1:           +1.84 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> AVCC:          +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> +3.3V:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> in4:           +1.04 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> 3VSB:          +3.47 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> Vbat:          +3.31 V  (min =3D  +2.70 V, max =3D  +3.63 V)
+>> fan1:            0 RPM  (min =3D    0 RPM)  ALARM
+>> fan2:         1289 RPM  (min =3D    0 RPM)  ALARM
+>> fan3:          724 RPM  (min =3D    0 RPM)  ALARM
+>> fan4:          661 RPM  (min =3D    0 RPM)  ALARM
+>> fan5:         1076 RPM  (min =3D    0 RPM)  ALARM
+>> SYSTIN:        +37.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
+>> sensor =3D thermistor
+>> CPUTIN:        +28.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D
+>> thermistor
+>> AUXTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D
+>> thermistor
+>> PECI Agent 0:  +32.0=B0C
+>> cpu0_vid:     +0.000 V
+>> intrusion0:   ALARM
+>> intrusion1:   ALARM
+>>
+>> After resuming:
+>> nct6776-isa-0290
+>> Adapter: ISA adapter
+>> Vcore:         +0.97 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+>> in1:           +1.84 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> AVCC:          +3.34 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> +3.3V:         +3.34 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> in4:           +1.03 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> 3VSB:          +3.47 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+>> Vbat:          +0.00 V  (min =3D  +0.00 V, max =3D  +0.00 V)
+>> fan1:            0 RPM  (min =3D    0 RPM)  ALARM
+>> fan2:         1271 RPM  (min =3D    0 RPM)  ALARM
+>> fan3:          734 RPM  (min =3D    0 RPM)  ALARM
+>> fan4:          673 RPM  (min =3D    0 RPM)  ALARM
+>> fan5:         1093 RPM  (min =3D    0 RPM)  ALARM
+>> SYSTIN:        +36.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
+>> sensor =3D thermistor
+>> CPUTIN:        +26.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D
+>> thermistor
+>> AUXTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D
+>> thermistor
+>> PECI Agent 0:  +30.0=B0C
+>> cpu0_vid:     +0.000 V
+>> intrusion0:   ALARM
+>> intrusion1:   ALARM
+>>
+>> Reloading the module helps. Of course, a fresh boot too ;-)
+>>
+> The driver doesn't implement suspend/resume support, so it is not very
+> surprising that the limits get lost - and it looks like vbat monitoring
+> is disabled by default, so that gets lost as well.
 >=20
+> Someone would have to submit a patch to add suspend/resume support to
+> the driver ... any takers out there ?
+>=20
+> Thanks,
+> Guenter
 
+A while ago, support for suspend/resume has been added and this issue
+was fixed and values are now preserved during suspend/resume.
 
-Looks like I sent duplicated series. Please consider the series
-containing 9 patches. I will resend with proper set.
+3300fb4f88688029fff8dfb9ec0734f6e4cba3e7 hwmon: (w83627ehf) Force
+initial bank selection
+7e630bb55a52cfaa35011c0ebc2efc96f13e5135 hwmon: (w83627ehf) Add support
+for suspend
 
+But now with kernel 3.11-rc2, I noticed it only works in case of
+suspend/resume, not hibernate/resume. I'm not sure this worked properly
+with kernel 3.6.2 with the patch applied, though I think it did, but I
+don't have that version available for verification at the moment. Of
+course, I could test if necessary. Perhaps there is more to do for
+hibernate/resume than for suspend/resume?
 
-> As you noticed, I am working in a way to represent thermal data
-> using device tree [1]. Essentially, this should be a way to say
-> what to do with a sensor and how to associate (cooling) actions
-> with it.
->=20
-> The motivation to create such infrastructure is:
-> (i) - to reuse the existing temperature sensor code base;
-> (ii) - have a way to easily describe thermal data across different
-> boards for the same sensor. Say you have an i2c temp sensor,
-> which is placed close to your battery on board A but on
-> board B, another instance of this same senor is placed
-> close to your display, for instance.
->=20
-> This series introduces then a DT parser. The data expected in
-> DT must contain the needed properties to build a thermal zone
-> out of the desired sensor. All properties are documented and
-> they are derived from the existing requirements of current
-> thermal API.
->=20
-> In order to perform a binding with cooling devices,
-> the new thermal zone built using DT nodes will use
-> the existing thermal API that uses binding parameters. This is
-> the current proposed way to register thermal zones with platform
-> information, written by Durga.
->=20
-> There are some virtual concepts that are pushed to device tree,
-> I know. But I believe using device tree to do this makes sense
-> because we are still describing the HW and how they are related
-> to each other. Things like cooling devices are not represented
-> in device tree though, as I believe that will cause a lot of
-> confusion with real devices (as already does).
->=20
-> So the series is short but I think it makes sense to describe
-> how it is organized, as it touches several places. First four
-> patches are a preparation for this parser. There is a change
-> on cpufreq-cpu0, so that it knows now how to load its
-> corresponding cooling device. There is a change on thermal_core
-> to split its hwmon code, because I think we may need to improve
-> this code base when we start to integrate better with hwmon
-> temperature sensors. Then, another needed preparation is to
-> improve the bind_params, so that we are able to bind with
-> upper and lower limits. The remaining patches are the changes
-> with the proposed DT parser. A part from the DT thermal zone
-> builder itself (patch 05), I also changed the ti-soc-thermal
-> driver to use this new API and the omap4430 bandgap DT node,
-> as an example (this has been tested on panda omap4430); and also change=
-d
-> the hwmon drivers lm75 and tmp102 to have the option to build
-> a thermal zone using DT. I haven't touched any dts file using
-> lm75 or tmp102 because this should come on a need basis.
->=20
-> I believe this code is pretty usable the way it is, but might
-> need to be revisited, in case the enhancement proposed by Durga
-> get in. This is because representing virtual thermal zones
-> built out of several sensors may need a different representation
-> in DT.
->=20
-> [1] - RFC of this work:
-> http://comments.gmane.org/gmane.linux.power-management.general/35874
->=20
-> Changes from RFC:
-> - Added a way to load cpufreq cooling device out of DT
-> - Added a way to bind with upper and lower limits using bind_params
-> - Added a way to specify upper and lower binding limits on DT
-> - Added DT thermal builder support to lm75 and tmp102 hwmon drivers
-> - Changed ERANGE to EDOM
-> - Added thermal constants for zone type and bind limit, so that
->   dts file could be more readable
->=20
-> Tested on panda omap4430 (3.11-rc1 with minor changes for getting cpufr=
-eq working)
->=20
-> BR,
->=20
-> Eduardo Valentin (9):
->   cpufreq: cpufreq-cpu0: add dt node parsing for 'needs-cooling'
->   thermal: hwmon: move hwmon support to single file
->   thermal: thermal_core: allow binding with limits on bind_params
->   arm: dts: flag omap4430 with needs-cooling for cpu node
->   thermal: introduce device tree parser
->   thermal: ti-soc-thermal: use thermal DT infrastructure
->   arm: dts: add omap4430 thermal data
->   hwmon: lm75: expose to thermal fw via DT nodes
->   hwmon: tmp102: expose to thermal fw via DT nodes
->=20
->  .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |   3 +
->  .../devicetree/bindings/thermal/thermal.txt        | 133 ++++++
->  Documentation/thermal/sysfs-api.txt                |   7 +
->  arch/arm/boot/dts/omap443x.dtsi                    |  32 +-
->  drivers/cpufreq/cpufreq-cpu0.c                     |   8 +
->  drivers/hwmon/lm75.c                               |  29 ++
->  drivers/hwmon/tmp102.c                             |  25 ++
->  drivers/thermal/Kconfig                            |  22 +
->  drivers/thermal/Makefile                           |   4 +
->  drivers/thermal/thermal_core.c                     | 274 +-----------
->  drivers/thermal/thermal_dt.c                       | 458 +++++++++++++=
-++++++++
->  drivers/thermal/thermal_hwmon.c                    | 269 ++++++++++++
->  drivers/thermal/thermal_hwmon.h                    |  49 +++
->  drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  46 ++-
->  include/dt-bindings/thermal/thermal.h              |  27 ++
->  include/linux/thermal.h                            |  13 +
->  16 files changed, 1129 insertions(+), 270 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/thermal/thermal.t=
-xt
->  create mode 100644 drivers/thermal/thermal_dt.c
->  create mode 100644 drivers/thermal/thermal_hwmon.c
->  create mode 100644 drivers/thermal/thermal_hwmon.h
->  create mode 100644 include/dt-bindings/thermal/thermal.h
->=20
-
+Regards,
+Harald
 
 --=20
-You have got to be excited about what you are doing. (L. Lamport)
+`Experience is the best teacher.'
 
-Eduardo Valentin
-
-
-------enig2TXBWLCJPUHKTMKLIHDHX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlHms/4ACgkQCXcVR3XQvP2NPgEAjlxYm3M25SYAUisafjXTvnyi
-OZiWDjph1p2AhufqesoBAMMoOW8oTHWPvr4tWbMHkC5Hp1tzEn2yVA0a+vR1cGnS
-=7JzG
------END PGP SIGNATURE-----
-
-------enig2TXBWLCJPUHKTMKLIHDHX--
-
-
---===============1628929844818514013==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+PGP Key ID: 0xB29C7F8F
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1628929844818514013==--
