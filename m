@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 28 Jul 2013 21:43:56 +0000
+Date: Sun, 28 Jul 2013 22:28:33 +0000
 Subject: Re: [lm-sensors] w83627ehf: Wrong values reported after resuming from suspend/hibernation
-Message-Id: <51F5909C.8060209@roeck-us.net>
+Message-Id: <51F59B11.5050505@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50856051.5070803@gmx.at>
 In-Reply-To: <50856051.5070803@gmx.at>
@@ -110,11 +110,14 @@ sor =3D
 > course, I could test if necessary. Perhaps there is more to do for
 > hibernate/resume than for suspend/resume?
 >
-Can you test with the new nct6775 driver ? Probably it won't make a=20
-difference, but we'll likely drop nct6775/nct6776 support from the=20
-w83627ehf driver in the near future.
+It should not require anything special, and at first glance the code
+seems to be ok. Maybe hibernate (now) results in some secondary changes
+which we don't take into account.
 
-Either case, I'll have a look.
+It would be great if you can download
+	http://roeck-us.net/linux/bin/superiotool
+and run "sudo ./superiotool -d -e" before hibernation and after resume
+and send me the results.
 
 Thanks,
 Guenter
