@@ -1,14 +1,18 @@
 From: Harald Judt <h.judt@gmx.at>
-Date: Mon, 29 Jul 2013 09:12:49 +0000
+Date: Mon, 29 Jul 2013 15:27:35 +0000
 Subject: Re: [lm-sensors] w83627ehf: Wrong values reported after resuming from suspend/hibernation
-Message-Id: <51F63211.2010100@gmx.at>
+Message-Id: <51F689E7.1060201@gmx.at>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020202070806020409070403"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50856051.5070803@gmx.at>
 In-Reply-To: <50856051.5070803@gmx.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------020202070806020409070403
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
 Am 29.07.2013 08:58, schrieb Guenter Roeck:
 > On 07/28/2013 07:47 PM, Harald Judt wrote:
@@ -309,9 +313,17 @@ nsor =3D
 > Thanks,
 > Guenter
 
-Thanks for your suggestions; I will add similar lines to the suspend
-function, and depending on the result maybe hook up the suspend/resume
-functions to .thaw and .freeze to see if it works and helps.
+No, the suspend code did not run on hibernation, nor did the resume
+code. The documentation in Documentation/power/devices.txt does not
+say anything about the suspend/resume code being used for hibernation;
+Indeed it seems one has to treat that as a separate case because it's
+a more complicated process. The attached, rather trivial patch fixes
+this on my system. Using "thaw" however, the resume function would not
+be called, so I had to use "restore" which is analogous to the resume
+function when leaving hibernation. I'm not sure if one does not have
+to hook up a thaw function too (maybe so that it's called in case of
+error, but if it fails there may not be anything that can be done
+about it). So I think those two entries should suffice.
 
 Harald
 
@@ -320,7 +332,47 @@ Harald
 
 PGP Key ID: 0xB29C7F8F
 
+--------------020202070806020409070403
+Content-Type: text/x-patch;
+ name="0001-hwmon-nct6775-Add-support-for-hibernate.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-hwmon-nct6775-Add-support-for-hibernate.patch"
+
+From c3961cf2fa1d6975b9bcffeb746c57bda09e7489 Mon Sep 17 00:00:00 2001
+From: Harald Judt <h.judt@gmx.at>
+Date: Mon, 29 Jul 2013 17:00:27 +0200
+Subject: hwmon: (nct6775) Add support for hibernate
+
+---
+ drivers/hwmon/nct6775.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 99cec18..b66bc74 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -4056,6 +4056,8 @@ static int nct6775_resume(struct device *dev)
+ static const struct dev_pm_ops nct6775_dev_pm_ops = {
+ 	.suspend = nct6775_suspend,
+ 	.resume = nct6775_resume,
++	.freeze = nct6775_suspend,
++	.restore = nct6775_resume
+ };
+ 
+ #define NCT6775_DEV_PM_OPS	(&nct6775_dev_pm_ops)
+-- 
+1.8.3.2
+
+
+--------------020202070806020409070403
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020202070806020409070403--
