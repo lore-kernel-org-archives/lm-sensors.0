@@ -1,65 +1,91 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 29 Jul 2013 11:19:01 +0000
+From: Angelo Compagnucci <angelo.compagnucci@gmail.com>
+Date: Mon, 29 Jul 2013 13:24:33 +0000
 Subject: Re: [lm-sensors] Design decisions implementing an I2C LDD
-Message-Id: <51F64FA5.7090603@roeck-us.net>
+Message-Id: <CA+TH9VmYtVEFHv9wByo-NzQAJ6-=6QbYe3JJZgaURLf92ahd2Q@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5092813498570513111=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CA+TH9VktNEiLHmU1WJAUG0QWPsCCXrG5O=KjynBasR5h8LhpPw@mail.gmail.com>
 In-Reply-To: <CA+TH9VktNEiLHmU1WJAUG0QWPsCCXrG5O=KjynBasR5h8LhpPw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/29/2013 03:47 AM, Angelo Compagnucci wrote:
-> Hello list,
+--===============5092813498570513111==
+Content-Type: multipart/alternative; boundary=047d7bb7099820451904e2a66cb2
+
+--047d7bb7099820451904e2a66cb2
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hi Guenter,
+
+Thank you for the quick reply. Wow, yes I think that IIO is definitively
+what I'm looking for but I was unaware of it!
+
+Thank you again for your support!
+
+
+
+>>  Yes, but ...
 >
-> I'm implementing an LDD for the MCP3422 ADC from microchip. I'm heading
-> at kernel inclusion, so I'm asking here before doing it too much wrong.
+> Have you considered writing an iio driver instead ? That might be more
+> appropriate given the more likely use of this chip for generic ADC, not for
+> hardware monitoring. If it is used for hardware monitoring, the iio/hwmon
+> bridge driver could be used.
 >
-> I'm reading Documentation/hwmon/sysfs-interface, and I find that the
-> chip adhere poorly to that specification:
+> Thanks,
+> Guenter
 >
-> 0) The chip has an 18bits ADC, but the unit of in0_input should be in
-> mV, I don't want to waste the 18bits precision. Right now I have the
-> unit in nV and it works quite well, but If I understand correctly, it's
-> not right for hwmon specs.
-
-No it isn't.
-
-> 1) The chip provides up to 4 differential input channels, but only one
-> at a time could be read after setting the corresponding channel in a
-> registry. How should I manage 4 different inputs that maps the same
-> device registry to be compliant?
-
-You wouldn't. Each attribute should be associated with exactly one 
-input. The code would have to multiplex to provide respective readings.
-
-> 2) Cause the device has 4 differential inputs, it could output negative
-> values. Are they permitted?
-
-Sure, voltages can be negative.
-
-> 3) The device has various configuration parameters (like varialbe
-> 12/14/16/18bits precision, variable gain), could them be added as
-> external attributes?
-
-I don't think so.
-
-> 4) The update_interval depends on the precion (device is faster with
-> less precision), could it be updated at runtime if user changes precision?
 >
-Yes, but ...
 
-Have you considered writing an iio driver instead ? That might be more 
-appropriate given the more likely use of this chip for generic ADC, not 
-for hardware monitoring. If it is used for hardware monitoring, the 
-iio/hwmon bridge driver could be used.
 
-Thanks,
-Guenter
+-- 
+Profile: http://it.linkedin.com/in/compagnucciangelo
 
+--047d7bb7099820451904e2a66cb2
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div>Hi Guenter,</div><div><br></div><div>Thank you for th=
+e quick reply. Wow, yes I think that IIO is definitively what I&#39;m looki=
+ng for but I was unaware of it!</div><div><br></div><div>Thank you again fo=
+r your support!</div>
+
+<div><br></div><br><div class=3D"gmail_extra"><div class=3D"gmail_quote"><b=
+lockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px =
+#ccc solid;padding-left:1ex"><div class=3D"im"><blockquote class=3D"gmail_q=
+uote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1e=
+x">
+
+
+<br>
+</blockquote></div>
+Yes, but ...<br>
+<br>
+Have you considered writing an iio driver instead ? That might be more appr=
+opriate given the more likely use of this chip for generic ADC, not for har=
+dware monitoring. If it is used for hardware monitoring, the iio/hwmon brid=
+ge driver could be used.<br>
+
+
+<br>
+Thanks,<br>
+Guenter<br>
+<br>
+</blockquote></div><br><br clear=3D"all"><div><br></div>-- <br>Profile: <a =
+href=3D"http://it.linkedin.com/in/compagnucciangelo" target=3D"_blank">http=
+://it.linkedin.com/in/compagnucciangelo</a>
+</div></div>
+
+--047d7bb7099820451904e2a66cb2--
+
+
+--===============5092813498570513111==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5092813498570513111==--
