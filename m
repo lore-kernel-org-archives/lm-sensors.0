@@ -1,41 +1,63 @@
 From: Jaromir Capik <jcapik@redhat.com>
-Date: Thu, 01 Aug 2013 12:17:00 +0000
+Date: Thu, 01 Aug 2013 12:18:19 +0000
 Subject: [lm-sensors] [PATCH] Man page for sensors-conf-convert
-Message-Id: <1629787044.9939514.1375359420880.JavaMail.root@redhat.com>
+Message-Id: <196849047.9940177.1375359499731.JavaMail.root@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_9940175_27173133.1375359499729"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <1629787044.9939514.1375359420880.JavaMail.root@redhat.com>
+In-Reply-To: <1629787044.9939514.1375359420880.JavaMail.root@redhat.com>
 To: lm-sensors@vger.kernel.org
 
-Hello Jean.
+------=_Part_9940175_27173133.1375359499729
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-Our engineers did a mass scan for man page problems few weeks
-ago. During the scan they found that the sensors-conf-convert
-tool doesn't have a manpage.
-I've created a short manpage for the tool and modified the
-makefile accordingly.
-
-Please, check the patch and apply/modify if needed.
-
-Thanks.
-
-Regards,
-Jaromir.
-
---
-Jaromir Capik
-Red Hat Czech, s.r.o.
-Software Engineer / BaseOS
-
-Email: jcapik@redhat.com
-Web: www.cz.redhat.com
-Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
-IC: 27690016 
+And now the attachment :]
 
 
+------=_Part_9940175_27173133.1375359499729
+Content-Type: text/x-patch; name=lm_sensors-3.3.4-man-sensors-conf-conv.patch
+Content-Disposition: attachment;
+ filename=lm_sensors-3.3.4-man-sensors-conf-conv.patch
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtTmF1ciBsbV9zZW5zb3JzLTMuMy40Lm9yaWcvZXRjL01vZHVsZS5tayBsbV9zZW5zb3Jz
+LTMuMy40L2V0Yy9Nb2R1bGUubWsKLS0tIGxtX3NlbnNvcnMtMy4zLjQub3JpZy9ldGMvTW9kdWxl
+Lm1rCTIwMDktMDctMjQgMTU6NTI6MjguMDAwMDAwMDAwICswMjAwCisrKyBsbV9zZW5zb3JzLTMu
+My40L2V0Yy9Nb2R1bGUubWsJMjAxMy0wOC0wMSAxMzo0Nzo0Mi4wMDAwMDAwMDAgKzAyMDAKQEAg
+LTMyLDEwICszMiwxMyBAQAogCSAgICAgLWEgISAtZSAkKERFU1RESVIpJChFVENESVIpL21vZHBy
+b2JlLmQvbG1fc2Vuc29ycy5jb25mIF0gOyB0aGVuIFwKIAkgICQoTVYpICQoREVTVERJUikkKEVU
+Q0RJUikvbW9kcHJvYmUuZC9sbV9zZW5zb3JzICQoREVTVERJUikkKEVUQ0RJUikvbW9kcHJvYmUu
+ZC9sbV9zZW5zb3JzLmNvbmYgOyBcCiAJZmkKKwkkKE1LRElSKSAkKERFU1RESVIpJChNQU5ESVIp
+L21hbjgKKwkkKElOU1RBTEwpIC1tIDY0NCAkKEVUQ19ESVIpL3NlbnNvcnMtY29uZi1jb252ZXJ0
+LjggJChERVNURElSKSQoTUFORElSKS9tYW44CiAKIHVzZXJfaW5zdGFsbCA6OiBpbnN0YWxsLWV0
+YwogCiB1bmluc3RhbGwtZXRjOgogCSQoUk0pICQoREVTVERJUikkKEJJTkRJUikvc2Vuc29ycy1j
+b25mLWNvbnZlcnQKKwkkKFJNKSAkKERFU1RESVIpJChNQU5ESVIpL21hbjgvc2Vuc29ycy1jb25m
+LWNvbnZlcnQuOAogCiB1c2VyX3VuaW5zdGFsbCA6OiB1bmluc3RhbGwtZXRjCmRpZmYgLU5hdXIg
+bG1fc2Vuc29ycy0zLjMuNC5vcmlnL2V0Yy9zZW5zb3JzLWNvbmYtY29udmVydC44IGxtX3NlbnNv
+cnMtMy4zLjQvZXRjL3NlbnNvcnMtY29uZi1jb252ZXJ0LjgKLS0tIGxtX3NlbnNvcnMtMy4zLjQu
+b3JpZy9ldGMvc2Vuc29ycy1jb25mLWNvbnZlcnQuOAkxOTcwLTAxLTAxIDAxOjAwOjAwLjAwMDAw
+MDAwMCArMDEwMAorKysgbG1fc2Vuc29ycy0zLjMuNC9ldGMvc2Vuc29ycy1jb25mLWNvbnZlcnQu
+OAkyMDEzLTA4LTAxIDEzOjM0OjA2LjE5Nzc2NzEzNyArMDIwMApAQCAtMCwwICsxLDI3IEBACisu
+VEggU0VOU09SUy1DT05GLUNPTlZFUlQgOCAiQXVndXN0IDIwMTMiICJsbS1zZW5zb3JzIDMiCisu
+U0ggTkFNRQorc2Vuc29ycy1jb25mLWNvbnZlcnQgXC0gc2Vuc29ycyBjb25maWd1cmF0aW9uIGNv
+bnZlcnNpb24KKworLlNIIFNZTk9QU0lTCisuQiBzZW5zb3JzLWNvbmYtY29udmVydAorXCA8Cisu
+SSAvZXRjL3NlbnNvcnMuY29uZgorXCBcIFwgPgorLkkgL2V0Yy9zZW5zb3JzMy5jb25mCisKKy5T
+SCBERVNDUklQVElPTgorVGhlIHB1cnBvc2Ugb2YgdGhlCisuQiBzZW5zb3JzLWNvbmYtY29udmVy
+dAordG9vbCBpcyB0byBjb252ZXJ0CisuSSBzZW5zb3JzLmNvbmYKK2Zyb20gdGhlIGxtX3NlbnNv
+cnMgdmVyc2lvbiAyIHRvIHRoZSBsbV9zZW5zb3JzCit2ZXJzaW9uIDMgZm9ybWF0LgorLlAKK1Ro
+ZSBkYXRhIGFyZSByZWFkIGZyb20gdGhlIHN0YW5kYXJkIGlucHV0IGFuZCB0aGUgcmVzdWx0Citp
+cyB3cml0dGVuIHRvIHRoZSBzdGFuZGFyZCBvdXRwdXQuCisKKy5TSCBTRUUgQUxTTworc2Vuc29y
+cygxKQorCisuU0ggQVVUSE9SCitKZWFuIERlbHZhcmUK
+------=_Part_9940175_27173133.1375359499729
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_9940175_27173133.1375359499729--
