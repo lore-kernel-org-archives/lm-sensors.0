@@ -1,63 +1,62 @@
-From: Jaromir Capik <jcapik@redhat.com>
-Date: Thu, 01 Aug 2013 12:18:19 +0000
-Subject: [lm-sensors] [PATCH] Man page for sensors-conf-convert
-Message-Id: <196849047.9940177.1375359499731.JavaMail.root@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_9940175_27173133.1375359499729"
+From: Harald Judt <h.judt@gmx.at>
+Date: Thu, 01 Aug 2013 09:08:27 +0000
+Subject: Re: [lm-sensors] w83627ehf: Wrong values reported after resuming from suspend/hibernation
+Message-Id: <51FA258B.3020002@gmx.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1629787044.9939514.1375359420880.JavaMail.root@redhat.com>
-In-Reply-To: <1629787044.9939514.1375359420880.JavaMail.root@redhat.com>
+References: <50856051.5070803@gmx.at>
+In-Reply-To: <50856051.5070803@gmx.at>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_9940175_27173133.1375359499729
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-And now the attachment :]
+Am 01.08.2013 00:11, schrieb Guenter Roeck:
+> On Mon, Jul 29, 2013 at 05:27:35PM +0200, Harald Judt wrote: [ ...
+> ]
+>> 
+>> -- `Experience is the best teacher.'
+>> 
+> 
+>> From c3961cf2fa1d6975b9bcffeb746c57bda09e7489 Mon Sep 17 00:00:00
+>> 2001 From: Harald Judt <h.judt@gmx.at> Date: Mon, 29 Jul 2013
+>> 17:00:27 +0200 Subject: hwmon: (nct6775) Add support for
+>> hibernate
+>> 
+> Hi Harald,
+> 
+> Signed-off-by: is missing. Ok if I add your Signed-off to the patch
+> ?
+> 
+> Thanks, Guenter
 
+Sure, no problem, I didn't think about that. Also, even though
+deprecated, probably a similar patch would be needed for the original
+w83627ehf.c. I could create, test and send you another such patch
+today in the evening or tomorrow. Otherwise,
 
-------=_Part_9940175_27173133.1375359499729
-Content-Type: text/x-patch; name=lm_sensors-3.3.4-man-sensors-conf-conv.patch
-Content-Disposition: attachment;
- filename=lm_sensors-3.3.4-man-sensors-conf-conv.patch
-Content-Transfer-Encoding: base64
+Signed-off-by: Harald Judt <h.judt@gmx.at>
 
-ZGlmZiAtTmF1ciBsbV9zZW5zb3JzLTMuMy40Lm9yaWcvZXRjL01vZHVsZS5tayBsbV9zZW5zb3Jz
-LTMuMy40L2V0Yy9Nb2R1bGUubWsKLS0tIGxtX3NlbnNvcnMtMy4zLjQub3JpZy9ldGMvTW9kdWxl
-Lm1rCTIwMDktMDctMjQgMTU6NTI6MjguMDAwMDAwMDAwICswMjAwCisrKyBsbV9zZW5zb3JzLTMu
-My40L2V0Yy9Nb2R1bGUubWsJMjAxMy0wOC0wMSAxMzo0Nzo0Mi4wMDAwMDAwMDAgKzAyMDAKQEAg
-LTMyLDEwICszMiwxMyBAQAogCSAgICAgLWEgISAtZSAkKERFU1RESVIpJChFVENESVIpL21vZHBy
-b2JlLmQvbG1fc2Vuc29ycy5jb25mIF0gOyB0aGVuIFwKIAkgICQoTVYpICQoREVTVERJUikkKEVU
-Q0RJUikvbW9kcHJvYmUuZC9sbV9zZW5zb3JzICQoREVTVERJUikkKEVUQ0RJUikvbW9kcHJvYmUu
-ZC9sbV9zZW5zb3JzLmNvbmYgOyBcCiAJZmkKKwkkKE1LRElSKSAkKERFU1RESVIpJChNQU5ESVIp
-L21hbjgKKwkkKElOU1RBTEwpIC1tIDY0NCAkKEVUQ19ESVIpL3NlbnNvcnMtY29uZi1jb252ZXJ0
-LjggJChERVNURElSKSQoTUFORElSKS9tYW44CiAKIHVzZXJfaW5zdGFsbCA6OiBpbnN0YWxsLWV0
-YwogCiB1bmluc3RhbGwtZXRjOgogCSQoUk0pICQoREVTVERJUikkKEJJTkRJUikvc2Vuc29ycy1j
-b25mLWNvbnZlcnQKKwkkKFJNKSAkKERFU1RESVIpJChNQU5ESVIpL21hbjgvc2Vuc29ycy1jb25m
-LWNvbnZlcnQuOAogCiB1c2VyX3VuaW5zdGFsbCA6OiB1bmluc3RhbGwtZXRjCmRpZmYgLU5hdXIg
-bG1fc2Vuc29ycy0zLjMuNC5vcmlnL2V0Yy9zZW5zb3JzLWNvbmYtY29udmVydC44IGxtX3NlbnNv
-cnMtMy4zLjQvZXRjL3NlbnNvcnMtY29uZi1jb252ZXJ0LjgKLS0tIGxtX3NlbnNvcnMtMy4zLjQu
-b3JpZy9ldGMvc2Vuc29ycy1jb25mLWNvbnZlcnQuOAkxOTcwLTAxLTAxIDAxOjAwOjAwLjAwMDAw
-MDAwMCArMDEwMAorKysgbG1fc2Vuc29ycy0zLjMuNC9ldGMvc2Vuc29ycy1jb25mLWNvbnZlcnQu
-OAkyMDEzLTA4LTAxIDEzOjM0OjA2LjE5Nzc2NzEzNyArMDIwMApAQCAtMCwwICsxLDI3IEBACisu
-VEggU0VOU09SUy1DT05GLUNPTlZFUlQgOCAiQXVndXN0IDIwMTMiICJsbS1zZW5zb3JzIDMiCisu
-U0ggTkFNRQorc2Vuc29ycy1jb25mLWNvbnZlcnQgXC0gc2Vuc29ycyBjb25maWd1cmF0aW9uIGNv
-bnZlcnNpb24KKworLlNIIFNZTk9QU0lTCisuQiBzZW5zb3JzLWNvbmYtY29udmVydAorXCA8Cisu
-SSAvZXRjL3NlbnNvcnMuY29uZgorXCBcIFwgPgorLkkgL2V0Yy9zZW5zb3JzMy5jb25mCisKKy5T
-SCBERVNDUklQVElPTgorVGhlIHB1cnBvc2Ugb2YgdGhlCisuQiBzZW5zb3JzLWNvbmYtY29udmVy
-dAordG9vbCBpcyB0byBjb252ZXJ0CisuSSBzZW5zb3JzLmNvbmYKK2Zyb20gdGhlIGxtX3NlbnNv
-cnMgdmVyc2lvbiAyIHRvIHRoZSBsbV9zZW5zb3JzCit2ZXJzaW9uIDMgZm9ybWF0LgorLlAKK1Ro
-ZSBkYXRhIGFyZSByZWFkIGZyb20gdGhlIHN0YW5kYXJkIGlucHV0IGFuZCB0aGUgcmVzdWx0Citp
-cyB3cml0dGVuIHRvIHRoZSBzdGFuZGFyZCBvdXRwdXQuCisKKy5TSCBTRUUgQUxTTworc2Vuc29y
-cygxKQorCisuU0ggQVVUSE9SCitKZWFuIERlbHZhcmUK
-------=_Part_9940175_27173133.1375359499729
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- -- 
+`Experience is the best teacher.'
+
+PGP Key ID: 0xBA3AC516
+Fingerprint: 569E 0ADA 440A 8B11 D1A2 AB47 8238 0256 BA3A C516
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJR+iWIAAoJEII4Ala6OsUWHlkH+gOmHw6Q3DYKP5yTD3wXq4yH
+hkb2kdUeWLv2AU8OcN4sV6KNjaMbM8lRBIf3iW70r+I0OXgoo68Y5aDGHxoHUhqw
+sH12jMVY/bhINdi8dzqa8KU/3oQ4Cp4vI/3J4wTMax0edvoPOzt7at65w0wwbmVS
+IJ1NWdIHyYVJGrcbw5JLUBZGBGyHQjPru1SjlXqUOuxOeSvexDHR4c9+kcEIbA76
+oHvQrDLrYG6X3wC8zXZfcpfzqvOJdNv6qVOSlhlQ5766ZCmS28rHNpTqxrRjJshV
+V1p5d9SXE02uNgUQZVVFv7hTScVvytM4iv3YFL3Dv+enwR1DojpVS/AHgs568Q4=yiNS
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_9940175_27173133.1375359499729--
