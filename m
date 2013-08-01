@@ -1,116 +1,157 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Date: Tue, 27 Aug 2013 10:27:08 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 04/14] hwmon: tmp102: expose to thermal fw via DT nodes
-Message-Id: <20130827102708.GE19893@e106331-lin.cambridge.arm.com>
+From: Evgeniy Dushistov <dushistov@mail.ru>
+Date: Thu, 01 Aug 2013 19:23:48 +0000
+Subject: [lm-sensors] [PATCH] [v2] support ads1115 to ads1015 driver
+Message-Id: <20130801192348.GA9041@fifteen>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
- <1377299755-5134-5-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-5-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "wni@nvidia.com" <wni@nvidia.com>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 24, 2013 at 12:15:45AM +0100, Eduardo Valentin wrote:
-> This patch adds to tmp102 temperature sensor the possibility
-> to expose itself as thermal zone device, registered on the
-> thermal framework.
-> 
-> The thermal zone is built only if a device tree node
-> describing a thermal zone for this sensor is present
-> inside the tmp102 DT node. Otherwise, the driver behavior
-> will be the same.
+Ok, version 2 of the patch.
+Fixed Guenter Roeck's remarks.
 
-Similarly to the lm75, this requires a binding document update, but I
-don't think the binding extension's necessary anyway.
+This patch adds support for ads1115 device to ads1015 driver.
+Based on work of Emiliano Carnati <carnatiatebneuro.com>.
+Tested on ARM CPU based board.
 
-Thanks,
-Mark.
+Signed-off-by: Evgeniy A. Dushistov <dushistov@mail.ru>
+---
+ Documentation/hwmon/ads1015 |  8 ++++++--
+ drivers/hwmon/Kconfig       |  4 ++--
+ drivers/hwmon/ads1015.c     | 27 +++++++++++++++++++++------
+ 3 files changed, 29 insertions(+), 10 deletions(-)
 
-> 
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: lm-sensors@lm-sensors.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> ---
->  drivers/hwmon/tmp102.c | 26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
-> 
-> diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
-> index d7b47ab..0f1e44a 100644
-> --- a/drivers/hwmon/tmp102.c
-> +++ b/drivers/hwmon/tmp102.c
-> @@ -27,6 +27,8 @@
->  #include <linux/mutex.h>
->  #include <linux/device.h>
->  #include <linux/jiffies.h>
-> +#include <linux/thermal.h>
-> +#include <linux/of.h>
->  
->  #define	DRIVER_NAME "tmp102"
->  
-> @@ -50,6 +52,7 @@
->  
->  struct tmp102 {
->  	struct device *hwmon_dev;
-> +	struct thermal_zone_device *tz;
->  	struct mutex lock;
->  	u16 config_orig;
->  	unsigned long last_update;
-> @@ -93,6 +96,15 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
->  	return tmp102;
->  }
->  
-> +static int tmp102_read_temp(void *dev, unsigned long *temp)
-> +{
-> +	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
-> +
-> +	*temp = tmp102->temp[0];
-> +
-> +	return 0;
-> +}
-> +
->  static ssize_t tmp102_show_temp(struct device *dev,
->  				struct device_attribute *attr,
->  				char *buf)
-> @@ -204,10 +216,23 @@ static int tmp102_probe(struct i2c_client *client,
->  		goto fail_remove_sysfs;
->  	}
->  
-> +	if (of_find_property(client->dev.of_node, "monitored-zones", NULL)) {
-> +		tmp102->tz = thermal_zone_of_device_register(&client->dev, 0,
-> +							     false, /* -hwmon */
-> +							     &client->dev,
-> +							     tmp102_read_temp);
-> +		if (IS_ERR(tmp102->tz)) {
-> +			status = PTR_ERR(tmp102->tz);
-> +			goto exit_hwmon;
-> +		}
-> +	}
-> +
->  	dev_info(&client->dev, "initialized\n");
->  
->  	return 0;
->  
-> +exit_hwmon:
-> +	hwmon_device_unregister(tmp102->hwmon_dev);
->  fail_remove_sysfs:
->  	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
->  fail_restore_config:
-> @@ -220,6 +245,7 @@ static int tmp102_remove(struct i2c_client *client)
->  {
->  	struct tmp102 *tmp102 = i2c_get_clientdata(client);
->  
-> +	thermal_zone_device_unregister(tmp102->tz);
->  	hwmon_device_unregister(tmp102->hwmon_dev);
->  	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
->  
-> -- 
-> 1.8.2.1.342.gfa7285d
-> 
-> 
+diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
+index f6fe9c2..063b80d 100644
+--- a/Documentation/hwmon/ads1015
++++ b/Documentation/hwmon/ads1015
+@@ -6,6 +6,10 @@ Supported chips:
+     Prefix: 'ads1015'
+     Datasheet: Publicly available at the Texas Instruments website :
+                http://focus.ti.com/lit/ds/symlink/ads1015.pdf
++  * Texas Instruments ADS1115
++    Prefix: 'ads1115'
++    Datasheet: Publicly available at the Texas Instruments website :
++               http://focus.ti.com/lit/ds/symlink/ads1115.pdf
+ 
+ Authors:
+         Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
+@@ -13,9 +17,9 @@ Authors:
+ Description
+ -----------
+ 
+-This driver implements support for the Texas Instruments ADS1015.
++This driver implements support for the Texas Instruments ADS1015/ADS1115.
+ 
+-This device is a 12-bit A-D converter with 4 inputs.
++This device is a 12/16-bit A-D converter with 4 inputs.
+ 
+ The inputs can be used single ended or in certain differential combinations.
+ 
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index e989f7f..47b3e58 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1202,8 +1202,8 @@ config SENSORS_ADS1015
+ 	tristate "Texas Instruments ADS1015"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for Texas Instruments ADS1015
+-	  12-bit 4-input ADC device.
++	  If you say yes here you get support for Texas Instruments
++	  ADS1015/ADS1115 12/16-bit 4-input ADC device.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ads1015.
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index 2798246..7f9dc2f 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -46,17 +46,28 @@ static const unsigned int fullscale_table[8] = {
+ 	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
+ 
+ /* Data rates in samples per second */
+-static const unsigned int data_rate_table[8] = {
+-	128, 250, 490, 920, 1600, 2400, 3300, 3300 };
++static const unsigned int data_rate_table_1015[8] = {
++	128, 250, 490, 920, 1600, 2400, 3300, 3300
++};
++
++static const unsigned int data_rate_table_1115[8] = {
++	8, 16, 32, 64, 128, 250, 475, 860
++};
+ 
+ #define ADS1015_DEFAULT_CHANNELS 0xff
+ #define ADS1015_DEFAULT_PGA 2
+ #define ADS1015_DEFAULT_DATA_RATE 4
+ 
++enum ads1015_chips {
++	ads1015,
++	ads1115,
++};
++
+ struct ads1015_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock; /* mutex protect updates */
+ 	struct ads1015_channel_data channel_data[ADS1015_CHANNELS];
++	enum ads1015_chips id;
+ };
+ 
+ static int ads1015_read_adc(struct i2c_client *client, unsigned int channel)
+@@ -66,6 +77,8 @@ static int ads1015_read_adc(struct i2c_client *client, unsigned int channel)
+ 	unsigned int pga = data->channel_data[channel].pga;
+ 	unsigned int data_rate = data->channel_data[channel].data_rate;
+ 	unsigned int conversion_time_ms;
++	const unsigned int * const rate_table = data->id = ads1115 ?
++		data_rate_table_1115 : data_rate_table_1015;
+ 	int res;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -75,7 +88,7 @@ static int ads1015_read_adc(struct i2c_client *client, unsigned int channel)
+ 	if (res < 0)
+ 		goto err_unlock;
+ 	config = res;
+-	conversion_time_ms = DIV_ROUND_UP(1000, data_rate_table[data_rate]);
++	conversion_time_ms = DIV_ROUND_UP(1000, rate_table[data_rate]);
+ 
+ 	/* setup and start single conversion */
+ 	config &= 0x001f;
+@@ -113,8 +126,9 @@ static int ads1015_reg_to_mv(struct i2c_client *client, unsigned int channel,
+ 	struct ads1015_data *data = i2c_get_clientdata(client);
+ 	unsigned int pga = data->channel_data[channel].pga;
+ 	int fullscale = fullscale_table[pga];
++	const unsigned mask = data->id = ads1115 ? 0x7fff : 0x7ff0;
+ 
+-	return DIV_ROUND_CLOSEST(reg * fullscale, 0x7ff0);
++	return DIV_ROUND_CLOSEST(reg * fullscale, mask);
+ }
+ 
+ /* sysfs callback function */
+@@ -257,7 +271,7 @@ static int ads1015_probe(struct i2c_client *client,
+ 			    GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+-
++	data->id = id->driver_data;
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+@@ -286,7 +300,8 @@ exit_remove:
+ }
+ 
+ static const struct i2c_device_id ads1015_id[] = {
+-	{ "ads1015", 0 },
++	{ "ads1015",  ads1015},
++	{ "ads1115",  ads1115},
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ads1015_id);
+-- 
+1.8.1.5
+
+-- 
+/Evgeniy
 
 _______________________________________________
 lm-sensors mailing list
