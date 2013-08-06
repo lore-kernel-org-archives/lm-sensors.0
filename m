@@ -1,69 +1,215 @@
-From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Date: Wed, 07 Aug 2013 08:45:05 +0000
-Subject: Re: [lm-sensors] =?utf-8?q?=5BPATCH_1/2=5D_hwmon=3A_=28lm90=29_Add_po?=
-Message-Id: <1375865105.562600640@f434.i.mail.ru>
+From: Wei Ni <wni@nvidia.com>
+Date: Tue, 06 Aug 2013 10:06:43 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: (lm90) split set&show temp as common codes
+Message-Id: <1375783603-16747-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375858358-15070-1-git-send-email-wni@nvidia.com>
- <5201FC2C.4030908@roeck-us.net>
- <52020047.1080705@nvidia.com>
-In-Reply-To: <52020047.1080705-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?V2VpIE5p?= <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: =?UTF-8?B?R3VlbnRlciBSb2Vjaw==?= <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, =?UTF-8?B?c3dhcnJlbkB3d3dkb3Rvcmcub3Jn?= <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, =?UTF-8?B?bGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw==?= <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZw==?= <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, =?UTF-8?B?bGludXgtdGVncmFAdmdlci5rZXJuZWwub3Jn?= <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?TWF0dGhldyBMb25nbmVja2Vy?= <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?a2hhbGlAbGludXgtZnIub3Jn?= <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, =?UTF-8?B?bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn?= <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org
+Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-> On 08/07/2013 03:50 PM, Guenter Roeck wrote:
-> > On 08/07/2013 12:32 AM, Wei Ni wrote:
-> >> On 08/07/2013 03:27 PM, Alexander Shiyan wrote:
-> >>>> The device lm90 can be controlled by the vdd rail.
-> >>>> Adding the power control support to power on/off the vdd rail.
-> >>>> And make sure that power is enabled before accessing the device.
-> >>>>
-> >>>> Signed-off-by: Wei Ni <wni@nvidia.com>
-> >>>> ---
-> >>>>   drivers/hwmon/lm90.c |   52 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> >>> [...]
-> >>>> +	if (!data->lm90_reg) {
-> >>>> +		data->lm90_reg = regulator_get(&client->dev, "vdd");
-> >>>> +		if (IS_ERR_OR_NULL(data->lm90_reg)) {
-> >>>> +			if (PTR_ERR(data->lm90_reg) = -ENODEV)
-> >>>> +				dev_info(&client->dev,
-> >>>> +					 "No regulator found for vdd. Assuming vdd is always powered.");
-> >>>> +			else
-> >>>> +				dev_warn(&client->dev,
-> >>>> +					 "Error [%ld] in getting the regulator handle for vdd.\n",
-> >>>> +					 PTR_ERR(data->lm90_reg));
-> >>>> +			data->lm90_reg = NULL;
-> >>>> +			mutex_unlock(&data->update_lock);
-> >>>> +			return -ENODEV;
-> >>>> +		}
-> >>>> +	}
-> >>>> +	if (is_enable) {
-> >>>> +		ret = regulator_enable(data->lm90_reg);
-> >>>> +		msleep(POWER_ON_DELAY);
-> >>>
-> >>> Can this delay be handled directly from regulator?
-> >>
-> >> I think it should be handled in the device driver.
-> >> Because there have different delay time to wait devices stable.
-> >>
-> > 
-> > Then why does no other caller of regulator_enable() need this ?
-> > I don't think lm90 is so much different to other users of regulator
-> > functionality.
-> 
-> May be I'm wrong. I noticed that in lm90 SPEC, the max of "SMBus Clock
-> Low Time" is 25ms, so I supposed that it may need about 20ms to stable
-> after power on.
-> 
-> Anyway, if I remove this delay, the driver also works fine, so I will
-> remove it in my next patch.
+Split set&show temp codes as common functions, so we can use it directly when
+implement linux thermal framework.
 
-I originally had in mind that regulator API contain own delay option.
-E.g. reg-fixed-voltage && gpio-regulator contains "startup-delay-us" property.
-
+Signed-off-by: Wei Ni <wni@nvidia.com>
 ---
+ drivers/hwmon/lm90.c |  112 +++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 69 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index cdff742..8153b36 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -702,29 +702,34 @@ static u16 temp_to_u16_adt7461(struct lm90_data *data, long val)
+  * Sysfs stuff
+  */
+ 
+-static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
+-			  char *buf)
++static int read_temp8(struct device *dev, int index)
+ {
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct lm90_data *data = lm90_update_device(dev);
+ 	int temp;
+ 
+ 	if (data->kind = adt7461)
+-		temp = temp_from_u8_adt7461(data, data->temp8[attr->index]);
++		temp = temp_from_u8_adt7461(data, data->temp8[index]);
+ 	else if (data->kind = max6646)
+-		temp = temp_from_u8(data->temp8[attr->index]);
++		temp = temp_from_u8(data->temp8[index]);
+ 	else
+-		temp = temp_from_s8(data->temp8[attr->index]);
++		temp = temp_from_s8(data->temp8[index]);
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 && attr->index = 3)
++	if (data->kind = lm99 && index = 3)
+ 		temp += 16000;
+ 
+-	return sprintf(buf, "%d\n", temp);
++	return temp;
+ }
+ 
+-static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+-			 const char *buf, size_t count)
++static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
++			  char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++
++	return sprintf(buf, "%d\n", read_temp8(dev, attr->index));
++}
++
++static void write_temp8(struct device *dev, int index, long val)
+ {
+ 	static const u8 reg[8] = {
+ 		LM90_REG_W_LOCAL_LOW,
+@@ -737,60 +742,73 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+ 		MAX6659_REG_W_REMOTE_EMERG,
+ 	};
+ 
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	int nr = attr->index;
+-	long val;
+-	int err;
+-
+-	err = kstrtol(buf, 10, &val);
+-	if (err < 0)
+-		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 && attr->index = 3)
++	if (data->kind = lm99 && index = 3)
+ 		val -= 16000;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	if (data->kind = adt7461)
+-		data->temp8[nr] = temp_to_u8_adt7461(data, val);
++		data->temp8[index] = temp_to_u8_adt7461(data, val);
+ 	else if (data->kind = max6646)
+-		data->temp8[nr] = temp_to_u8(val);
++		data->temp8[index] = temp_to_u8(val);
+ 	else
+-		data->temp8[nr] = temp_to_s8(val);
++		data->temp8[index] = temp_to_s8(val);
+ 
+-	lm90_select_remote_channel(client, data, nr >= 6);
+-	i2c_smbus_write_byte_data(client, reg[nr], data->temp8[nr]);
++	lm90_select_remote_channel(client, data, index >= 6);
++	i2c_smbus_write_byte_data(client, reg[index], data->temp8[index]);
+ 	lm90_select_remote_channel(client, data, 0);
+ 
+ 	mutex_unlock(&data->update_lock);
++}
++
++static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
++			 const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	int index = attr->index;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	write_temp8(dev, index, val);
++
+ 	return count;
+ }
+ 
+-static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
+-			   char *buf)
++static int read_temp11(struct device *dev, int index)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct lm90_data *data = lm90_update_device(dev);
+ 	int temp;
+ 
+ 	if (data->kind = adt7461)
+-		temp = temp_from_u16_adt7461(data, data->temp11[attr->index]);
++		temp = temp_from_u16_adt7461(data, data->temp11[index]);
+ 	else if (data->kind = max6646)
+-		temp = temp_from_u16(data->temp11[attr->index]);
++		temp = temp_from_u16(data->temp11[index]);
+ 	else
+-		temp = temp_from_s16(data->temp11[attr->index]);
++		temp = temp_from_s16(data->temp11[index]);
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 &&  attr->index <= 2)
++	if (data->kind = lm99 &&  index <= 2)
+ 		temp += 16000;
+ 
+-	return sprintf(buf, "%d\n", temp);
++	return temp;
+ }
+ 
+-static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+-			  const char *buf, size_t count)
++static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
++			   char *buf)
++{
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++
++	return sprintf(buf, "%d\n", read_temp11(dev, attr->index));
++}
++
++static void write_temp11(struct device *dev, int nr, int index, long val)
+ {
+ 	struct {
+ 		u8 high;
+@@ -804,17 +822,8 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 		{ LM90_REG_W_REMOTE_HIGHH, LM90_REG_W_REMOTE_HIGHL, 1 }
+ 	};
+ 
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	int nr = attr->nr;
+-	int index = attr->index;
+-	long val;
+-	int err;
+-
+-	err = kstrtol(buf, 10, &val);
+-	if (err < 0)
+-		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+ 	if (data->kind = lm99 && index <= 2)
+@@ -839,6 +848,23 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 	lm90_select_remote_channel(client, data, 0);
+ 
+ 	mutex_unlock(&data->update_lock);
++}
++
++static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
++			  const char *buf, size_t count)
++{
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++	int nr = attr->nr;
++	int index = attr->index;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	write_temp11(dev, nr, index, val);
++
+ 	return count;
+ }
+ 
+-- 
+1.7.9.5
+
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
