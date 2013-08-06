@@ -1,26 +1,21 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 03 Aug 2013 23:05:23 +0000
-Subject: Re: [lm-sensors] lm-sensor support
-Message-Id: <20130803230523.GA32310@roeck-us.net>
+From: "Felten, Lothar" <l-felten@ti.com>
+Date: Tue, 06 Aug 2013 13:20:21 +0000
+Subject: [lm-sensors] [PATCH 0/1] hwmon: add support for tmp112
+Message-Id: <28DAD847AEFDD344B2D3802E7670BEE116B9124C@DNCE04.ent.ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAOm3Ak01kS8myEhHjoqbT604DPS91qTrtOVO0gqYZm+LLFNDLw@mail.gmail.com>
-In-Reply-To: <CAOm3Ak01kS8myEhHjoqbT604DPS91qTrtOVO0gqYZm+LLFNDLw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 03, 2013 at 06:38:40PM -0400, Bryan R wrote:
-> Attached is a plain text file with what information I could provide.
-> 
-Please don't use attachments.
+This patch adds support for the tmp112 temperature sensor which is similar to the lm75 series. The driver does exploit the higher conversion time (4Hz by default)
 
-AMD temperature sensors are notoriously unreliable. The low temperature only
-means that it operates in a safe temperature range. Nothing we can do about it.
+-- Lothar
 
-Did you try to load the f71882fg driver ?
 
-Guenter
+Texas Instruments Belgium SA, Rond Point Schuman 6- Bo?te 5, 1040 Bruxelles. BCE: 0414.207.123. RPM Bruxelles. IBAN: BE83570121895615. Swift: CITIBEBX. TVA BE 0414.207.123
+
+
 
 _______________________________________________
 lm-sensors mailing list
