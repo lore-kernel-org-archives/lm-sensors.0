@@ -1,41 +1,75 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 29 Aug 2013 09:19:23 +0000
-Subject: Re: [lm-sensors] Taking action based upon sensors
-Message-Id: <20130829111923.4aa036b1@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 07 Aug 2013 06:18:25 +0000
+Subject: [lm-sensors] [PATCH v4 2/3] hwmon: (lm90) add support to handle IRQ
+Message-Id: <1375856306-14415-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLU173-W194E5678B7B93E08C63033A4480@phx.gbl>
-In-Reply-To: <BLU173-W194E5678B7B93E08C63033A4480@phx.gbl>
+References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375856306-14415-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org
+Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-On Sun, 25 Aug 2013 11:51:25 -0400, PHP Nut wrote:
-> Is there any explicitly supported method to execute specified actions based upon the value of a sensor output exceeding a threshold or equaling a certain state?
-> 
-> What I'm looking for is a way to use sensord or a similar daemon based on lm-sensors to execute a command when a condition is met, such as the temperature exceeding a certain threshold. This could be done with a separate daemonized or scheduled log monitor, however that is a bit clunky, another item to debug, a waste of resources, and another undocumented interop to fail upon a package upgrade.
+When the temperature exceed the limit range value,
+the driver can handle the interrupt.
 
-I'm afraid we don't have anything like that. I think people use 3rd
-party monitoring tools for this. 
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-> If there isn't, what's the best method for doing this and are there existing log watching/parsing scripts which have been thoroughly debugged? I'd like to avoid anything homebrew if at all possible.
-
-The only thing we have in lm-sensors
-is the healthd.sh daemon:
-http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/daemon/healthd.sh
-
-But it's very old and simple and not packaged by distributions in
-general. It has its limitations too: it relies on perfect behavior of
-the hardware and its driver and prefect libsensors configuration as
-well, otherwise you can get false positive ALARMs or missing ALARMS and
-the script won't work.
-
-You may look for something better on Freecode:
-http://freecode.com/
-I'm sure people have written what you're looking for already.
-
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 1da2eff..2e68773 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -89,6 +89,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/interrupt.h>
+ 
+ /*
+  * Addresses to scan
+@@ -1433,6 +1434,16 @@ static bool lm90_is_tripped(struct i2c_client *client)
+ 	return true;
+ }
+ 
++static irqreturn_t lm90_irq_thread(int irq, void *dev_id)
++{
++	struct i2c_client *client = dev_id;
++
++	if (lm90_is_tripped(client))
++		return IRQ_HANDLED;
++	else
++		return IRQ_NONE;
++}
++
+ static int lm90_probe(struct i2c_client *client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1509,6 +1520,18 @@ static int lm90_probe(struct i2c_client *client,
+ 		goto exit_remove_files;
+ 	}
+ 
++	if (client->irq) {
++		dev_dbg(dev, "IRQ: %d\n", client->irq);
++		err = devm_request_threaded_irq(dev, client->irq,
++						NULL, lm90_irq_thread,
++						IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++						"lm90", client);
++		if (err < 0) {
++			dev_err(dev, "cannot request IRQ: %d\n", client->irq);
++			goto exit_remove_files;
++		}
++	}
++
+ 	return 0;
+ 
+ exit_remove_files:
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
