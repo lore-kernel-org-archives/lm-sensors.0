@@ -1,125 +1,53 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Date: Tue, 27 Aug 2013 10:26:08 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 03/14] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <20130827102608.GD19893@e106331-lin.cambridge.arm.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 07 Aug 2013 06:52:38 +0000
+Subject: [lm-sensors] [PATCH 2/2] ARM: dt: t114 dalmore: add dt entry for nct1008
+Message-Id: <1375858358-15070-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
- <1377299755-5134-4-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-4-git-send-email-eduardo.valentin@ti.com>
+References: <1375858358-15070-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375858358-15070-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "wni@nvidia.com" <wni@nvidia.com>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
+To: khali@linux-fr.org, swarren@wwwdotorg.org
+Cc: linux@roeck-us.net, MLongnecker@nvidia.com, linux-arm-kernel@lists.infradead.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On Sat, Aug 24, 2013 at 12:15:44AM +0100, Eduardo Valentin wrote:
-> This patch adds to lm75 temperature sensor the possibility
-> to expose itself as thermal zone device, registered on the
-> thermal framework.
-> 
-> The thermal zone is built only if a device tree node
-> describing a thermal zone for this sensor is present
-> inside the lm75 DT node. Otherwise, the driver behavior
-> will be the same.
+Enable thermal sensor nct1008 for t114 dalmore.
 
-There'll need to be a binding document if you're extending the lm75
-binding. See the comment at the top of [1]. However, I don't think you
-need this at all, as I explain in my comments on the previous patch.
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra114-dalmore.dts |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Thanks,
-Mark.
+diff --git a/arch/arm/boot/dts/tegra114-dalmore.dts b/arch/arm/boot/dts/tegra114-dalmore.dts
+index b5a42f0..9d4d2b2 100644
+--- a/arch/arm/boot/dts/tegra114-dalmore.dts
++++ b/arch/arm/boot/dts/tegra114-dalmore.dts
+@@ -738,6 +738,14 @@
+ 			realtek,ldo1-en-gpios  				<&gpio TEGRA_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
+ 		};
++
++		nct1008 {
++			compatible = "onnn,nct1008";
++			reg = <0x4c>;
++			vdd-supply = <&palmas_ldo6_reg>;
++			interrupt-parent = <&gpio>;
++			interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
++		};
+ 	};
+ 
+ 	i2c@7000d000 {
+@@ -945,7 +953,7 @@
+ 						regulator-max-microvolt = <1800000>;
+ 					};
+ 
+-					ldo6 {
++					palmas_ldo6_reg: ldo6 {
+ 						regulator-name = "vdd-sensor-2v85";
+ 						regulator-min-microvolt = <2850000>;
+ 						regulator-max-microvolt = <2850000>;
+-- 
+1.7.9.5
 
-[1] Documentation/devicetree/bindings/i2c/trivial-devices.txt
-
-> 
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: lm-sensors@lm-sensors.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> ---
->  drivers/hwmon/lm75.c | 31 +++++++++++++++++++++++++++++++
->  1 file changed, 31 insertions(+)
-> 
-> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-> index c03b490..dc55908 100644
-> --- a/drivers/hwmon/lm75.c
-> +++ b/drivers/hwmon/lm75.c
-> @@ -27,6 +27,8 @@
->  #include <linux/hwmon-sysfs.h>
->  #include <linux/err.h>
->  #include <linux/mutex.h>
-> +#include <linux/thermal.h>
-> +#include <linux/of.h>
->  #include "lm75.h"
->  
->  
-> @@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
->  /* Each client has this additional data */
->  struct lm75_data {
->  	struct device		*hwmon_dev;
-> +	struct thermal_zone_device	*tz;
->  	struct mutex		update_lock;
->  	u8			orig_conf;
->  	u8			resolution;	/* In bits, between 9 and 12 */
-> @@ -92,6 +95,19 @@ static struct lm75_data *lm75_update_device(struct device *dev);
->  
->  /* sysfs attributes for hwmon */
->  
-> +static int lm75_read_temp(void *dev, unsigned long *temp)
-> +{
-> +	struct lm75_data *data = lm75_update_device(dev);
-> +
-> +	if (IS_ERR(data))
-> +		return PTR_ERR(data);
-> +
-> +	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
-> +			(data->resolution - 8);
-> +
-> +	return 0;
-> +}
-> +
->  static ssize_t show_temp(struct device *dev, struct device_attribute *da,
->  			 char *buf)
->  {
-> @@ -271,11 +287,25 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  		goto exit_remove;
->  	}
->  
-> +	if (of_find_property(client->dev.of_node, "monitored-zones", NULL)) {
-> +		data->tz = thermal_zone_of_device_register(&client->dev,
-> +							   0,
-> +							   false, /* -hwmon */
-> +							   &client->dev,
-> +							   lm75_read_temp);
-> +		if (IS_ERR(data->tz)) {
-> +			status = PTR_ERR(data->tz);
-> +			goto exit_hwmon;
-> +		}
-> +	}
-> +
->  	dev_info(&client->dev, "%s: sensor '%s'\n",
->  		 dev_name(data->hwmon_dev), client->name);
->  
->  	return 0;
->  
-> +exit_hwmon:
-> +	hwmon_device_unregister(data->hwmon_dev);
->  exit_remove:
->  	sysfs_remove_group(&client->dev.kobj, &lm75_group);
->  	return status;
-> @@ -285,6 +315,7 @@ static int lm75_remove(struct i2c_client *client)
->  {
->  	struct lm75_data *data = i2c_get_clientdata(client);
->  
-> +	thermal_zone_device_unregister(data->tz);
->  	hwmon_device_unregister(data->hwmon_dev);
->  	sysfs_remove_group(&client->dev.kobj, &lm75_group);
->  	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
-> -- 
-> 1.8.2.1.342.gfa7285d
-> 
-> 
 
 _______________________________________________
 lm-sensors mailing list
