@@ -1,89 +1,303 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 09 Aug 2013 19:51:48 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.11-rc5
-Message-Id: <20130809195148.GA11310@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7628335952262706128=="
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 07 Aug 2013 06:18:26 +0000
+Subject: [lm-sensors] [PATCH v4 3/3] hwmon: (lm90) use enums for the indexes of temp8 and temp11
+Message-Id: <1375856306-14415-4-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============7628335952262706128==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Content-Disposition: inline
-
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.11-rc5 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit c095ba7224d8edc71dcef0d655911399a8bd4a3f:
-
-  Linux 3.11-rc4 (2013-08-04 13:46:46 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 93d783bcca69bfacc8dc739d8a050498402587b5:
-
-  hwmon: (adt7470) Fix incorrect return code check (2013-08-08 12:43:07 -0700)
-
-----------------------------------------------------------------
-Fix bug in adt7470 driver which causes it to fail writing fan speed limits.
-
-----------------------------------------------------------------
-Curt Brune (1):
-      hwmon: (adt7470) Fix incorrect return code check
-
- drivers/hwmon/adt7470.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSBUhUAAoJEMsfJm/On5mBJfAP/ja7+vKKKXrN1A7hVXUthVnG
-GmXjTv0G3WNQRhzJ4NhPl16TOF9i3nY1uWlDPFxphqsmLngZB20Gg+wKzlBIlvlI
-zMX0GRZHMO+9gePm9GPcw9ieD7teWY6qJB0ovvqrxWO2MLmFqjD/91WEFqinH0WD
-0QbnQFlF9vhc7INo+tS3iyjvd0O3G9bT1YldyIUzGveWbsHvTOU8L+nxKnQdJuHl
-roK14ezsDSCAlKOrbl7CGVVPOgoaSRYX+O47cBzHig7ZGr7LDKRyl4+fBeaP7+PE
-0yUUyxDnUQ4zlKd7CpX4ldWjDvb0BNtjouR/96FC58f20hpuP+thnO9NqM9g+//C
-slXpLdxWZaDHLqP76pxxj7tes8e8TLEP/VeNdnjxadqoJp+S16kslJmwtQpoSUJ2
-iBhoGFYTqOREqsMvesmtQ+zGeC8fblARg2enrv3njHxgg0YIFt4M3ZldeLj8M6NN
-DpTym2wyg9Z5l9ruB8thkAIQ0ite2krS72eBsgryRGbzunrEuf1H+DwSvMyRk/tt
-xgcat2CpEk1dSbXQk8bGX4Pk3eBT4tU4p6OxzIjBWpptJC3np5uelGkiAOQIyjuY
-4AnVrwNYwPdXS6fhuYoTegRO5ld2QGmujbS3Swivg31a/HhS6sxLNFG2NQjNbaHy
-bTrCOEbK779L7YROnaKJ
-=Ruri
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
-
-
---===============7628335952262706128==
-Content-Type: text/plain; charset="us-ascii"
+References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375856306-14415-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: khali@linux-fr.org
+Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
+
+Using enums for the indexes and nrs of temp8 and temp11.
+This make the code much more readable.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |  154 +++++++++++++++++++++++++++++---------------------
+ 1 file changed, 90 insertions(+), 64 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 2e68773..6cc3eef 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -309,6 +309,38 @@ static const struct lm90_params lm90_params[] = {
+ };
+ 
+ /*
++ * TEMP8 register index
++ */
++enum lm90_temp8_reg_index {
++	LOCAL_LOW = 0,
++	LOCAL_HIGH,
++	LOCAL_CRIT,
++	REMOTE_CRIT,
++	LOCAL_EMERG,	/* max6659 and max6695/96 */
++	REMOTE_EMERG,	/* max6659 and max6695/96 */
++	REMOTE2_CRIT,	/* max6695/96 only */
++	REMOTE2_EMERG,	/* max6695/96 only */
++	TEMP8_REG_NUM
++};
++
++/*
++ * TEMP11 register index
++ */
++enum lm90_temp11_reg_index {
++	REMOTE_TEMP = 0,
++	REMOTE_LOW,
++	REMOTE_HIGH,
++	REMOTE_OFFSET,	/* except max6646, max6657/58/59,
++			 *  and max6695/96
++			 */
++	LOCAL_TEMP,
++	REMOTE2_TEMP,	/* max6695/96 only */
++	REMOTE2_LOW,	/* max6695/96 only */
++	REMOTE2_HIGH,	/* max6695/96 only */
++	TEMP11_REG_NUM
++};
++
++/*
+  * Client data (each client gets its own)
+  */
+ 
+@@ -330,25 +362,8 @@ struct lm90_data {
+ 	u8 reg_local_ext;	/* local extension register offset */
+ 
+ 	/* registers values */
+-	s8 temp8[8];	/* 0: local low limit
+-			 * 1: local high limit
+-			 * 2: local critical limit
+-			 * 3: remote critical limit
+-			 * 4: local emergency limit (max6659 and max6695/96)
+-			 * 5: remote emergency limit (max6659 and max6695/96)
+-			 * 6: remote 2 critical limit (max6695/96 only)
+-			 * 7: remote 2 emergency limit (max6695/96 only)
+-			 */
+-	s16 temp11[8];	/* 0: remote input
+-			 * 1: remote low limit
+-			 * 2: remote high limit
+-			 * 3: remote offset (except max6646, max6657/58/59,
+-			 *		     and max6695/96)
+-			 * 4: local input
+-			 * 5: remote 2 input (max6695/96 only)
+-			 * 6: remote 2 low limit (max6695/96 only)
+-			 * 7: remote 2 high limit (max6695/96 only)
+-			 */
++	s8 temp8[TEMP8_REG_NUM];
++	s16 temp11[TEMP11_REG_NUM];
+ 	u8 temp_hyst;
+ 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
+ };
+@@ -490,37 +505,42 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+ 		u8 alarms;
+ 
+ 		dev_dbg(&client->dev, "Updating lm90 data.\n");
+-		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW, &data->temp8[0]);
+-		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH, &data->temp8[1]);
+-		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT, &data->temp8[2]);
+-		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[3]);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW,
++			      &data->temp8[LOCAL_LOW]);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH,
++			      &data->temp8[LOCAL_HIGH]);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT,
++			      &data->temp8[LOCAL_CRIT]);
++		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
++			      &data->temp8[REMOTE_CRIT]);
+ 		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
+ 
+ 		if (data->reg_local_ext) {
+ 			lm90_read16(client, LM90_REG_R_LOCAL_TEMP,
+ 				    data->reg_local_ext,
+-				    &data->temp11[4]);
++				    &data->temp11[LOCAL_TEMP]);
+ 		} else {
+ 			if (lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP,
+ 					  &h) = 0)
+-				data->temp11[4] = h << 8;
++				data->temp11[LOCAL_TEMP] = h << 8;
+ 		}
+ 		lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
+-			    LM90_REG_R_REMOTE_TEMPL, &data->temp11[0]);
++			    LM90_REG_R_REMOTE_TEMPL,
++			    &data->temp11[REMOTE_TEMP]);
+ 
+ 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h) = 0) {
+-			data->temp11[1] = h << 8;
++			data->temp11[REMOTE_LOW] = h << 8;
+ 			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL,
+ 					  &l) = 0)
+-				data->temp11[1] |= l;
++				data->temp11[REMOTE_LOW] |= l;
+ 		}
+ 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h) = 0) {
+-			data->temp11[2] = h << 8;
++			data->temp11[REMOTE_HIGH] = h << 8;
+ 			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL,
+ 					  &l) = 0)
+-				data->temp11[2] |= l;
++				data->temp11[REMOTE_HIGH] |= l;
+ 		}
+ 
+ 		if (data->flags & LM90_HAVE_OFFSET) {
+@@ -528,13 +548,13 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+ 					  &h) = 0
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSL,
+ 					  &l) = 0)
+-				data->temp11[3] = (h << 8) | l;
++				data->temp11[REMOTE_OFFSET] = (h << 8) | l;
+ 		}
+ 		if (data->flags & LM90_HAVE_EMERGENCY) {
+ 			lm90_read_reg(client, MAX6659_REG_R_LOCAL_EMERG,
+-				      &data->temp8[4]);
++				      &data->temp8[LOCAL_EMERG]);
+ 			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
+-				      &data->temp8[5]);
++				      &data->temp8[REMOTE_EMERG]);
+ 		}
+ 		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
+ 		data->alarms = alarms;	/* save as 16 bit value */
+@@ -542,15 +562,16 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+ 		if (data->kind = max6696) {
+ 			lm90_select_remote_channel(client, data, 1);
+ 			lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
+-				      &data->temp8[6]);
++				      &data->temp8[REMOTE2_CRIT]);
+ 			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
+-				      &data->temp8[7]);
++				      &data->temp8[REMOTE2_EMERG]);
+ 			lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
+-				    LM90_REG_R_REMOTE_TEMPL, &data->temp11[5]);
++				    LM90_REG_R_REMOTE_TEMPL,
++				    &data->temp11[REMOTE2_TEMP]);
+ 			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h))
+-				data->temp11[6] = h << 8;
++				data->temp11[REMOTE2_LOW] = h << 8;
+ 			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h))
+-				data->temp11[7] = h << 8;
++				data->temp11[REMOTE2_HIGH] = h << 8;
+ 			lm90_select_remote_channel(client, data, 0);
+ 
+ 			if (!lm90_read_reg(client, MAX6696_REG_R_STATUS2,
+@@ -739,7 +760,7 @@ static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
+ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+ 			 const char *buf, size_t count)
+ {
+-	static const u8 reg[8] = {
++	static const u8 reg[TEMP8_REG_NUM] = {
+ 		LM90_REG_W_LOCAL_LOW,
+ 		LM90_REG_W_LOCAL_HIGH,
+ 		LM90_REG_W_LOCAL_CRIT,
+@@ -892,11 +913,11 @@ static ssize_t set_temphyst(struct device *dev, struct device_attribute *dummy,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	if (data->kind = adt7461)
+-		temp = temp_from_u8_adt7461(data, data->temp8[2]);
++		temp = temp_from_u8_adt7461(data, data->temp8[LOCAL_CRIT]);
+ 	else if (data->kind = max6646)
+-		temp = temp_from_u8(data->temp8[2]);
++		temp = temp_from_u8(data->temp8[LOCAL_CRIT]);
+ 	else
+-		temp = temp_from_s8(data->temp8[2]);
++		temp = temp_from_s8(data->temp8[LOCAL_CRIT]);
+ 
+ 	data->temp_hyst = hyst_to_reg(temp - val);
+ 	i2c_smbus_write_byte_data(client, LM90_REG_W_TCRIT_HYST,
+@@ -950,25 +971,28 @@ static ssize_t set_update_interval(struct device *dev,
+ 	return count;
+ }
+ 
+-static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
+-static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL,
++	0, LOCAL_TEMP);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL,
++	0, REMOTE_TEMP);
+ static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 0);
++	set_temp8, LOCAL_LOW);
+ static SENSOR_DEVICE_ATTR_2(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 0, 1);
++	set_temp11, 0, REMOTE_LOW);
+ static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 1);
++	set_temp8, LOCAL_HIGH);
+ static SENSOR_DEVICE_ATTR_2(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 1, 2);
++	set_temp11, 1, REMOTE_HIGH);
+ static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 2);
++	set_temp8, LOCAL_CRIT);
+ static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 3);
++	set_temp8, REMOTE_CRIT);
+ static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
+-	set_temphyst, 2);
+-static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 3);
++	set_temphyst, LOCAL_CRIT);
++static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL,
++	REMOTE_CRIT);
+ static SENSOR_DEVICE_ATTR_2(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 2, 3);
++	set_temp11, 2, REMOTE_OFFSET);
+ 
+ /* Individual alarm files */
+ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
+@@ -1016,13 +1040,13 @@ static const struct attribute_group lm90_group = {
+  * Additional attributes for devices with emergency sensors
+  */
+ static SENSOR_DEVICE_ATTR(temp1_emergency, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 4);
++	set_temp8, LOCAL_EMERG);
+ static SENSOR_DEVICE_ATTR(temp2_emergency, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 5);
++	set_temp8, REMOTE_EMERG);
+ static SENSOR_DEVICE_ATTR(temp1_emergency_hyst, S_IRUGO, show_temphyst,
+-			  NULL, 4);
++			  NULL, LOCAL_EMERG);
+ static SENSOR_DEVICE_ATTR(temp2_emergency_hyst, S_IRUGO, show_temphyst,
+-			  NULL, 5);
++			  NULL, REMOTE_EMERG);
+ 
+ static struct attribute *lm90_emergency_attributes[] = {
+ 	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
+@@ -1052,18 +1076,20 @@ static const struct attribute_group lm90_emergency_alarm_group = {
+ /*
+  * Additional attributes for devices with 3 temperature sensors
+  */
+-static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp11, NULL, 0, 5);
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp11, NULL,
++	0, REMOTE2_TEMP);
+ static SENSOR_DEVICE_ATTR_2(temp3_min, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 3, 6);
++	set_temp11, 3, REMOTE2_LOW);
+ static SENSOR_DEVICE_ATTR_2(temp3_max, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 4, 7);
++	set_temp11, 4, REMOTE2_HIGH);
+ static SENSOR_DEVICE_ATTR(temp3_crit, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 6);
+-static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temphyst, NULL, 6);
++	set_temp8, REMOTE2_CRIT);
++static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temphyst, NULL,
++	REMOTE2_CRIT);
+ static SENSOR_DEVICE_ATTR(temp3_emergency, S_IWUSR | S_IRUGO, show_temp8,
+-	set_temp8, 7);
++	set_temp8, REMOTE2_EMERG);
+ static SENSOR_DEVICE_ATTR(temp3_emergency_hyst, S_IRUGO, show_temphyst,
+-			  NULL, 7);
++			  NULL, REMOTE2_EMERG);
+ 
+ static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 9);
+ static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 10);
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7628335952262706128==--
