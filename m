@@ -1,37 +1,125 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 19 Aug 2013 02:44:39 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (sht15) Use devm_regulator_get_optional()
-Message-Id: <52118697.5030102@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 07 Aug 2013 06:52:37 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm90) Add power control
+Message-Id: <1375858358-15070-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1376844227-30352-1-git-send-email-broonie@kernel.org>
-In-Reply-To: <1376844227-30352-1-git-send-email-broonie@kernel.org>
+References: <1375858358-15070-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375858358-15070-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, swarren@wwwdotorg.org
+Cc: linux@roeck-us.net, MLongnecker@nvidia.com, linux-arm-kernel@lists.infradead.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On 08/18/2013 09:43 AM, Mark Brown wrote:
-> From: Mark Brown <broonie@linaro.org>
->
-> Since the sht15 driver supports operation without an external vref
-> regulator the driver should use the new devm_regulator_get_optional() to
-> indicate that a stub regulator should not be provided.
->
-> Signed-off-by: Mark Brown <broonie@linaro.org>
+The device lm90 can be controlled by the vdd rail.
+Adding the power control support to power on/off the vdd rail.
+And make sure that power is enabled before accessing the device.
 
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |   52 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-> ---
->
-> Since devm_regulator_get_optional() is not yet merged either the branch
-> adding it would need be be merged into the hwmon tree or I'd need to
-> apply this to the regualtor tree.
->
-
-Please take it through the regulator tree; that seems to be easier.
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index cdff742..eeb0115 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -89,6 +89,8 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/delay.h>
++#include <linux/regulator/consumer.h>
+ 
+ /*
+  * Addresses to scan
+@@ -179,6 +181,8 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+ #define LM90_HAVE_TEMP3		(1 << 6) /* 3rd temperature sensor	*/
+ #define LM90_HAVE_BROKEN_ALERT	(1 << 7) /* Broken alert		*/
+ 
++#define POWER_ON_DELAY 20 /*ms*/
++
+ /*
+  * Driver data (common to all clients)
+  */
+@@ -302,6 +306,7 @@ static const struct lm90_params lm90_params[] = {
+ struct lm90_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
++	struct regulator *lm90_reg;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+ 	int kind;
+@@ -1391,6 +1396,48 @@ static void lm90_init_client(struct i2c_client *client)
+ 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
+ }
+ 
++static int lm90_power_control(struct i2c_client *client, bool is_enable)
++{
++	struct lm90_data *data = i2c_get_clientdata(client);
++	int ret;
++
++	mutex_lock(&data->update_lock);
++
++	if (!data->lm90_reg) {
++		data->lm90_reg = regulator_get(&client->dev, "vdd");
++		if (IS_ERR_OR_NULL(data->lm90_reg)) {
++			if (PTR_ERR(data->lm90_reg) = -ENODEV)
++				dev_info(&client->dev,
++					 "No regulator found for vdd. Assuming vdd is always powered.");
++			else
++				dev_warn(&client->dev,
++					 "Error [%ld] in getting the regulator handle for vdd.\n",
++					 PTR_ERR(data->lm90_reg));
++			data->lm90_reg = NULL;
++			mutex_unlock(&data->update_lock);
++			return -ENODEV;
++		}
++	}
++	if (is_enable) {
++		ret = regulator_enable(data->lm90_reg);
++		msleep(POWER_ON_DELAY);
++	} else {
++		ret = regulator_disable(data->lm90_reg);
++	}
++
++	if (ret < 0)
++		dev_err(&client->dev,
++			"Error in %s rail vdd, error %d\n",
++			(is_enable) ? "enabling" : "disabling", ret);
++	else
++		dev_info(&client->dev, "success in %s rail vdd\n",
++			 (is_enable) ? "enabling" : "disabling");
++
++	mutex_unlock(&data->update_lock);
++
++	return ret;
++}
++
+ static int lm90_probe(struct i2c_client *client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1406,6 +1453,10 @@ static int lm90_probe(struct i2c_client *client,
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
++	err = lm90_power_control(client, true);
++	if (err < 0)
++		return err;
++
+ 	/* Set the device type */
+ 	data->kind = id->driver_data;
+ 	if (data->kind = adm1032) {
+@@ -1483,6 +1534,7 @@ static int lm90_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	lm90_remove_files(client, data);
+ 	lm90_restore_conf(client, data);
++	lm90_power_control(client, false);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
 
 
 _______________________________________________
