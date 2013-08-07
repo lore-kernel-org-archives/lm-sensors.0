@@ -1,37 +1,31 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 23 Aug 2013 23:15:51 +0000
-Subject: [lm-sensors] [RFC PATCH 10/14] arm: dts: point to cooling-zones on omap4460 cpu node
-Message-Id: <1377299755-5134-11-git-send-email-eduardo.valentin@ti.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 07 Aug 2013 06:52:36 +0000
+Subject: [lm-sensors] [PATCH 0/2] Add power control for lm90
+Message-Id: <1375858358-15070-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
+Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-T01BUDQ0NjAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
-ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
-cyBwYXRjaCBsaW5rcyB0aGUgY3B1IG5vZGUgdG8gaXRzIHRoZXJtYWwtem9uZQpzbyB0aGF0IGNw
-dWZyZXEtY3B1MCBkcml2ZXIgbG9hZHMgdGhlIGNvb2xpbmcgZGV2aWNlLgoKQ2M6ICJCZW5vw650
-IENvdXNzb24iIDxiLWNvdXNzb25AbGluYXJvLm9yZz4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlA
-YXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNj
-OiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsu
-cnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9y
-Zz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxs
-IEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVs
-Lm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWdu
-ZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0t
-CiBhcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpIHwgMSArCiAxIGZpbGUgY2hhbmdlZCwg
-MSBpbnNlcnRpb24oKykKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5k
-dHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQppbmRleCA5ODU1ZjI5Li45OTFi
-ZDFiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCisrKyBiL2Fy
-Y2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kKQEAgLTIwLDYgKzIwLDcgQEAKIAkJCQk5MjAw
-MDAgIDEzMTMwMDAKIAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAwMD47IC8qIEZyb20g
-bGVnYWN5IGRyaXZlciAqLworCQkJY29vbGluZy16b25lcyA9IDwmY3B1X3RoZXJtYWw+OwogCQl9
-OwogCX07CiAKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
-c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9sbS1zZW5zb3Jz
+The device lm90 can be controlled by the vdd rail.
+Add function to power on/off the vdd.
+Enable the nct1008 on Tegra114 Dalmore board, and set the vdd-regulator.
+
+Wei Ni (2):
+  hwmon: (lm90) Add power control
+  ARM: dt: t114 dalmore: add dt entry for nct1008
+
+ arch/arm/boot/dts/tegra114-dalmore.dts |   10 +++++-
+ drivers/hwmon/lm90.c                   |   52 ++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+), 1 deletion(-)
+
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
