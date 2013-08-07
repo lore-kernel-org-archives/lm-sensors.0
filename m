@@ -1,79 +1,143 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Fri, 09 Aug 2013 10:56:44 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/3] hwmon: (lm90) Add power control
-Message-Id: <20130809105644.GW6427@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8319042920264116730=="
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 07 Aug 2013 06:18:24 +0000
+Subject: [lm-sensors] [PATCH v4 1/3] hwmon: (lm90) Define status bits
+Message-Id: <1375856306-14415-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375944991-29182-1-git-send-email-wni@nvidia.com>
- <1375944991-29182-2-git-send-email-wni@nvidia.com>
- <20130808110136.GA6427@sirena.org.uk>
- <520498F3.8030101@nvidia.com>
-In-Reply-To: <520498F3.8030101-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-
-
---===============8319042920264116730==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hjiPcpt6rcFNGbLy"
-Content-Disposition: inline
-
-
---hjiPcpt6rcFNGbLy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Aug 09, 2013 at 03:23:31PM +0800, Wei Ni wrote:
-> On 08/08/2013 07:01 PM, Mark Brown wrote:
-
-> > You shouldn't just be ignoring errors here, though there are deployment
-> > difficulties with making sure a stub regulator is provided.  These
-> > should be getting easier after the next merge window, the stubs will be
-> > being tweaked slightly to have an "assume it's there" option even when
-
-> Oh, really, could you show me the patch, I wish to take a look :)
-
-No patch quite yet - the basic idea is that for plain regulator_get()
-you'll only ever get -EPROBE_DEFER as an error, not -ENODEV.  If the
-regulator is missing in the DT we assume it's there and provide a dummy
-if the DT doesn't hook it up.  If the consumer genuinely wants to see if
-a supply might not be wired up it should use regulator_get_optional()
-which is in -next at the minute.
-
---hjiPcpt6rcFNGbLy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSBMrpAAoJELSic+t+oim92agP/j5azvH/+9+pcUjPegcAHB1d
-XX79RjQpQnEbtskZxH8tOM10KgWcQqCEzMu+D4L+jCGH592DA398AJl4miVmOAHt
-f3BmcJrmIYH+1HUN6dQGzT2yCZqvJqHuvn3qoTff1j+Lfoo2Izr91befX66UoLG2
-5+zZkK2iCo8RjOl5koMfNTH5yPt4RNff9iZNCnG1YFTO0U6Z9Kel3orLRBlAvBW1
-dffaatc3qKyy8ZZ3O/dpd/nIu5UXo2rASoEaar5atL0mK6iQQ7VqhAnI8HsHphbV
-WzmB3K+AoRxGblewawUVz/GZeHEUpxcgxOeFIXnbsOhs/fZrct0NIKre7LEhmUmm
-6UJOK7TriFNtKTK3dF6hM68SAUJbiENpQo35vYaOZoiARcE06PIRg69v0wQj83zg
-POMZOidZgp9fzI1FisYnTWB+dCFQnSlCJWLQMqrOqFoUjUTUGcSp7vRR8tMUhtL7
-50f2dHPnhNKAEWHRRjCAr8c6wnYh4V2H/dFA5k72xHgbKxIMSgScZSTzaAMbsgJ1
-77o0cT69HMh3H8scRKrfKhBXCn4UzNKZJwR3uoQHzqQIa4FLXrNAooL62PoTgxgq
-U+WjToAlslBAFjQ/QQs83y3bpo27rYfXXEDFgEkv2LHzh6W2ANa5agsXvT5WVtSe
-vypsdOjWv8lEByE1RrQ5
-=lQYp
------END PGP SIGNATURE-----
-
---hjiPcpt6rcFNGbLy--
-
-
---===============8319042920264116730==
-Content-Type: text/plain; charset="us-ascii"
+References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375856306-14415-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: khali@linux-fr.org
+Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
+
+Add bit defines for the status register. And add a function
+lm90_is_tripped() which will read status register and return
+tripped or not, then lm90_alert can call it directly, and in the
+future the IRQ thread also can use it.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |   75 +++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 50 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index cdff742..1da2eff 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -179,6 +179,18 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+ #define LM90_HAVE_TEMP3		(1 << 6) /* 3rd temperature sensor	*/
+ #define LM90_HAVE_BROKEN_ALERT	(1 << 7) /* Broken alert		*/
+ 
++/* LM90 status */
++#define LM90_STATUS_LTHRM	(1 << 0) /* local THERM limit tripped */
++#define LM90_STATUS_RTHRM	(1 << 1) /* remote THERM limit tripped */
++#define LM90_STATUS_OPEN	(1 << 2) /* remote is an open circuit */
++#define LM90_STATUS_RLOW	(1 << 3) /* remote low temp limit tripped */
++#define LM90_STATUS_RHIGH	(1 << 4) /* remote high temp limit tripped */
++#define LM90_STATUS_LLOW	(1 << 5) /* local low temp limit tripped */
++#define LM90_STATUS_LHIGH	(1 << 6) /* local high temp limit tripped */
++
++#define MAX6696_STATUS2_RLOW	(1 << 3) /* remote2 low temp limit tripped */
++#define MAX6696_STATUS2_RHIGH	(1 << 4) /* remote2 high temp limit tripped */
++
+ /*
+  * Driver data (common to all clients)
+  */
+@@ -1391,6 +1403,36 @@ static void lm90_init_client(struct i2c_client *client)
+ 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
+ }
+ 
++static bool lm90_is_tripped(struct i2c_client *client)
++{
++	struct lm90_data *data = i2c_get_clientdata(client);
++	u8 status, status2 = 0;
++
++	lm90_read_reg(client, LM90_REG_R_STATUS, &status);
++
++	if (data->kind = max6696)
++		lm90_read_reg(client, MAX6696_REG_R_STATUS2, &status2);
++
++	if ((status & 0x7f) = 0 && (status2 & 0xfe) = 0)
++		return false;
++
++	if (status & (LM90_STATUS_LLOW | LM90_STATUS_LHIGH | LM90_STATUS_LTHRM))
++		dev_warn(&client->dev,
++			 "temp%d out of range, please check!\n", 1);
++	if (status & (LM90_STATUS_RLOW | LM90_STATUS_RHIGH | LM90_STATUS_RTHRM))
++		dev_warn(&client->dev,
++			 "temp%d out of range, please check!\n", 2);
++	if (status & LM90_STATUS_OPEN)
++		dev_warn(&client->dev,
++			 "temp%d diode open, please check!\n", 2);
++
++	if (status2 & (MAX6696_STATUS2_RLOW | MAX6696_STATUS2_RHIGH))
++		dev_warn(&client->dev,
++			 "temp%d out of range, please check!\n", 3);
++
++	return true;
++}
++
+ static int lm90_probe(struct i2c_client *client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1489,36 +1531,17 @@ static int lm90_remove(struct i2c_client *client)
+ 
+ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ {
+-	struct lm90_data *data = i2c_get_clientdata(client);
+-	u8 config, alarms, alarms2 = 0;
+-
+-	lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
+-
+-	if (data->kind = max6696)
+-		lm90_read_reg(client, MAX6696_REG_R_STATUS2, &alarms2);
+-
+-	if ((alarms & 0x7f) = 0 && (alarms2 & 0xfe) = 0) {
+-		dev_info(&client->dev, "Everything OK\n");
+-	} else {
+-		if (alarms & 0x61)
+-			dev_warn(&client->dev,
+-				 "temp%d out of range, please check!\n", 1);
+-		if (alarms & 0x1a)
+-			dev_warn(&client->dev,
+-				 "temp%d out of range, please check!\n", 2);
+-		if (alarms & 0x04)
+-			dev_warn(&client->dev,
+-				 "temp%d diode open, please check!\n", 2);
+-
+-		if (alarms2 & 0x18)
+-			dev_warn(&client->dev,
+-				 "temp%d out of range, please check!\n", 3);
+-
++	if (lm90_is_tripped(client)) {
+ 		/*
+ 		 * Disable ALERT# output, because these chips don't implement
+ 		 * SMBus alert correctly; they should only hold the alert line
+ 		 * low briefly.
+ 		 */
++		struct lm90_data *data = i2c_get_clientdata(client);
++		u8 config, alarms;
++
++		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
++
+ 		if ((data->flags & LM90_HAVE_BROKEN_ALERT)
+ 		 && (alarms & data->alert_alarms)) {
+ 			dev_dbg(&client->dev, "Disabling ALERT#\n");
+@@ -1526,6 +1549,8 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ 			i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+ 						  config | 0x80);
+ 		}
++	} else {
++		dev_info(&client->dev, "Everything OK\n");
+ 	}
+ }
+ 
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8319042920264116730==--
