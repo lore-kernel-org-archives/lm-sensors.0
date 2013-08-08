@@ -1,37 +1,35 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 07 Aug 2013 06:30:34 +0000
-Subject: Re: [lm-sensors] New Sensors, which info you need off me?
-Message-Id: <5201E98A.40403@roeck-us.net>
+From: =?ISO-8859-15?Q?Holger_B=FCrger?= <buerger@teamnet.de>
+Date: Thu, 08 Aug 2013 08:55:03 +0000
+Subject: [lm-sensors] Motherboard Fujitsu D-3076-S
+Message-Id: <52035CE7.3060103@teamnet.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5201DF24.1040803@rzschernsdorf.de>
-In-Reply-To: <5201DF24.1040803@rzschernsdorf.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/06/2013 10:46 PM, Martin Herrholz wrote:
-> Hi lm-sensors-team,
->
-> got a new Mainboard which doesnt have any sensors detected with lm-sensors yet, what infos could help you do get it running?
->
-> Mainboard:
-> Asus F2A85-M LE
->
-> Message where sensors-detect seems to find an unknown chip:
->
-> Trying family `ITE'...                                      Yes
-> Found unknown chip with ID 0x8623
->      (logical device 4 has address 0x290, could be sensors)
->
->
+Hello,
 
-Chip is ITE IT8623E. I don't think there is much we can do. There is no public datasheet,
-and it is difficult to get one without signing an NDA ... which makes writing a driver
-almost impossible, even if you find someone who has the time to do it.
+I try to get a Fujitsu D-3076-S Motherboard working with Centos 5.9.
+Therefore I try to get the BMC working with lm-sensors.
 
-Guenter
 
+Can you show me, where I can get actual sources, which can be compiled
+against kernel 2.6.18-348.3.1.el5PAE?
+
+The website http://www.lm-sensors.org/wiki/Devices linked
+the chip SCH5636 with driver sch5636  against the public folder ( of
+Hans De Goede) http://people.fedoraproject.org/~jwrdegoede/sch56xx/, but
+this doesn't exists anymore.
+
+The stuff from the following FTP Link is not working:
+
+ftp://ftp.ts.fujitsu.com/pub/Mainboard-OEM-Sales/Products/Mainboards/Industrial&ExtendedLifetime/D3071-S_D3076-S/IndustrialTools_D307x-S/Linux_SystemMonitoring&Watchdog-Driver/
+
+
+with kind regards
+
+Holger B.
 
 
 _______________________________________________
