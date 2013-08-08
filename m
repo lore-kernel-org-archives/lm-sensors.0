@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 08 Aug 2013 09:50:51 +0000
+From: =?ISO-8859-1?Q?Holger_B=FCrger?= <buerger@teamnet.de>
+Date: Thu, 08 Aug 2013 11:05:23 +0000
 Subject: Re: [lm-sensors] Motherboard Fujitsu D-3076-S
-Message-Id: <520369FB.5040700@redhat.com>
+Message-Id: <52037B73.9010600@teamnet.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52035CE7.3060103@teamnet.de>
 In-Reply-To: <52035CE7.3060103@teamnet.de>
@@ -12,28 +12,30 @@ To: lm-sensors@vger.kernel.org
 
 Hi,
 
-On 08/08/2013 10:55 AM, Holger B=FCrger wrote:
-> Hello,
->
-> I try to get a Fujitsu D-3076-S Motherboard working with Centos 5.9.
-> Therefore I try to get the BMC working with lm-sensors.
->
->
-> Can you show me, where I can get actual sources, which can be compiled
-> against kernel 2.6.18-348.3.1.el5PAE?
->
-> The website http://www.lm-sensors.org/wiki/Devices linked
-> the chip SCH5636 with driver sch5636  against the public folder ( of
-> Hans De Goede) http://people.fedoraproject.org/~jwrdegoede/sch56xx/, but
-> this doesn't exists anymore.
+> ...
+> ... 2.6.18 is quite old ...
+> ...
 
-Ah, I did not know we still had a link to that. I've restored it from
-my local copy. Note that 2.6.18 is quite old I've no idea if the
-standalone sch56xx version will work with it, but it is back up now.
+I tried to compile this:
 
-Regards,
+"
+make -C /lib/modules/2.6.18-348.el5/build M=3D/root/test modules
+make[1]: Entering directory `/usr/src/kernels/2.6.18-348.12.1.el5-i686'
+  CC [M]  /root/test/sch56xx-common.o
+/root/test/sch56xx-common.c: In function =BBsch56xx_device_add=AB:
+/root/test/sch56xx-common.c:795: Fehler: Implizite Deklaration der
+Funktion =BBacpi_check_resource_conflict=AB
+make[2]: *** [/root/test/sch56xx-common.o] Fehler 1
+make[1]: *** [_module_/root/test] Fehler 2
+make[1]: Leaving directory `/usr/src/kernels/2.6.18-348.12.1.el5-i686'
+make: *** [all] Fehler 2
+"
 
-Hans
+Is there a way to fix this?
+
+Regards
+
+Holger B=FCrger
 
 _______________________________________________
 lm-sensors mailing list
