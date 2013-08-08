@@ -1,50 +1,43 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 23 Aug 2013 23:15:53 +0000
-Subject: [lm-sensors] [RFC PATCH 12/14] arm: dts: add omap5 CORE thermal data
-Message-Id: <1377299755-5134-13-git-send-email-eduardo.valentin@ti.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Thu, 08 Aug 2013 06:56:28 +0000
+Subject: [lm-sensors] [PATCH v2 0/3] Add power control for lm90
+Message-Id: <1375944991-29182-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org
+Cc: MLongnecker@nvidia.com, linux-arm-kernel@lists.infradead.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgQ09SRSBkb21haW4gb24gT01BUDUgYW5kIGxhdGVyIFNvQ3MuIFRoaXMgZGF0YSB3aWxs
-CmVuYWJsZSBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KClRoaXMgdGhlcm1hbCBkYXRhIGNh
-biBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoKQ2M6ICJCZW5vw650IENvdXNzb24i
-IDxiLWNvdXNzb25AdGkuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4K
-Q2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1vbGwg
-PHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFybS5j
-b20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFuIENh
-bXBiZWxsIDxpYW4uY2FtcGJlbGxAY2l0cml4LmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGludXhA
-YXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBkZXZp
-Y2V0cmVlQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
-YWQub3JnCkNjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEVk
-dWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jv
-b3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpIHwgMjcgKysrKysrKysrKysrKysrKysrKysr
-KysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjcgaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAw
-NjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpCgpkaWZmIC0tZ2l0
-IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9i
-b290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRl
-eCAwMDAwMDAwLi4zZDlmYTA5Ci0tLSAvZGV2L251bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMv
-b21hcDUtY29yZS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyNyBAQAorCisvKgorICogRGV2aWNl
-IFRyZWUgU291cmNlIGZvciBPTUFQNTQzeCBTb0MgQ09SRSB0aGVybWFsCisgKgorICogQ29weXJp
-Z2h0IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cu
-dGkuY29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0
-aS5jb20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0
-aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3Jh
-bSBpcyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2lu
-ZCwgd2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRp
-bmdzL3RoZXJtYWwvdGhlcm1hbC5oPgorCitjb3JlX3RoZXJtYWw6IGNvcmVfdGhlcm1hbCB7CisJ
-I3RoZXJtYWwtY2VsbHMgPSA8MT47CisJbWFzayA9IDwweDAxPjsgLyogdHJpcHMgd3JpdGFiaWxp
-dHkgKi8KKwlwYXNzaXZlX2RlbGF5ID0gPDI1MD47IC8qIG1pbGxpc2Vjb25kcyAqLworCXBvbGxp
-bmdfZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCXRyaXBzIHsKKwkJY3JpdEAx
-MjUwMDB7CisJCQl0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKwkJ
-CWh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJdHlwZSA9IDxUSEVS
-TUFMX1RSSVBfQ1JJVElDQUw+OworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
-NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+The device lm90 can be controlled by the vdd rail.
+Add function to power on/off the vdd.
+Enable the nct1008 on Tegra114 Dalmore board, and set the vdd-regulator.
+
+This series is v2, previous version patches:
+[v1]: http://www.mail-archive.com/linux-tegra@vger.kernel.org/msg12034.html
+
+Changes from v1:
+1. if get regulator failed, we should continue to run probe function,
+not return fail.
+2. call regulator_put() in error handler and remove function.
+3. add LM90 DT binding document.
+
+Wei Ni (3):
+  hwmon: (lm90) Add power control
+  ARM: dt: t114 dalmore: add dt entry for nct1008
+  Documentation: dt: hwmon: add OF document for lm90
+
+ Documentation/devicetree/bindings/hwmon/lm90.txt |   20 +++++++++
+ arch/arm/boot/dts/tegra114-dalmore.dts           |   10 ++++-
+ drivers/hwmon/lm90.c                             |   49 ++++++++++++++++++++++
+ 3 files changed, 78 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/lm90.txt
+
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
