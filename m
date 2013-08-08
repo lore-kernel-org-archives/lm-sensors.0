@@ -1,35 +1,49 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 08 Aug 2013 02:36:25 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] ARM: dt: t114 dalmore: add dt entry for nct1008
-Message-Id: <52030429.7010400@nvidia.com>
+From: curt@cumulusnetworks.com
+Date: Thu, 08 Aug 2013 19:11:03 +0000
+Subject: [lm-sensors] [PATCH 1/1] hwmon: (adt7470) Fix incorrect return code check
+Message-Id: <1375989063-24337-1-git-send-email-curt@cumulusnetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375858358-15070-1-git-send-email-wni@nvidia.com> <1375858358-15070-3-git-send-email-wni@nvidia.com> <52026FEE.9070003@wwwdotorg.org>
-In-Reply-To: <52026FEE.9070003-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 08/08/2013 12:03 AM, Stephen Warren wrote:
-> On 08/07/2013 12:52 AM, Wei Ni wrote:
->> Enable thermal sensor nct1008 for t114 dalmore.
-> 
-> Wei, I assume this patch doesn't depend on any of the other LM90-related
-> patches you've sent; I can simply apply it right away?
+From: Curt Brune <curt@cumulusnetworks.com>
 
-In my [PATCH 1/2], I add codes to get the vdd regulator and enable it,
-so if without it, the lm90 can't work properly on Dalmore, although it
-can be loaded.
-I think it's better to wait my fist patch applied.
+In adt7470_write_word_data(), which writes two bytes using
+i2c_smbus_write_byte_data(), the return codes are incorrectly AND-ed
+together when they should be OR-ed together.
 
-> 
-> Is the LM90 DT binding fully documented somewhere, including the
-> vdd-supply property?
+The return code of i2c_smbus_write_byte_data() is zero for success.
 
-No LM90 DT binding document yet, I will add it in my next version.
+The upshot is only the first byte was ever written to the hardware.
+The 2nd byte was never written out.
 
-> 
+I noticed that trying to set the fan speed limits was not working
+correctly on my system.  Setting the fan speed limits is the only
+code that uses adt7470_write_word_data().  After making the change
+the limit settings work and the alarms work also.
+
+Signed-off-by: Curt Brune <curt@cumulusnetworks.com>
+---
+ drivers/hwmon/adt7470.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 0f34bca..6099f50 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -215,7 +215,7 @@ static inline int adt7470_write_word_data(struct i2c_client *client, u8 reg,
+ 					  u16 value)
+ {
+ 	return i2c_smbus_write_byte_data(client, reg, value & 0xFF)
+-	       && i2c_smbus_write_byte_data(client, reg + 1, value >> 8);
++	       || i2c_smbus_write_byte_data(client, reg + 1, value >> 8);
+ }
+ 
+ static void adt7470_init_client(struct i2c_client *client)
+-- 
+1.7.10.4
 
 
 _______________________________________________
