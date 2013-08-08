@@ -1,43 +1,53 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Fri, 23 Aug 2013 00:30:59 +0000
-Subject: Re: [lm-sensors] [PATCH v4 0/2] iMC SMBUS and DIMM bus probing
-Message-Id: <CALCETrWyr4s-nGtwNRxOicZfwisr4G3fUVj8u_g3c_gy8=ygfg@mail.gmail.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Thu, 08 Aug 2013 06:56:30 +0000
+Subject: [lm-sensors] [PATCH v2 2/3] ARM: dt: t114 dalmore: add dt entry for nct1008
+Message-Id: <1375944991-29182-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1374171757.git.luto@amacapital.net> <20130815125047.GF17155@katana>
-In-Reply-To: <20130815125047.GF17155@katana>
+References: <1375944991-29182-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375944991-29182-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, James Ralston <james.d.ralston-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org
+Cc: MLongnecker@nvidia.com, linux-arm-kernel@lists.infradead.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On Thu, Aug 15, 2013 at 5:50 AM, Wolfram Sang <wsa@the-dreams.de> wrote:
-> On Thu, Jul 18, 2013 at 11:36:52AM -0700, Andy Lutomirski wrote:
->> Intel LGA2011 machines have dedicated SMBUS controllers for DIMM
->> sockets.  Because they're dedicated, they can be safely and accurately
->> probed, since all devices on them are known to be attached to DIMMs.
->> The devices found are:
->>  - SPD EEPROMs
->>  - TSODs (Temperature Sensor on DIMMs)
->>  - Other interesting things, with drivers hopefully to follow...
->
-> Just to let you know, I keep thinking about it now and then but have not
-> made up my mind yet... still at it.
->
+Enable thermal sensor nct1008 for t114 dalmore.
 
-I've written the updated version of the driver.  Can you give me an
-opinion on the dimm bus stuff so I can minimize the number of times I
-have to ask for permission to send the driver?
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra114-dalmore.dts |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-(There aren't any huge changes -- the main thing is that it will now
-refuse to run on some systems.)
-
-Thanks,
-Andy
-
+diff --git a/arch/arm/boot/dts/tegra114-dalmore.dts b/arch/arm/boot/dts/tegra114-dalmore.dts
+index b5a42f0..9d4d2b2 100644
+--- a/arch/arm/boot/dts/tegra114-dalmore.dts
++++ b/arch/arm/boot/dts/tegra114-dalmore.dts
+@@ -738,6 +738,14 @@
+ 			realtek,ldo1-en-gpios  				<&gpio TEGRA_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
+ 		};
++
++		nct1008 {
++			compatible = "onnn,nct1008";
++			reg = <0x4c>;
++			vdd-supply = <&palmas_ldo6_reg>;
++			interrupt-parent = <&gpio>;
++			interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
++		};
+ 	};
+ 
+ 	i2c@7000d000 {
+@@ -945,7 +953,7 @@
+ 						regulator-max-microvolt = <1800000>;
+ 					};
+ 
+-					ldo6 {
++					palmas_ldo6_reg: ldo6 {
+ 						regulator-name = "vdd-sensor-2v85";
+ 						regulator-min-microvolt = <2850000>;
+ 						regulator-max-microvolt = <2850000>;
 -- 
-Andy Lutomirski
-AMA Capital Management, LLC
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
