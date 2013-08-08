@@ -1,7 +1,7 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Thu, 08 Aug 2013 09:59:28 +0000
+Date: Thu, 08 Aug 2013 10:07:52 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/3] hwmon: (lm90) Add power control
-Message-Id: <52036C00.20405@nvidia.com>
+Message-Id: <52036DF8.8000903@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1375944991-29182-1-git-send-email-wni@nvidia.com> <520359E9.1000600@roeck-us.net> <52036920.4050808@nvidia.com> <1375955834.368114617@f197.i.mail.ru>
 In-Reply-To: <1375955834.368114617-VbvbiqT9YuJsdVUOrk1QfQ@public.gmane.org>
@@ -39,15 +39,16 @@ On 08/08/2013 05:57 PM, Alexander Shiyan wrote:
 >>         return -EPRPBE_DEFER;
 >>
 >>         data->lm90_reg = !!IS_ERR(data->lm90_reg);
+
+BTW, since it may return EPROBE_DEFER, these codes should be put in the
+beginning of the probe() function, should before allocate lm90_data.
+
 > 
 > No. You do not need this line.
 > 
 > Just use in remove():
 > if (!IS_ERR(data->lm90_reg))
 > regulator_disable(data->lm90_reg);
-
-Oh, I see, thank you very much.
-
 > 
 > ---
 > 
