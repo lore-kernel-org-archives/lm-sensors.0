@@ -1,7 +1,9 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 08 Aug 2013 20:00:26 +0000
+From: Mark Brown <broonie@kernel.org>
+Date: Thu, 08 Aug 2013 21:18:25 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/3] hwmon: (lm90) Add power control
-Message-Id: <20130808200026.GA18226@roeck-us.net>
+Message-Id: <20130808211825.GN6427@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0787905863110258370=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1375944991-29182-1-git-send-email-wni@nvidia.com>
  <1375944991-29182-2-git-send-email-wni@nvidia.com>
@@ -10,70 +12,86 @@ References: <1375944991-29182-1-git-send-email-wni@nvidia.com>
  <20130808130840.GC6427@sirena.org.uk>
  <5203B78C.7010101@roeck-us.net>
  <20130808171554.GI6427@sirena.org.uk>
-In-Reply-To: <20130808171554.GI6427-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <20130808200026.GA18226@roeck-us.net>
+In-Reply-To: <20130808200026.GA18226-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
 Cc: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 
-On Thu, Aug 08, 2013 at 06:15:54PM +0100, Mark Brown wrote:
-> On Thu, Aug 08, 2013 at 08:21:48AM -0700, Guenter Roeck wrote:
-> > On 08/08/2013 06:08 AM, Mark Brown wrote:
-> 
-> > >I'd be most surprised if the device worked without power, if the driver
-> > >fails to get and enable a regulator for it then that's not great
-> > >(especially if it does so silently).
-> 
-> > Correct, but it appears that the driver magically worked for a long time
-> > without it.
-> 
-> Sure, it'll work in systems that have always on regulators.
-> 
-> > Is it guaranteed that the driver keeps working for all cases where
-> > regulator support is enabled in the kernel, and where it used to work
-> > so far without mandating the existence of this specific regulator ?
-> > My main concern is having to deal with complaints that the driver stopped
-> > working for no good reason.
-> 
-> Sure, that's the transition issues I mentioned - the regulator API does
-> have stubbing facilities which should cover things and it's very easy to
-> define stub regulators if you need to.  Like I say I expect this to be a
-> lot easier after the next merge window as another way of doing stubs is
-> being added which should make this even easier by avoiding disrupting
-> drivers that do genuinely want to check for absent supplies and handle
-> that better.
-> 
-We will need to make sure that all dts files using any of the compatible chips
-are updated accordingly. There are several entries in various dts files for
-adm1032, adt7461, lm90, and nct1008.
 
-> > In this context, is it common practice to name such regulators "vdd"
-> > or similar ? What if there are multiple LM90 or compatible chips
-> > in a system, connected to different power rails ? Who determines
-> > if the regulator is supposed to be named "vdd" or "vcc" or anything
-> > else, and to which power rails it is actually connected ? How can
-> > and does one guarantee that "vdd" is the correct regulator to use
-> > for all systems ? What if some other driver requests "vdd", but the chip
-> > it supports happens to be connected to a different power rail ?
-> 
-> That's not what the name means - they are nothing to do with the board.
+--===============0787905863110258370==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kzMQwe+b+L5ZMwhV"
+Content-Disposition: inline
 
-Ok, makes sense.
 
-> The names requested by a driver are defined with regard to the device
-> and should be the names used by the chip itself as defined in the
+--kzMQwe+b+L5ZMwhV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-9 votes for vdd, 11 votes for vcc, one undecided (no datasheet available).
-Guess one is as good as the other ;-).
+On Thu, Aug 08, 2013 at 01:00:26PM -0700, Guenter Roeck wrote:
+> On Thu, Aug 08, 2013 at 06:15:54PM +0100, Mark Brown wrote:
 
-Guenter
+> > Sure, that's the transition issues I mentioned - the regulator API does
+> > have stubbing facilities which should cover things and it's very easy to
+> > define stub regulators if you need to.  Like I say I expect this to be a
+> > lot easier after the next merge window as another way of doing stubs is
+> > being added which should make this even easier by avoiding disrupting
+> > drivers that do genuinely want to check for absent supplies and handle
+> > that better.
 
-> datasheet.  A board that uses regulators then maps these onto specific
-> regulators in the system, the driver doesn't need to know anything about
-> this process.
+> We will need to make sure that all dts files using any of the compatible chips
+> are updated accordingly. There are several entries in various dts files for
+> adm1032, adt7461, lm90, and nct1008.
+
+Yes, and probably also board files as well.  Or either just accept
+bisection trouble for now or wait till the better stubbing is in there -
+that will mean that for DT systems the core will just assume the supply
+is really there and not fail requests if it's not in the DT.
+
+> > The names requested by a driver are defined with regard to the device
+> > and should be the names used by the chip itself as defined in the
+
+> 9 votes for vdd, 11 votes for vcc, one undecided (no datasheet available).
+> Guess one is as good as the other ;-).
+
+What I've suggested before is to use the name from the part for which
+the driver is named.  Assuming the vendor doesn't randomly change their
+datasheet (but that causes problems for hardware engineers so tends to
+be avoided).
+
+--kzMQwe+b+L5ZMwhV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSBAseAAoJELSic+t+oim9HdkP/1clAmlXHvLIfuDu7yuIR1Ec
+UABcJ4gtxJBYR8zc729KpJaLhsjS+LxxuKVFI0PFgUAXmOEO1jHpwy+VR9JW5eee
+e7WdPzet8WZpldswORMJNOOHoE0vZpTs+0Qg2gj2dr7CJX9gyKQeb6pGS05qFHkS
+LNCmWGU97sTnruiIqeSTvTVECDUp4ImE6AskOsSHnTwOIBeLiHHtelLQHXaUqSh7
+3MCzj5C1Qy1VyQkFTIPezhW5pl7u7IBkgXkjBW7ki8tIDMC7Ic4wy/X7oEr7BMMx
+fCimtqRXt/lpNcAzb3SdvnFiU7NigzJ2aEawoU9CzfhYcCu0Yf1qo43VDhjDWEkG
+n5wCymITmin+LFZnl4+uZ+uQr9HG3C5AdffIvlmCNblEUzxCruj6DTepilSKoUEy
+thnaLAHqhrvvf/cvyQx3L7bCcpIy6GwUVUzNI+6H/3b6+BIxLYCBbOB6EHufeCLA
+hcTOUOiyrftSlwzy594PqY8svbHkT3nGptDSOobkWJDEtqABPCj/AwrUB2wMYP5u
+Zya/KSAtO5hD3DzUaBmO1o5nhrYwMt1U7fnYEipJudFE/gJSaa3hDZuifSjElrNw
+/seCyI+eThDBP59ZEICqhqpg1ZqbWPveHA+lZgkjlR2l61EJTUhKs8xnAJFtdyT4
+E3SpSfLRmIV9DOuNM9Hd
+=9ID7
+-----END PGP SIGNATURE-----
+
+--kzMQwe+b+L5ZMwhV--
+
+
+--===============0787905863110258370==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0787905863110258370==--
