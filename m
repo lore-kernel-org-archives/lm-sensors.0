@@ -1,50 +1,42 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Fri, 09 Aug 2013 06:10:15 +0000
+From: Stephen Warren <swarren@wwwdotorg.org>
+Date: Fri, 09 Aug 2013 16:35:50 +0000
 Subject: Re: [lm-sensors] [PATCH v2 3/3] Documentation: dt: hwmon: add OF document for lm90
-Message-Id: <520487C7.5080901@nvidia.com>
+Message-Id: <52051A66.1010001@wwwdotorg.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375944991-29182-1-git-send-email-wni@nvidia.com> <1375944991-29182-4-git-send-email-wni@nvidia.com> <5203D757.8000208@wwwdotorg.org>
-In-Reply-To: <5203D757.8000208@wwwdotorg.org>
+References: <1375944991-29182-1-git-send-email-wni@nvidia.com> <1375944991-29182-4-git-send-email-wni@nvidia.com> <5203D757.8000208@wwwdotorg.org> <520487C7.5080901@nvidia.com>
+In-Reply-To: <520487C7.5080901-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "khali@linux-fr.org" <khali@linux-fr.org>, "linux@roeck-us.net" <linux@roeck-us.net>, Matthew Longnecker <MLongnecker@nvidia.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 
-On 08/09/2013 01:37 AM, Stephen Warren wrote:
-> On 08/08/2013 12:56 AM, Wei Ni wrote:
->> Add OF document for lm90 in Documentation/devicetree/.
-> 
->> diff --git a/Documentation/devicetree/bindings/hwmon/lm90.txt b/Documentation/devicetree/bindings/hwmon/lm90.txt
-> 
->> +Required node properties:
->> +- compatible: manufacture and chip name,
->> +              which are listed in the Documentation/hwmon/lm90
-> 
-> You need to specify the exact values here. DT binding documentations
-> should be OS-agnostic, and hence can't depend on Linux-specific
-> documentation or other details.
+On 08/09/2013 12:10 AM, Wei Ni wrote:
+> On 08/09/2013 01:37 AM, Stephen Warren wrote:
+>> On 08/08/2013 12:56 AM, Wei Ni wrote:
+>>> Add OF document for lm90 in Documentation/devicetree/.
+>>
+>>> diff --git a/Documentation/devicetree/bindings/hwmon/lm90.txt b/Documentation/devicetree/bindings/hwmon/lm90.txt
 
-Ok, I will list it.
-
+>>> +- interrupts: lm90 can support interrupt mode, you can set interrupt here.
+>>
+>> You might want to mention that a single entry ("specifier") is expected
+>> in the list.
 > 
->> +Optional properties:
->> +- vdd-supply: vdd regulator for the supply voltage. If this is not set,
-> 
-> s/set/present/.
+> Sorry, I didn't get your point, could you explain more?
 
-Oh, yes, I will change it.
+In general, a device may have more than one interrupt output. Hence in
+general, the interrupts property is a list of 1 or more interrupt
+specifiers. In this case, that list should be a single entry. The
+binding should state this. how about:
 
-> 
->> +- interrupts: lm90 can support interrupt mode, you can set interrupt here.
-> 
-> You might want to mention that a single entry ("specifier") is expected
-> in the list.
+----------
+Optional properties:
+interrupts: Contains a single interrupt specifier which describes the
+LM90 XXXX output. See interrupt-controller/interrupts.txt for the format.
+----------
 
-Sorry, I didn't get your point, could you explain more?
-
-> 
-
+(where you'd replace XXXX with the pin/signal name from the datasheet).
 
 _______________________________________________
 lm-sensors mailing list
