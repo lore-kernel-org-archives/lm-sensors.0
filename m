@@ -1,81 +1,79 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Fri, 09 Aug 2013 07:23:31 +0000
+From: Mark Brown <broonie@kernel.org>
+Date: Fri, 09 Aug 2013 10:56:44 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/3] hwmon: (lm90) Add power control
-Message-Id: <520498F3.8030101@nvidia.com>
+Message-Id: <20130809105644.GW6427@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8319042920264116730=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375944991-29182-1-git-send-email-wni@nvidia.com> <1375944991-29182-2-git-send-email-wni@nvidia.com> <20130808110136.GA6427@sirena.org.uk>
-In-Reply-To: <20130808110136.GA6427-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+References: <1375944991-29182-1-git-send-email-wni@nvidia.com>
+ <1375944991-29182-2-git-send-email-wni@nvidia.com>
+ <20130808110136.GA6427@sirena.org.uk>
+ <520498F3.8030101@nvidia.com>
+In-Reply-To: <520498F3.8030101-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 
-On 08/08/2013 07:01 PM, Mark Brown wrote:
-> * PGP Signed by an unknown key
-> 
-> On Thu, Aug 08, 2013 at 02:56:29PM +0800, Wei Ni wrote:
-> 
->> +	mutex_lock(&data->update_lock);
->> +
->> +	if (is_enable)
->> +		ret = regulator_enable(data->lm90_reg);
->> +	else
->> +		ret = regulator_disable(data->lm90_reg);
->> +
->> +	if (ret < 0)
->> +		dev_err(&client->dev,
->> +			"Error in %s rail vdd, error %d\n",
->> +			(is_enable) ? "enabling" : "disabling", ret);
->> +	else
->> +		dev_info(&client->dev, "success in %s rail vdd\n",
->> +			 (is_enable) ? "enabling" : "disabling");
->> +
->> +	mutex_unlock(&data->update_lock);
-> 
-> Two things here.  One is that it's not clear what this lokc is
-> protecting since the only thing in the locked region is the regulator
-> operation and that is thread safe.  The other thing is that I'm not
-> seeing anthing that ensures that enables and disables are matched -
-> regulators are reference counted so two enables need two disables.
-> 
->> +	data->lm90_reg = regulator_get(&client->dev, "vdd");
->> +	if (IS_ERR_OR_NULL(data->lm90_reg)) {
-> 
-> NULL is a valid regulator, use IS_ERR().
-> 
->> +		if (PTR_ERR(data->lm90_reg) = -ENODEV)
->> +			dev_info(&client->dev,
->> +				 "No regulator found for vdd. Assuming vdd is always powered.");
->> +		else
->> +			dev_warn(&client->dev,
->> +				 "Error [%ld] in getting the regulator handle for vdd.\n",
->> +				 PTR_ERR(data->lm90_reg));
-> 
-> You shouldn't just be ignoring errors here, though there are deployment
-> difficulties with making sure a stub regulator is provided.  These
-> should be getting easier after the next merge window, the stubs will be
-> being tweaked slightly to have an "assume it's there" option even when
 
-Oh, really, could you show me the patch, I wish to take a look :)
+--===============8319042920264116730==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hjiPcpt6rcFNGbLy"
+Content-Disposition: inline
 
-Wei.
 
-> regulators are used.  Especially in cases with device tree you should be
-> paying attention to -EPROBE_DEFER, that will accurately reflect if a
-> regulator is present but not loaded yet.
-> 
-> That said if you *are* going to do this you should request the
-> regulator using devm_regulator_get_optional(), this is intended to
-> support things that don't need regulators (though that's not the case
-> here).
-> 
-> * Unknown Key
-> * 0x7EA229BD
-> 
+--hjiPcpt6rcFNGbLy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Fri, Aug 09, 2013 at 03:23:31PM +0800, Wei Ni wrote:
+> On 08/08/2013 07:01 PM, Mark Brown wrote:
+
+> > You shouldn't just be ignoring errors here, though there are deployment
+> > difficulties with making sure a stub regulator is provided.  These
+> > should be getting easier after the next merge window, the stubs will be
+> > being tweaked slightly to have an "assume it's there" option even when
+
+> Oh, really, could you show me the patch, I wish to take a look :)
+
+No patch quite yet - the basic idea is that for plain regulator_get()
+you'll only ever get -EPROBE_DEFER as an error, not -ENODEV.  If the
+regulator is missing in the DT we assume it's there and provide a dummy
+if the DT doesn't hook it up.  If the consumer genuinely wants to see if
+a supply might not be wired up it should use regulator_get_optional()
+which is in -next at the minute.
+
+--hjiPcpt6rcFNGbLy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSBMrpAAoJELSic+t+oim92agP/j5azvH/+9+pcUjPegcAHB1d
+XX79RjQpQnEbtskZxH8tOM10KgWcQqCEzMu+D4L+jCGH592DA398AJl4miVmOAHt
+f3BmcJrmIYH+1HUN6dQGzT2yCZqvJqHuvn3qoTff1j+Lfoo2Izr91befX66UoLG2
+5+zZkK2iCo8RjOl5koMfNTH5yPt4RNff9iZNCnG1YFTO0U6Z9Kel3orLRBlAvBW1
+dffaatc3qKyy8ZZ3O/dpd/nIu5UXo2rASoEaar5atL0mK6iQQ7VqhAnI8HsHphbV
+WzmB3K+AoRxGblewawUVz/GZeHEUpxcgxOeFIXnbsOhs/fZrct0NIKre7LEhmUmm
+6UJOK7TriFNtKTK3dF6hM68SAUJbiENpQo35vYaOZoiARcE06PIRg69v0wQj83zg
+POMZOidZgp9fzI1FisYnTWB+dCFQnSlCJWLQMqrOqFoUjUTUGcSp7vRR8tMUhtL7
+50f2dHPnhNKAEWHRRjCAr8c6wnYh4V2H/dFA5k72xHgbKxIMSgScZSTzaAMbsgJ1
+77o0cT69HMh3H8scRKrfKhBXCn4UzNKZJwR3uoQHzqQIa4FLXrNAooL62PoTgxgq
+U+WjToAlslBAFjQ/QQs83y3bpo27rYfXXEDFgEkv2LHzh6W2ANa5agsXvT5WVtSe
+vypsdOjWv8lEByE1RrQ5
+=lQYp
+-----END PGP SIGNATURE-----
+
+--hjiPcpt6rcFNGbLy--
+
+
+--===============8319042920264116730==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8319042920264116730==--
