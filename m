@@ -1,63 +1,89 @@
-From: Bryan Kadzban <bryan@kadzban.is-a-geek.net>
-Date: Sun, 11 Aug 2013 04:36:10 +0000
-Subject: [lm-sensors] sensors.conf for MSI 990FXA-GD80
-Message-Id: <520714BA.4050006@kadzban.is-a-geek.net>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 09 Aug 2013 19:51:48 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.11-rc5
+Message-Id: <20130809195148.GA11310@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7628335952262706128=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============7628335952262706128==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Content-Disposition: inline
+
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.11-rc5 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit c095ba7224d8edc71dcef0d655911399a8bd4a3f:
+
+  Linux 3.11-rc4 (2013-08-04 13:46:46 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 93d783bcca69bfacc8dc739d8a050498402587b5:
+
+  hwmon: (adt7470) Fix incorrect return code check (2013-08-08 12:43:07 -0700)
+
+----------------------------------------------------------------
+Fix bug in adt7470 driver which causes it to fail writing fan speed limits.
+
+----------------------------------------------------------------
+Curt Brune (1):
+      hwmon: (adt7470) Fix incorrect return code check
+
+ drivers/hwmon/adt7470.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSBUhUAAoJEMsfJm/On5mBJfAP/ja7+vKKKXrN1A7hVXUthVnG
+GmXjTv0G3WNQRhzJ4NhPl16TOF9i3nY1uWlDPFxphqsmLngZB20Gg+wKzlBIlvlI
+zMX0GRZHMO+9gePm9GPcw9ieD7teWY6qJB0ovvqrxWO2MLmFqjD/91WEFqinH0WD
+0QbnQFlF9vhc7INo+tS3iyjvd0O3G9bT1YldyIUzGveWbsHvTOU8L+nxKnQdJuHl
+roK14ezsDSCAlKOrbl7CGVVPOgoaSRYX+O47cBzHig7ZGr7LDKRyl4+fBeaP7+PE
+0yUUyxDnUQ4zlKd7CpX4ldWjDvb0BNtjouR/96FC58f20hpuP+thnO9NqM9g+//C
+slXpLdxWZaDHLqP76pxxj7tes8e8TLEP/VeNdnjxadqoJp+S16kslJmwtQpoSUJ2
+iBhoGFYTqOREqsMvesmtQ+zGeC8fblARg2enrv3njHxgg0YIFt4M3ZldeLj8M6NN
+DpTym2wyg9Z5l9ruB8thkAIQ0ite2krS72eBsgryRGbzunrEuf1H+DwSvMyRk/tt
+xgcat2CpEk1dSbXQk8bGX4Pk3eBT4tU4p6OxzIjBWpptJC3np5uelGkiAOQIyjuY
+4AnVrwNYwPdXS6fhuYoTegRO5ld2QGmujbS3Swivg31a/HhS6sxLNFG2NQjNbaHy
+bTrCOEbK779L7YROnaKJ
+=Ruri
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
+
+
+--===============7628335952262706128==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-...using a Fintek SuperIO chip.  in{0..4} definitely correspond to
-voltages shown in the BIOS; others I have guesses about, but the BIOS
-won't confirm them.
-
-Unfortunately I only have a CPU fan connected; the other two fan inputs
-correspond to two of the four other fan ports on the motherboard (which
-are labeled SYSFAN1 through SYSFAN4), but because nothing is connected
-to them, I don't know which two are which SYSFAN ports.
-
-Since temp2_input is pegged at 127000, I assume nothing is plugged into
-it on the SuperIO chip.
-
------------------------------------------------------------
-chip "f71882fg-*"
-
- label in0 "+3.3V"
- label in1 "Vcore"
- label in2 "Vdram"
- label in3 "+  5V"
- label in4 "+ 12V"
-
- label fan1 "CPU fan"
-# Not sure which port these two are:
- label fan2 "SYSFANx fan"
- label fan3 "SYSFANy fan"
-
- label temp1 "CPU Temp"
- label temp3 "System Temp"
-
-# ADC has an 8mV LSB, 2.048V max.
- compute in0 @*(2),    @/(2)
-# The BIOS says +5V varies by 43mV.
- compute in3 @*(43/8), @/(43/8)
-# The BIOS says +12V varies by 90mV.
- compute in4 @*(90/8), @/(90/8)
-# Not sure what the rest of the inputs are, since the BIOS doesn't show
-# them.  Raw values below:
-# in5 registers 16 or 24 mV
-# in6 registers 1176mV
-# in7 registers 1656mV (maybe a 3.3V line, 2x multiplier)
-# in8 registers 1576mV (maybe battery voltage at 2x, or more DRAM)
-
- ignore in5
- ignore in6
- ignore in7
- ignore in8
- ignore temp2
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7628335952262706128==--
