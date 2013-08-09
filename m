@@ -1,169 +1,85 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 01 Aug 2013 23:22:38 +0000
-Subject: Re: [lm-sensors] [PATCH] [v2] support ads1115 to ads1015 driver
-Message-Id: <20130801232238.GA23821@roeck-us.net>
+From: Mark Brown <broonie@kernel.org>
+Date: Fri, 09 Aug 2013 10:27:57 +0000
+Subject: Re: [lm-sensors] Proposal: I2C device power (Was: hwmon: (lm90) Add power control)
+Message-Id: <20130809102757.GT6427@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1414882545557224937=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130801192348.GA9041@fifteen>
-In-Reply-To: <20130801192348.GA9041@fifteen>
-MIME-Version: 1.0
+References: <1375944991-29182-1-git-send-email-wni@nvidia.com>
+ <20130808211825.GN6427@sirena.org.uk>
+ <52040DE2.50201@roeck-us.net>
+ <1376027820.695103970@f416.i.mail.ru>
+In-Reply-To: <1376027820.695103970@f416.i.mail.ru>
+To: Alexander Shiyan <shc_work@mail.ru>
+Cc: Guenter Roeck <linux@roeck-us.net>, Wei Ni <wni@nvidia.com>, swarren@wwwdotorg.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, khali@linux-fr.org, MLongnecker@nvidia.com, linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+
+--===============1414882545557224937==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yE3esYaFu3yg/VEv"
+Content-Disposition: inline
+
+
+--yE3esYaFu3yg/VEv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Aug 09, 2013 at 09:57:00AM +0400, Alexander Shiyan wrote:
+
+> Instead of adding the support of regulators in each device, let's think about
+> whether it is possible to create a global regulator for any device on the I2C bus.
+
+> I see it like this:
+> We add an extra field in the i2c_board_info structure "power_name" and handle
+> it in the i2c_device_{probe/remove} functions.
+
+This would need to be an array of supplies, relatively few devices need
+only a single power supply.  This is also not something that should be
+handled in I2C, power is not something that's uniquely needed by devices
+on an I2C bus.
+
+> The question remains how to maintain such regulator in the PM functions,
+> but we can discuss it.
+
+Well, there's some basic stuff for this for clocks already - a similar
+pattern should work.  You need to use runtime PM to hook in the power
+management and it's not going to work for everything (especially things
+that can be wake sources) but there's some value in trying to factor out
+the basic use case.
+
+--yE3esYaFu3yg/VEv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSBMQpAAoJELSic+t+oim9cQoP/RcdidXGGHhCkcvMOrc+QtgR
+tneK0C9EATYUhNFc0xGQufplPt8r5TobiyRK/Fxkq5Yl4XTH0y9gca8j5TSldY1v
+oHM0d88qFY0ZaR9k5YKaY3iSYT+Iq1O+ItCcIOXlqYjgOs37sAfMmbUovAXFsEvD
+A7douB517YoaJm2JPsEz7FRrwsNUjgJ4XT+DT9OYcEr2LJp8aU6dZ02bZ82a0l8W
+DdSJgnFrna7G89yKNNQjcxzb+qDSf7SEsg4qXmIa7/E4KsiRB+4BHCb7ujmbLs2A
+dUdRCBdGn4sJaoj0czMMyG9KY2hUih0BX3laa1LrMLSmzTEyFgxU7v/wcb5Si57Y
+hFVdyWx4fgFuueORP0eqwpcSB16g5RQaM6toBRMzW4o8Thm+yhZyE+LVvpZSpOa1
+R9ciYkmiBWvRKHrTz2n8L3BgXRUArTLTm8cG58n4HJwQkrHO+GRz1rQwMTLa9s9e
+WpItvPoSKvJ8ooZapYWygrS7paytX/RQVYH+03URtVYKMA632lnXvljFsi3qlBcY
+ry3/FAD472dFFr/6TC3yH4+ZcPYjz5RYJWs0SReadmXxIfDNihzvDHDuomDZbZhj
+kdb+H13E+K8ivvMQtq6hn5EbTSHidRj/7sIkJzXTuYMAYb1Mp2/hv6j5MmEwPy6/
+BRsIAVyEQjJ3AgIkL94M
+=FlkJ
+-----END PGP SIGNATURE-----
+
+--yE3esYaFu3yg/VEv--
+
+
+--===============1414882545557224937==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-On Thu, Aug 01, 2013 at 11:23:48PM +0400, Evgeniy Dushistov wrote:
-> Ok, version 2 of the patch.
-> Fixed Guenter Roeck's remarks.
-> 
-> This patch adds support for ads1115 device to ads1015 driver.
-> Based on work of Emiliano Carnati <carnatiatebneuro.com>.
-> Tested on ARM CPU based board.
-> 
-> Signed-off-by: Evgeniy A. Dushistov <dushistov@mail.ru>
-
-Applied to -next.
-
-Thanks,
-Guenter
-
-> ---
->  Documentation/hwmon/ads1015 |  8 ++++++--
->  drivers/hwmon/Kconfig       |  4 ++--
->  drivers/hwmon/ads1015.c     | 27 +++++++++++++++++++++------
->  3 files changed, 29 insertions(+), 10 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
-> index f6fe9c2..063b80d 100644
-> --- a/Documentation/hwmon/ads1015
-> +++ b/Documentation/hwmon/ads1015
-> @@ -6,6 +6,10 @@ Supported chips:
->      Prefix: 'ads1015'
->      Datasheet: Publicly available at the Texas Instruments website :
->                 http://focus.ti.com/lit/ds/symlink/ads1015.pdf
-> +  * Texas Instruments ADS1115
-> +    Prefix: 'ads1115'
-> +    Datasheet: Publicly available at the Texas Instruments website :
-> +               http://focus.ti.com/lit/ds/symlink/ads1115.pdf
->  
->  Authors:
->          Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
-> @@ -13,9 +17,9 @@ Authors:
->  Description
->  -----------
->  
-> -This driver implements support for the Texas Instruments ADS1015.
-> +This driver implements support for the Texas Instruments ADS1015/ADS1115.
->  
-> -This device is a 12-bit A-D converter with 4 inputs.
-> +This device is a 12/16-bit A-D converter with 4 inputs.
->  
->  The inputs can be used single ended or in certain differential combinations.
->  
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index e989f7f..47b3e58 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1202,8 +1202,8 @@ config SENSORS_ADS1015
->  	tristate "Texas Instruments ADS1015"
->  	depends on I2C
->  	help
-> -	  If you say yes here you get support for Texas Instruments ADS1015
-> -	  12-bit 4-input ADC device.
-> +	  If you say yes here you get support for Texas Instruments
-> +	  ADS1015/ADS1115 12/16-bit 4-input ADC device.
->  
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called ads1015.
-> diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-> index 2798246..7f9dc2f 100644
-> --- a/drivers/hwmon/ads1015.c
-> +++ b/drivers/hwmon/ads1015.c
-> @@ -46,17 +46,28 @@ static const unsigned int fullscale_table[8] = {
->  	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
->  
->  /* Data rates in samples per second */
-> -static const unsigned int data_rate_table[8] = {
-> -	128, 250, 490, 920, 1600, 2400, 3300, 3300 };
-> +static const unsigned int data_rate_table_1015[8] = {
-> +	128, 250, 490, 920, 1600, 2400, 3300, 3300
-> +};
-> +
-> +static const unsigned int data_rate_table_1115[8] = {
-> +	8, 16, 32, 64, 128, 250, 475, 860
-> +};
->  
->  #define ADS1015_DEFAULT_CHANNELS 0xff
->  #define ADS1015_DEFAULT_PGA 2
->  #define ADS1015_DEFAULT_DATA_RATE 4
->  
-> +enum ads1015_chips {
-> +	ads1015,
-> +	ads1115,
-> +};
-> +
->  struct ads1015_data {
->  	struct device *hwmon_dev;
->  	struct mutex update_lock; /* mutex protect updates */
->  	struct ads1015_channel_data channel_data[ADS1015_CHANNELS];
-> +	enum ads1015_chips id;
->  };
->  
->  static int ads1015_read_adc(struct i2c_client *client, unsigned int channel)
-> @@ -66,6 +77,8 @@ static int ads1015_read_adc(struct i2c_client *client, unsigned int channel)
->  	unsigned int pga = data->channel_data[channel].pga;
->  	unsigned int data_rate = data->channel_data[channel].data_rate;
->  	unsigned int conversion_time_ms;
-> +	const unsigned int * const rate_table = data->id = ads1115 ?
-> +		data_rate_table_1115 : data_rate_table_1015;
->  	int res;
->  
->  	mutex_lock(&data->update_lock);
-> @@ -75,7 +88,7 @@ static int ads1015_read_adc(struct i2c_client *client, unsigned int channel)
->  	if (res < 0)
->  		goto err_unlock;
->  	config = res;
-> -	conversion_time_ms = DIV_ROUND_UP(1000, data_rate_table[data_rate]);
-> +	conversion_time_ms = DIV_ROUND_UP(1000, rate_table[data_rate]);
->  
->  	/* setup and start single conversion */
->  	config &= 0x001f;
-> @@ -113,8 +126,9 @@ static int ads1015_reg_to_mv(struct i2c_client *client, unsigned int channel,
->  	struct ads1015_data *data = i2c_get_clientdata(client);
->  	unsigned int pga = data->channel_data[channel].pga;
->  	int fullscale = fullscale_table[pga];
-> +	const unsigned mask = data->id = ads1115 ? 0x7fff : 0x7ff0;
->  
-> -	return DIV_ROUND_CLOSEST(reg * fullscale, 0x7ff0);
-> +	return DIV_ROUND_CLOSEST(reg * fullscale, mask);
->  }
->  
->  /* sysfs callback function */
-> @@ -257,7 +271,7 @@ static int ads1015_probe(struct i2c_client *client,
->  			    GFP_KERNEL);
->  	if (!data)
->  		return -ENOMEM;
-> -
-> +	data->id = id->driver_data;
->  	i2c_set_clientdata(client, data);
->  	mutex_init(&data->update_lock);
->  
-> @@ -286,7 +300,8 @@ exit_remove:
->  }
->  
->  static const struct i2c_device_id ads1015_id[] = {
-> -	{ "ads1015", 0 },
-> +	{ "ads1015",  ads1015},
-> +	{ "ads1115",  ads1115},
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(i2c, ads1015_id);
-> -- 
-> 1.8.1.5
-> 
-> -- 
-> /Evgeniy
-> 
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1414882545557224937==--
