@@ -1,45 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 31 Aug 2013 13:51:14 +0000
-Subject: Re: [lm-sensors] Supporting ADT7481 temperature sensor
-Message-Id: <5221F4D2.4000607@roeck-us.net>
+From: Ian Pilcher <arequipeno@gmail.com>
+Date: Mon, 12 Aug 2013 14:54:29 +0000
+Subject: [lm-sensors] it87.fix_pwm_polarity
+Message-Id: <kuasuu$1j8$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF6D174B07759740B0259F914CE6D7D305339414@LONMLVEM04.e2k.ad.ge.com>
-In-Reply-To: <FF6D174B07759740B0259F914CE6D7D305339414@LONMLVEM04.e2k.ad.ge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/31/2013 05:56 AM, Jean Delvare wrote:
-> On Fri, 30 Aug 2013 09:21:27 -0700, Guenter Roeck wrote:
->> On Fri, Aug 30, 2013 at 02:04:53PM +0200, Mercier Ivan wrote:
->>> Hi everybody,
->>> I have a ADT7481 sensor and I would like to make it work.
->>> What the current status of this driver?
->>> Does somebody start writting some code?
->>> How can I start?
->>>
->> If you compare the datasheet with other temperature sensor datasheets, you'll
->> notice similarities with ADT7461 and MAX6696, both of which are supported by the
->> lm90 driver. You can start from there, look for similarities and differences,
->> add support for ADT7481 to the lm90 driver, and submit a patch to get it
->> integrated.
->
-> For reference, lm90 vs. new driver was already discussed here:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2009-January/025132.html
->
+I am setting up a Thecus N5550 NAS, and I found that the it87 driver
+disables PWM control of the drive bay fan (it87.656/pwm3) unless I pass
+the fix_pwm_polarity parameter.  Once I add that parameter, fan control
+appears to work just fine.
 
-the lm90 driver changed significantly since then, though. Support for
-the third sensor is there now, and adding a new sensor type is much easier.
-I only had a quick glance, but ADT7481 looks pretty similar to MAX6696.
+Does this setting actually invert the voltage that is supplied to the
+fan?  If so, does this have the potential to damage the fan itself (or
+other components)?
 
-Guenter
+Note that Thecus provides their own Linux-based "firmware" for this
+NAS, so it's unlikely that they will ever change the way the BIOS sets
+up the fans.  (And having the drive bay fan off by default may well
+make sense anyway.)
 
-> Back then, Malcolm Crossley (Cc'd) was working on adding support for
-> the ADT7481. It was four years ago, I have no idea if it actually
-> happened or not. Malcolm, do you have code you would like to share with
-> Ivan?
->
+Thanks!
+
+-- 
+====================================
+Ian Pilcher                                         arequipeno@gmail.com
+Sometimes there's nothing left to do but crash and burn...or die trying.
+====================================
 
 
 _______________________________________________
