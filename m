@@ -1,57 +1,132 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 23 Aug 2013 23:15:47 +0000
-Subject: [lm-sensors] [RFC PATCH 06/14] arm: dts: add omap4 CPU thermal data
-Message-Id: <1377299755-5134-7-git-send-email-eduardo.valentin@ti.com>
+From: Nils Hammar <nils.hammar@abc.se>
+Date: Sun, 18 Aug 2013 15:55:54 +0000
+Subject: [lm-sensors] Gigabyte GA-P58-D3 motherboard config.
+Message-Id: <5210EE8A.70406@abc.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
-ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
-IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
-ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
-Q2M6ICJCZW5vw650IENvdXNzb24iIDxiLWNvdXNzb25AbGluYXJvLm9yZz4KQ2M6IFRvbnkgTGlu
-ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2Fs
-eGVkYS5jb20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1
-dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5A
-d3d3ZG90b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+
-CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFw
-QHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4
-LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2Vy
-bmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGlu
-QHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhlcm1hbC5kdHNpIHwg
-NDAgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA0MCBp
-bnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQt
-Y3B1LXRoZXJtYWwuZHRzaQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNw
-dS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhlcm1hbC5kdHNp
-Cm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLmQ3NGM1NjUKLS0tIC9kZXYvbnVs
-bAorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhlcm1hbC5kdHNpCkBAIC0wLDAg
-KzEsNDAgQEAKKworLyoKKyAqIERldmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDQvNSBTb0MgQ1BV
-IHRoZXJtYWwKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4YXMgSW5zdHJ1bWVudHMgSW5j
-b3Jwb3JhdGVkIC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250YWN0OiBFZHVhcmRvIFZhbGVu
-dGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBUaGlzIGZpbGUgaXMgbGljZW5z
-ZWQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICog
-dmVyc2lvbiAyLiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJhcyBpcyIgd2l0aG91dCBhbnkg
-d2FycmFudHkgb2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJlc3Mgb3IgaW1wbGllZC4KKyAq
-LworCisjaW5jbHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVybWFsLmg+CisKK2NwdV90aGVy
-bWFsOiBjcHVfdGhlcm1hbCB7CisJI3RoZXJtYWwtY2VsbHMgPSA8MT47CisJbWFzayA9IDwweDAz
-PjsgLyogdHJpcHMgd3JpdGFiaWxpdHkgKi8KKwlwYXNzaXZlX2RlbGF5ID0gPDI1MD47IC8qIG1p
-bGxpc2Vjb25kcyAqLworCXBvbGxpbmdfZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAq
-LworCXRyaXBzIHsKKwkJYWxlcnRAMTAwMDAweworCQkJdGVtcGVyYXR1cmUgPSA8MTAwMDAwPjsg
-LyogbWlsbGlDZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaUNlbHNp
-dXMgKi8KKwkJCXR5cGUgPSA8VEhFUk1BTF9UUklQX1BBU1NJVkU+OworCQl9OworCQljcml0QDEy
-NTAwMHsKKwkJCXRlbXBlcmF0dXJlID0gPDEyNTAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJ
-aHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJCQl0eXBlID0gPFRIRVJN
-QUxfVFJJUF9DUklUSUNBTD47CisJCX07CisJfTsKKwliaW5kX3BhcmFtcyB7CisJCWFjdGlvbkAw
-eworCQkJY29vbGluZ19kZXZpY2UgPSAidGhlcm1hbC1jcHVmcmVxIjsKKwkJCXdlaWdodCA9IDwx
-MDA+OyAvKiBwZXJjZW50YWdlICovCisJCQltYXNrID0gPDB4MDE+OworCQkJLyogbm8gbGltaXRz
-LCB1c2luZyBkZWZhdWx0cyAqLworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
-NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+I have made a best effort to create a configuration file for the 
+Gigabyte GA-P58-D3 motherboard. I can't guarantee that it's entirely 
+correct since it is created through trial&error. I provide it in hope 
+that it is useful for someone else.
+
+Below is the file content:
+---
+#
+# Configuration for the Gigabyte GA-P58-D3 motherboard.
+#
+# Driver 'it87' at it8728-isa-0a30.
+#
+# This motherboard is for the fourth generation Intel Core processors
+# with Socket 1150. One important difference is that those processors
+# has internal voltage regulation, which means that some voltages
+# that were present on earlier motherboards are no longer there.
+# One such example is the Vtt voltage.
+#
+#
+chip "it8728-*"
+
+     #######################################
+     # FANS                                #
+     # The actual number of fans and their #
+     # RPM limits depends on what the      #
+     # computer case is equipped with      #
+     # and your CPU fan, so you may        #
+     # want to update this section.        #
+     #######################################
+
+     label fan1 "CPU fan"
+     set fan1_min 700
+
+     label fan2 "System fan 1"
+     set fan2_min 300
+
+     label fan3 "System fan 2"
+     set fan3_min 300
+
+     ignore fan4 # Remove the 'ignore' if fan is installed.
+     label fan4 "System fan 3"
+     set fan4_min 0    # Set to a valid value if fan is installed.
+
+     ignore fan5 # Not present on motherboard, listed here since the 
+chip supports it.
+     label fan5 "System fan 4"
+     set fan5_min 0
+
+     ######################################
+     # VOLTAGES                           #
+     # These figures are from estimations #
+     # based on values provided in BIOS.  #
+     # This means that some of them may   #
+     # be mixed up.                       #
+     ######################################
+
+     label in0 "Vcore"
+     set in0_min 0.05
+     set in0_max 1.025
+     compute in0 1.0*@,@/1.0
+
+     label in1 "+3.3V"
+     set in1_min 3.135   # according to ATX 12V PSU design guide
+     set in1_max 3.465   #
+     compute in1 1.635*@,@/1.635
+
+     label in2 "+12V"
+     set in2_min 11.40   # according to ATX 12V PSU design guide
+     set in2_max 12.60   #
+     compute in2 6.0*@,@/6.0
+
+     label in3 "+5V"
+     set in3_min 4.750   # according to ATX 12V PSU design guide
+     set in3_max 5.250   #
+     compute in3 2.5*@,@/2.5
+
+     label in4 "Vaxg"
+     set in4_min 0.80
+     set in4_max 1.00
+     compute in4 1.0*@,@/1.0
+
+     label in5 "Vrin"
+     set in5_min 1.65
+     set in5_max 1.85
+     compute in5 1.0*@,@/1.0
+
+     label in6 "Vdram"
+     set in6_min 1.45    # adjust these, 1.35 for LVDDR3
+     set in6_max 1.55    # 1.5V is recommended, 1.65 tops
+     compute in6 1.0*@,@/1.0
+
+     label in7 "3VSB"
+     set in7_min 3.14
+     set in7_max 3.47
+     compute in7 1.0*@,@/1.0
+
+     # CMOS Battery voltage.
+     label in8 "Vbat"
+     compute in8 1.0*@,@/1.0
+
+     ###############################
+     # Temperatures                #
+     ###############################
+     label temp1 "PCH temp"
+     set temp1_min 10
+     set temp1_max 60
+
+     # ignore temp2 # Not sure if this sensor actually exists.
+     # It's always reporting 25 degrees Celsius for me at the moment.
+     label temp2 "MB temp"
+     set temp2_min 0
+     set temp2_max 60
+
+     label temp3 "CPU temp"
+     set temp3_min 10
+     set temp3_max 85
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
