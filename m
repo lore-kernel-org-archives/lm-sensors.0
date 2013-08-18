@@ -1,161 +1,140 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 23 Aug 2013 23:15:46 +0000
-Subject: [lm-sensors] [RFC PATCH 05/14] thermal: ti-soc-thermal: use thermal DT infrastructure
-Message-Id: <1377299755-5134-6-git-send-email-eduardo.valentin@ti.com>
+From: Nils Hammar <nils.hammar@abc.se>
+Date: Sun, 18 Aug 2013 19:21:33 +0000
+Subject: Re: [lm-sensors] Gigabyte GA-P85-D3 motherboard config.
+Message-Id: <52111EBD.5040700@abc.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: lm-sensors@vger.kernel.org
 
-This patch improves the ti-soc-thermal driver by adding the
-support to build the thermal zones based on DT nodes.
+I apologize - I did introduce a typo, it's the P85, not P58. :-[
 
-The driver will have two options now to build the thermal
-zones. The first option is the zones originally coded
-in this driver. So, the driver behavior will be same
-if there is no DT node describing the zones. The second
-option, when it is found a DT node with thermal data,
-will used the common infrastructure to build the thermal
-zone and bind its cooling devices.
 
-In case the driver loads thermal data using the legacy
-mode, this driver still adds to the system
-a cpufreq cooling device. Loading the thermal data from
-DT, the driver assumes someone else will add the cpufreq
-cooling device, like the cpufreq driver.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 52 +++++++++++++++++-----
- 1 file changed, 41 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 5ab613a..6aac72c 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -31,6 +31,7 @@
- #include <linux/cpufreq.h>
- #include <linux/cpumask.h>
- #include <linux/cpu_cooling.h>
-+#include <linux/of.h>
- 
- #include "ti-thermal.h"
- #include "ti-bandgap.h"
-@@ -75,11 +76,10 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
- 
- /* thermal zone ops */
- /* Get temperature callback function for thermal zone*/
--static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
--				      unsigned long *temp)
-+static inline int __ti_thermal_get_temp(void *devdata, unsigned long *temp)
- {
- 	struct thermal_zone_device *pcb_tz = NULL;
--	struct ti_thermal_data *data = thermal->devdata;
-+	struct ti_thermal_data *data = devdata;
- 	struct ti_bandgap *bgp;
- 	const struct ti_temp_sensor *s;
- 	int ret, tmp, slope, constant;
-@@ -117,6 +117,14 @@ static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
- 	return ret;
- }
- 
-+static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
-+				      unsigned long *temp)
-+{
-+	struct ti_thermal_data *data = thermal->devdata;
-+
-+	return __ti_thermal_get_temp(data, temp);
-+}
-+
- /* Bind callback functions for thermal zone */
- static int ti_thermal_bind(struct thermal_zone_device *thermal,
- 			   struct thermal_cooling_device *cdev)
-@@ -293,6 +301,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 			     char *domain)
- {
- 	struct ti_thermal_data *data;
-+	struct device_node *np;
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
-@@ -302,16 +311,23 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 	if (!data)
- 		return -EINVAL;
- 
--	/* Create thermal zone */
--	data->ti_thermal = thermal_zone_device_register(domain,
-+	/* in case this is specified by DT */
-+	np = bgp->dev->of_node;
-+	data->ti_thermal = thermal_zone_of_device_register(bgp->dev, id,
-+					true, /* +hwmon */
-+					data, __ti_thermal_get_temp);
-+	if (IS_ERR(data->ti_thermal)) {
-+		/* Create thermal zone */
-+		data->ti_thermal = thermal_zone_device_register(domain,
- 				OMAP_TRIP_NUMBER, 0, data, &ti_thermal_ops,
- 				NULL, FAST_TEMP_MONITORING_RATE,
- 				FAST_TEMP_MONITORING_RATE, true);
--	if (IS_ERR(data->ti_thermal)) {
--		dev_err(bgp->dev, "thermal zone device is NULL\n");
--		return PTR_ERR(data->ti_thermal);
-+		if (IS_ERR(data->ti_thermal)) {
-+			dev_err(bgp->dev, "thermal zone device is NULL\n");
-+			return PTR_ERR(data->ti_thermal);
-+		}
-+		data->ti_thermal->polling_delay = FAST_TEMP_MONITORING_RATE;
- 	}
--	data->ti_thermal->polling_delay = FAST_TEMP_MONITORING_RATE;
- 	ti_bandgap_set_sensor_data(bgp, id, data);
- 
- 	return 0;
-@@ -323,7 +339,8 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	thermal_zone_device_unregister(data->ti_thermal);
-+	if (data && data->ti_thermal)
-+		thermal_zone_device_unregister(data->ti_thermal);
- 
- 	return 0;
- }
-@@ -342,6 +359,17 @@ int ti_thermal_report_sensor_temperature(struct ti_bandgap *bgp, int id)
- int ti_thermal_register_cpu_cooling(struct ti_bandgap *bgp, int id)
- {
- 	struct ti_thermal_data *data;
-+	struct device_node *np = bgp->dev->of_node;
-+
-+	/*
-+	 * We are assuming here that if one deploys the zone
-+	 * using DT, then it must be aware that the cooling device
-+	 * loading has to happen via cpufreq driver.
-+	 */
-+	if (of_find_property(np, "monitored-zones", NULL)) {
-+		of_node_put(np);
-+		return 0;
-+	}
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 	if (!data || IS_ERR(data))
-@@ -372,7 +400,9 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
- 	struct ti_thermal_data *data;
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
--	cpufreq_cooling_unregister(data->cool_dev);
-+
-+	if (data && data->cool_dev)
-+		cpufreq_cooling_unregister(data->cool_dev);
- 
- 	return 0;
- }
--- 
-1.8.2.1.342.gfa7285d
+On 2013-08-18 17:55, Nils Hammar wrote:
+> I have made a best effort to create a configuration file for the 
+> Gigabyte GA-P85-D3 motherboard. I can't guarantee that it's entirely 
+> correct since it is created through trial&error. I provide it in hope 
+> that it is useful for someone else.
+>
+> Below is the file content:
+> ---
+> #
+> # Configuration for the Gigabyte GA-P85-D3 motherboard.
+> #
+> # Driver 'it87' at it8728-isa-0a30.
+> #
+> # This motherboard is for the fourth generation Intel Core processors
+> # with Socket 1150. One important difference is that those processors
+> # has internal voltage regulation, which means that some voltages
+> # that were present on earlier motherboards are no longer there.
+> # One such example is the Vtt voltage.
+> #
+> #
+> chip "it8728-*"
+>
+>     #######################################
+>     # FANS                                #
+>     # The actual number of fans and their #
+>     # RPM limits depends on what the      #
+>     # computer case is equipped with      #
+>     # and your CPU fan, so you may        #
+>     # want to update this section.        #
+>     #######################################
+>
+>     label fan1 "CPU fan"
+>     set fan1_min 700
+>
+>     label fan2 "System fan 1"
+>     set fan2_min 300
+>
+>     label fan3 "System fan 2"
+>     set fan3_min 300
+>
+>     ignore fan4 # Remove the 'ignore' if fan is installed.
+>     label fan4 "System fan 3"
+>     set fan4_min 0    # Set to a valid value if fan is installed.
+>
+>     ignore fan5 # Not present on motherboard, listed here since the 
+> chip supports it.
+>     label fan5 "System fan 4"
+>     set fan5_min 0
+>
+>     ######################################
+>     # VOLTAGES                           #
+>     # These figures are from estimations #
+>     # based on values provided in BIOS.  #
+>     # This means that some of them may   #
+>     # be mixed up.                       #
+>     ######################################
+>
+>     label in0 "Vcore"
+>     set in0_min 0.05
+>     set in0_max 1.025
+>     compute in0 1.0*@,@/1.0
+>
+>     label in1 "+3.3V"
+>     set in1_min 3.135   # according to ATX 12V PSU design guide
+>     set in1_max 3.465   #
+>     compute in1 1.635*@,@/1.635
+>
+>     label in2 "+12V"
+>     set in2_min 11.40   # according to ATX 12V PSU design guide
+>     set in2_max 12.60   #
+>     compute in2 6.0*@,@/6.0
+>
+>     label in3 "+5V"
+>     set in3_min 4.750   # according to ATX 12V PSU design guide
+>     set in3_max 5.250   #
+>     compute in3 2.5*@,@/2.5
+>
+>     label in4 "Vaxg"
+>     set in4_min 0.80
+>     set in4_max 1.00
+>     compute in4 1.0*@,@/1.0
+>
+>     label in5 "Vrin"
+>     set in5_min 1.65
+>     set in5_max 1.85
+>     compute in5 1.0*@,@/1.0
+>
+>     label in6 "Vdram"
+>     set in6_min 1.45    # adjust these, 1.35 for LVDDR3
+>     set in6_max 1.55    # 1.5V is recommended, 1.65 tops
+>     compute in6 1.0*@,@/1.0
+>
+>     label in7 "3VSB"
+>     set in7_min 3.14
+>     set in7_max 3.47
+>     compute in7 1.0*@,@/1.0
+>
+>     # CMOS Battery voltage.
+>     label in8 "Vbat"
+>     compute in8 1.0*@,@/1.0
+>
+>     ###############################
+>     # Temperatures                #
+>     ###############################
+>     label temp1 "PCH temp"
+>     set temp1_min 10
+>     set temp1_max 60
+>
+>     # ignore temp2 # Not sure if this sensor actually exists.
+>     # It's always reporting 25 degrees Celsius for me at the moment.
+>     label temp2 "MB temp"
+>     set temp2_min 0
+>     set temp2_max 60
+>
+>     label temp3 "CPU temp"
+>     set temp3_min 10
+>     set temp3_max 85
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
 
 _______________________________________________
