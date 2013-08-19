@@ -1,300 +1,424 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Wed, 07 Aug 2013 06:18:26 +0000
-Subject: [lm-sensors] [PATCH v4 3/3] hwmon: (lm90) use enums for the indexes of temp8 and temp11
-Message-Id: <1375856306-14415-4-git-send-email-wni@nvidia.com>
+From: <gregkh@linuxfoundation.org>
+Date: Mon, 19 Aug 2013 22:25:48 +0000
+Subject: [lm-sensors] patch "iio: Add tmp006 IR temperature sensor" added to staging tree
+Message-Id: <13769511481092@kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1375856306-14415-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org
-Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, Wei Ni <wni@nvidia.com>
+To: lm-sensors@vger.kernel.org
 
-Using enums for the indexes and nrs of temp8 and temp11.
-This make the code much more readable.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
+This is a note to let you know that I've just added the patch titled
+
+    iio: Add tmp006 IR temperature sensor
+
+to my staging git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
+in the staging-next branch.
+
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
+
+The patch will also be merged in the next major kernel release
+during the merge window.
+
+If you have any questions about this process, please let me know.
+
+
+From e5a639421821c7cd11832fd7fbe6376bfb304880 Mon Sep 17 00:00:00 2001
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Date: Thu, 8 Aug 2013 17:39:00 +0100
+Subject: iio: Add tmp006 IR temperature sensor
+
+the TI TMP006 is a non-contact temperature sensor with I2C interface;
+it measures the surface temperature of a distance object using a
+thermopile to absorb IR energy emitted from the object
+
+the sensor has two channels: IR sensor voltage (16-bit) and reference
+temperature of the chip (14-bit); datasheet is here:
+http://www.ti.com/lit/ds/symlink/tmp006.pdf
+
+v2 (thanks to Grygorii Strashko, Lars-Peter Clausen, Jonathan Cameron
+for review comments):
+* power down device on driver remove
+* use sign_extend32()
+* style cleanup
+* add comments what channel raw LSBs mean
+* spelling of thermopile
+
+Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>
+Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/hwmon/lm90.c |  154 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 90 insertions(+), 64 deletions(-)
+ drivers/iio/Kconfig              |   1 +
+ drivers/iio/Makefile             |   1 +
+ drivers/iio/temperature/Kconfig  |  16 +++
+ drivers/iio/temperature/Makefile |   5 +
+ drivers/iio/temperature/tmp006.c | 291 +++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 314 insertions(+)
+ create mode 100644 drivers/iio/temperature/Kconfig
+ create mode 100644 drivers/iio/temperature/Makefile
+ create mode 100644 drivers/iio/temperature/tmp006.c
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 2e68773..6cc3eef 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -309,6 +309,38 @@ static const struct lm90_params lm90_params[] = {
- };
+diff --git a/drivers/iio/Kconfig b/drivers/iio/Kconfig
+index 524380c9..cbea3271 100644
+--- a/drivers/iio/Kconfig
++++ b/drivers/iio/Kconfig
+@@ -73,5 +73,6 @@ if IIO_TRIGGER
+    source "drivers/iio/trigger/Kconfig"
+ endif #IIO_TRIGGER
+ source "drivers/iio/pressure/Kconfig"
++source "drivers/iio/temperature/Kconfig"
  
- /*
-+ * TEMP8 register index
+ endif # IIO
+diff --git a/drivers/iio/Makefile b/drivers/iio/Makefile
+index 7a3866c2..a0547f59 100644
+--- a/drivers/iio/Makefile
++++ b/drivers/iio/Makefile
+@@ -21,5 +21,6 @@ obj-y += frequency/
+ obj-y += imu/
+ obj-y += light/
+ obj-y += magnetometer/
++obj-y += temperature/
+ obj-y += trigger/
+ obj-y += pressure/
+diff --git a/drivers/iio/temperature/Kconfig b/drivers/iio/temperature/Kconfig
+new file mode 100644
+index 00000000..372f8fb3
+--- /dev/null
++++ b/drivers/iio/temperature/Kconfig
+@@ -0,0 +1,16 @@
++#
++# Temperature sensor drivers
++#
++menu "Temperature sensors"
++
++config TMP006
++	tristate "TMP006 infrared thermopile sensor"
++	depends on I2C
++	help
++	  If you say yes here you get support for the Texas Instruments
++	  TMP006 infrared thermopile sensor.
++
++	  This driver can also be built as a module. If so, the module will
++	  be called tmp006.
++
++endmenu
+diff --git a/drivers/iio/temperature/Makefile b/drivers/iio/temperature/Makefile
+new file mode 100644
+index 00000000..24d7b602
+--- /dev/null
++++ b/drivers/iio/temperature/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for industrial I/O temperature drivers
++#
++
++obj-$(CONFIG_TMP006) += tmp006.o
+diff --git a/drivers/iio/temperature/tmp006.c b/drivers/iio/temperature/tmp006.c
+new file mode 100644
+index 00000000..64ccde3f
+--- /dev/null
++++ b/drivers/iio/temperature/tmp006.c
+@@ -0,0 +1,291 @@
++/*
++ * tmp006.c - Support for TI TMP006 IR thermopile sensor
++ *
++ * Copyright (c) 2013 Peter Meerwald <pmeerw@pmeerw.net>
++ *
++ * This file is subject to the terms and conditions of version 2 of
++ * the GNU General Public License.  See the file COPYING in the main
++ * directory of this archive for more details.
++ *
++ * Driver for the Texas Instruments I2C 16-bit IR thermopile sensor
++ *
++ * (7-bit I2C slave address 0x40, changeable via ADR pins)
++ *
++ * TODO: data ready irq
 + */
-+enum lm90_temp8_reg_index {
-+	LOCAL_LOW = 0,
-+	LOCAL_HIGH,
-+	LOCAL_CRIT,
-+	REMOTE_CRIT,
-+	LOCAL_EMERG,	/* max6659 and max6695/96 */
-+	REMOTE_EMERG,	/* max6659 and max6695/96 */
-+	REMOTE2_CRIT,	/* max6695/96 only */
-+	REMOTE2_EMERG,	/* max6695/96 only */
-+	TEMP8_REG_NUM
++
++#include <linux/err.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/pm.h>
++#include <linux/bitops.h>
++
++#include <linux/iio/iio.h>
++#include <linux/iio/sysfs.h>
++
++#define TMP006_VOBJECT 0x00
++#define TMP006_TAMBIENT 0x01
++#define TMP006_CONFIG 0x02
++#define TMP006_MANUFACTURER_ID 0xfe
++#define TMP006_DEVICE_ID 0xff
++
++#define TMP006_TAMBIENT_SHIFT 2
++
++#define TMP006_CONFIG_RESET BIT(15)
++#define TMP006_CONFIG_DRDY_EN BIT(8)
++#define TMP006_CONFIG_DRDY BIT(7)
++
++#define TMP006_CONFIG_MOD_MASK 0x7000
++
++#define TMP006_CONFIG_CR_MASK 0x0e00
++#define TMP006_CONFIG_CR_SHIFT 9
++
++#define MANUFACTURER_MAGIC 0x5449
++#define DEVICE_MAGIC 0x0067
++
++struct tmp006_data {
++	struct i2c_client *client;
++	u16 config;
 +};
 +
-+/*
-+ * TEMP11 register index
-+ */
-+enum lm90_temp11_reg_index {
-+	REMOTE_TEMP = 0,
-+	REMOTE_LOW,
-+	REMOTE_HIGH,
-+	REMOTE_OFFSET,	/* except max6646, max6657/58/59,
-+			 *  and max6695/96
-+			 */
-+	LOCAL_TEMP,
-+	REMOTE2_TEMP,	/* max6695/96 only */
-+	REMOTE2_LOW,	/* max6695/96 only */
-+	REMOTE2_HIGH,	/* max6695/96 only */
-+	TEMP11_REG_NUM
++static int tmp006_read_measurement(struct tmp006_data *data, u8 reg)
++{
++	s32 ret;
++	int tries = 50;
++
++	while (tries-- > 0) {
++		ret = i2c_smbus_read_word_swapped(data->client,
++			TMP006_CONFIG);
++		if (ret < 0)
++			return ret;
++		if (ret & TMP006_CONFIG_DRDY)
++			break;
++		msleep(100);
++	}
++
++	if (tries < 0)
++		return -EIO;
++
++	return i2c_smbus_read_word_swapped(data->client, reg);
++}
++
++static int tmp006_read_raw(struct iio_dev *indio_dev,
++			    struct iio_chan_spec const *channel, int *val,
++			    int *val2, long mask)
++{
++	struct tmp006_data *data = iio_priv(indio_dev);
++	s32 ret;
++
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++		if (channel->type = IIO_VOLTAGE) {
++			/* LSB is 156.25 nV */
++			ret = tmp006_read_measurement(data, TMP006_VOBJECT);
++			if (ret < 0)
++				return ret;
++			*val = sign_extend32(ret, 15);
++		} else if (channel->type = IIO_TEMP) {
++			/* LSB is 0.03125 degrees Celsius */
++			ret = tmp006_read_measurement(data, TMP006_TAMBIENT);
++			if (ret < 0)
++				return ret;
++			*val = sign_extend32(ret, 15) >> TMP006_TAMBIENT_SHIFT;
++		} else {
++			break;
++		}
++		return IIO_VAL_INT;
++	case IIO_CHAN_INFO_SCALE:
++		if (channel->type = IIO_VOLTAGE) {
++			*val = 0;
++			*val2 = 156250;
++		} else if (channel->type = IIO_TEMP) {
++			*val = 31;
++			*val2 = 250000;
++		} else {
++			break;
++		}
++		return IIO_VAL_INT_PLUS_MICRO;
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++
++static const char * const tmp006_freqs[] = { "4", "2", "1", "0.5", "0.25" };
++
++static ssize_t tmp006_show_freq(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct tmp006_data *data = iio_priv(dev_to_iio_dev(dev));
++	int cr = (data->config & TMP006_CONFIG_CR_MASK)
++		>> TMP006_CONFIG_CR_SHIFT;
++	return sprintf(buf, "%s\n", tmp006_freqs[cr]);
++}
++
++static ssize_t tmp006_store_freq(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t len)
++{
++	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
++	struct tmp006_data *data = iio_priv(indio_dev);
++	int i;
++	bool found = false;
++
++	for (i = 0; i < ARRAY_SIZE(tmp006_freqs); i++)
++		if (sysfs_streq(buf, tmp006_freqs[i])) {
++			found = true;
++			break;
++		}
++	if (!found)
++		return -EINVAL;
++
++	data->config &= ~TMP006_CONFIG_CR_MASK;
++	data->config |= i << TMP006_CONFIG_CR_SHIFT;
++
++	return i2c_smbus_write_word_swapped(data->client, TMP006_CONFIG,
++		data->config);
++}
++
++static IIO_DEV_ATTR_SAMP_FREQ(S_IRUGO | S_IWUSR,
++			tmp006_show_freq, tmp006_store_freq);
++
++static IIO_CONST_ATTR(sampling_frequency_available, "4 2 1 0.5 0.25");
++
++static struct attribute *tmp006_attributes[] = {
++	&iio_dev_attr_sampling_frequency.dev_attr.attr,
++	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
++	NULL
 +};
 +
-+/*
-  * Client data (each client gets its own)
-  */
- 
-@@ -330,25 +362,8 @@ struct lm90_data {
- 	u8 reg_local_ext;	/* local extension register offset */
- 
- 	/* registers values */
--	s8 temp8[8];	/* 0: local low limit
--			 * 1: local high limit
--			 * 2: local critical limit
--			 * 3: remote critical limit
--			 * 4: local emergency limit (max6659 and max6695/96)
--			 * 5: remote emergency limit (max6659 and max6695/96)
--			 * 6: remote 2 critical limit (max6695/96 only)
--			 * 7: remote 2 emergency limit (max6695/96 only)
--			 */
--	s16 temp11[8];	/* 0: remote input
--			 * 1: remote low limit
--			 * 2: remote high limit
--			 * 3: remote offset (except max6646, max6657/58/59,
--			 *		     and max6695/96)
--			 * 4: local input
--			 * 5: remote 2 input (max6695/96 only)
--			 * 6: remote 2 low limit (max6695/96 only)
--			 * 7: remote 2 high limit (max6695/96 only)
--			 */
-+	s8 temp8[TEMP8_REG_NUM];
-+	s16 temp11[TEMP11_REG_NUM];
- 	u8 temp_hyst;
- 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
- };
-@@ -490,37 +505,42 @@ static struct lm90_data *lm90_update_device(struct device *dev)
- 		u8 alarms;
- 
- 		dev_dbg(&client->dev, "Updating lm90 data.\n");
--		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW, &data->temp8[0]);
--		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH, &data->temp8[1]);
--		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT, &data->temp8[2]);
--		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[3]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW,
-+			      &data->temp8[LOCAL_LOW]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH,
-+			      &data->temp8[LOCAL_HIGH]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT,
-+			      &data->temp8[LOCAL_CRIT]);
-+		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
-+			      &data->temp8[REMOTE_CRIT]);
- 		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
- 
- 		if (data->reg_local_ext) {
- 			lm90_read16(client, LM90_REG_R_LOCAL_TEMP,
- 				    data->reg_local_ext,
--				    &data->temp11[4]);
-+				    &data->temp11[LOCAL_TEMP]);
- 		} else {
- 			if (lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP,
- 					  &h) = 0)
--				data->temp11[4] = h << 8;
-+				data->temp11[LOCAL_TEMP] = h << 8;
- 		}
- 		lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
--			    LM90_REG_R_REMOTE_TEMPL, &data->temp11[0]);
-+			    LM90_REG_R_REMOTE_TEMPL,
-+			    &data->temp11[REMOTE_TEMP]);
- 
- 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h) = 0) {
--			data->temp11[1] = h << 8;
-+			data->temp11[REMOTE_LOW] = h << 8;
- 			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
- 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL,
- 					  &l) = 0)
--				data->temp11[1] |= l;
-+				data->temp11[REMOTE_LOW] |= l;
- 		}
- 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h) = 0) {
--			data->temp11[2] = h << 8;
-+			data->temp11[REMOTE_HIGH] = h << 8;
- 			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
- 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL,
- 					  &l) = 0)
--				data->temp11[2] |= l;
-+				data->temp11[REMOTE_HIGH] |= l;
- 		}
- 
- 		if (data->flags & LM90_HAVE_OFFSET) {
-@@ -528,13 +548,13 @@ static struct lm90_data *lm90_update_device(struct device *dev)
- 					  &h) = 0
- 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSL,
- 					  &l) = 0)
--				data->temp11[3] = (h << 8) | l;
-+				data->temp11[REMOTE_OFFSET] = (h << 8) | l;
- 		}
- 		if (data->flags & LM90_HAVE_EMERGENCY) {
- 			lm90_read_reg(client, MAX6659_REG_R_LOCAL_EMERG,
--				      &data->temp8[4]);
-+				      &data->temp8[LOCAL_EMERG]);
- 			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
--				      &data->temp8[5]);
-+				      &data->temp8[REMOTE_EMERG]);
- 		}
- 		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
- 		data->alarms = alarms;	/* save as 16 bit value */
-@@ -542,15 +562,16 @@ static struct lm90_data *lm90_update_device(struct device *dev)
- 		if (data->kind = max6696) {
- 			lm90_select_remote_channel(client, data, 1);
- 			lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
--				      &data->temp8[6]);
-+				      &data->temp8[REMOTE2_CRIT]);
- 			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
--				      &data->temp8[7]);
-+				      &data->temp8[REMOTE2_EMERG]);
- 			lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
--				    LM90_REG_R_REMOTE_TEMPL, &data->temp11[5]);
-+				    LM90_REG_R_REMOTE_TEMPL,
-+				    &data->temp11[REMOTE2_TEMP]);
- 			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h))
--				data->temp11[6] = h << 8;
-+				data->temp11[REMOTE2_LOW] = h << 8;
- 			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h))
--				data->temp11[7] = h << 8;
-+				data->temp11[REMOTE2_HIGH] = h << 8;
- 			lm90_select_remote_channel(client, data, 0);
- 
- 			if (!lm90_read_reg(client, MAX6696_REG_R_STATUS2,
-@@ -739,7 +760,7 @@ static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
- static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
- 			 const char *buf, size_t count)
- {
--	static const u8 reg[8] = {
-+	static const u8 reg[TEMP8_REG_NUM] = {
- 		LM90_REG_W_LOCAL_LOW,
- 		LM90_REG_W_LOCAL_HIGH,
- 		LM90_REG_W_LOCAL_CRIT,
-@@ -892,11 +913,11 @@ static ssize_t set_temphyst(struct device *dev, struct device_attribute *dummy,
- 
- 	mutex_lock(&data->update_lock);
- 	if (data->kind = adt7461)
--		temp = temp_from_u8_adt7461(data, data->temp8[2]);
-+		temp = temp_from_u8_adt7461(data, data->temp8[LOCAL_CRIT]);
- 	else if (data->kind = max6646)
--		temp = temp_from_u8(data->temp8[2]);
-+		temp = temp_from_u8(data->temp8[LOCAL_CRIT]);
- 	else
--		temp = temp_from_s8(data->temp8[2]);
-+		temp = temp_from_s8(data->temp8[LOCAL_CRIT]);
- 
- 	data->temp_hyst = hyst_to_reg(temp - val);
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_TCRIT_HYST,
-@@ -950,25 +971,28 @@ static ssize_t set_update_interval(struct device *dev,
- 	return count;
- }
- 
--static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
--static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL,
-+	0, LOCAL_TEMP);
-+static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL,
-+	0, REMOTE_TEMP);
- static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 0);
-+	set_temp8, LOCAL_LOW);
- static SENSOR_DEVICE_ATTR_2(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 0, 1);
-+	set_temp11, 0, REMOTE_LOW);
- static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 1);
-+	set_temp8, LOCAL_HIGH);
- static SENSOR_DEVICE_ATTR_2(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 1, 2);
-+	set_temp11, 1, REMOTE_HIGH);
- static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 2);
-+	set_temp8, LOCAL_CRIT);
- static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 3);
-+	set_temp8, REMOTE_CRIT);
- static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
--	set_temphyst, 2);
--static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 3);
-+	set_temphyst, LOCAL_CRIT);
-+static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL,
-+	REMOTE_CRIT);
- static SENSOR_DEVICE_ATTR_2(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 2, 3);
-+	set_temp11, 2, REMOTE_OFFSET);
- 
- /* Individual alarm files */
- static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-@@ -1016,13 +1040,13 @@ static const struct attribute_group lm90_group = {
-  * Additional attributes for devices with emergency sensors
-  */
- static SENSOR_DEVICE_ATTR(temp1_emergency, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 4);
-+	set_temp8, LOCAL_EMERG);
- static SENSOR_DEVICE_ATTR(temp2_emergency, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 5);
-+	set_temp8, REMOTE_EMERG);
- static SENSOR_DEVICE_ATTR(temp1_emergency_hyst, S_IRUGO, show_temphyst,
--			  NULL, 4);
-+			  NULL, LOCAL_EMERG);
- static SENSOR_DEVICE_ATTR(temp2_emergency_hyst, S_IRUGO, show_temphyst,
--			  NULL, 5);
-+			  NULL, REMOTE_EMERG);
- 
- static struct attribute *lm90_emergency_attributes[] = {
- 	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
-@@ -1052,18 +1076,20 @@ static const struct attribute_group lm90_emergency_alarm_group = {
- /*
-  * Additional attributes for devices with 3 temperature sensors
-  */
--static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp11, NULL, 0, 5);
-+static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp11, NULL,
-+	0, REMOTE2_TEMP);
- static SENSOR_DEVICE_ATTR_2(temp3_min, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 3, 6);
-+	set_temp11, 3, REMOTE2_LOW);
- static SENSOR_DEVICE_ATTR_2(temp3_max, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 4, 7);
-+	set_temp11, 4, REMOTE2_HIGH);
- static SENSOR_DEVICE_ATTR(temp3_crit, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 6);
--static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temphyst, NULL, 6);
-+	set_temp8, REMOTE2_CRIT);
-+static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_temphyst, NULL,
-+	REMOTE2_CRIT);
- static SENSOR_DEVICE_ATTR(temp3_emergency, S_IWUSR | S_IRUGO, show_temp8,
--	set_temp8, 7);
-+	set_temp8, REMOTE2_EMERG);
- static SENSOR_DEVICE_ATTR(temp3_emergency_hyst, S_IRUGO, show_temphyst,
--			  NULL, 7);
-+			  NULL, REMOTE2_EMERG);
- 
- static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 9);
- static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 10);
++static const struct attribute_group tmp006_attribute_group = {
++	.attrs = tmp006_attributes,
++};
++
++static const struct iio_chan_spec tmp006_channels[] = {
++	{
++		.type = IIO_VOLTAGE,
++		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
++			BIT(IIO_CHAN_INFO_SCALE),
++	},
++	{
++		.type = IIO_TEMP,
++		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
++			BIT(IIO_CHAN_INFO_SCALE),
++	}
++};
++
++static const struct iio_info tmp006_info = {
++	.read_raw = tmp006_read_raw,
++	.attrs = &tmp006_attribute_group,
++	.driver_module = THIS_MODULE,
++};
++
++static bool tmp006_check_identification(struct i2c_client *client)
++{
++	int mid, did;
++
++	mid = i2c_smbus_read_word_swapped(client, TMP006_MANUFACTURER_ID);
++	if (mid < 0)
++		return false;
++
++	did = i2c_smbus_read_word_swapped(client, TMP006_DEVICE_ID);
++	if (did < 0)
++		return false;
++
++	return mid = MANUFACTURER_MAGIC && did = DEVICE_MAGIC;
++}
++
++static int tmp006_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct iio_dev *indio_dev;
++	struct tmp006_data *data;
++	int ret;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA))
++		return -ENODEV;
++
++	if (!tmp006_check_identification(client)) {
++		dev_err(&client->dev, "no TMP006 sensor\n");
++		return -ENODEV;
++	}
++
++	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
++	if (!indio_dev)
++		return -ENOMEM;
++
++	data = iio_priv(indio_dev);
++	i2c_set_clientdata(client, indio_dev);
++	data->client = client;
++
++	indio_dev->dev.parent = &client->dev;
++	indio_dev->name = dev_name(&client->dev);
++	indio_dev->modes = INDIO_DIRECT_MODE;
++	indio_dev->info = &tmp006_info;
++
++	indio_dev->channels = tmp006_channels;
++	indio_dev->num_channels = ARRAY_SIZE(tmp006_channels);
++
++	ret = i2c_smbus_read_word_swapped(data->client, TMP006_CONFIG);
++	if (ret < 0)
++		return ret;
++	data->config = ret;
++
++	return iio_device_register(indio_dev);
++}
++
++static int tmp006_powerdown(struct tmp006_data *data)
++{
++	return i2c_smbus_write_word_swapped(data->client, TMP006_CONFIG,
++		data->config & ~TMP006_CONFIG_MOD_MASK);
++}
++
++static int tmp006_remove(struct i2c_client *client)
++{
++	struct iio_dev *indio_dev = i2c_get_clientdata(client);
++
++	iio_device_unregister(indio_dev);
++	tmp006_powerdown(iio_priv(indio_dev));
++
++	return 0;
++}
++
++#ifdef CONFIG_PM_SLEEP
++static int tmp006_suspend(struct device *dev)
++{
++	return tmp006_powerdown(iio_priv(dev_to_iio_dev(dev)));
++}
++
++static int tmp006_resume(struct device *dev)
++{
++	struct tmp006_data *data = iio_priv(dev_to_iio_dev(dev));
++	return i2c_smbus_write_word_swapped(data->client, TMP006_CONFIG,
++		data->config | TMP006_CONFIG_MOD_MASK);
++}
++#endif
++
++static SIMPLE_DEV_PM_OPS(tmp006_pm_ops, tmp006_suspend, tmp006_resume);
++
++static const struct i2c_device_id tmp006_id[] = {
++	{ "tmp006", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, tmp006_id);
++
++static struct i2c_driver tmp006_driver = {
++	.driver = {
++		.name	= "tmp006",
++		.pm	= &tmp006_pm_ops,
++		.owner	= THIS_MODULE,
++	},
++	.probe = tmp006_probe,
++	.remove = tmp006_remove,
++	.id_table = tmp006_id,
++};
++module_i2c_driver(tmp006_driver);
++
++MODULE_AUTHOR("Peter Meerwald <pmeerw@pmeerw.net>");
++MODULE_DESCRIPTION("TI TMP006 IR thermopile sensor driver");
++MODULE_LICENSE("GPL");
 -- 
-1.7.9.5
+1.8.3.rc0.20.gb99dd2e
+
 
 
 _______________________________________________
