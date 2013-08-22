@@ -1,44 +1,72 @@
-From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
-Date: Thu, 22 Aug 2013 16:09:01 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 22 Aug 2013 16:13:36 +0000
 Subject: Re: [lm-sensors] why does # of temperature sensors decrease in 3.11 (thinkfan config related)
-Message-Id: <5216379D.3040405@gmx.de>
+Message-Id: <20130822161336.GA13004@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52074F4B.5020003@gmx.de>
 In-Reply-To: <52074F4B.5020003@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gMDgvMjIvMjAxMyAwOTozMiBBTSwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+IEhpIFRvcmFsZiwK
-PiAKPiBPbiBTdW4sIDExIEF1ZyAyMDEzIDEwOjQ2OjAzICswMjAwLCBUb3JhbGYgRsO2cnN0ZXIg
-d3JvdGU6Cj4+IEknbSBqdXN0IHdvbmRlcmluZyB3aHkgdGhlICMgb2Ygc2Vuc29ycyBhdCBteSBU
-aGlua1BhZCBUNDIwIGxvd2VycyBmcm9tCj4+IDMgaW4ga2VybmVsIDMuMTAgOgo+Pgo+PiBzZW5z
-b3IgL3N5cy9kZXZpY2VzL3BsYXRmb3JtL2NvcmV0ZW1wLjAvdGVtcDFfaW5wdXQgICAgICMgcGh5
-c2ljYWwgaWQgMAo+PiBzZW5zb3IgL3N5cy9kZXZpY2VzL3BsYXRmb3JtL2NvcmV0ZW1wLjAvdGVt
-cDJfaW5wdXQgICAgICMgY29yZSAwCj4+IHNlbnNvciAvc3lzL2RldmljZXMvcGxhdGZvcm0vY29y
-ZXRlbXAuMC90ZW1wM19pbnB1dCAgICAgIyBjb3JlIDEKPj4KPj4gdG8ganVzdCBvbmUgZm9yIDMu
-MTE6Cj4+Cj4+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24wL3RlbXAxX2lucHV0Cj4gCj4gTW9zdCBs
-aWtlbHkgdGhpcyBpcyBub3QgZXZlbiB0aGUgc2FtZSBzZW5zb3IuIENoZWNrIHRoZSB2YWx1ZQo+
-IG9mIC9zeXMvY2xhc3MvaHdtb24vaHdtb24wL25hbWUgdG8gZmluZCBvdXQgd2hhdCB0aGlzIHNl
-bnNvciBpcy4gQ291bGQKPiBiZSB0aGUgZ3JhcGhpY3MgY2hpcCB0ZW1wZXJhdHVyZSByZWFkb3V0
-LCBvciBhbiBBQ1BJIHRoZXJtYWwgem9uZS4KPiAKPj4gRG8gSSBtaXNzIGEgKG5ldyA/KSBrZXJu
-ZWwgY29uZmlnID8KPiAKPiBPdXRwdXQgb2YgInNlbnNvcnMiIGluIGJvdGggY2FzZXMgd291bGQg
-aGVscC4gQWxzbyBtYWtlIHN1cmUgdGhhdCB5b3VyCj4gbmV3IGtlcm5lbCBzdGlsbCBoYXMgQ09O
-RklHX1NFTlNPUlNfQ09SRVRFTVAgZW5hYmxlZCwgYW5kIHRoYXQgdGhlCj4gY29yZXRlbXAgZHJp
-dmVyIGlzIGxvYWRlZCBpZiBtb2R1bGFyLgo+IAoKJCB6Z3JlcCBDT05GSUdfU0VOU09SU19DT1JF
-VEVNUCAvcHJvYy9jb25maWcuZ3oKQ09ORklHX1NFTlNPUlNfQ09SRVRFTVA9bQoKQWggdGh4IC0g
-YSAibW9kcHJvYmUgY29yZXRlbXAiIGhlbHBzIGEgbG90IC0gaXMgdGhpcyBuZXcgPwoKTm93IEkg
-ZG8gaGF2ZSB0aGUgZXhwZWN0ZWQgcGljdHVyZSA6CgojIHNlbnNvcnMKYWNwaXR6LXZpcnR1YWwt
-MApBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQp0ZW1wMTogICAgICAgICs1MS4wwrBDICAoY3JpdCA9
-ICs5OC4wwrBDKQoKdGhpbmtwYWQtaXNhLTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKZmFuMTog
-ICAgICAgIDMxMjAgUlBNCgpjb3JldGVtcC1pc2EtMDAwMApBZGFwdGVyOiBJU0EgYWRhcHRlcgpQ
-aHlzaWNhbCBpZCAwOiAgKzU4LjDCsEMgIChoaWdoID0gKzg2LjDCsEMsIGNyaXQgPSArMTAwLjDC
-sEMpCkNvcmUgMDogICAgICAgICArNTguMMKwQyAgKGhpZ2ggPSArODYuMMKwQywgY3JpdCA9ICsx
-MDAuMMKwQykKQ29yZSAxOiAgICAgICAgICs1Ni4wwrBDICAoaGlnaCA9ICs4Ni4wwrBDLCBjcml0
-ID0gKzEwMC4wwrBDKQoKCldoeSBpcyB0aGF0IG1vZHVsZSBub3QgYXV0byBsb2FkZWQgPyBIaG0g
-PwoKLS0gCk1mRy9TaW5jZXJlbHkKVG9yYWxmIEbDtnJzdGVyCnBncCBmaW5nZXIgcHJpbnQ6IDdC
-MUEgMDdGNCBFQzgyIDBGOTAgRDRDMiA4OTM2IDg3MkEgRTUwOCA3REI2IDlEQTMKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
-ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
-b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Thu, Aug 22, 2013 at 06:09:01PM +0200, Toralf F=F6rster wrote:
+> On 08/22/2013 09:32 AM, Jean Delvare wrote:
+> > Hi Toralf,
+> >=20
+> > On Sun, 11 Aug 2013 10:46:03 +0200, Toralf F=F6rster wrote:
+> >> I'm just wondering why the # of sensors at my ThinkPad T420 lowers from
+> >> 3 in kernel 3.10 :
+> >>
+> >> sensor /sys/devices/platform/coretemp.0/temp1_input     # physical id 0
+> >> sensor /sys/devices/platform/coretemp.0/temp2_input     # core 0
+> >> sensor /sys/devices/platform/coretemp.0/temp3_input     # core 1
+> >>
+> >> to just one for 3.11:
+> >>
+> >> /sys/class/hwmon/hwmon0/temp1_input
+> >=20
+> > Most likely this is not even the same sensor. Check the value
+> > of /sys/class/hwmon/hwmon0/name to find out what this sensor is. Could
+> > be the graphics chip temperature readout, or an ACPI thermal zone.
+> >=20
+> >> Do I miss a (new ?) kernel config ?
+> >=20
+> > Output of "sensors" in both cases would help. Also make sure that your
+> > new kernel still has CONFIG_SENSORS_CORETEMP enabled, and that the
+> > coretemp driver is loaded if modular.
+> >=20
+>=20
+> $ zgrep CONFIG_SENSORS_CORETEMP /proc/config.gz
+> CONFIG_SENSORS_CORETEMP=3Dm
+>=20
+> Ah thx - a "modprobe coretemp" helps a lot - is this new ?
+>=20
+> Now I do have the expected picture :
+>=20
+> # sensors
+> acpitz-virtual-0
+> Adapter: Virtual device
+> temp1:        +51.0=B0C  (crit =3D +98.0=B0C)
+>=20
+> thinkpad-isa-0000
+> Adapter: ISA adapter
+> fan1:        3120 RPM
+>=20
+> coretemp-isa-0000
+> Adapter: ISA adapter
+> Physical id 0:  +58.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
+> Core 0:         +58.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
+> Core 1:         +56.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
+>=20
+>=20
+> Why is that module not auto loaded ? Hhm ?
+>=20
+It never was. Maybe your relase update replaced /etc/modules.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
