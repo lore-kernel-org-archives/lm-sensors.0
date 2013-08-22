@@ -1,72 +1,52 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 22 Aug 2013 16:13:36 +0000
+From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+Date: Thu, 22 Aug 2013 16:26:15 +0000
 Subject: Re: [lm-sensors] why does # of temperature sensors decrease in 3.11 (thinkfan config related)
-Message-Id: <20130822161336.GA13004@roeck-us.net>
+Message-Id: <52163BA7.2000205@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52074F4B.5020003@gmx.de>
 In-Reply-To: <52074F4B.5020003@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 22, 2013 at 06:09:01PM +0200, Toralf F=F6rster wrote:
-> On 08/22/2013 09:32 AM, Jean Delvare wrote:
-> > Hi Toralf,
-> >=20
-> > On Sun, 11 Aug 2013 10:46:03 +0200, Toralf F=F6rster wrote:
-> >> I'm just wondering why the # of sensors at my ThinkPad T420 lowers from
-> >> 3 in kernel 3.10 :
-> >>
-> >> sensor /sys/devices/platform/coretemp.0/temp1_input     # physical id 0
-> >> sensor /sys/devices/platform/coretemp.0/temp2_input     # core 0
-> >> sensor /sys/devices/platform/coretemp.0/temp3_input     # core 1
-> >>
-> >> to just one for 3.11:
-> >>
-> >> /sys/class/hwmon/hwmon0/temp1_input
-> >=20
-> > Most likely this is not even the same sensor. Check the value
-> > of /sys/class/hwmon/hwmon0/name to find out what this sensor is. Could
-> > be the graphics chip temperature readout, or an ACPI thermal zone.
-> >=20
-> >> Do I miss a (new ?) kernel config ?
-> >=20
-> > Output of "sensors" in both cases would help. Also make sure that your
-> > new kernel still has CONFIG_SENSORS_CORETEMP enabled, and that the
-> > coretemp driver is loaded if modular.
-> >=20
->=20
-> $ zgrep CONFIG_SENSORS_CORETEMP /proc/config.gz
-> CONFIG_SENSORS_CORETEMP=3Dm
->=20
-> Ah thx - a "modprobe coretemp" helps a lot - is this new ?
->=20
-> Now I do have the expected picture :
->=20
-> # sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +51.0=B0C  (crit =3D +98.0=B0C)
->=20
-> thinkpad-isa-0000
-> Adapter: ISA adapter
-> fan1:        3120 RPM
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Physical id 0:  +58.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
-> Core 0:         +58.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
-> Core 1:         +56.0=B0C  (high =3D +86.0=B0C, crit =3D +100.0=B0C)
->=20
->=20
-> Why is that module not auto loaded ? Hhm ?
->=20
-It never was. Maybe your relase update replaced /etc/modules.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMDgvMjIvMjAxMyAwNjoxMyBQTSwgR3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiBUaHUsIEF1
+ZyAyMiwgMjAxMyBhdCAwNjowOTowMVBNICswMjAwLCBUb3JhbGYgRsO2cnN0ZXIgd3JvdGU6Cj4+
+IE9uIDA4LzIyLzIwMTMgMDk6MzIgQU0sIEplYW4gRGVsdmFyZSB3cm90ZToKPj4+IEhpIFRvcmFs
+ZiwKPj4+Cj4+PiBPbiBTdW4sIDExIEF1ZyAyMDEzIDEwOjQ2OjAzICswMjAwLCBUb3JhbGYgRsO2
+cnN0ZXIgd3JvdGU6Cj4+Pj4gSSdtIGp1c3Qgd29uZGVyaW5nIHdoeSB0aGUgIyBvZiBzZW5zb3Jz
+IGF0IG15IFRoaW5rUGFkIFQ0MjAgbG93ZXJzIGZyb20KPj4+PiAzIGluIGtlcm5lbCAzLjEwIDoK
+Pj4+Pgo+Pj4+IHNlbnNvciAvc3lzL2RldmljZXMvcGxhdGZvcm0vY29yZXRlbXAuMC90ZW1wMV9p
+bnB1dCAgICAgIyBwaHlzaWNhbCBpZCAwCj4+Pj4gc2Vuc29yIC9zeXMvZGV2aWNlcy9wbGF0Zm9y
+bS9jb3JldGVtcC4wL3RlbXAyX2lucHV0ICAgICAjIGNvcmUgMAo+Pj4+IHNlbnNvciAvc3lzL2Rl
+dmljZXMvcGxhdGZvcm0vY29yZXRlbXAuMC90ZW1wM19pbnB1dCAgICAgIyBjb3JlIDEKPj4+Pgo+
+Pj4+IHRvIGp1c3Qgb25lIGZvciAzLjExOgo+Pj4+Cj4+Pj4gL3N5cy9jbGFzcy9od21vbi9od21v
+bjAvdGVtcDFfaW5wdXQKPj4+Cj4+PiBNb3N0IGxpa2VseSB0aGlzIGlzIG5vdCBldmVuIHRoZSBz
+YW1lIHNlbnNvci4gQ2hlY2sgdGhlIHZhbHVlCj4+PiBvZiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9u
+MC9uYW1lIHRvIGZpbmQgb3V0IHdoYXQgdGhpcyBzZW5zb3IgaXMuIENvdWxkCj4+PiBiZSB0aGUg
+Z3JhcGhpY3MgY2hpcCB0ZW1wZXJhdHVyZSByZWFkb3V0LCBvciBhbiBBQ1BJIHRoZXJtYWwgem9u
+ZS4KPj4+Cj4+Pj4gRG8gSSBtaXNzIGEgKG5ldyA/KSBrZXJuZWwgY29uZmlnID8KPj4+Cj4+PiBP
+dXRwdXQgb2YgInNlbnNvcnMiIGluIGJvdGggY2FzZXMgd291bGQgaGVscC4gQWxzbyBtYWtlIHN1
+cmUgdGhhdCB5b3VyCj4+PiBuZXcga2VybmVsIHN0aWxsIGhhcyBDT05GSUdfU0VOU09SU19DT1JF
+VEVNUCBlbmFibGVkLCBhbmQgdGhhdCB0aGUKPj4+IGNvcmV0ZW1wIGRyaXZlciBpcyBsb2FkZWQg
+aWYgbW9kdWxhci4KPj4+Cj4+Cj4+ICQgemdyZXAgQ09ORklHX1NFTlNPUlNfQ09SRVRFTVAgL3By
+b2MvY29uZmlnLmd6Cj4+IENPTkZJR19TRU5TT1JTX0NPUkVURU1QPW0KPj4KPj4gQWggdGh4IC0g
+YSAibW9kcHJvYmUgY29yZXRlbXAiIGhlbHBzIGEgbG90IC0gaXMgdGhpcyBuZXcgPwo+Pgo+PiBO
+b3cgSSBkbyBoYXZlIHRoZSBleHBlY3RlZCBwaWN0dXJlIDoKPj4KPj4gIyBzZW5zb3JzCj4+IGFj
+cGl0ei12aXJ0dWFsLTAKPj4gQWRhcHRlcjogVmlydHVhbCBkZXZpY2UKPj4gdGVtcDE6ICAgICAg
+ICArNTEuMMKwQyAgKGNyaXQgPSArOTguMMKwQykKPj4KPj4gdGhpbmtwYWQtaXNhLTAwMDAKPj4g
+QWRhcHRlcjogSVNBIGFkYXB0ZXIKPj4gZmFuMTogICAgICAgIDMxMjAgUlBNCj4+Cj4+IGNvcmV0
+ZW1wLWlzYS0wMDAwCj4+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4+IFBoeXNpY2FsIGlkIDA6ICAr
+NTguMMKwQyAgKGhpZ2ggPSArODYuMMKwQywgY3JpdCA9ICsxMDAuMMKwQykKPj4gQ29yZSAwOiAg
+ICAgICAgICs1OC4wwrBDICAoaGlnaCA9ICs4Ni4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+PiBD
+b3JlIDE6ICAgICAgICAgKzU2LjDCsEMgIChoaWdoID0gKzg2LjDCsEMsIGNyaXQgPSArMTAwLjDC
+sEMpCj4+Cj4+Cj4+IFdoeSBpcyB0aGF0IG1vZHVsZSBub3QgYXV0byBsb2FkZWQgPyBIaG0gPwo+
+Pgo+IEl0IG5ldmVyIHdhcy4gTWF5YmUgeW91ciByZWxhc2UgdXBkYXRlIHJlcGxhY2VkIC9ldGMv
+bW9kdWxlcy4KPiAKPiBHdWVudGVyCj4gCkhobSwgdW5kZXIgbXkgc3RhYmxlIDMyIGJpdCBHZW50
+b28gaXQgd2FzIGF1dG9tYXRpY2FsbHkgbG9hZGVkIHRpbGwKMy4xMC44LCB3aXRoIDMuMTEtcmNY
+IEkndmUgdG8gYWRkIGl0IG5vdyB0byAvZXRjL2NvbmYuZC9tb2R1bGVzCgotLSAKTWZHL1NpbmNl
+cmVseQpUb3JhbGYgRsO2cnN0ZXIKcGdwIGZpbmdlciBwcmludDogN0IxQSAwN0Y0IEVDODIgMEY5
+MCBENEMyIDg5MzYgODcyQSBFNTA4IDdEQjYgOURBMwoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
