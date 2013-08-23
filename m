@@ -1,89 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 03 Aug 2013 14:23:26 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.11-rc4
-Message-Id: <20130803142326.GA19561@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3979003014895059512=="
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 23 Aug 2013 23:15:55 +0000
+Subject: [lm-sensors] [RFC PATCH 14/14] arm: dts: point to cooling-zones on omap5 cpu node
+Message-Id: <1377299755-5134-15-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============3979003014895059512==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
-Content-Disposition: inline
-
-
---rwEMma7ioTxnRzrJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.11-rc4 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit 5ae90d8e467e625e447000cb4335c4db973b1095:
-
-  Linux 3.11-rc3 (2013-07-28 20:53:33 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 5c52add19733eb36d8619713312f5604efef3502:
-
-  hwmon: (max6697) fix MAX6581 ideality (2013-08-03 07:04:50 -0700)
-
-----------------------------------------------------------------
-Fix chip initialization/configuration in MAX6697 driver
-
-----------------------------------------------------------------
-Vivien Didelot (1):
-      hwmon: (max6697) fix MAX6581 ideality
-
- drivers/hwmon/max6697.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---rwEMma7ioTxnRzrJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR/RJeAAoJEMsfJm/On5mBnesP/Ay9sQW6RnBirfLlcCGkzTVx
-hWXkRafJK0VtESwTRmzXY8VjI3chqgmzn2AWh8NkhxoHVl90cX1NZ2PLGj/YRqk2
-8RW1LAZ4rDYxjwi8PCsYMUscPhKpogYnor6sc+xEiMlKX7P0QN8aUlZxZmu+J6k6
-4kLIw6hpZ0sWAGp2hzFhgmaccLkAALJ/Upn10HBsAjE2cYHaqsx5Zh6VVY3ssURy
-QUeQc2xPaBnjJM5eSpRSBrJwitXfPXpiWc6vbGkwSDkKxpVOHWzRdZthU4o1tau5
-TQTJBj4Tt/VBqNLjk/NLSNQUPJ2KJtH3Qf8ie6Hp1D3tG6ySzm0y0/nU7RKJC3iI
-XFwLO8ZLEFHN1Wc8hBWvjZDphqY27ep/GIV0aW1d0V8AWeXNvgBMmMEdruphZyzq
-LLfWsr9RyXZ/4qnKyOq9muUDEJxHG59GK3229rdORLwszbJxj1qnmvc4q8wMlP0E
-W6yaqAZnqeAfCn+U7yc7d8ZM84U0hYD28HNpfy3sFY8pOi4EllyqYITCAapZpmWU
-ngALVQs42KRxm46/jKrxhBJvxW7nb7IaTjLwnCUEoeISHlr93GW+Ed3pTFzVo+PF
-GjiYgSic/ni2xtMdf1uoMqGkTbKBAfbfFygS0FSLRAts7Cn5eCRpmWSn8ppEp7Nt
-rCcXCyMpRkmPQyjZatPD
-=gYQG
------END PGP SIGNATURE-----
-
---rwEMma7ioTxnRzrJ--
-
-
---===============3979003014895059512==
-Content-Type: text/plain; charset="us-ascii"
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3979003014895059512==--
+T01BUDUgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVlZHMg
+dG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhpcyBw
+YXRjaCBsaW5rcyB0aGUgY3B1IG5vZGUgdG8gaXRzIHRoZXJtYWwtem9uZQpzbyB0aGF0IGNwdWZy
+ZXEtY3B1MCBkcml2ZXIgbG9hZHMgdGhlIGNvb2xpbmcgZGV2aWNlLgoKQ2M6ICJCZW5vw650IENv
+dXNzb24iIDxiLWNvdXNzb25AbGluYXJvLm9yZz4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
+bWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQ
+YXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0
+bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4K
+Q2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtp
+bmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
+ZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlz
+dHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQt
+b2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBh
+cmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIHwgMSArCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNl
+cnRpb24oKykKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIGIvYXJj
+aC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQppbmRleCA0YTMzZmUwLi4zMzVmY2VhIDEwMDY0NAot
+LS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRz
+L29tYXA1LmR0c2kKQEAgLTM3LDYgKzM3LDcgQEAKIAkJCWRldmljZV90eXBlID0gImNwdSI7CiAJ
+CQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsKIAkJCXJlZyA9IDwweDA+OworCQkJY29v
+bGluZy16b25lcyA9IDwmY3B1X3RoZXJtYWw+OwogCQl9OwogCQljcHVAMSB7CiAJCQlkZXZpY2Vf
+dHlwZSA9ICJjcHUiOwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
