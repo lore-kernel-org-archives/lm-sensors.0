@@ -1,132 +1,50 @@
-From: Nils Hammar <nils.hammar@abc.se>
-Date: Sun, 18 Aug 2013 15:55:54 +0000
-Subject: [lm-sensors] Gigabyte GA-P58-D3 motherboard config.
-Message-Id: <5210EE8A.70406@abc.se>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 23 Aug 2013 23:15:53 +0000
+Subject: [lm-sensors] [RFC PATCH 12/14] arm: dts: add omap5 CORE thermal data
+Message-Id: <1377299755-5134-13-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-I have made a best effort to create a configuration file for the 
-Gigabyte GA-P58-D3 motherboard. I can't guarantee that it's entirely 
-correct since it is created through trial&error. I provide it in hope 
-that it is useful for someone else.
-
-Below is the file content:
----
-#
-# Configuration for the Gigabyte GA-P58-D3 motherboard.
-#
-# Driver 'it87' at it8728-isa-0a30.
-#
-# This motherboard is for the fourth generation Intel Core processors
-# with Socket 1150. One important difference is that those processors
-# has internal voltage regulation, which means that some voltages
-# that were present on earlier motherboards are no longer there.
-# One such example is the Vtt voltage.
-#
-#
-chip "it8728-*"
-
-     #######################################
-     # FANS                                #
-     # The actual number of fans and their #
-     # RPM limits depends on what the      #
-     # computer case is equipped with      #
-     # and your CPU fan, so you may        #
-     # want to update this section.        #
-     #######################################
-
-     label fan1 "CPU fan"
-     set fan1_min 700
-
-     label fan2 "System fan 1"
-     set fan2_min 300
-
-     label fan3 "System fan 2"
-     set fan3_min 300
-
-     ignore fan4 # Remove the 'ignore' if fan is installed.
-     label fan4 "System fan 3"
-     set fan4_min 0    # Set to a valid value if fan is installed.
-
-     ignore fan5 # Not present on motherboard, listed here since the 
-chip supports it.
-     label fan5 "System fan 4"
-     set fan5_min 0
-
-     ######################################
-     # VOLTAGES                           #
-     # These figures are from estimations #
-     # based on values provided in BIOS.  #
-     # This means that some of them may   #
-     # be mixed up.                       #
-     ######################################
-
-     label in0 "Vcore"
-     set in0_min 0.05
-     set in0_max 1.025
-     compute in0 1.0*@,@/1.0
-
-     label in1 "+3.3V"
-     set in1_min 3.135   # according to ATX 12V PSU design guide
-     set in1_max 3.465   #
-     compute in1 1.635*@,@/1.635
-
-     label in2 "+12V"
-     set in2_min 11.40   # according to ATX 12V PSU design guide
-     set in2_max 12.60   #
-     compute in2 6.0*@,@/6.0
-
-     label in3 "+5V"
-     set in3_min 4.750   # according to ATX 12V PSU design guide
-     set in3_max 5.250   #
-     compute in3 2.5*@,@/2.5
-
-     label in4 "Vaxg"
-     set in4_min 0.80
-     set in4_max 1.00
-     compute in4 1.0*@,@/1.0
-
-     label in5 "Vrin"
-     set in5_min 1.65
-     set in5_max 1.85
-     compute in5 1.0*@,@/1.0
-
-     label in6 "Vdram"
-     set in6_min 1.45    # adjust these, 1.35 for LVDDR3
-     set in6_max 1.55    # 1.5V is recommended, 1.65 tops
-     compute in6 1.0*@,@/1.0
-
-     label in7 "3VSB"
-     set in7_min 3.14
-     set in7_max 3.47
-     compute in7 1.0*@,@/1.0
-
-     # CMOS Battery voltage.
-     label in8 "Vbat"
-     compute in8 1.0*@,@/1.0
-
-     ###############################
-     # Temperatures                #
-     ###############################
-     label temp1 "PCH temp"
-     set temp1_min 10
-     set temp1_max 60
-
-     # ignore temp2 # Not sure if this sensor actually exists.
-     # It's always reporting 25 degrees Celsius for me at the moment.
-     label temp2 "MB temp"
-     set temp2_min 0
-     set temp2_max 60
-
-     label temp3 "CPU temp"
-     set temp3_min 10
-     set temp3_max 85
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgQ09SRSBkb21haW4gb24gT01BUDUgYW5kIGxhdGVyIFNvQ3MuIFRoaXMgZGF0YSB3aWxs
+CmVuYWJsZSBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KClRoaXMgdGhlcm1hbCBkYXRhIGNh
+biBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoKQ2M6ICJCZW5vw650IENvdXNzb24i
+IDxiLWNvdXNzb25AdGkuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4K
+Q2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1vbGwg
+PHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFybS5j
+b20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFuIENh
+bXBiZWxsIDxpYW4uY2FtcGJlbGxAY2l0cml4LmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGludXhA
+YXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBkZXZp
+Y2V0cmVlQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
+YWQub3JnCkNjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEVk
+dWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jv
+b3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpIHwgMjcgKysrKysrKysrKysrKysrKysrKysr
+KysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjcgaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAw
+NjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpCgpkaWZmIC0tZ2l0
+IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9i
+b290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRl
+eCAwMDAwMDAwLi4zZDlmYTA5Ci0tLSAvZGV2L251bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDUtY29yZS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyNyBAQAorCisvKgorICogRGV2aWNl
+IFRyZWUgU291cmNlIGZvciBPTUFQNTQzeCBTb0MgQ09SRSB0aGVybWFsCisgKgorICogQ29weXJp
+Z2h0IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cu
+dGkuY29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0
+aS5jb20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0
+aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3Jh
+bSBpcyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2lu
+ZCwgd2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRp
+bmdzL3RoZXJtYWwvdGhlcm1hbC5oPgorCitjb3JlX3RoZXJtYWw6IGNvcmVfdGhlcm1hbCB7CisJ
+I3RoZXJtYWwtY2VsbHMgPSA8MT47CisJbWFzayA9IDwweDAxPjsgLyogdHJpcHMgd3JpdGFiaWxp
+dHkgKi8KKwlwYXNzaXZlX2RlbGF5ID0gPDI1MD47IC8qIG1pbGxpc2Vjb25kcyAqLworCXBvbGxp
+bmdfZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCXRyaXBzIHsKKwkJY3JpdEAx
+MjUwMDB7CisJCQl0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKwkJ
+CWh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJdHlwZSA9IDxUSEVS
+TUFMX1RSSVBfQ1JJVElDQUw+OworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
+NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
