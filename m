@@ -1,43 +1,103 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 23 Aug 2013 23:15:54 +0000
-Subject: [lm-sensors] [RFC PATCH 13/14] arm: dts: add omap5 thermal data
-Message-Id: <1377299755-5134-14-git-send-email-eduardo.valentin@ti.com>
+Date: Fri, 23 Aug 2013 23:15:41 +0000
+Subject: [lm-sensors] [RFC PATCH 00/14] RFCv2: device thermal limits represented in device tree nodes
+Message-Id: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA1IHRvIGNvbnRhaW4KdGhl
-IHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xpbmcg
-d2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMuIFRoZQpzeXN0ZW0gd2lsbCBkbyBh
-IHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1QyB3aGVuZXZlcgphbnkgb2YgaXRzIHNlbnNvcnMgc2Vl
-cyB0aGlzIGxldmVsLgoKQ2M6ICJCZW5vw650IENvdXNzb24iIDxiLWNvdXNzb25AbGluYXJvLm9y
-Zz4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8
-cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5j
-b20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBX
-YXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBi
-ZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+
-CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5l
-bC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgt
-a2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxl
-ZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNp
-IHwgOSArKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKykKCmRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21h
-cDUuZHRzaQppbmRleCBlNjQzNjIwLi40YTMzZmUwIDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290
-L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKQEAgLTQ1
-LDYgKzQ1LDEyIEBACiAJCX07CiAJfTsKIAorCXRoZXJtYWxfem9uZXMgeworCQkjaW5jbHVkZSAi
-b21hcDQtY3B1LXRoZXJtYWwuZHRzaSIKKwkJI2luY2x1ZGUgIm9tYXA1LWdwdS10aGVybWFsLmR0
-c2kiCisJCSNpbmNsdWRlICJvbWFwNS1jb3JlLXRoZXJtYWwuZHRzaSIKKwl9OworCiAJdGltZXIg
-ewogCQljb21wYXRpYmxlID0gImFybSxhcm12Ny10aW1lciI7CiAJCS8qIFBQSSBzZWN1cmUvbm9u
-c2VjdXJlIElSUSAqLwpAQCAtNzExLDYgKzcxNyw5IEBACiAJCQkgICAgICAgMHg0YTAwMjNDMCAw
-eDNjPjsKIAkJCWludGVycnVwdHMgPSA8R0lDX1NQSSAxMjYgSVJRX1RZUEVfTEVWRUxfSElHSD47
-CiAJCQljb21wYXRpYmxlID0gInRpLG9tYXA1NDMwLWJhbmRnYXAiOworCQkJbW9uaXRvcmVkLXpv
-bmVzID0gPCZjcHVfdGhlcm1hbCAwPiwKKwkJCQkJICA8JmdwdV90aGVybWFsIDE+LAorCQkJCQkg
-IDwmY29yZV90aGVybWFsIDI+OwogCQl9OwogCX07CiB9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
-NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hello all,
+
+First of all, apologize for the very late answer. But I am resuming this work.
+
+This RFC is about describing hardware thermal limits using device tree.
+
+Based on the discussion on the first RFC:
+http://lkml.org/lkml/2013/7/22/319
+
+I have changed the code and the device tree bindings as follows:
+1. Now bindings may have several thermal zones per device (req. by Wei Ni)
+2. The constants used are now using C preprocessor macros (as per Stephen suggestion)
+3. Improved the bindings to have a better representation of links between
+involved entities (thermal zone, cooling devices, sensors), as suggested
+by Pawel and Mark.
+4. Couple of changes in code, as per previous reviews.
+5. Removed policies from DT bindings.
+
+In summary, based on the discussion of the first RFC, now the idea is
+to have thermal zones nodes describing the thermal zones
+and the hardware limits. Then sensor devices nodes will point to
+thermal zones via phandles and cooling device will also point to
+thermal zone via phandles.
+
+So, I am also posting the patch series to dt mailing list as requested.
+
+Please refer to patch 02/14 to a documentation of what I am proposing.
+
+This patch series includes:
+a. Required changes in cpufreq-cpu0 driver so that it loads cooling device
+when requested.
+b. The thermal zone builder based on thermal bindings
+c. Changes in sensor drivers (as examples)
+d. Changes in device tree DTS files (as examples)
+
+This patch series depends on the fixes I sent to linux-pm:
+http://lkml.org/lkml/2013/8/23/572
+
+In the above link you will find also the request to have a flag to
+determine if virtual hwmon device will be created, based on thermal device.
+
+All best,
+
+Eduardo Valentin (14):
+  cpufreq: cpufreq-cpu0: add dt node parsing for 'cooling-zones'
+  drivers: thermal: introduce device tree parser
+  hwmon: lm75: expose to thermal fw via DT nodes
+  hwmon: tmp102: expose to thermal fw via DT nodes
+  thermal: ti-soc-thermal: use thermal DT infrastructure
+  arm: dts: add omap4 CPU thermal data
+  arm: dts: add omap4430 thermal data
+  arm: dts: add omap4460 thermal data
+  arm: dts: point to cooling-zones on omap4430 cpu node
+  arm: dts: point to cooling-zones on omap4460 cpu node
+  arm: dts: add omap5 GPU thermal data
+  arm: dts: add omap5 CORE thermal data
+  arm: dts: add omap5 thermal data
+  arm: dts: point to cooling-zones on omap5 cpu node
+
+ .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |   4 +
+ .../devicetree/bindings/thermal/thermal.txt        | 160 +++++++
+ arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  40 ++
+ arch/arm/boot/dts/omap443x.dtsi                    |   6 +
+ arch/arm/boot/dts/omap4460.dtsi                    |   6 +
+ arch/arm/boot/dts/omap5-core-thermal.dtsi          |  27 ++
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi           |  27 ++
+ arch/arm/boot/dts/omap5.dtsi                       |  10 +
+ drivers/cpufreq/cpufreq-cpu0.c                     |  12 +
+ drivers/hwmon/lm75.c                               |  31 ++
+ drivers/hwmon/tmp102.c                             |  26 ++
+ drivers/thermal/Kconfig                            |  13 +
+ drivers/thermal/Makefile                           |   1 +
+ drivers/thermal/thermal_dt.c                       | 473 +++++++++++++++++++++
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  52 ++-
+ include/dt-bindings/thermal/thermal.h              |  27 ++
+ include/linux/thermal.h                            |   3 +
+ 17 files changed, 907 insertions(+), 11 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/thermal.txt
+ create mode 100644 arch/arm/boot/dts/omap4-cpu-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+ create mode 100644 drivers/thermal/thermal_dt.c
+ create mode 100644 include/dt-bindings/thermal/thermal.h
+
+-- 
+1.8.2.1.342.gfa7285d
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
