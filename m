@@ -1,93 +1,112 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Aug 2013 06:50:14 +0000
-Subject: Re: [lm-sensors] Configuration file for ASUS P8H77-I motherboard
-Message-Id: <20130830085014.164a8b61@endymion.delvare>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 23 Aug 2013 23:15:44 +0000
+Subject: [lm-sensors] [RFC PATCH 03/14] hwmon: lm75: expose to thermal fw via DT nodes
+Message-Id: <1377299755-5134-4-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CABFd1FYhZNcVNWK-Z-BDgsgAuJrKNQqp5sWNxpp0BB18khpq5g@mail.gmail.com>
-In-Reply-To: <CABFd1FYhZNcVNWK-Z-BDgsgAuJrKNQqp5sWNxpp0BB18khpq5g@mail.gmail.com>
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
 
-Hi Victor,
+This patch adds to lm75 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
 
-On Thu, 29 Aug 2013 20:02:34 +0300, Victor Severov wrote:
-> Hi Jean
-> 
-> > I have added it to the wiki:
-> > http://www.lm-sensors.org/wiki/Configurations/Asus/P8H77-I
-> 
-> Thank you!
-> 
-> >> ignore in7
-> > in7 is always VSB (+3.3V Stand-By) for this chip according to the
-> > driver's source code, so it should be labelled as such, not ignored.
-> > There's probably a note about this in the kernel logs when you load the
-> > it87 driver.
-> Unfortunately I can't find any scaling factor for VSB3 voltage. Sometimes
-> in7 = 5.98, sometimes in7 = 4.44 or even 3.91, and I can't see any
-> regularity for this values.
-> Still no ideas about this in7 parameter. :(
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the lm75 DT node. Otherwise, the driver behavior
+will be the same.
 
-OK. Well again we don't have a datasheet for the chip so it could be
-that in7 behaves differently than we guessed. If the value changes all
-the time then it suggests that the input is not connected (or the
-signal is not routed properly due to wrong configuration.)
-Unfortunately there's nothing we can do about it until we can get a
-datasheet.
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/hwmon/lm75.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-> >> compute in0 @+0.06, @-0.06
-> > I've seen this a few times in the past but electrically it makes no
-> > sense.
-> 
-> My motherboard uses intel g2020 processor with nominal core voltage 0.92V.
-> Core voltage displays as 0,86V in lm-sensors by default.
-> In BIOS power management menu core voltage displays as 0.92V, In my guess
-> we needs a "+0.06" correction for this.
-> Maybe I'm wrong.
-
-I think you are wrong, yes ;-) The G2020 supports Intel SpeedStep,
-which means it operates at different frequency and voltage when idle
-and when busy. In the BIOS, the CPU is always busy, so running at the
-maximum voltage. In Linux it will be idle by default, this running at a
-the minimum voltage. This explains your observation.
-
-If you put some load on the CPU (or switch to the "performance" CPUFreq
-governor) and run "sensors" again, it should report the same Vcore as
-the BIOS was (without the compute line you added.) With your compute
-line, it will (wrongly) indicate a higher voltage value.
-
-So you want to drop the compute line for in0, and instead adjust the
-min and max limits to take this voltage change into account:
-
-   set in0_min 0.86 * 0.95
-   set in0_max 0.92 * 1.05
-
-> >> compute in2 @*(72/12), @/(72/12)
-> >> compute in3 @*(30/12), @/(30/12)
-> >> compute in4 @*(1978/1200), @/(1978/1200)
-> > I'm curious how you came up with this unusual scaling factor?
-> 
-> I used several reverse engineering tricks from this wonderful article:
-> http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
-
-Glad you liked it :)
-
-> >> set in4_min 3.3 * 0.90
-> >> set in4_max 3.3 * 1.05
-> 
-> > The ATX specifications sets the limit to +/-5 % so all these * 0.90
-> > should really be * 0.95 (or 0.94 if you want to take the resistor's
-> > imperfection into account.)
-> Yes, this is my mistake.
-> 
-> Thank you for your comments and recommendations.
-
-You're welcome. I have updated the wiki page accordingly.
-
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index c03b490..dc55908 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -27,6 +27,8 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/thermal.h>
++#include <linux/of.h>
+ #include "lm75.h"
+ 
+ 
+@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct device		*hwmon_dev;
++	struct thermal_zone_device	*tz;
+ 	struct mutex		update_lock;
+ 	u8			orig_conf;
+ 	u8			resolution;	/* In bits, between 9 and 12 */
+@@ -92,6 +95,19 @@ static struct lm75_data *lm75_update_device(struct device *dev);
+ 
+ /* sysfs attributes for hwmon */
+ 
++static int lm75_read_temp(void *dev, unsigned long *temp)
++{
++	struct lm75_data *data = lm75_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
++			(data->resolution - 8);
++
++	return 0;
++}
++
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
+ {
+@@ -271,11 +287,25 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto exit_remove;
+ 	}
+ 
++	if (of_find_property(client->dev.of_node, "monitored-zones", NULL)) {
++		data->tz = thermal_zone_of_device_register(&client->dev,
++							   0,
++							   false, /* -hwmon */
++							   &client->dev,
++							   lm75_read_temp);
++		if (IS_ERR(data->tz)) {
++			status = PTR_ERR(data->tz);
++			goto exit_hwmon;
++		}
++	}
++
+ 	dev_info(&client->dev, "%s: sensor '%s'\n",
+ 		 dev_name(data->hwmon_dev), client->name);
+ 
+ 	return 0;
+ 
++exit_hwmon:
++	hwmon_device_unregister(data->hwmon_dev);
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	return status;
+@@ -285,6 +315,7 @@ static int lm75_remove(struct i2c_client *client)
+ {
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+ 
++	thermal_zone_device_unregister(data->tz);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
 -- 
-Jean Delvare
+1.8.2.1.342.gfa7285d
+
 
 _______________________________________________
 lm-sensors mailing list
