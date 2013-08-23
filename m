@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 23 Aug 2013 23:39:36 +0000
+Date: Fri, 23 Aug 2013 23:50:49 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 03/14] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <20130823233936.GA14810@roeck-us.net>
+Message-Id: <20130823235049.GB14810@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
  <1377299755-5134-4-git-send-email-eduardo.valentin@ti.com>
@@ -66,6 +66,16 @@ On Fri, Aug 23, 2013 at 07:15:44PM -0400, Eduardo Valentin wrote:
 > +	*temp = ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
 > +			(data->resolution - 8);
 > +
+The reported temperature can be negative, which would result in reporting a very
+high temperature (note this applies to the tmp102 driver patch as well).
+
+The computation is quite complex and matches the computation done in show_temp().
+Given that, it would make sense to declare an inline function to convert the
+register value to the temperature. This function can take the register value
+and the resolution as argument.
+
+Guenter
+
 > +	return 0;
 > +}
 > +
@@ -88,12 +98,6 @@ On Fri, Aug 23, 2013 at 07:15:44PM -0400, Eduardo Valentin wrote:
 > +		}
 > +	}
 > +
-I don't think it should be fatal if thermal_zone_of_device_register fails.
-hwmon itself still works fine, and should not be penaltized for a thermal
-subsystem failure. Better display a warning if that happens and don't bail out.
-
-The same comment applies to all patches affecting the hwmon subsystem.
-
 >  	dev_info(&client->dev, "%s: sensor '%s'\n",
 >  		 dev_name(data->hwmon_dev), client->name);
 >  
