@@ -1,49 +1,41 @@
-From: Chris Rodley <chris@snapithd.com>
-Date: Thu, 29 Aug 2013 21:58:10 +0000
-Subject: Re: [lm-sensors] sht15 kernel driver
-Message-Id: <521FC3F2.5030504@snapithd.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 23 Aug 2013 23:15:49 +0000
+Subject: [lm-sensors] [RFC PATCH 08/14] arm: dts: add omap4460 thermal data
+Message-Id: <1377299755-5134-9-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <521E7CA7.5060407@snapithd.com> <87fvtt4dmt.fsf@jerows.sfl> <521EBD9F.7070502@snapithd.com> <87ppswh75z.fsf@jerows.sfl>
-In-Reply-To: <87ppswh75z.fsf@jerows.sfl>
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
-Cc: kernel@savoirfairelinux.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 30/08/13 03:02, Jerome Oufella wrote:
-> Chris Rodley <chris@snapithd.com> writes:
->> Thanks Jerome!
->>
->> That was just what I needed to know.
->> The device is now set up and is working well - I will have a go at
->> back porting now.
->>
->> Many thanks again for your help!
->> Chris
-> Good to know Chris!
->
-> Note, we noticed that the sht15 driver may be sensible to noisy lines,
-> we suspect a race condition around the interrupt handling code.
->
-> If your sensor is populated on the board you shouldn't have problems
-> though.
->
-> Jerome
-
-Hi,
-
-We have it working really well .. not noticing any issues - so far at least.
-It is being populated more or less directly on the board - just via a 
-daughter board in the prototype phase.
-So I might not see the same issues.
-
-If we find anything I will submit it back to you.
-
-Many thanks again for your advice!
-Chris
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDYwIHRvIGNvbnRhaW4K
+dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
+bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
+bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
+Yi1jb3Vzc29uQGxpbmFyby5vcmc+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29t
+PgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwgTW9s
+bCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJt
+LmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4g
+Q2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxsaW51
+eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRl
+dmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
+ZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTog
+RWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0v
+Ym9vdC9kdHMvb21hcDQ0NjAuZHRzaSB8IDUgKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2Vy
+dGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpIGIv
+YXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQppbmRleCBjMmYwZjM5Li45ODU1ZjI5IDEw
+MDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCisrKyBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kKQEAgLTMwLDYgKzMwLDEwIEBACiAJCXRpLGh3bW9kcyA9
+ICJkZWJ1Z3NzIjsKIAl9OwogCisJdGhlcm1hbF96b25lc3sKKwkJI2luY2x1ZGUgIm9tYXA0LWNw
+dS10aGVybWFsLmR0c2kiCisJfTsKKwogCWJhbmRnYXAgewogCQlyZWcgPSA8MHg0YTAwMjI2MCAw
+eDQKIAkJICAgICAgIDB4NGEwMDIzMkMgMHg0CkBAIC0zNyw1ICs0MSw2IEBACiAJCWNvbXBhdGli
+bGUgPSAidGksb21hcDQ0NjAtYmFuZGdhcCI7CiAJCWludGVycnVwdHMgPSA8MCAxMjYgSVJRX1RZ
+UEVfTEVWRUxfSElHSD47IC8qIHRhbGVydCAqLwogCQlncGlvcyA9IDwmZ3BpbzMgMjIgMD47IC8q
+IHRzaHV0ICovCisJCW1vbml0b3JlZC16b25lcyA9IDwmY3B1X3RoZXJtYWwgMD47CiAJfTsKIH07
+Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
