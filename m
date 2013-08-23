@@ -1,59 +1,108 @@
-From: Pawel Moll <pawel.moll@arm.com>
-Date: Thu, 08 Aug 2013 13:45:19 +0000
-Subject: Re: [lm-sensors] RFC: device thermal limits represented in device tree nodes
-Message-Id: <1375969519.12043.142.camel@hornet>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 23 Aug 2013 23:15:45 +0000
+Subject: [lm-sensors] [RFC PATCH 04/14] hwmon: tmp102: expose to thermal fw via DT nodes
+Message-Id: <1377299755-5134-5-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <51ED40E3.5020703@ti.com> <51EF3186.9060001@wwwdotorg.org>
-	 <1374664745.25700.118.camel@hornet> <51EFED19.5090900@ti.com>
-	 <1374768928.3213.31.camel@hornet> <51F15E42.1060409@ti.com>
-	 <1374773611.3213.44.camel@hornet> <51F2D443.6040909@ti.com>
-	 <1375787649.12043.34.camel@hornet> <5202AB95.9020605@ti.com>
-	 <20130808085346.GC14648@e106331-lin.cambridge.arm.com>
-In-Reply-To: <20130808085346.GC14648@e106331-lin.cambridge.arm.com>
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ian.campbell@citrix.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Guenter Roeck <linux@roeck-us.net>, Durgadoss R <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, Wei Ni <wni@nvidia.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
 
-T24gVGh1LCAyMDEzLTA4LTA4IGF0IDA5OjUzICswMTAwLCBNYXJrIFJ1dGxhbmQgd3JvdGU6Cj4g
-T24gV2VkLCBBdWcgMDcsIDIwMTMgYXQgMDk6MTg6MjlQTSArMDEwMCwgRWR1YXJkbyBWYWxlbnRp
-biB3cm90ZToKPiA+IFBhd2VsLCBhbGwsCj4gPiAKPiA+IE9uIDA2LTA4LTIwMTMgMDc6MTQsIFBh
-d2VsIE1vbGwgd3JvdGU6Cj4gPiA+IEFwb2xvZ2llcyBhYm91dCB0aGUgZGVsYXksIEkgd2FzICJv
-dGhlcndpc2UgZW5nYWdlZCIgZm9yIGEgd2Vlay4uLgo+ID4gPiAKPiA+IAo+ID4gSSBkbyBhbHNv
-IGV4Y3VzZSBmb3IgbXkgZGVsYXksIGFzIEkgd2FzIGFsc28gImVuZ2FnZWQiIGZvciBhIHdlZWsg
-b3Igc28uCj4gPiAKPiA+ID4gSSBob3BlIHlvdSBoYXZlbid0IGxvc3QgYWxsIG1vdGl2YXRpb24g
-dG8gd29yayBvbiB0aGlzIHN1YmplY3QsIGFzIGl0J3MKPiA+ID4gcmVhbGx5IHdvcnRoIHRoZSB3
-aGlsZSEKPiA+IAo+ID4gTm90IHJlYWxseSEgcXVpdGUgdGhlIG9wcG9zaXRlLiBBbHRob3VnaCBJ
-IHdhcyBsb29raW5nIGF0IHNvbWUgb3RoZXIKPiA+IHN0dWZmLCBJIGdvdCB0aGlzIHNlcmllcyBh
-bHNvIHRlc3RlZCBvbiBkaWZmZXJlbnQgYm9hcmRzIGFuZCB3cm90ZSBkb3duCj4gPiBhIGNvdXBs
-ZSBvZiBpbXByb3ZlbWVudHMgSSB3aWxsIGJlIHdvcmtpbmcgaW4gdGhlIGNvbWluZyBkYXlzLiBJ
-bmRlZWQsCj4gPiBpdCBpcyB3b3J0aCBtb3ZpbmcgZm9yd2FyZCB3aXRoIHRoaXMgd29yay4KPiA+
-IAo+ID4gPiAKPiA+ID4gT24gRnJpLCAyMDEzLTA3LTI2IGF0IDIwOjU1ICswMTAwLCBFZHVhcmRv
-IFZhbGVudGluIHdyb3RlOgo+ID4gPj4gT24gMjUtMDctMjAxMyAxMzozMywgUGF3ZWwgTW9sbCB3
-cm90ZToKPiA+ID4+PiBPbiBUaHUsIDIwMTMtMDctMjUgYXQgMTg6MjAgKzAxMDAsIEVkdWFyZG8g
-VmFsZW50aW4gd3JvdGU6Cj4gPiA+Pj4+Pj4gCXRoZXJtYWxfem9uZSB7Cj4gPiA+Pj4+Pj4gCQl0
-eXBlID0gIkNQVSI7Cj4gPiA+Pj4+Pgo+ID4gPj4+Pj4gU28gd2hhdCBkb2VzIHRoaXMgZXhhY3Rs
-eSBtZWFuPyBXaGF0IGlzIHNvIHNwZWNpYWwgYWJvdXQgQ1BVPyBXaGF0IG90aGVyCj4gPiA+Pj4+
-PiB0eXBlcyB5b3UndmUgZ290IHRoZXJlPyAoQW0gSSBqdXN0IGxhenkgbm90IGxvb2tpbmcgYXQg
-dGhlIG51bWVyb3VzCj4gPiA+Pj4+PiBsaW5rcyB5b3UgcHJvdmlkZWQ/IDstKQo+ID4gPj4+Pgo+
-ID4gPj4+PiBIZWhlaGUuIE9LLiBUeXBlIGlzIHN1cHBvc2VkIHRvIGRlc2NyaWJlIHdoYXQgeW91
-ciB6b25lIGlzIHJlcHJlc2VudGluZy4KPiA+ID4+Pgo+ID4gPj4+IEFzIGluICJhIG5hbWUiPyBT
-bywgZm9yIGV4YW1wbGUgIlRoZSBib2FyZCIsICJQU1UiPyBXaGF0IEkgbWVhbnQgdG8gYXNrCj4g
-PiA+Pj4gd2FzOiBkb2VzIHRoZSBzdHJpbmcgY2FycnkgYW55IG1lYW5pbmc/Cj4gPiA+IAo+ID4g
-PiBZb3UgaGF2ZW4ndCBjb21tZW5kZWQgb24gdGhpcy4uLgo+ID4gCj4gPiBUaGUgc3RyaW5nIGlz
-IHN1cHBvc2VkIHRvIGNhcnJ5IG1lYW5pbmcsIHllcy4gQ291cGxlIG9mIGNvbW1vbiB1c2VkOgo+
-ID4gQ1BVLCBHUFUsIFBDQiwgTENECj4gCj4gSSB0aGluayB0aGUgcG9pbnQgUGF3ZWwgd2FzIGdl
-dHRpbmcgYXQgaXMgdGhhdCB0aGUgc3RyaW5nIGRvZXNuJ3QgaGF2ZSBhCj4gKndlbGwtZGVmaW5l
-ZCogbWVhbmluZyB0aGF0IGFsd2F5cyBhbGxvd3MgYW4gT1MgdG8gZmlndXJlIG91dCB0aGUgc2V0
-IG9mCj4gcmVsZXZhbnQgZGV2aWNlcy4gSWYgd2UgaGF2ZSBhIHRoZXJtYWwgem9uZSBmb3IgIkxD
-RCIsIGFuZCBoYXZlIG11bHRpcGxlCj4gTENEcywgd2hpY2ggTENEcyBhcmUgY292ZXJlZD8gSWYg
-d2UgaGF2ZSBhICJQQ0IiIHpvbmUsIGRvZXMgdGhpcyBjb3ZlciBhbGwKPiB0aGUgZGV2aWNlcyBh
-dHRhY2hlZCB0byB0aGUgUENCLCBhIHN1YnNldCB0aGVyZW9mLCBvciB0aGUgc3Vic3RyYXRlIG9m
-Cj4gdGhlIFBDQiBpdHNlbGY/CgpPcjogd2hhdCBoYXBwZW5zIGlmIEkgdHlwZSAibGNkIiBpbnN0
-ZWFkIG9mICJMQ0QiPyBXb3VsZCB0aGVyZSBiZSBhbnkKZGVjaXNpb24gbWFkZSBiYXNlZCBvbiB0
-aGlzIHN0cmluZz8gT3IgaXMgaXQganVzdCBhIGxhYmVsIHRvIGJlIHVzZWQKc29tZXdoZXJlIGlu
-IGRlYnVnZ2luZyBtZXNzYWdlcz8KClBhd2XFggoKCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
-QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xtLXNlbnNvcnM
+This patch adds to tmp102 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
+
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the tmp102 DT node. Otherwise, the driver behavior
+will be the same.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/hwmon/tmp102.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+index d7b47ab..0f1e44a 100644
+--- a/drivers/hwmon/tmp102.c
++++ b/drivers/hwmon/tmp102.c
+@@ -27,6 +27,8 @@
+ #include <linux/mutex.h>
+ #include <linux/device.h>
+ #include <linux/jiffies.h>
++#include <linux/thermal.h>
++#include <linux/of.h>
+ 
+ #define	DRIVER_NAME "tmp102"
+ 
+@@ -50,6 +52,7 @@
+ 
+ struct tmp102 {
+ 	struct device *hwmon_dev;
++	struct thermal_zone_device *tz;
+ 	struct mutex lock;
+ 	u16 config_orig;
+ 	unsigned long last_update;
+@@ -93,6 +96,15 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
+ 	return tmp102;
+ }
+ 
++static int tmp102_read_temp(void *dev, unsigned long *temp)
++{
++	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
++
++	*temp = tmp102->temp[0];
++
++	return 0;
++}
++
+ static ssize_t tmp102_show_temp(struct device *dev,
+ 				struct device_attribute *attr,
+ 				char *buf)
+@@ -204,10 +216,23 @@ static int tmp102_probe(struct i2c_client *client,
+ 		goto fail_remove_sysfs;
+ 	}
+ 
++	if (of_find_property(client->dev.of_node, "monitored-zones", NULL)) {
++		tmp102->tz = thermal_zone_of_device_register(&client->dev, 0,
++							     false, /* -hwmon */
++							     &client->dev,
++							     tmp102_read_temp);
++		if (IS_ERR(tmp102->tz)) {
++			status = PTR_ERR(tmp102->tz);
++			goto exit_hwmon;
++		}
++	}
++
+ 	dev_info(&client->dev, "initialized\n");
+ 
+ 	return 0;
+ 
++exit_hwmon:
++	hwmon_device_unregister(tmp102->hwmon_dev);
+ fail_remove_sysfs:
+ 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
+ fail_restore_config:
+@@ -220,6 +245,7 @@ static int tmp102_remove(struct i2c_client *client)
+ {
+ 	struct tmp102 *tmp102 = i2c_get_clientdata(client);
+ 
++	thermal_zone_device_unregister(tmp102->tz);
+ 	hwmon_device_unregister(tmp102->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
+ 
+-- 
+1.8.2.1.342.gfa7285d
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
