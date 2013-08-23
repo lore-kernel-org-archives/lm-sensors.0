@@ -1,49 +1,75 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 22 Aug 2013 15:28:39 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (emc6w201): Do not declare enum variable
-Message-Id: <20130822152839.GA26534@roeck-us.net>
+From: Wei Hu <wei@aristanetworks.com>
+Date: Fri, 23 Aug 2013 17:38:18 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (k10temp) Add support for Fam16h (Kabini)
+Message-Id: <1377279498-2868-1-git-send-email-wei@aristanetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375621857-12274-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1375621857-12274-1-git-send-email-linux@roeck-us.net>
+References: <4D5CDAD0.7030006@ladisch.de>
+In-Reply-To: <4D5CDAD0.7030006@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Clemens Ladisch <clemens@ladisch.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Wei Hu <wei@aristanetworks.com>
 
-On Thu, Aug 22, 2013 at 03:57:33PM +0200, Jean Delvare wrote:
-> On Sun,  4 Aug 2013 06:10:57 -0700, Guenter Roeck wrote:
-> > Fix the following smatch warning:
-> > 
-> > emc6w201.c:52:26: warning: symbol 'subfeature' was not declared.
-> > Should it be static?
-> > 
-> > 'enum { } subtype' declares an enum as (global) variable which we don't want.
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  drivers/hwmon/emc6w201.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/hwmon/emc6w201.c b/drivers/hwmon/emc6w201.c
-> > index 936898f..82e661e 100644
-> > --- a/drivers/hwmon/emc6w201.c
-> > +++ b/drivers/hwmon/emc6w201.c
-> > @@ -49,7 +49,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
-> >  #define EMC6W201_REG_TEMP_HIGH(nr)	(0x57 + (nr) * 2)
-> >  #define EMC6W201_REG_FAN_MIN(nr)	(0x62 + (nr) * 2)
-> >  
-> > -enum { input, min, max } subfeature;
-> > +enum subfeature { input, min, max };
-> >  
-> >  /*
-> >   * Per-device data
-> 
-> Good catch. Applied, thanks.
-> 
-Ok, I'll drop it from my queue.
+The temperature reporting interface stays the same, so we just
+add the PCI-ID to the list.
 
-Thanks,
-Guenter
+Verified on AMD Olive Hill.
+---
+ Documentation/hwmon/k10temp |    1 +
+ drivers/hwmon/Kconfig       |    4 ++--
+ drivers/hwmon/k10temp.c     |    3 ++-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/hwmon/k10temp b/Documentation/hwmon/k10temp
+index 90956b6..4dfdc8f 100644
+--- a/Documentation/hwmon/k10temp
++++ b/Documentation/hwmon/k10temp
+@@ -12,6 +12,7 @@ Supported chips:
+ * AMD Family 12h processors: "Llano" (E2/A4/A6/A8-Series)
+ * AMD Family 14h processors: "Brazos" (C/E/G/Z-Series)
+ * AMD Family 15h processors: "Bulldozer" (FX-Series), "Trinity"
++* AMD Family 16h processors: "Kabini"
+ 
+   Prefix: 'k10temp'
+   Addresses scanned: PCI space
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index e989f7f..1e27838 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -296,8 +296,8 @@ config SENSORS_K10TEMP
+ 	  If you say yes here you get support for the temperature
+ 	  sensor(s) inside your CPU. Supported are later revisions of
+ 	  the AMD Family 10h and all revisions of the AMD Family 11h,
+-	  12h (Llano), 14h (Brazos) and 15h (Bulldozer/Trinity)
+-	  microarchitectures.
++	  12h (Llano), 14h (Brazos), 15h (Bulldozer/Trinity) and
++	  16h (Kabini) microarchitectures.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called k10temp.
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index e3b037c..e633856 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -1,5 +1,5 @@
+ /*
+- * k10temp.c - AMD Family 10h/11h/12h/14h/15h processor hardware monitoring
++ * k10temp.c - AMD Family 10h/11h/12h/14h/15h/16h processor hardware monitoring
+  *
+  * Copyright (c) 2009 Clemens Ladisch <clemens@ladisch.de>
+  *
+@@ -211,6 +211,7 @@ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_F3) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F3) },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(pci, k10temp_id_table);
+-- 
+1.7.4.4
+
 
 _______________________________________________
 lm-sensors mailing list
