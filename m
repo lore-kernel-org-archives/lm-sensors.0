@@ -1,69 +1,51 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 25 Aug 2013 11:59:52 +0000
+From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+Date: Sun, 25 Aug 2013 14:16:56 +0000
 Subject: Re: [lm-sensors] why does # of temperature sensors decrease in 3.11 (thinkfan config related)
-Message-Id: <20130825135952.38008c25@endymion.delvare>
+Message-Id: <521A11D8.9060504@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52074F4B.5020003@gmx.de>
 In-Reply-To: <52074F4B.5020003@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rafael,
-
-Thanks for the quick reply.
-
-On Sun, 25 Aug 2013 03:54:08 +0200, Rafael J. Wysocki wrote:
-> On 8/24/2013 11:19 PM, Jean Delvare wrote:
-> > Bisection pointed to:
-> >
-> > commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
-> > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Date:   Fri May 3 00:26:22 2013 +0200
-> >
-> >      ACPI / processor: Use common hotplug infrastructure
-> >     =20
-> > Rafael, any hint as to why the auto-loading of driver coretemp would be
-> > broken by the aforementioned commit?
->=20
-> Essentially, that is a udev issue.
->=20
-> There is a line like this in the udev rules:
->=20
-> DRIVER!=3D"?*", ENV{MODALIAS}=3D"?*", IMPORT{builtin}=3D"kmod load=20
-> $env{MODALIAS}"
->=20
-> which causes modalias to be matched only for devices that have no=20
-> drivers (usually, that line is located in the 80-drivers.rules file=20
-> under /lib/udev/rules.d/ or /usr/lib/udev/rules.d/).  After the commit=20
-> above the CPU devices have a driver and the modalias matching is not=20
-> used for them, unfortunately.
->=20
-> The easiest way to fix this is to remove the driver check from that line =
-
-> so that it looks like this:
->=20
-> ENV{MODALIAS}=3D"?*", IMPORT{builtin}=3D"kmod load $env{MODALIAS}"
->=20
-> That change has been made in the upstream udev already as far as I can=20
-> say, so it should propagate through updates.
-
-Indeed it is:
-http://cgit.freedesktop.org/systemd/systemd/commit?id=BF7f800f2b3e93ccd1229=
-d4717166f3a4d3af72f
-
-I can confirm that this solved my issue. Toralf, please give it a try.
-If you don't want to touch udev rules files under /lib or /usr/lib, you
-can copy 80-drivers.rules to /etc/udev/rules.d and edit it there.
-
-I'll try to get this change integrated into openSUSE 12.3.
-
-Thanks,
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMDgvMjUvMjAxMyAwMTo1OSBQTSwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+IEhpIFJhZmFlbCwK
+PiAKPiBUaGFua3MgZm9yIHRoZSBxdWljayByZXBseS4KPiAKPiBPbiBTdW4sIDI1IEF1ZyAyMDEz
+IDAzOjU0OjA4ICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToKPj4gT24gOC8yNC8yMDEz
+IDExOjE5IFBNLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4+PiBCaXNlY3Rpb24gcG9pbnRlZCB0bzoK
+Pj4+Cj4+PiBjb21taXQgYWMyMTJiNjk4MGQ4ZDVlZGE3MDU4NjRmYzVhOGVjZGRjNmQ2ZWFjYwo+
+Pj4gQXV0aG9yOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+
+Cj4+PiBEYXRlOiAgIEZyaSBNYXkgMyAwMDoyNjoyMiAyMDEzICswMjAwCj4+Pgo+Pj4gICAgICBB
+Q1BJIC8gcHJvY2Vzc29yOiBVc2UgY29tbW9uIGhvdHBsdWcgaW5mcmFzdHJ1Y3R1cmUKPj4+ICAg
+ICAgCj4+PiBSYWZhZWwsIGFueSBoaW50IGFzIHRvIHdoeSB0aGUgYXV0by1sb2FkaW5nIG9mIGRy
+aXZlciBjb3JldGVtcCB3b3VsZCBiZQo+Pj4gYnJva2VuIGJ5IHRoZSBhZm9yZW1lbnRpb25lZCBj
+b21taXQ/Cj4+Cj4+IEVzc2VudGlhbGx5LCB0aGF0IGlzIGEgdWRldiBpc3N1ZS4KPj4KPj4gVGhl
+cmUgaXMgYSBsaW5lIGxpa2UgdGhpcyBpbiB0aGUgdWRldiBydWxlczoKPj4KPj4gRFJJVkVSIT0i
+PyoiLCBFTlZ7TU9EQUxJQVN9PT0iPyoiLCBJTVBPUlR7YnVpbHRpbn09Imttb2QgbG9hZCAKPj4g
+JGVudntNT0RBTElBU30iCj4+Cj4+IHdoaWNoIGNhdXNlcyBtb2RhbGlhcyB0byBiZSBtYXRjaGVk
+IG9ubHkgZm9yIGRldmljZXMgdGhhdCBoYXZlIG5vIAo+PiBkcml2ZXJzICh1c3VhbGx5LCB0aGF0
+IGxpbmUgaXMgbG9jYXRlZCBpbiB0aGUgODAtZHJpdmVycy5ydWxlcyBmaWxlIAo+PiB1bmRlciAv
+bGliL3VkZXYvcnVsZXMuZC8gb3IgL3Vzci9saWIvdWRldi9ydWxlcy5kLykuICBBZnRlciB0aGUg
+Y29tbWl0IAo+PiBhYm92ZSB0aGUgQ1BVIGRldmljZXMgaGF2ZSBhIGRyaXZlciBhbmQgdGhlIG1v
+ZGFsaWFzIG1hdGNoaW5nIGlzIG5vdCAKPj4gdXNlZCBmb3IgdGhlbSwgdW5mb3J0dW5hdGVseS4K
+Pj4KPj4gVGhlIGVhc2llc3Qgd2F5IHRvIGZpeCB0aGlzIGlzIHRvIHJlbW92ZSB0aGUgZHJpdmVy
+IGNoZWNrIGZyb20gdGhhdCBsaW5lIAo+PiBzbyB0aGF0IGl0IGxvb2tzIGxpa2UgdGhpczoKPj4K
+Pj4gRU5We01PREFMSUFTfT09Ij8qIiwgSU1QT1JUe2J1aWx0aW59PSJrbW9kIGxvYWQgJGVudntN
+T0RBTElBU30iCj4+Cj4+IFRoYXQgY2hhbmdlIGhhcyBiZWVuIG1hZGUgaW4gdGhlIHVwc3RyZWFt
+IHVkZXYgYWxyZWFkeSBhcyBmYXIgYXMgSSBjYW4gCj4+IHNheSwgc28gaXQgc2hvdWxkIHByb3Bh
+Z2F0ZSB0aHJvdWdoIHVwZGF0ZXMuCj4gCj4gSW5kZWVkIGl0IGlzOgo+IGh0dHA6Ly9jZ2l0LmZy
+ZWVkZXNrdG9wLm9yZy9zeXN0ZW1kL3N5c3RlbWQvY29tbWl0P2lkPWJmN2Y4MDBmMmIzZTkzY2Nk
+MTIyOWQ0NzE3MTY2ZjNhNGQzYWY3MmYKPiAKPiBJIGNhbiBjb25maXJtIHRoYXQgdGhpcyBzb2x2
+ZWQgbXkgaXNzdWUuIFRvcmFsZiwgcGxlYXNlIGdpdmUgaXQgYSB0cnkuCj4gSWYgeW91IGRvbid0
+IHdhbnQgdG8gdG91Y2ggdWRldiBydWxlcyBmaWxlcyB1bmRlciAvbGliIG9yIC91c3IvbGliLCB5
+b3UKPiBjYW4gY29weSA4MC1kcml2ZXJzLnJ1bGVzIHRvIC9ldGMvdWRldi9ydWxlcy5kIGFuZCBl
+ZGl0IGl0IHRoZXJlLgo+IApXZWxsIC1JJ20gYSBHZW50b28gTGludXhlciAtIHRoZXJlZm9yZSBv
+ZiBjb3Vyc2UgSSBkbyBjaGFuZ2Ugc3lzdGVtCmZpbGVzIGRpcmVjdGx5IDspCgpBbmQgLSB5ZXMs
+IGl0IGhlbHBzIC0gdGh4Cgo+IEknbGwgdHJ5IHRvIGdldCB0aGlzIGNoYW5nZSBpbnRlZ3JhdGVk
+IGludG8gb3BlblNVU0UgMTIuMy4KPiAKPiBUaGFua3MsCj4gCgoKLS0gCk1mRy9TaW5jZXJlbHkK
+VG9yYWxmIEbDtnJzdGVyCnBncCBmaW5nZXIgcHJpbnQ6IDdCMUEgMDdGNCBFQzgyIDBGOTAgRDRD
+MiA4OTM2IDg3MkEgRTUwOCA3REI2IDlEQTMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
