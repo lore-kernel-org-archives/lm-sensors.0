@@ -1,113 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 06 Aug 2013 14:47:23 +0000
-Subject: Re: [lm-sensors] [PATCH 1/1] hwmon: add support for tmp112
-Message-Id: <52010C7B.1080707@roeck-us.net>
+From: PHP Nut <phpnut@live.com>
+Date: Sun, 25 Aug 2013 15:51:25 +0000
+Subject: [lm-sensors] Taking action based upon sensors
+Message-Id: <BLU173-W194E5678B7B93E08C63033A4480@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5156150472245814804=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <28DAD847AEFDD344B2D3802E7670BEE116B91254@DNCE04.ent.ti.com>
-In-Reply-To: <28DAD847AEFDD344B2D3802E7670BEE116B91254@DNCE04.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Lothar,
+--===============5156150472245814804==
+Content-Type: multipart/alternative;
+	boundary="_5d6d1bdc-ee25-494b-9576-d408d71990c9_"
 
-not sure what happened here, but it seems the e-mail got all screwed up.
-Two e-mails instead of one, with the description in the first e-mail,
-and the Sign-off it at the end instead of the description.
+--_5d6d1bdc-ee25-494b-9576-d408d71990c9_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Would be great if you can sort this out and resubmit.
+Is there any explicitly supported method to execute specified actions based=
+ upon the value of a sensor output exceeding a threshold or equaling a cert=
+ain state?
 
-Thanks,
-Guenter
+What I'm looking for is a way to use sensord or a similar daemon based on l=
+m-sensors to execute a command when a condition is met=2C such as the tempe=
+rature exceeding a certain threshold. This could be done with a separate da=
+emonized or scheduled log monitor=2C however that is a bit clunky=2C anothe=
+r item to debug=2C a waste of resources=2C and another undocumented interop=
+ to fail upon a package upgrade.
 
-On 08/06/2013 06:20 AM, Felten, Lothar wrote:
-> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-> index c03b490..3edb394 100644
-> --- a/drivers/hwmon/lm75.c
-> +++ b/drivers/hwmon/lm75.c
-> @@ -49,6 +49,7 @@ enum lm75_type {              /* keep sorted in alphabetical order */
->          tmp100,
->          tmp101,
->          tmp105,
-> +       tmp112,
->          tmp175,
->          tmp275,
->          tmp75,
-> @@ -237,6 +238,7 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
->                  clr_mask |= 1 << 7;             /* not one-shot mode */
->                  break;
->          case tmp105:
-> +       case tmp112:
->          case tmp175:
->          case tmp275:
->          case tmp75:
-> @@ -306,6 +308,7 @@ static const struct i2c_device_id lm75_ids[] = {
->          { "tmp100", tmp100, },
->          { "tmp101", tmp101, },
->          { "tmp105", tmp105, },
-> +       { "tmp112", tmp112, },
->          { "tmp175", tmp175, },
->          { "tmp275", tmp275, },
->          { "tmp75", tmp75, },
->
->
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index e989f7f..4316313 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -652,8 +652,8 @@ config SENSORS_LM75
->                  - NXP's LM75A
->                  - ST Microelectronics STDS75
->                  - TelCom (now Microchip) TCN75
-> -               - Texas Instruments TMP100, TMP101, TMP105, TMP75, TMP175,
-> -                 TMP275
-> +               - Texas Instruments TMP100, TMP101, TMP105, TMP112,
-> +                  TMP175, TMP275, TMP75
->
->            This driver supports driver model based binding through board
->            specific I2C device tables.
->
->
->
-> diff --git a/Documentation/hwmon/lm75 b/Documentation/hwmon/lm75
-> index 2560a9c..c6a5ff1 100644
-> --- a/Documentation/hwmon/lm75
-> +++ b/Documentation/hwmon/lm75
-> @@ -42,13 +42,14 @@ Supported chips:
->       Addresses scanned: none
->       Datasheet: Publicly available at the ST website
->                  http://www.st.com/internet/analog/product/121769.jsp
-> -  * Texas Instruments TMP100, TMP101, TMP105, TMP75, TMP175, TMP275
-> -    Prefixes: 'tmp100', 'tmp101', 'tmp105', 'tmp175', 'tmp75', 'tmp275'
-> +  * Texas Instruments TMP100, TMP101, TMP105, TMP112, TMP75, TMP175, TMP275
-> +    Prefixes: 'tmp100', 'tmp101', 'tmp105', 'tmp112', 'tmp175', 'tmp75', 'tmp275'
->       Addresses scanned: none
->       Datasheet: Publicly available at the Texas Instruments website
->                  http://www.ti.com/product/tmp100
->                  http://www.ti.com/product/tmp101
->                  http://www.ti.com/product/tmp105
-> +               http://www.ti.com/product/tmp112
->                  http://www.ti.com/product/tmp75
->                  http://www.ti.com/product/tmp175
->                  http://www.ti.com/product/tmp275
->
-> Signed-off-by:l-felten@ti.com
->
->
-> Texas Instruments Belgium SA, Rond Point Schuman 6- Bo?te 5, 1040 Bruxelles. BCE: 0414.207.123. RPM Bruxelles. IBAN: BE83570121895615. Swift: CITIBEBX. TVA BE 0414.207.123
->
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
->
+If there isn't=2C what's the best method for doing this and are there exist=
+ing log watching/parsing scripts which have been thoroughly debugged? I'd l=
+ike to avoid anything homebrew if at all possible.
+ 		 	   		  =
 
+--_5d6d1bdc-ee25-494b-9576-d408d71990c9_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 12pt=3B
+font-family:Calibri
+}
+--></style></head>
+<body class=3D'hmmessage'><div dir=3D'ltr'>Is there any explicitly supporte=
+d method to execute specified actions based upon the value of a sensor outp=
+ut exceeding a threshold or equaling a certain state?<br><br>What I'm looki=
+ng for is a way to use sensord or a similar daemon based on lm-sensors to e=
+xecute a command when a condition is met=2C such as the temperature exceedi=
+ng a certain threshold. This could be done with a separate daemonized or sc=
+heduled log monitor=2C however that is a bit clunky=2C another item to debu=
+g=2C a waste of resources=2C and another undocumented interop to fail upon =
+a package upgrade.<br><br>If there isn't=2C what's the best method for doin=
+g this and are there existing log watching/parsing scripts which have been =
+thoroughly debugged? I'd like to avoid anything homebrew if at all possible=
+.<br> 		 	   		  </div></body>
+</html>=
+
+--_5d6d1bdc-ee25-494b-9576-d408d71990c9_--
+
+
+--===============5156150472245814804==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5156150472245814804==--
