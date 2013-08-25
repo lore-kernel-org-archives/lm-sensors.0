@@ -1,72 +1,69 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Date: Sun, 25 Aug 2013 01:54:08 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 25 Aug 2013 11:59:52 +0000
 Subject: Re: [lm-sensors] why does # of temperature sensors decrease in 3.11 (thinkfan config related)
-Message-Id: <521963C0.3030200@intel.com>
+Message-Id: <20130825135952.38008c25@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52074F4B.5020003@gmx.de>
 In-Reply-To: <52074F4B.5020003@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gOC8yNC8yMDEzIDExOjE5IFBNLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4gSGkgR3VlbnRlciwK
-Pgo+IE9uIEZyaSwgMjMgQXVnIDIwMTMgMDQ6Mjg6MDEgLTA3MDAsIEd1ZW50ZXIgUm9lY2sgd3Jv
-dGU6Cj4+IE9uIDA4LzIzLzIwMTMgMDI6NTMgQU0sIEplYW4gRGVsdmFyZSB3cm90ZToKPj4+IE9u
-IEZyaSwgMjMgQXVnIDIwMTMgMTA6MDE6MTQgKzAyMDAsIEplYW4gRGVsdmFyZSB3cm90ZToKPj4+
-PiBPbiBUaHUsIDIyIEF1ZyAyMDEzIDA5OjEzOjM2IC0wNzAwLCBHdWVudGVyIFJvZWNrIHdyb3Rl
-Ogo+Pj4+PiBPbiBUaHUsIEF1ZyAyMiwgMjAxMyBhdCAwNjowOTowMVBNICswMjAwLCBUb3JhbGYg
-RsO2cnN0ZXIgd3JvdGU6Cj4+Pj4+PiBXaHkgaXMgdGhhdCBtb2R1bGUgW2NvcmV0ZW1wXSBub3Qg
-YXV0byBsb2FkZWQgPyBIaG0gPwo+Pj4+PiBJdCBuZXZlciB3YXMuIE1heWJlIHlvdXIgcmVsYXNl
-IHVwZGF0ZSByZXBsYWNlZCAvZXRjL21vZHVsZXMuCj4+Pj4gQWN0dWFsbHkgaXQgd2FzLCBzaW5j
-ZSBrZXJuZWwgdjMuNCBhbmQgY29tbWl0IDliMzgwOTZmZC4gQW5kIGl0IHdvcmtzCj4+IE1lIHN1
-cnByaXNlZC4gV2VsbCwgd2UgbGl2ZSBhbmQgbGVhcm4uIEd1ZXNzIHRoYXQgd2FzIGR1ZSB0byBp
-bnRyb2R1Y2luZwo+PiBNT0RVTEVfREVWSUNFX1RBQkxFID8KPiBZZXMsIGV4YWN0bHkuCj4KPj4+
-PiBmb3IgbWUgd2l0aCBrZXJuZWwgdjMuMTAsIGJ1dCBubyBsb25nZXIgd2l0aCBrZXJuZWwgdjMu
-MTEtcmM2LiBJbiBvdGhlcgo+Pj4+IHdvcmRzIEkgc2VlIHRoZSBzYW1lIHJlZ3Jlc3Npb24gVG9y
-YWxmIGlzIHNlZWluZy4gSSBoYXZlIG5vIGV4cGxhbmF0aW9uCj4+Pj4gZm9yIGl0IGF0IHRoaXMg
-cG9pbnQsIGJ1dCBJIGhhdmUgYSBmZXcgY2FuZGlkYXRlIGNvbW1pdHMgZm9yIHJldmVyc2FsLgo+
-Pj4+IEknbGwgcG9zdCBhZ2FpbiB3aGVuIEkga25vdyBtb3JlLgo+Pj4gUmV2ZXJ0aW5nIG15IDQg
-Y2FuZGlkYXRlcyBkaWQgbm90IGhlbHAuIFdlJ3JlIHVwIGZvciBhIGJpc2VjdGlvbiBJIGd1ZXNz
-LAo+Pj4gd2hlbiBJIGNhbiBmaW5kIHRoZSB0aW1lIGZvciBpdCAoaS5lLiBub3QgcmlnaHQgbm93
-LikKPj4gSSBkb24ndCBzZWUgYSBkaWZmZXJlbmNlIGluIHRoZSBkcml2ZXIgW2NvcmV0ZW1wXSBz
-aW5jZSAzLjEwIHdoaWNoIHdvdWxkCj4+IGV4cGxhaW4gdGhlIHByb2JsZW0uIElmIGl0IGlzIGEg
-Z2VuZXJpYyBwcm9ibGVtLCBpdCB3b3VsZCBiZSBzdXJwcmlzaW5nIHRoYXQKPj4gbm8gb25lIGVs
-c2UgYXMgc2VlbiBpdCB3aXRoIG90aGVyIG1vZHVsZXMuCj4gTWlnaHQgYmUgYmVjYXVzZSBDUFUg
-ZHJpdmVyIGF1dG9sb2FkaW5nIGlzIHN0aWxsIGZhaXJseSByZWNlbnQgc28gbW9zdAo+IGRpc3Ry
-aWJ1dGlvbnMgZG9uJ3QgcmVseSBvbiBpdCB5ZXQuIEFzIGEgbWF0dGVyIG9mIGZhY3QgSSBoYWQg
-dG8gdGFrZQo+IGNvcmV0ZW1wIG91dCBvZiAvZXRjL3N5c2NvbmZpZy9sbV9zZW5zb3JzIGluIG9y
-ZGVyIHRvIHJlcHJvZHVjZSB0aGUgYnVnLgo+Cj4gQmlzZWN0aW9uIHBvaW50ZWQgdG86Cj4KPiBj
-b21taXQgYWMyMTJiNjk4MGQ4ZDVlZGE3MDU4NjRmYzVhOGVjZGRjNmQ2ZWFjYwo+IEF1dGhvcjog
-UmFmYWVsIEouIFd5c29ja2kgPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPgo+IERhdGU6ICAg
-RnJpIE1heSAzIDAwOjI2OjIyIDIwMTMgKzAyMDAKPgo+ICAgICAgQUNQSSAvIHByb2Nlc3Nvcjog
-VXNlIGNvbW1vbiBob3RwbHVnIGluZnJhc3RydWN0dXJlCj4gICAgICAKPiBSYWZhZWwsIGFueSBo
-aW50IGFzIHRvIHdoeSB0aGUgYXV0by1sb2FkaW5nIG9mIGRyaXZlciBjb3JldGVtcCB3b3VsZCBi
-ZQo+IGJyb2tlbiBieSB0aGUgYWZvcmVtZW50aW9uZWQgY29tbWl0Pwo+CgpFc3NlbnRpYWxseSwg
-dGhhdCBpcyBhIHVkZXYgaXNzdWUuCgpUaGVyZSBpcyBhIGxpbmUgbGlrZSB0aGlzIGluIHRoZSB1
-ZGV2IHJ1bGVzOgoKRFJJVkVSIT0iPyoiLCBFTlZ7TU9EQUxJQVN9PT0iPyoiLCBJTVBPUlR7YnVp
-bHRpbn09Imttb2QgbG9hZCAKJGVudntNT0RBTElBU30iCgp3aGljaCBjYXVzZXMgbW9kYWxpYXMg
-dG8gYmUgbWF0Y2hlZCBvbmx5IGZvciBkZXZpY2VzIHRoYXQgaGF2ZSBubyAKZHJpdmVycyAodXN1
-YWxseSwgdGhhdCBsaW5lIGlzIGxvY2F0ZWQgaW4gdGhlIDgwLWRyaXZlcnMucnVsZXMgZmlsZSAK
-dW5kZXIgL2xpYi91ZGV2L3J1bGVzLmQvIG9yIC91c3IvbGliL3VkZXYvcnVsZXMuZC8pLiAgQWZ0
-ZXIgdGhlIGNvbW1pdCAKYWJvdmUgdGhlIENQVSBkZXZpY2VzIGhhdmUgYSBkcml2ZXIgYW5kIHRo
-ZSBtb2RhbGlhcyBtYXRjaGluZyBpcyBub3QgCnVzZWQgZm9yIHRoZW0sIHVuZm9ydHVuYXRlbHku
-CgpUaGUgZWFzaWVzdCB3YXkgdG8gZml4IHRoaXMgaXMgdG8gcmVtb3ZlIHRoZSBkcml2ZXIgY2hl
-Y2sgZnJvbSB0aGF0IGxpbmUgCnNvIHRoYXQgaXQgbG9va3MgbGlrZSB0aGlzOgoKRU5We01PREFM
-SUFTfT09Ij8qIiwgSU1QT1JUe2J1aWx0aW59PSJrbW9kIGxvYWQgJGVudntNT0RBTElBU30iCgpU
-aGF0IGNoYW5nZSBoYXMgYmVlbiBtYWRlIGluIHRoZSB1cHN0cmVhbSB1ZGV2IGFscmVhZHkgYXMg
-ZmFyIGFzIEkgY2FuIApzYXksIHNvIGl0IHNob3VsZCBwcm9wYWdhdGUgdGhyb3VnaCB1cGRhdGVz
-LgoKVGhhbmtzLApSYWZhZWwKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBUZWNobm9sb2d5IFBvbGFuZCBz
-cC4geiBvLm8uCnogc2llZHppYmEgdyBHZGFuc2t1CnVsLiBTbG93YWNraWVnbyAxNzMKODAtMjk4
-IEdkYW5zawoKU2FkIFJlam9ub3d5IEdkYW5zayBQb2xub2MgdyBHZGFuc2t1LCAKVklJIFd5ZHpp
-YWwgR29zcG9kYXJjenkgS3Jham93ZWdvIFJlamVzdHJ1IFNhZG93ZWdvLCAKbnVtZXIgS1JTIDEw
-MTg4MgoKTklQIDk1Ny0wNy01Mi0zMTYKS2FwaXRhbCB6YWtsYWRvd3kgMjAwLjAwMCB6bAoKVGhp
-cyBlLW1haWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRlbnRpYWwgbWF0
-ZXJpYWwgZm9yCnRoZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50KHMpLiBBbnkg
-cmV2aWV3IG9yIGRpc3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4g
-SWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3QgdGhl
-IHNlbmRlciBhbmQgZGVsZXRlIGFsbCBjb3BpZXMuCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+Hi Rafael,
+
+Thanks for the quick reply.
+
+On Sun, 25 Aug 2013 03:54:08 +0200, Rafael J. Wysocki wrote:
+> On 8/24/2013 11:19 PM, Jean Delvare wrote:
+> > Bisection pointed to:
+> >
+> > commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
+> > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Date:   Fri May 3 00:26:22 2013 +0200
+> >
+> >      ACPI / processor: Use common hotplug infrastructure
+> >     =20
+> > Rafael, any hint as to why the auto-loading of driver coretemp would be
+> > broken by the aforementioned commit?
+>=20
+> Essentially, that is a udev issue.
+>=20
+> There is a line like this in the udev rules:
+>=20
+> DRIVER!=3D"?*", ENV{MODALIAS}=3D"?*", IMPORT{builtin}=3D"kmod load=20
+> $env{MODALIAS}"
+>=20
+> which causes modalias to be matched only for devices that have no=20
+> drivers (usually, that line is located in the 80-drivers.rules file=20
+> under /lib/udev/rules.d/ or /usr/lib/udev/rules.d/).  After the commit=20
+> above the CPU devices have a driver and the modalias matching is not=20
+> used for them, unfortunately.
+>=20
+> The easiest way to fix this is to remove the driver check from that line =
+
+> so that it looks like this:
+>=20
+> ENV{MODALIAS}=3D"?*", IMPORT{builtin}=3D"kmod load $env{MODALIAS}"
+>=20
+> That change has been made in the upstream udev already as far as I can=20
+> say, so it should propagate through updates.
+
+Indeed it is:
+http://cgit.freedesktop.org/systemd/systemd/commit?id=BF7f800f2b3e93ccd1229=
+d4717166f3a4d3af72f
+
+I can confirm that this solved my issue. Toralf, please give it a try.
+If you don't want to touch udev rules files under /lib or /usr/lib, you
+can copy 80-drivers.rules to /etc/udev/rules.d and edit it there.
+
+I'll try to get this change integrated into openSUSE 12.3.
+
+Thanks,
+--=20
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
