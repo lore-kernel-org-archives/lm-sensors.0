@@ -1,25 +1,25 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 26 Aug 2013 12:11:00 +0000
+Date: Mon, 26 Aug 2013 12:15:48 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 03/14] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <521B45D4.6020002@ti.com>
+Message-Id: <521B46F4.7080507@ti.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3181967204215772591=="
+Content-Type: multipart/mixed; boundary="===============3375395918878995694=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com> <1377299755-5134-4-git-send-email-eduardo.valentin@ti.com> <20130823233936.GA14810@roeck-us.net>
-In-Reply-To: <20130823233936.GA14810@roeck-us.net>
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com> <1377299755-5134-4-git-send-email-eduardo.valentin@ti.com> <20130823235049.GB14810@roeck-us.net>
+In-Reply-To: <20130823235049.GB14810@roeck-us.net>
 To: Guenter Roeck <linux@roeck-us.net>
 Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, rui.zhang@intel.com, wni@nvidia.com, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
---===============3181967204215772591==
+--===============3375395918878995694==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="XAko6q2CxXJ4OC9bakDkRtSH0s2gWPnEj"
+	boundary="hHcUpEbjGd9gJcRXvHj1dmn4V3UXS2TEE"
 
---XAko6q2CxXJ4OC9bakDkRtSH0s2gWPnEj
+--hHcUpEbjGd9gJcRXvHj1dmn4V3UXS2TEE
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 23-08-2013 19:39, Guenter Roeck wrote:
+On 23-08-2013 19:50, Guenter Roeck wrote:
 > On Fri, Aug 23, 2013 at 07:15:44PM -0400, Eduardo Valentin wrote:
 >> This patch adds to lm75 temperature sensor the possibility
 >> to expose itself as thermal zone device, registered on the
@@ -75,6 +75,27 @@ device *dev);
 >> +	*temp =3D ((data->temp[0] >> (16 - data->resolution)) * 1000) >>
 >> +			(data->resolution - 8);
 >> +
+> The reported temperature can be negative, which would result in reporti=
+ng a very
+> high temperature (note this applies to the tmp102 driver patch as well)=
+=2E
+>=20
+
+Good point.
+
+> The computation is quite complex and matches the computation done in sh=
+ow_temp().
+> Given that, it would make sense to declare an inline function to conver=
+t the
+> register value to the temperature. This function can take the register =
+value
+> and the resolution as argument.
+
+Sounds reasonable. Modifying accordingly in next version.
+
+>=20
+> Guenter
+>=20
 >> +	return 0;
 >> +}
 >> +
@@ -100,27 +121,6 @@ ct i2c_device_id *id)
 >> +		}
 >> +	}
 >> +
-> I don't think it should be fatal if thermal_zone_of_device_register fai=
-ls.
-> hwmon itself still works fine, and should not be penaltized for a therm=
-al
-> subsystem failure. Better display a warning if that happens and don't b=
-ail out.
->=20
-> The same comment applies to all patches affecting the hwmon subsystem.
->=20
-
-
-OK. Sounds reasonable to me. I am going to simply attempt to parse the
-DT node, and in case it fails, will log it and continue, as you suggest:
-+	data->tz =3D thermal_zone_of_device_register(&client->dev,
-+						   0,
-+						   false, /* -hwmon */
-+						   &client->dev,
-+						   lm75_read_temp);
-+	if (IS_ERR(data->tz))
-+		dev_warn(&client->dev, "Could not parse device tree thermal data\n");
-
 >>  	dev_info(&client->dev, "%s: sensor '%s'\n",
 >>  		 dev_name(data->hwmon_dev), client->name);
 >> =20
@@ -153,7 +153,7 @@ You have got to be excited about what you are doing. (L. Lamport)
 Eduardo Valentin
 
 
---XAko6q2CxXJ4OC9bakDkRtSH0s2gWPnEj
+--hHcUpEbjGd9gJcRXvHj1dmn4V3UXS2TEE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -162,15 +162,15 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iF4EAREIAAYFAlIbRdQACgkQCXcVR3XQvP0wHgD9Ehhvk5Peecw7June3PQkFwbn
-I/QoDS8TeoC+INrt4xABAPBBGuJdJuBVls0I2NEDwLlnYEMiBX+PpwQD+XaxKYwa
-=w6lP
+iF4EAREIAAYFAlIbRvQACgkQCXcVR3XQvP2uNwD+PyexTyWQze8fjI1aByceQ2ex
+7LRBNuAXvuG86GkP6RoA/0xTQ6J/pCNxnYjTe9vHNmclH8wbXxxC6qJLEyMeCKOb
+=U8XP
 -----END PGP SIGNATURE-----
 
---XAko6q2CxXJ4OC9bakDkRtSH0s2gWPnEj--
+--hHcUpEbjGd9gJcRXvHj1dmn4V3UXS2TEE--
 
 
---===============3181967204215772591==
+--===============3375395918878995694==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -180,4 +180,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3181967204215772591==--
+--===============3375395918878995694==--
