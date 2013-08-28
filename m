@@ -1,53 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 22 Aug 2013 07:05:18 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (emc6w201) Staticize enum 'subfeature'
-Message-Id: <20130822090518.5262be28@endymion.delvare>
+From: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
+Date: Wed, 28 Aug 2013 23:08:42 +0000
+Subject: Re: [lm-sensors] sht15 kernel driver
+Message-Id: <87fvtt4dmt.fsf@jerows.sfl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001c01ce91ad$b3972580$1ac57080$@samsung.com>
-In-Reply-To: <001c01ce91ad$b3972580$1ac57080$@samsung.com>
+References: <521E7CA7.5060407@snapithd.com>
+In-Reply-To: <521E7CA7.5060407@snapithd.com> (Chris Rodley's message of "Thu,
+	29 Aug 2013 10:41:43 +1200")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Chris Rodley <chris@snapithd.com>
+Cc: kernel@savoirfairelinux.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Jingoo,
-
-On Mon, 05 Aug 2013 16:30:46 +0900, Jingoo Han wrote:
-> The enum 'subfeature' is used only in this file.
-> Fix the following sparse warning:
-> 
-> drivers/hwmon/emc6w201.c:52:26: warning: symbol 'subfeature' was not declared. Should it be static?
-> 
-> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> ---
->  drivers/hwmon/emc6w201.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/hwmon/emc6w201.c b/drivers/hwmon/emc6w201.c
-> index 936898f..2aa5bc3 100644
-> --- a/drivers/hwmon/emc6w201.c
-> +++ b/drivers/hwmon/emc6w201.c
-> @@ -49,7 +49,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
->  #define EMC6W201_REG_TEMP_HIGH(nr)	(0x57 + (nr) * 2)
->  #define EMC6W201_REG_FAN_MIN(nr)	(0x62 + (nr) * 2)
->  
-> -enum { input, min, max } subfeature;
-> +static enum { input, min, max } subfeature;
->  
->  /*
->   * Per-device data
-
-A better fixed has already been submitted by Guenter Roeck:
-
-http://lists.lm-sensors.org/pipermail/lm-sensors/2013-August/039599.html
-
-The variable is not needed at all.
-
-Thanks anyway,
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Q2hyaXMgUm9kbGV5IDxjaHJpc0BzbmFwaXRoZC5jb20+IHdyaXRlczoKCj4gSGksCj4KPiBJIGFt
+IHRyeWluZyB0byBnZXQgYSBzaHQ3NSBodW1pZGl0eSBhbmQgdGVtcGVyYXR1cmUgc2Vuc29yIHdv
+cmtpbmcKPiB3aXRoIHRoZSBsaW51eCBrZXJuZWwgbW9kdWxlIGluIDMuMi4KPiBJcyB0aGVyZSBh
+IGNvZGUgZXhhbXBsZSBmb3IgYXBwbGljYXRpb24gY29kZSB0aGF0IHlvdSBoYXZlIGF2YWlsYWJs
+ZT8KPgo+IE1hbnkgdGhhbmtzLAoKSGkgQ2hyaXMsCgpUaGVyZSB3YXMgbXVjaCBsZXNzIHN1cHBv
+cnQgZm9yIHRoZSBzaHQxNSBiYWNrIGluIDMuMiBjb21wYXJlZCB0byByZWNlbnQKa2VybmVsIHJl
+bGVhc2VzLiBZb3UgbWF5IHdhbnQgdG8gYmFja3BvcnQgZmVhdHVyZXMgYW5kL29yIGZpeGVzIHRv
+IHN1aXQKeW91ciBuZWVkcy4KCllvdSBjYW4gZmluZCBhIHVzYWdlIGV4YW1wbGUgZm9yIDMuMiBp
+biBhcmNoL2FybS9tYWNoLXB4YS9zdGFyZ2F0ZTIuYwphcm91bmQgbGluZSAxNDA6CgpGaXJzdCwg
+Y3JlYXRlIGEgcGxhdGZvcm0gZGF0YSBzdHJ1Y3QgYW5kIHNwZWNpZnkgd2hpY2ggR1BJTyBsaW5l
+cyBhcmUKaG9va2VkIHRvIHRoZSBkYXRhIGFuZCBzY2sgbGluZXMgb2YgeW91ciBzaHQtMTU6CiAK
+IHN0YXRpYyBzdHJ1Y3Qgc2h0MTVfcGxhdGZvcm1fZGF0YSBwbGF0Zm9ybV9kYXRhX3NodDE1ID0g
+ewogICAgICAgIC5ncGlvX2RhdGEgPSAgMTAwLAogICAgICAgIC5ncGlvX3NjayAgPSAgOTgsCiB9
+OwoKVGhlbiBzZXR1cCBhIHBsYXRmb3JtIGRldmljZSByZWZlcmVuY2luZyB0aG9zZSBwbGF0Zm9y
+bSBkYXRhLCB0aGF0IHlvdQp3aWxsIGhhdmUgdG8gcmVnaXN0ZXIgb24gdGhlIHBsYXRmb3JtIGJ1
+cyB1c2luZyBwbGF0Zm9ybV9hZGRfZGV2aWNlcygpCm9yIGVxdWl2YWxlbnQ6Cgogc3RhdGljIHN0
+cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugc2h0MTUgPSB7CiAgICAgICAgLm5hbWUgPSAic2h0MTUiLAog
+ICAgICAgIC5pZCA9IC0xLAogICAgICAgIC5kZXYgPSB7CiAgICAgICAgICAgICAgICAucGxhdGZv
+cm1fZGF0YSA9ICZwbGF0Zm9ybV9kYXRhX3NodDE1LAogICAgICAgIH0sCiB9OwoKIC4uLgoKIHBs
+YXRmb3JtX2FkZF9kZXZpY2VzKC4uLik7CgoKCkNoZWVycywKLS0gCkrDqXLDtG1lIE91ZmVsbGEK
+QDogamVyb21lLm91ZmVsbGFAc2F2b2lyZmFpcmVsaW51eC5jb20KVDogNTE0LTI3Ni01NDY4IGV4
+dC4gMTI1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
+aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
