@@ -1,427 +1,300 @@
-From: <gregkh@linuxfoundation.org>
-Date: Mon, 19 Aug 2013 22:25:48 +0000
-Subject: [lm-sensors] patch "iio: Add tmp006 IR temperature sensor" added to staging tree
-Message-Id: <13769511481092@kroah.org>
+From: Michele Testa <michele@fsfe.org>
+Date: Wed, 28 Aug 2013 23:30:56 +0000
+Subject: [lm-sensors] Configuration file for Foxconn 2A8Ch motherboard
+Message-Id: <521E8830.7080408@fsfe.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6951825616846640620=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--===============6951825616846640620==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="n4DCv2vu9DHGjaKThM7DXNu1OTH0LIInQ"
 
-This is a note to let you know that I've just added the patch titled
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--n4DCv2vu9DHGjaKThM7DXNu1OTH0LIInQ
+Content-Type: multipart/mixed;
+ boundary="------------090506040205000901070301"
 
-    iio: Add tmp006 IR temperature sensor
+This is a multi-part message in MIME format.
+--------------090506040205000901070301
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-to my staging git tree which can be found at
-    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
-in the staging-next branch.
+Hello everyone,
 
-The patch will show up in the next release of the linux-next tree
-(usually sometime within the next 24 hours during the week.)
+please find enclosed my configuration file for Foxconn 2A8Ch
+motherboard. All Compaq 500B MT (Product No. WB741EA#ABZ) are equipped
+with this motherboard.
+I had some problems in writing it, because neither the motherboard nor
+the personal computer are well-documented; so it likely needs further
+tweaking.
+However, I hope that it may be useful to someone.
 
-The patch will also be merged in the next major kernel release
-during the merge window.
+Thanks in advance for your time,
 
-If you have any questions about this process, please let me know.
-
-
-From e5a639421821c7cd11832fd7fbe6376bfb304880 Mon Sep 17 00:00:00 2001
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Date: Thu, 8 Aug 2013 17:39:00 +0100
-Subject: iio: Add tmp006 IR temperature sensor
-
-the TI TMP006 is a non-contact temperature sensor with I2C interface;
-it measures the surface temperature of a distance object using a
-thermopile to absorb IR energy emitted from the object
-
-the sensor has two channels: IR sensor voltage (16-bit) and reference
-temperature of the chip (14-bit); datasheet is here:
-http://www.ti.com/lit/ds/symlink/tmp006.pdf
-
-v2 (thanks to Grygorii Strashko, Lars-Peter Clausen, Jonathan Cameron
-for review comments):
-* power down device on driver remove
-* use sign_extend32()
-* style cleanup
-* add comments what channel raw LSBs mean
-* spelling of thermopile
-
-Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>
-Signed-off-by: Jonathan Cameron <jic23@kernel.org>
----
- drivers/iio/Kconfig              |   1 +
- drivers/iio/Makefile             |   1 +
- drivers/iio/temperature/Kconfig  |  16 +++
- drivers/iio/temperature/Makefile |   5 +
- drivers/iio/temperature/tmp006.c | 291 +++++++++++++++++++++++++++++++++++++++
- 5 files changed, 314 insertions(+)
- create mode 100644 drivers/iio/temperature/Kconfig
- create mode 100644 drivers/iio/temperature/Makefile
- create mode 100644 drivers/iio/temperature/tmp006.c
-
-diff --git a/drivers/iio/Kconfig b/drivers/iio/Kconfig
-index 524380c9..cbea3271 100644
---- a/drivers/iio/Kconfig
-+++ b/drivers/iio/Kconfig
-@@ -73,5 +73,6 @@ if IIO_TRIGGER
-    source "drivers/iio/trigger/Kconfig"
- endif #IIO_TRIGGER
- source "drivers/iio/pressure/Kconfig"
-+source "drivers/iio/temperature/Kconfig"
- 
- endif # IIO
-diff --git a/drivers/iio/Makefile b/drivers/iio/Makefile
-index 7a3866c2..a0547f59 100644
---- a/drivers/iio/Makefile
-+++ b/drivers/iio/Makefile
-@@ -21,5 +21,6 @@ obj-y += frequency/
- obj-y += imu/
- obj-y += light/
- obj-y += magnetometer/
-+obj-y += temperature/
- obj-y += trigger/
- obj-y += pressure/
-diff --git a/drivers/iio/temperature/Kconfig b/drivers/iio/temperature/Kconfig
-new file mode 100644
-index 00000000..372f8fb3
---- /dev/null
-+++ b/drivers/iio/temperature/Kconfig
-@@ -0,0 +1,16 @@
-+#
-+# Temperature sensor drivers
-+#
-+menu "Temperature sensors"
-+
-+config TMP006
-+	tristate "TMP006 infrared thermopile sensor"
-+	depends on I2C
-+	help
-+	  If you say yes here you get support for the Texas Instruments
-+	  TMP006 infrared thermopile sensor.
-+
-+	  This driver can also be built as a module. If so, the module will
-+	  be called tmp006.
-+
-+endmenu
-diff --git a/drivers/iio/temperature/Makefile b/drivers/iio/temperature/Makefile
-new file mode 100644
-index 00000000..24d7b602
---- /dev/null
-+++ b/drivers/iio/temperature/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for industrial I/O temperature drivers
-+#
-+
-+obj-$(CONFIG_TMP006) += tmp006.o
-diff --git a/drivers/iio/temperature/tmp006.c b/drivers/iio/temperature/tmp006.c
-new file mode 100644
-index 00000000..64ccde3f
---- /dev/null
-+++ b/drivers/iio/temperature/tmp006.c
-@@ -0,0 +1,291 @@
-+/*
-+ * tmp006.c - Support for TI TMP006 IR thermopile sensor
-+ *
-+ * Copyright (c) 2013 Peter Meerwald <pmeerw@pmeerw.net>
-+ *
-+ * This file is subject to the terms and conditions of version 2 of
-+ * the GNU General Public License.  See the file COPYING in the main
-+ * directory of this archive for more details.
-+ *
-+ * Driver for the Texas Instruments I2C 16-bit IR thermopile sensor
-+ *
-+ * (7-bit I2C slave address 0x40, changeable via ADR pins)
-+ *
-+ * TODO: data ready irq
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <linux/module.h>
-+#include <linux/pm.h>
-+#include <linux/bitops.h>
-+
-+#include <linux/iio/iio.h>
-+#include <linux/iio/sysfs.h>
-+
-+#define TMP006_VOBJECT 0x00
-+#define TMP006_TAMBIENT 0x01
-+#define TMP006_CONFIG 0x02
-+#define TMP006_MANUFACTURER_ID 0xfe
-+#define TMP006_DEVICE_ID 0xff
-+
-+#define TMP006_TAMBIENT_SHIFT 2
-+
-+#define TMP006_CONFIG_RESET BIT(15)
-+#define TMP006_CONFIG_DRDY_EN BIT(8)
-+#define TMP006_CONFIG_DRDY BIT(7)
-+
-+#define TMP006_CONFIG_MOD_MASK 0x7000
-+
-+#define TMP006_CONFIG_CR_MASK 0x0e00
-+#define TMP006_CONFIG_CR_SHIFT 9
-+
-+#define MANUFACTURER_MAGIC 0x5449
-+#define DEVICE_MAGIC 0x0067
-+
-+struct tmp006_data {
-+	struct i2c_client *client;
-+	u16 config;
-+};
-+
-+static int tmp006_read_measurement(struct tmp006_data *data, u8 reg)
-+{
-+	s32 ret;
-+	int tries = 50;
-+
-+	while (tries-- > 0) {
-+		ret = i2c_smbus_read_word_swapped(data->client,
-+			TMP006_CONFIG);
-+		if (ret < 0)
-+			return ret;
-+		if (ret & TMP006_CONFIG_DRDY)
-+			break;
-+		msleep(100);
-+	}
-+
-+	if (tries < 0)
-+		return -EIO;
-+
-+	return i2c_smbus_read_word_swapped(data->client, reg);
-+}
-+
-+static int tmp006_read_raw(struct iio_dev *indio_dev,
-+			    struct iio_chan_spec const *channel, int *val,
-+			    int *val2, long mask)
-+{
-+	struct tmp006_data *data = iio_priv(indio_dev);
-+	s32 ret;
-+
-+	switch (mask) {
-+	case IIO_CHAN_INFO_RAW:
-+		if (channel->type = IIO_VOLTAGE) {
-+			/* LSB is 156.25 nV */
-+			ret = tmp006_read_measurement(data, TMP006_VOBJECT);
-+			if (ret < 0)
-+				return ret;
-+			*val = sign_extend32(ret, 15);
-+		} else if (channel->type = IIO_TEMP) {
-+			/* LSB is 0.03125 degrees Celsius */
-+			ret = tmp006_read_measurement(data, TMP006_TAMBIENT);
-+			if (ret < 0)
-+				return ret;
-+			*val = sign_extend32(ret, 15) >> TMP006_TAMBIENT_SHIFT;
-+		} else {
-+			break;
-+		}
-+		return IIO_VAL_INT;
-+	case IIO_CHAN_INFO_SCALE:
-+		if (channel->type = IIO_VOLTAGE) {
-+			*val = 0;
-+			*val2 = 156250;
-+		} else if (channel->type = IIO_TEMP) {
-+			*val = 31;
-+			*val2 = 250000;
-+		} else {
-+			break;
-+		}
-+		return IIO_VAL_INT_PLUS_MICRO;
-+	default:
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const char * const tmp006_freqs[] = { "4", "2", "1", "0.5", "0.25" };
-+
-+static ssize_t tmp006_show_freq(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct tmp006_data *data = iio_priv(dev_to_iio_dev(dev));
-+	int cr = (data->config & TMP006_CONFIG_CR_MASK)
-+		>> TMP006_CONFIG_CR_SHIFT;
-+	return sprintf(buf, "%s\n", tmp006_freqs[cr]);
-+}
-+
-+static ssize_t tmp006_store_freq(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t len)
-+{
-+	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
-+	struct tmp006_data *data = iio_priv(indio_dev);
-+	int i;
-+	bool found = false;
-+
-+	for (i = 0; i < ARRAY_SIZE(tmp006_freqs); i++)
-+		if (sysfs_streq(buf, tmp006_freqs[i])) {
-+			found = true;
-+			break;
-+		}
-+	if (!found)
-+		return -EINVAL;
-+
-+	data->config &= ~TMP006_CONFIG_CR_MASK;
-+	data->config |= i << TMP006_CONFIG_CR_SHIFT;
-+
-+	return i2c_smbus_write_word_swapped(data->client, TMP006_CONFIG,
-+		data->config);
-+}
-+
-+static IIO_DEV_ATTR_SAMP_FREQ(S_IRUGO | S_IWUSR,
-+			tmp006_show_freq, tmp006_store_freq);
-+
-+static IIO_CONST_ATTR(sampling_frequency_available, "4 2 1 0.5 0.25");
-+
-+static struct attribute *tmp006_attributes[] = {
-+	&iio_dev_attr_sampling_frequency.dev_attr.attr,
-+	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group tmp006_attribute_group = {
-+	.attrs = tmp006_attributes,
-+};
-+
-+static const struct iio_chan_spec tmp006_channels[] = {
-+	{
-+		.type = IIO_VOLTAGE,
-+		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-+			BIT(IIO_CHAN_INFO_SCALE),
-+	},
-+	{
-+		.type = IIO_TEMP,
-+		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-+			BIT(IIO_CHAN_INFO_SCALE),
-+	}
-+};
-+
-+static const struct iio_info tmp006_info = {
-+	.read_raw = tmp006_read_raw,
-+	.attrs = &tmp006_attribute_group,
-+	.driver_module = THIS_MODULE,
-+};
-+
-+static bool tmp006_check_identification(struct i2c_client *client)
-+{
-+	int mid, did;
-+
-+	mid = i2c_smbus_read_word_swapped(client, TMP006_MANUFACTURER_ID);
-+	if (mid < 0)
-+		return false;
-+
-+	did = i2c_smbus_read_word_swapped(client, TMP006_DEVICE_ID);
-+	if (did < 0)
-+		return false;
-+
-+	return mid = MANUFACTURER_MAGIC && did = DEVICE_MAGIC;
-+}
-+
-+static int tmp006_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct iio_dev *indio_dev;
-+	struct tmp006_data *data;
-+	int ret;
-+
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA))
-+		return -ENODEV;
-+
-+	if (!tmp006_check_identification(client)) {
-+		dev_err(&client->dev, "no TMP006 sensor\n");
-+		return -ENODEV;
-+	}
-+
-+	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
-+	if (!indio_dev)
-+		return -ENOMEM;
-+
-+	data = iio_priv(indio_dev);
-+	i2c_set_clientdata(client, indio_dev);
-+	data->client = client;
-+
-+	indio_dev->dev.parent = &client->dev;
-+	indio_dev->name = dev_name(&client->dev);
-+	indio_dev->modes = INDIO_DIRECT_MODE;
-+	indio_dev->info = &tmp006_info;
-+
-+	indio_dev->channels = tmp006_channels;
-+	indio_dev->num_channels = ARRAY_SIZE(tmp006_channels);
-+
-+	ret = i2c_smbus_read_word_swapped(data->client, TMP006_CONFIG);
-+	if (ret < 0)
-+		return ret;
-+	data->config = ret;
-+
-+	return iio_device_register(indio_dev);
-+}
-+
-+static int tmp006_powerdown(struct tmp006_data *data)
-+{
-+	return i2c_smbus_write_word_swapped(data->client, TMP006_CONFIG,
-+		data->config & ~TMP006_CONFIG_MOD_MASK);
-+}
-+
-+static int tmp006_remove(struct i2c_client *client)
-+{
-+	struct iio_dev *indio_dev = i2c_get_clientdata(client);
-+
-+	iio_device_unregister(indio_dev);
-+	tmp006_powerdown(iio_priv(indio_dev));
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int tmp006_suspend(struct device *dev)
-+{
-+	return tmp006_powerdown(iio_priv(dev_to_iio_dev(dev)));
-+}
-+
-+static int tmp006_resume(struct device *dev)
-+{
-+	struct tmp006_data *data = iio_priv(dev_to_iio_dev(dev));
-+	return i2c_smbus_write_word_swapped(data->client, TMP006_CONFIG,
-+		data->config | TMP006_CONFIG_MOD_MASK);
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(tmp006_pm_ops, tmp006_suspend, tmp006_resume);
-+
-+static const struct i2c_device_id tmp006_id[] = {
-+	{ "tmp006", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, tmp006_id);
-+
-+static struct i2c_driver tmp006_driver = {
-+	.driver = {
-+		.name	= "tmp006",
-+		.pm	= &tmp006_pm_ops,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe = tmp006_probe,
-+	.remove = tmp006_remove,
-+	.id_table = tmp006_id,
-+};
-+module_i2c_driver(tmp006_driver);
-+
-+MODULE_AUTHOR("Peter Meerwald <pmeerw@pmeerw.net>");
-+MODULE_DESCRIPTION("TI TMP006 IR thermopile sensor driver");
-+MODULE_LICENSE("GPL");
--- 
-1.8.3.rc0.20.gb99dd2e
+Michele
 
 
+--------------090506040205000901070301
+Content-Type: text/plain; charset=UTF-8;
+ name="foxconn_2A8Ch.conf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="foxconn_2A8Ch.conf"
+
+IyBMaWJzZW5zb3JzIGNvbmZpZ3VyYXRpb24gZmlsZSBmb3I6CiMKIyBDb21wYXEgNTAwQiBN
+VCAoUHJvZHVjdCBOby4gV0I3NDFFQSNBQlopCiMgICBNYW51ZmFjdHVyZXI6IEhld2xldHQt
+UGFja2FyZAojICAgUHJvZHVjdCBOYW1lOiBDb21wYXEgNTAwQiBNaWNyb3Rvd2VyCiMgICBT
+S1UgTnVtYmVyOiBXQjc0MUVBI0FCWgojICAgRmFtaWx5OiAxMDNDXzUzMzA3RgojCiMgTW90
+aGVyYm9hcmQgSW5mb3JtYXRpb24KIyAgIE1hbnVmYWN0dXJlcjogRk9YQ09OTgojICAgUHJv
+ZHVjdCBOYW1lOiAyQThDaAojCiMgQ1BVIEluZm9ybWF0aW9uOgojICAgVmVyc2lvbjogUGVu
+dGl1bShSKSBEdWFsLUNvcmUgIENQVSAgICAgIEU1NDAwICBAIDIuNzBHSHogICAgIAojICAg
+Vm9sdGFnZTogMS4zIFYKIyAgIEV4dGVybmFsIENsb2NrOiA4MDAgTUh6CiMgICBNYXggU3Bl
+ZWQ6IDI3MDAgTUh6CiMgICBTb2NrZXQ6IExHQTc3NQojCiMgQ2hpcHMgdXNlZCBmb3Igc3lz
+dGVtIG1vbml0b3Jpbmc6CiMgICAtIE9uLWRpZSBEaWdpdGFsIFRoZXJtYWwgU2Vuc29yIChE
+VFMpIGluIENQVSBDb3JlcwojICAgLSBJVDg3MTJGIG9uIHRoZSBtb3RoZXJib2FyZAojCgpj
+aGlwICJpdDg3LSoiICJpdDg3MTItKiIgIml0ODcyMC0qIgoKICAgICMgTGFiZWxpbmcgQ1BV
+IGNvcmVzIHRlbXAgbW9uaXRvcnMKICAgIGxhYmVsIHRlbXAxICJDb3JlIDAgVGVtcCIKICAg
+IGxhYmVsIHRlbXAyICJDb3JlIDEgVGVtcCIKICAgIGxhYmVsIHRlbXAzICIgICBNL0IgVGVt
+cCIKCiAgICAjIExhYmVsaW5nIGZhbnMKICAgIGxhYmVsIGZhbjEgIkNQVSBGYW4iCiAgICBs
+YWJlbCBmYW4yICJNL0IgRmFuIgogICAgbGFiZWwgZmFuMyAiUC9TIEZhbiIKCiAgICAjIExh
+YmVsaW5nIHZvbHRhZ2UgbW9uaXRvcnMKICAgIGxhYmVsIGluMCAiVkNvcmUgMSIKICAgIGxh
+YmVsIGluMSAiVkNvcmUgMiIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBpbjMg
+Iis1ViIKICAgIGxhYmVsIGluNCAiKzEyViIKICAgIGxhYmVsIGluNSAiLTEyViIKICAgIGxh
+YmVsIGluNiAiLTVWIgogICAgbGFiZWwgaW43ICJTdGRieSIKCiAgICAKICAgICMgU2V0dGlu
+ZyB2b2x0YWdlIHJhbmdlcwoKICAgICMgRm9yIGluMCBhbmQgaW4xIChDUFUgY29yZXMpLCB0
+aGUgcmFuZ2UgdmFsdWVzIGFyZSBpbmZlcnJlZCBieSB0aGUgd2ViIHBhZ2UKICAgICMgYWJv
+dXQgc3BlY3Mgb2YgSW50ZWzCriBQZW50aXVtwq4gUHJvY2Vzc29yIEU1NDAwIChodHRwOi8v
+YXJrLmludGVsLmNvbS9wcm9kdWN0cy80MDQ3OC8pCiAgICBzZXQgaW4wX21pbiAwLjg1IAog
+ICAgc2V0IGluMF9tYXggMS4zNjI1CiAgICBzZXQgaW4xX21pbiAwLjg1IAogICAgc2V0IGlu
+MV9tYXggMS4zNjI1CgogICAgIyBGb3IgYWxsIHJlbWFpbmluZyB2YWx1ZXMsIHdlIHNpbXBs
+eSBzZXQgYSB0b2xlcmFuY2Ugb2YgMC41JQogICAgIyBiZWNhdXNlIHdlIGxhY2sgdGhlIHNw
+ZWNzIHBhZ2UgZm9yIHRoZSBtb3RoZXJib2FyZCBGb3hjb25uIDJBOENoCiAgICBzZXQgaW4y
+X21pbiAzLjMgKiAwLjk1CiAgICBzZXQgaW4yX21heCAzLjMgKiAxLjA1CiAgICBzZXQgaW4z
+X21pbiA1LjAgKiAwLjk1CiAgICBzZXQgaW4zX21heCA1LjAgKiAxLjA1CiAgICBzZXQgaW40
+X21pbiAxMiAqIDAuOTUKICAgIHNldCBpbjRfbWF4IDEyICogMS4wNQogICAgc2V0IGluNV9t
+aW4gLTEyICogMS4wNQogICAgc2V0IGluNV9tYXggLTEyICogMC45NQogICAgc2V0IGluNl9t
+aW4gLTUgKiAxLjA1IAogICAgc2V0IGluNl9tYXggLTUgKiAwLjk1CiAgICBzZXQgaW43X21p
+biA1ICogMC45NQogICAgc2V0IGluN19tYXggNSAqIDEuMDUKCiAgICAjIFNldHRpbmcgbG93
+ZXN0IHNwZWVkIGZvciBtb3RoZXJib2FyZCBmYW4KICAgIHNldCBmYW4yX21pbiA2MDAKCiAg
+ICAjIHZpZCBub3QgbW9uaXRvcmVkIGJ5IElUODcwNUYKICAgIGlnbm9yZSAgY3B1MF92aWQK
+CiAgICAjIEludGVsIENQVSBDb3JlcyBhcmUgYmV0dGVyIG1vbml0b3JlZCBieSBjb3JldGVt
+cCBtb2R1bGUKICAgICMgc28gaGVyZSB3ZSdyZSBnb2luZyB0byBpZ25vcmUgdGhlbQogICAg
+aWdub3JlIHRlbXAxCiAgICBpZ25vcmUgdGVtcDIKCiAgICAjIElnbm9yZSBQb3dlciBTdXBw
+bHkgRmFuOiB3ZSBoYXZlbid0IGEgUFNVIHNvIHNtYXJ0IQogICAgIyBDb21tZW50IHRoZSBm
+b2xsb3dpbmcgMiBsaW5lcyBpZiB5b3UgaGF2ZSBhIHNtYXJ0IFBTVQogICAgaWdub3JlIGZh
+bjMKICAgIGlnbm9yZSB0ZW1wMwoKIyBGb3IgdGhlIG5lZ2F0aXZlIHZvbHRhZ2UgdmFsdWVz
+LCB0aGUgY2hpcCB1c2VzIHR3byBleHRlcm5hbCByZXNpc3RvciBmb3Igc2NhbGluZywgYnV0
+IG9uZSBpcwojIHRpZWQgdG8gYSBwb3NpdGl2ZSByZWZlcmVuY2Ugdm9sdGFnZS4gU2VlIElU
+RTg3MTJGIGRhdGFzaGVldCAoVjAuODEpCiMgZG93bmxvYWRlZCBhdDogaHR0cDovL3BkZjEu
+YWxsZGF0YXNoZWV0LmNvbS9kYXRhc2hlZXQtcGRmL3ZpZXcvMTQzNzgzL0VUQzEvSVQ4NzEy
+Ri5odG1sCiMKIyBJbmZvcm1hdGlvbnMgYmVsb3cgYXJlIGp1c3QgZXh0cmFjdGVkIGJ5IHRo
+aXMgZGF0YXNoZWV0OgojCiMgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioKIyBUaGUgRW52aXJvbm1lbnQgQ29udHJvbGxlciAoRUMp
+LCBidWlsdCBpbiB0aGUgSVQ4NzEyRiwgaW5jbHVkZXMgZWlnaHQgdm9sdGFnZSBpbnB1dHMs
+IHRocmVlIHRlbXBlcmF0dXJlIHNlbnNvcgojIGlucHV0cywgdGhyZWUgRkFOIFRhY2hvbWV0
+ZXIgaW5wdXRzLCBhbmQgdGhyZWUgc2V0cyBvZiBhZHZhbmNlZCBGQU4gQ29udHJvbGxlcnMu
+IFRoZSBFQyBtb25pdG9ycyB0aGUKIyBoYXJkd2FyZSBlbnZpcm9ubWVudCBhbmQgaW1wbGVt
+ZW50cyBlbnZpcm9ubWVudGFsIGNvbnRyb2wgZm9yIHBlcnNvbmFsIGNvbXB1dGVycy4KIyBU
+aGUgSVQ4NzEyRiBjb250YWlucyBhbiA4LWJpdCBBREMgKEFuYWxvZy10by1EaWdpdGFsIENv
+bnZlcnRlcikgd2hpY2ggaXMgcmVzcG9uc2libGUgZm9yIG1vbml0b3JpbmcgdGhlCiMgdm9s
+dGFnZXMgYW5kIHRlbXBlcmF0dXJlcy4gVGhlIEFEQyBjb252ZXJ0cyB0aGUgYW5hbG9nIGlu
+cHV0cywgcmFuZ2luZyBmcm9tIDBWIHRvIDQuMDk2ViwgdG8gOC1iaXQgZGlnaXRhbAojIGJ5
+dGVzLiBUaGFua3MgdG8gdGhlIGFkZGl0aW9uYWwgZXh0ZXJuYWwgY29tcG9uZW50cywgdGhl
+IGFuYWxvZyBpbnB1dHMgYXJlIGFibGUgdG8gbW9uaXRvciBkaWZmZXJlbnQgdm9sdGFnZQoj
+IHJhbmdlcywgaW4gYWRkaXRpb24gdG8gbW9uaXRvcmluZyB0aGUgZml4ZWQgaW5wdXQgcmFu
+Z2Ugb2YgMFYgdG8gNC4wOTZWLiBUaHJvdWdoIHRoZSBleHRlcm5hbCB0aGVybWlzdG9ycywg
+dGhlCiMgdGVtcGVyYXR1cmUgc2Vuc29yIGlucHV0cyBjYW4gYmUgY29udmVydGVkIHRvIDgt
+Yml0IGRpZ2l0YWwgYnl0ZXMsIGVuYWJsaW5nIHRoZSBzZW5zb3IgaW5wdXRzLCBhbmQgbW9u
+aXRvcmluZwojIHRoZSB0ZW1wZXJhdHVyZSBhcm91bmQgdGhlIHRoZXJtaXN0b3JzIG9yIHRo
+ZXJtYWwgZGlvZGUuIEEgYnVpbHQtaW4gUk9NIGlzIGFsc28gcHJvdmlkZWQgdG8gYWRqdXN0
+IHRoZSBub24tCiMgbGluZWFyIGNoYXJhY3RlcmlzdGljcyBvZiB0aGVybWlzdG9ycy4KIyBG
+QU4gVGFjaG9tZXRlciBpbnB1dHMgYXJlIGRpZ2l0YWwgaW5wdXRzIHdpdGggYW4gYWNjZXB0
+YWJsZSBpbnB1dCByYW5nZSBvZiAwViB0byA1ViwgYW5kIGFyZSByZXNwb25zaWJsZSBmb3IK
+IyBtZWFzdXJpbmcgdGhlIEZBTuKAmXMgVGFjaG9tZXRlciBwdWxzZSBwZXJpb2RzLiBGQU5f
+VEFDMSBhbmQgRkFOX1RBQzIgaW5jbHVkZSBwcm9ncmFtbWFibGUgZGl2aXNvcnMsCiMgYW5k
+IGNhbiBiZSB1c2VkIHRvIG1lYXN1cmUgZGlmZmVyZW50IGZhbiBzcGVlZCByYW5nZXMuIEZB
+Tl9UQUMzIGFsc28gaW5jbHVkZXMgcHJvZ3JhbW1hYmxlIGRpdmlzb3JzLCBidXQKIyBjYW4g
+YmUgdXNlZCB0byBtZWFzdXJlIHR3byBmYW4gc3BlZWQgcmFuZ2VzIG9ubHkuCiMgVGhlIEVD
+IG9mIHRoZSBJVDg3MTJGIHByb3ZpZGVzIG11bHRpcGxlIGludGVybmFsIHJlZ2lzdGVycyBh
+bmQgYW4gaW50ZXJydXB0IGdlbmVyYXRvciBmb3IgcHJvZ3JhbW1lcnMgdG8KIyBtb25pdG9y
+IHRoZSBlbnZpcm9ubWVudCBhbmQgY29udHJvbCB0aGUgRkFOcy4gQm90aCB0aGUgTFBDIEJ1
+cyBhbmQgU2VyaWFsIEJ1cyBpbnRlcmZhY2VzIGFyZSBzdXBwb3J0ZWQgdG8KIyBhY2NvbW1v
+ZGF0ZSB0aGUgbmVlZHMgZm9yIHZhcmlvdXMgYXBwbGljYXRpb25zLgojCiMgVGhlIDgtYml0
+IEFEQyBoYXMgYSAxNm1WIExTQiwgd2l0aCBhIDBWIHRvIDQuMDk2ViBpbnB1dCByYW5nZS4g
+VGhlIDIuNVYgYW5kIDMuM1Ygc3VwcGxpZXMgb2YgUEMKIyBhcHBsaWNhdGlvbnMgY2FuIGJl
+IGRpcmVjdGx5IGNvbm5lY3RlZCB0byB0aGUgaW5wdXRzLiBUaGUgNVYgYW5kIDEyViBpbnB1
+dHMgc2hvdWxkIGJlIGRpdmlkZWQgaW50byB0aGUKIyBhY2NlcHRhYmxlIHJhbmdlLiBXaGVu
+IHRoZSBkaXZpZGVkIGNpcmN1aXQgaXMgdXNlZCB0byBtZWFzdXJlIHRoZSBwb3NpdGl2ZSB2
+b2x0YWdlLCB0aGUgcmVjb21tZW5kZWQgcmFuZ2UKIyBmb3IgUmEgYW5kIFJiIGlzIGZyb20g
+MTBLzqkgdG8gMTAwS86pLiBUaGUgbmVnYXRpdmUgdm9sdGFnZSBjYW4gYmUgbWVhc3VyZWQg
+YnkgdGhlIHNhbWUgZGl2aWRlciB1bmxlc3MgdGhlCiMgZGl2aWRlciBpcyBjb25uZWN0ZWQg
+dG8gVlJFRiAoY29uc3RhbnQgdm9sdGFnZSwgNC4wOTZWKSwgbm90IGdyb3VuZC4gVGhlIHRl
+bXBlcmF0dXJlIG1lYXN1cmVtZW50IHN5c3RlbQojIG9mIHRoZSBFQyBjb252ZXJ0cyB0aGUg
+dm9sdGFnZSBvZiB0aGUgVE1QSU5zIHRvIDgtYml0IHR3b+KAmXMtY29tcGxlbWVudC4gVGhl
+IHN5c3RlbSBhbHNvIGluY2x1ZGVzIGFuIE9QCiMgYW1wIHByb3ZpZGluZyBhIGNvbnN0YW50
+IHZvbHRhZ2UuIEl0IGFsc28gYWRkaXRpb25hbGx5IGluY2x1ZGVzIGFuIGV4dGVybmFsIHRo
+ZXJtaXN0b3IsIGEgY29uc3RhbnQgcmVzaXN0YW5jZSwKIyB0aGUgQURDIGFuZCBhIGNvbnZl
+cnNpb24gdGFibGUgUk9NLgojICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqCiMKIyBGb3JtdWxhcyB1c2VkIGluIGNvbXB1dGluZzoK
+IyBWcyA9ICgxICsgUmluL1JmKSAqIFZpbiAtIChSaW4vUmYpICogVnJlZi4KIyBWcmVmID0g
+NC4wOTYgdm9sdHMsIFZpbiBpcyB2b2x0YWdlIG1lYXN1cmVkLCBWcyBpcyBhY3R1YWwgdm9s
+dGFnZS4KIyAxIExTQiA9IDE2IG1WCgogICAgY29tcHV0ZSBpbjAgQCAqICgxMC8xNiksIEAg
+LyAoMTAvMTYpCiAgICBjb21wdXRlIGluMSBAICogKDEwLzE2KSwgQCAvICgxMC8xNikKICAg
+IGNvbXB1dGUgaW4yIEAgKiAoMjUvMTYpLCBAIC8gKDI1LzE2KQogICAgY29tcHV0ZSBpbjMg
+KCg2LjgvMTApKzEpKkAgLCAgQC8oKDYuOC8xMCkrMSkKICAgIGNvbXB1dGUgaW40ICgoNzUv
+MTYpICsxKSpAICAsIEAvKCg3NS8xNikgKzEpCgojIFRoZSBuZXh0IHR3byBhcmUgbmVnYXRp
+dmUgdm9sdGFnZXMgKC0xMiBhbmQgLTUpLgojIFRoZSBmb2xsb3dpbmcgZm9ybXVsYXMgbXVz
+dCBiZSB1c2VkLiBVbmZvcnR1bmF0ZWx5IHRoZSBkYXRhc2hlZXQKIyBkb2VzIG5vdCBnaXZl
+IHJlY29tbWVuZGF0aW9ucyBmb3IgUmluIGFuZCBSZiAob25seSBWcmVmID0gNC4wOTZWKQoj
+IHNvIHdlIGFyZSBmb3JjZWQgdG8gZ3Vlc3MgdGhlbQojCiMgRm9ybXVsYToKIyAgICBhY3R1
+YWwgViA9IChWbWVhc3VyZWQgKiAoMSArIFJpbi9SZikpIC0gKFZyZWYgKiAoUmluL1JmKSkK
+IyAgICBGb3IgLTEyViBpbnB1dCB1c2UgUmluL1JmIH49IDcuNCAKIyAgICBGb3IgLTVWIGlu
+cHV0IHVzZSBSaW4vUmYgfj0gMy43CiMgICAgRWxzZXdoZXJlIHVzZSBSaW4vUmYgfj0gNi44
+CiMKIyBUaGVuIHlvdSBjYW4gY29udmVydCB0aGUgZm9ydW11bGEgdG8gYSBzdGFuZGFyZCBm
+b3JtIGxpa2U6ICAgIAoKICAgIGNvbXB1dGUgaW41ICg4LjQgKiBAKSAtIDMwLjMxICAsICAo
+QCArIDMwLjMxKSAvIDguNAogICAgY29tcHV0ZSBpbjYgKDQuNyAqIEApIC0gMTUuMTYgICwg
+IChAICsgMTUuMTYpIC8gNC43CgogICAgIyBTdGFuZC1ieSB2b2x0YWdlIGlucHV0IGNvbXB1
+dGF0aW9uCiAgICBjb21wdXRlIGluNyAoKDYuOC8xMCkrMSkqQCAsICBALygoNi44LzEwKSsx
+KQoK
+--------------090506040205000901070301
+Content-Type: application/pgp-keys;
+ name="0x18B6858C.asc"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="0x18B6858C.asc"
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+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
+HBCmOrJqQ9IwapkZjQ=3D=3D
+=3DVWBm
+-----END PGP PUBLIC KEY BLOCK-----
+
+--------------090506040205000901070301--
+
+--n4DCv2vu9DHGjaKThM7DXNu1OTH0LIInQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSHohMAAoJED04lG5f+eBwR2MP/19InknrCCF0FFng41lPDyLM
+GiCxmALLTj6ikNexJ0oBqcD2e6oU5Qsaf4RihibMqPtwUYxd83g9clW1+6m4iAaD
+f2v4UYX64AAEcY3IfI27mnUn3OEVQ4Q5o9/bQUJpcVsC+1AwnyEYsPGMrezfs26w
+ybS/nQoCoIouAQ9eNiuwu5k2sF8yorYYoExgNqhdczQmLhgsfStI7XqiMmApSu/C
+s5DcGHBk3gPEYbrXUh+DWEBJsZi42y7ymeWeYYUc0helVom6CFdq4D5F1nAwA8sn
+9CqMgMPnC0PEbjbp6eGavXs2HBzuOel9UpDZYTRO954sCnjpt1/zr1zR5ll6hrDD
+pJu2rthTT7I6S/10auzlxR7Q01TSldFySFVqxNY5DFlvgJeI+3qb7vFnpgnMkJu8
+bDiXr8gYLTh05qY0L+MBbuLoJhYMBgh06X5BdFc7r4qXwB5I/2gJbcy+0NlxbwnM
+W5kz2849TweqOawXWzzLkhXzkm5DEu5ZrdYUBCRO4uzVpedV7S6U8E8b8qtWmDpA
+vxWja013BrBP4aC7KFcaMxrhzfqXofsm0PzH4FLEn0tLRHzjWl13pn6BrdUpxjNI
+ETkY5Mf2Gj3RH2PzhalSyXHaF1Tx4z4rqfiqKu8of0Kv8+h9EAKgtszABNCAFQSW
+YrrB3hGjN8Rr2M0oKvH+
+=1jv9
+-----END PGP SIGNATURE-----
+
+--n4DCv2vu9DHGjaKThM7DXNu1OTH0LIInQ--
+
+
+--===============6951825616846640620==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6951825616846640620==--
