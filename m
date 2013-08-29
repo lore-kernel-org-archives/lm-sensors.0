@@ -1,38 +1,72 @@
-From: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
-Date: Wed, 28 Aug 2013 23:08:42 +0000
+From: Chris Rodley <chris@snapithd.com>
+Date: Thu, 29 Aug 2013 03:18:55 +0000
 Subject: Re: [lm-sensors] sht15 kernel driver
-Message-Id: <87fvtt4dmt.fsf@jerows.sfl>
+Message-Id: <521EBD9F.7070502@snapithd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <521E7CA7.5060407@snapithd.com>
-In-Reply-To: <521E7CA7.5060407@snapithd.com> (Chris Rodley's message of "Thu,
-	29 Aug 2013 10:41:43 +1200")
+References: <521E7CA7.5060407@snapithd.com> <87fvtt4dmt.fsf@jerows.sfl>
+In-Reply-To: <87fvtt4dmt.fsf@jerows.sfl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Rodley <chris@snapithd.com>
+To: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
 Cc: kernel@savoirfairelinux.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Q2hyaXMgUm9kbGV5IDxjaHJpc0BzbmFwaXRoZC5jb20+IHdyaXRlczoKCj4gSGksCj4KPiBJIGFt
-IHRyeWluZyB0byBnZXQgYSBzaHQ3NSBodW1pZGl0eSBhbmQgdGVtcGVyYXR1cmUgc2Vuc29yIHdv
-cmtpbmcKPiB3aXRoIHRoZSBsaW51eCBrZXJuZWwgbW9kdWxlIGluIDMuMi4KPiBJcyB0aGVyZSBh
-IGNvZGUgZXhhbXBsZSBmb3IgYXBwbGljYXRpb24gY29kZSB0aGF0IHlvdSBoYXZlIGF2YWlsYWJs
-ZT8KPgo+IE1hbnkgdGhhbmtzLAoKSGkgQ2hyaXMsCgpUaGVyZSB3YXMgbXVjaCBsZXNzIHN1cHBv
-cnQgZm9yIHRoZSBzaHQxNSBiYWNrIGluIDMuMiBjb21wYXJlZCB0byByZWNlbnQKa2VybmVsIHJl
-bGVhc2VzLiBZb3UgbWF5IHdhbnQgdG8gYmFja3BvcnQgZmVhdHVyZXMgYW5kL29yIGZpeGVzIHRv
-IHN1aXQKeW91ciBuZWVkcy4KCllvdSBjYW4gZmluZCBhIHVzYWdlIGV4YW1wbGUgZm9yIDMuMiBp
-biBhcmNoL2FybS9tYWNoLXB4YS9zdGFyZ2F0ZTIuYwphcm91bmQgbGluZSAxNDA6CgpGaXJzdCwg
-Y3JlYXRlIGEgcGxhdGZvcm0gZGF0YSBzdHJ1Y3QgYW5kIHNwZWNpZnkgd2hpY2ggR1BJTyBsaW5l
-cyBhcmUKaG9va2VkIHRvIHRoZSBkYXRhIGFuZCBzY2sgbGluZXMgb2YgeW91ciBzaHQtMTU6CiAK
-IHN0YXRpYyBzdHJ1Y3Qgc2h0MTVfcGxhdGZvcm1fZGF0YSBwbGF0Zm9ybV9kYXRhX3NodDE1ID0g
-ewogICAgICAgIC5ncGlvX2RhdGEgPSAgMTAwLAogICAgICAgIC5ncGlvX3NjayAgPSAgOTgsCiB9
-OwoKVGhlbiBzZXR1cCBhIHBsYXRmb3JtIGRldmljZSByZWZlcmVuY2luZyB0aG9zZSBwbGF0Zm9y
-bSBkYXRhLCB0aGF0IHlvdQp3aWxsIGhhdmUgdG8gcmVnaXN0ZXIgb24gdGhlIHBsYXRmb3JtIGJ1
-cyB1c2luZyBwbGF0Zm9ybV9hZGRfZGV2aWNlcygpCm9yIGVxdWl2YWxlbnQ6Cgogc3RhdGljIHN0
-cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugc2h0MTUgPSB7CiAgICAgICAgLm5hbWUgPSAic2h0MTUiLAog
-ICAgICAgIC5pZCA9IC0xLAogICAgICAgIC5kZXYgPSB7CiAgICAgICAgICAgICAgICAucGxhdGZv
-cm1fZGF0YSA9ICZwbGF0Zm9ybV9kYXRhX3NodDE1LAogICAgICAgIH0sCiB9OwoKIC4uLgoKIHBs
-YXRmb3JtX2FkZF9kZXZpY2VzKC4uLik7CgoKCkNoZWVycywKLS0gCkrDqXLDtG1lIE91ZmVsbGEK
-QDogamVyb21lLm91ZmVsbGFAc2F2b2lyZmFpcmVsaW51eC5jb20KVDogNTE0LTI3Ni01NDY4IGV4
-dC4gMTI1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
-aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Thanks Jerome!
+
+That was just what I needed to know.
+The device is now set up and is working well - I will have a go at back 
+porting now.
+
+Many thanks again for your help!
+Chris
+
+On 29/08/13 11:08, Jerome Oufella wrote:
+>> Hi,
+>>
+>> I am trying to get a sht75 humidity and temperature sensor working
+>> with the linux kernel module in 3.2.
+>> Is there a code example for application code that you have available?
+>>
+>> Many thanks,
+> Hi Chris,
+>
+> There was much less support for the sht15 back in 3.2 compared to recent
+> kernel releases. You may want to backport features and/or fixes to suit
+> your needs.
+>
+> You can find a usage example for 3.2 in arch/arm/mach-pxa/stargate2.c
+> around line 140:
+>
+> First, create a platform data struct and specify which GPIO lines are
+> hooked to the data and sck lines of your sht-15:
+>   
+>   static struct sht15_platform_data platform_data_sht15 = {
+>          .gpio_data =  100,
+>          .gpio_sck  =  98,
+>   };
+>
+> Then setup a platform device referencing those platform data, that you
+> will have to register on the platform bus using platform_add_devices()
+> or equivalent:
+>
+>   static struct platform_device sht15 = {
+>          .name = "sht15",
+>          .id = -1,
+>          .dev = {
+>                  .platform_data = &platform_data_sht15,
+>          },
+>   };
+>
+>   ...
+>
+>   platform_add_devices(...);
+>
+>
+>
+> Cheers,
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
