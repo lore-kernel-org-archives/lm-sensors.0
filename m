@@ -1,190 +1,175 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:12 +0000
-Subject: [lm-sensors] [PATCHv4 05/18] thermal: cpu_cooling: introduce of_cpufreq_cooling_register
-Message-Id: <1380251605-3804-6-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 01 Sep 2013 02:48:55 +0000
+Subject: [lm-sensors] [PATCH v2 2/9] hwmon: (ds1621) Convert to use hwmon_device_register_with_groups
+Message-Id: <1378003742-18685-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-This patch introduces an API to register cpufreq cooling device
-based on device tree node.
-
-The registration via device tree node differs from normal
-registration due to the fact that it is needed to fill
-the device_node structure in order to be able to match
-the cooling devices with trip points.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/thermal/Kconfig       |  1 +
- drivers/thermal/cpu_cooling.c | 56 ++++++++++++++++++++++++++++++++++++++-----
- include/linux/cpu_cooling.h   | 25 +++++++++++++++++++
- 3 files changed, 76 insertions(+), 6 deletions(-)
+ drivers/hwmon/ds1621.c |   60 ++++++++++++++++++++++--------------------------
+ 1 file changed, 27 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index dd81eb8..9e7cc3f 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -91,6 +91,7 @@ config THERMAL_GOV_USER_SPACE
- config CPU_THERMAL
- 	bool "generic cpu cooling support"
- 	depends on CPU_FREQ
-+	depends on THERMAL_OF
- 	select CPU_FREQ_TABLE
- 	help
- 	  This implements the generic cpu cooling mechanism through frequency
-diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-index d179028..b7db93a 100644
---- a/drivers/thermal/cpu_cooling.c
-+++ b/drivers/thermal/cpu_cooling.c
-@@ -417,18 +417,21 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index a26ba7a..595f4ef 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -120,7 +120,7 @@ static const u8 DS1621_REG_TEMP[3] = {
+ 
+ /* Each client has this additional data */
+ struct ds1621_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	struct mutex update_lock;
+ 	char valid;			/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+@@ -151,10 +151,10 @@ static inline u16 DS1621_TEMP_TO_REG(long temp, u8 zbits)
+ 	return temp;
+ }
+ 
+-static void ds1621_init_client(struct i2c_client *client)
++static void ds1621_init_client(struct ds1621_data *data,
++			       struct i2c_client *client)
+ {
+ 	u8 conf, new_conf, sreg, resol;
+-	struct ds1621_data *data = i2c_get_clientdata(client);
+ 
+ 	new_conf = conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
+ 	/* switch to continuous conversion mode */
+@@ -197,8 +197,8 @@ static void ds1621_init_client(struct i2c_client *client)
+ 
+ static struct ds1621_data *ds1621_update_client(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct ds1621_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	u8 new_conf;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -247,8 +247,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 			const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct ds1621_data *data = dev_get_drvdata(dev);
+ 	long val;
+ 	int err;
+ 
+@@ -258,7 +257,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp[attr->index] = DS1621_TEMP_TO_REG(val, data->zbits);
+-	i2c_smbus_write_word_swapped(client, DS1621_REG_TEMP[attr->index],
++	i2c_smbus_write_word_swapped(data->client, DS1621_REG_TEMP[attr->index],
+ 				     data->temp[attr->index]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+@@ -282,16 +281,15 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
+ static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
+ 			  char *buf)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct ds1621_data *data = dev_get_drvdata(dev);
+ 	return scnprintf(buf, PAGE_SIZE, "%hu\n", data->update_interval);
+ }
+ 
+ static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
+ 			    const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct ds1621_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	unsigned long convrate;
+ 	s32 err;
+ 	int resol = 0;
+@@ -343,8 +341,7 @@ static umode_t ds1621_attribute_visible(struct kobject *kobj,
+ 					struct attribute *attr, int index)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct ds1621_data *data = dev_get_drvdata(dev);
+ 
+ 	if (attr = &dev_attr_update_interval.attr)
+ 		if (data->kind = ds1621 || data->kind = ds1625)
+@@ -358,49 +355,46 @@ static const struct attribute_group ds1621_group = {
+ 	.is_visible = ds1621_attribute_visible
  };
  
- /**
-- * cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * __cpufreq_cooling_register - helper function to create cpufreq cooling device
-+ * @np: a valid struct device_node to the cooling device device tree node
-  * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-  *
-  * This interface function registers the cpufreq cooling device with the name
-  * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-- * cooling devices.
-+ * cooling devices. It also gives the opportunity to link the cooling device
-+ * with a device tree node, in order to bind it via the thermal DT code.
-  *
-  * Return: a valid struct thermal_cooling_device pointer on success,
-  * on failure, it returns a corresponding ERR_PTR().
-  */
--struct thermal_cooling_device *
--cpufreq_cooling_register(const struct cpumask *clip_cpus)
-+static struct thermal_cooling_device *
-+__cpufreq_cooling_register(struct device_node *np,
-+			   const struct cpumask *clip_cpus)
++static const struct attribute_group *ds1621_groups[] = {
++	&ds1621_group,
++	NULL
++};
++
+ static int ds1621_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
  {
- 	struct thermal_cooling_device *cool_dev;
- 	struct cpufreq_cooling_device *cpufreq_dev = NULL;
-@@ -467,8 +470,8 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
- 	snprintf(dev_name, sizeof(dev_name), "thermal-cpufreq-%d",
- 		 cpufreq_dev->id);
+ 	struct ds1621_data *data;
+-	int err;
++	struct device *hwmon_dev;
  
--	cool_dev = thermal_cooling_device_register(dev_name, cpufreq_dev,
--						   &cpufreq_cooling_ops);
-+	cool_dev = thermal_of_cooling_device_register(np, dev_name, cpufreq_dev,
-+						      &cpufreq_cooling_ops);
- 	if (!cool_dev) {
- 		release_idr(&cpufreq_idr, cpufreq_dev->id);
- 		kfree(cpufreq_dev);
-@@ -488,9 +491,50 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
+ 	data = devm_kzalloc(&client->dev, sizeof(struct ds1621_data),
+ 			    GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
  
- 	return cool_dev;
+-	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+ 	data->kind = id->driver_data;
++	data->client = client;
+ 
+ 	/* Initialize the DS1621 chip */
+-	ds1621_init_client(client);
++	ds1621_init_client(data, client);
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&client->dev.kobj, &ds1621_group);
+-	if (err)
+-		return err;
++	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
++						      client->name, data,
++						      ds1621_groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
+ 
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
++	i2c_set_clientdata(client, hwmon_dev);
+ 
+ 	return 0;
+-
+- exit_remove_files:
+-	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
+-	return err;
  }
-+
-+/**
-+ * cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-+ *
-+ * This interface function registers the cpufreq cooling device with the name
-+ * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-+ * cooling devices.
-+ *
-+ * Return: a valid struct thermal_cooling_device pointer on success,
-+ * on failure, it returns a corresponding ERR_PTR().
-+ */
-+struct thermal_cooling_device *
-+cpufreq_cooling_register(const struct cpumask *clip_cpus)
-+{
-+	return __cpufreq_cooling_register(NULL, clip_cpus);
-+}
- EXPORT_SYMBOL_GPL(cpufreq_cooling_register);
  
- /**
-+ * of_cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * @np: a valid struct device_node to the cooling device device tree node
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-+ *
-+ * This interface function registers the cpufreq cooling device with the name
-+ * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-+ * cooling devices. Using this API, the cpufreq cooling device will be
-+ * linked to the device tree node provided.
-+ *
-+ * Return: a valid struct thermal_cooling_device pointer on success,
-+ * on failure, it returns a corresponding ERR_PTR().
-+ */
-+struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	if (!np)
-+		return ERR_PTR(-EINVAL);
-+
-+	return __cpufreq_cooling_register(np, clip_cpus);
-+}
-+EXPORT_SYMBOL_GPL(of_cpufreq_cooling_register);
-+
-+/**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-  * @cdev: thermal cooling device pointer.
-  *
-diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-index a5d52ee..c303d38 100644
---- a/include/linux/cpu_cooling.h
-+++ b/include/linux/cpu_cooling.h
-@@ -24,6 +24,7 @@
- #ifndef __CPU_COOLING_H__
- #define __CPU_COOLING_H__
- 
-+#include <linux/of.h>
- #include <linux/thermal.h>
- #include <linux/cpumask.h>
- 
-@@ -36,6 +37,24 @@ struct thermal_cooling_device *
- cpufreq_cooling_register(const struct cpumask *clip_cpus);
- 
- /**
-+ * of_cpufreq_cooling_register - create cpufreq cooling device based on DT.
-+ * @np: a valid struct device_node to the cooling device device tree node.
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen
-+ */
-+#ifdef CONFIG_THERMAL_OF
-+struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus);
-+#else
-+static inline struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	return NULL;
-+}
-+#endif
-+
-+/**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-  * @cdev: thermal cooling device pointer.
-  */
-@@ -48,6 +67,12 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
+ static int ds1621_remove(struct i2c_client *client)
  {
- 	return NULL;
+-	struct ds1621_data *data = i2c_get_clientdata(client);
++	struct device *hwmon_dev = i2c_get_clientdata(client);
+ 
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
++	hwmon_device_unregister(hwmon_dev);
+ 
+ 	return 0;
  }
-+static inline struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	return NULL;
-+}
- static inline
- void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
- {
 -- 
-1.8.2.1.342.gfa7285d
+1.7.9.7
 
 
 _______________________________________________
