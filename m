@@ -1,50 +1,79 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Sun, 15 Sep 2013 22:02:41 +0000
-Subject: [lm-sensors] [PATCH 14/16] arm: dts: add omap5 CORE thermal data
-Message-Id: <1379282563-14650-15-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 01 Sep 2013 02:49:01 +0000
+Subject: [lm-sensors] [PATCH v2 8/9] hwmon: (nct6775) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1378003742-18685-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
+References: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgQ09SRSBkb21haW4gb24gT01BUDUgYW5kIGxhdGVyIFNvQ3MuIFRoaXMgZGF0YSB3aWxs
-CmVuYWJsZSBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KClRoaXMgdGhlcm1hbCBkYXRhIGNh
-biBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoKQ2M6ICJCZW5vw650IENvdXNzb24i
-IDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
-Y29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwg
-TW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRA
-YXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJ
-YW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxs
-aW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6
-IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
-ZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1i
-eTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgfCAyOCArKysrKysrKysrKysrKysr
-KysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1v
-ZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpCgpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgYi9hcmNo
-L2FybS9ib290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaQpuZXcgZmlsZSBtb2RlIDEwMDY0
-NAppbmRleCAwMDAwMDAwLi4xZmRkMzJlCi0tLSAvZGV2L251bGwKKysrIGIvYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERl
-dmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIENPUkUgdGhlcm1hbAorICoKKyAqIENv
-cHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNvcnBvcmF0ZWQgLSBodHRwOi8v
-d3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50
-aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNlZCB1bmRlciB0aGUgdGVybXMg
-b2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2ZXJzaW9uIDIuICBUaGlzIHBy
-b2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3YXJyYW50eSBvZiBhbnkKKyAq
-IGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICovCisKKyNpbmNsdWRlIDxkdC1i
-aW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY29yZV90aGVybWFsOiBjb3JlX3RoZXJtYWwg
-eworCXBhc3NpdmUtZGVsYXkgPSA8MjUwPjsgLyogbWlsbGlzZWNvbmRzICovCisJcG9sbGluZy1k
-ZWxheSA9IDwxMDAwPjsgLyogbWlsbGlzZWNvbmRzICovCisKKwkJLyogc2Vuc29yICAgICAgIElE
-ICovCisJc2Vuc29ycyA9IDwmYmFuZGdhcCAgICAgMj47CisKKwl0cmlwcyB7CisJCWNvcmVfY3Jp
-dDogY29yZV9jcml0IHsKKwkJCXRlbXBlcmF0dXJlID0gPDEyNTAwMD47IC8qIG1pbGxpQ2Vsc2l1
-cyAqLworCQkJaHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJCQl0eXBl
-ID0gPFRIRVJNQUxfVFJJUF9DUklUSUNBTD47CisJCX07CisJfTsKK307Ci0tIAoxLjguMi4xLjM0
-Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6775.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index bf0c35f..1b22871 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -724,8 +724,6 @@ struct nct6775_data {
+ 	enum kinds kind;
+ 	const char *name;
+ 
+-	struct device *hwmon_dev;
+-
+ 	int num_attr_groups;
+ 	const struct attribute_group *groups[6];
+ 
+@@ -3259,6 +3257,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 	int num_reg_temp;
+ 	u8 cr2a;
+ 	struct attribute_group *group;
++	struct device *hwmon_dev;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IOREGION_LENGTH,
+@@ -3860,19 +3859,10 @@ static int nct6775_probe(struct platform_device *pdev)
+ 	data->groups[data->num_attr_groups++] = group;
+ 	data->groups[data->num_attr_groups++] = &nct6775_group_other;
+ 
+-	data->hwmon_dev = hwmon_device_register_with_groups(dev, data->name,
+-							    data, data->groups);
+-	if (IS_ERR(data->hwmon_dev))
+-		return PTR_ERR(data->hwmon_dev);
+-
+-	return 0;
+-}
+-
+-static int nct6775_remove(struct platform_device *pdev)
+-{
+-	struct nct6775_data *data = platform_get_drvdata(pdev);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, data->name,
++							   data, data->groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
+ 
+ 	return 0;
+ }
+@@ -3963,7 +3953,6 @@ static struct platform_driver nct6775_driver = {
+ 		.pm	= NCT6775_DEV_PM_OPS,
+ 	},
+ 	.probe		= nct6775_probe,
+-	.remove		= nct6775_remove,
+ };
+ 
+ static const char * const nct6775_sio_names[] __initconst = {
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
