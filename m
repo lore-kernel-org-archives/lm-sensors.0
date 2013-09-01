@@ -1,36 +1,164 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Sep 2013 08:33:28 +0000
-Subject: [lm-sensors] [PATCH 05/12] hwmon: (pmbus) Don't unnecessarily crash the kernel
-Message-Id: <1379147615-7703-6-git-send-email-linux@roeck-us.net>
+Date: Sun, 01 Sep 2013 02:48:57 +0000
+Subject: [lm-sensors] [PATCH v2 4/9] hwmon: (ltc4245) Convert to use hwmon_device_register_with_groups
+Message-Id: <1378003742-18685-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-pmbus code currently crashes the kernel if it detects an internal
-implementation error. While the detected condition suggests that there
-is a bug in the code, it is hardly fatal. Therefore, it should not
-trigger a crash. Replace BUG() with WARN().
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/pmbus/pmbus_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/ltc4245.c |   78 +++++++++++++++--------------------------------
+ 1 file changed, 24 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index 9319fcf..871cf64 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -686,7 +686,7 @@ static int pmbus_get_boolean(struct pmbus_data *data, struct pmbus_boolean *b,
- 	if (!s1 && !s2) {
- 		ret = !!regval;
- 	} else if (!s1 || !s2) {
--		BUG();
-+		WARN(1, "Bad boolean descriptor %p: s1=%p, s2=%p\n", b, s1, s2);
- 		return 0;
- 	} else {
- 		long v1, v2;
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index cdc1ecc..d4172933 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -51,7 +51,9 @@ enum ltc4245_cmd {
+ };
+ 
+ struct ltc4245_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
++
++	const struct attribute_group *groups[3];
+ 
+ 	struct mutex update_lock;
+ 	bool valid;
+@@ -77,8 +79,8 @@ struct ltc4245_data {
+  */
+ static void ltc4245_update_gpios(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ltc4245_data *data = i2c_get_clientdata(client);
++	struct ltc4245_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	u8 gpio_curr, gpio_next, gpio_reg;
+ 	int i;
+ 
+@@ -130,8 +132,8 @@ static void ltc4245_update_gpios(struct device *dev)
+ 
+ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ltc4245_data *data = i2c_get_clientdata(client);
++	struct ltc4245_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	s32 val;
+ 	int i;
+ 
+@@ -455,41 +457,14 @@ static const struct attribute_group ltc4245_gpio_group = {
+ 	.attrs = ltc4245_gpio_attributes,
+ };
+ 
+-static int ltc4245_sysfs_create_groups(struct i2c_client *client)
++static void ltc4245_sysfs_add_groups(struct ltc4245_data *data)
+ {
+-	struct ltc4245_data *data = i2c_get_clientdata(client);
+-	struct device *dev = &client->dev;
+-	int ret;
+-
+-	/* register the standard sysfs attributes */
+-	ret = sysfs_create_group(&dev->kobj, &ltc4245_std_group);
+-	if (ret) {
+-		dev_err(dev, "unable to register standard attributes\n");
+-		return ret;
+-	}
++	/* standard sysfs attributes */
++	data->groups[0] = &ltc4245_std_group;
+ 
+ 	/* if we're using the extra gpio support, register it's attributes */
+-	if (data->use_extra_gpios) {
+-		ret = sysfs_create_group(&dev->kobj, &ltc4245_gpio_group);
+-		if (ret) {
+-			dev_err(dev, "unable to register gpio attributes\n");
+-			sysfs_remove_group(&dev->kobj, &ltc4245_std_group);
+-			return ret;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-static void ltc4245_sysfs_remove_groups(struct i2c_client *client)
+-{
+-	struct ltc4245_data *data = i2c_get_clientdata(client);
+-	struct device *dev = &client->dev;
+-
+ 	if (data->use_extra_gpios)
+-		sysfs_remove_group(&dev->kobj, &ltc4245_gpio_group);
+-
+-	sysfs_remove_group(&dev->kobj, &ltc4245_std_group);
++		data->groups[1] = &ltc4245_gpio_group;
+ }
+ 
+ static bool ltc4245_use_extra_gpios(struct i2c_client *client)
+@@ -517,7 +492,7 @@ static int ltc4245_probe(struct i2c_client *client,
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct ltc4245_data *data;
+-	int ret;
++	struct device *hwmon_dev;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -526,7 +501,7 @@ static int ltc4245_probe(struct i2c_client *client,
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 	data->use_extra_gpios = ltc4245_use_extra_gpios(client);
+ 
+@@ -534,30 +509,25 @@ static int ltc4245_probe(struct i2c_client *client,
+ 	i2c_smbus_write_byte_data(client, LTC4245_FAULT1, 0x00);
+ 	i2c_smbus_write_byte_data(client, LTC4245_FAULT2, 0x00);
+ 
+-	/* Register sysfs hooks */
+-	ret = ltc4245_sysfs_create_groups(client);
+-	if (ret)
+-		return ret;
++	/* Add sysfs hooks */
++	ltc4245_sysfs_add_groups(data);
+ 
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		ret = PTR_ERR(data->hwmon_dev);
+-		goto out_hwmon_device_register;
+-	}
++	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
++						      client->name, data,
++						      data->groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
+ 
+-	return 0;
++	i2c_set_clientdata(client, hwmon_dev);
+ 
+-out_hwmon_device_register:
+-	ltc4245_sysfs_remove_groups(client);
+-	return ret;
++	return 0;
+ }
+ 
+ static int ltc4245_remove(struct i2c_client *client)
+ {
+-	struct ltc4245_data *data = i2c_get_clientdata(client);
++	struct device *hwmon_dev = i2c_get_clientdata(client);
+ 
+-	hwmon_device_unregister(data->hwmon_dev);
+-	ltc4245_sysfs_remove_groups(client);
++	hwmon_device_unregister(hwmon_dev);
+ 
+ 	return 0;
+ }
 -- 
 1.7.9.7
 
