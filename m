@@ -1,50 +1,91 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:22 +0000
-Subject: [lm-sensors] [PATCHv4 15/18] arm: dts: add omap5 GPU thermal data
-Message-Id: <1380251605-3804-16-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 01 Sep 2013 02:48:58 +0000
+Subject: [lm-sensors] [PATCH v2 5/9] hwmon: (pmbus) Convert to use hwmon_device_register_with_groups
+Message-Id: <1378003742-18685-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgR1BVIGRvbWFpbiBvbiBPTUFQNSBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
-ZW5hYmxlIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0aGVybWFsIGRhdGEgY2Fu
-IGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJlbm/DrnQgQ291c3NvbiIg
-PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBN
-b2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBh
-cm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElh
-biBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxp
-bnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzog
-ZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5
-OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpIHwgMjggKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDI4IGluc2VydGlvbnMoKykKIGNyZWF0ZSBtb2Rl
-IDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpCgpkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaSBiL2FyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA1LWdwdS10aGVybWFsLmR0c2kKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5k
-ZXggMDAwMDAwMC4uODk0MWM4ZQotLS0gL2Rldi9udWxsCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRz
-L29tYXA1LWdwdS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERldmljZSBU
-cmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIEdQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0
-IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGku
-Y29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5j
-b20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
-R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBp
-cyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwg
-d2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdz
-L3RoZXJtYWwvdGhlcm1hbC5oPgorCitncHVfdGhlcm1hbDogZ3B1X3RoZXJtYWwgeworCXBvbGxp
-bmctZGVsYXktcGFzc2l2ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlwb2xsaW5nLWRl
-bGF5ID0gPDEwMDA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29yICAgICAgIElE
-ICovCisJdGhlcm1hbC1zZW5zb3JzID0gPCZiYW5kZ2FwICAgICAxPjsKKworCXRyaXBzIHsKKwkJ
-Z3B1X2NyaXQ6IGdwdV9jcml0IHsKKwkJCXRlbXBlcmF0dXJlID0gPDEyNTAwMD47IC8qIG1pbGxp
-Q2Vsc2l1cyAqLworCQkJaHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJ
-CQl0eXBlID0gVEhFUk1BTF9UUklQX0NSSVRJQ0FMOworCQl9OworCX07Cit9OwotLSAKMS44LjIu
-MS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
-Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/pmbus_core.c |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 9319fcf..e2c34a5 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -97,6 +97,7 @@ struct pmbus_data {
+ 	int max_attributes;
+ 	int num_attributes;
+ 	struct attribute_group group;
++	const struct attribute_group *groups[2];
+ 
+ 	struct pmbus_sensor *sensors;
+ 
+@@ -348,7 +349,7 @@ static struct _pmbus_status {
+ 
+ static struct pmbus_data *pmbus_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct pmbus_data *data = i2c_get_clientdata(client);
+ 	const struct pmbus_driver_info *info = data->info;
+ 	struct pmbus_sensor *sensor;
+@@ -733,7 +734,7 @@ static ssize_t pmbus_set_sensor(struct device *dev,
+ 				struct device_attribute *devattr,
+ 				const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
+ 	struct pmbus_data *data = i2c_get_clientdata(client);
+ 	struct pmbus_sensor *sensor = to_pmbus_sensor(devattr);
+ 	ssize_t rv = count;
+@@ -1768,22 +1769,16 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 		goto out_kfree;
+ 	}
+ 
+-	/* Register sysfs hooks */
+-	ret = sysfs_create_group(&dev->kobj, &data->group);
+-	if (ret) {
+-		dev_err(dev, "Failed to create sysfs entries\n");
+-		goto out_kfree;
+-	}
+-	data->hwmon_dev = hwmon_device_register(dev);
++	data->groups[0] = &data->group;
++	data->hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
++							    data, data->groups);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		ret = PTR_ERR(data->hwmon_dev);
+ 		dev_err(dev, "Failed to register hwmon device\n");
+-		goto out_hwmon_device_register;
++		goto out_kfree;
+ 	}
+ 	return 0;
+ 
+-out_hwmon_device_register:
+-	sysfs_remove_group(&dev->kobj, &data->group);
+ out_kfree:
+ 	kfree(data->group.attrs);
+ 	return ret;
+@@ -1794,7 +1789,6 @@ int pmbus_do_remove(struct i2c_client *client)
+ {
+ 	struct pmbus_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &data->group);
+ 	kfree(data->group.attrs);
+ 	return 0;
+ }
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
