@@ -1,70 +1,77 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 09 Sep 2013 07:42:45 +0000
-Subject: Re: [lm-sensors] [PATCH v4 0/3] Lm90 Enhancements
-Message-Id: <20130909094245.4661d9cb@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 01 Sep 2013 02:48:53 +0000
+Subject: [lm-sensors] [PATCH v2 0/9] Introduce hwmon_device_register_with_groups and
+Message-Id: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
-	<522D67B2.4030406@nvidia.com>
-In-Reply-To: <522D67B2.4030406-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Hi Wei,
+This patch series introduces new hwmon API functions
+hwmon_device_register_with_groups() and devm_hwmon_device_register_with_groups().
 
-I am sorry, I see there have been many discussions about the lm90
-driver while I was on vacation and these are threads I did not have the
-time to catch up with yet. I'll read it all as soon as possible by my
-current schedule is tight so please be patient!
+hwmon_device_register_with_groups() lets callers register hwmon devices
+as well as associated sysfs attributes with a single call. This simplifies
+hwmon device registration and avoids potential race conditions seen
+if sysfs attributes are created after the initial hwmon device was
+registered.
 
-Jean
+devm_hwmon_device_register_with_groups() is the managed version of the same
+function.
 
-On Mon, 9 Sep 2013 14:16:18 +0800, Wei Ni wrote:
-> Hi, Jean
-> Do you have any more suggestions on this series?
-> 
-> Thanks.
-> Wei.
-> 
-> On 08/07/2013 02:18 PM, Wei Ni wrote:
-> > This patch set enhance the lm90 driver,
-> > it make the driver more readable and easier to use thermal framework.
-> > 
-> > This series is v4, previous version patches:
-> > [RFC]: http://thread.gmane.org/gmane.linux.power-management.general/31056
-> > [v1]: http://thread.gmane.org/gmane.linux.ports.tegra/11710/
-> > [v2]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg465555.html
-> > [v3]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg466772.html
-> > 
-> > Changes from v3:
-> > 1. remove the patch "hwmon: (lm90) split set&show temp as common codes",
-> > and sent it as a separated one.
-> > 2. fix the bug of second read on STATUS register.
-> > 3. fix some code style issue according to Jean's comments.
-> > 
-> > Changes from v2:
-> > 1. update the defines for status bit, and go into a separate patch.
-> > 2. introduce the new lm90_is_tripped() for lm90_irq_thread and lm90_alert.
-> > 
-> > Changes from v1:
-> > 1. change the string "irq" to "IRQ"
-> > 2. add macro defines for the alarm status
-> > 3. consider the shared IRQ.
-> > 
-> > Changes from RFC:
-> > 1. change _show_temp() to read_temp(), _set_temp() to write_temp().
-> > 2. simply return value for the read_temp(), not use pointer.
-> > 3. use devm_request_threaded_irq() to request irq and set flag IRQF_ONESHOT.
-> > 
-> > Wei Ni (3):
-> >   hwmon: (lm90) Define status bits
-> >   hwmon: (lm90) add support to handle IRQ
-> >   hwmon: (lm90) use enums for the indexes of temp8 and temp11
-> > 
-> >  drivers/hwmon/lm90.c |  252 ++++++++++++++++++++++++++++++++------------------
-> >  1 file changed, 163 insertions(+), 89 deletions(-)
+The rationale for the new API is that sysfs attributes should be created
+synchronously with device creation to avoid race conditions, as outlined in
+http://www.linuxfoundation.org/news-media/blogs/browse/2013/06/how-create-sysfs-file-correctly.
+
+The first patch of the series introduces hwmon_device_register_with_groups().
+
+Patches 2 to 6 convert some hwmon drivers to use the new API to show and
+test its use. Only the ds1621 and nct6775 patches have been tested at this time;
+the others are informational to show the potential of the new functions.
+
+Patch 7 introduces devm_hwmon_device_register_with_groups() and
+the matching function devm_hwmon_device_unregister(). Patch 8 and 9
+convert the nct6775 and ds1621 drivers drivers to use this function.
+
+hwmon attributes
+
+The old hwmon API attaches hwmon attributes to the parent device, not to the
+hwmon device itself. With the new API, hwmon attributes are attached to the
+hwmon device itself.
+
+Handling the 'name' attribute for hwmon drivers
+
+Since sysfs attributes are no longer attached to the parent device, the
+mandatory 'name' attribute has to be created explicitly. For some drivers,
+this was already the case. I2c drivers, however, create the 'name' attribute
+in the i2c core, and it was used by the hwmon driver.
+
+To simplify name attribute handling, the value of the 'name' attribute is
+passed as parameter to hwmon_device_register_with_groups(). The hwmon core
+creates and manages the attribute. If a NULL pointer is passed instead of
+a name, the attribute is not created.
+
+Unfortunately, since we need a variable to store the pointer to 'name',
+it was necessary to create an internal 'struct hwmon_device'. For this
+reason, device_create(), or rather device_create_with_groups() can no
+longer be used to create the actual device. device_register() is used
+instead, and the device data structures are managed locally. 
+[ If there is a better solution for this problem, I am listening. ]
+
+The series is based on my hwmon-next branch and should apply to the top of
+linux-next.
+
+---------
+
+v2: Rename API functions
+	device_create_groups -> device_create_with_groups
+    	hwmon_device_register_groups -> hwmon_device_register_with_groups
+    Additional parameter 'void *drvdata' for hwmon_device_register_groups.
+    Additional parameter 'name' for hwmon_device_register_groups.
+    Introduce devm_hwmon_device_register_with_groups().
+    Various fixes in hwmon driver conversions.
 
 _______________________________________________
 lm-sensors mailing list
