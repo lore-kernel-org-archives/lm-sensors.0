@@ -1,155 +1,207 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:15:02 +0000
-Subject: Re: [lm-sensors] [PATCHv4 00/18] device thermal limits represented in device tree nodes (v4)
-Message-Id: <5244F836.3070102@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8882068178621678306=="
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 02 Sep 2013 08:14:03 +0000
+Subject: Re: [lm-sensors] [RFC PATCH 02/14] drivers: thermal: introduce device tree parser
+Message-Id: <522448CB.3080102@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
---===============8882068178621678306==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="SsWncKjtLd7kNI9MEQsiOB2CHuaOOeP8a"
-
---SsWncKjtLd7kNI9MEQsiOB2CHuaOOeP8a
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 26-09-2013 23:13, Eduardo Valentin wrote:
-> Hello all,
->=20
-> Here is the continuation of work of representing hardware thermal prope=
-rties
-> in device tree infrastructure. The present patch series is the fourth v=
-ersion
-> of this work. Previous versions were sent as RFCs and can be found here=
-:
-> V3:=20
-
-Too fast, hit send too early. For those interested, here is the link to V=
-3:
-https://lkml.org/lkml/2013/9/15/122
-
-> RFCv2: http://lkml.org/lkml/2013/8/23/594
-> RFCv1: http://lkml.org/lkml/2013/7/22/319
->=20
-> Major difference from V3 is on the parser itself. I have updated the bi=
-nding
-> documentation and improved the code accordingly to previous comments ma=
-inly
-> from Mark R. and Joe P.
->=20
-> The changes on hwmon drivers have been accepted by Guenter, and in this=
-
-> series I am including his Acked-by, as I didn't change anything on that=
- side.
->=20
-> I also found a bug while using all involved code built as modules, thus=
-
-> I have reworked a bit the cooling device registration part. This is why=
-
-> there are two new patches in this series (patches 02 and 04).
->=20
-> Tests were done, just like in V3, on TI OMAP4430, OMAP4460, OMAP5430 an=
-d DRA7,
-> although this series is not including the DRA7 part (I will be sending =
-separately).
->=20
-> Thanks all who have been contributing reviewing this code.
->=20
-> All best,
->=20
-> Eduardo Valentin (18):
->   thermal: allow registering without .get_temp
->   thermal: core: allow binding via .bind when tzp is present
->   thermal: introduce device tree parser
->   thermal: core: introduce thermal_of_cooling_device_register
->   thermal: cpu_cooling: introduce of_cpufreq_cooling_register
->   cpufreq: cpufreq-cpu0: add dt node parsing for cooling device
->     properties
->   hwmon: lm75: expose to thermal fw via DT nodes
->   hwmon: tmp102: expose to thermal fw via DT nodes
->   thermal: ti-soc-thermal: use thermal DT infrastructure
->   arm: dts: add omap4 CPU thermal data
->   arm: dts: add omap4430 thermal data
->   arm: dts: add omap4460 thermal data
->   arm: dts: add cooling properties on omap4430 cpu node
->   arm: dts: add cooling properties on omap4460 cpu node
->   arm: dts: add omap5 GPU thermal data
->   arm: dts: add omap5 CORE thermal data
->   arm: dts: add omap5 thermal data
->   arm: dts: add cooling properties on omap5 cpu node
->=20
->  .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |   7 +
->  .../devicetree/bindings/thermal/thermal.txt        | 537 +++++++++++++=
-
->  arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  41 +
->  arch/arm/boot/dts/omap443x.dtsi                    |  15 +-
->  arch/arm/boot/dts/omap4460.dtsi                    |  15 +-
->  arch/arm/boot/dts/omap5-core-thermal.dtsi          |  28 +
->  arch/arm/boot/dts/omap5-gpu-thermal.dtsi           |  28 +
->  arch/arm/boot/dts/omap5.dtsi                       |  15 +-
->  drivers/cpufreq/Kconfig                            |   2 +-
->  drivers/cpufreq/cpufreq-cpu0.c                     |  16 +
->  drivers/hwmon/lm75.c                               |  35 +-
->  drivers/hwmon/tmp102.c                             |  19 +
->  drivers/thermal/Kconfig                            |  14 +
->  drivers/thermal/Makefile                           |   1 +
->  drivers/thermal/cpu_cooling.c                      |  56 +-
->  drivers/thermal/of-thermal.c                       | 845 +++++++++++++=
-++++++++
->  drivers/thermal/thermal_core.c                     |  79 +-
->  drivers/thermal/thermal_core.h                     |   9 +
->  drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  77 +-
->  include/dt-bindings/thermal/thermal.h              |  27 +
->  include/linux/cpu_cooling.h                        |  25 +
->  include/linux/thermal.h                            |  32 +-
->  22 files changed, 1880 insertions(+), 43 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/thermal/thermal.t=
-xt
->  create mode 100644 arch/arm/boot/dts/omap4-cpu-thermal.dtsi
->  create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
->  create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
->  create mode 100644 drivers/thermal/of-thermal.c
->  create mode 100644 include/dt-bindings/thermal/thermal.h
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---SsWncKjtLd7kNI9MEQsiOB2CHuaOOeP8a
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlJE+DkACgkQCXcVR3XQvP0YugEAndpUoFu9iRor2W5i3z46e8rz
-jsB7+ioqEgdpK+q3mIYBAILdLpqvErZt2fh9WKrWWNS1K8PB/NOs4oaVseP+yl7a
-=+Qmq
------END PGP SIGNATURE-----
-
---SsWncKjtLd7kNI9MEQsiOB2CHuaOOeP8a--
-
-
---===============8882068178621678306==
-Content-Type: text/plain; charset="us-ascii"
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com> <1377299755-5134-3-git-send-email-eduardo.valentin@ti.com> <20130827102205.GC19893@e106331-lin.cambridge.arm.com> <521CAD48.2030306@ti.com> <20130827162309.GR19893@e106331-lin.cambridge.arm.com> <521CED34.2090008@ti.com> <521FD70F.7080104@ti.com>
+In-Reply-To: <521FD70F.7080104@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+
+On 08/30/2013 07:19 AM, Eduardo Valentin wrote:
+> * PGP Signed: 08/29/2013 at 04:19:46 PM
+> 
+> Mark, Pawel and Stephen,
+> 
+> 
+> On 27-08-2013 14:17, Eduardo Valentin wrote:
+>> On 27-08-2013 12:23, Mark Rutland wrote:
+>>> On Tue, Aug 27, 2013 at 02:44:40PM +0100, Eduardo Valentin wrote:
+>>>> Hello Mark,
+> 
+> <cut>
+> 
+> I believe now we need to align on thermal bindings, before I propose
+> next version of this series. So, following the discussions on this
+> thread, I believe a typical CPU thermal zone would look like the following:
+> + #include <dt-bindings/thermal/thermal.h>
+> +
+> + cpu_thermal: cpu_thermal {
+> +         passive-delay = <250>; /* milliseconds */
+> +         polling-delay = <1000>; /* milliseconds */
+> +                 /*
+> +                  * sensor       ID
+> +                  */
+> +         sensors = <&bandgap0     0>;
+> +                         /*
+> +                          * cooling
+> +                          * device       Usage   Trip            lower
+> bound             upper bound
+> +                          */
+> +         cooling-devices = <&cpu0        100     &cpu-alert
+> THERMAL_NO_LIMITS        THERMAL_NO_LIMITS>;
+> +         trips {
+> +                 cpu-alert: cpu-alert {
+> +                         temperature = <100000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_PASSIVE>;
+> +                 };
+> +                 cpu-crit: cpu-crit {
+> +                         temperature = <125000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_CRITICAL>;
+> +                 };
+> +         };
+> + };
+> 
+> *Note: THERMAL_NO_LIMIT means, it will be using the cooling device
+> minimum and maximum limits.
+> 
+> Couple of comments.
+> 1. I am keeping the pooling intervals. A possible alternative way to
+> describe that would be specifying the maximum dT/dt. Essentially because
+> I am still convinced that this is part of hw specs.
+> 
+> 2. The above follows your suggestion to use consumer pointing to
+> producers. Although, I still need to figure out how this could be
+> implemented for Linux. But I think that is another story, at least for
+> now. We need to first align on the DT binding itself.
+> 
+> 3. The link from cooling device specification to trip points, from my
+> perspective, should be enough, and thus we shall not need the thermal
+> cells and size for trip points, as you proposed. Let me know what you think.
+> 
+> Below is another example, on a more complex scenario, board specific
+> case (hypothetical, just for exemplification):
+> 
+> + #include <dt-bindings/thermal/thermal.h>
+> +
+> + board_thermal: board_thermal {
+> +         passive-delay = <1000>; /* milliseconds */
+> +         polling-delay = <2500>; /* milliseconds */
+> +                 /*
+> +                  * sensor       ID
+> +                  */
+> +         sensors = <&adc-dummy     0>,
+> +		    <&adc-dummy     1>,
+> +		    <&adc-dymmy     2>;
+> +                         /*
+> +                          * cooling
+> +                          * device       Usage   Trip		lower	upper
+> +                          */
+> +         cooling-devices = <&cpu0       75     &cpu-trip	0      2>,
+> +			    <&gpu0       40     &gpu-trip	0      2>;
+> +			    <&lcd0       25     &lcd-trip	5      10>;
+> +         trips {
+> +                 cpu-trip: cpu-trip {
+> +                         temperature = <60000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_PASSIVE>;
+> +                 };
+> +                 gpu-trip: gpu-trip {
+> +                         temperature = <55000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_PASSIVE>;
+> +                 }
+> +                 lcd-trip: lcp-trip {
+> +                         temperature = <53000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_PASSIVE>;
+> +                 };
+> +                 crit-trip: crit-trip {
+> +                         temperature = <68000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_CRITICAL>;
+> +                 };
+> +         };
+> + };
+> 
+> Now writing the above example, one might want to have a way to say the
+> sensor correlation equation.
+> 
+> Another example:
+> + #include <dt-bindings/thermal/thermal.h>
+> +
+> + dsp_thermal: dsp_thermal {
+> +         passive-delay = <250>; /* milliseconds */
+> +         polling-delay = <1000>; /* milliseconds */
+> +                 /*
+> +                  * sensor       ID
+> +                  */
+> +         sensors = <&bandgap0     1>;
+> +                         /*
+> +                          * cooling
+> +                          * device       Usage   Trip            lower
+> bound             upper bound
+> +                          */
+> +         cooling-devices = <&dsp0        100     &dsp-alert
+> THERMAL_NO_LIMIT        THERMAL_NO_LIMIT>;
+> +         trips {
+> +                 dsp-alert: dsp-alert {
+> +                         temperature = <100000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_PASSIVE>;
+> +                 };
+> +                 dsp-crit: cdsp-crit {
+> +                         temperature = <125000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_CRITICAL>;
+> +                 };
+> +         };
+> + };
+> +
+> + gpu_thermal: gpu_thermal {
+> +         passive-delay = <500>; /* milliseconds */
+> +         polling-delay = <1000>; /* milliseconds */
+> +                 /*
+> +                  * sensor       ID
+> +                  */
+> +         sensors = <&bandgap0     2>;
+> +                         /*
+> +                          * cooling
+> +                          * device       Usage   Trip            lower
+> bound             upper bound
+> +                          */
+> +         cooling-devices = <&gpu0        100     &gpu-alert
+> THERMAL_NO_LIMIT        THERMAL_NO_LIMIT>;
+> +         trips {
+> +                 gpu-alert: gpu-alert {
+> +                         temperature = <100000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_PASSIVE>;
+> +                 };
+> +                 gpu-crit: gpu-crit {
+> +                         temperature = <125000>; /* milliCelsius */
+> +                         hysteresis = <2000>; /* milliCelsius */
+> +                         type = <THERMAL_TRIP_CRITICAL>;
+> +                 };
+> +         };
+> + };
+> 
+> 
+> Wei, I think the above would cover for the IPs with multiple internal
+> sensors cases you were looking for, right?
+Yes, I think so, and this series is what I'm looking for, thanks again.
+
+> 
+> Durga, please also check if I am missing something to cover for your
+> plans to, in case you will be using DT to describe your HW.
+> 
+> Anyways, Mark and Pawel, let me know if I missed something from our
+> discussion. I believe the above bindings would look more like regular
+> standard DT bindings. And also they should be now slim enough, without
+> Linux implementation details and also without policies.
+> 
+>>
+>>
+> 
+> 
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8882068178621678306==--
