@@ -1,57 +1,39 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 22 Sep 2013 02:24:55 +0000
-Subject: Re: [lm-sensors] [PATCHv3 05/16] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <523E54F7.9010403@roeck-us.net>
+Date: Mon, 09 Sep 2013 10:53:21 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (hwmon-vid) Add __maybe_unused attribute to dummy variable
+Message-Id: <1378724001-9199-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379457325-18192-1-git-send-email-eduardo.valentin@ti.com> <1379521314-16959-1-git-send-email-eduardo.valentin@ti.com> <523DE01F.4020607@roeck-us.net> <523E2C1B.9010307@ti.com> <523E321F.8050502@roeck-us.net> <523E388F.80707@ti.com>
-In-Reply-To: <523E388F.80707@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-On 09/21/2013 05:23 PM, Eduardo Valentin wrote:
-> On 21-09-2013 19:56, Guenter Roeck wrote:
->> On 09/21/2013 04:30 PM, Eduardo Valentin wrote:
->>> On 21-09-2013 14:06, Guenter Roeck wrote:
->>>> On 09/18/2013 09:21 AM, Eduardo Valentin wrote:
->>>>> This patch adds to lm75 temperature sensor the possibility
->>>>> to expose itself as thermal zone device, registered on the
->>>>> thermal framework.
->>>>>
->>>>> The thermal zone is built only if a device tree node
->>>>> describing a thermal zone for this sensor is present
->>>>> inside the lm75 DT node. Otherwise, the driver behavior
->>>>> will be the same.
->>>>>
->>>>> Cc: Jean Delvare <khali@linux-fr.org>
->>>>> Cc: Guenter Roeck <linux@roeck-us.net>
->>>>> Cc: lm-sensors@lm-sensors.org
->>>>> Cc: linux-kernel@vger.kernel.org
->>>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->>>>
->>>> Acked-by: Guenter Roeck <linux@roeck-us.net>
->>>>
->>>
->>> Cool! thanks again for taking the time to review this.
->>>
->>>> I assume this will be sent upstream through the thermal tree ?
->>>
->>> Yeah, that is the idea, at least for the core part. The hwmon changes I
->>> believe goes via hwmon tree, right?
->>>
->>
->> Not necessarily, as the hwmon code depends on the core code.
->> In such cases it is quite common that both are sent through the same tree.
->
-> If this works for you I can queue these changes via the thermal tree.
->
+This gets rid of this warning:
 
-Ok with me.
+drivers/hwmon/hwmon-vid.c: In function 'get_via_model_d_vrm':
+drivers/hwmon/hwmon-vid.c:249:27: warning: variable 'dummy' set but not used
+[-Wunused-but-set-variable]
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/hwmon-vid.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+index 89cfd64..ef91b8a 100644
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -246,7 +246,7 @@ static struct vrm_model vrm_models[] = {
+  */
+ static u8 get_via_model_d_vrm(void)
+ {
+-	unsigned int vid, brand, dummy;
++	unsigned int vid, brand, __maybe_unused dummy;
+ 	static const char *brands[4] = {
+ 		"C7-M", "C7", "Eden", "C7-D"
+ 	};
+-- 
+1.7.9.7
 
 
 _______________________________________________
