@@ -1,48 +1,46 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 13 Sep 2013 05:51:25 +0000
-Subject: Re: [lm-sensors] Backporting updated lm85 on RHEL5
-Message-Id: <20130913075125.564b01bc@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 09 Sep 2013 10:29:10 +0000
+Subject: [lm-sensors] [PATCH v3 0/2] Add power control for lm90
+Message-Id: <1378722552-10357-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5229DE5D.7060104@elrepo.org>
-In-Reply-To: <5229DE5D.7060104@elrepo.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-On Thu, 12 Sep 2013 22:35:31 +0100, Phil Perry wrote:
-> On 12/09/13 20:14, Jean Delvare wrote:
-> > I don't. That being said, this is a legacy branch, so we are only
-> > accepting bug fixes and trivial additions. Any change requiring a
-> > significant amount of new code would not be accepted, at least not by
-> > me. If you really want it in and plan to contribute more to the legacy
-> > branch then I'd rather create a subversion account for you and let you
-> > become the maintainer of the legacy branch.
-> >
-> > Frankly, if your users have to install a non-standard lm_sensors
-> > package, you might as well package version 3 and have all the support
-> > for new chips for free.
-> 
-> That would indeed be preferable.
-> 
-> I can build lm_sensors-3 packages for RHEL-5 but the main issue I see is 
-> that other packages in RHEL-5 (e.g, kdebase, net-snmp) require 
-> libsensors.so.3 whereas lm_sensors-3 provides libsensors.so.4. Is 
-> libsensors.so.4 backward compatible or is this a likely show-stopper?
+The device lm90 can be controlled by the vcc rail.
+Add function to power on/off the vcc.
 
-Show-stopper I'm afraid. There's no form of compatibility between the
-two.
+This series is v3, previous version patches are:
+[v2]: http://www.spinics.net/lists/arm-kernel/msg265373.html
+[v1]: http://www.mail-archive.com/linux-tegra@vger.kernel.org/msg12034.html
 
-> Maybe rebuilding these packages against an updated lm_sensors-3 package 
-> would solve that issue. But still, this is really more than we'd ideally 
-> like to do (we don't want to be replacing more packages in the distro 
-> than we absolutely have to).
+Changes from v2:
+1. use devm_regulator_get_optional(), as suggested by Mark.
+2. remove the lm90_power_control(), enable the regulator in the probe()
+directly, so the codes are more clear, as suggested by Alexander and Guenter.
+3. change the binding documentation, as per Stephen suggestion.
+4. couple of changes, as per previous review.
 
-You're right, I had not considered other monitoring applications when
-suggesting this move. My bad.
+Changes from v1:
+1. if get regulator failed, we should continue to run probe function,
+not return fail.
+2. call regulator_put() in error handler and remove function.
+3. add LM90 DT binding document.
+
+Wei Ni (2):
+  hwmon: (lm90) Add power control
+  Documentation: dt: hwmon: add OF document for LM90
+
+ Documentation/devicetree/bindings/hwmon/lm90.txt |   44 ++++++++++++++++++++++
+ drivers/hwmon/lm90.c                             |   25 ++++++++++++
+ 2 files changed, 69 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/lm90.txt
 
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
