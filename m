@@ -1,123 +1,51 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Mon, 09 Sep 2013 20:39:10 +0000
+From: Wei Ni <wni@nvidia.com>
+Date: Tue, 10 Sep 2013 03:22:01 +0000
 Subject: Re: [lm-sensors] [PATCH v3 1/2] hwmon: (lm90) Add power control
-Message-Id: <20130909203910.GV29403@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7726386402307683415=="
+Message-Id: <522E9059.3070305@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378722552-10357-1-git-send-email-wni@nvidia.com>
- <1378722552-10357-2-git-send-email-wni@nvidia.com>
- <20130909111242.GW29403@sirena.org.uk>
- <522DB253.6000707@roeck-us.net>
- <20130909135022.GZ29403@sirena.org.uk>
- <20130909155043.GA18975@roeck-us.net>
- <20130909160237.GR29403@sirena.org.uk>
- <20130909161735.GC18975@roeck-us.net>
-In-Reply-To: <20130909161735.GC18975-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-
-
---===============7726386402307683415==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MXE3caftPhBF8dmD"
-Content-Disposition: inline
-
-
---MXE3caftPhBF8dmD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Sep 09, 2013 at 09:17:35AM -0700, Guenter Roeck wrote:
-> On Mon, Sep 09, 2013 at 05:02:37PM +0100, Mark Brown wrote:
-
-> > It does, though it gets complicated trying to use it for a case like
-> > this since you can't really tell if the regulator was powered on
-> > immediately before the device got probed by another device on the bus.
-
-> Why not ? Just keep a timestamp.
-
-The support is a callback on state changes; we could keep a timestamp
-but there's still going to be race conditions around bootloaders.  It's
-doable though.
-
-> > > On a higher level, I wonder if such functionality should be added in the i2c
-> > > subsystem and not in i2c client drivers. Has anyone thought about this ?
-
-> > I'm not sure what the subsystem would do for such delays?  It's fairly
-> > common for things that need this to also want to do things like
-> > manipulate GPIOs as part of the power on sequence so the applicability
-> > is relatively limited, plus it's not even I2C specific, the same applies
-> > to other buses so it ought to be a driver core thing.
-
-> Possibly. I just thought about i2c since it also takes care of basic
-> devicetree bindings. Something along the line of
-> 	if devicetree bindings for this device declare one or more
-> 	regulators, enable those regulators before calling the driver
-> 	probe function.
-
-That's definitely a driver core thing, not I2C - there's nothing
-specific to I2C in there at all, needing power is pretty generic.  I
-have considered this before, something along the lines of what we have
-for pinctrl, but unfortunately the generic case isn't quite generic
-enough to make it easy.  It'd need to be an explicit list of regulators
-(partly just to make it opt in and avoid breaking things) and you'd want
-to have a way of handling the different suspend/resume behaviour that
-devices want.  There's a few patterns there.
-
-It's definitely something I think about from time to time and it would
-be useful to factor things out, the issue is getting a good enough model
-of what's going on.
-
-> > There was some work on a generic helper for power on sequences but it
-> > stalled since it wasn't accepted for the original purpose (LCD panel
-> > power ons IIRC).
-
-> Too bad. I think it could be kept quite simple, though, by handling it
-> through the regulator subsystem as suggested above. A generic binding
-> for a per-regulator and per-device poweron delay should solve that
-> and possibly even make it transparent to the actual driver code.
-
-Lots of things have a GPIO for reset too, and some want clocks too.  For
-maximum usefulness this should be cross subsystem.  I suspect the reset
-controller API may be able to handle some of it.
-
-The regulator power on delays are already handled transparently, by the
-time regulator_enable() returns the ramp should be finished.
-
---MXE3caftPhBF8dmD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSLjHrAAoJELSic+t+oim9k/MP/jTamsn6zl52va+mJqjasS6c
-mREzOt84i+2eFFjJQGWM9LjKdcziRq/CuEAHLGwrWbFFbEhGim7NbpDVLkzJy+aS
-oh0Iof/L4j8rB04GXnMUo42KGVQEDP8zqBpX6HBoX3uib95hA0eA8PgFVVM65z2i
-KjBfRPp1TCisXQyJVuNgbZCECPFbuko7457cDYP93xlVQio5XnNcYdPKBPF5S1ms
-JwSeTrjISBiTMBovb7KphwVXbt9T7hYJKr3NGLiRjR+Ypsxjj6ZaoCKbd6XF6bco
-Bvbsm0LDoVG5foYTxOxQSprF4jMQsM1Ury5CDYrZh1Gn061Jgz/dlsS9jOfvHaJg
-KSN+fYm0k8rrg8E+nS9TV22qxladk96QjWGbHB3D7H45EuUqWWGVv4EohHT7e+U5
-hm6BJLNDNI7EV9eJJ4WS83OdYtd5PU3pGHc8hphA6nGt62WI38mzMEUicIiN0Pn0
-RQACww8/ALgRUFm+TJFZy49YfL6COtwxMrjFWl7qiuESWDeGDNE9rP1njzHkzHyJ
-yK5fpymSC3Ge61PxOKOKJIw2Li925uaR21uitduwulOPrOmt1Xg0eub5lZ5UA3g2
-1Ba8RbEWBMGSVF7lG/ukUYG5ZMWAMJumjH9DxZuX2HXu4E7TpxiBRQan4hnOgCIK
-rUE9ltokxIy2OnvJPPC0
-=C1Zh
------END PGP SIGNATURE-----
-
---MXE3caftPhBF8dmD--
-
-
---===============7726386402307683415==
-Content-Type: text/plain; charset="us-ascii"
+References: <1378722552-10357-1-git-send-email-wni@nvidia.com> <1378722552-10357-2-git-send-email-wni@nvidia.com> <20130909111242.GW29403@sirena.org.uk> <522DB253.6000707@roeck-us.net> <20130909135022.GZ29403@sirena.org.uk> <20130909155043.GA18975@roeck-us.net>
+In-Reply-To: <20130909155043.GA18975-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+
+On 09/09/2013 11:50 PM, Guenter Roeck wrote:
+> On Mon, Sep 09, 2013 at 02:50:22PM +0100, Mark Brown wrote:
+>> On Mon, Sep 09, 2013 at 04:34:43AM -0700, Guenter Roeck wrote:
+>>> On 09/09/2013 04:12 AM, Mark Brown wrote:
+>>>> On Mon, Sep 09, 2013 at 06:29:11PM +0800, Wei Ni wrote:
+>>
+>>>> This doesn't look good, it is going to ignore actual errors - I *really*
+>>>> doubt that vcc is optional, it looks like it's the main power supply for
+>>>> the device.  You should use normal regulator_get(), _optional() is for
+>>>> supplies which could physically not be provided in a system (eg, if the
+>>>> device can generate them internally if required).
+>>
+>>> Then he'll have to make sure that all devicetree files in the system
+>>> contain references to this regulator.
+>>
+>> Or get the patches applied on top of the code that'll be going in this
+>> cycle implementing get_optional() properly - when that's done the
+>> default will be to provide a dummy supply for regulator_get().  If you
+>> ack the patch I'd be happy to carry it.
+>>
+> Jean will have to ack it.
+> 
+I think it's better to use get_optional(), and ignore the errors except
+-EPROBE_DEFER. Because many platform may always power on this device,
+and will not provide regulator for it, so if we get errors from
+regulator subsystem and return it directly, then the probe() can't be
+implemented, this driver can't work properly, even though it can work
+without regulator support.
+Mark, do you mean you have patches for regulator_get_optional() and
+regulator_get()?
+
+Wei.
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7726386402307683415==--
