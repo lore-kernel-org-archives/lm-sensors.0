@@ -1,83 +1,73 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 16 Sep 2013 12:34:29 +0000
-Subject: Re: [lm-sensors] [PATCH v3 3/4] hwmon: (lm90) add support to handle IRQ
-Message-Id: <20130916143429.6b7537c2@endymion.delvare>
+From: Jaromir Capik <jcapik@redhat.com>
+Date: Tue, 10 Sep 2013 11:37:54 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect : Fixing use of uninitialised value 'vendor_id' on ppc64
+Message-Id: <1301926956.10694212.1378813074661.JavaMail.root@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_10694210_1044517163.1378813074659"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
-	<1373615287-18502-4-git-send-email-wni@nvidia.com>
-	<20130718175822.62c358bf@endymion.delvare>
-	<51E8DFB2.9070701@nvidia.com>
-	<20130727170212.29297696@endymion.delvare>
-	<51F640A0.4040809@nvidia.com>
-	<20130729175835.795dba2b@endymion.delvare>
-	<51F776DB.3060104@nvidia.com>
-In-Reply-To: <51F776DB.3060104-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+------=_Part_10694210_1044517163.1378813074659
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sw-mobile-therm-Lp/cVzEoVyZDw2glCA4ptUEOCMrvLtNR@public.gmane.org
 
-Hi Wei,
+Hello.
 
-Sorry for the late reply, catching up with the discussions from before
-my vacation...
+There's no vendor_id entry in the /proc/cpuinfo file in case of PPC64
+systems and consequently the script returns 3 screens full of the
+following errors:
 
-On Tue, 30 Jul 2013 16:18:35 +0800, Wei Ni wrote:
-> On 07/29/2013 11:58 PM, Jean Delvare wrote:
-> > On Mon, 29 Jul 2013 18:14:56 +0800, Wei Ni wrote:
-> >> Yes, we had met this problems, to fix this issue, we enabled one-shot
-> >> mode in the bottom half handler of nct interrupts to force a
-> >> conversion/comparison. This effectively stops repeated nct interrupts.
-> >> We will do following things in the IRQ thread:
-> >> 1. stand by the nct1008. (set configure register bit 6)
-> >> 2. update the limit value if needed.
-> >> 3. write to one-shot resister.
-> >> 4. give hardware necessary time to finish conversion
-> >> 5. run the nct1008 (clear configure register bit 6)
-> > 
-> > Doh, this is so ugly :(
-> > 
-> > Why don't you configure the pin as THERM2 instead of ALERT then? I'd
-> > expect this to make things easier.
-> 
-> If configure as THERM2, only the high temperature limits are relevant,
-> so when the temperature reduced, it will not trigger interrupt, and we
-> can't update the cooling state.
+Use of uninitialized value in string eq at /usr/sbin/sensors-detect line 6444
+Use of uninitialized value in string eq at /usr/sbin/sensors-detect line 6459
+Use of uninitialized value in string eq at /usr/sbin/sensors-detect line 6473
 
-Ah, indeed, I had not noticed this restriction.
+The attached patch fixes that.
 
-> Or do you mean that we can configure the pin to THERM2 in the irq_thread
-> to avoid the repeated interrupt ? I tried it, but no help, the nct1008
-> will not run the conversion/comparison immediately, so the status
-> register will not be cleared.
+Please, merge.
 
-No, I didn't mean to suggest anything like that.
+Thanks in advance.
 
-> >> (...)
-> >> These trip-temps are not critical temperature, we used these temps to
-> >> update cooling states. For the critical-temp, we handle it like my
-> >> mentioned in #1.
-> > 
-> > I understand. But even if these interrupts are only used for managing
-> > cooling states, a misbehavior could still have annoying consequences,
-> > such as causing the thermal shutdown to trigger when this could have
-> > been avoided, or throttling to stay enabled even though the system has
-> > cooled down enough.
-> 
-> I think our driver are trying best to avoid these troubles. As I know in
-> our downstream codes, we didn't met these things.
-> I think since the lm90 support interrupt mode, then the driver should
-> have related interface to handle it, and it can call the callback
-> function to do what the platform driver want.
+Regards,
+Jaromir.
 
-Yes, fair enough. I do not object to it, I was only trying to
-understand how you were using it.
+--
+Jaromir Capik
+Red Hat Czech, s.r.o.
+Software Engineer / Secondary Arch
 
--- 
-Jean Delvare
+Email: jcapik@redhat.com
+Web: www.cz.redhat.com
+Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
+IC: 27690016 
+
+
+
+------=_Part_10694210_1044517163.1378813074659
+Content-Type: text/x-patch;
+ name=lm_sensors-3.3.4-sensors-detect-ppc-missing-vendor_id.patch
+Content-Disposition: attachment;
+ filename=lm_sensors-3.3.4-sensors-detect-ppc-missing-vendor_id.patch
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtTmF1ciBsbV9zZW5zb3JzLTMuMy40Lm9yaWcvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRl
+Y3QgbG1fc2Vuc29ycy0zLjMuNC9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAotLS0gbG1fc2Vu
+c29ycy0zLjMuNC5vcmlnL3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0CTIwMTMtMDgtMDcgMDk6
+NDY6NTkuMDAwMDAwMDAwIC0wNDAwCisrKyBsbV9zZW5zb3JzLTMuMy40L3Byb2cvZGV0ZWN0L3Nl
+bnNvcnMtZGV0ZWN0CTIwMTMtMDktMDkgMTM6NTk6MDkuNzUzMjY2MDMzIC0wNDAwCkBAIC0yNjU3
+LDYgKzI2NTcsNyBAQAogCQlpZiAobS9ecHJvY2Vzc29yXHMqOlxzKihcZCspLykgewogCQkJcHVz
+aCBAY3B1LCAkZW50cnkgaWYgc2NhbGFyIGtleXMoJXskZW50cnl9KTsgIyBQcmV2aW91cyBlbnRy
+eQogCQkJJGVudHJ5ID0geyBuciA9PiAkMSB9OyAjIE5ldyBlbnRyeQorCQkJJGVudHJ5LT57dmVu
+ZG9yX2lkfSA9ICJ1bmRlZmluZWQiOwogCQkJbmV4dDsKIAkJfQogCQlpZiAobS9eKHZlbmRvcl9p
+ZHxjcHUgZmFtaWx5fG1vZGVsfG1vZGVsIG5hbWV8c3RlcHBpbmd8Y3B1aWQgbGV2ZWwpXHMqOlxz
+KiguKykkLykgewo=
+------=_Part_10694210_1044517163.1378813074659
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_10694210_1044517163.1378813074659--
