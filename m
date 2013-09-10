@@ -1,143 +1,93 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Sun, 15 Sep 2013 22:02:30 +0000
-Subject: [lm-sensors] [PATCH 03/16] drivers: thermal: cpu_cooling: introduce of_cpufreq_cooling_register
-Message-Id: <1379282563-14650-4-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 10 Sep 2013 21:02:05 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.12-rc1
+Message-Id: <20130910210205.GA24994@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0878903092822676130=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============0878903092822676130==
+Content-Type: multipart/signed; micalg=pgp-sha1; boundary="u3/rZRmxL6MmkK24";
+ protocol="application/pgp-signature"
+Content-Disposition: inline
+
+
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.12-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit e5c832d5558826cc6e9a24746cfdec8e7780063a:
+
+  vfs: fix dentry RCU to refcounting possibly sleeping dput() (2013-09-08 18:13:49 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 8876dd78d9f0cd317d55dc19e5cd17194af15b52:
+
+  hwmon: (ina2xx) Remove casting the return value which is a void pointer (2013-09-10 06:28:31 -0700)
+
+----------------------------------------------------------------
+Minor cleanup in ina2xx and hwmon-vid drivers; no functional changes
+
+----------------------------------------------------------------
+Guenter Roeck (1):
+      hwmon: (hwmon-vid) Add __maybe_unused attribute to dummy variable
+
+Jingoo Han (1):
+      hwmon: (ina2xx) Remove casting the return value which is a void pointer
+
+ drivers/hwmon/hwmon-vid.c |    2 +-
+ drivers/hwmon/ina2xx.c    |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSL4jNAAoJEMsfJm/On5mBrEEQAJCOqm6n1lWHJ+iU/vJ2gR1i
+EgIO7Ogz9t8yITLq3kVyvFpH/nnoZnx7dL+N14xhLOfk6N4ypS1SEBVb39zDoYXC
+duoq2jWn0pG0PGFsLkSoFBLRTZO4w0Axd2J9P2urpWRquxdROtrJdDwUXJ4s50TR
+2ydixXGdHgKjjY9l4X2RdVElbGpYfJ0LETa3h2dsURR9NFpGlM2uyZVXmgaIqx/c
+8FN2lC6PEZOoyMkTIqu7OqGQvnDx/5vaYaREPRtzAcV8/eDQctzTDl9/gnAnB26d
+oOuatm8qLCjCuE8E2B4Ny79WNKTi7w+saqECQ2qyBPqFecej+lSBstH5+k7mKNG3
+XKPFF3bJ7vlGfxpzU+LFpqJ1SlkV62Wo5PdiJdYkthTIWQtNMZVQEvbM/Ll0rJl/
+kxjbbtumpYZAh7smb5AUoQ11jG2Mz59FPz0wvUdbTw1yCr7zq4rawzCiNFYPyrhh
+tGFZLo1jvjBLweS3QuEexHU5EFRdTQzFjS26vI2EBxTfXyEC74SkOWcXlWWlA7On
+yHnqv+WfDl4Y8+MnrI8GlhW/LcWJjHmgR3hDXWp61Oc38O//JkU39n3MKfoh7C2u
+ojOfUp9cfYPrmb4R1kYZtNP8UkK0VN1bzNO4CU2enmWZuQqsRk07A/y5EPmzoTNk
+rod+Z+qkSlG/FBWq55FH
+=AdJ9
+-----END PGP SIGNATURE-----
+
+--u3/rZRmxL6MmkK24--
+
+
+--===============0878903092822676130==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
-
-This patch introduces an API to register cpufreq cooling device
-based on device tree node.
-
-The registration via device tree node differs from normal
-registration due to the fact that it is needed to fill
-the device_node structure in order to be able to match
-the cooling devices with trip points.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/Kconfig       |  1 +
- drivers/thermal/cpu_cooling.c | 31 +++++++++++++++++++++++++++++++
- include/linux/cpu_cooling.h   | 25 +++++++++++++++++++++++++
- 3 files changed, 57 insertions(+)
-
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index dd81eb8..9e7cc3f 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -91,6 +91,7 @@ config THERMAL_GOV_USER_SPACE
- config CPU_THERMAL
- 	bool "generic cpu cooling support"
- 	depends on CPU_FREQ
-+	depends on THERMAL_OF
- 	select CPU_FREQ_TABLE
- 	help
- 	  This implements the generic cpu cooling mechanism through frequency
-diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-index d179028..cd2f532 100644
---- a/drivers/thermal/cpu_cooling.c
-+++ b/drivers/thermal/cpu_cooling.c
-@@ -491,6 +491,37 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
- EXPORT_SYMBOL_GPL(cpufreq_cooling_register);
- 
- /**
-+ * of_cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * @np: a valid struct device_node to the cooling device device tree node
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-+ *
-+ * This interface function registers the cpufreq cooling device with the name
-+ * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-+ * cooling devices.
-+ *
-+ * Return: a valid struct thermal_cooling_device pointer on success,
-+ * on failure, it returns a corresponding ERR_PTR().
-+ */
-+struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	struct thermal_cooling_device *cdev;
-+
-+	if (!np)
-+		return ERR_PTR(-EINVAL);
-+
-+	cdev = cpufreq_cooling_register(clip_cpus);
-+	if (IS_ERR(cdev))
-+		return cdev;
-+
-+	cdev->np = np;
-+
-+	return cdev;
-+}
-+EXPORT_SYMBOL_GPL(of_cpufreq_cooling_register);
-+
-+/**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-  * @cdev: thermal cooling device pointer.
-  *
-diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-index a5d52ee..c303d38 100644
---- a/include/linux/cpu_cooling.h
-+++ b/include/linux/cpu_cooling.h
-@@ -24,6 +24,7 @@
- #ifndef __CPU_COOLING_H__
- #define __CPU_COOLING_H__
- 
-+#include <linux/of.h>
- #include <linux/thermal.h>
- #include <linux/cpumask.h>
- 
-@@ -36,6 +37,24 @@ struct thermal_cooling_device *
- cpufreq_cooling_register(const struct cpumask *clip_cpus);
- 
- /**
-+ * of_cpufreq_cooling_register - create cpufreq cooling device based on DT.
-+ * @np: a valid struct device_node to the cooling device device tree node.
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen
-+ */
-+#ifdef CONFIG_THERMAL_OF
-+struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus);
-+#else
-+static inline struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	return NULL;
-+}
-+#endif
-+
-+/**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-  * @cdev: thermal cooling device pointer.
-  */
-@@ -48,6 +67,12 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
- {
- 	return NULL;
- }
-+static inline struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	return NULL;
-+}
- static inline
- void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
- {
--- 
-1.8.2.1.342.gfa7285d
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0878903092822676130==--
