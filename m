@@ -1,34 +1,33 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Mon, 16 Sep 2013 04:21:54 +0000
-Subject: Re: [lm-sensors] [PATCH v4 1/3] hwmon: (lm90) Add power control
-Message-Id: <52368762.7000701@nvidia.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Sep 2013 11:57:09 +0000
+Subject: Re: [lm-sensors] [PATCH] libsensors: Better documentation for sensors_init() and sensors_get_adapter
+Message-Id: <20130911135709.53c0d5e7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378985061-28547-1-git-send-email-wni@nvidia.com> <1378985061-28547-2-git-send-email-wni@nvidia.com> <20130912115106.GM29403@sirena.org.uk>
-In-Reply-To: <20130912115106.GM29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+References: <20130621111158.30360f3c@endymion.delvare>
+In-Reply-To: <20130621111158.30360f3c@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 09/12/2013 07:51 PM, Mark Brown wrote:
-> * PGP Signed by an unknown key
+On Fri, 21 Jun 2013 11:11:58 +0200, Jean Delvare wrote:
+> Extend the documentation of sensors_init() and
+> sensors_get_adapter_name(). Paul Crawford asked questions about these
+> as he found the original documentation unclear. I'm including my
+> answers to his questions here, reformatted, so that other developers
+> can benefit from them too.
+> ---
+> Paul, is this OK with you?
 > 
-> On Thu, Sep 12, 2013 at 07:24:19PM +0800, Wei Ni wrote:
-> 
->> +#include <linux/delay.h>
-> 
-> You don't need this any more, otherwise
+>  lib/init.c       |    2 ++
+>  lib/libsensors.3 |   27 +++++++++++++++++++++------
+>  2 files changed, 23 insertions(+), 6 deletions(-)
+> (...)
 
-Oh, yes, I will remove it.
+No reply after over 2 months... I decided to commit this patch.
 
-> 
-> Reviewed-by: Mark Brown <broonie@linaro.org>
-> 
-> * Unknown Key
-> * 0x7EA229BD
-> 
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
