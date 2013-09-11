@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 11 Sep 2013 05:56:53 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Sep 2013 07:58:18 +0000
 Subject: Re: [lm-sensors] [PATCH 1/5] hwmon: (emc2103) Fix return value
-Message-Id: <52300625.2090505@roeck-us.net>
+Message-Id: <20130911095818.1ba2d50f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1378873192-6297-1-git-send-email-sachin.kamat@linaro.org>
 In-Reply-To: <1378873192-6297-1-git-send-email-sachin.kamat@linaro.org>
@@ -10,24 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 09/10/2013 09:19 PM, Sachin Kamat wrote:
-> kstrtol() returns appropriate error values. Use those instead of
-> hardcoding. Silences several sparse messages of following type:
-> "why not propagate 'result' from kstrtol() instead of (-22)?"
->
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Cc: Steve Glendinning <steve.glendinning@shawell.net>
-> ---
-> Series is compile tested.
+On Tue, 10 Sep 2013 22:56:53 -0700, Guenter Roeck wrote:
+> On 09/10/2013 09:19 PM, Sachin Kamat wrote:
+> > kstrtol() returns appropriate error values. Use those instead of
+> > hardcoding. Silences several sparse messages of following type:
+> > "why not propagate 'result' from kstrtol() instead of (-22)?"
+> >
+> > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> > Cc: Steve Glendinning <steve.glendinning@shawell.net>
+> > ---
+> > Series is compile tested.
+> 
+> Series looks good to me. I have applied all five patches.
 
-Series looks good to me. I have applied all five patches.
+I agree, all look good. Thanks Sachin!
 
-Jean, please let me know if you want to take any; otherwise I'll push
-it all to Linus around Thursday.
+> Jean, please let me know if you want to take any; otherwise I'll push
+> it all to Linus around Thursday.
 
-Thanks,
-Guenter
+You can pick them all. That being said I don't think there is any hurry
+to push them to Linus, they are all cleanups, not actual bug fixes.
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
