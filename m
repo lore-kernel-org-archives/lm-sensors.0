@@ -1,35 +1,40 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Sun, 15 Sep 2013 22:02:38 +0000
-Subject: [lm-sensors] [PATCH 11/16] arm: dts: add cooling properties on omap4430 cpu node
-Message-Id: <1379282563-14650-12-git-send-email-eduardo.valentin@ti.com>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Wed, 11 Sep 2013 04:31:52 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon: (tmp421) Fix return value
+Message-Id: <1378873192-6297-5-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
-ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
-cyBwYXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRo
-YXQgY3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJl
-bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcu
-dWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZS1kaXNjdXNz
-QGxpc3RzLm96bGFicy5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRv
-IFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0
-cy9vbWFwNDQzeC5kdHNpIHwgNSArKysrKwogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygr
-KQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9hcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IDY5ODdkZjkuLjU3MzdlNDkgMTAwNjQ0Ci0t
-LSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDQ0M3guZHRzaQpAQCAtMjIsNiArMjIsMTEgQEAKIAkJCQkxMDA4MDAwIDEzNzUwMDAK
-IAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAwMD47IC8qIEZyb20gbGVnYWN5IGRyaXZl
-ciAqLworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCWNvb2xpbmctbWluLWxldmVsID0g
-PDA+OworCQkJY29vbGluZy1tYXgtbGV2ZWwgPSA8Mz47CisJCQkjY29vbGluZy1jZWxscyA9IDwy
-PjsgLyogbWluIGZvbGxvd2VkIGJ5IG1heCAqLwogCQl9OwogCX07CiAKLS0gCjEuOC4yLjEuMzQy
-LmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
-Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Propagate return value obtained from i2c_smbus_read_byte_data()
+instead of hardcoding.
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Andre Prendel <andre.prendel@gmx.de>
+---
+ drivers/hwmon/tmp421.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/tmp421.c b/drivers/hwmon/tmp421.c
+index 964c1d6..ae26b06 100644
+--- a/drivers/hwmon/tmp421.c
++++ b/drivers/hwmon/tmp421.c
+@@ -210,7 +210,7 @@ static int tmp421_init_client(struct i2c_client *client)
+ 	if (config < 0) {
+ 		dev_err(&client->dev,
+ 			"Could not read configuration register (%d)\n", config);
+-		return -ENODEV;
++		return config;
+ 	}
+ 
+ 	config_orig = config;
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
