@@ -1,29 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Sep 2013 18:27:52 +0000
-Subject: Re: [lm-sensors] [PATCH 06/12] hwmon: (adt7462) Use error value returned from find_trange_value()
-Message-Id: <20130914202752.7cd279d0@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Thu, 12 Sep 2013 11:24:20 +0000
+Subject: [lm-sensors] [PATCH v4 2/3] of: add vendor prefix for GMT
+Message-Id: <1378985061-28547-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379147615-7703-7-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1379147615-7703-7-git-send-email-linux@roeck-us.net>
+References: <1378985061-28547-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1378985061-28547-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, linux@roeck-us.net, broonie@kernel.org, swarren@wwwdotorg.org
+Cc: lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On Sat, 14 Sep 2013 01:33:29 -0700, Guenter Roeck wrote:
-> find_trange_value() returns -ENODEV in case of errors, only to have it
-> ignored and replaced with -EINVAL. Make it return -EINVAL and use it.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/adt7462.c |    5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> (...)
+Adding Global Mixed-mode Technology Inc. to the list
+of devicetree vendor prefixes.
 
-Reviewed-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 2956800..634c35f 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -28,6 +28,7 @@ est	ESTeem Wireless Modems
+ fsl	Freescale Semiconductor
+ GEFanuc	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
+ gef	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
++gmt	Global Mixed-mode Technology Inc.
+ hisilicon	Hisilicon Limited.
+ hp	Hewlett Packard
+ ibm	International Business Machines (IBM)
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
