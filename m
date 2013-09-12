@@ -1,46 +1,37 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Date: Mon, 23 Sep 2013 23:25:33 +0000
-Subject: Re: [lm-sensors] [PATCH v5 2/2] hwmon: (coretemp) Report power and energy consumption
-Message-Id: <5240CDED.40501@linux.intel.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Thu, 12 Sep 2013 06:46:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (k10temp) remove unnecessary pci_set_drvdata()
+Message-Id: <001801ceaf83$d5633bb0$8029b310$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379968489-13781-1-git-send-email-linux@roeck-us.net> <1379968489-13781-2-git-send-email-linux@roeck-us.net> <5240C145.6080104@linux.intel.com> <20130923224541.GA25966@roeck-us.net>
-In-Reply-To: <20130923224541.GA25966@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Jean Delvare <khali@linux-fr.org>, Fenghua Yu <fenghua.yu@intel.com>, "Artem S. Tashkinov" <t.artem@mailcity.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 09/23/2013 03:45 PM, Guenter Roeck wrote:
-> On Mon, Sep 23, 2013 at 03:31:33PM -0700, Srinivas Pandruvada wrote:
->> On 09/23/2013 01:34 PM, Guenter Roeck wrote:
->>> Supported by SandyBridge and newer CPUs.
->>>
->>> Cc: Fenghua Yu <fenghua.yu@intel.com>
->>> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->>> ---
->>> v5: Merged to 3.12-rc1
->>> v4: Replaced INIT_DELAYED_WORK with INIT_DEFERRABLE_WORK
->>> v3: Added Cc:
->>> v2: Fix missing symbol error on i386 builds
->>>      Dropped leftover pr_info from debugging
->>>
->>> I am inclined to drop this patch set, as I received neither test nor code
->>> review feedback even though the patch set has been out there for a long time.
->>> Also, I am concerned that it overlaps or even conflicts with the proposed
->>> Power Cap/RAPL driver (https://lkml.org/lkml/2013/9/19/260).
->> <We feel that the power capping framework is the right place to show
->> the RAPL data. This is not just monitoring but also control.
->> There are other drivers getting developed using this framework to
->> expose an uniform sysfs interface.
-> Thought so. Have you thought about providing a hwmon bridge ?
-<Good idea. I think after base version is accepted, we can add this. >
->
-> Thanks,
-> Guenter
+The driver core clears the driver data to NULL after device_release
+or on probe failure. Thus, it is not needed to manually clear the
+device driver data to NULL.
 
-Thanks,
-Srinivas
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/hwmon/k10temp.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index e633856..d65f3fd 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -202,7 +202,6 @@ static void k10temp_remove(struct pci_dev *pdev)
+ 			   &sensor_dev_attr_temp1_crit.dev_attr);
+ 	device_remove_file(&pdev->dev,
+ 			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
+-	pci_set_drvdata(pdev, NULL);
+ }
+ 
+ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
+-- 
+1.7.10.4
+
 
 
 _______________________________________________
