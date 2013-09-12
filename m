@@ -1,77 +1,95 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Sep 2013 19:33:16 +0000
-Subject: Re: [lm-sensors] [PATCH 04/12] hwmon: (mc13783-adc) Increase size of name string
-Message-Id: <5234B9FC.4010502@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Thu, 12 Sep 2013 11:24:19 +0000
+Subject: [lm-sensors] [PATCH v4 1/3] hwmon: (lm90) Add power control
+Message-Id: <1378985061-28547-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379147615-7703-5-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1379147615-7703-5-git-send-email-linux@roeck-us.net>
+References: <1378985061-28547-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1378985061-28547-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, linux@roeck-us.net, broonie@kernel.org, swarren@wwwdotorg.org
+Cc: lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On 09/14/2013 11:00 AM, Jean Delvare wrote:
-> On Sat, 14 Sep 2013 01:33:27 -0700, Guenter Roeck wrote:
->> smatch complains about
->>
->> mc13783_adc_probe() error: snprintf() chops off the last chars of
->> 'id->name': 20 +vs 10
->>
->> Use PLATFORM_NAME_SIZE instead of '10' as size when declaring
->> the name variable.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->
-> Note that Dan Carpenter had been sending the same patch 19 months ago:
->
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2012-February/035178.html
->
-> I wasn't sure what to do with it and finally forgot about it, sorry.
->
->> ---
->>   drivers/hwmon/mc13783-adc.c |    2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
->> index 982d862..ae00e60 100644
->> --- a/drivers/hwmon/mc13783-adc.c
->> +++ b/drivers/hwmon/mc13783-adc.c
->> @@ -37,7 +37,7 @@
->>   struct mc13783_adc_priv {
->>   	struct mc13xxx *mc13xxx;
->>   	struct device *hwmon_dev;
->> -	char name[10];
->> +	char name[PLATFORM_NAME_SIZE];
->>   };
->>
->>   static ssize_t mc13783_adc_show_name(struct device *dev, struct device_attribute
->
-> I admit I find it a bit sad to allocate more memory than we need just
-> to make a static analyzer happy. Static analyzers are supposed to help
-> developers improve their code, not make it less efficient.
->
-> That being said, I tried to rewrite the code in a way which was more
-> obviously correct (to a static analyzer), but what I came up with was
-> not very appealing.
->
-For me there is always a trade-off. In this case, using an arbitrary size of 10
-adds at least some risk. Anyone ever messing with the variable might inadvertently
-introduce a bug. So I thought it was worth changing it to use a well defined
-constant instead.
+The device lm90 can be controlled by the vcc rail.
+Adding the regulator support to power on/off the vcc rail.
+Enable the "vcc" regulator before accessing the device.
 
-There are other cases where static analyzers create noise - for example,
-smatch complains about ignored return values in detect functions which are
-replaced with -ENODEV. But on the other side it caught a number of
-inconsistencies and at least one real bug, so I am perfectly happy
-with the false positives.
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-Overall my approach is that I try to make static analyzers happy if it
-doesn't create undue pain, simply because I think that they are
-valuable tools to have around, and I don't want real problems
-to disappear in the noise.
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index cdff742..f3f66d5 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -89,6 +89,8 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/regulator/consumer.h>
++#include <linux/delay.h>
+ 
+ /*
+  * Addresses to scan
+@@ -302,6 +304,7 @@ static const struct lm90_params lm90_params[] = {
+ struct lm90_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
++	struct regulator *lm90_reg;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+ 	int kind;
+@@ -1397,8 +1400,20 @@ static int lm90_probe(struct i2c_client *client,
+ 	struct device *dev = &client->dev;
+ 	struct i2c_adapter *adapter = to_i2c_adapter(dev->parent);
+ 	struct lm90_data *data;
++	struct regulator *reg;
+ 	int err;
+ 
++	reg = devm_regulator_get(dev, "vcc");
++	if (IS_ERR(reg))
++		return PTR_ERR(reg);
++
++	err = regulator_enable(reg);
++	if (err < 0) {
++		dev_err(&client->dev,
++			"Failed to enable regulator: %d\n", err);
++		return err;
++	}
++
+ 	data = devm_kzalloc(&client->dev, sizeof(struct lm90_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+@@ -1406,6 +1421,8 @@ static int lm90_probe(struct i2c_client *client,
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
++	data->lm90_reg = reg;
++
+ 	/* Set the device type */
+ 	data->kind = id->driver_data;
+ 	if (data->kind = adm1032) {
+@@ -1473,6 +1490,8 @@ exit_remove_files:
+ 	lm90_remove_files(client, data);
+ exit_restore:
+ 	lm90_restore_conf(client, data);
++	regulator_disable(data->lm90_reg);
++
+ 	return err;
+ }
+ 
+@@ -1483,6 +1502,7 @@ static int lm90_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	lm90_remove_files(client, data);
+ 	lm90_restore_conf(client, data);
++	regulator_disable(data->lm90_reg);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
 
 
 _______________________________________________
