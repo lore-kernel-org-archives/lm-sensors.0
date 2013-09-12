@@ -1,7 +1,7 @@
-From: Phil Perry <phil@elrepo.org>
-Date: Thu, 12 Sep 2013 18:46:42 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 12 Sep 2013 19:14:50 +0000
 Subject: Re: [lm-sensors] Backporting updated lm85 on RHEL5
-Message-Id: <52320C12.6030209@elrepo.org>
+Message-Id: <20130912211450.135ba7d0@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5229DE5D.7060104@elrepo.org>
 In-Reply-To: <5229DE5D.7060104@elrepo.org>
@@ -10,47 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMTIvMDkvMTMgMTk6MjYsIEplYW4gRGVsdmFyZSB3cm90ZToKPiBPbiBUaHUsIDEyIFNlcCAy
-MDEzIDE1OjUyOjU2ICswMTAwLCBQaGlsIFBlcnJ5IHdyb3RlOgo+PiBKdXN0IGhhZCBzb21lIGZl
-ZWRiYWNrIGZyb20gdGhlIGVuZCB1c2VyIGFuZCBpdCBsb29rcyBsaWtlIHdlIGhhdmUgc29tZQo+
-PiBzdWNjZXNzLi4uCj4+Cj4+IFtyb290QHNydiB+XSMgc2Vuc29ycwo+PiBlbWM2ZDEwMy1pMmMt
-MC0yZQo+PiBBZGFwdGVyOiBTTUJ1cyBQSUlYNCBhZGFwdGVyIGF0IDA1ODAKPj4gQ1BVIERpbW0g
-Vm9sdDoKPj4gICAgICAgICAgICAgICsyLjYwNCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICAr
-My4zMiBWKQo+PiBDUFUgQ29yZSBWb2x0Ogo+PiAgICAgICAgICAgICAgKzEuMzQ4IFYgIChtaW4g
-PSAgKzAuMDAgViwgbWF4ID0gICsyLjk5IFYpCj4+IDMuM1YgU3RhbmRieToKPj4gICAgICAgICAg
-ICAgICszLjMxNyBWICAobWluID0gICsyLjk3IFYsIG1heCA9ICArMy42MyBWKQo+PiA1ViBTdGFu
-ZGJ5Ogo+PiAgICAgICAgICAgICAgKzQuOTIyIFYgIChtaW4gPSAgKzQuNTAgViwgbWF4ID0gICs1
-LjUwIFYpCj4+IFN5c3RlbSBWb2x0IDEyVjE6Cj4+ICAgICAgICAgICAgICsxMS44MTMgViAgKG1p
-biA9ICArMC4wMCBWLCBtYXggPSArMTUuOTQgVikKPj4gQ1BVIEZhbjogICAzMjg0IFJQTSAgKG1p
-biA9ICAgIDAgUlBNKQo+PiBDaGFzc2lzIEZhbiAxOgo+PiAgICAgICAgICAgICAgICAgMCBSUE0g
-IChtaW4gPSAgICAwIFJQTSkKPj4gQ2hhc3NpcyBGYW4gMjoKPj4gICAgICAgICAgICAgICAgIDAg
-UlBNICAobWluID0gICAgMCBSUE0pCj4+IENoYXNzaXMgRmFuIDM6Cj4+ICAgICAgICAgICAgICAg
-ICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+PiBDUFUgVGVtcDogKzQzLjAwwrBDICAobG93ICA9
-ICAtMTI3wrBDLCBoaWdoID0gICsxMjfCsEMpCj4+IFN5c3RlbSBUZW1wOgo+PiAgICAgICAgICAg
-ICArMzYuMDDCsEMgIChsb3cgID0gIC0xMjfCsEMsIGhpZ2ggPSAgKzEyN8KwQykKPj4KPj4gU28g
-dXBkYXRlZCBrbW9kLWxtODUgYW5kIGxtX3NlbnNvciBwYWNrYWdlcyB3aXRoIEVNQzZEMTAzIHN1
-cHBvcnQgb24KPj4gUkhFTDUgYXJlIG5vdyBhdmFpbGFibGUgYXQgZWxyZXBvLm9yZy4KPgo+IFRo
-YW5rcyBmb3IgdGhlIHJlcG9ydC4gSSBoYXZlIGNvbW1pdHRlZCB0aGUgcGF0Y2ggdG8gdGhlIGxl
-Z2FjeSB0cmVlLAo+IGFmdGVyIGFsbCBvdGhlcnMgbWlnaHQgYmUgaW50ZXJlc3RlZC4uLgo+CgoK
-SW4gYWRkaXRpb24gdG8geW91ciBwYXRjaCwgSSBhbHNvIGFkZGVkIHRoZSBmb2xsb3dpbmcgdG8g
-c2Vuc29ycy1kZXRlY3Q6CgotLS0gbG1fc2Vuc29ycy0yLjEwLjgub3JpZy9wcm9nL2RldGVjdC9z
-ZW5zb3JzLWRldGVjdAkyMDA4LTEyLTE1IAowODozNjowOS4wMDAwMDAwMDAgKzAwMDAKKysrIGxt
-X3NlbnNvcnMtMi4xMC44L3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0CTIwMTMtMDktMTIgCjEz
-OjI1OjI5LjAwMDAwMDAwMCArMDEwMApAQCAtNjgxLDcgKzY4MSw3IEBAIHVzZSB2YXJzIHF3KEBw
-Y2lfYWRhcHRlcnNfc2lzNTU5NSBAcGNpX2EKICAgICAgICAgaTJjX2RldGVjdCA9PiBzdWIgeyBs
-bTg1X2RldGVjdCgweDQxLCBAXyk7IH0sCiAgICAgICB9LAogICAgICAgewotICAgICAgIG5hbWUg
-PT4gIlNNU0MgRU1DNkQxMDAsIEVNQzZEMTAxIG9yIEVNQzZEMTAyIiwKKyAgICAgICBuYW1lID0+
-ICJTTVNDIEVNQzZEMTAwLCBFTUM2RDEwMSwgRU1DNkQxMDIgb3IgRU1DNkQxMDMiLAogICAgICAg
-ICBkcml2ZXIgPT4gImxtODUiLAogICAgICAgICBpMmNfYWRkcnMgPT4gWzB4MmMuLjB4MmVdLAog
-ICAgICAgICBpMmNfZGV0ZWN0ID0+IHN1YiB7IGxtODVfZGV0ZWN0KDB4NWMsIEBfKTsgfSwKCgpX
-aGVyZSBjYW4gSSBmaW5kIHRoYXQgbGVnYWN5IHRyZWU/IFRoZXJlIG1pZ2h0IGJlIG90aGVyIGJp
-dHMgdGhlcmUgSSBjYW4gCnVzZSwgb3IgdGhlcmUgbWF5IGJlIGJpdHMgSSBjYW4gYWxzbyBjb250
-cmlidXRlLiBGb3IgZXhhbXBsZSwgbXkgCmJhY2twb3J0ZWQgbG04NSBzaG91bGQgYWxzbyBzdXBw
-b3J0IHRoZSBhZHQ3NDY4IGNoaXAgYnV0IHByZXN1bWFibHkgdGhhdCAKd291bGQgYWxzbyByZXF1
-aXJlIHN1cHBvcnQgdG8gYmUgYmFja3BvcnRlZCB0byBsbS1zZW5zb3JzLgoKV2UgYWxzbyBiYWNr
-cG9ydCBzdXBwb3J0IGZvciBrMTB0ZW1wIGludG8gb3VyIGxtX3NlbnNvcnMtMi4xMC44IHBhY2th
-Z2UgCnRvIHN1cHBvcnQgb3VyIGttb2QtazEwdGVtcCBkcml2ZXIgYW5kIHdvdWxkIGhhcHBpbHkg
-Y29udHJpYnV0ZSB0aGF0IGlmIAp5b3UgZG9uJ3QgYWxyZWFkeSBoYXZlIGl0LgoKCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
-bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Thu, 12 Sep 2013 19:46:42 +0100, Phil Perry wrote:
+> On 12/09/13 19:26, Jean Delvare wrote:
+> > Thanks for the report. I have committed the patch to the legacy tree,
+> > after all others might be interested...
+> 
+> In addition to your patch, I also added the following to sensors-detect:
+> 
+> --- lm_sensors-2.10.8.orig/prog/detect/sensors-detect	2008-12-15 
+> 08:36:09.000000000 +0000
+> +++ lm_sensors-2.10.8/prog/detect/sensors-detect	2013-09-12 
+> 13:25:29.000000000 +0100
+> @@ -681,7 +681,7 @@ use vars qw(@pci_adapters_sis5595 @pci_a
+>          i2c_detect => sub { lm85_detect(0x41, @_); },
+>        },
+>        {
+> -       name => "SMSC EMC6D100, EMC6D101 or EMC6D102",
+> +       name => "SMSC EMC6D100, EMC6D101, EMC6D102 or EMC6D103",
+>          driver => "lm85",
+>          i2c_addrs => [0x2c..0x2e],
+>          i2c_detect => sub { lm85_detect(0x5c, @_); },
+> 
+
+Committed, thanks.
+
+> Where can I find that legacy tree? There might be other bits there I can 
+> use, or there may be bits I can also contribute. For example, my 
+> backported lm85 should also support the adt7468 chip but presumably that 
+> would also require support to be backported to lm-sensors.
+
+As documented on http://www.lm-sensors.org/wiki/Download :
+$ svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-2.10 lm-sensors-2.10
+
+> We also backport support for k10temp into our lm_sensors-2.10.8 package 
+> to support our kmod-k10temp driver and would happily contribute that if 
+> you don't already have it.
+
+I don't. That being said, this is a legacy branch, so we are only
+accepting bug fixes and trivial additions. Any change requiring a
+significant amount of new code would not be accepted, at least not by
+me. If you really want it in and plan to contribute more to the legacy
+branch then I'd rather create a subversion account for you and let you
+become the maintainer of the legacy branch.
+
+Frankly, if your users have to install a non-standard lm_sensors
+package, you might as well package version 3 and have all the support
+for new chips for free.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
