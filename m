@@ -1,39 +1,29 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 12 Sep 2013 11:24:20 +0000
-Subject: [lm-sensors] [PATCH v4 2/3] of: add vendor prefix for GMT
-Message-Id: <1378985061-28547-3-git-send-email-wni@nvidia.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Date: Thu, 12 Sep 2013 14:58:21 +0000
+Subject: Re: [lm-sensors] [PATCH v4 2/3] of: add vendor prefix for GMT
+Message-Id: <5231D68D.3000200@wwwdotorg.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378985061-28547-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1378985061-28547-1-git-send-email-wni@nvidia.com>
+References: <1378985061-28547-1-git-send-email-wni@nvidia.com> <1378985061-28547-3-git-send-email-wni@nvidia.com>
+In-Reply-To: <1378985061-28547-3-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org, linux@roeck-us.net, broonie@kernel.org, swarren@wwwdotorg.org
-Cc: lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, Wei Ni <wni@nvidia.com>
+To: Wei Ni <wni@nvidia.com>
+Cc: khali@linux-fr.org, linux@roeck-us.net, broonie@kernel.org, lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Adding Global Mixed-mode Technology Inc. to the list
-of devicetree vendor prefixes.
+On 09/12/2013 05:24 AM, Wei Ni wrote:
+> Adding Global Mixed-mode Technology Inc. to the list
+> of devicetree vendor prefixes.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
----
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- 1 file changed, 1 insertion(+)
+> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index 2956800..634c35f 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -28,6 +28,7 @@ est	ESTeem Wireless Modems
- fsl	Freescale Semiconductor
- GEFanuc	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
- gef	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
-+gmt	Global Mixed-mode Technology Inc.
- hisilicon	Hisilicon Limited.
- hp	Hewlett Packard
- ibm	International Business Machines (IBM)
--- 
-1.7.9.5
+> +gmt	Global Mixed-mode Technology Inc.
 
+There's some opportunity for confusion here re: the GMT timezone, but
+GMT seems to be what the company abbreviates itself to on their website,
+so I guess this is reasonable.
+
+Acked-by: Stephen Warren <swarren@nvidia.com>
 
 _______________________________________________
 lm-sensors mailing list
