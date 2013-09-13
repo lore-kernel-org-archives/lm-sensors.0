@@ -1,133 +1,107 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 17 Sep 2013 22:35:25 +0000
-Subject: [lm-sensors] [PATCHv2 05/16] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <1379457325-18192-1-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 13 Sep 2013 17:06:44 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.12-rc1
+Message-Id: <20130913170644.GA7009@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8618451538560273788=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5236411E.6040204@roeck-us.net>
-In-Reply-To: <5236411E.6040204@roeck-us.net>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============8618451538560273788==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
+Content-Disposition: inline
+
+
+--rwEMma7ioTxnRzrJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Subject: [GIT PULL] hwmon fixes for 3.12-rc1
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.12-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit a22a0fdba4191473581f86c9dd5361cf581521d3:
+
+  Merge tag 'for-v3.12' of git://git.infradead.org/battery-2.6 (2013-09-10 22:58:14 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 0b77f766f3ef9875e2bb0035c9b89b4f9469b78d:
+
+  hwmon: (k10temp) remove unnecessary pci_set_drvdata() (2013-09-12 08:17:40 -0700)
+
+----------------------------------------------------------------
+Some more low risk cleanup patches:
+
+Remove unnecessary pci_set_drvdata in k10temp driver from Jingoo Han
+Fix return values in several drivers from Sachin Kamat
+Remove redundant break in amc6821 driver from Sachin Kamat
+
+----------------------------------------------------------------
+Jingoo Han (1):
+      hwmon: (k10temp) remove unnecessary pci_set_drvdata()
+
+Sachin Kamat (5):
+      hwmon: (emc2103) Fix return value
+      hwmon: (ibmaem) Fix return value
+      hwmon: (amc6821) Fix return value
+      hwmon: (amc6821) Remove redundant break
+      hwmon: (tmp421) Fix return value
+
+ drivers/hwmon/amc6821.c |    7 ++-----
+ drivers/hwmon/emc2103.c |   10 +++++-----
+ drivers/hwmon/ibmaem.c  |    2 +-
+ drivers/hwmon/k10temp.c |    1 -
+ drivers/hwmon/tmp421.c  |    2 +-
+ 5 files changed, 9 insertions(+), 13 deletions(-)
+
+--rwEMma7ioTxnRzrJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSM0YkAAoJEMsfJm/On5mBD5gP/3byCh2+wWgJrhax8dP2DGps
+IWZk8UsHxus/OvVnyD8jpzQ0soQ1zbpbUYU6TX2bmPf4lUnHHUqnXI25Tt7lEHZd
+YfYMAzljZTgxX2FJhFlVL1raiP+twMQuimY+dRVu9l9jZkkIA24I2o67qIF/TbHP
+YHGX6XbUR0qT19oUTOFIkpKVkrN3+yy+/LDxV5WCVBlunyoGv7apva+UesCxz5vn
+5zVBfFgKoapbmVuax56xhdPbkK0z/McpxXm2WkKRVAleIQfOE/ItvjD79tRxlKka
+uYpw2BASplIBV8GhtFL4dUfDHdO3LX7AD6NrXwmnLso7hza/NBLD9IIbOrZp5d+F
+UjDJFyzX63QSk+3rhKnzUBio0c/3eR7dLVHE1jj4PNBcRGmDX4EtftdnnkRPfDTH
+c99qiOYV60pFzA7KOIqbYX2kULe7HlhU7yXXdp+jLRxLbo1YQYCfA4p97qx8D5IE
+tSLAYp233qVkeYEyACptEnLh9JCTujaS9pGuH+dymqoLahG6IYc7Fzp5qAztskO8
+EWU6/iVeVzHnVZVjz2wqZxIe7byeOtuBdgRqYlpdKJaZFopQBoG6tFqYQm1cbOjK
+INWT+t/JvWMx6iLN/mBeuGjrWJLeNxxtuB15FCSrl8XVMu9DV6HsAhoglfQ6ffTr
+Imxr1pnFVwZCcMEdeW3M
+=aPwo
+-----END PGP SIGNATURE-----
+
+--rwEMma7ioTxnRzrJ--
+
+
+--===============8618451538560273788==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, khali@linux-fr.org, linux@roeck-us.net
-Cc: rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
-
-This patch adds to lm75 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
-
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm75 DT node. Otherwise, the driver behavior
-will be the same.
-
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/hwmon/lm75.c | 36 +++++++++++++++++++++++++++++++-----
- 1 file changed, 31 insertions(+), 5 deletions(-)
-
----
-
-Guenter,
-
-Here is a version without the warnings, as requested.
-
-Eduardo
-
-diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-index c03b490..e42e361 100644
---- a/drivers/hwmon/lm75.c
-+++ b/drivers/hwmon/lm75.c
-@@ -27,6 +27,8 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/of.h>
-+#include <linux/thermal.h>
- #include "lm75.h"
- 
- 
-@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
- /* Each client has this additional data */
- struct lm75_data {
- 	struct device		*hwmon_dev;
-+	struct thermal_zone_device	*tz;
- 	struct mutex		update_lock;
- 	u8			orig_conf;
- 	u8			resolution;	/* In bits, between 9 and 12 */
-@@ -90,22 +93,36 @@ static struct lm75_data *lm75_update_device(struct device *dev);
- 
- /*-----------------------------------------------------------------------*/
- 
-+static inline long lm75_reg_to_mc(s16 temp, u8 resolution)
-+{
-+	return ((temp >> (16 - resolution)) * 1000) >> (resolution - 8);
-+}
-+
- /* sysfs attributes for hwmon */
- 
-+static int lm75_read_temp(void *dev, long *temp)
-+{
-+	struct lm75_data *data = lm75_update_device(dev);
-+
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	*temp = lm75_reg_to_mc(data->temp[0], data->resolution);
-+
-+	return 0;
-+}
-+
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct lm75_data *data = lm75_update_device(dev);
--	long temp;
- 
- 	if (IS_ERR(data))
- 		return PTR_ERR(data);
- 
--	temp = ((data->temp[attr->index] >> (16 - data->resolution)) * 1000)
--	       >> (data->resolution - 8);
--
--	return sprintf(buf, "%ld\n", temp);
-+	return sprintf(buf, "%ld\n", lm75_reg_to_mc(data->temp[attr->index],
-+						    data->resolution));
- }
- 
- static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-@@ -271,6 +288,13 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto exit_remove;
- 	}
- 
-+	data->tz = thermal_zone_of_sensor_register(&client->dev,
-+						   0,
-+						   &client->dev,
-+						   lm75_read_temp, NULL);
-+	if (IS_ERR(data->tz))
-+		data->tz = NULL;
-+
- 	dev_info(&client->dev, "%s: sensor '%s'\n",
- 		 dev_name(data->hwmon_dev), client->name);
- 
-@@ -285,6 +309,8 @@ static int lm75_remove(struct i2c_client *client)
- {
- 	struct lm75_data *data = i2c_get_clientdata(client);
- 
-+	/* thermal zone life cycle is not our responsibility */
-+	thermal_zone_of_sensor_unregister(&client->dev, data->tz);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
--- 
-1.8.2.1.342.gfa7285d
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8618451538560273788==--
