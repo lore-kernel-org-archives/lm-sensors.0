@@ -1,78 +1,38 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:08 +0000
-Subject: [lm-sensors] [PATCHv4 01/18] thermal: allow registering without .get_temp
-Message-Id: <1380251605-3804-2-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 08:33:28 +0000
+Subject: [lm-sensors] [PATCH 05/12] hwmon: (pmbus) Don't unnecessarily crash the kernel
+Message-Id: <1379147615-7703-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: lm-sensors@vger.kernel.org
 
-This patch changes the thermal core driver to allow
-registration of thermal zones without the .get_temp callback.
+pmbus code currently crashes the kernel if it detects an internal
+implementation error. While the detected condition suggests that there
+is a bug in the code, it is hardly fatal. Therefore, it should not
+trigger a crash. Replace BUG() with WARN().
 
-The idea behind this change is to allow lazy registration
-of sensor callbacks.
-
-The thermal zone will be disabled whenever the ops
-does not contain a .get_temp callback. The sysfs interface
-will be returning -EINVAL on any temperature read operation.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/thermal/thermal_core.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/hwmon/pmbus/pmbus_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 4962a6a..8a94300 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -402,7 +402,7 @@ int thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned long *temp)
- 	enum thermal_trip_type type;
- #endif
- 
--	if (!tz || IS_ERR(tz))
-+	if (!tz || IS_ERR(tz) || !tz->ops->get_temp)
- 		goto exit;
- 
- 	mutex_lock(&tz->lock);
-@@ -455,6 +455,9 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
- {
- 	int count;
- 
-+	if (!tz->ops->get_temp)
-+		return;
-+
- 	update_temperature(tz);
- 
- 	for (count = 0; count < tz->trips; count++)
-@@ -1384,7 +1387,7 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 	if (trips > THERMAL_MAX_TRIPS || trips < 0 || mask >> trips)
- 		return ERR_PTR(-EINVAL);
- 
--	if (!ops || !ops->get_temp)
-+	if (!ops)
- 		return ERR_PTR(-EINVAL);
- 
- 	if (trips > 0 && (!ops->get_trip_type || !ops->get_trip_temp))
-@@ -1488,6 +1491,9 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 
- 	INIT_DELAYED_WORK(&(tz->poll_queue), thermal_zone_device_check);
- 
-+	if (!tz->ops->get_temp)
-+		thermal_zone_device_set_polling(tz, 0);
-+
- 	thermal_zone_device_update(tz);
- 
- 	if (!result)
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 9319fcf..871cf64 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -686,7 +686,7 @@ static int pmbus_get_boolean(struct pmbus_data *data, struct pmbus_boolean *b,
+ 	if (!s1 && !s2) {
+ 		ret = !!regval;
+ 	} else if (!s1 || !s2) {
+-		BUG();
++		WARN(1, "Bad boolean descriptor %p: s1=%p, s2=%p\n", b, s1, s2);
+ 		return 0;
+ 	} else {
+ 		long v1, v2;
 -- 
-1.8.2.1.342.gfa7285d
+1.7.9.7
 
 
 _______________________________________________
