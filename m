@@ -1,51 +1,65 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:23 +0000
-Subject: [lm-sensors] [PATCHv4 16/18] arm: dts: add omap5 CORE thermal data
-Message-Id: <1380251605-3804-17-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 08:33:31 +0000
+Subject: [lm-sensors] [PATCH 08/12] hwmon: (acpi_power_meter) Don't crash the kernel unnecessarily
+Message-Id: <1379147615-7703-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgQ09SRSBkb21haW4gb24gT01BUDUgYW5kIGxhdGVyIFNvQ3MuIFRoaXMgZGF0YSB3aWxs
-CmVuYWJsZSBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KClRoaXMgdGhlcm1hbCBkYXRhIGNh
-biBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoKQ2M6ICJCZW5vw650IENvdXNzb24i
-IDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
-Y29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwg
-TW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRA
-YXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJ
-YW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxs
-aW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6
-IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
-ZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1i
-eTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgfCAyOCArKysrKysrKysrKysrKysr
-KysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1v
-ZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpCgpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgYi9hcmNo
-L2FybS9ib290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaQpuZXcgZmlsZSBtb2RlIDEwMDY0
-NAppbmRleCAwMDAwMDAwLi4zZTlkYzAwCi0tLSAvZGV2L251bGwKKysrIGIvYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERl
-dmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIENPUkUgdGhlcm1hbAorICoKKyAqIENv
-cHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNvcnBvcmF0ZWQgLSBodHRwOi8v
-d3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50
-aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNlZCB1bmRlciB0aGUgdGVybXMg
-b2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2ZXJzaW9uIDIuICBUaGlzIHBy
-b2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3YXJyYW50eSBvZiBhbnkKKyAq
-IGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICovCisKKyNpbmNsdWRlIDxkdC1i
-aW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY29yZV90aGVybWFsOiBjb3JlX3RoZXJtYWwg
-eworCXBvbGxpbmctZGVsYXktcGFzc2l2ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlw
-b2xsaW5nLWRlbGF5ID0gPDEwMDA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29y
-ICAgICAgIElEICovCisJdGhlcm1hbC1zZW5zb3JzID0gPCZiYW5kZ2FwICAgICAyPjsKKworCXRy
-aXBzIHsKKwkJY29yZV9jcml0OiBjb3JlX2NyaXQgeworCQkJdGVtcGVyYXR1cmUgPSA8MTI1MDAw
-PjsgLyogbWlsbGlDZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaUNl
-bHNpdXMgKi8KKwkJCXR5cGUgPSBUSEVSTUFMX1RSSVBfQ1JJVElDQUw7CisJCX07CisJfTsKK307
-Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
-c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
-bG0tc2Vuc29ycw=
+acpi_power_meter crashes the kernel if it detects an unexpected event
+or an internal implementation error. While the detected conditions
+suggest that there is a bug in the code, the condition is not fatal.
+Replace BUG() with WARN().
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/acpi_power_meter.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
+index a9e3d01..51b045b 100644
+--- a/drivers/hwmon/acpi_power_meter.c
++++ b/drivers/hwmon/acpi_power_meter.c
+@@ -381,8 +381,10 @@ static ssize_t show_str(struct device *dev,
+ 		val = resource->oem_info;
+ 		break;
+ 	default:
+-		BUG();
++		WARN(1, "Implementation error: unexpected attribute index %d\n",
++		     attr->index);
+ 		val = "";
++		break;
+ 	}
+ 
+ 	return sprintf(buf, "%s\n", val);
+@@ -436,7 +438,9 @@ static ssize_t show_val(struct device *dev,
+ 		val = resource->trip[attr->index - 7] * 1000;
+ 		break;
+ 	default:
+-		BUG();
++		WARN(1, "Implementation error: unexpected attribute index %d\n",
++		     attr->index);
++		break;
+ 	}
+ 
+ 	return sprintf(buf, "%llu\n", val);
+@@ -855,7 +859,8 @@ static void acpi_power_meter_notify(struct acpi_device *device, u32 event)
+ 		dev_info(&device->dev, "Capping in progress.\n");
+ 		break;
+ 	default:
+-		BUG();
++		WARN(1, "Unexpected event %d\n", event);
++		break;
+ 	}
+ 	mutex_unlock(&resource->lock);
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
