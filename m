@@ -1,94 +1,184 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:15 +0000
-Subject: [lm-sensors] [PATCHv4 08/18] hwmon: tmp102: expose to thermal fw via DT nodes
-Message-Id: <1380251605-3804-9-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 17:13:52 +0000
+Subject: [lm-sensors] [PATCH 11/11] hwmon: (jc42) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1379178832-1489-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-This patch adds to tmp102 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
-
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the tmp102 DT node. Otherwise, the driver behavior
-will be the same.
-
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/tmp102.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/hwmon/jc42.c |   61 +++++++++++++++++++++-----------------------------
+ 1 file changed, 25 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
-index d7b47ab..6748b45 100644
---- a/drivers/hwmon/tmp102.c
-+++ b/drivers/hwmon/tmp102.c
-@@ -27,6 +27,8 @@
- #include <linux/mutex.h>
- #include <linux/device.h>
- #include <linux/jiffies.h>
-+#include <linux/thermal.h>
-+#include <linux/of.h>
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 4a58f13..f362cea 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -163,7 +163,7 @@ static struct jc42_chips jc42_chips[] = {
  
- #define	DRIVER_NAME "tmp102"
+ /* Each client has this additional data */
+ struct jc42_data {
+-	struct device	*hwmon_dev;
++	struct i2c_client *client;
+ 	struct mutex	update_lock;	/* protect register access */
+ 	bool		extended;	/* true if extended range supported */
+ 	bool		valid;
+@@ -193,21 +193,21 @@ MODULE_DEVICE_TABLE(i2c, jc42_id);
  
-@@ -50,6 +52,7 @@
+ static int jc42_suspend(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct jc42_data *data = i2c_get_clientdata(client);
++	struct jc42_data *data = dev_get_drvdata(dev);
  
- struct tmp102 {
- 	struct device *hwmon_dev;
-+	struct thermal_zone_device *tz;
- 	struct mutex lock;
- 	u16 config_orig;
- 	unsigned long last_update;
-@@ -93,6 +96,15 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
- 	return tmp102;
+ 	data->config |= JC42_CFG_SHUTDOWN;
+-	i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG, data->config);
++	i2c_smbus_write_word_swapped(data->client, JC42_REG_CONFIG,
++				     data->config);
+ 	return 0;
  }
  
-+static int tmp102_read_temp(void *dev, long *temp)
-+{
-+	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
-+
-+	*temp = tmp102->temp[0];
-+
-+	return 0;
-+}
-+
- static ssize_t tmp102_show_temp(struct device *dev,
- 				struct device_attribute *attr,
- 				char *buf)
-@@ -204,6 +216,12 @@ static int tmp102_probe(struct i2c_client *client,
- 		goto fail_remove_sysfs;
- 	}
+ static int jc42_resume(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct jc42_data *data = i2c_get_clientdata(client);
++	struct jc42_data *data = dev_get_drvdata(dev);
  
-+	tmp102->tz = thermal_zone_of_sensor_register(&client->dev, 0,
-+						     &client->dev,
-+						     tmp102_read_temp, NULL);
-+	if (IS_ERR(tmp102->tz))
-+		tmp102->tz = NULL;
-+
- 	dev_info(&client->dev, "initialized\n");
+ 	data->config &= ~JC42_CFG_SHUTDOWN;
+-	i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG, data->config);
++	i2c_smbus_write_word_swapped(data->client, JC42_REG_CONFIG,
++				     data->config);
+ 	return 0;
+ }
+ 
+@@ -317,15 +317,14 @@ static ssize_t set_##value(struct device *dev,				\
+ 			   struct device_attribute *attr,		\
+ 			   const char *buf, size_t count)		\
+ {									\
+-	struct i2c_client *client = to_i2c_client(dev);			\
+-	struct jc42_data *data = i2c_get_clientdata(client);		\
++	struct jc42_data *data = dev_get_drvdata(dev);			\
+ 	int err, ret = count;						\
+ 	long val;							\
+-	if (kstrtol(buf, 10, &val) < 0)				\
++	if (kstrtol(buf, 10, &val) < 0)					\
+ 		return -EINVAL;						\
+ 	mutex_lock(&data->update_lock);					\
+ 	data->value = jc42_temp_to_reg(val, data->extended);		\
+-	err = i2c_smbus_write_word_swapped(client, reg, data->value);	\
++	err = i2c_smbus_write_word_swapped(data->client, reg, data->value); \
+ 	if (err < 0)							\
+ 		ret = err;						\
+ 	mutex_unlock(&data->update_lock);				\
+@@ -344,8 +343,7 @@ static ssize_t set_temp_crit_hyst(struct device *dev,
+ 				  struct device_attribute *attr,
+ 				  const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct jc42_data *data = i2c_get_clientdata(client);
++	struct jc42_data *data = dev_get_drvdata(dev);
+ 	unsigned long val;
+ 	int diff, hyst;
+ 	int err;
+@@ -368,7 +366,7 @@ static ssize_t set_temp_crit_hyst(struct device *dev,
+ 	mutex_lock(&data->update_lock);
+ 	data->config = (data->config & ~JC42_CFG_HYST_MASK)
+ 	  | (hyst << JC42_CFG_HYST_SHIFT);
+-	err = i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG,
++	err = i2c_smbus_write_word_swapped(data->client, JC42_REG_CONFIG,
+ 					   data->config);
+ 	if (err < 0)
+ 		ret = err;
+@@ -430,8 +428,7 @@ static umode_t jc42_attribute_mode(struct kobject *kobj,
+ 				  struct attribute *attr, int index)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct jc42_data *data = i2c_get_clientdata(client);
++	struct jc42_data *data = dev_get_drvdata(dev);
+ 	unsigned int config = data->config;
+ 	bool readonly;
+ 
+@@ -452,6 +449,7 @@ static const struct attribute_group jc42_group = {
+ 	.attrs = jc42_attributes,
+ 	.is_visible = jc42_attribute_mode,
+ };
++__ATTRIBUTE_GROUPS(jc42);
+ 
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int jc42_detect(struct i2c_client *client, struct i2c_board_info *info)
+@@ -487,14 +485,16 @@ static int jc42_detect(struct i2c_client *client, struct i2c_board_info *info)
+ 
+ static int jc42_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+-	struct jc42_data *data;
+-	int config, cap, err;
+ 	struct device *dev = &client->dev;
++	struct device *hwmon_dev;
++	struct jc42_data *data;
++	int config, cap;
+ 
+ 	data = devm_kzalloc(dev, sizeof(struct jc42_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
++	data->client = client;
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+@@ -515,29 +515,18 @@ static int jc42_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	}
+ 	data->config = config;
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&dev->kobj, &jc42_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data,
++							   jc42_groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
  
  	return 0;
-@@ -220,6 +238,7 @@ static int tmp102_remove(struct i2c_client *client)
- {
- 	struct tmp102 *tmp102 = i2c_get_clientdata(client);
+-
+-exit_remove:
+-	sysfs_remove_group(&dev->kobj, &jc42_group);
+-	return err;
+ }
  
-+	thermal_zone_of_sensor_unregister(&client->dev, tmp102->tz);
- 	hwmon_device_unregister(tmp102->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
+ static int jc42_remove(struct i2c_client *client)
+ {
+ 	struct jc42_data *data = i2c_get_clientdata(client);
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &jc42_group);
+ 
+ 	/* Restore original configuration except hysteresis */
+ 	if ((data->config & ~JC42_CFG_HYST_MASK) !@@ -553,8 +542,8 @@ static int jc42_remove(struct i2c_client *client)
+ 
+ static struct jc42_data *jc42_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct jc42_data *data = i2c_get_clientdata(client);
++	struct jc42_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	struct jc42_data *ret = data;
+ 	int val;
  
 -- 
-1.8.2.1.342.gfa7285d
+1.7.9.7
 
 
 _______________________________________________
