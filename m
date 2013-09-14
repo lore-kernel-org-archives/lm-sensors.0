@@ -1,45 +1,48 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:19 +0000
-Subject: [lm-sensors] [PATCHv4 12/18] arm: dts: add omap4460 thermal data
-Message-Id: <1380251605-3804-13-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 08:33:30 +0000
+Subject: [lm-sensors] [PATCH 07/12] hwmon: (gpio_fan) Use error value returned from get_fan_speed_index()
+Message-Id: <1379147615-7703-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDYwIHRvIGNvbnRhaW4K
-dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
-bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
-bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
-YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KQ2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1v
-bGwgPHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFy
-bS5jb20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFu
-IENhbXBiZWxsIDxpYW4uY2FtcGJlbGxAY2l0cml4LmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGlu
-dXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBk
-ZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
-YWRlYWQub3JnCkNjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6
-IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgfCAxMCArKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwg
-OCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jv
-b3QvZHRzL29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCmlu
-ZGV4IGMyZjBmMzkuLjRkOTNhYmEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
-NDYwLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQpAQCAtMTIsNyAr
-MTIsNyBAQAogLyB7CiAJY3B1cyB7CiAJCS8qIE9NQVA0NDZ4ICdzdGFuZGFyZCBkZXZpY2UnIHZh
-cmlhbnRzIE9QUDUwIHRvIE9QUFR1cmJvICovCi0JCWNwdUAwIHsKKwkJY3B1MDogY3B1QDAgewog
-CQkJb3BlcmF0aW5nLXBvaW50cyA9IDwKIAkJCQkvKiBrSHogICAgdVYgKi8KIAkJCQkzNTAwMDAg
-IDEwMjUwMDAKQEAgLTMwLDEyICszMCwxOCBAQAogCQl0aSxod21vZHMgPSAiZGVidWdzcyI7CiAJ
-fTsKIAotCWJhbmRnYXAgeworCXRoZXJtYWwtem9uZXN7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUt
-dGhlcm1hbC5kdHNpIgorCX07CisKKwliYW5kZ2FwOiBiYW5kZ2FwIHsKIAkJcmVnID0gPDB4NGEw
-MDIyNjAgMHg0CiAJCSAgICAgICAweDRhMDAyMzJDIDB4NAogCQkgICAgICAgMHg0YTAwMjM3OCAw
-eDE4PjsKIAkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKIAkJaW50ZXJydXB0
-cyA9IDwwIDEyNiBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogdGFsZXJ0ICovCiAJCWdwaW9zID0g
-PCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KKworCQkjdGhlcm1hbC1zZW5zb3ItY2VsbHMgPSA8
-MD47CiAJfTsKIH07Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+get_fan_speed_index() returns -EINVAL in case of errors, only to have it
+ignored and replaced with -ENODEV. Make it return -ENODEV and use it.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/gpio-fan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index b7d6a57..155c78f 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -169,7 +169,7 @@ static int get_fan_speed_index(struct gpio_fan_data *fan_data)
+ 	dev_warn(&fan_data->pdev->dev,
+ 		 "missing speed array entry for GPIO value 0x%x\n", ctrl_val);
+ 
+-	return -EINVAL;
++	return -ENODEV;
+ }
+ 
+ static int rpm_to_speed_index(struct gpio_fan_data *fan_data, int rpm)
+@@ -384,7 +384,7 @@ static int fan_ctrl_init(struct gpio_fan_data *fan_data,
+ 	fan_data->pwm_enable = true; /* Enable manual fan speed control. */
+ 	fan_data->speed_index = get_fan_speed_index(fan_data);
+ 	if (fan_data->speed_index < 0)
+-		return -ENODEV;
++		return fan_data->speed_index;
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
