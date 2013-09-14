@@ -1,61 +1,160 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:17 +0000
-Subject: [lm-sensors] [PATCHv4 10/18] arm: dts: add omap4 CPU thermal data
-Message-Id: <1380251605-3804-11-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 17:13:47 +0000
+Subject: [lm-sensors] [PATCH 06/11] hwmon: (ina2xx) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1379178832-1489-7-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
-ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
-IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
-ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
-Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
-bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
-bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
-dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
-QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
-PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
-cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
-cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
-bkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaSB8
-IDQxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNDEg
-aW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
-LWNwdS10aGVybWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
-cHUtdGhlcm1hbC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRz
-aQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi42NWE2ZGViCi0tLSAvZGV2L251
-bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQpAQCAtMCww
-ICsxLDQxIEBACisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNC81IFNvQyBDUFUg
-dGhlcm1hbAorICoKKyAqIENvcHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNv
-cnBvcmF0ZWQgLSBodHRwOi8vd3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50
-aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNl
-ZCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2
-ZXJzaW9uIDIuICBUaGlzIHByb2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3
-YXJyYW50eSBvZiBhbnkKKyAqIGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICov
-CisKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY3B1X3RoZXJt
-YWw6IGNwdV90aGVybWFsIHsKKwlwb2xsaW5nLWRlbGF5LXBhc3NpdmUgPSA8MjUwPjsgLyogbWls
-bGlzZWNvbmRzICovCisJcG9sbGluZy1kZWxheSA9IDwxMDAwPjsgLyogbWlsbGlzZWNvbmRzICov
-CisKKwkJCS8qIHNlbnNvciAgICAgICBJRCAqLworICAgICAgICB0aGVybWFsLXNlbnNvcnMgPSA8
-JmJhbmRnYXAgICAgIDA+OworCisgICAgICAgIHRyaXBzIHsKKyAgICAgICAgICAgICAgICBjcHVf
-YWxlcnQwOiBjcHVfYWxlcnQgeworICAgICAgICAgICAgICAgICAgICAgICAgdGVtcGVyYXR1cmUg
-PSA8MTAwMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAgICBo
-eXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAgICAgICAgICAg
-ICAgICAgIHR5cGUgPSBUSEVSTUFMX1RSSVBfUEFTU0lWRTsKKyAgICAgICAgICAgICAgICB9Owor
-ICAgICAgICAgICAgICAgIGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAgICAgICAg
-ICAgICB0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAg
-ICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLwor
-ICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9IFRIRVJNQUxfVFJJUF9DUklUSUNBTDsKKyAg
-ICAgICAgICAgICAgICB9OworICAgICAgICB9OworCisJY29vbGluZy1tYXBzIHsKKwkJbWFwMCB7
-CisJCQl0cmlwID0gPCZjcHVfYWxlcnQwPjsKKwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNw
-dTAgVEhFUk1BTF9OT19MSU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0g
-CjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+Also introduce dev variable in probe function to simplify access
+to client->dev, and use new macro ATTRIBUTE_GROUPS to declare
+attribute groups.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ina2xx.c |   64 ++++++++++++++++--------------------------------
+ 1 file changed, 21 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 70a39a8..93d26e8 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -78,7 +78,7 @@ struct ina2xx_config {
+ };
+ 
+ struct ina2xx_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	const struct ina2xx_config *config;
+ 
+ 	struct mutex update_lock;
+@@ -112,8 +112,8 @@ static const struct ina2xx_config ina2xx_config[] = {
+ 
+ static struct ina2xx_data *ina2xx_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ina2xx_data *data = i2c_get_clientdata(client);
++	struct ina2xx_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	struct ina2xx_data *ret = data;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -203,41 +203,39 @@ static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, ina2xx_show_value, NULL,
+ 			  INA2XX_POWER);
+ 
+ /* pointers to created device attributes */
+-static struct attribute *ina2xx_attributes[] = {
++static struct attribute *ina2xx_attrs[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_curr1_input.dev_attr.attr,
+ 	&sensor_dev_attr_power1_input.dev_attr.attr,
+ 	NULL,
+ };
+-
+-static const struct attribute_group ina2xx_group = {
+-	.attrs = ina2xx_attributes,
+-};
++ATTRIBUTE_GROUPS(ina2xx);
+ 
+ static int ina2xx_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+-	struct ina2xx_data *data;
+ 	struct ina2xx_platform_data *pdata;
+-	int ret;
+-	u32 val;
++	struct device *dev = &client->dev;
++	struct ina2xx_data *data;
++	struct device *hwmon_dev;
+ 	long shunt = 10000; /* default shunt value 10mOhms */
++	u32 val;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+ 
+-	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	if (dev_get_platdata(&client->dev)) {
+-		pdata = dev_get_platdata(&client->dev);
++	if (dev_get_platdata(dev)) {
++		pdata = dev_get_platdata(dev);
+ 		shunt = pdata->shunt_uohms;
+-	} else if (!of_property_read_u32(client->dev.of_node,
+-				"shunt-resistor", &val)) {
+-			shunt = val;
++	} else if (!of_property_read_u32(dev->of_node,
++					 "shunt-resistor", &val)) {
++		shunt = val;
+ 	}
+ 
+ 	if (shunt <= 0)
+@@ -255,37 +253,18 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
+ 				     data->config->calibration_factor / shunt);
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+-	ret = sysfs_create_group(&client->dev.kobj, &ina2xx_group);
+-	if (ret)
+-		return ret;
+-
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		ret = PTR_ERR(data->hwmon_dev);
+-		goto out_err_hwmon;
+-	}
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data, ina2xx_groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
+ 
+-	dev_info(&client->dev, "power monitor %s (Rshunt = %li uOhm)\n",
++	dev_info(dev, "power monitor %s (Rshunt = %li uOhm)\n",
+ 		 id->name, shunt);
+ 
+ 	return 0;
+-
+-out_err_hwmon:
+-	sysfs_remove_group(&client->dev.kobj, &ina2xx_group);
+-	return ret;
+-}
+-
+-static int ina2xx_remove(struct i2c_client *client)
+-{
+-	struct ina2xx_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &ina2xx_group);
+-
+-	return 0;
+ }
+ 
+ static const struct i2c_device_id ina2xx_id[] = {
+@@ -302,7 +281,6 @@ static struct i2c_driver ina2xx_driver = {
+ 		.name	= "ina2xx",
+ 	},
+ 	.probe		= ina2xx_probe,
+-	.remove		= ina2xx_remove,
+ 	.id_table	= ina2xx_id,
+ };
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
