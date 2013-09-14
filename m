@@ -1,37 +1,48 @@
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Date: Wed, 11 Sep 2013 04:31:52 +0000
-Subject: [lm-sensors] [PATCH 5/5] hwmon: (tmp421) Fix return value
-Message-Id: <1378873192-6297-5-git-send-email-sachin.kamat@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 08:33:34 +0000
+Subject: [lm-sensors] [PATCH 11/12] hwmon: (f75375s) Don't crash the kernel unnecessarily
+Message-Id: <1379147615-7703-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Propagate return value obtained from i2c_smbus_read_byte_data()
-instead of hardcoding.
+The f75375s driver crashes the kernel if it detects an an internal
+implementation error. While the detected conditions suggest that
+there is a bug in the code, the condition is not fatal.
+Replace BUG() with WARN().
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Andre Prendel <andre.prendel@gmx.de>
+Cc: Riku Voipio <riku.voipio@iki.fi>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/tmp421.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/f75375s.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/tmp421.c b/drivers/hwmon/tmp421.c
-index 964c1d6..ae26b06 100644
---- a/drivers/hwmon/tmp421.c
-+++ b/drivers/hwmon/tmp421.c
-@@ -210,7 +210,7 @@ static int tmp421_init_client(struct i2c_client *client)
- 	if (config < 0) {
- 		dev_err(&client->dev,
- 			"Could not read configuration register (%d)\n", config);
--		return -ENODEV;
-+		return config;
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index a837b94..80c42be 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -275,7 +275,7 @@ static bool duty_mode_enabled(u8 pwm_enable)
+ 	case 3: /* Manual, speed mode */
+ 		return false;
+ 	default:
+-		BUG();
++		WARN(1, "Unexpected pwm_enable value %d\n", pwm_enable);
+ 		return true;
  	}
- 
- 	config_orig = config;
+ }
+@@ -291,7 +291,7 @@ static bool auto_mode_enabled(u8 pwm_enable)
+ 	case 4: /* Auto, duty mode */
+ 		return true;
+ 	default:
+-		BUG();
++		WARN(1, "Unexpected pwm_enable value %d\n", pwm_enable);
+ 		return false;
+ 	}
+ }
 -- 
-1.7.9.5
+1.7.9.7
 
 
 _______________________________________________
