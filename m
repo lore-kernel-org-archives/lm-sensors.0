@@ -1,35 +1,160 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:20 +0000
-Subject: [lm-sensors] [PATCHv4 13/18] arm: dts: add cooling properties on omap4430 cpu node
-Message-Id: <1380251605-3804-14-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 17:13:45 +0000
+Subject: [lm-sensors] [PATCH 04/11] hwmon: (max6697) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1379178832-1489-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
-ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
-cyBwYXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRo
-YXQgY3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJl
-bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcu
-dWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZS1kaXNjdXNz
-QGxpc3RzLm96bGFicy5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRv
-IFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0
-cy9vbWFwNDQzeC5kdHNpIHwgNSArKysrKwogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygr
-KQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9hcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IGU5Yzk3ZDYuLjkzMGFiNDcgMTAwNjQ0Ci0t
-LSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDQ0M3guZHRzaQpAQCAtMjIsNiArMjIsMTEgQEAKIAkJCQkxMDA4MDAwIDEzNzUwMDAK
-IAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAwMD47IC8qIEZyb20gbGVnYWN5IGRyaXZl
-ciAqLworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCWNvb2xpbmctbWluLWxldmVsID0g
-PDA+OworCQkJY29vbGluZy1tYXgtbGV2ZWwgPSA8Mz47CisJCQkjY29vbGluZy1jZWxscyA9IDwy
-PjsgLyogbWluIGZvbGxvd2VkIGJ5IG1heCAqLwogCQl9OwogCX07CiAKLS0gCjEuOC4yLjEuMzQy
-LmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
-Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/max6697.c |   54 +++++++++++++++--------------------------------
+ 1 file changed, 17 insertions(+), 37 deletions(-)
+
+diff --git a/drivers/hwmon/max6697.c b/drivers/hwmon/max6697.c
+index a41b5f3..0af910a 100644
+--- a/drivers/hwmon/max6697.c
++++ b/drivers/hwmon/max6697.c
+@@ -77,7 +77,7 @@ struct max6697_chip_data {
+ };
+ 
+ struct max6697_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 
+ 	enum chips type;
+ 	const struct max6697_chip_data *chip;
+@@ -181,8 +181,8 @@ static const struct max6697_chip_data max6697_chip_data[] = {
+ 
+ static struct max6697_data *max6697_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct max6697_data *data = i2c_get_clientdata(client);
++	struct max6697_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	struct max6697_data *ret = data;
+ 	int val;
+ 	int i;
+@@ -303,8 +303,7 @@ static ssize_t set_temp(struct device *dev,
+ {
+ 	int nr = to_sensor_dev_attr_2(devattr)->nr;
+ 	int index = to_sensor_dev_attr_2(devattr)->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct max6697_data *data = i2c_get_clientdata(client);
++	struct max6697_data *data = dev_get_drvdata(dev);
+ 	long temp;
+ 	int ret;
+ 
+@@ -316,7 +315,7 @@ static ssize_t set_temp(struct device *dev,
+ 	temp = DIV_ROUND_CLOSEST(temp, 1000) + data->temp_offset;
+ 	temp = clamp_val(temp, 0, data->type = max6581 ? 255 : 127);
+ 	data->temp[nr][index] = temp;
+-	ret = i2c_smbus_write_byte_data(client,
++	ret = i2c_smbus_write_byte_data(data->client,
+ 					index = 2 ? MAX6697_REG_MAX[nr]
+ 						   : MAX6697_REG_CRIT[nr],
+ 					temp);
+@@ -405,8 +404,7 @@ static umode_t max6697_is_visible(struct kobject *kobj, struct attribute *attr,
+ 				  int index)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct max6697_data *data = i2c_get_clientdata(client);
++	struct max6697_data *data = dev_get_drvdata(dev);
+ 	const struct max6697_chip_data *chip = data->chip;
+ 	int channel = index / 6;	/* channel number */
+ 	int nr = index % 6;		/* attribute index within channel */
+@@ -489,6 +487,7 @@ static struct attribute *max6697_attributes[] = {
+ static const struct attribute_group max6697_group = {
+ 	.attrs = max6697_attributes, .is_visible = max6697_is_visible,
+ };
++__ATTRIBUTE_GROUPS(max6697);
+ 
+ static void max6697_get_config_of(struct device_node *node,
+ 				  struct max6697_platform_data *pdata)
+@@ -525,9 +524,9 @@ static void max6697_get_config_of(struct device_node *node,
+ 	}
+ }
+ 
+-static int max6697_init_chip(struct i2c_client *client)
++static int max6697_init_chip(struct max6697_data *data,
++			     struct i2c_client *client)
+ {
+-	struct max6697_data *data = i2c_get_clientdata(client);
+ 	struct max6697_platform_data *pdata = dev_get_platdata(&client->dev);
+ 	struct max6697_platform_data p;
+ 	const struct max6697_chip_data *chip = data->chip;
+@@ -625,6 +624,7 @@ static int max6697_probe(struct i2c_client *client,
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct device *dev = &client->dev;
+ 	struct max6697_data *data;
++	struct device *hwmon_dev;
+ 	int err;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -636,37 +636,18 @@ static int max6697_probe(struct i2c_client *client,
+ 
+ 	data->type = id->driver_data;
+ 	data->chip = &max6697_chip_data[data->type];
+-
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+-	err = max6697_init_chip(client);
++	err = max6697_init_chip(data, client);
+ 	if (err)
+ 		return err;
+ 
+-	err = sysfs_create_group(&client->dev.kobj, &max6697_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
+-	}
+-
+-	return 0;
+-
+-error:
+-	sysfs_remove_group(&client->dev.kobj, &max6697_group);
+-	return err;
+-}
+-
+-static int max6697_remove(struct i2c_client *client)
+-{
+-	struct max6697_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &max6697_group);
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data,
++							   max6697_groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
+ 
+ 	return 0;
+ }
+@@ -692,7 +673,6 @@ static struct i2c_driver max6697_driver = {
+ 		.name	= "max6697",
+ 	},
+ 	.probe = max6697_probe,
+-	.remove	= max6697_remove,
+ 	.id_table = max6697_id,
+ };
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
