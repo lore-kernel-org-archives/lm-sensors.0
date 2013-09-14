@@ -1,7 +1,7 @@
-From: singumal <qdmd-pu1o@dea.spamcon.org>
-Date: Sat, 14 Sep 2013 01:41:52 +0000
+From: Phil Perry <phil@elrepo.org>
+Date: Sat, 14 Sep 2013 12:08:59 +0000
 Subject: Re: [lm-sensors] Cannot compile w83627ehf standalone driver
-Message-Id: <t9e739p6af2mq92i5hcjlpfnsnkkcauibi@4ax.com>
+Message-Id: <523451DB.6080509@elrepo.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4gtj299ua16tgbppavpscp3ljolbrs8o8r@4ax.com>
 In-Reply-To: <4gtj299ua16tgbppavpscp3ljolbrs8o8r@4ax.com>
@@ -10,149 +10,160 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Phil Perry <phil@elrepo.org> wrote:
-
->On 12/09/13 09:56, singumal wrote:
->> Phil Perry <phil@elrepo.org> wrote:
->>
->>> On 11/09/13 16:22, Guenter Roeck wrote:
->>>> On Wed, Sep 11, 2013 at 03:23:30PM +0100, Phil Perry wrote:
->>>>> On 11/09/13 06:44, singumal wrote:
->>>>>> Phil Perry <phil@elrepo.org> wrote:
->>>>>>
->>>>>>> On 06/09/13 21:22, Jean Delvare wrote:
->>>>>>>> On Fri, 06 Sep 2013 08:37:43 -0700, singumal wrote:
->>>>>>>>> I have an ASRock IMB-170 Mini-ITX board; 3.3.4's sensors-detect shows:
+On 14/09/13 02:41, singumal wrote:
+> Phil Perry <phil@elrepo.org> wrote:
+>
+>> On 12/09/13 09:56, singumal wrote:
+>>> Phil Perry <phil@elrepo.org> wrote:
+>>>
+>>>> On 11/09/13 16:22, Guenter Roeck wrote:
+>>>>> On Wed, Sep 11, 2013 at 03:23:30PM +0100, Phil Perry wrote:
+>>>>>> On 11/09/13 06:44, singumal wrote:
+>>>>>>> Phil Perry <phil@elrepo.org> wrote:
+>>>>>>>
+>>>>>>>> On 06/09/13 21:22, Jean Delvare wrote:
+>>>>>>>>> On Fri, 06 Sep 2013 08:37:43 -0700, singumal wrote:
+>>>>>>>>>> I have an ASRock IMB-170 Mini-ITX board; 3.3.4's sensors-detect shows:
+>>>>>>>>>>
+>>>>>>>>>>       Found `Winbond W83627UHG/NCT6627UD Super IO Sensors'        Success!
+>>>>>>>>>>           (address 0x290, driver `w83627ehf')
+>>>>>>>>>>
+>>>>>>>>>> I'm on an older kernel, and I can't seem to compile the driver
+>>>>>>>>>> from:
+>>>>>>>>>>
+>>>>>>>>>>        http://khali.linux-fr.org/devel/lm-sensors/drivers/w83627ehf/
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> [root@plain1 driver]# uname -a
+>>>>>>>>>> Linux plain1 2.6.18-274.el5 #1 SMP Fri Jul 22 04:43:29 EDT 2011 x86_64 x86_64 x86_64 GNU/Linux
+>>>>>>>>>> [root@plain1 driver]# make
+>>>>>>>>>>       CC [M]  /root/driver/w83627ehf.o
+>>>>>>>>>> /root/driver/w83627ehf.c: In function `in_from_reg':
+>>>>>>>>>> /root/driver/w83627ehf.c:416: error: implicit declaration of function `DIV_ROUND_CLOSEST'
+>>>>>>>>>> ... [many more errors and warnings]
 >>>>>>>>>
->>>>>>>>>      Found `Winbond W83627UHG/NCT6627UD Super IO Sensors'        Success!
->>>>>>>>>          (address 0x290, driver `w83627ehf')
+>>>>>>>>> This driver was never tested for kernels older than 2.6.32. More
+>>>>>>>>> compatibility work would be needed to get it to build and work on
+>>>>>>>>> kernel 2.6.18.
 >>>>>>>>>
->>>>>>>>> I'm on an older kernel, and I can't seem to compile the driver
->>>>>>>>> from:
+>>>>>>>>> I'm wondering if maybe Redhat can provide a backported version as a
+>>>>>>>>> separate package? You're probably not the only one asking for this, as
+>>>>>>>>> this is a popular driver.
 >>>>>>>>>
->>>>>>>>>       http://khali.linux-fr.org/devel/lm-sensors/drivers/w83627ehf/
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> [root@plain1 driver]# uname -a
->>>>>>>>> Linux plain1 2.6.18-274.el5 #1 SMP Fri Jul 22 04:43:29 EDT 2011 x86_64 x86_64 x86_64 GNU/Linux
->>>>>>>>> [root@plain1 driver]# make
->>>>>>>>>      CC [M]  /root/driver/w83627ehf.o
->>>>>>>>> /root/driver/w83627ehf.c: In function `in_from_reg':
->>>>>>>>> /root/driver/w83627ehf.c:416: error: implicit declaration of function `DIV_ROUND_CLOSEST'
->>>>>>>>> ... [many more errors and warnings]
 >>>>>>>>
->>>>>>>> This driver was never tested for kernels older than 2.6.32. More
->>>>>>>> compatibility work would be needed to get it to build and work on
->>>>>>>> kernel 2.6.18.
+>>>>>>>> I've already done a backport of the w83627ehf for RHEL5 and RHEL6, and
+>>>>>>>> it is packaged as a kABI-tracking kmod RPM package (kmod-w83627ehf) in
+>>>>>>>> the elrepo repository.
 >>>>>>>>
->>>>>>>> I'm wondering if maybe Redhat can provide a backported version as a
->>>>>>>> separate package? You're probably not the only one asking for this, as
->>>>>>>> this is a popular driver.
+>>>>>>>> http://elrepo.org/tiki/kmod-w83627ehf
+>>>>>>>>
+>>>>>>>> This driver is backported from the longterm kernel-3.2.50.
+>>>>>>>>
+>>>>>>>> Once you have set up the elrepo repository:
+>>>>>>>>
+>>>>>>>> yum install kmod-w83627ehf
+>>>>>>>>
+>>>>>>>> will pull in the updated driver.
+>>>>>>>>
+>>>>>>>> Further, because it's a kABI-tracking package the driver will seamlessly
+>>>>>>>> work with new kernels so you will not need to recompile the driver
+>>>>>>>> against each new kernel update (an advantage of Red Hat's stable kernel
+>>>>>>>> ABI).
+>>>>>>>>
+>>>>>>>> Regards,
+>>>>>>>>
+>>>>>>>> Phil
 >>>>>>>>
 >>>>>>>
->>>>>>> I've already done a backport of the w83627ehf for RHEL5 and RHEL6, and
->>>>>>> it is packaged as a kABI-tracking kmod RPM package (kmod-w83627ehf) in
->>>>>>> the elrepo repository.
+>>>>>>> Thank you very much, Phil.
 >>>>>>>
->>>>>>> http://elrepo.org/tiki/kmod-w83627ehf
+>>>>>>> Unfortunately, it doesn't seem to quite like my system,
 >>>>>>>
->>>>>>> This driver is backported from the longterm kernel-3.2.50.
+>>>>>>> The RPM installed fine, but "sensors" only shows coretemp, not the chip.
+>>>>>>> Finally I checked the module - something isn't right:
 >>>>>>>
->>>>>>> Once you have set up the elrepo repository:
+>>>>>>> [root@tm3 etc]# modprobe w83627ehf
+>>>>>>> FATAL: Error inserting w83627ehf (/lib/modules/2.6.18-274.el5/weak-updates/w83627ehf/w83627ehf.ko): No such device
 >>>>>>>
->>>>>>> yum install kmod-w83627ehf
->>>>>>>
->>>>>>> will pull in the updated driver.
->>>>>>>
->>>>>>> Further, because it's a kABI-tracking package the driver will seamlessly
->>>>>>> work with new kernels so you will not need to recompile the driver
->>>>>>> against each new kernel update (an advantage of Red Hat's stable kernel
->>>>>>> ABI).
->>>>>>>
->>>>>>> Regards,
->>>>>>>
->>>>>>> Phil
 >>>>>>>
 >>>>>>
->>>>>> Thank you very much, Phil.
+>>>>>> Hi,
 >>>>>>
->>>>>> Unfortunately, it doesn't seem to quite like my system,
+>>>>>> I'm not sure what the problem is. One thing I note is that you are
+>>>>>> running an older RHEL 5.7 kernel. Would it be possible to try
+>>>>>> booting the latest/current RHEL kernel to at least eliminate that as
+>>>>>> the possible cause (i.e, a RHEL 5.9 kernel;
+>>>>>> kernel-2.6.18-348.16.1.el5 is the latest).
 >>>>>>
->>>>>> The RPM installed fine, but "sensors" only shows coretemp, not the chip.
->>>>>> Finally I checked the module - something isn't right:
->>>>>>
->>>>>> [root@tm3 etc]# modprobe w83627ehf
->>>>>> FATAL: Error inserting w83627ehf (/lib/modules/2.6.18-274.el5/weak-updates/w83627ehf/w83627ehf.ko): No such device
->>>>>>
->>>>>>
+>>>>> Maybe the chip in question is not supported by the backported version
+>>>>> of the driver.
 >>>>>
->>>>> Hi,
+>>>>> Guenter
 >>>>>
->>>>> I'm not sure what the problem is. One thing I note is that you are
->>>>> running an older RHEL 5.7 kernel. Would it be possible to try
->>>>> booting the latest/current RHEL kernel to at least eliminate that as
->>>>> the possible cause (i.e, a RHEL 5.9 kernel;
->>>>> kernel-2.6.18-348.16.1.el5 is the latest).
->>>>>
->>>> Maybe the chip in question is not supported by the backported version
->>>> of the driver.
 >>>>
->>>> Guenter
+>>>> Hi Guenter,
 >>>>
+>>>> It should be (unless maybe it's being mis-detected by sensors-detect?).
+>>>> The backport is from kernel-3.2.48 LT branch which contains the patch to
+>>>> add support for the W83627UHG chip, as reported by sensors-detect above.
+>>>>
+>>>> Phil
 >>>
->>> Hi Guenter,
+>>> Trying it under CentOS 5.9, it still doesn't work:
 >>>
->>> It should be (unless maybe it's being mis-detected by sensors-detect?).
->>> The backport is from kernel-3.2.48 LT branch which contains the patch to
->>> add support for the W83627UHG chip, as reported by sensors-detect above.
+>>> [root@x59 ~]# cp /media/MULTIBOOT/Work/kmod-w83627ehf-0.0-8.el5.elrepo.x86_64.rpm .
+>>> [root@x59 ~]# rpm -Uvh kmod-w83627ehf-0.0-8.el5.elrepo.x86_64.rpm
+>>> warning: kmod-w83627ehf-0.0-8.el5.elrepo.x86_64.rpm: Header V3 DSA signature: NOKEY, key ID baadae52
+>>> Preparing...                ########################################### [100%]
+>>>      1:kmod-w83627ehf         ########################################### [100%]
+>>> Working. This may take some time ...
+>>> Done.
+>>> [root@x59 ~]# modprobe w83627ehf
+>>> FATAL: Error inserting w83627ehf (/lib/modules/2.6.18-348.el5/weak-updates/w83627ehf/w83627ehf.ko): No such device
+>>> [root@x59 ~]# uname -a
+>>> Linux x59 2.6.18-348.el5 #1 SMP Tue Jan 8 17:53:53 EST 2013 x86_64 x86_64 x86_64 GNU/Linux
 >>>
->>> Phil
->>
->> Trying it under CentOS 5.9, it still doesn't work:
->>
->> [root@x59 ~]# cp /media/MULTIBOOT/Work/kmod-w83627ehf-0.0-8.el5.elrepo.x86_64.rpm .
->> [root@x59 ~]# rpm -Uvh kmod-w83627ehf-0.0-8.el5.elrepo.x86_64.rpm
->> warning: kmod-w83627ehf-0.0-8.el5.elrepo.x86_64.rpm: Header V3 DSA signature: NOKEY, key ID baadae52
->> Preparing...                ########################################### [100%]
->>     1:kmod-w83627ehf         ########################################### [100%]
->> Working. This may take some time ...
->> Done.
->> [root@x59 ~]# modprobe w83627ehf
->> FATAL: Error inserting w83627ehf (/lib/modules/2.6.18-348.el5/weak-updates/w83627ehf/w83627ehf.ko): No such device
->> [root@x59 ~]# uname -a
->> Linux x59 2.6.18-348.el5 #1 SMP Tue Jan 8 17:53:53 EST 2013 x86_64 x86_64 x86_64 GNU/Linux
+>>>
 >>
 >>
+>> I see the problem (I think), and it's partially my fault.
+>>
+>> Support for the W83627UHG chip was only backported into version
+>> 0.0-9.el5 of the kmod-w83627ehf driver (you have version 0.0-8.el5
+>> installed above), and I put that into the extras repository by mistake
+>> instead of the main repo.
+>>
+>> I'm assuming you are seeing the above FATAL Error as that version of the
+>> driver does not support your device, hence "No such device".
+>>
+>> Please update to the latest 0.0-9.el5 version with:
+>>
+>> yum --enablerepo=elrepo-extras update kmod-w83627ehf
+>>
+>> or below is a direct link to version 0.0-9.el5 of the package but I'll
+>> move it to it's correct repository shortly so the link will most likely
+>> break:
+>>
+>> http://elrepo.org/linux/extras/el5/x86_64/RPMS/kmod-w83627ehf-0.0-9.el5.elrepo.x86_64.rpm
+>>
+>> My apologies for the inconvenience.
 >
 >
->I see the problem (I think), and it's partially my fault.
+> Phil,
 >
->Support for the W83627UHG chip was only backported into version 
->0.0-9.el5 of the kmod-w83627ehf driver (you have version 0.0-8.el5 
->installed above), and I put that into the extras repository by mistake 
->instead of the main repo.
+> No apologies necessary - IT WORKS!  Thank you so very much (and Jean and Guenter too).
+> Now I just have to try to get it configured - starting separate thread "ASRock IMB-170
+> configuration help" on that.
 >
->I'm assuming you are seeing the above FATAL Error as that version of the 
->driver does not support your device, hence "No such device".
 >
->Please update to the latest 0.0-9.el5 version with:
->
->yum --enablerepo=elrepo-extras update kmod-w83627ehf
->
->or below is a direct link to version 0.0-9.el5 of the package but I'll 
->move it to it's correct repository shortly so the link will most likely 
->break:
->
->http://elrepo.org/linux/extras/el5/x86_64/RPMS/kmod-w83627ehf-0.0-9.el5.elrepo.x86_64.rpm
->
->My apologies for the inconvenience.
 
+Great, so glad it's working for you.
 
-Phil,
+Many thanks for the feedback - it's much appreciated.
 
-No apologies necessary - IT WORKS!  Thank you so very much (and Jean and Guenter too).
-Now I just have to try to get it configured - starting separate thread "ASRock IMB-170
-configuration help" on that. 
+Regards,
+
+Phil
 
 
 _______________________________________________
