@@ -1,381 +1,56 @@
-From: "Markezana, William" <William.Markezana@meas-spec.com>
-Date: Wed, 11 Sep 2013 05:48:03 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ms5637) Add Measurement Specialties MS5637 support
-Message-Id: <E7458771276B644AB8F21A92079F7D6C58AC50@tlse-mail1.europe.msiusa.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Sep 2013 08:33:33 +0000
+Subject: [lm-sensors] [PATCH 10/12] hwmon: (atxp1) Set and use error code from vid_to_reg()
+Message-Id: <1379147615-7703-11-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E7458771276B644AB8F21A92079F7D6C53C593@tlse-mail1.europe.msiusa.com> <20130828161804.GB5278@roeck-us.net> <E7458771276B644AB8F21A92079F7D6C0E6D03@tlse-mail1.europe.msiusa.com> <20130829094052.GA19239@roeck-us.net> <E7458771276B644AB8F21A92079F7D6C0E6D04@tlse-mail1.europe.msiusa.com> <E7458771276B644AB8F21A92079F7D6C0E6D06@tlse-mail1.europe.msiusa.com> <20130910152043.GA9165@roeck-us.net>
-In-Reply-To: <20130910152043.GA9165@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+vid_to_reg() returns -1 if it encounters an error. Return -EINVAL instead.
+Its only caller, atxp1_storevcore(), doesn't use the return code but
+returns -1 instead, which is wrong anyway as it means -EPERM.
+Use the return value from vid_to_reg() instead to report the error.
 
-Thank you for your feedback, I will rewrite the drivers for IIO then.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/atxp1.c     |    3 +--
+ include/linux/hwmon-vid.h |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-Best regards,
+diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
+index aecb9ea..ddff02e 100644
+--- a/drivers/hwmon/atxp1.c
++++ b/drivers/hwmon/atxp1.c
+@@ -147,10 +147,9 @@ static ssize_t atxp1_storevcore(struct device *dev,
+ 
+ 	/* Calculate VID */
+ 	vid = vid_to_reg(vcore, data->vrm);
+-
+ 	if (vid < 0) {
+ 		dev_err(dev, "VID calculation failed.\n");
+-		return -1;
++		return vid;
+ 	}
+ 
+ 	/*
+diff --git a/include/linux/hwmon-vid.h b/include/linux/hwmon-vid.h
+index f346e4d..da0a680 100644
+--- a/include/linux/hwmon-vid.h
++++ b/include/linux/hwmon-vid.h
+@@ -38,7 +38,7 @@ static inline int vid_to_reg(int val, u8 vrm)
+ 		return ((val >= 1100) && (val <= 1850) ?
+ 			((18499 - val * 10) / 25 + 5) / 10 : -1);
+ 	default:
+-		return -1;
++		return -EINVAL;
+ 	}
+ }
+ 
+-- 
+1.7.9.7
 
-William MARKEZANA
-Direct=A0: + 33 (0) 582 082 286
-http://www.meas-spec.com
-
-
------Message d'origine-----
-De=A0: Guenter Roeck [mailto:groeck7@gmail.com] De la part de Guenter Roeck
-Envoy=E9=A0: mardi 10 septembre 2013 17:21
-=C0=A0: Markezana, William
-Cc=A0: khali@linux-fr.org; lm-sensors@lm-sensors.org; linux-kernel@vger.ker=
-nel.org
-Objet=A0: Re: [PATCH] hwmon: (ms5637) Add Measurement Specialties MS5637 su=
-pport
-
-On Tue, Sep 10, 2013 at 05:09:57PM +0200, Markezana, William wrote:
-> From: William Markezana <william.markezana@meas-spec.com>
->=20
-> hwmon: (ms5637) Add Measurement Specialties MS5637support
-> Signed-off-by: William Markezana <william.markezana@meas-spec.com>
-
-Hi William,
-
-"pressure" is hardly a hardware monitoring attribute. It might make more se=
-nse to add your driver to the iio subsystem, which already supports at leas=
-t one other pressure sensor.
-
-Thanks,
-Guenter
-
-> ---
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig index=20
-> 55973cd..c4f1c8e 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -954,6 +954,16 @@ config SENSORS_MCP3021
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called mcp3021.
-> =20
-> +config SENSORS_MS5637
-> +	tristate "Measurement Specialties MS5637 pressure sensors"
-> +	depends on I2C
-> +	help
-> +	  If you say yes here you get support for the Measurement Specialties
-> +	  MS5637 pressure sensors.
-> +
-> +	  This driver can also be built as a module.  If so, the module
-> +	  will be called ms5637.
-> +
->  config SENSORS_NCT6775
->  	tristate "Nuvoton NCT6775F and compatibles"
->  	depends on !PPC
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile index=20
-> ec7cde0..5d8f699 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -110,6 +110,7 @@ obj-$(CONFIG_SENSORS_MAX6650)	+=3D max6650.o
->  obj-$(CONFIG_SENSORS_MAX6697)	+=3D max6697.o
->  obj-$(CONFIG_SENSORS_MC13783_ADC)+=3D mc13783-adc.o
->  obj-$(CONFIG_SENSORS_MCP3021)	+=3D mcp3021.o
-> +obj-$(CONFIG_SENSORS_MS5637)	+=3D ms5637.o
->  obj-$(CONFIG_SENSORS_NCT6775)	+=3D nct6775.o
->  obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+=3D ntc_thermistor.o
->  obj-$(CONFIG_SENSORS_PC87360)	+=3D pc87360.o
-> diff --git a/drivers/hwmon/ms5637.c b/drivers/hwmon/ms5637.c new file=20
-> mode 100644 index 0000000..fe2c2df
-> --- /dev/null
-> +++ b/drivers/hwmon/ms5637.c
-> @@ -0,0 +1,302 @@
-> +/*
-> + * Measurement Specialties MS5637 pressure and temperature sensor=20
-> +driver
-> + *
-> + * Copyright (C) 2013 William Markezana=20
-> +<william.markezana@meas-spec.com>
-> + *
-> + * This program is free software; you can redistribute it and/or=20
-> +modify
-> + * it under the terms of the GNU General Public License as published=20
-> +by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
-> +#include <linux/device.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/delay.h>
-> +
-> +/* MS5637 Commands */
-> +#define MS5637_CONVERT_D1_OSR_4096	(0x48)
-> +#define MS5637_CONVERT_D2_OSR_4096	(0x58)
-> +#define MS5637_ADC_READ				(0x00)
-> +#define MS5637_PROM_READ			(0xA0)
-> +
-> +struct ms5637 {
-> +	struct device *hwmon_dev;
-> +	struct mutex lock;
-> +	bool valid;
-> +	unsigned long last_update;
-> +	int temperature;
-> +	int pressure;
-> +	unsigned short calibration_words[6];
-> +	bool got_calibration_words;
-> +};
-> +
-> +static int ms5637_get_calibration_word(struct i2c_client *client,
-> +	unsigned char address, unsigned short *word) {
-> +	int ret =3D 0;
-> +	ret =3D i2c_smbus_read_word_swapped(client,
-> +		MS5637_PROM_READ + (address << 1));
-> +	if (ret < 0)
-> +		return ret;
-> +	*word =3D (unsigned short)ret & 0xFFFF;
-> +	return 0;
-> +}
-> +
-> +static int ms5637_fill_calibration_words(struct i2c_client *client) {
-> +	int i, ret =3D 0;
-> +	struct ms5637 *ms5637 =3D i2c_get_clientdata(client);
-> +
-> +	for (i =3D 0; i < 6; i++) {
-> +		ret =3D ms5637_get_calibration_word(client, i+1,
-> +			&ms5637->calibration_words[i]);
-> +		if (ret < 0) {
-> +			dev_err(&client->dev,
-> +				"unable to get calibration word at address %d\n",
-> +				i+1);
-> +			return ret;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int ms5637_get_adc_value(struct i2c_client *client,
-> +	unsigned int *adc_value)
-> +{
-> +	int ret =3D 0;
-> +	unsigned char buf[3];
-> +	ret =3D i2c_smbus_read_i2c_block_data(client, MS5637_ADC_READ, 3, buf);
-> +	if (ret < 0)
-> +		return ret;
-> +	*adc_value =3D (buf[0] << 16) + (buf[1] << 8) + buf[2];
-> +	return 0;
-> +}
-> +
-> +static int ms5637_get_conversion_result(struct i2c_client *client,
-> +	unsigned char command, unsigned int *adc_value) {
-> +	int ret;
-> +
-> +	ret =3D i2c_smbus_write_byte(client, command);
-> +	if (ret < 0)
-> +		return ret;
-> +	msleep(9);
-> +	ret =3D ms5637_get_adc_value(client, adc_value);
-> +	if (ret < 0)
-> +		return ret;
-> +	return 0;
-> +}
-> +
-> +static int ms5637_update_measurements(struct i2c_client *client) {
-> +	int ret =3D 0;
-> +	unsigned int d1, d2;
-> +	int dt, temp, p;
-> +	long long int off, sens;
-> +	struct ms5637 *ms5637 =3D i2c_get_clientdata(client);
-> +
-> +	mutex_lock(&ms5637->lock);
-> +
-> +	if (time_after(jiffies, ms5637->last_update + HZ / 2) ||
-> +	    !ms5637->valid) {
-> +
-> +		if (!ms5637->got_calibration_words)	{
-> +			ret =3D ms5637_fill_calibration_words(client);
-> +			if (ret < 0) {
-> +				dev_err(&client->dev,
-> +					"unable to get calibration words\n");
-> +				goto out;
-> +			}
-> +
-> +			ms5637->got_calibration_words =3D true;
-> +		}
-> +
-> +		ret =3D ms5637_get_conversion_result(client,
-> +			MS5637_CONVERT_D1_OSR_4096, &d1);
-> +		if (ret < 0) {
-> +			dev_err(&client->dev,
-> +				"unable to get adc conversion of D1_OSR_4096\n");
-> +			goto out;
-> +		}
-> +
-> +		ret =3D ms5637_get_conversion_result(client,
-> +			MS5637_CONVERT_D2_OSR_4096, &d2);
-> +		if (ret < 0) {
-> +			dev_err(&client->dev,
-> +				"unable to get adc conversion of D2_OSR_4096\n");
-> +			goto out;
-> +		}
-> +
-> +		dt =3D d2 - (int)ms5637->calibration_words[4] * 256;
-> +		temp =3D 20000 + div_s64((long long int)dt *
-> +			(long long int)ms5637->calibration_words[5], 838861);
-> +
-> +		off =3D (long long int)ms5637->calibration_words[1] * 131072 +
-> +			div_s64((long long int)ms5637->calibration_words[3] *
-> +			(long long int)dt, 64);
-> +		sens =3D (long long int)ms5637->calibration_words[0] * 65536 +
-> +			div_s64((long long int)ms5637->calibration_words[2] *
-> +			(long long int)dt, 128);
-> +		p =3D (int)div_s64((div_s64((long long int)d1 * sens, 2097152) -
-> +			off), 3277);
-> +
-> +		ms5637->temperature =3D temp;
-> +		ms5637->pressure =3D p;
-> +		ms5637->last_update =3D jiffies;
-> +		ms5637->valid =3D true;
-> +	}
-> +out:
-> +	mutex_unlock(&ms5637->lock);
-> +
-> +	return ret >=3D 0 ? 0 : ret;
-> +}
-> +
-> +static ssize_t ms5637_show_temperature(struct device *dev,
-> +				      struct device_attribute *attr, char *buf) {
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct ms5637 *ms5637 =3D i2c_get_clientdata(client);
-> +	int ret =3D ms5637_update_measurements(client);
-> +	if (ret < 0)
-> +		return ret;
-> +	return sprintf(buf, "%d\n", ms5637->temperature); }
-> +
-> +static ssize_t ms5637_show_pressure(struct device *dev,
-> +				   struct device_attribute *attr, char *buf) {
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct ms5637 *ms5637 =3D i2c_get_clientdata(client);
-> +	int ret =3D ms5637_update_measurements(client);
-> +	if (ret < 0)
-> +		return ret;
-> +	return sprintf(buf, "%d\n", ms5637->pressure); }
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
-> +			  ms5637_show_temperature, NULL, 0); static=20
-> +SENSOR_DEVICE_ATTR(pressure1_input, S_IRUGO,
-> +			  ms5637_show_pressure, NULL, 0);
-> +
-> +static struct attribute *ms5637_attributes[] =3D {
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	&sensor_dev_attr_pressure1_input.dev_attr.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group ms5637_group =3D {
-> +	.attrs =3D ms5637_attributes,
-> +};
-> +
-> +static int ms5637_probe(struct i2c_client *client,
-> +		       const struct i2c_device_id *id) {
-> +	struct ms5637 *ms5637;
-> +	int err;
-> +
-> +	if (!i2c_check_functionality(client->adapter,
-> +					I2C_FUNC_SMBUS_READ_WORD_DATA)) {
-> +		dev_err(&client->dev,
-> +			"adapter does not support SMBus word transactions\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (!i2c_check_functionality(client->adapter,
-> +				    I2C_FUNC_SMBUS_WRITE_BYTE)) {
-> +		dev_err(&client->dev,
-> +			"adapter does not support SMBus byte transactions\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (!i2c_check_functionality(client->adapter,
-> +				    I2C_FUNC_SMBUS_READ_I2C_BLOCK)) {
-> +		dev_err(&client->dev,
-> +			"adapter does not support SMBus block transactions\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	ms5637 =3D devm_kzalloc(&client->dev, sizeof(*ms5637), GFP_KERNEL);
-> +	if (!ms5637)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, ms5637);
-> +
-> +	mutex_init(&ms5637->lock);
-> +
-> +	err =3D sysfs_create_group(&client->dev.kobj, &ms5637_group);
-> +	if (err) {
-> +		dev_dbg(&client->dev, "could not create sysfs files\n");
-> +		return err;
-> +	}
-> +	ms5637->hwmon_dev =3D hwmon_device_register(&client->dev);
-> +	if (IS_ERR(ms5637->hwmon_dev)) {
-> +		dev_dbg(&client->dev, "unable to register hwmon device\n");
-> +		err =3D PTR_ERR(ms5637->hwmon_dev);
-> +		goto error;
-> +	}
-> +
-> +	mutex_lock(&ms5637->lock);
-> +	err =3D ms5637_fill_calibration_words(client);
-> +	if (err >=3D 0)
-> +		ms5637->got_calibration_words =3D true;
-> +	mutex_unlock(&ms5637->lock);
-> +
-> +	dev_info(&client->dev, "initialized\n");
-> +
-> +	return 0;
-> +
-> +error:
-> +	sysfs_remove_group(&client->dev.kobj, &ms5637_group);
-> +	return err;
-> +}
-> +
-> +static int ms5637_remove(struct i2c_client *client) {
-> +	struct ms5637 *ms5637 =3D i2c_get_clientdata(client);
-> +
-> +	hwmon_device_unregister(ms5637->hwmon_dev);
-> +	sysfs_remove_group(&client->dev.kobj, &ms5637_group);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id ms5637_id[] =3D {
-> +	{ "ms5637", 0 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ms5637_id);
-> +
-> +static struct i2c_driver ms5637_driver =3D {
-> +	.class =3D I2C_CLASS_HWMON,
-> +	.driver =3D {
-> +		.name	=3D "ms5637",
-> +	},
-> +	.probe       =3D ms5637_probe,
-> +	.remove      =3D ms5637_remove,
-> +	.id_table    =3D ms5637_id,
-> +};
-> +
-> +module_i2c_driver(ms5637_driver);
-> +
-> +MODULE_AUTHOR("William Markezana <william.markezana@meas-spec.com>");
-> +MODULE_DESCRIPTION("MEAS MS5637 pressure and temperature sensor=20
-> +driver"); MODULE_LICENSE("GPL");
 
 _______________________________________________
 lm-sensors mailing list
