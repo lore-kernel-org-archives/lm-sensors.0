@@ -1,155 +1,142 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Sep 2013 17:13:51 +0000
-Subject: [lm-sensors] [PATCH 10/11] hwmon: (ltc4261) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1379178832-1489-11-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Sun, 15 Sep 2013 22:02:31 +0000
+Subject: [lm-sensors] [PATCH 04/16] cpufreq: cpufreq-cpu0: add dt node parsing for cooling device properties
+Message-Id: <1379282563-14650-5-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
+References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>, cpufreq@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-Also use new macro ATTRIBUTE_GROUPS to declare attribute groups.
+This patch changes the cpufreq-cpu0 driver to consider if
+a cpu needs cooling (with cpufreq). In case the cooling is needed,
+the cpu0 device tree node needs to be properly configured
+with cooling device properties.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+In case these properties are present,, the driver will
+load a cpufreq cooling device in the system. The cpufreq-cpu0
+driver is not interested in determining how the system should
+be using the cooling device. The driver is responsible
+only of loading the cooling device.
+
+Describing how the cooling device will be used can be
+accomplished by setting up a thermal zone that references
+and is composed by the cpufreq cooling device.
+
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: cpufreq@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/hwmon/ltc4261.c |   55 ++++++++++++++---------------------------------
- 1 file changed, 16 insertions(+), 39 deletions(-)
+ .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt         |  7 +++++++
+ drivers/cpufreq/Kconfig                                  |  2 +-
+ drivers/cpufreq/cpufreq-cpu0.c                           | 16 ++++++++++++++++
+ 3 files changed, 24 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/ltc4261.c b/drivers/hwmon/ltc4261.c
-index 487da58..6c50db9 100644
---- a/drivers/hwmon/ltc4261.c
-+++ b/drivers/hwmon/ltc4261.c
-@@ -55,7 +55,7 @@
- #define FAULT_OC	(1<<2)
+diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+index 051f764..f055515 100644
+--- a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
++++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+@@ -15,6 +15,10 @@ Optional properties:
+ - clock-latency: Specify the possible maximum transition latency for clock,
+   in unit of nanoseconds.
+ - voltage-tolerance: Specify the CPU voltage tolerance in percentage.
++- #cooling-cells:
++- cooling-min-level:
++- cooling-max-level:
++     Please refer to Documentation/devicetree/bindings/thermal/thermal.txt.
  
- struct ltc4261_data {
--	struct device *hwmon_dev;
-+	struct i2c_client *client;
+ Examples:
  
- 	struct mutex update_lock;
- 	bool valid;
-@@ -67,8 +67,8 @@ struct ltc4261_data {
+@@ -33,6 +37,9 @@ cpus {
+ 			198000  850000
+ 		>;
+ 		clock-latency = <61036>; /* two CLK32 periods */
++		#cooling-cells = <2>;
++		cooling-min-level = <0>;
++		cooling-max-level = <2>;
+ 	};
  
- static struct ltc4261_data *ltc4261_update_device(struct device *dev)
+ 	cpu@1 {
+diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
+index 534fcb8..92e6921 100644
+--- a/drivers/cpufreq/Kconfig
++++ b/drivers/cpufreq/Kconfig
+@@ -186,7 +186,7 @@ config CPU_FREQ_GOV_CONSERVATIVE
+ 
+ config GENERIC_CPUFREQ_CPU0
+ 	tristate "Generic CPU0 cpufreq driver"
+-	depends on HAVE_CLK && REGULATOR && PM_OPP && OF
++	depends on HAVE_CLK && REGULATOR && PM_OPP && OF && CPU_THERMAL
+ 	select CPU_FREQ_TABLE
+ 	help
+ 	  This adds a generic cpufreq driver for CPU0 frequency management.
+diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-cpu0.c
+index cbfffa9..c573e95 100644
+--- a/drivers/cpufreq/cpufreq-cpu0.c
++++ b/drivers/cpufreq/cpufreq-cpu0.c
+@@ -12,7 +12,9 @@
+ #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/clk.h>
++#include <linux/cpu_cooling.h>
+ #include <linux/cpufreq.h>
++#include <linux/cpumask.h>
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+@@ -20,6 +22,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/thermal.h>
+ 
+ static unsigned int transition_latency;
+ static unsigned int voltage_tolerance; /* in percentage */
+@@ -28,6 +31,7 @@ static struct device *cpu_dev;
+ static struct clk *cpu_clk;
+ static struct regulator *cpu_reg;
+ static struct cpufreq_frequency_table *freq_table;
++static struct thermal_cooling_device *cdev;
+ 
+ static int cpu0_verify_speed(struct cpufreq_policy *policy)
  {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ltc4261_data *data = i2c_get_clientdata(client);
-+	struct ltc4261_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	struct ltc4261_data *ret = data;
- 
- 	mutex_lock(&data->update_lock);
-@@ -150,7 +150,6 @@ static ssize_t ltc4261_show_bool(struct device *dev,
- 				 struct device_attribute *da, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
--	struct i2c_client *client = to_i2c_client(dev);
- 	struct ltc4261_data *data = ltc4261_update_device(dev);
- 	u8 fault;
- 
-@@ -159,7 +158,7 @@ static ssize_t ltc4261_show_bool(struct device *dev,
- 
- 	fault = data->regs[LTC4261_FAULT] & attr->index;
- 	if (fault)		/* Clear reported faults in chip register */
--		i2c_smbus_write_byte_data(client, LTC4261_FAULT, ~fault);
-+		i2c_smbus_write_byte_data(data->client, LTC4261_FAULT, ~fault);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n", fault ? 1 : 0);
- }
-@@ -197,7 +196,7 @@ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ltc4261_show_value, NULL,
- static SENSOR_DEVICE_ATTR(curr1_max_alarm, S_IRUGO, ltc4261_show_bool, NULL,
- 			  FAULT_OC);
- 
--static struct attribute *ltc4261_attributes[] = {
-+static struct attribute *ltc4261_attrs[] = {
- 	&sensor_dev_attr_in1_input.dev_attr.attr,
- 	&sensor_dev_attr_in1_min_alarm.dev_attr.attr,
- 	&sensor_dev_attr_in1_max_alarm.dev_attr.attr,
-@@ -210,60 +209,39 @@ static struct attribute *ltc4261_attributes[] = {
- 
- 	NULL,
- };
--
--static const struct attribute_group ltc4261_group = {
--	.attrs = ltc4261_attributes,
--};
-+ATTRIBUTE_GROUPS(ltc4261);
- 
- static int ltc4261_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
- 	struct i2c_adapter *adapter = client->adapter;
-+	struct device *dev = &client->dev;
- 	struct ltc4261_data *data;
--	int ret;
-+	struct device *hwmon_dev;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
- 
- 	if (i2c_smbus_read_byte_data(client, LTC4261_STATUS) < 0) {
--		dev_err(&client->dev, "Failed to read status register\n");
-+		dev_err(dev, "Failed to read status register\n");
- 		return -ENODEV;
+@@ -255,6 +259,17 @@ static int cpu0_cpufreq_probe(struct platform_device *pdev)
+ 		goto out_free_table;
  	}
  
--	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	i2c_set_clientdata(client, data);
-+	data->client = client;
- 	mutex_init(&data->update_lock);
- 
- 	/* Clear faults */
- 	i2c_smbus_write_byte_data(client, LTC4261_FAULT, 0x00);
- 
--	/* Register sysfs hooks */
--	ret = sysfs_create_group(&client->dev.kobj, &ltc4261_group);
--	if (ret)
--		return ret;
--
--	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		ret = PTR_ERR(data->hwmon_dev);
--		goto out_hwmon_device_register;
--	}
--
--	return 0;
--
--out_hwmon_device_register:
--	sysfs_remove_group(&client->dev.kobj, &ltc4261_group);
--	return ret;
--}
--
--static int ltc4261_remove(struct i2c_client *client)
--{
--	struct ltc4261_data *data = i2c_get_clientdata(client);
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &ltc4261_group);
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-+							   data,
-+							   ltc4261_groups);
-+	if (IS_ERR(hwmon_dev))
-+		return PTR_ERR(hwmon_dev);
- 
++	/*
++	 * For now, just loading the cooling device;
++	 * thermal DT code takes care of matching them.
++	 */
++	if (of_find_property(np, "#cooling-cells", NULL)) {
++		cdev = of_cpufreq_cooling_register(np, cpu_present_mask);
++		if (IS_ERR(cdev))
++			pr_err("running cpufreq without cooling device: %ld\n",
++			       PTR_ERR(cdev));
++	}
++
+ 	of_node_put(np);
  	return 0;
- }
-@@ -281,7 +259,6 @@ static struct i2c_driver ltc4261_driver = {
- 		   .name = "ltc4261",
- 		   },
- 	.probe = ltc4261_probe,
--	.remove = ltc4261_remove,
- 	.id_table = ltc4261_id,
- };
+ 
+@@ -267,6 +282,7 @@ out_put_node:
+ 
+ static int cpu0_cpufreq_remove(struct platform_device *pdev)
+ {
++	cpufreq_cooling_unregister(cdev);
+ 	cpufreq_unregister_driver(&cpu0_cpufreq_driver);
+ 	opp_free_cpufreq_table(cpu_dev, &freq_table);
  
 -- 
-1.7.9.7
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
