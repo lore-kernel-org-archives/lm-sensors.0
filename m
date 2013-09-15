@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Sun, 15 Sep 2013 22:02:28 +0000
-Subject: [lm-sensors] [PATCH 01/16] drivers: thermal: allow registering without .get_temp
-Message-Id: <1379282563-14650-2-git-send-email-eduardo.valentin@ti.com>
+Date: Sun, 15 Sep 2013 22:02:35 +0000
+Subject: [lm-sensors] [PATCH 08/16] arm: dts: add omap4 CPU thermal data
+Message-Id: <1379282563-14650-9-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
@@ -9,73 +9,53 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch changes the thermal core driver to allow
-registration of thermal zones without the .get_temp callback.
-
-The idea behind this change is to allow lazy registration
-of sensor callbacks.
-
-The thermal zone will be disabled whenever the ops
-does not contain a .get_temp callback. The sysfs interface
-will be returning -EINVAL on any temperature read operation.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/thermal_core.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 4962a6a..8a94300 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -402,7 +402,7 @@ int thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned long *temp)
- 	enum thermal_trip_type type;
- #endif
- 
--	if (!tz || IS_ERR(tz))
-+	if (!tz || IS_ERR(tz) || !tz->ops->get_temp)
- 		goto exit;
- 
- 	mutex_lock(&tz->lock);
-@@ -455,6 +455,9 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
- {
- 	int count;
- 
-+	if (!tz->ops->get_temp)
-+		return;
-+
- 	update_temperature(tz);
- 
- 	for (count = 0; count < tz->trips; count++)
-@@ -1384,7 +1387,7 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 	if (trips > THERMAL_MAX_TRIPS || trips < 0 || mask >> trips)
- 		return ERR_PTR(-EINVAL);
- 
--	if (!ops || !ops->get_temp)
-+	if (!ops)
- 		return ERR_PTR(-EINVAL);
- 
- 	if (trips > 0 && (!ops->get_trip_type || !ops->get_trip_temp))
-@@ -1488,6 +1491,9 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 
- 	INIT_DELAYED_WORK(&(tz->poll_queue), thermal_zone_device_check);
- 
-+	if (!tz->ops->get_temp)
-+		thermal_zone_device_set_polling(tz, 0);
-+
- 	thermal_zone_device_update(tz);
- 
- 	if (!result)
--- 
-1.8.2.1.342.gfa7285d
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
+bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
+dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
+QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
+PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
+cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
+bkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaSB8
+IDQxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNDEg
+aW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
+LWNwdS10aGVybWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
+cHUtdGhlcm1hbC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRz
+aQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi5kZDY5Nzg4Ci0tLSAvZGV2L251
+bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQpAQCAtMCww
+ICsxLDQxIEBACisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNC81IFNvQyBDUFUg
+dGhlcm1hbAorICoKKyAqIENvcHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNv
+cnBvcmF0ZWQgLSBodHRwOi8vd3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50
+aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNl
+ZCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2
+ZXJzaW9uIDIuICBUaGlzIHByb2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3
+YXJyYW50eSBvZiBhbnkKKyAqIGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICov
+CisKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY3B1X3RoZXJt
+YWw6IGNwdV90aGVybWFsIHsKKwlwYXNzaXZlLWRlbGF5ID0gPDI1MD47IC8qIG1pbGxpc2Vjb25k
+cyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJCS8q
+IHNlbnNvciAgICAgICBJRCAqLworICAgICAgICBzZW5zb3JzID0gPCZiYW5kZ2FwICAgICAwPjsK
+KworICAgICAgICB0cmlwcyB7CisgICAgICAgICAgICAgICAgY3B1X2FsZXJ0MDogY3B1X2FsZXJ0
+IHsKKyAgICAgICAgICAgICAgICAgICAgICAgIHRlbXBlcmF0dXJlID0gPDEwMDAwMD47IC8qIG1p
+bGxpQ2Vsc2l1cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgaHlzdGVyZXNpcyA9IDwyMDAw
+PjsgLyogbWlsbGlDZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAgICB0eXBlID0gPFRI
+RVJNQUxfVFJJUF9QQVNTSVZFPjsKKyAgICAgICAgICAgICAgICB9OworICAgICAgICAgICAgICAg
+IGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAgICAgICAgICAgICB0ZW1wZXJhdHVy
+ZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKyAgICAgICAgICAgICAgICAgICAgICAg
+IGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworICAgICAgICAgICAgICAg
+ICAgICAgICAgdHlwZSA9IDxUSEVSTUFMX1RSSVBfQ1JJVElDQUw+OworICAgICAgICAgICAgICAg
+IH07CisgICAgICAgIH07CisKKwljb29saW5nLWF0dGFjaG1lbnRzIHsKKwkJYXR0YWNoMCB7CisJ
+CQl0cmlwID0gPCZjcHVfYWxlcnQwPjsKKwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNwdTAg
+VEhFUk1BTF9OT19MSU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0gCjEu
+OC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3Jz
