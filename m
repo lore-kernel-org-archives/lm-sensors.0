@@ -1,119 +1,138 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:14 +0000
-Subject: [lm-sensors] [PATCHv4 07/18] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <1380251605-3804-8-git-send-email-eduardo.valentin@ti.com>
+Date: Sun, 15 Sep 2013 22:02:30 +0000
+Subject: [lm-sensors] [PATCH 03/16] drivers: thermal: cpu_cooling: introduce of_cpufreq_cooling_register
+Message-Id: <1379282563-14650-4-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-This patch adds to lm75 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+This patch introduces an API to register cpufreq cooling device
+based on device tree node.
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm75 DT node. Otherwise, the driver behavior
-will be the same.
+The registration via device tree node differs from normal
+registration due to the fact that it is needed to fill
+the device_node structure in order to be able to match
+the cooling devices with trip points.
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
-Acked-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/hwmon/lm75.c | 35 ++++++++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 5 deletions(-)
+ drivers/thermal/Kconfig       |  1 +
+ drivers/thermal/cpu_cooling.c | 31 +++++++++++++++++++++++++++++++
+ include/linux/cpu_cooling.h   | 25 +++++++++++++++++++++++++
+ 3 files changed, 57 insertions(+)
 
-diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-index c03b490..1d3600a 100644
---- a/drivers/hwmon/lm75.c
-+++ b/drivers/hwmon/lm75.c
-@@ -27,6 +27,8 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index dd81eb8..9e7cc3f 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -91,6 +91,7 @@ config THERMAL_GOV_USER_SPACE
+ config CPU_THERMAL
+ 	bool "generic cpu cooling support"
+ 	depends on CPU_FREQ
++	depends on THERMAL_OF
+ 	select CPU_FREQ_TABLE
+ 	help
+ 	  This implements the generic cpu cooling mechanism through frequency
+diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+index d179028..cd2f532 100644
+--- a/drivers/thermal/cpu_cooling.c
++++ b/drivers/thermal/cpu_cooling.c
+@@ -491,6 +491,37 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
+ EXPORT_SYMBOL_GPL(cpufreq_cooling_register);
+ 
+ /**
++ * of_cpufreq_cooling_register - function to create cpufreq cooling device.
++ * @np: a valid struct device_node to the cooling device device tree node
++ * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
++ *
++ * This interface function registers the cpufreq cooling device with the name
++ * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
++ * cooling devices.
++ *
++ * Return: a valid struct thermal_cooling_device pointer on success,
++ * on failure, it returns a corresponding ERR_PTR().
++ */
++struct thermal_cooling_device *
++of_cpufreq_cooling_register(struct device_node *np,
++			    const struct cpumask *clip_cpus)
++{
++	struct thermal_cooling_device *cdev;
++
++	if (!np)
++		return ERR_PTR(-EINVAL);
++
++	cdev = cpufreq_cooling_register(clip_cpus);
++	if (IS_ERR(cdev))
++		return cdev;
++
++	cdev->np = np;
++
++	return cdev;
++}
++EXPORT_SYMBOL_GPL(of_cpufreq_cooling_register);
++
++/**
+  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
+  * @cdev: thermal cooling device pointer.
+  *
+diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+index a5d52ee..c303d38 100644
+--- a/include/linux/cpu_cooling.h
++++ b/include/linux/cpu_cooling.h
+@@ -24,6 +24,7 @@
+ #ifndef __CPU_COOLING_H__
+ #define __CPU_COOLING_H__
+ 
 +#include <linux/of.h>
-+#include <linux/thermal.h>
- #include "lm75.h"
+ #include <linux/thermal.h>
+ #include <linux/cpumask.h>
  
+@@ -36,6 +37,24 @@ struct thermal_cooling_device *
+ cpufreq_cooling_register(const struct cpumask *clip_cpus);
  
-@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
- /* Each client has this additional data */
- struct lm75_data {
- 	struct device		*hwmon_dev;
-+	struct thermal_zone_device	*tz;
- 	struct mutex		update_lock;
- 	u8			orig_conf;
- 	u8			resolution;	/* In bits, between 9 and 12 */
-@@ -90,22 +93,36 @@ static struct lm75_data *lm75_update_device(struct device *dev);
- 
- /*-----------------------------------------------------------------------*/
- 
-+static inline long lm75_reg_to_mc(s16 temp, u8 resolution)
+ /**
++ * of_cpufreq_cooling_register - create cpufreq cooling device based on DT.
++ * @np: a valid struct device_node to the cooling device device tree node.
++ * @clip_cpus: cpumask of cpus where the frequency constraints will happen
++ */
++#ifdef CONFIG_THERMAL_OF
++struct thermal_cooling_device *
++of_cpufreq_cooling_register(struct device_node *np,
++			    const struct cpumask *clip_cpus);
++#else
++static inline struct thermal_cooling_device *
++of_cpufreq_cooling_register(struct device_node *np,
++			    const struct cpumask *clip_cpus)
 +{
-+	return ((temp >> (16 - resolution)) * 1000) >> (resolution - 8);
++	return NULL;
 +}
++#endif
 +
- /* sysfs attributes for hwmon */
- 
-+static int lm75_read_temp(void *dev, long *temp)
-+{
-+	struct lm75_data *data = lm75_update_device(dev);
-+
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	*temp = lm75_reg_to_mc(data->temp[0], data->resolution);
-+
-+	return 0;
-+}
-+
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
++/**
+  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
+  * @cdev: thermal cooling device pointer.
+  */
+@@ -48,6 +67,12 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
  {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct lm75_data *data = lm75_update_device(dev);
--	long temp;
- 
- 	if (IS_ERR(data))
- 		return PTR_ERR(data);
- 
--	temp = ((data->temp[attr->index] >> (16 - data->resolution)) * 1000)
--	       >> (data->resolution - 8);
--
--	return sprintf(buf, "%ld\n", temp);
-+	return sprintf(buf, "%ld\n", lm75_reg_to_mc(data->temp[attr->index],
-+						    data->resolution));
+ 	return NULL;
  }
- 
- static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-@@ -271,6 +288,13 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto exit_remove;
- 	}
- 
-+	data->tz = thermal_zone_of_sensor_register(&client->dev,
-+						   0,
-+						   &client->dev,
-+						   lm75_read_temp, NULL);
-+	if (IS_ERR(data->tz))
-+		data->tz = NULL;
-+
- 	dev_info(&client->dev, "%s: sensor '%s'\n",
- 		 dev_name(data->hwmon_dev), client->name);
- 
-@@ -285,6 +309,7 @@ static int lm75_remove(struct i2c_client *client)
++static inline struct thermal_cooling_device *
++of_cpufreq_cooling_register(struct device_node *np,
++			    const struct cpumask *clip_cpus)
++{
++	return NULL;
++}
+ static inline
+ void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
  {
- 	struct lm75_data *data = i2c_get_clientdata(client);
- 
-+	thermal_zone_of_sensor_unregister(&client->dev, data->tz);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
 -- 
 1.8.2.1.342.gfa7285d
 
