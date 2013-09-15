@@ -1,161 +1,100 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 23 Sep 2013 20:34:48 +0000
-Subject: [lm-sensors] [PATCH v5 1/2] hwmon: (coretemp) Rename temp_data to core_data
-Message-Id: <1379968489-13781-1-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Sun, 15 Sep 2013 22:02:27 +0000
+Subject: [lm-sensors] [PATCH 00/16] device thermal limits represented in device tree nodes (v3)
+Message-Id: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Fenghua Yu <fenghua.yu@intel.com>
-Cc: "Artem S. Tashkinov" <t.artem@mailcity.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-We are going to use the data structure for power data as well.
+Hello all,
 
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v5: Merged to 3.12-rc1
+Here is the continuation of work of representing hardware thermal properties
+in device tree infrastructure. The present patch series is the third version
+of this work. Previous versions were sent as RFCs and can be found here:
+RFCv2: http://lkml.org/lkml/2013/8/23/594
+RFCv1: http://lkml.org/lkml/2013/7/22/319
 
- drivers/hwmon/coretemp.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+The major change between RFCv2 and this version is the fact that I am now
+designing the binding accordingly to the common practice of creating links
+from consumers to producers, as seen in regulators for instance. The change
+make a thermal zone node point to used cooling devices and used sensor devices.
+As direct need, cooling devices then need to be properly represented.
+I am proposing to have cooling properties inside existing nodes, e.g. fan nodes,
+cpu nodes. The change also required me to modify the existing thermal core
+code to allow decoupling thermal zones from sensor code. Currently, the
+binding proposal covers for the situation in which one thermal zone has
+several sensor devices. Although this situation is not covered by the
+current thermal framework code, and thus not supported by this series.
+I believe this is not a stopper for this series, it can be done
+in later patch sets.
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 78be661..38d458b 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -76,11 +76,11 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
-  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
-  *		from where the temperature values should be read.
-  * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
-- * @is_pkg_data: If this is 1, the temp_data holds pkgtemp data.
-- *		Otherwise, temp_data holds coretemp data.
-- * @valid: If this is 1, the current temperature is valid.
-+ * @is_pkg_data: If this is true, the core_data holds pkgtemp data.
-+ *		Otherwise, core_data holds coretemp data.
-+ * @valid: If this is true, the current temperature is valid.
-  */
--struct temp_data {
-+struct core_data {
- 	int temp;
- 	int ttarget;
- 	int tjmax;
-@@ -100,7 +100,7 @@ struct temp_data {
- struct platform_data {
- 	struct device *hwmon_dev;
- 	u16 phys_proc_id;
--	struct temp_data *core_data[MAX_CORE_DATA];
-+	struct core_data *core_data[MAX_CORE_DATA];
- 	struct device_attribute name_attr;
- };
- 
-@@ -124,7 +124,7 @@ static ssize_t show_label(struct device *dev,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
--	struct temp_data *tdata = pdata->core_data[attr->index];
-+	struct core_data *tdata = pdata->core_data[attr->index];
- 
- 	if (tdata->is_pkg_data)
- 		return sprintf(buf, "Physical id %u\n", pdata->phys_proc_id);
-@@ -138,7 +138,7 @@ static ssize_t show_crit_alarm(struct device *dev,
- 	u32 eax, edx;
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
--	struct temp_data *tdata = pdata->core_data[attr->index];
-+	struct core_data *tdata = pdata->core_data[attr->index];
- 
- 	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
- 
-@@ -169,7 +169,7 @@ static ssize_t show_temp(struct device *dev,
- 	u32 eax, edx;
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
--	struct temp_data *tdata = pdata->core_data[attr->index];
-+	struct core_data *tdata = pdata->core_data[attr->index];
- 
- 	mutex_lock(&tdata->update_lock);
- 
-@@ -377,7 +377,7 @@ static int create_name_attr(struct platform_data *pdata,
- 	return device_create_file(dev, &pdata->name_attr);
- }
- 
--static int create_core_attrs(struct temp_data *tdata, struct device *dev,
-+static int create_core_attrs(struct core_data *tdata, struct device *dev,
- 			     int attr_no)
- {
- 	int err, i;
-@@ -444,11 +444,11 @@ static struct platform_device *coretemp_get_pdev(unsigned int cpu)
- 	return NULL;
- }
- 
--static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
-+static struct core_data *init_core_data(unsigned int cpu, bool pkg_flag)
- {
--	struct temp_data *tdata;
-+	struct core_data *tdata;
- 
--	tdata = kzalloc(sizeof(struct temp_data), GFP_KERNEL);
-+	tdata = kzalloc(sizeof(struct core_data), GFP_KERNEL);
- 	if (!tdata)
- 		return NULL;
- 
-@@ -463,9 +463,9 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
- }
- 
- static int create_core_data(struct platform_device *pdev, unsigned int cpu,
--			    int pkg_flag)
-+			    bool pkg_flag)
- {
--	struct temp_data *tdata;
-+	struct core_data *tdata;
- 	struct platform_data *pdata = platform_get_drvdata(pdev);
- 	struct cpuinfo_x86 *c = &cpu_data(cpu);
- 	u32 eax, edx;
-@@ -492,7 +492,7 @@ static int create_core_data(struct platform_device *pdev, unsigned int cpu,
- 	if (pdata->core_data[attr_no] != NULL)
- 		return 0;
- 
--	tdata = init_temp_data(cpu, pkg_flag);
-+	tdata = init_core_data(cpu, pkg_flag);
- 	if (!tdata)
- 		return -ENOMEM;
- 
-@@ -533,7 +533,7 @@ exit_free:
- 	return err;
- }
- 
--static void coretemp_add_core(unsigned int cpu, int pkg_flag)
-+static void coretemp_add_core(unsigned int cpu, bool pkg_flag)
- {
- 	struct platform_device *pdev = coretemp_get_pdev(cpu);
- 	int err;
-@@ -550,7 +550,7 @@ static void coretemp_remove_core(struct platform_data *pdata,
- 				struct device *dev, int indx)
- {
- 	int i;
--	struct temp_data *tdata = pdata->core_data[indx];
-+	struct core_data *tdata = pdata->core_data[indx];
- 
- 	/* Remove the sysfs attributes */
- 	for (i = 0; i < tdata->attr_size; i++)
-@@ -723,13 +723,13 @@ static void get_core_online(unsigned int cpu)
- 		 * If so, add interfaces for pkgtemp.
- 		 */
- 		if (cpu_has(c, X86_FEATURE_PTS))
--			coretemp_add_core(cpu, 1);
-+			coretemp_add_core(cpu, true);
- 	}
- 	/*
- 	 * Physical CPU device already exists.
- 	 * So, just add interfaces for this core.
- 	 */
--	coretemp_add_core(cpu, 0);
-+	coretemp_add_core(cpu, false);
- }
- 
- static void put_core_offline(unsigned int cpu)
+The second patch includes a detailed documentation with examples
+and the proposed code. In this patch series, a part from the dt parser,
+there are changes in the cpufreq code to load the cpu cooling device,
+also changes in the following sensor drivers: tmp102, lm75 and ti-soc-thermal.
+Several changes in TI's SoC DT bindings are also included, as source
+of tested examples.
+
+The present patch series was tested on OMAP4430, OMAP4460, OMAP5430 and DRA7,
+although the DRA7 changes were not sent as the core device tree support is
+currently in the process to find its way to upstream.
+
+All best,
+
+Eduardo Valentin (16):
+  drivers: thermal: allow registering without .get_temp
+  drivers: thermal: introduce device tree parser
+  drivers: thermal: cpu_cooling: introduce of_cpufreq_cooling_register
+  cpufreq: cpufreq-cpu0: add dt node parsing for cooling device
+    properties
+  hwmon: lm75: expose to thermal fw via DT nodes
+  hwmon: tmp102: expose to thermal fw via DT nodes
+  thermal: ti-soc-thermal: use thermal DT infrastructure
+  arm: dts: add omap4 CPU thermal data
+  arm: dts: add omap4430 thermal data
+  arm: dts: add omap4460 thermal data
+  arm: dts: add cooling properties on omap4430 cpu node
+  arm: dts: add cooling properties on omap4460 cpu node
+  arm: dts: add omap5 GPU thermal data
+  arm: dts: add omap5 CORE thermal data
+  arm: dts: add omap5 thermal data
+  arm: dts: add cooling properties on omap5 cpu node
+
+ .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |   7 +
+ .../devicetree/bindings/thermal/thermal.txt        | 498 ++++++++++++++
+ arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  41 ++
+ arch/arm/boot/dts/omap443x.dtsi                    |  15 +-
+ arch/arm/boot/dts/omap4460.dtsi                    |  15 +-
+ arch/arm/boot/dts/omap5-core-thermal.dtsi          |  28 +
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi           |  28 +
+ arch/arm/boot/dts/omap5.dtsi                       |  15 +-
+ drivers/cpufreq/Kconfig                            |   2 +-
+ drivers/cpufreq/cpufreq-cpu0.c                     |  16 +
+ drivers/hwmon/lm75.c                               |  46 +-
+ drivers/hwmon/tmp102.c                             |  28 +
+ drivers/thermal/Kconfig                            |  14 +
+ drivers/thermal/Makefile                           |   1 +
+ drivers/thermal/cpu_cooling.c                      |  31 +
+ drivers/thermal/of-thermal.c                       | 763 +++++++++++++++++++++
+ drivers/thermal/thermal_core.c                     |  19 +-
+ drivers/thermal/thermal_core.h                     |   9 +
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  77 ++-
+ include/dt-bindings/thermal/thermal.h              |  27 +
+ include/linux/cpu_cooling.h                        |  25 +
+ include/linux/thermal.h                            |  28 +-
+ 22 files changed, 1701 insertions(+), 32 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/thermal.txt
+ create mode 100644 arch/arm/boot/dts/omap4-cpu-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+ create mode 100644 drivers/thermal/of-thermal.c
+ create mode 100644 include/dt-bindings/thermal/thermal.h
+
 -- 
-1.7.9.7
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
