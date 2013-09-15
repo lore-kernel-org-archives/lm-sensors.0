@@ -1,110 +1,103 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 10 Aug 2013 22:53:20 +0000
-Subject: Re: [lm-sensors] Problems with Nuvoton nct6775 readouts
-Message-Id: <5206C460.3080006@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Sun, 15 Sep 2013 22:02:33 +0000
+Subject: [lm-sensors] [PATCH 06/16] hwmon: tmp102: expose to thermal fw via DT nodes
+Message-Id: <1379282563-14650-7-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
 
-On 08/10/2013 03:38 PM, Tommy Apel wrote:
-> Hello Mr. Roeck,
->
-> I'm currently using your patched version of the nct6775 hwmon module,
-> one thing that strikes me as odd is that the voltage readouts are way
-> off from what they should be, it looks almost like I only get the
-> readout for 'idle state', I've fixed my vcore at 1.3v but according to
-> the readout at full load it is 0.9v, someone told me that the 'turbo'
-> option could have an effect so that has been turned of for the sake of
-> troubleshooting.
->
-> Do you have any clues as to why this is happening ?
->
-There are two reasons. First, ASUS doesn't set any limits in the BIOS,
-which explains why all the limits are 0 and why the alarms are all active.
+This patch adds to tmp102 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
 
-The second reason is that the ADCs in the Nuvoton chip have a maximum
-range of 2.048V. Most voltage inputs are connected through a voltage divider.
-For some of the voltages, there is an internal divider, which explains
-the higher voltages. you will have to find out what the divider values are.
-Then configure both the limits and the divider values in /etc/sensors3.conf,
-run "sudo sensors -s", and all whould be ok.
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the tmp102 DT node. Otherwise, the driver behavior
+will be the same.
 
-Some hints how to determine divider values are at
-	http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
-	http://www.lm-sensors.org/wiki/AsusFormulaHacking
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/hwmon/tmp102.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-Hope that helps. Some ASUS configurations are at
-	http://www.lm-sensors.org/wiki/Configurations/Asus
-You should be able to use those as examples.
-
-Hope this helps,
-Guenter
-
-> Fan readings are about right it seems though.
->
-> this is an ASUS Z87-A mobo with a Haswell i5-4670K@3.4GHz
->
-> sensors output at full load>
->
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +27.8 C  (crit = +105.0 C)
-> temp2:        +29.8 C  (crit = +105.0 C)
->
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Physical id 0:  +68.0 C  (high = +80.0 C, crit = +100.0 C)
-> Core 0:         +68.0 C  (high = +80.0 C, crit = +100.0 C)
-> Core 1:         +65.0 C  (high = +80.0 C, crit = +100.0 C)
-> Core 2:         +61.0 C  (high = +80.0 C, crit = +100.0 C)
-> Core 3:         +64.0 C  (high = +80.0 C, crit = +100.0 C)
->
-> nct6791-isa-0290
-> Adapter: ISA adapter
-> in0:                    +0.90 V  (min =  +0.00 V, max =  +1.74 V) </-
-> I assume this would be vcore
-> in1:                    +1.02 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in2:                    +3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in3:                    +3.41 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in4:                    +1.02 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in5:                    +1.99 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in6:                    +0.66 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in7:                    +3.46 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in8:                    +3.33 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in9:                    +1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in10:                   +0.00 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in11:                   +0.87 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in12:                   +0.66 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in13:                   +0.66 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> in14:                   +0.66 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-> fan1:                   925 RPM  (min =    0 RPM)
-> fan2:                  1025 RPM  (min =    0 RPM)
-> fan3:                     0 RPM  (min =    0 RPM)
-> fan4:                  3316 RPM  (min =    0 RPM)
-> fan5:                     0 RPM  (min =    0 RPM)
-> fan6:                  1001 RPM
-> SYSTIN:                 +30.0 C  (high =  +0.0 C, hyst =  +0.0 C)
-> ALARM  sensor = thermistor
-> CPUTIN:                 +41.0 C  (high = +80.0 C, hyst = +75.0 C)
-> sensor = thermistor
-> AUXTIN0:                +45.0 C    sensor = thermistor
-> AUXTIN1:               +127.0 C    sensor = thermistor
-> AUXTIN2:                +33.0 C    sensor = thermistor
-> AUXTIN3:                +45.0 C    sensor = thermistor
-> PCH_CHIP_CPU_MAX_TEMP:   +0.0 C
-> PCH_CHIP_TEMP:           +0.0 C
-> PCH_CPU_TEMP:            +0.0 C
-> PCH_MCH_TEMP:            +0.0 C
-> intrusion0:            ALARM
-> intrusion1:            ALARM
-> beep_enable:           disabled
->
->
-> /Tommy
->
->
+diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+index d7b47ab..e432444 100644
+--- a/drivers/hwmon/tmp102.c
++++ b/drivers/hwmon/tmp102.c
+@@ -27,6 +27,8 @@
+ #include <linux/mutex.h>
+ #include <linux/device.h>
+ #include <linux/jiffies.h>
++#include <linux/thermal.h>
++#include <linux/of.h>
+ 
+ #define	DRIVER_NAME "tmp102"
+ 
+@@ -50,6 +52,7 @@
+ 
+ struct tmp102 {
+ 	struct device *hwmon_dev;
++	struct thermal_zone_device *tz;
+ 	struct mutex lock;
+ 	u16 config_orig;
+ 	unsigned long last_update;
+@@ -93,6 +96,19 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
+ 	return tmp102;
+ }
+ 
++static int tmp102_read_temp(void *dev, long *temp)
++{
++	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
++
++	if (tmp102->temp[0] < 0)
++		dev_warn(tmp102->hwmon_dev,
++			 "operating in negative temp: %d\n", tmp102->temp[0]);
++
++	*temp = tmp102->temp[0];
++
++	return 0;
++}
++
+ static ssize_t tmp102_show_temp(struct device *dev,
+ 				struct device_attribute *attr,
+ 				char *buf)
+@@ -204,6 +220,16 @@ static int tmp102_probe(struct i2c_client *client,
+ 		goto fail_remove_sysfs;
+ 	}
+ 
++	tmp102->tz = thermal_zone_of_sensor_register(&client->dev, 0,
++						     &client->dev,
++						     tmp102_read_temp, NULL);
++	if (IS_ERR(tmp102->tz)) {
++		dev_warn(&client->dev,
++			 "Could not parse thermal data in device tree: %ld\n",
++			 PTR_ERR(tmp102->tz));
++		tmp102->tz = NULL;
++	}
++
+ 	dev_info(&client->dev, "initialized\n");
+ 
+ 	return 0;
+@@ -220,6 +246,8 @@ static int tmp102_remove(struct i2c_client *client)
+ {
+ 	struct tmp102 *tmp102 = i2c_get_clientdata(client);
+ 
++	/* thermal zone life cycle is not our responsibility */
++	thermal_zone_of_sensor_unregister(&client->dev, tmp102->tz);
+ 	hwmon_device_unregister(tmp102->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
+ 
+-- 
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
