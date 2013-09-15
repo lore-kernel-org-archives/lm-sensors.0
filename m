@@ -1,49 +1,35 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Sep 2013 08:33:25 +0000
-Subject: [lm-sensors] [PATCH 02/12] hwmon: (nct6775) Use return value from find_temp_source
-Message-Id: <1379147615-7703-3-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Sun, 15 Sep 2013 22:02:38 +0000
+Subject: [lm-sensors] [PATCH 11/16] arm: dts: add cooling properties on omap4430 cpu node
+Message-Id: <1379282563-14650-12-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-smatch complains that we don't use the return value from find_temp_source().
-Valid point, only find_temp_source() doesn't return a valid error code.
-Have it return a valid error code and use it.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/nct6775.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 6eb03ce..de57e0d 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -1545,7 +1545,7 @@ static int find_temp_source(struct nct6775_data *data, int index, int count)
- 		if (src = source)
- 			return nr;
- 	}
--	return -1;
-+	return -ENODEV;
- }
- 
- static ssize_t
-@@ -1644,7 +1644,7 @@ store_temp_beep(struct device *dev, struct device_attribute *attr,
- 
- 	nr = find_temp_source(data, sattr->index, data->num_temp_beeps);
- 	if (nr < 0)
--		return -ENODEV;
-+		return nr;
- 
- 	bit = data->BEEP_BITS[nr + TEMP_ALARM_BASE];
- 	regindex = bit >> 3;
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
+ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
+cyBwYXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRo
+YXQgY3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJl
+bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcu
+dWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZS1kaXNjdXNz
+QGxpc3RzLm96bGFicy5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
+ZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRv
+IFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0
+cy9vbWFwNDQzeC5kdHNpIHwgNSArKysrKwogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygr
+KQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9hcmNoL2Fy
+bS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IDY5ODdkZjkuLjU3MzdlNDkgMTAwNjQ0Ci0t
+LSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDQ0M3guZHRzaQpAQCAtMjIsNiArMjIsMTEgQEAKIAkJCQkxMDA4MDAwIDEzNzUwMDAK
+IAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAwMD47IC8qIEZyb20gbGVnYWN5IGRyaXZl
+ciAqLworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCWNvb2xpbmctbWluLWxldmVsID0g
+PDA+OworCQkJY29vbGluZy1tYXgtbGV2ZWwgPSA8Mz47CisJCQkjY29vbGluZy1jZWxscyA9IDwy
+PjsgLyogbWluIGZvbGxvd2VkIGJ5IG1heCAqLwogCQl9OwogCX07CiAKLS0gCjEuOC4yLjEuMzQy
+LmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
