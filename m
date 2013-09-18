@@ -1,81 +1,139 @@
-From: Sascha Haupt <lmsensors@m-eng.net>
-Date: Wed, 18 Sep 2013 08:51:37 +0000
-Subject: [lm-sensors] Measured Fan RPM Jumps Frequently to 675000 RPM
-Message-Id: <20130918105137.Horde.pcSHtQSX3xoA3EHBStt0YQ1@webmail.df.eu>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 18 Sep 2013 11:28:22 +0000
+Subject: Re: [lm-sensors] Measured Fan RPM Jumps Frequently to 675000 RPM
+Message-Id: <20130918112822.GA9447@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20130918105137.Horde.pcSHtQSX3xoA3EHBStt0YQ1@webmail.df.eu>
+In-Reply-To: <20130918105137.Horde.pcSHtQSX3xoA3EHBStt0YQ1@webmail.df.eu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-CkRlYXIgQGxsLAoKSSBhbSBtb25pdG9yaW5nIG11bHRpcGxlIHN5c3RlbXMgKHdpdGggQXN1cyBN
-NUE3OExFIG1haW5ib2FyZHMpIHVzaW5nICAKc2Vuc29ycyBhbmQgTXVuaW4uCgpPbiBvbmUgbm9k
-ZSBJIG9mdGVuIGdldCBhIHZhbHVlIG9mIDY3NTAwMCBSUE0gZm9yIHRoZSBGQU4yIHNwZWVkLgpV
-c3VhbGx5LCB0aGUgdmFsdWUgb2YgRkFOMiBpcyBhcHByb3ggMTk1MCBSUE0uCgpUaGUganVtcCBj
-YW4gZnJlcXVlbnRseSBiZSBzZWVuIGlmIHNlbnNvcnMgaXMgZXhlY3V0ZWQgbWFudWFsbHkgaW4g
-YSAgCmZhc3Qgc2VxdWVuY2U6CgoKaG9zdDp+ICMgc2Vuc29ycwprMTB0ZW1wLXBjaS0wMGMzCkFk
-YXB0ZXI6IFBDSSBhZGFwdGVyCnRlbXAxOiAgICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArNzAuMMKw
-QywgY3JpdCA9ICs5MC4wwrBDKQoKYXRrMDExMC1hY3BpLTAKQWRhcHRlcjogQUNQSSBpbnRlcmZh
-Y2UKVmNvcmUgVm9sdGFnZTogICAgICAgKzEuNDIgViAgKG1pbiA9ICArMC44NSBWLCBtYXggPSAg
-KzEuNzAgVikKICArMy4zIFZvbHRhZ2U6ICAgICAgICszLjQwIFYgIChtaW4gPSAgKzIuOTcgViwg
-bWF4ID0gICszLjYzIFYpCiAgKzUgVm9sdGFnZTogICAgICAgICArNS4wOCBWICAobWluID0gICs0
-LjUwIFYsIG1heCA9ICArNS41MCBWKQogICsxMiBWb2x0YWdlOiAgICAgICArMTIuNDAgViAgKG1p
-biA9ICsxMC4yMCBWLCBtYXggPSArMTMuODAgVikKQ1BVIEZBTiBTcGVlZDogICAgICAzODEzIFJQ
-TSAgKG1pbiA9ICA2MDAgUlBNKQpDSEFTU0lTIEZBTiBTcGVlZDogIDE0MDYgUlBNICAobWluID0g
-IDYwMCBSUE0pCkNIQVNTSVMgRkFOIDIgU3BlZWQ6Njc1MDAwIFJQTSAgKG1pbiA9ICA2MDAgUlBN
-KQpDUFUgVGVtcGVyYXR1cmU6ICAgICArNDMuMMKwQyAgKGhpZ2ggPSArNjAuMMKwQywgY3JpdCA9
-ICs5NS4wwrBDKQpNQiBUZW1wZXJhdHVyZTogICAgICArMzguMMKwQyAgKGhpZ2ggPSArNDUuMMKw
-QywgY3JpdCA9ICs3NS4wwrBDKQoKaG9zdDp+ICMgc2Vuc29ycwprMTB0ZW1wLXBjaS0wMGMzCkFk
-YXB0ZXI6IFBDSSBhZGFwdGVyCnRlbXAxOiAgICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArNzAuMMKw
-QywgY3JpdCA9ICs5MC4wwrBDKQoKYXRrMDExMC1hY3BpLTAKQWRhcHRlcjogQUNQSSBpbnRlcmZh
-Y2UKVmNvcmUgVm9sdGFnZTogICAgICAgKzEuNDIgViAgKG1pbiA9ICArMC44NSBWLCBtYXggPSAg
-KzEuNzAgVikKICArMy4zIFZvbHRhZ2U6ICAgICAgICszLjQwIFYgIChtaW4gPSAgKzIuOTcgViwg
-bWF4ID0gICszLjYzIFYpCiAgKzUgVm9sdGFnZTogICAgICAgICArNS4wOCBWICAobWluID0gICs0
-LjUwIFYsIG1heCA9ICArNS41MCBWKQogICsxMiBWb2x0YWdlOiAgICAgICArMTIuNDAgViAgKG1p
-biA9ICsxMC4yMCBWLCBtYXggPSArMTMuODAgVikKQ1BVIEZBTiBTcGVlZDogICAgICAzODEzIFJQ
-TSAgKG1pbiA9ICA2MDAgUlBNKQpDSEFTU0lTIEZBTiBTcGVlZDogIDE0MDYgUlBNICAobWluID0g
-IDYwMCBSUE0pCkNIQVNTSVMgRkFOIDIgU3BlZWQ6Njc1MDAwIFJQTSAgKG1pbiA9ICA2MDAgUlBN
-KQpDUFUgVGVtcGVyYXR1cmU6ICAgICArNDMuMMKwQyAgKGhpZ2ggPSArNjAuMMKwQywgY3JpdCA9
-ICs5NS4wwrBDKQpNQiBUZW1wZXJhdHVyZTogICAgICArMzguMMKwQyAgKGhpZ2ggPSArNDUuMMKw
-QywgY3JpdCA9ICs3NS4wwrBDKQoKaG9zdDp+ICMgc2Vuc29ycwprMTB0ZW1wLXBjaS0wMGMzCkFk
-YXB0ZXI6IFBDSSBhZGFwdGVyCnRlbXAxOiAgICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArNzAuMMKw
-QywgY3JpdCA9ICs5MC4wwrBDKQoKYXRrMDExMC1hY3BpLTAKQWRhcHRlcjogQUNQSSBpbnRlcmZh
-Y2UKVmNvcmUgVm9sdGFnZTogICAgICAgKzEuNDIgViAgKG1pbiA9ICArMC44NSBWLCBtYXggPSAg
-KzEuNzAgVikKICArMy4zIFZvbHRhZ2U6ICAgICAgICszLjQwIFYgIChtaW4gPSAgKzIuOTcgViwg
-bWF4ID0gICszLjYzIFYpCiAgKzUgVm9sdGFnZTogICAgICAgICArNS4wOCBWICAobWluID0gICs0
-LjUwIFYsIG1heCA9ICArNS41MCBWKQogICsxMiBWb2x0YWdlOiAgICAgICArMTIuNDIgViAgKG1p
-biA9ICsxMC4yMCBWLCBtYXggPSArMTMuODAgVikKQ1BVIEZBTiBTcGVlZDogICAgICAzODEzIFJQ
-TSAgKG1pbiA9ICA2MDAgUlBNKQpDSEFTU0lTIEZBTiBTcGVlZDogIDE0MDkgUlBNICAobWluID0g
-IDYwMCBSUE0pCkNIQVNTSVMgRkFOIDIgU3BlZWQ6MTk1MCBSUE0gIChtaW4gPSAgNjAwIFJQTSkK
-Q1BVIFRlbXBlcmF0dXJlOiAgICAgKzQzLjDCsEMgIChoaWdoID0gKzYwLjDCsEMsIGNyaXQgPSAr
-OTUuMMKwQykKTUIgVGVtcGVyYXR1cmU6ICAgICAgKzM4LjDCsEMgIChoaWdoID0gKzQ1LjDCsEMs
-IGNyaXQgPSArNzUuMMKwQykKCmhvc3Q6fiAjIHNlbnNvcnMKazEwdGVtcC1wY2ktMDBjMwpBZGFw
-dGVyOiBQQ0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICswLjDCsEMgIChoaWdoID0gKzcwLjDCsEMs
-IGNyaXQgPSArOTAuMMKwQykKCmF0azAxMTAtYWNwaS0wCkFkYXB0ZXI6IEFDUEkgaW50ZXJmYWNl
-ClZjb3JlIFZvbHRhZ2U6ICAgICAgICsxLjQyIFYgIChtaW4gPSAgKzAuODUgViwgbWF4ID0gICsx
-LjcwIFYpCiAgKzMuMyBWb2x0YWdlOiAgICAgICArMy40MCBWICAobWluID0gICsyLjk3IFYsIG1h
-eCA9ICArMy42MyBWKQogICs1IFZvbHRhZ2U6ICAgICAgICAgKzUuMDggViAgKG1pbiA9ICArNC41
-MCBWLCBtYXggPSAgKzUuNTAgVikKICArMTIgVm9sdGFnZTogICAgICAgKzEyLjQyIFYgIChtaW4g
-PSArMTAuMjAgViwgbWF4ID0gKzEzLjgwIFYpCkNQVSBGQU4gU3BlZWQ6ICAgICAgMzgxMyBSUE0g
-IChtaW4gPSAgNjAwIFJQTSkKQ0hBU1NJUyBGQU4gU3BlZWQ6ICAxNDA5IFJQTSAgKG1pbiA9ICA2
-MDAgUlBNKQpDSEFTU0lTIEZBTiAyIFNwZWVkOjE5NTAgUlBNICAobWluID0gIDYwMCBSUE0pCkNQ
-VSBUZW1wZXJhdHVyZTogICAgICs0My4wwrBDICAoaGlnaCA9ICs2MC4wwrBDLCBjcml0ID0gKzk1
-LjDCsEMpCk1CIFRlbXBlcmF0dXJlOiAgICAgICszOC4wwrBDICAoaGlnaCA9ICs0NS4wwrBDLCBj
-cml0ID0gKzc1LjDCsEMpCgpob3N0On4gIyBzZW5zb3JzCmsxMHRlbXAtcGNpLTAwYzMKQWRhcHRl
-cjogUENJIGFkYXB0ZXIKdGVtcDE6ICAgICAgICArMC4wwrBDICAoaGlnaCA9ICs3MC4wwrBDLCBj
-cml0ID0gKzkwLjDCsEMpCgphdGswMTEwLWFjcGktMApBZGFwdGVyOiBBQ1BJIGludGVyZmFjZQpW
-Y29yZSBWb2x0YWdlOiAgICAgICArMS40MiBWICAobWluID0gICswLjg1IFYsIG1heCA9ICArMS43
-MCBWKQogICszLjMgVm9sdGFnZTogICAgICAgKzMuNDAgViAgKG1pbiA9ICArMi45NyBWLCBtYXgg
-PSAgKzMuNjMgVikKICArNSBWb2x0YWdlOiAgICAgICAgICs1LjA4IFYgIChtaW4gPSAgKzQuNTAg
-ViwgbWF4ID0gICs1LjUwIFYpCiAgKzEyIFZvbHRhZ2U6ICAgICAgICsxMi40MiBWICAobWluID0g
-KzEwLjIwIFYsIG1heCA9ICsxMy44MCBWKQpDUFUgRkFOIFNwZWVkOiAgICAgIDM4MTMgUlBNICAo
-bWluID0gIDYwMCBSUE0pCkNIQVNTSVMgRkFOIFNwZWVkOiAgMTQwOSBSUE0gIChtaW4gPSAgNjAw
-IFJQTSkKQ0hBU1NJUyBGQU4gMiBTcGVlZDoxOTUwIFJQTSAgKG1pbiA9ICA2MDAgUlBNKQpDUFUg
-VGVtcGVyYXR1cmU6ICAgICArNDMuMMKwQyAgKGhpZ2ggPSArNjAuMMKwQywgY3JpdCA9ICs5NS4w
-wrBDKQpNQiBUZW1wZXJhdHVyZTogICAgICArMzguMMKwQyAgKGhpZ2ggPSArNDUuMMKwQywgY3Jp
-dCA9ICs3NS4wwrBDKQoKClRoaXMganVzdCBoYXBwZW5zIG9uIG9uZSBub2RlLiBPbiB0aGUgb3Ro
-ZXIgbm9kZXMgdGhlIG1lYXN1cmVkIHZhbHVlcyAgCnNlZW0gdG8gYmUgc3RhYmxlLgoKVGhhbmtz
-IGZvciB5b3VyIGhlbHAuCgpSZWdhcmRzClNhc2NoYSBIYXVwdAoKCgoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
-bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Wed, Sep 18, 2013 at 10:51:37AM +0200, Sascha Haupt wrote:
+>=20
+> Dear @ll,
+>=20
+> I am monitoring multiple systems (with Asus M5A78LE mainboards)
+> using sensors and Munin.
+>=20
+> On one node I often get a value of 675000 RPM for the FAN2 speed.
+> Usually, the value of FAN2 is approx 1950 RPM.
+>=20
+> The jump can frequently be seen if sensors is executed manually in a
+> fast sequence:
+>=20
+The driver only reports what it gets from the system through ACPI.
+I don't think there is anything we can do about it.
+
+Luca, any idea ?
+
+Guenter
+
+>=20
+> host:~ # sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
+>=20
+> atk0110-acpi-0
+> Adapter: ACPI interface
+> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
+>  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+>  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+>  +12 Voltage:       +12.40 V  (min =3D +10.20 V, max =3D +13.80 V)
+> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
+> CHASSIS FAN Speed:  1406 RPM  (min =3D  600 RPM)
+> CHASSIS FAN 2 Speed:675000 RPM  (min =3D  600 RPM)
+> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
+> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
+>=20
+> host:~ # sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
+>=20
+> atk0110-acpi-0
+> Adapter: ACPI interface
+> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
+>  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+>  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+>  +12 Voltage:       +12.40 V  (min =3D +10.20 V, max =3D +13.80 V)
+> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
+> CHASSIS FAN Speed:  1406 RPM  (min =3D  600 RPM)
+> CHASSIS FAN 2 Speed:675000 RPM  (min =3D  600 RPM)
+> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
+> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
+>=20
+> host:~ # sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
+>=20
+> atk0110-acpi-0
+> Adapter: ACPI interface
+> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
+>  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+>  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+>  +12 Voltage:       +12.42 V  (min =3D +10.20 V, max =3D +13.80 V)
+> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
+> CHASSIS FAN Speed:  1409 RPM  (min =3D  600 RPM)
+> CHASSIS FAN 2 Speed:1950 RPM  (min =3D  600 RPM)
+> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
+> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
+>=20
+> host:~ # sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
+>=20
+> atk0110-acpi-0
+> Adapter: ACPI interface
+> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
+>  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+>  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+>  +12 Voltage:       +12.42 V  (min =3D +10.20 V, max =3D +13.80 V)
+> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
+> CHASSIS FAN Speed:  1409 RPM  (min =3D  600 RPM)
+> CHASSIS FAN 2 Speed:1950 RPM  (min =3D  600 RPM)
+> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
+> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
+>=20
+> host:~ # sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
+>=20
+> atk0110-acpi-0
+> Adapter: ACPI interface
+> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
+>  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+>  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+>  +12 Voltage:       +12.42 V  (min =3D +10.20 V, max =3D +13.80 V)
+> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
+> CHASSIS FAN Speed:  1409 RPM  (min =3D  600 RPM)
+> CHASSIS FAN 2 Speed:1950 RPM  (min =3D  600 RPM)
+> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
+> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
+>=20
+>=20
+> This just happens on one node. On the other nodes the measured
+> values seem to be stable.
+>=20
+> Thanks for your help.
+>=20
+> Regards
+> Sascha Haupt
+>=20
+>=20
+>=20
+>=20
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
