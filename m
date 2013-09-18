@@ -1,68 +1,119 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 18 Sep 2013 19:59:37 +0000
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Wed, 18 Sep 2013 20:04:39 +0000
 Subject: Re: [lm-sensors] [PATCHv3 02/16] drivers: thermal: introduce device tree parser
-Message-Id: <1379534377.1787.59.camel@joe-AO722>
+Message-Id: <523A0757.3050309@ti.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7984675924584453361=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5239F6D8.1020907@ti.com>
-	 <1379530923-29268-1-git-send-email-eduardo.valentin@ti.com>
-	 <1379531483.1787.55.camel@joe-AO722> <523A0290.8050502@ti.com>
-In-Reply-To: <523A0290.8050502@ti.com>
-MIME-Version: 1.0
+References: <5239F6D8.1020907@ti.com>  <1379530923-29268-1-git-send-email-eduardo.valentin@ti.com>  <1379531483.1787.55.camel@joe-AO722> <523A0290.8050502@ti.com> <1379534377.1787.59.camel@joe-AO722>
+In-Reply-To: <1379534377.1787.59.camel@joe-AO722>
+To: Joe Perches <joe@perches.com>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+
+--===============7984675924584453361==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="aUHUqJqa3wsmMclmn1uuxnMCAIDgD6bk8"
+
+--aUHUqJqa3wsmMclmn1uuxnMCAIDgD6bk8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 18-09-2013 15:59, Joe Perches wrote:
+> On Wed, 2013-09-18 at 15:44 -0400, Eduardo Valentin wrote:
+>> Hello Joe,
+>=20
+> Hello Eduardo.
+>=20
+>>  18-09-2013 15:11, Joe Perches wrote:
+>>> On Wed, 2013-09-18 at 15:02 -0400, Eduardo Valentin wrote:
+>>>> This patch introduces a device tree bindings for
+>>>> describing the hardware thermal behavior and limits.
+>>>> Also a parser to read and interpret the data and feed
+>>>> it in the thermal framework is presented.
+>>>
+>>> trivial notes:
+> []
+>>> If readings are within some non zero noise level,
+>>> perhaps stable should be returned.
+>>
+>> Yes, there should be some sort of threshold for temperature trend. But=
+ I
+>> am not sure this is the right place to implement this. This type of
+>> feature is in my TODO list, but I am planing to get it done within the=
+
+>> core code of the thermal framework.
+>=20
+> No worries, one day...  Just wanted to bring it to attention.
+
+Thanks, no worries, I should be working on it at some point in near
+future. It does not hurt to add a TODO mark above this code though.
+
+>=20
+>>>> +static struct __thermal_zone *
+>>>> +thermal_of_build_thermal_zone(struct device_node *np)
+>>>> +{
+> []
+>>>> +	tz =3D kzalloc(sizeof(*tz), GFP_KERNEL);
+>>>> +	if (!tz) {
+>>>> +		pr_err("not enough memory for thermal of zone\n");
+>>>
+>>> Unnecessary OOM message.
+>>> All allocs without GFP_NOWARN get a dump_stack()
+>=20
+> []
+>=20
+>> Hmmm.. I am pretty sure you have a good point. But to me seams to be
+>> still a common practice to have drivers outputing error messages when
+>> allocation fails. A simple git grep -A 4 kzalloc for instance, shows
+>> that there are still quite a considerable amount of occurrences of suc=
+h
+>> practice.
+>=20
+> True though a considerable number have been removed.
+> I think these should all be deleted eventually and
+> there's no good reason to add more.
+
+
+I see.  I will repost with your suggestion. Thanks.
+
+>=20
+>=20
+>=20
+>=20
+
+
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--aUHUqJqa3wsmMclmn1uuxnMCAIDgD6bk8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlI6B1cACgkQCXcVR3XQvP1LtAD/dq6y3m7A8RG/Thj6Q6YYKAUp
+JUBf+LUjzbggBpG5usMBANlePSOdQFa0W6IjiQUm3MnUxLjNVu9wIzdoWSkwGY/3
+=MqAX
+-----END PGP SIGNATURE-----
+
+--aUHUqJqa3wsmMclmn1uuxnMCAIDgD6bk8--
+
+
+--===============7984675924584453361==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
-On Wed, 2013-09-18 at 15:44 -0400, Eduardo Valentin wrote:
-> Hello Joe,
-
-Hello Eduardo.
-
->  18-09-2013 15:11, Joe Perches wrote:
-> > On Wed, 2013-09-18 at 15:02 -0400, Eduardo Valentin wrote:
-> >> This patch introduces a device tree bindings for
-> >> describing the hardware thermal behavior and limits.
-> >> Also a parser to read and interpret the data and feed
-> >> it in the thermal framework is presented.
-> > 
-> > trivial notes:
-[]
-> > If readings are within some non zero noise level,
-> > perhaps stable should be returned.
-> 
-> Yes, there should be some sort of threshold for temperature trend. But I
-> am not sure this is the right place to implement this. This type of
-> feature is in my TODO list, but I am planing to get it done within the
-> core code of the thermal framework.
-
-No worries, one day...  Just wanted to bring it to attention.
-
-> >> +static struct __thermal_zone *
-> >> +thermal_of_build_thermal_zone(struct device_node *np)
-> >> +{
-[]
-> >> +	tz = kzalloc(sizeof(*tz), GFP_KERNEL);
-> >> +	if (!tz) {
-> >> +		pr_err("not enough memory for thermal of zone\n");
-> > 
-> > Unnecessary OOM message.
-> > All allocs without GFP_NOWARN get a dump_stack()
-
-[]
-
-> Hmmm.. I am pretty sure you have a good point. But to me seams to be
-> still a common practice to have drivers outputing error messages when
-> allocation fails. A simple git grep -A 4 kzalloc for instance, shows
-> that there are still quite a considerable amount of occurrences of such
-> practice.
-
-True though a considerable number have been removed.
-I think these should all be deleted eventually and
-there's no good reason to add more.
-
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7984675924584453361==--
