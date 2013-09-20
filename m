@@ -1,7 +1,7 @@
-From: Marc Pignat <marc.pignat@hevs.ch>
-Date: Fri, 20 Sep 2013 08:23:03 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 20 Sep 2013 13:53:08 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (adcxx) Remove redundant spi_set_drvdata
-Message-Id: <523C05E7.1000407@hevs.ch>
+Message-Id: <20130920135308.GA32421@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1379650002-13127-1-git-send-email-sachin.kamat@linaro.org>
 In-Reply-To: <1379650002-13127-1-git-send-email-sachin.kamat@linaro.org>
@@ -10,40 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Acked-by: Marc Pignat <marc.pignat@hevs.ch>
-
-On 09/20/2013 06:06 AM, Sachin Kamat wrote:
+On Fri, Sep 20, 2013 at 09:36:41AM +0530, Sachin Kamat wrote:
 > Driver core sets driver data to NULL upon failure or remove.
 > 
 > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 > Cc: Marc Pignat <marc.pignat@hevs.ch>
-> ---
-> compile tested.
-> ---
->  drivers/hwmon/adcxx.c |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
-> index 751b1f0..04c08c2 100644
-> --- a/drivers/hwmon/adcxx.c
-> +++ b/drivers/hwmon/adcxx.c
-> @@ -203,7 +203,6 @@ out_err:
->  	for (i--; i >= 0; i--)
->  		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
->  
-> -	spi_set_drvdata(spi, NULL);
->  	mutex_unlock(&adc->lock);
->  	return status;
->  }
-> @@ -218,7 +217,6 @@ static int adcxx_remove(struct spi_device *spi)
->  	for (i = 0; i < 3 + adc->channels; i++)
->  		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
->  
-> -	spi_set_drvdata(spi, NULL);
->  	mutex_unlock(&adc->lock);
->  
->  	return 0;
-> 
+
+Applied to -next.
+
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
