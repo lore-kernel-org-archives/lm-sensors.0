@@ -1,139 +1,107 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 18 Sep 2013 11:28:22 +0000
+From: Sascha Haupt <lmsensors@m-eng.net>
+Date: Fri, 20 Sep 2013 07:20:23 +0000
 Subject: Re: [lm-sensors] Measured Fan RPM Jumps Frequently to 675000 RPM
-Message-Id: <20130918112822.GA9447@roeck-us.net>
+Message-Id: <20130920092023.Horde.Y2TPVYUWtMk3kCVaerQXxg5@webmail.df.eu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130918105137.Horde.pcSHtQSX3xoA3EHBStt0YQ1@webmail.df.eu>
 In-Reply-To: <20130918105137.Horde.pcSHtQSX3xoA3EHBStt0YQ1@webmail.df.eu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 18, 2013 at 10:51:37AM +0200, Sascha Haupt wrote:
->=20
-> Dear @ll,
->=20
-> I am monitoring multiple systems (with Asus M5A78LE mainboards)
-> using sensors and Munin.
->=20
-> On one node I often get a value of 675000 RPM for the FAN2 speed.
-> Usually, the value of FAN2 is approx 1950 RPM.
->=20
-> The jump can frequently be seen if sensors is executed manually in a
-> fast sequence:
->=20
-The driver only reports what it gets from the system through ACPI.
-I don't think there is anything we can do about it.
-
-Luca, any idea ?
-
-Guenter
-
->=20
-> host:~ # sensors
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
->=20
-> atk0110-acpi-0
-> Adapter: ACPI interface
-> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
->  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
->  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
->  +12 Voltage:       +12.40 V  (min =3D +10.20 V, max =3D +13.80 V)
-> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
-> CHASSIS FAN Speed:  1406 RPM  (min =3D  600 RPM)
-> CHASSIS FAN 2 Speed:675000 RPM  (min =3D  600 RPM)
-> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
->=20
-> host:~ # sensors
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
->=20
-> atk0110-acpi-0
-> Adapter: ACPI interface
-> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
->  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
->  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
->  +12 Voltage:       +12.40 V  (min =3D +10.20 V, max =3D +13.80 V)
-> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
-> CHASSIS FAN Speed:  1406 RPM  (min =3D  600 RPM)
-> CHASSIS FAN 2 Speed:675000 RPM  (min =3D  600 RPM)
-> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
->=20
-> host:~ # sensors
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
->=20
-> atk0110-acpi-0
-> Adapter: ACPI interface
-> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
->  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
->  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
->  +12 Voltage:       +12.42 V  (min =3D +10.20 V, max =3D +13.80 V)
-> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
-> CHASSIS FAN Speed:  1409 RPM  (min =3D  600 RPM)
-> CHASSIS FAN 2 Speed:1950 RPM  (min =3D  600 RPM)
-> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
->=20
-> host:~ # sensors
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
->=20
-> atk0110-acpi-0
-> Adapter: ACPI interface
-> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
->  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
->  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
->  +12 Voltage:       +12.42 V  (min =3D +10.20 V, max =3D +13.80 V)
-> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
-> CHASSIS FAN Speed:  1409 RPM  (min =3D  600 RPM)
-> CHASSIS FAN 2 Speed:1950 RPM  (min =3D  600 RPM)
-> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
->=20
-> host:~ # sensors
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> temp1:        +0.0=B0C  (high =3D +70.0=B0C, crit =3D +90.0=B0C)
->=20
-> atk0110-acpi-0
-> Adapter: ACPI interface
-> Vcore Voltage:       +1.42 V  (min =3D  +0.85 V, max =3D  +1.70 V)
->  +3.3 Voltage:       +3.40 V  (min =3D  +2.97 V, max =3D  +3.63 V)
->  +5 Voltage:         +5.08 V  (min =3D  +4.50 V, max =3D  +5.50 V)
->  +12 Voltage:       +12.42 V  (min =3D +10.20 V, max =3D +13.80 V)
-> CPU FAN Speed:      3813 RPM  (min =3D  600 RPM)
-> CHASSIS FAN Speed:  1409 RPM  (min =3D  600 RPM)
-> CHASSIS FAN 2 Speed:1950 RPM  (min =3D  600 RPM)
-> CPU Temperature:     +43.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-> MB Temperature:      +38.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
->=20
->=20
-> This just happens on one node. On the other nodes the measured
-> values seem to be stable.
->=20
-> Thanks for your help.
->=20
-> Regards
-> Sascha Haupt
->=20
->=20
->=20
->=20
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+RGVhciBAbGwKCkkgdHJpZWQgYW4gQklPUyB1cGRhdGUgdG8gdGhlIGxhdGVzdCB2ZXJzaW9uIDM1
+MDMuCkhvd2V2ZXIsIHRoYXQgZGlkIG5vdCBjaGFuZ2UgdGhlIHJlcG9ydGVkIGZhbiBzcGVlZC4K
+SXQgc3RpbGwganVtcHMgb2Z0ZW4gdXAgdG8gNjc1MDAwIFJQTS4KCkkgb25seSBzZWUgdGhlIHBv
+c3NpYmlsaXR5IHRvIHR3ZWFrIHRoZSBkcml2ZXIsCnNvIHRoYXQgdW5yZWFsaXN0aWMgdmFsdWVz
+IGFyZSBiZWluZyByZWplY3RlZC4KSG93ZXZlciwgdGhhdCB3b3VsZCBiZSBhIGRpcnR5IGhhY2sg
+YW5kIGRvZXMgbm90IHNvbHZlCnRoZSByb290IGNhdXNlLgoKSGFyZHdhcmUgbW9uaXRvcmluZyBv
+ZiB0aGUgQXN1cyBib2FyZHMgc2VlbXMgdG8gYmUgYmFkbHkKc3VwcG9ydGVkIGJ5IHRoZWlyIEJJ
+T1MgOi0pCgpXZSBkZWNpZGVkIG5vdCB0byBtb25pdG9yIHRoZSBGQU4yIHZhbHVlIGFueW1vcmUg
+YXMKbW9uaXRvcmluZyBpbnZhbGlkIHZhbHVlcyBtYWtlcyBubyBzZW5zZSBhbmQgYSBmYWlsZApj
+aGFzc2lzIGZhbiBkb2VzIG5vdCBpbnN0YW50bHkgYnJlYWsgdGhlIHN5c3RlbS4KCk5vdCB0aGUg
+YmVzdCBzb2x1dGlvbiwgYnV0IG9uZSB0aGF0IGRvZXMgbm90IGJsb3cKbXkgdGltZSBxdW90YS4K
+Ckhvd2V2ZXIsIHRoYW5rcyBmb3IgeW91ciBoZWxwLgpTYXNjaGEKCgpaaXRhdCB2b24gR3VlbnRl
+ciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PjoKCj4gT24gV2VkLCBTZXAgMTgsIDIwMTMgYXQg
+MTA6NTE6MzdBTSArMDIwMCwgU2FzY2hhIEhhdXB0IHdyb3RlOgo+Pgo+PiBEZWFyIEBsbCwKPj4K
+Pj4gSSBhbSBtb25pdG9yaW5nIG11bHRpcGxlIHN5c3RlbXMgKHdpdGggQXN1cyBNNEE3OVQgbWFp
+bmJvYXJkcykKPj4gdXNpbmcgc2Vuc29ycyBhbmQgTXVuaW4uCj4+Cj4+IE9uIG9uZSBub2RlIEkg
+b2Z0ZW4gZ2V0IGEgdmFsdWUgb2YgNjc1MDAwIFJQTSBmb3IgdGhlIEZBTjIgc3BlZWQuCj4+IFVz
+dWFsbHksIHRoZSB2YWx1ZSBvZiBGQU4yIGlzIGFwcHJveCAxOTUwIFJQTS4KPj4KPj4gVGhlIGp1
+bXAgY2FuIGZyZXF1ZW50bHkgYmUgc2VlbiBpZiBzZW5zb3JzIGlzIGV4ZWN1dGVkIG1hbnVhbGx5
+IGluIGEKPj4gZmFzdCBzZXF1ZW5jZToKPj4KPiBUaGUgZHJpdmVyIG9ubHkgcmVwb3J0cyB3aGF0
+IGl0IGdldHMgZnJvbSB0aGUgc3lzdGVtIHRocm91Z2ggQUNQSS4KPiBJIGRvbid0IHRoaW5rIHRo
+ZXJlIGlzIGFueXRoaW5nIHdlIGNhbiBkbyBhYm91dCBpdC4KPgo+IEx1Y2EsIGFueSBpZGVhID8K
+Pgo+IEd1ZW50ZXIKPgo+Pgo+PiBob3N0On4gIyBzZW5zb3JzCj4+IGsxMHRlbXAtcGNpLTAwYzMK
+Pj4gQWRhcHRlcjogUENJIGFkYXB0ZXIKPj4gdGVtcDE6ICAgICAgICArMC4wwrBDICAoaGlnaCA9
+ICs3MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4+Cj4+IGF0azAxMTAtYWNwaS0wCj4+IEFkYXB0
+ZXI6IEFDUEkgaW50ZXJmYWNlCj4+IFZjb3JlIFZvbHRhZ2U6ICAgICAgICsxLjQyIFYgIChtaW4g
+PSAgKzAuODUgViwgbWF4ID0gICsxLjcwIFYpCj4+ICArMy4zIFZvbHRhZ2U6ICAgICAgICszLjQw
+IFYgIChtaW4gPSAgKzIuOTcgViwgbWF4ID0gICszLjYzIFYpCj4+ICArNSBWb2x0YWdlOiAgICAg
+ICAgICs1LjA4IFYgIChtaW4gPSAgKzQuNTAgViwgbWF4ID0gICs1LjUwIFYpCj4+ICArMTIgVm9s
+dGFnZTogICAgICAgKzEyLjQwIFYgIChtaW4gPSArMTAuMjAgViwgbWF4ID0gKzEzLjgwIFYpCj4+
+IENQVSBGQU4gU3BlZWQ6ICAgICAgMzgxMyBSUE0gIChtaW4gPSAgNjAwIFJQTSkKPj4gQ0hBU1NJ
+UyBGQU4gU3BlZWQ6ICAxNDA2IFJQTSAgKG1pbiA9ICA2MDAgUlBNKQo+PiBDSEFTU0lTIEZBTiAy
+IFNwZWVkOjY3NTAwMCBSUE0gIChtaW4gPSAgNjAwIFJQTSkKPj4gQ1BVIFRlbXBlcmF0dXJlOiAg
+ICAgKzQzLjDCsEMgIChoaWdoID0gKzYwLjDCsEMsIGNyaXQgPSArOTUuMMKwQykKPj4gTUIgVGVt
+cGVyYXR1cmU6ICAgICAgKzM4LjDCsEMgIChoaWdoID0gKzQ1LjDCsEMsIGNyaXQgPSArNzUuMMKw
+QykKPj4KPj4gaG9zdDp+ICMgc2Vuc29ycwo+PiBrMTB0ZW1wLXBjaS0wMGMzCj4+IEFkYXB0ZXI6
+IFBDSSBhZGFwdGVyCj4+IHRlbXAxOiAgICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArNzAuMMKwQywg
+Y3JpdCA9ICs5MC4wwrBDKQo+Pgo+PiBhdGswMTEwLWFjcGktMAo+PiBBZGFwdGVyOiBBQ1BJIGlu
+dGVyZmFjZQo+PiBWY29yZSBWb2x0YWdlOiAgICAgICArMS40MiBWICAobWluID0gICswLjg1IFYs
+IG1heCA9ICArMS43MCBWKQo+PiAgKzMuMyBWb2x0YWdlOiAgICAgICArMy40MCBWICAobWluID0g
+ICsyLjk3IFYsIG1heCA9ICArMy42MyBWKQo+PiAgKzUgVm9sdGFnZTogICAgICAgICArNS4wOCBW
+ICAobWluID0gICs0LjUwIFYsIG1heCA9ICArNS41MCBWKQo+PiAgKzEyIFZvbHRhZ2U6ICAgICAg
+ICsxMi40MCBWICAobWluID0gKzEwLjIwIFYsIG1heCA9ICsxMy44MCBWKQo+PiBDUFUgRkFOIFNw
+ZWVkOiAgICAgIDM4MTMgUlBNICAobWluID0gIDYwMCBSUE0pCj4+IENIQVNTSVMgRkFOIFNwZWVk
+OiAgMTQwNiBSUE0gIChtaW4gPSAgNjAwIFJQTSkKPj4gQ0hBU1NJUyBGQU4gMiBTcGVlZDo2NzUw
+MDAgUlBNICAobWluID0gIDYwMCBSUE0pCj4+IENQVSBUZW1wZXJhdHVyZTogICAgICs0My4wwrBD
+ICAoaGlnaCA9ICs2MC4wwrBDLCBjcml0ID0gKzk1LjDCsEMpCj4+IE1CIFRlbXBlcmF0dXJlOiAg
+ICAgICszOC4wwrBDICAoaGlnaCA9ICs0NS4wwrBDLCBjcml0ID0gKzc1LjDCsEMpCj4+Cj4+IGhv
+c3Q6fiAjIHNlbnNvcnMKPj4gazEwdGVtcC1wY2ktMDBjMwo+PiBBZGFwdGVyOiBQQ0kgYWRhcHRl
+cgo+PiB0ZW1wMTogICAgICAgICswLjDCsEMgIChoaWdoID0gKzcwLjDCsEMsIGNyaXQgPSArOTAu
+MMKwQykKPj4KPj4gYXRrMDExMC1hY3BpLTAKPj4gQWRhcHRlcjogQUNQSSBpbnRlcmZhY2UKPj4g
+VmNvcmUgVm9sdGFnZTogICAgICAgKzEuNDIgViAgKG1pbiA9ICArMC44NSBWLCBtYXggPSAgKzEu
+NzAgVikKPj4gICszLjMgVm9sdGFnZTogICAgICAgKzMuNDAgViAgKG1pbiA9ICArMi45NyBWLCBt
+YXggPSAgKzMuNjMgVikKPj4gICs1IFZvbHRhZ2U6ICAgICAgICAgKzUuMDggViAgKG1pbiA9ICAr
+NC41MCBWLCBtYXggPSAgKzUuNTAgVikKPj4gICsxMiBWb2x0YWdlOiAgICAgICArMTIuNDIgViAg
+KG1pbiA9ICsxMC4yMCBWLCBtYXggPSArMTMuODAgVikKPj4gQ1BVIEZBTiBTcGVlZDogICAgICAz
+ODEzIFJQTSAgKG1pbiA9ICA2MDAgUlBNKQo+PiBDSEFTU0lTIEZBTiBTcGVlZDogIDE0MDkgUlBN
+ICAobWluID0gIDYwMCBSUE0pCj4+IENIQVNTSVMgRkFOIDIgU3BlZWQ6MTk1MCBSUE0gIChtaW4g
+PSAgNjAwIFJQTSkKPj4gQ1BVIFRlbXBlcmF0dXJlOiAgICAgKzQzLjDCsEMgIChoaWdoID0gKzYw
+LjDCsEMsIGNyaXQgPSArOTUuMMKwQykKPj4gTUIgVGVtcGVyYXR1cmU6ICAgICAgKzM4LjDCsEMg
+IChoaWdoID0gKzQ1LjDCsEMsIGNyaXQgPSArNzUuMMKwQykKPj4KPj4gaG9zdDp+ICMgc2Vuc29y
+cwo+PiBrMTB0ZW1wLXBjaS0wMGMzCj4+IEFkYXB0ZXI6IFBDSSBhZGFwdGVyCj4+IHRlbXAxOiAg
+ICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArNzAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQo+Pgo+PiBh
+dGswMTEwLWFjcGktMAo+PiBBZGFwdGVyOiBBQ1BJIGludGVyZmFjZQo+PiBWY29yZSBWb2x0YWdl
+OiAgICAgICArMS40MiBWICAobWluID0gICswLjg1IFYsIG1heCA9ICArMS43MCBWKQo+PiAgKzMu
+MyBWb2x0YWdlOiAgICAgICArMy40MCBWICAobWluID0gICsyLjk3IFYsIG1heCA9ICArMy42MyBW
+KQo+PiAgKzUgVm9sdGFnZTogICAgICAgICArNS4wOCBWICAobWluID0gICs0LjUwIFYsIG1heCA9
+ICArNS41MCBWKQo+PiAgKzEyIFZvbHRhZ2U6ICAgICAgICsxMi40MiBWICAobWluID0gKzEwLjIw
+IFYsIG1heCA9ICsxMy44MCBWKQo+PiBDUFUgRkFOIFNwZWVkOiAgICAgIDM4MTMgUlBNICAobWlu
+ID0gIDYwMCBSUE0pCj4+IENIQVNTSVMgRkFOIFNwZWVkOiAgMTQwOSBSUE0gIChtaW4gPSAgNjAw
+IFJQTSkKPj4gQ0hBU1NJUyBGQU4gMiBTcGVlZDoxOTUwIFJQTSAgKG1pbiA9ICA2MDAgUlBNKQo+
+PiBDUFUgVGVtcGVyYXR1cmU6ICAgICArNDMuMMKwQyAgKGhpZ2ggPSArNjAuMMKwQywgY3JpdCA9
+ICs5NS4wwrBDKQo+PiBNQiBUZW1wZXJhdHVyZTogICAgICArMzguMMKwQyAgKGhpZ2ggPSArNDUu
+MMKwQywgY3JpdCA9ICs3NS4wwrBDKQo+Pgo+PiBob3N0On4gIyBzZW5zb3JzCj4+IGsxMHRlbXAt
+cGNpLTAwYzMKPj4gQWRhcHRlcjogUENJIGFkYXB0ZXIKPj4gdGVtcDE6ICAgICAgICArMC4wwrBD
+ICAoaGlnaCA9ICs3MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4+Cj4+IGF0azAxMTAtYWNwaS0w
+Cj4+IEFkYXB0ZXI6IEFDUEkgaW50ZXJmYWNlCj4+IFZjb3JlIFZvbHRhZ2U6ICAgICAgICsxLjQy
+IFYgIChtaW4gPSAgKzAuODUgViwgbWF4ID0gICsxLjcwIFYpCj4+ICArMy4zIFZvbHRhZ2U6ICAg
+ICAgICszLjQwIFYgIChtaW4gPSAgKzIuOTcgViwgbWF4ID0gICszLjYzIFYpCj4+ICArNSBWb2x0
+YWdlOiAgICAgICAgICs1LjA4IFYgIChtaW4gPSAgKzQuNTAgViwgbWF4ID0gICs1LjUwIFYpCj4+
+ICArMTIgVm9sdGFnZTogICAgICAgKzEyLjQyIFYgIChtaW4gPSArMTAuMjAgViwgbWF4ID0gKzEz
+LjgwIFYpCj4+IENQVSBGQU4gU3BlZWQ6ICAgICAgMzgxMyBSUE0gIChtaW4gPSAgNjAwIFJQTSkK
+Pj4gQ0hBU1NJUyBGQU4gU3BlZWQ6ICAxNDA5IFJQTSAgKG1pbiA9ICA2MDAgUlBNKQo+PiBDSEFT
+U0lTIEZBTiAyIFNwZWVkOjE5NTAgUlBNICAobWluID0gIDYwMCBSUE0pCj4+IENQVSBUZW1wZXJh
+dHVyZTogICAgICs0My4wwrBDICAoaGlnaCA9ICs2MC4wwrBDLCBjcml0ID0gKzk1LjDCsEMpCj4+
+IE1CIFRlbXBlcmF0dXJlOiAgICAgICszOC4wwrBDICAoaGlnaCA9ICs0NS4wwrBDLCBjcml0ID0g
+Kzc1LjDCsEMpCj4+Cj4+Cj4+IFRoaXMganVzdCBoYXBwZW5zIG9uIG9uZSBub2RlLiBPbiB0aGUg
+b3RoZXIgbm9kZXMgdGhlIG1lYXN1cmVkCj4+IHZhbHVlcyBzZWVtIHRvIGJlIHN0YWJsZS4KPj4K
+Pj4gVGhhbmtzIGZvciB5b3VyIGhlbHAuCj4+Cj4+IFJlZ2FyZHMKPj4gU2FzY2hhIEhhdXB0Cj4+
+Cj4+Cj4+Cj4+Cj4+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCj4+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cj4+IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKPj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
+c29ycwoKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
