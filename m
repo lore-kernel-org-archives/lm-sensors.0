@@ -1,78 +1,45 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Tue, 10 Sep 2013 04:36:31 +0000
-Subject: Re: [lm-sensors] [PATCH v3 2/2] Documentation: dt: hwmon: add OF document for LM90
-Message-Id: <522EA1CF.4070605@nvidia.com>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Fri, 20 Sep 2013 04:18:42 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (lm70) Remove redundant spi_set_drvdata
+Message-Id: <1379650002-13127-2-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378722552-10357-1-git-send-email-wni@nvidia.com> <1378722552-10357-3-git-send-email-wni@nvidia.com> <CALkWK0nqgF6yn4QRe2tTD-Qd+5GLtH-ifCesayk-+uxkWMx-5w@mail.gmail.com> <522EA177.6050608@nvidia.com>
-In-Reply-To: <522EA177.6050608-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ramkumar Ramachandra <artagnon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 09/10/2013 12:35 PM, Wei Ni wrote:
-> On 09/09/2013 06:57 PM, Ramkumar Ramachandra wrote:
->> Wei Ni wrote:
->>> diff --git a/Documentation/devicetree/bindings/hwmon/lm90.txt b/Documentation/devicetree/bindings/hwmon/lm90.txt
->>> new file mode 100644
->>> index 0000000..5570875
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/hwmon/lm90.txt
->>
->> While at it, please update and rename ads1015.txt.
-> 
-> This series is for lm90 compatible devices, it seems ads1015 is not
-> register-compatible with lm90.
-> 
->>
->>> @@ -0,0 +1,44 @@
->>> +* LM90 series thermometer.
->>> +
->>> +Required node properties:
->>> +- compatible: manufacture and chip name, one of
->>> +               "<manufacture>,adm1032"
->>> +               "<manufacture>,adt7461"
->>> +               "<manufacture>,adt7461a"
->>> +               "<manufacture>,g781"
->>> +               "<manufacture>,lm90"
->>> +               "<manufacture>,lm86"
->>> +               "<manufacture>,lm89"
->>> +               "<manufacture>,lm99"
->>
->> More versions of this of different ages are required.
-> 
-> In here, the chip names, such as "lm99", come from lm90.c id_table, the
-> i2c subsystem want to use it to load driver, so we can add any other names.
+Driver core sets driver data to NULL upon failure or remove.
 
-Sorry, it's typo, it should be "can't add any other names".
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kaiwan N Billimoria <kaiwan@designergraphix.com>
+---
+compile tested.
+---
+ drivers/hwmon/lm70.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-> 
->>
->>> +               "<manufacture>,max6646"
->>> +               "<manufacture>,max6647"
->>> +               "<manufacture>,max6649"
->>> +               "<manufacture>,max6657"
->>> +               "<manufacture>,max6658"
->>> +               "<manufacture>,max6659"
->>> +               "<manufacture>,max6680"
->>> +               "<manufacture>,max6681"
->>> +               "<manufacture>,max6695"
->>> +               "<manufacture>,max6696"
->>
->> SSDNow devices are required.
-> What's the SSDNow device? It seems the lm90.c doesn't support it.
-> 
-> Thanks.
-> Wei.
-> 
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index 016efa2..505a59e 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -174,7 +174,6 @@ out_dev_reg_failed:
+ out_dev_create_file_failed:
+ 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+ out_dev_create_temp_file_failed:
+-	spi_set_drvdata(spi, NULL);
+ 	return status;
+ }
+ 
+@@ -185,7 +184,6 @@ static int lm70_remove(struct spi_device *spi)
+ 	hwmon_device_unregister(p_lm70->hwmon_dev);
+ 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+ 	device_remove_file(&spi->dev, &dev_attr_name);
+-	spi_set_drvdata(spi, NULL);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
 
 
 _______________________________________________
