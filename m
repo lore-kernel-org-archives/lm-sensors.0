@@ -1,81 +1,38 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Sep 2013 15:23:03 +0000
-Subject: Re: [lm-sensors] Problems with SYSTIN in nct6776-isa-0290
-Message-Id: <20130925152303.GA27541@roeck-us.net>
+Date: Sun, 22 Sep 2013 19:59:06 +0000
+Subject: Re: [lm-sensors] trying to free nonexistent resource [was: ASRock IMB-170 configuration help]
+Message-Id: <523F4C0A.1050800@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CALmZR2Nd_S3tT9LM7bqwZi0PQgL4pSYPpHX3fCskXuWD587jGQ@mail.gmail.com>
-In-Reply-To: <CALmZR2Nd_S3tT9LM7bqwZi0PQgL4pSYPpHX3fCskXuWD587jGQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 25, 2013 at 04:59:04PM +0200, Kent Larsson wrote:
-> I use sensors version 3.3.2 with libsensors version 3.3.2. I have some
-> sensors controlled by nct6776-isa-0290 which produce ALARM even though th=
-ey
-> should not. For the most part I can get it to work by setting _min and _m=
-ax
-> or ignoring the sensor. But I have one sensor I have been unable to "fix".
->=20
->     sensors
->     ...
->     nct6776-isa-0290
->     ...
->     SYSTIN:         +31.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  =
-ALARM
-> sensor =3D thermistor
->     ...
->=20
-> I have this /etc/sensors.d/custom
->     chip "nct6776-isa-0290"
->             ignore fan3
->             ignore fan4
->             ignore fan5
->             ignore intrusion0
->             ignore intrusion1
->             ignore in5
->             ignore SYSTIN
->             label fan1 "Chassis Fan 1"
->             label fan2 "CPU Fan"
->             set fan1_min 500
->             set fan2_min 300
->             set in1_min 0.612
->             set in1_max 1.428
->             set in4_min 0.606
->             set in4_max 1.414
->=20
-> I have tried
->=20
->             set SYSTIN_high 80.0
->             set SYSTIN_hyst 75.0
->=20
-> But then sudo sensors -s gives me
->=20
->     Error: File /etc/sensors.d/custom, line 17: Unknown feature name
->     Error: File /etc/sensors.d/custom, line 18: Unknown feature name
->     nct6776-isa-0290: No such subfeature known
->=20
-> When that didn't work I tried
->=20
->             ignore SYSTIN
->=20
-> In that case sudo sensors -s does not complain, but the SYSTIN line still
-> shows up.
->=20
-> Am I doing something wrong?
->=20
-Hi Kent,
+On 09/22/2013 11:41 AM, singumal wrote:
+> singumal <qdmd-pu1o@dea.spamcon.org> wrote:
+>
+[ ... ]
+>
+> Noticed an error message on physical console when restarting
+> lm_sensors, look in syslog, here are all the messages:
+>
+> Sep 19 08:38:49 localhost kernel: Trying to free nonexistent resource
+> <0000000000000295-0000000000000296>
+> Sep 19 08:38:49 localhost kernel: coretemp coretemp.0: TjMax is 105 C.
+> Sep 19 08:38:49 localhost kernel: coretemp coretemp.1: TjMax is 105 C.
+> Sep 19 08:38:49 localhost kernel: coretemp coretemp.2: TjMax is 105 C.
+> Sep 19 08:38:49 localhost kernel: coretemp coretemp.3: TjMax is 105 C.
+> Sep 19 08:38:49 localhost kernel: w83627ehf: Found W83627UHG chip at 0x290
+>
+>
+> Does that resource message indicate misconfiguration, or some other problem?
+>
+AFAIK this problem has been solved in a later kernel version, though I may be wrong.
+What is your kernel version ? I don't think you ever mentioned it.
 
-you need to use raw attribute names in the configuration file, not symbolic
-names.
-
-Use sensors -u to get the raw attribute names. That will most likely be tem=
-p1
-for SYSTIN. Whatever it is, replace SYSTIN in the config file with it.
-
-Hope this helps,
+Thanks,
 Guenter
+
 
 _______________________________________________
 lm-sensors mailing list
