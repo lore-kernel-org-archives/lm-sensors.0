@@ -1,41 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 11 Sep 2013 12:07:53 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect : Fixing use of uninitialised value 'vendor_id' on ppc64
-Message-Id: <20130911140753.4eabd461@endymion.delvare>
+From: Alan <alanpalmer346@btinternet.com>
+Date: Tue, 24 Sep 2013 16:02:43 +0000
+Subject: [lm-sensors] Two Temp 1 Values
+Message-Id: <20130924170243.708363fa@mail.btinternet.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1301926956.10694212.1378813074661.JavaMail.root@redhat.com>
-In-Reply-To: <1301926956.10694212.1378813074661.JavaMail.root@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jaromir,
-
-On Tue, 10 Sep 2013 07:37:54 -0400 (EDT), Jaromir Capik wrote:
-> There's no vendor_id entry in the /proc/cpuinfo file in case of PPC64
-> systems and consequently the script returns 3 screens full of the
-> following errors:
-> 
-> Use of uninitialized value in string eq at /usr/sbin/sensors-detect line 6444
-> Use of uninitialized value in string eq at /usr/sbin/sensors-detect line 6459
-> Use of uninitialized value in string eq at /usr/sbin/sensors-detect line 6473
-> 
-> The attached patch fixes that.
-> 
-> Please, merge.
-
-Thanks for reporting. I don't think sensors-detect is terribly useful
-on PPC64, but the fix is simple enough so can can take it. I have
-committed a slightly different variant:
-  http://www.lm-sensors.org/changeset/6196
-
-Thanks for your contribution.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgbG0tc2Vuc29ycywKCkkgaGF2ZSBhIHBlY3VsaWFyIHNpdHVhdGlvbiB3aGVyZSBsbS1zZW5z
+b3JzIHByb2R1Y2VzIHR3byBkaWZmZXJlbnQKdmFsdWVzIG9mICJ0ZW1wIDEiLiBUaGUgb3V0cHV0
+IGZyb20gInNlbnNvcnMiIGF0IHRoZSBjb21tYW5kIGxpbmUgc2hvd3MKdGhpczoKCiQgc2Vuc29y
+cwpmYW0xNWhfcG93ZXItcGNpLTAwYzQKQWRhcHRlcjogUENJIGFkYXB0ZXIKcG93ZXIxOiAgICAg
+IDEwMC4zMCBXICAoY3JpdCA9IDEyNS4xOSBXKQoKazEwdGVtcC1wY2ktMDBjMwpBZGFwdGVyOiBQ
+Q0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICsxMS44wrBDICAoaGlnaCA9ICs3MC4wwrBDKQogICAg
+ICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzgwLjDCsEMsIGh5c3QgPSArNzcuMMKwQykKCml0
+ODcyOC1pc2EtMDIyOApBZGFwdGVyOiBJU0EgYWRhcHRlcgppbjA6ICAgICAgICAgICswLjkwIFYg
+IChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCmluMTogICAgICAgICAgKzEuNTAgViAg
+KG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKaW4yOiAgICAgICAgICArMS45OSBWICAo
+bWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQorMy4zVjogICAgICAgICszLjM2IFYgICht
+aW4gPSAgKzAuMDAgViwgbWF4ID0gICs2LjEyIFYpCmluNDogICAgICAgICAgKzIuMDAgViAgKG1p
+biA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKaW41OiAgICAgICAgICArMi4yMyBWICAobWlu
+ID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQppbjY6ICAgICAgICAgICsyLjIzIFYgIChtaW4g
+PSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCjNWU0I6ICAgICAgICAgKzMuMjkgViAgKG1pbiA9
+ICArMC4wMCBWLCBtYXggPSAgKzYuMTIgVikKVmJhdDogICAgICAgICArMy4xNyBWICAKZmFuMTog
+ICAgICAgIDIyMjAgUlBNICAobWluID0gICAgMCBSUE0pCmZhbjI6ICAgICAgICAxMTk2IFJQTSAg
+KG1pbiA9ICAgIDAgUlBNKQpmYW4zOiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkK
+dGVtcDE6ICAgICAgICArMzAuMMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDC
+sEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCnRlbXAyOiAgICAgICAgKzI5LjDCsEMgIChsb3cgID0g
+KzEyNy4wwrBDLCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0gdGhlcm1hbCBkaW9kZQp0ZW1w
+MzogICAgICAgICsyNy4wwrBDICAobG93ICA9ICsxMjcuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykg
+IHNlbnNvciA9IHRoZXJtYWwgZGlvZGUKaW50cnVzaW9uMDogIEFMQVJNCgoKSGVuY2UsIGFueXRo
+aW5nIG1vbml0b3JpbmcgdGVtcGVyYXR1cmVzLCBzdWNoIGFzICJDb25reSIsIGdpdmVzIHR3bwpy
+ZWFkaW5ncyBmb3IgInRlbXAxIi4KClJlZ2FyZHMKCkFsYW4gUGFsbWVyCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
+dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
