@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 26 Sep 2013 10:36:05 +0000
+Date: Thu, 26 Sep 2013 10:53:15 +0000
 Subject: Re: [lm-sensors] applesmc oops in 3.10/3.11
-Message-Id: <52440E15.7060002@roeck-us.net>
+Message-Id: <5244121B.7070904@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CA+5PVA5mmLPEqM2r5=fBN4sM4LLacynn8R1tewObsX35e4_TfA@mail.gmail.com> <20130925195628.GA1532@roeck-us.net> <20130925214807.GA3234@polaris.bitmath.org> <20130925220838.GB4184@roeck-us.net> <20130926063453.GA526@polaris.bitmath.org>
 In-Reply-To: <20130926063453.GA526@polaris.bitmath.org>
@@ -33,12 +33,6 @@ On 09/25/2013 11:34 PM, Henrik Rydberg wrote:
 > see any other logical explanation. There is of course always the
 > possibility that the problem is somewhere else completely.
 >
-There are also ACPI conflicts in each of the bug reports I looked at.
-Can this play a role, or is that "normal" on apple systems ?
-
-Thanks,
-Guenter
-
 > Proper patch attached.
 >
 > Thanks,
@@ -62,39 +56,16 @@ Guenter
 > ---
 >   drivers/hwmon/applesmc.c | 11 ++++++++++-
 >   1 file changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-> index 62c2e32..98814d1 100644
-> --- a/drivers/hwmon/applesmc.c
-> +++ b/drivers/hwmon/applesmc.c
-> @@ -525,16 +525,25 @@ static int applesmc_init_smcreg_try(void)
->   {
->   	struct applesmc_registers *s = &smcreg;
->   	bool left_light_sensor, right_light_sensor;
-> +	unsigned int count;
->   	u8 tmp[1];
->   	int ret;
->
->   	if (s->init_complete)
->   		return 0;
->
-> -	ret = read_register_count(&s->key_count);
-> +	ret = read_register_count(&count);
->   	if (ret)
->   		return ret;
->
-> +	if (s->cache && s->key_count != count) {
-> +		pr_warn("key count changed from %d to %d\n",
-> +			s->key_count, count);
-> +		kfree(s->cache);
-> +		s->cache = NULL;
-> +	}
-> +	s->key_count = count;
-> +
->   	if (!s->cache)
->   		s->cache = kcalloc(s->key_count, sizeof(*s->cache), GFP_KERNEL);
->   	if (!s->cache)
->
+
+Applied. I'll run my sanity tests before I send it upstream.
+I'll also Cc: stable.
+
+Interesting is that this started to happen with 3.10, even though
+I did not find any relevant changes in the driver. Is it possible that
+changed boot timing (ie reduced boot time) exposes this problem ?
+
+Thanks,
+Guenter
 
 
 _______________________________________________
