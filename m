@@ -1,33 +1,32 @@
 From: Henrik Rydberg <rydberg@euromail.se>
-Date: Thu, 26 Sep 2013 11:11:51 +0000
+Date: Thu, 26 Sep 2013 11:13:51 +0000
 Subject: Re: [lm-sensors] applesmc oops in 3.10/3.11
-Message-Id: <20130926111151.GA2194@polaris.bitmath.org>
+Message-Id: <20130926111351.GA2198@polaris.bitmath.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CA+5PVA5mmLPEqM2r5=fBN4sM4LLacynn8R1tewObsX35e4_TfA@mail.gmail.com>
  <20130925195628.GA1532@roeck-us.net>
  <20130925214807.GA3234@polaris.bitmath.org>
  <20130925220838.GB4184@roeck-us.net>
  <20130926063453.GA526@polaris.bitmath.org>
- <5244121B.7070904@roeck-us.net>
-In-Reply-To: <5244121B.7070904@roeck-us.net>
+ <52440E15.7060002@roeck-us.net>
+In-Reply-To: <52440E15.7060002@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
 Cc: Josh Boyer <jwboyer@fedoraproject.org>, khali@linux-fr.org, lm-sensors@lm-sensors.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, bugzilla@colorremedies.com
 
-> Applied. I'll run my sanity tests before I send it upstream.
-> I'll also Cc: stable.
+> >Yes - I agree that the error state is far-fetched, but it is hard to
+> >see any other logical explanation. There is of course always the
+> >possibility that the problem is somewhere else completely.
+> >
+> There are also ACPI conflicts in each of the bug reports I looked at.
+> Can this play a role, or is that "normal" on apple systems ?
 
-Great.
-
-> Interesting is that this started to happen with 3.10, even though
-> I did not find any relevant changes in the driver. Is it possible that
-> changed boot timing (ie reduced boot time) exposes this problem ?
-
-I was thinking the same thing - if the SMC takes some time to boot up,
-it could very well be the culprit. Imagine that, the kernel is too
-fast. ;-)
+I honstestly don't know. On my own machine (MBA3,1), I have problems
+with the PCIe NIC somehow overwriting the graphics buffer, resulting
+in a corrupted screen at boot. After a suspend/resume, that problem is
+gone, but there is surely something fishy going on...
 
 Thanks,
 Henrik
