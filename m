@@ -1,166 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 02 Sep 2013 23:19:03 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.12
-Message-Id: <20130902231903.GA20838@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4415642114051408546=="
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:25 +0000
+Subject: [lm-sensors] [PATCHv4 18/18] arm: dts: add cooling properties on omap5 cpu node
+Message-Id: <1380251605-3804-19-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============4415642114051408546==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
-Content-Disposition: inline
-
-
---gKMricLos+KVdGMg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon updates for Linux 3.12 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-
-------
-
-The following changes since commit d4e4ab86bcba5a72779c43dc1459f71fea3d89c8:
-
-  Linux 3.11-rc5 (2013-08-11 18:04:20 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to f060c658b820141f18abd7b71586d628464a03ea:
-
-  hwmon: (htu21) Add Measurement Specialties HTU21D support (2013-08-29 09:09:12 -0700)
-
-----------------------------------------------------------------
-New driver for HTU21D (humidity sensor)
-Add support for Fam16h (Kabini) to k10temp
-Add support for NCT6102D/6106D and NCT6791D to nct6775 driver
-Add support for ADS1115 to ads1015 driver
-Add support for hibernate to w83627ehf and nct6775 drivers
-Some minor cleanups
-
-----------------------------------------------------------------
-Dan Carpenter (2):
-      hwmon: (nct6775) Fix size of data->temp array
-      hwmon: (adt7462) ADT7462_REG_VOLT_MAX() should return 0
-
-Darrick J. Wong (1):
-      hwmon: Change my email address.
-
-David Bartley (1):
-      hwmon: (nct6775) Add support for NCT6791D
-
-Evgeniy Dushistov (1):
-      hwmon: (ads1015) Add support for ADS1115
-
-Guenter Roeck (7):
-      hwmon: (coretemp) Atom CPUs don't support TjMax; no warning needed
-      hwmon: (nct6775) Allocate attributes dynamically from templates
-      hwmon: (nct6775) Support two SuperIO chips in the same system
-      hwmon: (nct6775) Add support for NCT6102D/6106D
-      hwmon: (nct6775) Add support for critical low/high temperature limits on NCT6106
-      hwmon: (nct6775) Add support for beep attributes
-      hwmon: (nct6775) Avoid using device platform data outside probe function
-
-Harald Judt (2):
-      hwmon: (nct6775) Add support for hibernate
-      hwmon: (w83627ehf) Add support for hibernate
-
-Jingoo Han (1):
-      hwmon: use dev_get_platdata()
-
-Wei Hu (1):
-      hwmon: (k10temp) Add support for Fam16h (Kabini)
-
-William Markezana (1):
-      hwmon: (htu21) Add Measurement Specialties HTU21D support
-
- Documentation/hwmon/ads1015      |    8 +-
- Documentation/hwmon/htu21        |   46 +
- Documentation/hwmon/k10temp      |    1 +
- drivers/hwmon/Kconfig            |   18 +-
- drivers/hwmon/Makefile           |    1 +
- drivers/hwmon/acpi_power_meter.c |    4 +-
- drivers/hwmon/ads1015.c          |   27 +-
- drivers/hwmon/ads7828.c          |    2 +-
- drivers/hwmon/adt7462.c          |    8 +-
- drivers/hwmon/adt7470.c          |    4 +-
- drivers/hwmon/coretemp.c         |   14 +-
- drivers/hwmon/ds620.c            |    2 +-
- drivers/hwmon/f71805f.c          |    2 +-
- drivers/hwmon/f71882fg.c         |    2 +-
- drivers/hwmon/f75375s.c          |    3 +-
- drivers/hwmon/g762.c             |    2 +-
- drivers/hwmon/gpio-fan.c         |    2 +-
- drivers/hwmon/htu21.c            |  199 +++
- drivers/hwmon/i5k_amb.c          |    4 +-
- drivers/hwmon/ibmaem.c           |    4 +-
- drivers/hwmon/ibmpex.c           |    4 +-
- drivers/hwmon/ina2xx.c           |    4 +-
- drivers/hwmon/it87.c             |    6 +-
- drivers/hwmon/k10temp.c          |    3 +-
- drivers/hwmon/lm87.c             |    4 +-
- drivers/hwmon/max197.c           |    2 +-
- drivers/hwmon/max6639.c          |    2 +-
- drivers/hwmon/mcp3021.c          |    7 +-
- drivers/hwmon/nct6775.c          | 2531 +++++++++++++++++++-------------------
- drivers/hwmon/ntc_thermistor.c   |    2 +-
- drivers/hwmon/pc87427.c          |    4 +-
- drivers/hwmon/pmbus/pmbus_core.c |    2 +-
- drivers/hwmon/s3c-hwmon.c        |    6 +-
- drivers/hwmon/sht15.c            |    4 +-
- drivers/hwmon/smsc47m1.c         |    4 +-
- drivers/hwmon/w83627ehf.c        |   22 +-
- drivers/hwmon/w83627hf.c         |    6 +-
- drivers/misc/ics932s401.c        |    4 +-
- 38 files changed, 1618 insertions(+), 1352 deletions(-)
- create mode 100644 Documentation/hwmon/htu21
- create mode 100644 drivers/hwmon/htu21.c
-
---gKMricLos+KVdGMg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSJRznAAoJEMsfJm/On5mBCrkP+wVNyG8Ab7nf9pWamyfqflaF
-mmQAvYVlqP9NHdUZjCwI87cWihGpYMPHuDeBbwFtzhxBtjYstzha6GpkgtEJTjnH
-CszYgaLBc7OGoOBw4PPloe2+IEFZcSWIPhnI/jJp1bbjD//zFS+3Wzr8wTu94Zv2
-8HrsIw4JqRkuMBPAKHRcKycKDOqLBko3EpVx/h1eosZUSbrpEOiWutJvsSLw+2EP
-22wvjaIZVDGHpVykRF9kOOt2XVGGD298YW9DpmEIfmPwv2Utm8NN50dOjNO8TT/l
-ukn0SC295acaIklkjJ+YScnc4keTZuK3gJ6ndlfmAWXnMwOSN60tBWNXG50IYMLt
-e15DGsQxNiM0OzSO84+NHGqinSTaW2NVHH9ZkLkIskGM0ALVoydjfKYLBoYxmQqV
-g0P2oNkwiljBRe3lood+eA3OOoKGTayKMUvEsZvaTUdroGHxJCJzYAToMrZSWyHb
-hXIchkuGL7JapdoChSw/wGGv7lb3UXZG3lprilTylbwPjsTynnoJm8fJBwJXZAyt
-cNhbj/YBNUzdzyF1PxWPnftVHtwwWKnRJ6L11WzWTtg+BPFPm3NGNAC9ce0p2R6L
-QvkxyvnsV5ZLSZCtRnDhQc7lGJ+vnbOvf3tZrtgegH9iAXnK1XhyJ4UNb2Jk5bv5
-9LEEieYBBZib5m5BVf1I
-=48w7
------END PGP SIGNATURE-----
-
---gKMricLos+KVdGMg--
-
-
---===============4415642114051408546==
-Content-Type: text/plain; charset="us-ascii"
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4415642114051408546==--
+T01BUDUgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVlZHMg
+dG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhpcyBw
+YXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRoYXQg
+Y3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJlbm/D
+rnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRv
+bnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+
+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1h
+cmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3Jn
+Lm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNz
+ZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2Vy
+bmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJu
+ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpT
+aWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4K
+LS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIHwgMyArKysKIDEgZmlsZSBjaGFuZ2Vk
+LCAzIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5k
+dHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQppbmRleCAxODdjYjcxLi5hMzVjZDYx
+IDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA1LmR0c2kKQEAgLTM3LDYgKzM3LDkgQEAKIAkJCWRldmljZV90eXBlID0g
+ImNwdSI7CiAJCQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsKIAkJCXJlZyA9IDwweDA+
+OworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCSNjb29saW5nLWNlbGxzID0gPDI+OyAv
+KiBtaW4gZm9sbG93ZWQgYnkgbWF4ICovCiAJCX07CiAJCWNwdUAxIHsKIAkJCWRldmljZV90eXBl
+ID0gImNwdSI7Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycw=
