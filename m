@@ -1,38 +1,75 @@
-From: Alan <alanpalmer346@btinternet.com>
-Date: Tue, 24 Sep 2013 16:02:43 +0000
-Subject: [lm-sensors] Two Temp 1 Values
-Message-Id: <20130924170243.708363fa@mail.btinternet.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 27 Sep 2013 16:20:16 +0000
+Subject: Re: [lm-sensors] Two Temp 1 Values
+Message-Id: <20130927162016.GB10392@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20130924170243.708363fa@mail.btinternet.com>
+In-Reply-To: <20130924170243.708363fa@mail.btinternet.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgbG0tc2Vuc29ycywKCkkgaGF2ZSBhIHBlY3VsaWFyIHNpdHVhdGlvbiB3aGVyZSBsbS1zZW5z
-b3JzIHByb2R1Y2VzIHR3byBkaWZmZXJlbnQKdmFsdWVzIG9mICJ0ZW1wIDEiLiBUaGUgb3V0cHV0
-IGZyb20gInNlbnNvcnMiIGF0IHRoZSBjb21tYW5kIGxpbmUgc2hvd3MKdGhpczoKCiQgc2Vuc29y
-cwpmYW0xNWhfcG93ZXItcGNpLTAwYzQKQWRhcHRlcjogUENJIGFkYXB0ZXIKcG93ZXIxOiAgICAg
-IDEwMC4zMCBXICAoY3JpdCA9IDEyNS4xOSBXKQoKazEwdGVtcC1wY2ktMDBjMwpBZGFwdGVyOiBQ
-Q0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICsxMS44wrBDICAoaGlnaCA9ICs3MC4wwrBDKQogICAg
-ICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzgwLjDCsEMsIGh5c3QgPSArNzcuMMKwQykKCml0
-ODcyOC1pc2EtMDIyOApBZGFwdGVyOiBJU0EgYWRhcHRlcgppbjA6ICAgICAgICAgICswLjkwIFYg
-IChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCmluMTogICAgICAgICAgKzEuNTAgViAg
-KG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKaW4yOiAgICAgICAgICArMS45OSBWICAo
-bWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQorMy4zVjogICAgICAgICszLjM2IFYgICht
-aW4gPSAgKzAuMDAgViwgbWF4ID0gICs2LjEyIFYpCmluNDogICAgICAgICAgKzIuMDAgViAgKG1p
-biA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKaW41OiAgICAgICAgICArMi4yMyBWICAobWlu
-ID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQppbjY6ICAgICAgICAgICsyLjIzIFYgIChtaW4g
-PSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCjNWU0I6ICAgICAgICAgKzMuMjkgViAgKG1pbiA9
-ICArMC4wMCBWLCBtYXggPSAgKzYuMTIgVikKVmJhdDogICAgICAgICArMy4xNyBWICAKZmFuMTog
-ICAgICAgIDIyMjAgUlBNICAobWluID0gICAgMCBSUE0pCmZhbjI6ICAgICAgICAxMTk2IFJQTSAg
-KG1pbiA9ICAgIDAgUlBNKQpmYW4zOiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkK
-dGVtcDE6ICAgICAgICArMzAuMMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDC
-sEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCnRlbXAyOiAgICAgICAgKzI5LjDCsEMgIChsb3cgID0g
-KzEyNy4wwrBDLCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0gdGhlcm1hbCBkaW9kZQp0ZW1w
-MzogICAgICAgICsyNy4wwrBDICAobG93ICA9ICsxMjcuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykg
-IHNlbnNvciA9IHRoZXJtYWwgZGlvZGUKaW50cnVzaW9uMDogIEFMQVJNCgoKSGVuY2UsIGFueXRo
-aW5nIG1vbml0b3JpbmcgdGVtcGVyYXR1cmVzLCBzdWNoIGFzICJDb25reSIsIGdpdmVzIHR3bwpy
-ZWFkaW5ncyBmb3IgInRlbXAxIi4KClJlZ2FyZHMKCkFsYW4gUGFsbWVyCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
-dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Tue, Sep 24, 2013 at 05:02:43PM +0100, Alan wrote:
+> Hi lm-sensors,
+> 
+> I have a peculiar situation where lm-sensors produces two different
+> values of "temp 1". The output from "sensors" at the command line shows
+
+If the system has 10 different temperature sensor chips, you'll see ten times
+"temp1".
+
+Just to give you an example, this is the output from a line card
+on a high end switch with a large number of temperature sensors:
+
+root@fpc2:~# sensors | grep temp
+temp1:        +34.5 C  (low  = +75.0 C, high = +80.0 C)  ALARM (LOW)
+temp1:        +38.0 C  (low  = +75.0 C, high = +80.0 C)  ALARM (LOW)
+temp1:        +24.5 C  (low  = +75.0 C, high = +80.0 C)  ALARM (LOW)
+temp1:        +25.5 C  (low  = +75.0 C, high = +80.0 C)  ALARM (LOW)
+temp1:        +34.5 C  (low  = +75.0 C, high = +80.0 C)  ALARM (LOW)
+temp1:        +34.5 C  (low  = +75.0 C, high = +80.0 C)  ALARM (LOW)
+temp1:        +28.8 C  (low  =  +0.0 C)                  ALARM (HIGH, CRIT)
+temp1:        +37.0 C  (high = +90.0 C)
+temp2:        +41.5 C  (high = +110.0 C, crit = +110.0 C)
+temp3:        +40.0 C  (high = +127.0 C)
+temp4:        +45.0 C  (high = +100.0 C)
+temp5:        +46.0 C  (high = +100.0 C, crit = +127.0 C)
+temp6:          FAULT  (high = +100.0 C, crit = +90.0 C)
+temp7:          FAULT  (high = +100.0 C, crit = +90.0 C)
+temp1:        +39.0 C  (high = +90.0 C)
+temp2:        +38.8 C  (high = +110.0 C, crit = +110.0 C)
+temp3:        +37.0 C  (high = +127.0 C)
+temp4:        +43.0 C  (high = +100.0 C)
+temp5:        +40.0 C  (high = +100.0 C, crit = +127.0 C)
+temp6:          FAULT  (high = +100.0 C, crit = +90.0 C)
+temp7:          FAULT  (high = +100.0 C, crit = +90.0 C)
+temp1:        +25.4 C  (low  = -10.0 C, high = +105.0 C)
+temp1:        +39.8 C  (low  = -10.0 C, high = +75.0 C)
+temp1:        +42.2 C  (low  = -10.0 C, high = +75.0 C)
+temp1:        +43.1 C  (low  = -10.0 C, high = +75.0 C)
+temp1:        +35.2 C  (low  = -10.0 C, high = +75.0 C)
+temp1:        +29.5 C  (low  = -10.0 C, high = +75.0 C)
+temp1:        +29.4 C  (low  = -10.0 C, high = +75.0 C)
+temp1:        +30.4 C  (low  =  +0.0 C, high = +75.0 C)
+temp1:        +28.8 C  (low  =  +0.0 C, high = +75.0 C)
+temp1:        +27.7 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +29.8 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +33.8 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +37.2 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +28.9 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +29.5 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +32.3 C  (low  = -30.0 C, high = +110.0 C)
+temp1:        +39.8 C  (low  = -30.0 C, high = +110.0 C)
+
+Nothing wrong with that (except that limits are not initialized correctly
+in some cases, and unused sensor inputs are not disabled). Your application
+needs to be able to distinguish between sensor chips, not just between
+sensor attribute names.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
