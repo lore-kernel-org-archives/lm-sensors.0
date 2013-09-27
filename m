@@ -1,240 +1,50 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 01 Sep 2013 02:48:59 +0000
-Subject: [lm-sensors] [PATCH v2 6/9] hwmon: (nct6775) Convert to use hwmon_device_register_with_groups
-Message-Id: <1378003742-18685-7-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:22 +0000
+Subject: [lm-sensors] [PATCHv4 15/18] arm: dts: add omap5 GPU thermal data
+Message-Id: <1380251605-3804-16-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/nct6775.c |  122 ++++++++++++++---------------------------------
- 1 file changed, 36 insertions(+), 86 deletions(-)
-
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 6eb03ce..bf0c35f 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -725,10 +725,9 @@ struct nct6775_data {
- 	const char *name;
- 
- 	struct device *hwmon_dev;
--	struct attribute_group *group_in;
--	struct attribute_group *group_fan;
--	struct attribute_group *group_temp;
--	struct attribute_group *group_pwm;
-+
-+	int num_attr_groups;
-+	const struct attribute_group *groups[6];
- 
- 	u16 reg_temp[5][NUM_TEMP]; /* 0=temp, 1=temp_over, 2=temp_hyst,
- 				    * 3=temp_crit, 4=temp_lcrit
-@@ -942,7 +941,7 @@ nct6775_create_attr_group(struct device *dev, struct sensor_template_group *tg,
- 	struct sensor_device_attribute_2 *a2;
- 	struct attribute **attrs;
- 	struct sensor_device_template **t;
--	int err, i, j, count;
-+	int i, j, count;
- 
- 	if (repeat <= 0)
- 		return ERR_PTR(-EINVAL);
-@@ -1002,10 +1001,6 @@ nct6775_create_attr_group(struct device *dev, struct sensor_template_group *tg,
- 		}
- 	}
- 
--	err = sysfs_create_group(&dev->kobj, group);
--	if (err)
--		return ERR_PTR(-ENOMEM);
--
- 	return group;
- }
- 
-@@ -2726,16 +2721,6 @@ store_fan_time(struct device *dev, struct device_attribute *attr,
- }
- 
- static ssize_t
--show_name(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct nct6775_data *data = dev_get_drvdata(dev);
--
--	return sprintf(buf, "%s\n", data->name);
--}
--
--static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
--
--static ssize_t
- show_auto_pwm(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct nct6775_data *data = nct6775_update_device(dev);
-@@ -3061,16 +3046,16 @@ static umode_t nct6775_other_is_visible(struct kobject *kobj,
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	struct nct6775_data *data = dev_get_drvdata(dev);
- 
--	if (index = 1 && !data->have_vid)
-+	if (index = 0 && !data->have_vid)
- 		return 0;
- 
--	if (index = 2 || index = 3) {
--		if (data->ALARM_BITS[INTRUSION_ALARM_BASE + index - 2] < 0)
-+	if (index = 1 || index = 2) {
-+		if (data->ALARM_BITS[INTRUSION_ALARM_BASE + index - 1] < 0)
- 			return 0;
- 	}
- 
--	if (index = 4 || index = 5) {
--		if (data->BEEP_BITS[INTRUSION_ALARM_BASE + index - 4] < 0)
-+	if (index = 3 || index = 4) {
-+		if (data->BEEP_BITS[INTRUSION_ALARM_BASE + index - 3] < 0)
- 			return 0;
- 	}
- 
-@@ -3083,13 +3068,12 @@ static umode_t nct6775_other_is_visible(struct kobject *kobj,
-  * Any change in order or content must be matched.
-  */
- static struct attribute *nct6775_attributes_other[] = {
--	&dev_attr_name.attr,
--	&dev_attr_cpu0_vid.attr,				/* 1 */
--	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,	/* 2 */
--	&sensor_dev_attr_intrusion1_alarm.dev_attr.attr,	/* 3 */
--	&sensor_dev_attr_intrusion0_beep.dev_attr.attr,		/* 4 */
--	&sensor_dev_attr_intrusion1_beep.dev_attr.attr,		/* 5 */
--	&sensor_dev_attr_beep_enable.dev_attr.attr,		/* 6 */
-+	&dev_attr_cpu0_vid.attr,				/* 0 */
-+	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,	/* 1 */
-+	&sensor_dev_attr_intrusion1_alarm.dev_attr.attr,	/* 2 */
-+	&sensor_dev_attr_intrusion0_beep.dev_attr.attr,		/* 3 */
-+	&sensor_dev_attr_intrusion1_beep.dev_attr.attr,		/* 4 */
-+	&sensor_dev_attr_beep_enable.dev_attr.attr,		/* 5 */
- 
- 	NULL
- };
-@@ -3099,27 +3083,6 @@ static const struct attribute_group nct6775_group_other = {
- 	.is_visible = nct6775_other_is_visible,
- };
- 
--/*
-- * Driver and device management
-- */
--
--static void nct6775_device_remove_files(struct device *dev)
--{
--	struct nct6775_data *data = dev_get_drvdata(dev);
--
--	if (data->group_pwm)
--		sysfs_remove_group(&dev->kobj, data->group_pwm);
--	if (data->group_in)
--		sysfs_remove_group(&dev->kobj, data->group_in);
--	if (data->group_fan)
--		sysfs_remove_group(&dev->kobj, data->group_fan);
--	if (data->group_temp)
--		sysfs_remove_group(&dev->kobj, data->group_temp);
--
--	sysfs_remove_group(&dev->kobj, &nct6775_group_other);
--}
--
--/* Get the monitoring functions started */
- static inline void nct6775_init_device(struct nct6775_data *data)
- {
- 	int i;
-@@ -3870,51 +3833,39 @@ static int nct6775_probe(struct platform_device *pdev)
- 	/* Register sysfs hooks */
- 	group = nct6775_create_attr_group(dev, &nct6775_pwm_template_group,
- 					  data->pwm_num);
--	if (IS_ERR(group)) {
--		err = PTR_ERR(group);
--		goto exit_remove;
--	}
--	data->group_pwm = group;
-+	if (IS_ERR(group))
-+		return PTR_ERR(group);
-+
-+	data->groups[data->num_attr_groups++] = group;
- 
- 	group = nct6775_create_attr_group(dev, &nct6775_in_template_group,
- 					  fls(data->have_in));
--	if (IS_ERR(group)) {
--		err = PTR_ERR(group);
--		goto exit_remove;
--	}
--	data->group_in = group;
-+	if (IS_ERR(group))
-+		return PTR_ERR(group);
-+
-+	data->groups[data->num_attr_groups++] = group;
- 
- 	group = nct6775_create_attr_group(dev, &nct6775_fan_template_group,
- 					  fls(data->has_fan));
--	if (IS_ERR(group)) {
--		err = PTR_ERR(group);
--		goto exit_remove;
--	}
--	data->group_fan = group;
-+	if (IS_ERR(group))
-+		return PTR_ERR(group);
-+
-+	data->groups[data->num_attr_groups++] = group;
- 
- 	group = nct6775_create_attr_group(dev, &nct6775_temp_template_group,
- 					  fls(data->have_temp));
--	if (IS_ERR(group)) {
--		err = PTR_ERR(group);
--		goto exit_remove;
--	}
--	data->group_temp = group;
-+	if (IS_ERR(group))
-+		return PTR_ERR(group);
- 
--	err = sysfs_create_group(&dev->kobj, &nct6775_group_other);
--	if (err)
--		goto exit_remove;
-+	data->groups[data->num_attr_groups++] = group;
-+	data->groups[data->num_attr_groups++] = &nct6775_group_other;
- 
--	data->hwmon_dev = hwmon_device_register(dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove;
--	}
-+	data->hwmon_dev = hwmon_device_register_with_groups(dev, data->name,
-+							    data, data->groups);
-+	if (IS_ERR(data->hwmon_dev))
-+		return PTR_ERR(data->hwmon_dev);
- 
- 	return 0;
--
--exit_remove:
--	nct6775_device_remove_files(dev);
--	return err;
- }
- 
- static int nct6775_remove(struct platform_device *pdev)
-@@ -3922,7 +3873,6 @@ static int nct6775_remove(struct platform_device *pdev)
- 	struct nct6775_data *data = platform_get_drvdata(pdev);
- 
- 	hwmon_device_unregister(data->hwmon_dev);
--	nct6775_device_remove_files(&pdev->dev);
- 
- 	return 0;
- }
-@@ -4101,7 +4051,7 @@ static int __init nct6775_find(int sioaddr, struct nct6775_sio_data *sio_data)
- /*
-  * when Super-I/O functions move to a separate file, the Super-I/O
-  * bus will manage the lifetime of the device and this module will only keep
-- * track of the nct6775 driver. But since we platform_device_alloc(), we
-+ * track of the nct6775 driver. But since we use platform_device_alloc(), we
-  * must keep track of the device
-  */
- static struct platform_device *pdev[2];
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgR1BVIGRvbWFpbiBvbiBPTUFQNSBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0aGVybWFsIGRhdGEgY2Fu
+IGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJlbm/DrnQgQ291c3NvbiIg
+PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
+b20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBN
+b2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBh
+cm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElh
+biBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxp
+bnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzog
+ZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5
+OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2Fy
+bS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpIHwgMjggKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDI4IGluc2VydGlvbnMoKykKIGNyZWF0ZSBtb2Rl
+IDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpCgpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaSBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA1LWdwdS10aGVybWFsLmR0c2kKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5k
+ZXggMDAwMDAwMC4uODk0MWM4ZQotLS0gL2Rldi9udWxsCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRz
+L29tYXA1LWdwdS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERldmljZSBU
+cmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIEdQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0
+IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGku
+Y29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5j
+b20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
+R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBp
+cyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwg
+d2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdz
+L3RoZXJtYWwvdGhlcm1hbC5oPgorCitncHVfdGhlcm1hbDogZ3B1X3RoZXJtYWwgeworCXBvbGxp
+bmctZGVsYXktcGFzc2l2ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlwb2xsaW5nLWRl
+bGF5ID0gPDEwMDA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29yICAgICAgIElE
+ICovCisJdGhlcm1hbC1zZW5zb3JzID0gPCZiYW5kZ2FwICAgICAxPjsKKworCXRyaXBzIHsKKwkJ
+Z3B1X2NyaXQ6IGdwdV9jcml0IHsKKwkJCXRlbXBlcmF0dXJlID0gPDEyNTAwMD47IC8qIG1pbGxp
+Q2Vsc2l1cyAqLworCQkJaHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJ
+CQl0eXBlID0gVEhFUk1BTF9UUklQX0NSSVRJQ0FMOworCQl9OworCX07Cit9OwotLSAKMS44LjIu
+MS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
+Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
