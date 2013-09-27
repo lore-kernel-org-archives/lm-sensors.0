@@ -1,34 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 21 Sep 2013 18:07:15 +0000
-Subject: Re: [lm-sensors] [PATCH 06/16] hwmon: tmp102: expose to thermal fw via DT nodes
-Message-Id: <523DE053.7010502@roeck-us.net>
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Date: Fri, 27 Sep 2013 11:38:00 +0000
+Subject: [lm-sensors] [PATCH 1/1] hwmon: (gpio-fan) Include linux/of.h header
+Message-Id: <1380281160-7560-1-git-send-email-sachin.kamat@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379457245-17810-1-git-send-email-eduardo.valentin@ti.com> <1379521390-17404-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1379521390-17404-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-On 09/18/2013 09:23 AM, Eduardo Valentin wrote:
-> This patch adds to tmp102 temperature sensor the possibility
-> to expose itself as thermal zone device, registered on the
-> thermal framework.
->
-> The thermal zone is built only if a device tree node
-> describing a thermal zone for this sensor is present
-> inside the tmp102 DT node. Otherwise, the driver behavior
-> will be the same.
->
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: lm-sensors@lm-sensors.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+'of_match_ptr' is defined in linux/of.h. Include it explicitly.
 
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/hwmon/gpio-fan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index d5148c8..73181be 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -31,6 +31,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/gpio.h>
+ #include <linux/gpio-fan.h>
++#include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_gpio.h>
+ 
+-- 
+1.7.9.5
 
 
 _______________________________________________
