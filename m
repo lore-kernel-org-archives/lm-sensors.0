@@ -1,49 +1,61 @@
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Date: Wed, 11 Sep 2013 04:31:50 +0000
-Subject: [lm-sensors] [PATCH 3/5] hwmon: (amc6821) Fix return value
-Message-Id: <1378873192-6297-3-git-send-email-sachin.kamat@linaro.org>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:17 +0000
+Subject: [lm-sensors] [PATCHv4 10/18] arm: dts: add omap4 CPU thermal data
+Message-Id: <1380251605-3804-11-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Propagate return value obtained from i2c_smbus_read_byte_data()
-instead of hardcoding.
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: T. Mertelj <tomaz.mertelj@guest.arnes.si>
----
- drivers/hwmon/amc6821.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hwmon/amc6821.c b/drivers/hwmon/amc6821.c
-index 4fe49d2..fcb1853 100644
---- a/drivers/hwmon/amc6821.c
-+++ b/drivers/hwmon/amc6821.c
-@@ -364,7 +364,7 @@ static ssize_t set_pwm1_enable(
- 	if (config < 0) {
- 			dev_err(&client->dev,
- 			"Error reading configuration register, aborting.\n");
--			return -EIO;
-+			return config;
- 	}
- 
- 	switch (val) {
-@@ -665,7 +665,7 @@ static ssize_t set_fan1_div(
- 	if (config < 0) {
- 		dev_err(&client->dev,
- 			"Error reading configuration register, aborting.\n");
--		return -EIO;
-+		return config;
- 	}
- 	mutex_lock(&data->update_lock);
- 	switch (val) {
--- 
-1.7.9.5
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
+bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
+dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
+QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
+PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
+cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
+bkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaSB8
+IDQxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNDEg
+aW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
+LWNwdS10aGVybWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
+cHUtdGhlcm1hbC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRz
+aQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi42NWE2ZGViCi0tLSAvZGV2L251
+bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQpAQCAtMCww
+ICsxLDQxIEBACisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNC81IFNvQyBDUFUg
+dGhlcm1hbAorICoKKyAqIENvcHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNv
+cnBvcmF0ZWQgLSBodHRwOi8vd3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50
+aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNl
+ZCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2
+ZXJzaW9uIDIuICBUaGlzIHByb2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3
+YXJyYW50eSBvZiBhbnkKKyAqIGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICov
+CisKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY3B1X3RoZXJt
+YWw6IGNwdV90aGVybWFsIHsKKwlwb2xsaW5nLWRlbGF5LXBhc3NpdmUgPSA8MjUwPjsgLyogbWls
+bGlzZWNvbmRzICovCisJcG9sbGluZy1kZWxheSA9IDwxMDAwPjsgLyogbWlsbGlzZWNvbmRzICov
+CisKKwkJCS8qIHNlbnNvciAgICAgICBJRCAqLworICAgICAgICB0aGVybWFsLXNlbnNvcnMgPSA8
+JmJhbmRnYXAgICAgIDA+OworCisgICAgICAgIHRyaXBzIHsKKyAgICAgICAgICAgICAgICBjcHVf
+YWxlcnQwOiBjcHVfYWxlcnQgeworICAgICAgICAgICAgICAgICAgICAgICAgdGVtcGVyYXR1cmUg
+PSA8MTAwMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAgICBo
+eXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAgICAgICAgICAg
+ICAgICAgIHR5cGUgPSBUSEVSTUFMX1RSSVBfUEFTU0lWRTsKKyAgICAgICAgICAgICAgICB9Owor
+ICAgICAgICAgICAgICAgIGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAgICAgICAg
+ICAgICB0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAg
+ICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLwor
+ICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9IFRIRVJNQUxfVFJJUF9DUklUSUNBTDsKKyAg
+ICAgICAgICAgICAgICB9OworICAgICAgICB9OworCisJY29vbGluZy1tYXBzIHsKKwkJbWFwMCB7
+CisJCQl0cmlwID0gPCZjcHVfYWxlcnQwPjsKKwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNw
+dTAgVEhFUk1BTF9OT19MSU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0g
+CjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
+b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
+ZW5zb3Jz
