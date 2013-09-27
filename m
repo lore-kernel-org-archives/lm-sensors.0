@@ -1,80 +1,97 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Mon, 16 Sep 2013 10:23:37 +0000
-Subject: Re: [lm-sensors] [PATCH v4 3/3] Documentation: dt: hwmon: add OF document for LM90
-Message-Id: <20130916102337.GZ29403@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0495937361067375681=="
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:07 +0000
+Subject: [lm-sensors] [PATCHv4 00/18] device thermal limits represented in device tree nodes (v4)
+Message-Id: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378985061-28547-1-git-send-email-wni@nvidia.com>
- <1378985061-28547-4-git-send-email-wni@nvidia.com>
- <5231D709.5080308@wwwdotorg.org>
- <523688FB.2010701@nvidia.com>
-In-Reply-To: <523688FB.2010701-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-
-
---===============0495937361067375681==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+EtoZOcuEljFWerI"
-Content-Disposition: inline
-
-
---+EtoZOcuEljFWerI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Sep 16, 2013 at 12:28:43PM +0800, Wei Ni wrote:
-> On 09/12/2013 11:00 PM, Stephen Warren wrote:
-
-> >> +- vcc-supply: vcc regulator for the supply voltage.
-> >> +              If this is not set, assuming vcc is always powered.
-
-> > I thought that was going to be a "Required Property".
-
-> There may have many platforms without regulator, they always power on
-> this device, so how can they set this "vcc-supply "property if we set it
-> as "Required Property".
-> Set to dummy-regulator? but it seems the regulator framework can't
-> handle it yet.
-
-To repeat once more: these platforms will physically have a regulator,
-the device won't function without power and unfortunately the device
-tree bindings only have optional and required properties.
-
---+EtoZOcuEljFWerI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSNtwmAAoJELSic+t+oim9XukQAInDuT/CuiodQAxLwPHctc1o
-1PDVDOD2tw2Y5raXf2BoiiFfIvOuQPjq85S2+rib0cO6CAGr9kNOn5TgYw+R3Cwx
-+0wRkzs50kUjDrQGS1iMeFH3uRCiFRfajmyMaftUIQ8SPR5pmZHGnPc9CF0n19G0
-C6QwNP/FpWbxRNaqTtiaFAPeSPYQjblCEknicV/R0o2kZoSqv6pWPBDqjfgX4t58
-QPwAXd1yCscAnHXThz8OgUCxHCY+qeXtlU5WnqNp0TTCNsi1WOXXVn5bafJsDKPl
-pwKxDFfvNDFZZnMGa2pOZANzWlJ4lsYP/74ghk52pTI86zjSpEBW5WUZ4yyoTdNR
-/jN+i08Ml6gR4lqdFUimvX/UjEjoU6ndbkZ6pCXps9S/qfLCbU3k2o3BpwjeZ9D/
-a93vVhPxDXIdnAHJNkgSlBJAr4HZ6fGH0l7Azzh5to6CCLmTSDsbulXXYOkEY8MM
-EDqMg8osQXHCOcE1hVt73rXGp3FDWRJ5oBbY8sHomIw7TGJe0bBbXRtKlWJrOO6d
-Q6SUCXJuxcOSr23EBKJy0i6SkzSvzWFd0n2tYzhDnOrtgoezY6JwjAgodYfPKaZ3
-+m62n01rsy8u4M9WrcDHyE4KDgGXd75AvUx3AexY8sctunSfjAsl7uxdK0WgbtNh
-t+LVAd8OQdxQ4HTgZqTl
-=aUd3
------END PGP SIGNATURE-----
-
---+EtoZOcuEljFWerI--
-
-
---===============0495937361067375681==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+
+Hello all,
+
+Here is the continuation of work of representing hardware thermal properties
+in device tree infrastructure. The present patch series is the fourth version
+of this work. Previous versions were sent as RFCs and can be found here:
+V3: 
+RFCv2: http://lkml.org/lkml/2013/8/23/594
+RFCv1: http://lkml.org/lkml/2013/7/22/319
+
+Major difference from V3 is on the parser itself. I have updated the binding
+documentation and improved the code accordingly to previous comments mainly
+from Mark R. and Joe P.
+
+The changes on hwmon drivers have been accepted by Guenter, and in this
+series I am including his Acked-by, as I didn't change anything on that side.
+
+I also found a bug while using all involved code built as modules, thus
+I have reworked a bit the cooling device registration part. This is why
+there are two new patches in this series (patches 02 and 04).
+
+Tests were done, just like in V3, on TI OMAP4430, OMAP4460, OMAP5430 and DRA7,
+although this series is not including the DRA7 part (I will be sending separately).
+
+Thanks all who have been contributing reviewing this code.
+
+All best,
+
+Eduardo Valentin (18):
+  thermal: allow registering without .get_temp
+  thermal: core: allow binding via .bind when tzp is present
+  thermal: introduce device tree parser
+  thermal: core: introduce thermal_of_cooling_device_register
+  thermal: cpu_cooling: introduce of_cpufreq_cooling_register
+  cpufreq: cpufreq-cpu0: add dt node parsing for cooling device
+    properties
+  hwmon: lm75: expose to thermal fw via DT nodes
+  hwmon: tmp102: expose to thermal fw via DT nodes
+  thermal: ti-soc-thermal: use thermal DT infrastructure
+  arm: dts: add omap4 CPU thermal data
+  arm: dts: add omap4430 thermal data
+  arm: dts: add omap4460 thermal data
+  arm: dts: add cooling properties on omap4430 cpu node
+  arm: dts: add cooling properties on omap4460 cpu node
+  arm: dts: add omap5 GPU thermal data
+  arm: dts: add omap5 CORE thermal data
+  arm: dts: add omap5 thermal data
+  arm: dts: add cooling properties on omap5 cpu node
+
+ .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |   7 +
+ .../devicetree/bindings/thermal/thermal.txt        | 537 +++++++++++++
+ arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  41 +
+ arch/arm/boot/dts/omap443x.dtsi                    |  15 +-
+ arch/arm/boot/dts/omap4460.dtsi                    |  15 +-
+ arch/arm/boot/dts/omap5-core-thermal.dtsi          |  28 +
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi           |  28 +
+ arch/arm/boot/dts/omap5.dtsi                       |  15 +-
+ drivers/cpufreq/Kconfig                            |   2 +-
+ drivers/cpufreq/cpufreq-cpu0.c                     |  16 +
+ drivers/hwmon/lm75.c                               |  35 +-
+ drivers/hwmon/tmp102.c                             |  19 +
+ drivers/thermal/Kconfig                            |  14 +
+ drivers/thermal/Makefile                           |   1 +
+ drivers/thermal/cpu_cooling.c                      |  56 +-
+ drivers/thermal/of-thermal.c                       | 845 +++++++++++++++++++++
+ drivers/thermal/thermal_core.c                     |  79 +-
+ drivers/thermal/thermal_core.h                     |   9 +
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  77 +-
+ include/dt-bindings/thermal/thermal.h              |  27 +
+ include/linux/cpu_cooling.h                        |  25 +
+ include/linux/thermal.h                            |  32 +-
+ 22 files changed, 1880 insertions(+), 43 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/thermal.txt
+ create mode 100644 arch/arm/boot/dts/omap4-cpu-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+ create mode 100644 drivers/thermal/of-thermal.c
+ create mode 100644 include/dt-bindings/thermal/thermal.h
+
+-- 
+1.8.2.1.342.gfa7285d
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0495937361067375681==--
