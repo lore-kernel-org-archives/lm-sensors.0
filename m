@@ -1,35 +1,24 @@
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Date: Fri, 27 Sep 2013 11:38:00 +0000
-Subject: [lm-sensors] [PATCH 1/1] hwmon: (gpio-fan) Include linux/of.h header
-Message-Id: <1380281160-7560-1-git-send-email-sachin.kamat@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 27 Sep 2013 16:38:59 +0000
+Subject: Re: [lm-sensors] [PATCH 1/1] hwmon: (gpio-fan) Include linux/of.h header
+Message-Id: <20130927163859.GA11592@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1380281160-7560-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1380281160-7560-1-git-send-email-sachin.kamat@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-'of_match_ptr' is defined in linux/of.h. Include it explicitly.
+On Fri, Sep 27, 2013 at 04:56:00PM +0530, Sachin Kamat wrote:
+> 'of_match_ptr' is defined in linux/of.h. Include it explicitly.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/hwmon/gpio-fan.c |    1 +
- 1 file changed, 1 insertion(+)
+Applied to -next.
 
-diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-index d5148c8..73181be 100644
---- a/drivers/hwmon/gpio-fan.c
-+++ b/drivers/hwmon/gpio-fan.c
-@@ -31,6 +31,7 @@
- #include <linux/hwmon.h>
- #include <linux/gpio.h>
- #include <linux/gpio-fan.h>
-+#include <linux/of.h>
- #include <linux/of_platform.h>
- #include <linux/of_gpio.h>
- 
--- 
-1.7.9.5
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
