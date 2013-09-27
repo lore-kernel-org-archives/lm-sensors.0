@@ -1,208 +1,90 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Sep 2013 17:13:44 +0000
-Subject: [lm-sensors] [PATCH 03/11] hwmon: (lm73) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1379178832-1489-4-git-send-email-linux@roeck-us.net>
+Date: Fri, 27 Sep 2013 16:43:13 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.12-rc3
+Message-Id: <20130927164313.GA12414@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5943532401233549481=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1379178832-1489-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============5943532401233549481==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Disposition: inline
+
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.12-rc3 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 4b97280675f45c1650ee4e388bd711ecbb18c4b4:
+
+  Merge tag 'stable/for-linus-3.12-rc2-tag' of git://git.kernel.org/pub/scm/linux/kernel/git/xen/tip (2013-09-25 15:50:53 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon
+
+for you to fetch changes up to 5f4513864304672e6ea9eac60583eeac32e679f2:
+
+  hwmon: (applesmc) Check key count before proceeding (2013-09-26 03:48:43 -0700)
+
+----------------------------------------------------------------
+Fix potential crash condition in applesmc driver
+
+----------------------------------------------------------------
+Henrik Rydberg (1):
+      hwmon: (applesmc) Check key count before proceeding
+
+ drivers/hwmon/applesmc.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSRbWhAAoJEMsfJm/On5mBzFsP/2UciNm8c4HEQWHUhKJVfNzF
+/Xg7VquXiN2VlD1wuXCeyNLizmTnDt0TdyAsNGEneJSedHvGIarCURcrPyA1sn+2
+oPumBqHOqo2MhLxgxKl75+QFSmdIwUXPBxajbCQSl3RNhVKc7uuSd8V3qaI87ZJ0
+7l/BA4I1JDIx6O4Ioob3QQ/M2K2uXD0mL8O6j4UCuKi7dR9SB6EUfaOp/xbYxrsd
+XbLm0fnJKZnqRCW4q0+kdrFny/FgKb076veGPP4yofcPGh0BIit/Z3XD0JvCh6JR
+wPVgNdo4+42CYVLIwhTpmPQZPGGvYMcwlZ4/NToGO3olK/CtNzngMrnH6iPtSEp4
+jUf8o6JvhVkR9X8DGij214Z6ifixBK/QqcjoCbHmlbDLMsui0/au3Ll1g+Vg6Iti
+Tgh71H5WYoeDU/NfG76Ai+ErSMU9bdRyWZSWs4vnfeWKMn6FlzcZe1Wjv+2Av7vI
+XEVKzO3xZGNgu6oTAT/Cx/HjUx5HffrMLWPPNKVWwuanmS+XLsdghxC+RshfioHO
+xAGLp1cKqxDz9A3qp9oxniaYdy9D6OxzF/T+OoVTS8eErwz5HaCIBZNFuvkJJRRI
+aIw2OVfuN0oBBoptz08o9VNjjAEreaAj9UOKjmcj/te8YXTrjxQcTsR0BYjisTrZ
+NyXarfw6vwU28jeW3HOE
+=x/4A
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
+
+
+--===============5943532401233549481==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
-
-Also introduce new variable dev pointing to client->dev in the probe
-function, and use new macro ATTRIBUTE_GROUPS to declare attribute groups.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/lm73.c |   70 ++++++++++++++++----------------------------------
- 1 file changed, 22 insertions(+), 48 deletions(-)
-
-diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
-index 9bde964..9653bb8 100644
---- a/drivers/hwmon/lm73.c
-+++ b/drivers/hwmon/lm73.c
-@@ -55,7 +55,7 @@ static const unsigned short lm73_convrates[] = {
- };
- 
- struct lm73_data {
--	struct device *hwmon_dev;
-+	struct i2c_client *client;
- 	struct mutex lock;
- 	u8 ctrl;			/* control register value */
- };
-@@ -66,7 +66,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
- 			const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
--	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm73_data *data = dev_get_drvdata(dev);
- 	long temp;
- 	short value;
- 	s32 err;
-@@ -77,7 +77,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
- 
- 	/* Write value */
- 	value = clamp_val(temp / 250, LM73_TEMP_MIN, LM73_TEMP_MAX) << 5;
--	err = i2c_smbus_write_word_swapped(client, attr->index, value);
-+	err = i2c_smbus_write_word_swapped(data->client, attr->index, value);
- 	return (err < 0) ? err : count;
- }
- 
-@@ -85,10 +85,10 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
--	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm73_data *data = dev_get_drvdata(dev);
- 	int temp;
- 
--	s32 err = i2c_smbus_read_word_swapped(client, attr->index);
-+	s32 err = i2c_smbus_read_word_swapped(data->client, attr->index);
- 	if (err < 0)
- 		return err;
- 
-@@ -101,8 +101,7 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
- 			    const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm73_data *data = i2c_get_clientdata(client);
-+	struct lm73_data *data = dev_get_drvdata(dev);
- 	unsigned long convrate;
- 	s32 err;
- 	int res = 0;
-@@ -124,7 +123,8 @@ static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
- 	mutex_lock(&data->lock);
- 	data->ctrl &= LM73_CTRL_TO_MASK;
- 	data->ctrl |= res << LM73_CTRL_RES_SHIFT;
--	err = i2c_smbus_write_byte_data(client, LM73_REG_CTRL, data->ctrl);
-+	err = i2c_smbus_write_byte_data(data->client, LM73_REG_CTRL,
-+					data->ctrl);
- 	mutex_unlock(&data->lock);
- 
- 	if (err < 0)
-@@ -136,8 +136,7 @@ static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
- static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
- 			     char *buf)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm73_data *data = i2c_get_clientdata(client);
-+	struct lm73_data *data = dev_get_drvdata(dev);
- 	int res;
- 
- 	res = (data->ctrl & LM73_CTRL_RES_MASK) >> LM73_CTRL_RES_SHIFT;
-@@ -147,13 +146,12 @@ static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
- static ssize_t show_maxmin_alarm(struct device *dev,
- 				 struct device_attribute *da, char *buf)
- {
--	struct i2c_client *client = to_i2c_client(dev);
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
--	struct lm73_data *data = i2c_get_clientdata(client);
-+	struct lm73_data *data = dev_get_drvdata(dev);
- 	s32 ctrl;
- 
- 	mutex_lock(&data->lock);
--	ctrl = i2c_smbus_read_byte_data(client, LM73_REG_CTRL);
-+	ctrl = i2c_smbus_read_byte_data(data->client, LM73_REG_CTRL);
- 	if (ctrl < 0)
- 		goto abort;
- 	data->ctrl = ctrl;
-@@ -183,7 +181,7 @@ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
- static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO,
- 			show_maxmin_alarm, NULL, LM73_CTRL_LO_SHIFT);
- 
--static struct attribute *lm73_attributes[] = {
-+static struct attribute *lm73_attrs[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
-@@ -192,10 +190,7 @@ static struct attribute *lm73_attributes[] = {
- 	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
- 	NULL
- };
--
--static const struct attribute_group lm73_group = {
--	.attrs = lm73_attributes,
--};
-+ATTRIBUTE_GROUPS(lm73);
- 
- /*-----------------------------------------------------------------------*/
- 
-@@ -204,16 +199,16 @@ static const struct attribute_group lm73_group = {
- static int
- lm73_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
--	int status;
-+	struct device *dev = &client->dev;
-+	struct device *hwmon_dev;
- 	struct lm73_data *data;
- 	int ctrl;
- 
--	data = devm_kzalloc(&client->dev, sizeof(struct lm73_data),
--			    GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(struct lm73_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	i2c_set_clientdata(client, data);
-+	data->client = client;
- 	mutex_init(&data->lock);
- 
- 	ctrl = i2c_smbus_read_byte_data(client, LM73_REG_CTRL);
-@@ -221,33 +216,13 @@ lm73_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		return ctrl;
- 	data->ctrl = ctrl;
- 
--	/* Register sysfs hooks */
--	status = sysfs_create_group(&client->dev.kobj, &lm73_group);
--	if (status)
--		return status;
--
--	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		status = PTR_ERR(data->hwmon_dev);
--		goto exit_remove;
--	}
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-+							   data, lm73_groups);
-+	if (IS_ERR(hwmon_dev))
-+		return PTR_ERR(hwmon_dev);
- 
--	dev_info(&client->dev, "%s: sensor '%s'\n",
--		 dev_name(data->hwmon_dev), client->name);
--
--	return 0;
--
--exit_remove:
--	sysfs_remove_group(&client->dev.kobj, &lm73_group);
--	return status;
--}
--
--static int lm73_remove(struct i2c_client *client)
--{
--	struct lm73_data *data = i2c_get_clientdata(client);
-+	dev_info(dev, "sensor '%s'\n", client->name);
- 
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm73_group);
- 	return 0;
- }
- 
-@@ -300,7 +275,6 @@ static struct i2c_driver lm73_driver = {
- 		.name	= "lm73",
- 	},
- 	.probe		= lm73_probe,
--	.remove		= lm73_remove,
- 	.id_table	= lm73_ids,
- 	.detect		= lm73_detect,
- 	.address_list	= normal_i2c,
--- 
-1.7.9.7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5943532401233549481==--
