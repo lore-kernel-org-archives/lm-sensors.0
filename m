@@ -1,175 +1,121 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 01 Sep 2013 02:48:55 +0000
-Subject: [lm-sensors] [PATCH v2 2/9] hwmon: (ds1621) Convert to use hwmon_device_register_with_groups
-Message-Id: <1378003742-18685-3-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:14 +0000
+Subject: [lm-sensors] [PATCHv4 07/18] hwmon: lm75: expose to thermal fw via DT nodes
+Message-Id: <1380251605-3804-8-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1378003742-18685-1-git-send-email-linux@roeck-us.net>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+This patch adds to lm75 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
+
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the lm75 DT node. Otherwise, the driver behavior
+will be the same.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/hwmon/ds1621.c |   60 ++++++++++++++++++++++--------------------------
- 1 file changed, 27 insertions(+), 33 deletions(-)
+ drivers/hwmon/lm75.c | 35 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
-index a26ba7a..595f4ef 100644
---- a/drivers/hwmon/ds1621.c
-+++ b/drivers/hwmon/ds1621.c
-@@ -120,7 +120,7 @@ static const u8 DS1621_REG_TEMP[3] = {
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index c03b490..1d3600a 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -27,6 +27,8 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
++#include <linux/thermal.h>
+ #include "lm75.h"
  
+ 
+@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
  /* Each client has this additional data */
- struct ds1621_data {
--	struct device *hwmon_dev;
-+	struct i2c_client *client;
- 	struct mutex update_lock;
- 	char valid;			/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
-@@ -151,10 +151,10 @@ static inline u16 DS1621_TEMP_TO_REG(long temp, u8 zbits)
- 	return temp;
- }
+ struct lm75_data {
+ 	struct device		*hwmon_dev;
++	struct thermal_zone_device	*tz;
+ 	struct mutex		update_lock;
+ 	u8			orig_conf;
+ 	u8			resolution;	/* In bits, between 9 and 12 */
+@@ -90,22 +93,36 @@ static struct lm75_data *lm75_update_device(struct device *dev);
  
--static void ds1621_init_client(struct i2c_client *client)
-+static void ds1621_init_client(struct ds1621_data *data,
-+			       struct i2c_client *client)
- {
- 	u8 conf, new_conf, sreg, resol;
--	struct ds1621_data *data = i2c_get_clientdata(client);
+ /*-----------------------------------------------------------------------*/
  
- 	new_conf = conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
- 	/* switch to continuous conversion mode */
-@@ -197,8 +197,8 @@ static void ds1621_init_client(struct i2c_client *client)
++static inline long lm75_reg_to_mc(s16 temp, u8 resolution)
++{
++	return ((temp >> (16 - resolution)) * 1000) >> (resolution - 8);
++}
++
+ /* sysfs attributes for hwmon */
  
- static struct ds1621_data *ds1621_update_client(struct device *dev)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = i2c_get_clientdata(client);
-+	struct ds1621_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	u8 new_conf;
- 
- 	mutex_lock(&data->update_lock);
-@@ -247,8 +247,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
- 			const char *buf, size_t count)
++static int lm75_read_temp(void *dev, long *temp)
++{
++	struct lm75_data *data = lm75_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	*temp = lm75_reg_to_mc(data->temp[0], data->resolution);
++
++	return 0;
++}
++
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
  {
  	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = i2c_get_clientdata(client);
-+	struct ds1621_data *data = dev_get_drvdata(dev);
- 	long val;
- 	int err;
+ 	struct lm75_data *data = lm75_update_device(dev);
+-	long temp;
  
-@@ -258,7 +257,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
  
- 	mutex_lock(&data->update_lock);
- 	data->temp[attr->index] = DS1621_TEMP_TO_REG(val, data->zbits);
--	i2c_smbus_write_word_swapped(client, DS1621_REG_TEMP[attr->index],
-+	i2c_smbus_write_word_swapped(data->client, DS1621_REG_TEMP[attr->index],
- 				     data->temp[attr->index]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
-@@ -282,16 +281,15 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
- static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
- 			  char *buf)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = i2c_get_clientdata(client);
-+	struct ds1621_data *data = dev_get_drvdata(dev);
- 	return scnprintf(buf, PAGE_SIZE, "%hu\n", data->update_interval);
- }
- 
- static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
- 			    const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = i2c_get_clientdata(client);
-+	struct ds1621_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	unsigned long convrate;
- 	s32 err;
- 	int resol = 0;
-@@ -343,8 +341,7 @@ static umode_t ds1621_attribute_visible(struct kobject *kobj,
- 					struct attribute *attr, int index)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = i2c_get_clientdata(client);
-+	struct ds1621_data *data = dev_get_drvdata(dev);
- 
- 	if (attr = &dev_attr_update_interval.attr)
- 		if (data->kind = ds1621 || data->kind = ds1625)
-@@ -358,49 +355,46 @@ static const struct attribute_group ds1621_group = {
- 	.is_visible = ds1621_attribute_visible
- };
- 
-+static const struct attribute_group *ds1621_groups[] = {
-+	&ds1621_group,
-+	NULL
-+};
-+
- static int ds1621_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
- 	struct ds1621_data *data;
--	int err;
-+	struct device *hwmon_dev;
- 
- 	data = devm_kzalloc(&client->dev, sizeof(struct ds1621_data),
- 			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
- 
- 	data->kind = id->driver_data;
-+	data->client = client;
- 
- 	/* Initialize the DS1621 chip */
--	ds1621_init_client(client);
-+	ds1621_init_client(data, client);
- 
--	/* Register sysfs hooks */
--	err = sysfs_create_group(&client->dev.kobj, &ds1621_group);
--	if (err)
--		return err;
-+	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
-+						      client->name, data,
-+						      ds1621_groups);
-+	if (IS_ERR(hwmon_dev))
-+		return PTR_ERR(hwmon_dev);
- 
--	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove_files;
--	}
-+	i2c_set_clientdata(client, hwmon_dev);
- 
- 	return 0;
+-	temp = ((data->temp[attr->index] >> (16 - data->resolution)) * 1000)
+-	       >> (data->resolution - 8);
 -
-- exit_remove_files:
--	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
--	return err;
+-	return sprintf(buf, "%ld\n", temp);
++	return sprintf(buf, "%ld\n", lm75_reg_to_mc(data->temp[attr->index],
++						    data->resolution));
  }
  
- static int ds1621_remove(struct i2c_client *client)
+ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+@@ -271,6 +288,13 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto exit_remove;
+ 	}
+ 
++	data->tz = thermal_zone_of_sensor_register(&client->dev,
++						   0,
++						   &client->dev,
++						   lm75_read_temp, NULL);
++	if (IS_ERR(data->tz))
++		data->tz = NULL;
++
+ 	dev_info(&client->dev, "%s: sensor '%s'\n",
+ 		 dev_name(data->hwmon_dev), client->name);
+ 
+@@ -285,6 +309,7 @@ static int lm75_remove(struct i2c_client *client)
  {
--	struct ds1621_data *data = i2c_get_clientdata(client);
-+	struct device *hwmon_dev = i2c_get_clientdata(client);
+ 	struct lm75_data *data = i2c_get_clientdata(client);
  
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
-+	hwmon_device_unregister(hwmon_dev);
- 
- 	return 0;
- }
++	thermal_zone_of_sensor_unregister(&client->dev, data->tz);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
 -- 
-1.7.9.7
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
