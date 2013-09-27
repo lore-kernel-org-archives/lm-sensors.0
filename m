@@ -1,60 +1,35 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 12 Sep 2013 11:24:18 +0000
-Subject: [lm-sensors] [PATCH v4 0/3] Add power control for lm90
-Message-Id: <1378985061-28547-1-git-send-email-wni@nvidia.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:20 +0000
+Subject: [lm-sensors] [PATCHv4 13/18] arm: dts: add cooling properties on omap4430 cpu node
+Message-Id: <1380251605-3804-14-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-The device lm90 can be controlled by the vcc rail.
-Add function to power on/off the vcc.
-
-This series must base on Mark's new dummy regulator support.
-
-This series is v4, previous version patches are:
-[v3]: http://www.spinics.net/lists/lm-sensors/msg39503.html
-[v2]: http://www.spinics.net/lists/arm-kernel/msg265373.html
-[v1]: http://www.mail-archive.com/linux-tegra@vger.kernel.org/msg12034.html
-
-Changes from v3:
-1. change to use devm_regulator_get, as per discussion in previous patches.
-2. just return errors when get error from regulator_get(), Mark's new dummy
-regulator can cope with errors.
-3. add vendor prefix for GMT
-3. list manufacturer in the binding doc.
-
-Changes from v2:
-1. use devm_regulator_get_optional(), as suggested by Mark.
-2. remove the lm90_power_control(), enable the regulator in the probe()
-directly, so the codes are more clear, as suggested by Alexander and Guenter.
-3. change the binding documentation, as per Stephen suggestion.
-4. couple of changes, as per previous review.
-
-Changes from v1:
-1. if get regulator failed, we should continue to run probe function,
-not return fail.
-2. call regulator_put() in error handler and remove function.
-3. add LM90 DT binding document.
-
-Wei Ni (3):
-  hwmon: (lm90) Add power control
-  of: add vendor prefix for GMT
-  Documentation: dt: hwmon: add OF document for LM90
-
- Documentation/devicetree/bindings/hwmon/lm90.txt   |   44 ++++++++++++++++++++
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- drivers/hwmon/lm90.c                               |   20 +++++++++
- 3 files changed, 65 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/hwmon/lm90.txt
-
--- 
-1.7.9.5
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
+ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
+cyBwYXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRo
+YXQgY3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJl
+bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcu
+dWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZS1kaXNjdXNz
+QGxpc3RzLm96bGFicy5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
+ZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRv
+IFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0
+cy9vbWFwNDQzeC5kdHNpIHwgNSArKysrKwogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygr
+KQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9hcmNoL2Fy
+bS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IGU5Yzk3ZDYuLjkzMGFiNDcgMTAwNjQ0Ci0t
+LSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDQ0M3guZHRzaQpAQCAtMjIsNiArMjIsMTEgQEAKIAkJCQkxMDA4MDAwIDEzNzUwMDAK
+IAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAwMD47IC8qIEZyb20gbGVnYWN5IGRyaXZl
+ciAqLworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCWNvb2xpbmctbWluLWxldmVsID0g
+PDA+OworCQkJY29vbGluZy1tYXgtbGV2ZWwgPSA8Mz47CisJCQkjY29vbGluZy1jZWxscyA9IDwy
+PjsgLyogbWluIGZvbGxvd2VkIGJ5IG1heCAqLwogCQl9OwogCX07CiAKLS0gCjEuOC4yLjEuMzQy
+LmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
