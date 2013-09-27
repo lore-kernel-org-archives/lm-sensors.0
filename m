@@ -1,93 +1,51 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 10 Sep 2013 21:02:05 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.12-rc1
-Message-Id: <20130910210205.GA24994@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0878903092822676130=="
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 27 Sep 2013 03:13:23 +0000
+Subject: [lm-sensors] [PATCHv4 16/18] arm: dts: add omap5 CORE thermal data
+Message-Id: <1380251605-3804-17-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============0878903092822676130==
-Content-Type: multipart/signed; micalg=pgp-sha1; boundary="u3/rZRmxL6MmkK24";
- protocol="application/pgp-signature"
-Content-Disposition: inline
-
-
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon updates for Linux 3.12-rc1 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit e5c832d5558826cc6e9a24746cfdec8e7780063a:
-
-  vfs: fix dentry RCU to refcounting possibly sleeping dput() (2013-09-08 18:13:49 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 8876dd78d9f0cd317d55dc19e5cd17194af15b52:
-
-  hwmon: (ina2xx) Remove casting the return value which is a void pointer (2013-09-10 06:28:31 -0700)
-
-----------------------------------------------------------------
-Minor cleanup in ina2xx and hwmon-vid drivers; no functional changes
-
-----------------------------------------------------------------
-Guenter Roeck (1):
-      hwmon: (hwmon-vid) Add __maybe_unused attribute to dummy variable
-
-Jingoo Han (1):
-      hwmon: (ina2xx) Remove casting the return value which is a void pointer
-
- drivers/hwmon/hwmon-vid.c |    2 +-
- drivers/hwmon/ina2xx.c    |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
-
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSL4jNAAoJEMsfJm/On5mBrEEQAJCOqm6n1lWHJ+iU/vJ2gR1i
-EgIO7Ogz9t8yITLq3kVyvFpH/nnoZnx7dL+N14xhLOfk6N4ypS1SEBVb39zDoYXC
-duoq2jWn0pG0PGFsLkSoFBLRTZO4w0Axd2J9P2urpWRquxdROtrJdDwUXJ4s50TR
-2ydixXGdHgKjjY9l4X2RdVElbGpYfJ0LETa3h2dsURR9NFpGlM2uyZVXmgaIqx/c
-8FN2lC6PEZOoyMkTIqu7OqGQvnDx/5vaYaREPRtzAcV8/eDQctzTDl9/gnAnB26d
-oOuatm8qLCjCuE8E2B4Ny79WNKTi7w+saqECQ2qyBPqFecej+lSBstH5+k7mKNG3
-XKPFF3bJ7vlGfxpzU+LFpqJ1SlkV62Wo5PdiJdYkthTIWQtNMZVQEvbM/Ll0rJl/
-kxjbbtumpYZAh7smb5AUoQ11jG2Mz59FPz0wvUdbTw1yCr7zq4rawzCiNFYPyrhh
-tGFZLo1jvjBLweS3QuEexHU5EFRdTQzFjS26vI2EBxTfXyEC74SkOWcXlWWlA7On
-yHnqv+WfDl4Y8+MnrI8GlhW/LcWJjHmgR3hDXWp61Oc38O//JkU39n3MKfoh7C2u
-ojOfUp9cfYPrmb4R1kYZtNP8UkK0VN1bzNO4CU2enmWZuQqsRk07A/y5EPmzoTNk
-rod+Z+qkSlG/FBWq55FH
-=AdJ9
------END PGP SIGNATURE-----
-
---u3/rZRmxL6MmkK24--
-
-
---===============0878903092822676130==
-Content-Type: text/plain; charset="us-ascii"
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0878903092822676130==--
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgQ09SRSBkb21haW4gb24gT01BUDUgYW5kIGxhdGVyIFNvQ3MuIFRoaXMgZGF0YSB3aWxs
+CmVuYWJsZSBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KClRoaXMgdGhlcm1hbCBkYXRhIGNh
+biBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoKQ2M6ICJCZW5vw650IENvdXNzb24i
+IDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
+Y29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwg
+TW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRA
+YXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJ
+YW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxs
+aW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6
+IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
+ZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1i
+eTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9h
+cm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgfCAyOCArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1v
+ZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpCgpkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kgYi9hcmNo
+L2FybS9ib290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaQpuZXcgZmlsZSBtb2RlIDEwMDY0
+NAppbmRleCAwMDAwMDAwLi4zZTlkYzAwCi0tLSAvZGV2L251bGwKKysrIGIvYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDUtY29yZS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERl
+dmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIENPUkUgdGhlcm1hbAorICoKKyAqIENv
+cHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNvcnBvcmF0ZWQgLSBodHRwOi8v
+d3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50
+aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNlZCB1bmRlciB0aGUgdGVybXMg
+b2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2ZXJzaW9uIDIuICBUaGlzIHBy
+b2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3YXJyYW50eSBvZiBhbnkKKyAq
+IGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICovCisKKyNpbmNsdWRlIDxkdC1i
+aW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY29yZV90aGVybWFsOiBjb3JlX3RoZXJtYWwg
+eworCXBvbGxpbmctZGVsYXktcGFzc2l2ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlw
+b2xsaW5nLWRlbGF5ID0gPDEwMDA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29y
+ICAgICAgIElEICovCisJdGhlcm1hbC1zZW5zb3JzID0gPCZiYW5kZ2FwICAgICAyPjsKKworCXRy
+aXBzIHsKKwkJY29yZV9jcml0OiBjb3JlX2NyaXQgeworCQkJdGVtcGVyYXR1cmUgPSA8MTI1MDAw
+PjsgLyogbWlsbGlDZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaUNl
+bHNpdXMgKi8KKwkJCXR5cGUgPSBUSEVSTUFMX1RSSVBfQ1JJVElDQUw7CisJCX07CisJfTsKK307
+Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
