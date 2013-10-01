@@ -1,76 +1,64 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Mon, 07 Oct 2013 09:25:40 +0000
-Subject: [lm-sensors] [PATCH v5 3/3] Documentation: dt: hwmon: add OF document for LM90
-Message-Id: <1381137940-22608-4-git-send-email-wni@nvidia.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 01 Oct 2013 18:32:18 +0000
+Subject: [lm-sensors] [PATCH 1/7] arm: dts: add dra7 DSPEVE thermal data
+Message-Id: <1380652344-18819-2-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1381137940-22608-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1381137940-22608-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, grant.likely@linaro.org
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-Add OF document for LM90 in Documentation/devicetree/.
+This patch changes a dtsi file to contain the thermal data
+for DSPEVE domain on DRA7 and later SoCs. This data will
+enable a thermal shutdown at 125C.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
+This thermal data can be reused across TI SoC devices.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- Documentation/devicetree/bindings/hwmon/lm90.txt |   44 ++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/hwmon/lm90.txt
+ arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
 
-diff --git a/Documentation/devicetree/bindings/hwmon/lm90.txt b/Documentation/devicetree/bindings/hwmon/lm90.txt
+diff --git a/arch/arm/boot/dts/dra7-dspeve-thermal.dtsi b/arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
 new file mode 100644
-index 0000000..e863248
+index 0000000..f8b9051
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/hwmon/lm90.txt
-@@ -0,0 +1,44 @@
-+* LM90 series thermometer.
++++ b/arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
+@@ -0,0 +1,28 @@
++/*
++ * Device Tree Source for DRA7 SoC DSPEVE thermal
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Contact: Eduardo Valentin <eduardo.valentin@ti.com>
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
 +
-+Required node properties:
-+- compatible: manufacturer and chip name, one of
-+		"adi,adm1032"
-+		"adi,adt7461"
-+		"adi,adt7461a"
-+		"gmt,g781"
-+		"national,lm90"
-+		"national,lm86"
-+		"national,lm89"
-+		"national,lm99"
-+		"dallas,max6646"
-+		"dallas,max6647"
-+		"dallas,max6649"
-+		"dallas,max6657"
-+		"dallas,max6658"
-+		"dallas,max6659"
-+		"dallas,max6680"
-+		"dallas,max6681"
-+		"dallas,max6695"
-+		"dallas,max6696"
-+		"onnn,nct1008"
-+		"winbond,w83l771"
-+		"nxp,sa56004"
++#include <dt-bindings/thermal/thermal.h>
 +
-+- reg: I2C bus address of the device
++dspeve_thermal: dspeve_thermal {
++	polling-delay-passive = <250>; /* milliseconds */
++	polling-delay = <1000>; /* milliseconds */
 +
-+- vcc-supply: vcc regulator for the supply voltage.
++		/* sensor       ID */
++	thermal-sensors = <&bandgap     3>;
 +
-+Optional properties:
-+- interrupts: Contains a single interrupt specifier which describes the
-+              LM90 "-ALERT" pin output.
-+              See interrupt-controller/interrupts.txt for the format.
-+
-+Example LM90 node:
-+
-+temp-sensor {
-+	compatible = "onnn,nct1008";
-+	reg = <0x4c>;
-+	vcc-supply = <&palmas_ldo6_reg>;
-+	interrupt-parent = <&gpio>;
-+	interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
-+}
++	trips {
++		dspeve_crit: dspeve_crit {
++			temperature = <125000>; /* milliCelsius */
++			hysteresis = <2000>; /* milliCelsius */
++			type = THERMAL_TRIP_CRITICAL;
++		};
++	};
++};
 -- 
-1.7.9.5
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
