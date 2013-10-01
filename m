@@ -1,48 +1,51 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 27 Sep 2013 03:13:24 +0000
-Subject: [lm-sensors] [PATCHv4 17/18] arm: dts: add omap5 thermal data
-Message-Id: <1380251605-3804-18-git-send-email-eduardo.valentin@ti.com>
+Date: Tue, 01 Oct 2013 18:32:20 +0000
+Subject: [lm-sensors] [PATCH 3/7] arm: dts: dra7: add bandgap entry
+Message-Id: <1380652344-18819-4-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+References: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, grant.likely@linaro.org
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA1IHRvIGNvbnRhaW4KdGhl
-IHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xpbmcg
-d2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMuIFRoZQpzeXN0ZW0gd2lsbCBkbyBh
-IHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1QyB3aGVuZXZlcgphbnkgb2YgaXRzIHNlbnNvcnMgc2Vl
-cyB0aGlzIGxldmVsLgoKQ2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5j
-b20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcg
-PHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0u
-Y29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4g
-V2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1w
-YmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVr
-PgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJu
-ZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4
-LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8
-ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRz
-aSB8IDEyICsrKysrKysrKystLQogMSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDIg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaSBi
-L2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKaW5kZXggN2NkZWExYi4uMTg3Y2I3MSAxMDA2
-NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQorKysgYi9hcmNoL2FybS9ib290
-L2R0cy9vbWFwNS5kdHNpCkBAIC0zMyw3ICszMyw3IEBACiAJCSNhZGRyZXNzLWNlbGxzID0gPDE+
-OwogCQkjc2l6ZS1jZWxscyA9IDwwPjsKIAotCQljcHVAMCB7CisJCWNwdTA6IGNwdUAwIHsKIAkJ
-CWRldmljZV90eXBlID0gImNwdSI7CiAJCQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsK
-IAkJCXJlZyA9IDwweDA+OwpAQCAtNDUsNiArNDUsMTIgQEAKIAkJfTsKIAl9OwogCisJdGhlcm1h
-bC16b25lcyB7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNpIgorCQkjaW5jbHVk
-ZSAib21hcDUtZ3B1LXRoZXJtYWwuZHRzaSIKKwkJI2luY2x1ZGUgIm9tYXA1LWNvcmUtdGhlcm1h
-bC5kdHNpIgorCX07CisKIAl0aW1lciB7CiAJCWNvbXBhdGlibGUgPSAiYXJtLGFybXY3LXRpbWVy
-IjsKIAkJLyogUFBJIHNlY3VyZS9ub25zZWN1cmUgSVJRICovCkBAIC03MDUsMTMgKzcxMSwxNSBA
-QAogCQkJfTsKIAkJfTsKIAotCQliYW5kZ2FwQDRhMDAyMWUwIHsKKwkJYmFuZGdhcDogYmFuZGdh
-cEA0YTAwMjFlMCB7CiAJCQlyZWcgPSA8MHg0YTAwMjFlMCAweGMKIAkJCSAgICAgICAweDRhMDAy
-MzJjIDB4YwogCQkJICAgICAgIDB4NGEwMDIzODAgMHgyYwogCQkJICAgICAgIDB4NGEwMDIzQzAg
-MHgzYz47CiAJCQlpbnRlcnJ1cHRzID0gPEdJQ19TUEkgMTI2IElSUV9UWVBFX0xFVkVMX0hJR0g+
-OwogCQkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNTQzMC1iYW5kZ2FwIjsKKworCQkJI3RoZXJtYWwt
-c2Vuc29yLWNlbGxzID0gPDE+OwogCQl9OwogCX07CiB9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
-NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+This patch adds bandgap IP entry on DRA7 dtsi device tree file.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 3a746c2..4e9b159 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -53,6 +53,18 @@
+ 		};
+ 	};
+ 
++	bandgap: bandgap {
++		reg = <0x4a0021e0 0xc
++			0x4a00232c 0xc
++			0x4a002380 0x2c
++			0x4a0023C0 0x3c
++			0x4a002564 0x8
++			0x4a002574 0x50>;
++		compatible = "ti,dra752-bandgap";
++		interrupts = <GIC_SPI 126 IRQ_TYPE_LEVEL_HIGH>;
++		#thermal-sensor-cells = <1>;
++	};
++
+ 	gic: interrupt-controller@48211000 {
+ 		compatible = "arm,cortex-a15-gic";
+ 		interrupt-controller;
+-- 
+1.8.2.1.342.gfa7285d
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
