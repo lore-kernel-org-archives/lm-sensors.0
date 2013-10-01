@@ -1,72 +1,47 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 30 Oct 2013 17:04:34 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (lm90) Fix max6696 alarm handling
-Message-Id: <1383152674-8018-1-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 01 Oct 2013 18:32:21 +0000
+Subject: [lm-sensors] [PATCH 4/7] arm: dts: add cooling properties on dra7 cpu node
+Message-Id: <1380652344-18819-5-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, grant.likely@linaro.org
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-Bit 2 of status register 2 on MAX6696 (external diode 2 open)
-sets ALERT; the bit thus has to be listed in alert_alarms.
-Also display a message in the alert handler if the condition
-is encountered.
+DRA7 devices can reach high temperatures and thus
+needs to have cpufreq-cooling on systems running on it.
 
-Even though not all overtemperature conditions cause ALERT
-to be set, we should not ignore them in the alert handler.
-Display messages for all out-of-range conditions.
+This patch adds the required cooling device properties
+so that cpufreq-cpu0 driver loads the cooling device.
 
-Reported-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
-Not sure how this fits into the ongoing restructuring.
-I may have to apply some of the other patches first; let me know.
+ arch/arm/boot/dts/dra7.dtsi | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
- drivers/hwmon/lm90.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index cdff742..14e36c1 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -278,7 +278,7 @@ static const struct lm90_params lm90_params[] = {
- 	[max6696] = {
- 		.flags = LM90_HAVE_EMERGENCY
- 		  | LM90_HAVE_EMERGENCY_ALARM | LM90_HAVE_TEMP3,
--		.alert_alarms = 0x187c,
-+		.alert_alarms = 0x1c7c,
- 		.max_convrate = 6,
- 		.reg_local_ext = MAX6657_REG_R_LOCAL_TEMPL,
- 	},
-@@ -1500,19 +1500,22 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
- 	if ((alarms & 0x7f) = 0 && (alarms2 & 0xfe) = 0) {
- 		dev_info(&client->dev, "Everything OK\n");
- 	} else {
--		if (alarms & 0x61)
-+		if ((alarms & 0x61) || (alarms2 & 0x80))
- 			dev_warn(&client->dev,
- 				 "temp%d out of range, please check!\n", 1);
--		if (alarms & 0x1a)
-+		if ((alarms & 0x1a) || (alarms2 & 0x20))
- 			dev_warn(&client->dev,
- 				 "temp%d out of range, please check!\n", 2);
- 		if (alarms & 0x04)
- 			dev_warn(&client->dev,
- 				 "temp%d diode open, please check!\n", 2);
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 4e9b159..1104d8a 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -25,8 +25,12 @@
+ 	};
  
--		if (alarms2 & 0x18)
-+		if (alarms2 & 0x5a)
- 			dev_warn(&client->dev,
- 				 "temp%d out of range, please check!\n", 3);
-+		if (alarms2 & 0x04)
-+			dev_warn(&client->dev,
-+				 "temp%d diode open, please check!\n", 3);
- 
- 		/*
- 		 * Disable ALERT# output, because these chips don't implement
+ 	cpus {
+-		cpu@0 {
++		cpu0: cpu@0 {
+ 			compatible = "arm,cortex-a15";
++
++			/* cooling properties */
++			#cooling-cells = <2>; /* min and max */
++
+ 			timer {
+ 				compatible = "arm,armv7-timer";
+ 				/*
 -- 
-1.7.9.7
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
