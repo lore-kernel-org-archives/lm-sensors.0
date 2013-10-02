@@ -1,7 +1,7 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 02 Oct 2013 16:34:18 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 02 Oct 2013 16:47:18 +0000
 Subject: Re: [lm-sensors] applesmc oops in 3.10/3.11
-Message-Id: <20131002163418.GA4557@polaris.bitmath.org>
+Message-Id: <20131002164718.GA7392@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20130927175926.GA6267@roeck-us.net>
  <B6E9FB4C-665C-454E-9DEB-B95B85C1D0E0@colorremedies.com>
@@ -11,34 +11,39 @@ References: <20130927175926.GA6267@roeck-us.net>
  <20131002035156.GA566@roeck-us.net>
  <20131002095339.GA2716@polaris.bitmath.org>
  <524C1FE1.4050207@roeck-us.net>
-In-Reply-To: <524C1FE1.4050207@roeck-us.net>
+ <20131002163418.GA4557@polaris.bitmath.org>
+In-Reply-To: <20131002163418.GA4557@polaris.bitmath.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
+To: Henrik Rydberg <rydberg@euromail.se>
 Cc: Chris Murphy <bugzilla@colorremedies.com>, Josh Boyer <jwboyer@fedoraproject.org>, khali@linux-fr.org, lm-sensors@lm-sensors.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>
 
-> >>One thing I have seen in all logs is the earlier "send_byte fail" message, so
-> >>I think that is a pre-requisite.
-> >
-> >Not necessarily - it could be that the patch actually fixes the root
-> >cause. One possible scenario is that on recent SMCs, some of the
-> >commands produce more data than we actually read. This would
-> >eventually lead to both data corruption and overflow somwhere in the
-> >SMC internals.  If the original SMC error is interpreted as a read
-> >buffer overflow, then that problem should be fixed with this patch.
-> >
+On Wed, Oct 02, 2013 at 06:34:18PM +0200, Henrik Rydberg wrote:
+> > >>One thing I have seen in all logs is the earlier "send_byte fail" message, so
+> > >>I think that is a pre-requisite.
+> > >
+> > >Not necessarily - it could be that the patch actually fixes the root
+> > >cause. One possible scenario is that on recent SMCs, some of the
+> > >commands produce more data than we actually read. This would
+> > >eventually lead to both data corruption and overflow somwhere in the
+> > >SMC internals.  If the original SMC error is interpreted as a read
+> > >buffer overflow, then that problem should be fixed with this patch.
+> > >
+> > 
+> > Good point.
+> > 
+> > But shouldn't we at least get the "flushed %d bytes" warning message in this case ?
 > 
-> Good point.
+> The explanation I have there is that the (newer) SMC needs the
+> application to read the 'no more bytes' or it will get confused. It
+> makes sense, if the number of bytes to read is no longer specified.
 > 
-> But shouldn't we at least get the "flushed %d bytes" warning message in this case ?
-
-The explanation I have there is that the (newer) SMC needs the
-application to read the 'no more bytes' or it will get confused. It
-makes sense, if the number of bytes to read is no longer specified.
+You mean that just reading from APPLESMC_CMD_PORT would solve the problem ?
+That might make sense.
 
 Thanks,
-Henrik
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
