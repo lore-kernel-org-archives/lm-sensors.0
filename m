@@ -1,36 +1,64 @@
-From: Ondrej Domonkos <ondrej@getgoldee.com>
-Date: Thu, 17 Oct 2013 11:25:55 +0000
-Subject: [lm-sensors] HELP AMS369FG06
-Message-Id: <CAPyL5G7i8UuSgg0owZYBCgMhXu5tPS+YSLtDV6xAddOQOH9UQg@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 05 Oct 2013 21:29:34 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (pmbus/ltc2978): Add support for LTC2978A
+Message-Id: <1381008574-21557-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Mr. ,
+Detect LTC2978A chip ID. Treat it as LC2978.
 
-We are writing to you as we have started to develop the mentioned display.
-We are working on unique project focused on intelligent lighting system.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/ltc2978   |    3 ++-
+ drivers/hwmon/pmbus/ltc2978.c |    4 +++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-We have noticed that you have posted a comments regarding its code so we
-would appreciate if you could help us as we are still unable to even light
-the screen. The assumption is that the scheme for display is not complete
-and so missing some crucial resistors etc.
+diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
+index 6934936..a0546fc 100644
+--- a/Documentation/hwmon/ltc2978
++++ b/Documentation/hwmon/ltc2978
+@@ -10,10 +10,11 @@ Supported chips:
+     Prefix: 'ltc2977'
+     Addresses scanned: -
+     Datasheet: http://www.linear.com/product/ltc2977
+-  * Linear Technology LTC2978
++  * Linear Technology LTC2978, LTC2978A
+     Prefix: 'ltc2978'
+     Addresses scanned: -
+     Datasheet: http://www.linear.com/product/ltc2978
++    	       http://www.linear.com/product/ltc2978a
+   * Linear Technology LTC3880
+     Prefix: 'ltc3880'
+     Addresses scanned: -
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index e05ff56..de3c152 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -57,6 +57,7 @@ enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883 };
+ #define LTC2977_ID			0x0130
+ #define LTC2978_ID_REV1			0x0121
+ #define LTC2978_ID_REV2			0x0122
++#define LTC2978A_ID			0x0124
+ #define LTC3880_ID			0x4000
+ #define LTC3880_ID_MASK			0xff00
+ #define LTC3883_ID			0x4300
+@@ -397,7 +398,8 @@ static int ltc2978_probe(struct i2c_client *client,
+ 		data->id = ltc2974;
+ 	} else if (chip_id = LTC2977_ID) {
+ 		data->id = ltc2977;
+-	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2) {
++	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
++		   chip_id = LTC2978A_ID) {
+ 		data->id = ltc2978;
+ 	} else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID) {
+ 		data->id = ltc3880;
+-- 
+1.7.9.7
 
-Could you help us regarding this issue of ours?
-Could you provide scheme of connection?
-Could you recommend some developers which could help us?
 
-Thank you for your help and wishing good luck in your upcoming projects.
-
-Best Regards
-
-Ondrej Domonkos
-
-CTO@GOLDEE
-
-www.getgoldee.com
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
