@@ -1,96 +1,200 @@
-From: Richard F <lists@keynet-technology.com>
-Date: Tue, 08 Oct 2013 18:00:22 +0000
-Subject: [lm-sensors] Sensors configuration for Foxconn H67M-S
-Message-Id: <52544836.9080304@keynet-technology.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 05 Oct 2013 22:23:25 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (emc1403) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1381011806-25136-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Below is the configuration I developed for a Foxconn H67M-S.
-There are a range of similar Foxconn boards H67M-V, H67M etc
-The monitoring chip is IT8728F, which I added to the "chip" line below.
-The values I'm not sure about are commented out - the PECI CPU margin is 
-particularly suspect.
+Simplify code and reduce its size.
 
-Hope this is useful...
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/emc1403.c |   73 +++++++++++++++++------------------------------
+ 1 file changed, 26 insertions(+), 47 deletions(-)
 
-chip "it87-*" "it8712-*" "it8716-*" "it8718-*" "it8720-*" "it8728-*"
-
-# WIKI says:  0 to 3.06 V, 1 bit = 12 mV
-# These are configured in the same order the BIOS lists them.
-# - assumption is that this map is correct!
-
-      label  in0 "CPU Vcore"
-      # no scaling                               # BIOS measured: VCORE 
-1.152
-      set in0_min 0.6                            # Intel. Lower level 
-could be 0.25
-      set in0_max 1.52                           # Could be as high as 1.52
-
-      label  in1 "DRAM voltage"
-      # no scaling                               # BIOS measured: DRAM 1.584
-      set in1_min 1.3
-      set in1_max 1.7
-
-      label  in2 "+12V"
-      compute in2 @ * 4.28, @ / 4.28             # Empirical vs. BIOS 
-reading 12.126
-      set in2_min 11.4                           # ATX V1.3 PSU design guide
-      set in2_max 12.6
-
-      label  in3 "+5V"
-      compute in3  @ * 1.80, @ / 1.80            # Empirical vs. BIOS 
-reading 5.017
-      set in3_min 4.75                           # ATX V1.3 PSU design guide
-      set in3_max 5.25
-
-      ignore in4                                 # unused? always 2.99
-      # no scaling
-      set in4_min 0                              # Mask false alarms
-      set in4_max 3.06
-
-      ignore in5                                 # unused? always 2.99
-      # no scaling
-      set in5_min 0                              # Mask false alarms
-      set in5_max 3.06
-
-      ignore in6                                 # unused? always 2.99
-      # no scaling
-      set in6_min 0                              # Mask false alarms
-      set in6_max 3.06
-
-      #3VSB                                      # label supplied by code
-      set in7_min 3.14                           # ATX V1.3 PSU design guide
-      set in7_max 3.47
-
-      #Vbat                                      # BIOS measures 3.264, 
-label by code
-
-      label  fan1 "CPU fan"
-      set fan1_min 500
-
-      label  fan2 "Chassis fan"
-      set fan2_min 0                   # Set to 500 if you actually 
-monitor one
-
-      ignore fan3
-      set fan3_min 0                   # mask false alarms
-
-#     See 
-http://en.wikipedia.org/wiki/Platform_Environment_Control_Interface
-#     label  temp1 "PECI CPU margin"
-      ignore temp1
-      set temp1_max 1                  # if margin > 0 losing thermal 
-control = throttling
-      set temp1_min -30
-
-      label  temp2 "System temp"
-      set temp2_min 0
-      set temp2_max 55
-
-      label  temp3 "CPU package temp"      # Code supplies limits
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index 142e1cb..dc2a917 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -40,7 +40,7 @@
+ #define THERMAL_REVISION_REG	0xff
+ 
+ struct thermal_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	struct mutex mutex;
+ 	/*
+ 	 * Cache the hyst value so we don't keep re-reading it. In theory
+@@ -53,10 +53,11 @@ struct thermal_data {
+ static ssize_t show_temp(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+ 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
+-	int retval = i2c_smbus_read_byte_data(client, sda->index);
++	struct thermal_data *data = dev_get_drvdata(dev);
++	int retval;
+ 
++	retval = i2c_smbus_read_byte_data(data->client, sda->index);
+ 	if (retval < 0)
+ 		return retval;
+ 	return sprintf(buf, "%d000\n", retval);
+@@ -65,27 +66,27 @@ static ssize_t show_temp(struct device *dev,
+ static ssize_t show_bit(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+ 	struct sensor_device_attribute_2 *sda = to_sensor_dev_attr_2(attr);
+-	int retval = i2c_smbus_read_byte_data(client, sda->nr);
++	struct thermal_data *data = dev_get_drvdata(dev);
++	int retval;
+ 
++	retval = i2c_smbus_read_byte_data(data->client, sda->nr);
+ 	if (retval < 0)
+ 		return retval;
+-	retval &= sda->index;
+-	return sprintf(buf, "%d\n", retval ? 1 : 0);
++	return sprintf(buf, "%d\n", !!(retval & sda->index));
+ }
+ 
+ static ssize_t store_temp(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
+-	struct i2c_client *client = to_i2c_client(dev);
++	struct thermal_data *data = dev_get_drvdata(dev);
+ 	unsigned long val;
+ 	int retval;
+ 
+ 	if (kstrtoul(buf, 10, &val))
+ 		return -EINVAL;
+-	retval = i2c_smbus_write_byte_data(client, sda->index,
++	retval = i2c_smbus_write_byte_data(data->client, sda->index,
+ 					DIV_ROUND_CLOSEST(val, 1000));
+ 	if (retval < 0)
+ 		return retval;
+@@ -95,9 +96,9 @@ static ssize_t store_temp(struct device *dev,
+ static ssize_t store_bit(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct thermal_data *data = i2c_get_clientdata(client);
+ 	struct sensor_device_attribute_2 *sda = to_sensor_dev_attr_2(attr);
++	struct thermal_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	unsigned long val;
+ 	int retval;
+ 
+@@ -124,9 +125,9 @@ fail:
+ static ssize_t show_hyst(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct thermal_data *data = i2c_get_clientdata(client);
+ 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
++	struct thermal_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int retval;
+ 	int hyst;
+ 
+@@ -147,9 +148,9 @@ static ssize_t show_hyst(struct device *dev,
+ static ssize_t store_hyst(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct thermal_data *data = i2c_get_clientdata(client);
+ 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
++	struct thermal_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int retval;
+ 	int hyst;
+ 	unsigned long val;
+@@ -235,7 +236,7 @@ static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR_2(power_state, S_IRUGO | S_IWUSR,
+ 	show_bit, store_bit, 0x03, 0x40);
+ 
+-static struct attribute *mid_att_thermal[] = {
++static struct attribute *emc1403_attrs[] = {
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+@@ -263,10 +264,7 @@ static struct attribute *mid_att_thermal[] = {
+ 	&sensor_dev_attr_power_state.dev_attr.attr,
+ 	NULL
+ };
+-
+-static const struct attribute_group m_thermal_gr = {
+-	.attrs = mid_att_thermal
+-};
++ATTRIBUTE_GROUPS(emc1403);
+ 
+ static int emc1403_detect(struct i2c_client *client,
+ 			struct i2c_board_info *info)
+@@ -304,43 +302,25 @@ static int emc1403_detect(struct i2c_client *client,
+ static int emc1403_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+-	int res;
+ 	struct thermal_data *data;
++	struct device *hwmon_dev;
+ 
+ 	data = devm_kzalloc(&client->dev, sizeof(struct thermal_data),
+ 			    GFP_KERNEL);
+ 	if (data = NULL)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->mutex);
+ 	data->hyst_valid = jiffies - 1;		/* Expired */
+ 
+-	res = sysfs_create_group(&client->dev.kobj, &m_thermal_gr);
+-	if (res) {
+-		dev_warn(&client->dev, "create group failed\n");
+-		return res;
+-	}
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		res = PTR_ERR(data->hwmon_dev);
+-		dev_warn(&client->dev, "register hwmon dev failed\n");
+-		goto thermal_error;
+-	}
+-	dev_info(&client->dev, "EMC1403 Thermal chip found\n");
+-	return 0;
+-
+-thermal_error:
+-	sysfs_remove_group(&client->dev.kobj, &m_thermal_gr);
+-	return res;
+-}
++	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
++						      client->name, data,
++						      emc1403_groups);
++	if (IS_ERR(hwmon_dev))
++		return PTR_ERR(hwmon_dev);
+ 
+-static int emc1403_remove(struct i2c_client *client)
+-{
+-	struct thermal_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &m_thermal_gr);
++	dev_info(&client->dev, "EMC1403 Thermal chip found\n");
+ 	return 0;
+ }
+ 
+@@ -362,7 +342,6 @@ static struct i2c_driver sensor_emc1403 = {
+ 	},
+ 	.detect = emc1403_detect,
+ 	.probe = emc1403_probe,
+-	.remove = emc1403_remove,
+ 	.id_table = emc1403_idtable,
+ 	.address_list = emc1403_address_list,
+ };
+-- 
+1.7.9.7
 
 
 _______________________________________________
