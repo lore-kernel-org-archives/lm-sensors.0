@@ -1,77 +1,62 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 22 Oct 2013 12:04:25 +0000
-Subject: Re: [lm-sensors] [REGRESSION?] sensors and fancontrol not seeing armada_thermal on 3.12-rc series
-Message-Id: <20131022140425.10afc26c@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 07 Oct 2013 09:25:37 +0000
+Subject: [lm-sensors] [PATCH v5 0/3] Add power control for lm90
+Message-Id: <1381137940-22608-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87ppqzolsu.fsf@natisbad.org>
-	<20131021091739.739142e8@endymion.delvare>
-	<20131021151616.GA17598@roeck-us.net>
-In-Reply-To: <20131021151616.GA17598@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Arnaud Ebalard <arno@natisbad.org>, Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-Hi Guenter,
+The device lm90 can be controlled by the vcc rail.
+Add function to power on/off the vcc.
+I will update all .dts files referencing this driver to
+match the new requirement in my next series.
 
-On Mon, 21 Oct 2013 08:16:16 -0700, Guenter Roeck wrote:
-> I think it is more likely that the problem is related to parsing the 'subsystem'
-> link. If I understand the code in lib/sysfs.c correctly, it doesn't recognize
-> 'thermal' (which I think is the subsystem name, but I may be wrong) and ignores
-> the device as unknown.
+This series is v5, previous version patches are:
+[v4]: http://www.spinics.net/lists/lm-sensors/msg39583.html
+[v3]: http://www.spinics.net/lists/lm-sensors/msg39503.html
+[v2]: http://www.spinics.net/lists/arm-kernel/msg265373.html
+[v1]: http://www.mail-archive.com/linux-tegra@vger.kernel.org/msg12034.html
 
-Yes, you are right, that's exactly what is happening here.
+Changes from v4:
+1. set vcc-supply as required property.
 
-> Question is if we can come up with some more generic code to handle that case.
-> Define SENSORS_BUS_TYPE_OTHER and treat it similar to virtual, maybe ?
-> But then there can be more than one of those, so you would need some means
-> for enumerating bus and chip numbers, so I don't know if that is feasible.
+Changes from v3:
+1. change to use devm_regulator_get, as per discussion in previous patches.
+2. just return errors when get error from regulator_get(), Mark's new dummy
+regulator can cope with errors.
+3. add vendor prefix for GMT
+3. list manufacturer in the binding doc.
 
-The whole point of identifying the subsystem is because we want to
-assign a unique, stable identifier to each chip, and the naming scheme
-depends on the subsystem. If we start treating all unsupported
-subsystems as "other", we simply won't be able to give these devices
-unique names. Developers and users are unlikely to care and report the
-problem to us if libsensors shows them their "foo-other-0" device. This
-is why libsensors ignores these devices: developers and users will
-report about the missing device and we can add proper support to
-libsensors. That way we can get the naming scheme right immediately
-instead of later when this will break running configurations.
+Changes from v2:
+1. use devm_regulator_get_optional(), as suggested by Mark.
+2. remove the lm90_power_control(), enable the regulator in the probe()
+directly, so the codes are more clear, as suggested by Alexander and Guenter.
+3. change the binding documentation, as per Stephen suggestion.
+4. couple of changes, as per previous review.
 
-Commit b82715fdd4a5407f56853b24d387d484dd9c3b5b is simply wrong, so it
-should be reverted. It assumes that there's a 1:1 mapping between
-thermal zones and hwmon devices, which is not the case. See this
-comment near the top of thermal_hwmon.c:
+Changes from v1:
+1. if get regulator failed, we should continue to run probe function,
+not return fail.
+2. call regulator_put() in error handler and remove function.
+3. add LM90 DT binding document.
 
-/* thermal zone devices with the same type share one hwmon device */
+Wei Ni (3):
+  hwmon: (lm90) Add power control
+  of: add vendor prefix for GMT
+  Documentation: dt: hwmon: add OF document for LM90
 
-So associating the hwmon device with the first registered thermal zone
-of its kind is arbitrary and asymmetric and makes no sense. I don't
-know what the goal of that change was, but that will have to be
-achieved in a different way.
+ Documentation/devicetree/bindings/hwmon/lm90.txt   |   44 ++++++++++++++++++++
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ drivers/hwmon/lm90.c                               |   19 +++++++++
+ 3 files changed, 64 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/lm90.txt
 
-Note that merging all thermal zones of one kind into a single hwmon
-device is exactly what makes it possible to treat it as a virtual
-device and still guarantee uniqueness of the identifier (e.g.
-acpitz-virtual-0.) It has the drawback of leaving the input ordering
-stability up to the kernel, but back then it was not considered an
-issue.
-
-If we now want to have one hwmon device per thermal zone, then the
-kernel must provide a way for libsensors to give each of them a unique
-and stable identifier. Naming scheme is relatively free.
-
-Note that I am not necessarily in favor of such a change, as 1* it
-could lead to a huge number of hwmon devices, making the output of
-"sensors" harder to read, and 2* the change could break existing
-configurations. So if anyone wants to change this, a really really good
-reason must be provided, i.e. you will have to demonstrate that the
-benefits outweigh the pain.
-
-Hope it helps,
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
