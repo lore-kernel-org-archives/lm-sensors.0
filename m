@@ -1,46 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 16 Oct 2013 15:05:42 +0000
-Subject: Re: [lm-sensors] [PATCH] man pages for eepro* tools & fixing missing i2cset switch
-Message-Id: <20131016170542.1baef7cf@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 07 Oct 2013 09:25:39 +0000
+Subject: [lm-sensors] [PATCH v5 2/3] of: add vendor prefix for GMT
+Message-Id: <1381137940-22608-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2130321044.1321494.1380882265184.JavaMail.root@redhat.com>
-In-Reply-To: <2130321044.1321494.1380882265184.JavaMail.root@redhat.com>
+References: <1381137940-22608-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1381137940-22608-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-On Mon, 7 Oct 2013 10:49:40 -0400 (EDT), Jaromir Capik wrote:
-> > Secondly, I am really not sure in which category the man pages belong.
-> > "System Administration" seems wrong to me, as the most common use case
-> > for these tools is to flash an EEPROM temporarily connected to the
-> > system (typically over the parallel bus or USB) for it to then be used
-> > on a different system. It's somewhat similar to a cross-compiler, so
-> > it's more about development than system administration. Sure, these
-> > tools can only be used by root, but it is really only because handling
-> > permissions on /dev/i2c* nodes is not so easy.
-> > 
-> > As a consequence, I don't know if these tools should go to /usr/sbin
-> > (because in practice only root can use them) or in /usr/bin (because
-> > they are not system administration tools proper.) Likewise, I don't
-> > know if they should go to man page section 1 (General commands), or 8
-> > (System administration commands.) Opinion anyone?
-> 
-> Life's difficult :]
-> I believe users do not care about this stuff as long as there's only
-> one manpage per tool. The same applies to the binary location.
-> As long as it is reachable via the PATH variable, there's no need for
-> worries about the location.
+Adding Global Mixed-mode Technology Inc. to the list
+of devicetree vendor prefixes.
 
-Short of a better idea, I left the category name and number as they
-were in the patch you provided. Which I just applied with minor edits
-BTW:
-http://www.lm-sensors.org/changeset/6204
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ 1 file changed, 1 insertion(+)
 
-Thanks for your contribution!
-
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 2956800..634c35f 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -28,6 +28,7 @@ est	ESTeem Wireless Modems
+ fsl	Freescale Semiconductor
+ GEFanuc	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
+ gef	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
++gmt	Global Mixed-mode Technology Inc.
+ hisilicon	Hisilicon Limited.
+ hp	Hewlett Packard
+ ibm	International Business Machines (IBM)
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
