@@ -1,87 +1,45 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 07 Oct 2013 23:42:11 +0000
+From: Chris Murphy <bugzilla@colorremedies.com>
+Date: Mon, 07 Oct 2013 23:46:55 +0000
 Subject: Re: [lm-sensors] applesmc oops in 3.10/3.11
-Message-Id: <525346D3.30500@roeck-us.net>
+Message-Id: <6918F624-B267-4DB5-95A2-7E09448CA3E4@colorremedies.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20130927175926.GA6267@roeck-us.net> <B6E9FB4C-665C-454E-9DEB-B95B85C1D0E0@colorremedies.com> <524615B1.6000106@roeck-us.net> <4FFB3671-DDB4-40F7-BA5D-C9AA9391BDA9@colorremedies.com> <524A4384.4040403@roeck-us.net> <20131002035156.GA566@roeck-us.net> <20131002095339.GA2716@polaris.bitmath.org> <524C1FE1.4050207@roeck-us.net> <20131002163418.GA4557@polaris.bitmath.org> <20131002164718.GA7392@roeck-us.net> <20131002172410.GA381@polaris.bitmath.org>
-In-Reply-To: <20131002172410.GA381@polaris.bitmath.org>
+References: <20130927175926.GA6267@roeck-us.net> <B6E9FB4C-665C-454E-9DEB-B95B85C1D0E0@colorremedies.com> <524615B1.6000106@roeck-us.net> <4FFB3671-DDB4-40F7-BA5D-C9AA9391BDA9@colorremedies.com> <524A4384.4040403@roeck-us.net> <20131002035156.GA566@roeck-us.net> <20131002095339.GA2716@polaris.bitmath.org> <524C1FE1.4050207@roeck-us.net> <20131002163418.GA4557@polaris.bitmath.org> <20131002164718.GA7392@roeck-us.net> <20131002172410.GA381@polaris.bitmath.org> <525346D3.30500@roeck-us.net>
+In-Reply-To: <525346D3.30500@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Henrik Rydberg <rydberg@euromail.se>
-Cc: Chris Murphy <bugzilla@colorremedies.com>, Josh Boyer <jwboyer@fedoraproject.org>, khali@linux-fr.org, lm-sensors@lm-sensors.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>
-
-On 10/02/2013 10:24 AM, Henrik Rydberg wrote:
-
->>From 4451da32414080bd0563ee9e061f19bf90463cc5 Mon Sep 17 00:00:00 2001
-> From: Henrik Rydberg <rydberg@euromail.se>
-> Date: Wed, 2 Oct 2013 19:15:03 +0200
-> Subject: [PATCH] applesmc remedy take 2
->
-> Conjectured problem: there are remnant bytes ready on the data line
-> which corrupts the read after a failure.
->
-> Remedy: assuming bit0 is the read valid line, try to flush it before
-> starting a new command.
->
-> Tests by Chris suggests reading the status is enough for the problem
-> to go away, which is consistent with a change in the SMC interface,
-> where the number of bytes to read is no longer specified, but found
-> out by reading until end of data.
->
-> Tested on a MacBookAir3,1, but the original problem has not been
-> reproduced.
-
-So, what should we do with this patch ? Apply it ?
-
-Thanks,
-Guenter
-
-> ---
->   drivers/hwmon/applesmc.c | 13 +++++++++++++
->   1 file changed, 13 insertions(+)
->
-> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-> index 98814d1..c0ff350 100644
-> --- a/drivers/hwmon/applesmc.c
-> +++ b/drivers/hwmon/applesmc.c
-> @@ -230,6 +230,7 @@ static int send_argument(const char *key)
->
->   static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
->   {
-> +	u8 status, data;
->   	int i;
->
->   	if (send_command(cmd) || send_argument(key)) {
-> @@ -237,6 +238,7 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
->   		return -EIO;
->   	}
->
-> +	/* This has no effect on newer (2012) SMCs */
->   	if (send_byte(len, APPLESMC_DATA_PORT)) {
->   		pr_warn("%.4s: read len fail\n", key);
->   		return -EIO;
-> @@ -250,6 +252,17 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
->   		buffer[i] = inb(APPLESMC_DATA_PORT);
->   	}
->
-> +	/* Read the data port until bit0 is cleared */
-> +	for (i = 0; i < 16; i++) {
-> +		udelay(APPLESMC_MIN_WAIT);
-> +		status = inb(APPLESMC_CMD_PORT);
-> +		if (!(status & 0x01))
-> +			break;
-> +		data = inb(APPLESMC_DATA_PORT);
-> +	}
-> +	if (i)
-> +		pr_warn("flushed %d bytes, last value is: %d\n", i, data);
-> +
->   	return 0;
->   }
->
->
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Henrik Rydberg <rydberg@euromail.se>, Josh Boyer <jwboyer@fedoraproject.org>, khali@linux-fr.org, lm-sensors@lm-sensors.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>
 
 
+On Oct 7, 2013, at 5:42 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+
+> On 10/02/2013 10:24 AM, Henrik Rydberg wrote:
+> 
+>>> From 4451da32414080bd0563ee9e061f19bf90463cc5 Mon Sep 17 00:00:00 2001
+>> From: Henrik Rydberg <rydberg@euromail.se>
+>> Date: Wed, 2 Oct 2013 19:15:03 +0200
+>> Subject: [PATCH] applesmc remedy take 2
+>> 
+>> Conjectured problem: there are remnant bytes ready on the data line
+>> which corrupts the read after a failure.
+>> 
+>> Remedy: assuming bit0 is the read valid line, try to flush it before
+>> starting a new command.
+>> 
+>> Tests by Chris suggests reading the status is enough for the problem
+>> to go away, which is consistent with a change in the SMC interface,
+>> where the number of bytes to read is no longer specified, but found
+>> out by reading until end of data.
+>> 
+>> Tested on a MacBookAir3,1, but the original problem has not been
+>> reproduced.
+> 
+> So, what should we do with this patch ? Apply it ?
+
+So far I'm getting nothing on the original machine. As of today it's applied as the last patch on 3.12.0-0.rc4.git0.1.fc20.x86_64. Unfortunately at the moment I'm a bit too dense to figure out how to get a new kernel applied to an existing live package so I can try this on a USB stick. While maybe unrelated, the oops was occurring at least 4x as often booted from USB stick media than HDD.
+
+Chris
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
