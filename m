@@ -1,56 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 30 Oct 2013 16:21:42 +0000
-Subject: Re: [lm-sensors] [PATCH v4 3/3] hwmon: (lm90) use enums for the indexes of temp8 and temp11
-Message-Id: <20131030172142.49234b28@endymion.delvare>
+From: Ondrej Domonkos <ondrej@getgoldee.com>
+Date: Thu, 17 Oct 2013 11:25:55 +0000
+Subject: [lm-sensors] HELP AMS369FG06
+Message-Id: <CAPyL5G7i8UuSgg0owZYBCgMhXu5tPS+YSLtDV6xAddOQOH9UQg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
-	<1375856306-14415-4-git-send-email-wni@nvidia.com>
-In-Reply-To: <1375856306-14415-4-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lm-sensors@vger.kernel.org
 
-Hi Wei,
+Dear Mr. ,
 
-On Wed, 7 Aug 2013 14:18:26 +0800, Wei Ni wrote:
-> Using enums for the indexes and nrs of temp8 and temp11.
-> This make the code much more readable.
-> 
-> Signed-off-by: Wei Ni <wni@nvidia.com>
-> ---
->  drivers/hwmon/lm90.c |  154 +++++++++++++++++++++++++++++---------------------
->  1 file changed, 90 insertions(+), 64 deletions(-)
-> (...)
+We are writing to you as we have started to develop the mentioned display.
+We are working on unique project focused on intelligent lighting system.
 
-Looks much better except for one minor detail:
+We have noticed that you have posted a comments regarding its code so we
+would appreciate if you could help us as we are still unable to even light
+the screen. The assumption is that the scheme for display is not complete
+and so missing some crucial resistors etc.
 
-> +/*
-> + * TEMP11 register index
-> + */
-> +enum lm90_temp11_reg_index {
-> +	REMOTE_TEMP = 0,
-> +	REMOTE_LOW,
-> +	REMOTE_HIGH,
-> +	REMOTE_OFFSET,	/* except max6646, max6657/58/59,
-> +			 *  and max6695/96
-> +			 */
+Could you help us regarding this issue of ours?
+Could you provide scheme of connection?
+Could you recommend some developers which could help us?
 
-This comment fits on a single line now.
+Thank you for your help and wishing good luck in your upcoming projects.
 
-> +	LOCAL_TEMP,
-> +	REMOTE2_TEMP,	/* max6695/96 only */
-> +	REMOTE2_LOW,	/* max6695/96 only */
-> +	REMOTE2_HIGH,	/* max6695/96 only */
-> +	TEMP11_REG_NUM
-> +};
+Best Regards
 
-Other than that, it's OK, and I think I'll apply it after all.
+Ondrej Domonkos
 
--- 
-Jean Delvare
+CTO@GOLDEE
 
+www.getgoldee.com
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
