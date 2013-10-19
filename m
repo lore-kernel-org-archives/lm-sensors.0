@@ -1,38 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 11 Oct 2013 06:14:56 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (lm90) Add support for TI TMP451
-Message-Id: <20131011081456.28371ad8@endymion.delvare>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Sat, 19 Oct 2013 08:55:15 +0000
+Subject: [lm-sensors] [patch] hwmon: (nct6775) Remove an unused variable
+Message-Id: <20131019085515.GC9312@longonot.mountain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1381297248-13375-1-git-send-email-wni@nvidia.com>
-	<20131009151744.GA7787@roeck-us.net>
-	<20131009173555.74c0d5f5@endymion.delvare>
-	<52575B1E.60504@nvidia.com>
-In-Reply-To: <52575B1E.60504-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kernel-janitors@vger.kernel.org
 
-Hi Wei,
+We don't actually use "j" for anything.
 
-On Fri, 11 Oct 2013 09:57:50 +0800, Wei Ni wrote:
-> Hi, Jean, do you have git repository, so that I can clone it to get
-> latest changes.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-No, I don't. I'm using quilt. But at this point there's nothing in my
-public quilt tree because this patch depends on another one from you
-(hwmon: (lm90) split set&show temp as common codes) which I need to
-update first. When this is done, they will both appear at:
-
-http://khali.linux-fr.org/devel/linux-3/jdelvare-hwmon/
-
-Note though that quilt patch series are not carved in stone, so just
-because a patch ever appears here doesn't mean it will go upstream
-unchanged (or at all.)
-
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 7a1b6a7..d17325d 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -939,7 +939,7 @@ nct6775_create_attr_group(struct device *dev, struct sensor_template_group *tg,
+ 	struct sensor_device_attribute_2 *a2;
+ 	struct attribute **attrs;
+ 	struct sensor_device_template **t;
+-	int i, j, count;
++	int i, count;
+ 
+ 	if (repeat <= 0)
+ 		return ERR_PTR(-EINVAL);
+@@ -970,7 +970,7 @@ nct6775_create_attr_group(struct device *dev, struct sensor_template_group *tg,
+ 
+ 	for (i = 0; i < repeat; i++) {
+ 		t = tg->templates;
+-		for (j = 0; *t != NULL; j++) {
++		while (*t != NULL) {
+ 			snprintf(su->name, sizeof(su->name),
+ 				 (*t)->dev_attr.attr.name, tg->base + i);
+ 			if ((*t)->s2) {
 
 _______________________________________________
 lm-sensors mailing list
