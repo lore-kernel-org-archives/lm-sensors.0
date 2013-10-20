@@ -1,91 +1,52 @@
-From: Igor Popik <igor.popik@gmail.com>
-Date: Thu, 31 Oct 2013 18:46:47 +0000
-Subject: Re: [lm-sensors] Lenovo Yoga 13 with SMSC EMC2104 chip
-Message-Id: <CAK0txek_nqZDACnuk8_yDfHgE1yH9R4XpgmR+6vP8+8=eEwV=A@mail.gmail.com>
+From: arno@natisbad.org (Arnaud Ebalard)
+Date: Sun, 20 Oct 2013 18:10:41 +0000
+Subject: [lm-sensors] [REGRESSION?] sensors and fancontrol not seeing armada_thermal on 3.12-rc series
+Message-Id: <87ppqzolsu.fsf@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAK0txenpNcwmNh4UqTaBzYE8Tu5uns+2EoVALK2+gn9DGJPEkw@mail.gmail.com>
-In-Reply-To: <CAK0txenpNcwmNh4UqTaBzYE8Tu5uns+2EoVALK2+gn9DGJPEkw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Gregory Clement <gregory.clement@free-electrons.com>, linux-arm-kernel@lists.infradead.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 
-Jean, Guenter,
-
-2013/10/30 Guenter Roeck <linux@roeck-us.net>:
-> On Wed, Oct 30, 2013 at 08:29:45AM +0100, Jean Delvare wrote:
->>
->> I see the following:
->>
->>                 Scope (\_SB.PCI0.LPCB)
->>                 {
->>                     Device (H_EC)
->>                     {
->>                         Name (_HID, EisaId ("PNP0C09"))  // _HID: Hardware ID
->>                         Name (_UID, One)  // _UID: Unique ID
->>                         (...)
->>                         OperationRegion (ECF2, EmbeddedControl, Zero, 0xFF)
->>                         Field (ECF2, ByteAcc, Lock, Preserve)
->>                         {
->>                             (...)
->>                             Offset (0xEE),
->>                             BHFW,   16,
->>                             F1PW,   8,
->>                             F2PW,   8,
->>                             F1RM,   8,
->>                             F2RM,   8,
->>                             FAMO,   8,
->>                             F1SP,   16,
->>                             F2SP,   16,
->>                             FAN1,   8,
->>                             FAN2,   8,
->>                             BCG1,   16,
->>                             BCG2,   16
->>
->> This seems to imply there is an EC which knows something about fans.
->> However there is no reference to these fields in the rest of the DSDT.
->> There could be references in other ACPI tables though. Also note that
->> PNP0C09 is referenced in driver thinkpad_acpi so maybe that driver can
->> help. That being said, it seems that newer laptop models from Lenovo
->> aren't supported by this driver as good as older models were.
->>
-> Given the "flexibility" in ACPI permitting vendors to change bindings
-> and underlying functionality at their leisure, that is hardly surprising.
->
-> Looking through the driver, there is lots of magic in there anyway.
-> I think the best shot would be to load the driver and hope that it works.
-> However, the following note on thinkwiki.org, related to Lenovo 3000, suggests
-> that it may not work: "The ACPI and EC firmware are completely incompatible
-> with ThinkPads, and thinkpad-acpi will not support it. The Lenovo 3000 are not
-> ThinkPads". Since the Yoga isn't even a laptop, that doesn't sound very
-> encouraging.
->
->> Also interesting is the SBUS device which defines a complete ACPI
->> interface to the SMBus controller. Unfortunately it doesn't follow the
->> SMBus CMI standard. Writing an ACPI driver for it would allow working
->> around the i2c-i801 resource conflict. However this doesn't seem
->> terribly useful as there's only the memory module SPD EEPROM visible on
->> the SMBus.
->>
-> Also, the interface may change with the next laptop model, so a driver
-> would only have limited value.
->
->> If it was me, I think I'd just leave the whole thing alone unless you
->> have a real problem that needs to be solved.
->>
-> +1
-
-My life does not depend on that :-)
-
-Yoga is working pretty quiet and much longer on battery than on
-windows (and it is a _laptop_ :-P).
-
-Thank You for Your time & help provided.
-
-Thanks,
-Igor
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCgpXaXRoIDMuMTItcmMgc2VyaWVzLCBzeXNmcyBzdXBwb3J0IGZvciB0aGVybWFsIHN1c2Jz
+eXRlbSAoYW5kL29yIGh3bW9uCm9uZSkgd2FzIG1vZGlmaWVkIGluIHN1Y2ggYSB3YXkgdGhhdCBz
+ZW5zb3JzIHV0aWxpdHkgKGN1cnJlbnQgMy4zLjQKdmVyc2lvbiB3aXRoIDMuMy40IHZlcnNpb24g
+b2YgbGlic2Vuc29ycyBmcm9tIGxtLXNlbnNvcnMgcGFja2FnZSBvbgpEZWJpYW4gdW5zdGFibGUp
+IGRvZXMgbm90IHNlZSB0aGUgdGVtcGVyYXR1cmUgc2Vuc29yIGFueW1vcmUgb24gYXJtYWRhCjM3
+MCBwbGF0Zm9ybXMgKG5vdCB0ZXN0ZWQgb24gb3RoZXJzKS4gQWRkaXRpb25hbGx5LCB0aGUgY2hh
+bmdlcyBicmVhawpleGlzdGluZyBjb25maWd1cmF0aW9ucyBvZiBmYW5jb250cm9sIHV0aWxpdHks
+IHdoaWNoIHByZXZlbnRzIHRoZSAKZmFuIHRvIGJlIHJlZ3VsYXRlZCBjb3JyZWN0bHkgdy9vIHJl
+Y3JlYXRpbmcgYW4gL2V0Yy9mYW5jb250cm9sIHcvCnB3bWNvbmZpZy4KCkhlcmUgaXMgd2hhdCBJ
+IGhhdmUgb24gbXkgQXJtYWRhIDM3MC1iYXNlZCBzeXN0ZW0gb24gYSAzLjExLjU6CgojIHNlbnNv
+cnMKZzc2Mi1pMmMtMC0zZQpBZGFwdGVyOiBtdjY0eHh4X2kyYyBhZGFwdGVyCmZhbjE6ICAgICAg
+ICAyNDU3IFJQTSAgKGRpdiA9IDEpCgphcm1hZGFfdGhlcm1hbC12aXJ0dWFsLTAKQWRhcHRlcjog
+VmlydHVhbCBkZXZpY2UKdGVtcDE6ICAgICAgICArNDUuN8KwQyAgCgpBbmQgd2hhdCBJIGdldCBv
+biAzLjEyLXJjNjoKCiMgc2Vuc29ycwpnNzYyLWkyYy0wLTNlCkFkYXB0ZXI6IG12NjR4eHhfaTJj
+IGFkYXB0ZXIKZmFuMTogICAgICAgIDEzNTAgUlBNICAoZGl2ID0gMSkKCgpNb25pdG9yaW5nIHdo
+YXQgc2Vuc29ycyBkb2VzIHcvIHN0cmFjZSwgSSBzdGFydGVkIGxvb2tpbmcgYXQgdGhlIGNoYW5n
+ZXMKdG8gL3N5cy9jbGFzcy9od21vbi9od21vbjEvOgoKT24gMy4xMS41OgoKIyBmaW5kIC9zeXMv
+Y2xhc3MvaHdtb24vaHdtb24xLwovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS8KL3N5cy9jbGFzcy9o
+d21vbi9od21vbjEvbmFtZQovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9zdWJzeXN0ZW0KL3N5cy9j
+bGFzcy9od21vbi9od21vbjEvdWV2ZW50Ci9zeXMvY2xhc3MvaHdtb24vaHdtb24xL3RlbXAxX2lu
+cHV0CgpPbiAzLjEyLXJjNjoKCiMgZmluZCAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS8KL3N5cy9j
+bGFzcy9od21vbi9od21vbjEvCi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL25hbWUKL3N5cy9jbGFz
+cy9od21vbi9od21vbjEvZGV2aWNlCi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL3N1YnN5c3RlbQov
+c3lzL2NsYXNzL2h3bW9uL2h3bW9uMS91ZXZlbnQKL3N5cy9jbGFzcy9od21vbi9od21vbjEvdGVt
+cDFfaW5wdXQKCiMgZmluZCAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2UvCi9zeXMvY2xh
+c3MvaHdtb24vaHdtb24xL2RldmljZS8KL3N5cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlL3Rl
+bXAKL3N5cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlL3R5cGUKL3N5cy9jbGFzcy9od21vbi9o
+d21vbjEvZGV2aWNlL2h3bW9uMQovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2UvaHdtb24x
+L25hbWUKL3N5cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlL2h3bW9uMS9kZXZpY2UKL3N5cy9j
+bGFzcy9od21vbi9od21vbjEvZGV2aWNlL2h3bW9uMS9zdWJzeXN0ZW0KL3N5cy9jbGFzcy9od21v
+bi9od21vbjEvZGV2aWNlL2h3bW9uMS91ZXZlbnQKL3N5cy9jbGFzcy9od21vbi9od21vbjEvZGV2
+aWNlL2h3bW9uMS90ZW1wMV9pbnB1dAovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uvc3Vi
+c3lzdGVtCi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZS9wb2xpY3kKL3N5cy9jbGFzcy9o
+d21vbi9od21vbjEvZGV2aWNlL3VldmVudAovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uv
+cGFzc2l2ZQoKSXMgdGhhdCBleHBlY3RlZD8gQXMgZm9yIHNlbnNvcnMsIGl0ICpzZWVtcyogdG8g
+YmUgYm90aGVyZWQgdG8gZmluZCBhCmRldmljZS8gZm9sZGVyIGluIC9zeXMvY2xhc3MvaHdtb24v
+aHdtb24xLyB3L28gbm8gbmFtZSBlbnRyeSBpbiBpdC4KCkNoZWVycywKCmErCgpwczogSSBjYW4g
+dGVzdCBpZiB0aGlzIGlzIHRoZSBzYW1lIG9uIGtpcmt3b29kIGlmIHRoZXJlIGlzIGEgbmVlZC4K
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
+cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
+LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
