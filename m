@@ -1,61 +1,114 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 21 Oct 2013 07:17:39 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 21 Oct 2013 15:16:16 +0000
 Subject: Re: [lm-sensors] [REGRESSION?] sensors and fancontrol not seeing armada_thermal on 3.12-rc series
-Message-Id: <20131021091739.739142e8@endymion.delvare>
+Message-Id: <20131021151616.GA17598@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87ppqzolsu.fsf@natisbad.org>
-In-Reply-To: <87ppqzolsu.fsf@natisbad.org>
+ <20131021091739.739142e8@endymion.delvare>
+In-Reply-To: <20131021091739.739142e8@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Arnaud Ebalard <arno@natisbad.org>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, Guenter Roeck <linux@roeck-us.net>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Arnaud Ebalard <arno@natisbad.org>, Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>
 
-SGkgQXJuYXVkLAoKT24gU3VuLCAyMCBPY3QgMjAxMyAyMDoxMDo0MSArMDIwMCwgQXJuYXVkIEVi
-YWxhcmQgd3JvdGU6Cj4gV2l0aCAzLjEyLXJjIHNlcmllcywgc3lzZnMgc3VwcG9ydCBmb3IgdGhl
-cm1hbCBzdXNic3l0ZW0gKGFuZC9vciBod21vbgo+IG9uZSkgd2FzIG1vZGlmaWVkIGluIHN1Y2gg
-YSB3YXkgdGhhdCBzZW5zb3JzIHV0aWxpdHkgKGN1cnJlbnQgMy4zLjQKPiB2ZXJzaW9uIHdpdGgg
-My4zLjQgdmVyc2lvbiBvZiBsaWJzZW5zb3JzIGZyb20gbG0tc2Vuc29ycyBwYWNrYWdlIG9uCj4g
-RGViaWFuIHVuc3RhYmxlKSBkb2VzIG5vdCBzZWUgdGhlIHRlbXBlcmF0dXJlIHNlbnNvciBhbnlt
-b3JlIG9uIGFybWFkYQo+IDM3MCBwbGF0Zm9ybXMgKG5vdCB0ZXN0ZWQgb24gb3RoZXJzKS4gQWRk
-aXRpb25hbGx5LCB0aGUgY2hhbmdlcyBicmVhawo+IGV4aXN0aW5nIGNvbmZpZ3VyYXRpb25zIG9m
-IGZhbmNvbnRyb2wgdXRpbGl0eSwgd2hpY2ggcHJldmVudHMgdGhlIAo+IGZhbiB0byBiZSByZWd1
-bGF0ZWQgY29ycmVjdGx5IHcvbyByZWNyZWF0aW5nIGFuIC9ldGMvZmFuY29udHJvbCB3Lwo+IHB3
-bWNvbmZpZy4KPiAKPiBIZXJlIGlzIHdoYXQgSSBoYXZlIG9uIG15IEFybWFkYSAzNzAtYmFzZWQg
-c3lzdGVtIG9uIGEgMy4xMS41Ogo+IAo+ICMgc2Vuc29ycwo+IGc3NjItaTJjLTAtM2UKPiBBZGFw
-dGVyOiBtdjY0eHh4X2kyYyBhZGFwdGVyCj4gZmFuMTogICAgICAgIDI0NTcgUlBNICAoZGl2ID0g
-MSkKPiAKPiBhcm1hZGFfdGhlcm1hbC12aXJ0dWFsLTAKPiBBZGFwdGVyOiBWaXJ0dWFsIGRldmlj
-ZQo+IHRlbXAxOiAgICAgICAgKzQ1LjfCsEMgIAo+IAo+IEFuZCB3aGF0IEkgZ2V0IG9uIDMuMTIt
-cmM2Ogo+IAo+ICMgc2Vuc29ycwo+IGc3NjItaTJjLTAtM2UKPiBBZGFwdGVyOiBtdjY0eHh4X2ky
-YyBhZGFwdGVyCj4gZmFuMTogICAgICAgIDEzNTAgUlBNICAoZGl2ID0gMSkKPiAKPiAKPiBNb25p
-dG9yaW5nIHdoYXQgc2Vuc29ycyBkb2VzIHcvIHN0cmFjZSwgSSBzdGFydGVkIGxvb2tpbmcgYXQg
-dGhlIGNoYW5nZXMKPiB0byAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS86Cj4gCj4gT24gMy4xMS41
-Ogo+IAo+ICMgZmluZCAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS8KPiAvc3lzL2NsYXNzL2h3bW9u
-L2h3bW9uMS8KPiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9uYW1lCj4gL3N5cy9jbGFzcy9od21v
-bi9od21vbjEvc3Vic3lzdGVtCj4gL3N5cy9jbGFzcy9od21vbi9od21vbjEvdWV2ZW50Cj4gL3N5
-cy9jbGFzcy9od21vbi9od21vbjEvdGVtcDFfaW5wdXQKPiAKPiBPbiAzLjEyLXJjNjoKPiAKPiAj
-IGZpbmQgL3N5cy9jbGFzcy9od21vbi9od21vbjEvCj4gL3N5cy9jbGFzcy9od21vbi9od21vbjEv
-Cj4gL3N5cy9jbGFzcy9od21vbi9od21vbjEvbmFtZQo+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24x
-L2RldmljZQo+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24xL3N1YnN5c3RlbQo+IC9zeXMvY2xhc3Mv
-aHdtb24vaHdtb24xL3VldmVudAo+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24xL3RlbXAxX2lucHV0
-Cj4gCj4gIyBmaW5kIC9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZS8KPiAvc3lzL2NsYXNz
-L2h3bW9uL2h3bW9uMS9kZXZpY2UvCj4gL3N5cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlL3Rl
-bXAKPiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2UvdHlwZQo+IC9zeXMvY2xhc3MvaHdt
-b24vaHdtb24xL2RldmljZS9od21vbjEKPiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uv
-aHdtb24xL25hbWUKPiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2UvaHdtb24xL2Rldmlj
-ZQo+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZS9od21vbjEvc3Vic3lzdGVtCj4gL3N5
-cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlL2h3bW9uMS91ZXZlbnQKPiAvc3lzL2NsYXNzL2h3
-bW9uL2h3bW9uMS9kZXZpY2UvaHdtb24xL3RlbXAxX2lucHV0Cj4gL3N5cy9jbGFzcy9od21vbi9o
-d21vbjEvZGV2aWNlL3N1YnN5c3RlbQo+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZS9w
-b2xpY3kKPiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2UvdWV2ZW50Cj4gL3N5cy9jbGFz
-cy9od21vbi9od21vbjEvZGV2aWNlL3Bhc3NpdmUKCkNhbiB5b3UgcGxlYXNlIHNoYXJlIHRoZSBm
-dWxsIG91dHB1dCBvZiAic3RyYWNlIHNlbnNvcnMiPyBUaGlzIHdpbGwKaGVscCBtZSB1bmRlcnN0
-YW5kIHdoaWNoIGV4YWN0IGNvZGUgcGF0aHMgYXJlIHRha2VuIGluIGxpYnNlbnNvcnMuCgo+IElz
-IHRoYXQgZXhwZWN0ZWQ/IEFzIGZvciBzZW5zb3JzLCBpdCAqc2VlbXMqIHRvIGJlIGJvdGhlcmVk
-IHRvIGZpbmQgYQo+IGRldmljZS8gZm9sZGVyIGluIC9zeXMvY2xhc3MvaHdtb24vaHdtb24xLyB3
-L28gbm8gbmFtZSBlbnRyeSBpbiBpdC4KCkl0IHNob3VsZCBiZSBhYmxlIHRvIGNvcGUgd2l0aCB0
-aGlzIGp1c3QgZmluZS4gVGhlIHJhZGVvbiBkcml2ZXIgZG9lcwpleGFjdGx5IHRoaXMgYW5kIGxp
-YnNlbnNvcnMgaGFzIG5vIHByb2JsZW0gd2l0aCBpdC4gCgotLSAKSmVhbiBEZWx2YXJlCgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1h
-aWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5z
-b3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Mon, Oct 21, 2013 at 09:17:39AM +0200, Jean Delvare wrote:
+> Hi Arnaud,
+>=20
+> On Sun, 20 Oct 2013 20:10:41 +0200, Arnaud Ebalard wrote:
+> > With 3.12-rc series, sysfs support for thermal susbsytem (and/or hwmon
+> > one) was modified in such a way that sensors utility (current 3.3.4
+> > version with 3.3.4 version of libsensors from lm-sensors package on
+> > Debian unstable) does not see the temperature sensor anymore on armada
+> > 370 platforms (not tested on others). Additionally, the changes break
+> > existing configurations of fancontrol utility, which prevents the=20
+> > fan to be regulated correctly w/o recreating an /etc/fancontrol w/
+> > pwmconfig.
+> >=20
+> > Here is what I have on my Armada 370-based system on a 3.11.5:
+> >=20
+> > # sensors
+> > g762-i2c-0-3e
+> > Adapter: mv64xxx_i2c adapter
+> > fan1:        2457 RPM  (div =3D 1)
+> >=20
+> > armada_thermal-virtual-0
+> > Adapter: Virtual device
+> > temp1:        +45.7=B0C =20
+> >=20
+> > And what I get on 3.12-rc6:
+> >=20
+> > # sensors
+> > g762-i2c-0-3e
+> > Adapter: mv64xxx_i2c adapter
+> > fan1:        1350 RPM  (div =3D 1)
+> >=20
+> >=20
+> > Monitoring what sensors does w/ strace, I started looking at the changes
+> > to /sys/class/hwmon/hwmon1/:
+> >=20
+> > On 3.11.5:
+> >=20
+> > # find /sys/class/hwmon/hwmon1/
+> > /sys/class/hwmon/hwmon1/
+> > /sys/class/hwmon/hwmon1/name
+> > /sys/class/hwmon/hwmon1/subsystem
+> > /sys/class/hwmon/hwmon1/uevent
+> > /sys/class/hwmon/hwmon1/temp1_input
+> >=20
+> > On 3.12-rc6:
+> >=20
+> > # find /sys/class/hwmon/hwmon1/
+> > /sys/class/hwmon/hwmon1/
+> > /sys/class/hwmon/hwmon1/name
+> > /sys/class/hwmon/hwmon1/device
+> > /sys/class/hwmon/hwmon1/subsystem
+> > /sys/class/hwmon/hwmon1/uevent
+> > /sys/class/hwmon/hwmon1/temp1_input
+> >=20
+> > # find /sys/class/hwmon/hwmon1/device/
+> > /sys/class/hwmon/hwmon1/device/
+> > /sys/class/hwmon/hwmon1/device/temp
+> > /sys/class/hwmon/hwmon1/device/type
+> > /sys/class/hwmon/hwmon1/device/hwmon1
+> > /sys/class/hwmon/hwmon1/device/hwmon1/name
+> > /sys/class/hwmon/hwmon1/device/hwmon1/device
+> > /sys/class/hwmon/hwmon1/device/hwmon1/subsystem
+> > /sys/class/hwmon/hwmon1/device/hwmon1/uevent
+> > /sys/class/hwmon/hwmon1/device/hwmon1/temp1_input
+> > /sys/class/hwmon/hwmon1/device/subsystem
+> > /sys/class/hwmon/hwmon1/device/policy
+> > /sys/class/hwmon/hwmon1/device/uevent
+> > /sys/class/hwmon/hwmon1/device/passive
+>=20
+> Can you please share the full output of "strace sensors"? This will
+> help me understand which exact code paths are taken in libsensors.
+>=20
+> > Is that expected? As for sensors, it *seems* to be bothered to find a
+> > device/ folder in /sys/class/hwmon/hwmon1/ w/o no name entry in it.
+>=20
+> It should be able to cope with this just fine. The radeon driver does
+> exactly this and libsensors has no problem with it.=20
+>=20
+Hi Jean,
+
+I think it is more likely that the problem is related to parsing the 'subsy=
+stem'
+link. If I understand the code in lib/sysfs.c correctly, it doesn't recogni=
+ze
+'thermal' (which I think is the subsystem name, but I may be wrong) and ign=
+ores
+the device as unknown.
+
+Question is if we can come up with some more generic code to handle that ca=
+se.
+Define SENSORS_BUS_TYPE_OTHER and treat it similar to virtual, maybe ?
+But then there can be more than one of those, so you would need some means
+for enumerating bus and chip numbers, so I don't know if that is feasible.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
