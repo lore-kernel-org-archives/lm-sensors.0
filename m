@@ -1,84 +1,145 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 07 Oct 2013 22:18:58 +0000
-Subject: Re: [lm-sensors] Sudden shutdown and wrong temperature reading (driver jc42)
-Message-Id: <52533352.6060800@roeck-us.net>
+From: Chris Verges <kg4ysn@gmail.com>
+Date: Mon, 28 Oct 2013 16:05:05 +0000
+Subject: [lm-sensors] [PATCH] hwmon: lm73: reset device during lm73_probe()
+Message-Id: <1382976305-3625-1-git-send-email-kg4ysn@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAA9rSiUf_zbJ-sZ99yRQpakmpZrBurzM613ra0RqWQe8bVEcmQ@mail.gmail.com>
-In-Reply-To: <CAA9rSiUf_zbJ-sZ99yRQpakmpZrBurzM613ra0RqWQe8bVEcmQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 10/07/2013 02:27 PM, Olavo Luppi Silva wrote:
->
->
->
-> 2013/10/3 Guenter Roeck <linux@roeck-us.net <mailto:linux@roeck-us.net>>
->
->     On 10/03/2013 03:41 PM, Olavo Luppi Silva wrote:
->
->
->
->
->         2013/9/27 Guenter Roeck <linux@roeck-us.net <mailto:linux@roeck-us.net> <mailto:linux@roeck-us.net <mailto:linux@roeck-us.net>>>
->
->              On 09/27/2013 01:38 PM, Olavo Luppi Silva wrote:
->
->                  Hi Guenter,
->                  Thanks for replying.
->                  I didn't configure acpi_enforce_resources=lax in your boot command line. I just made the following steps to install lm-sensors:
->
->              Hi,
->
->              please don't top-post, and please don't drop the mailing list from your replies.
->
->
->         Hi Guenter, sorry for that.  I was not aware of replying style of this mailing list and I clicked 'reply' instead of "reply all".
->
->
->              you would not see an error, but something like
->
->              ACPI Warning: 0x000000000000f040-____0x000000000000f05f SystemIO conflicts with Region \_SB_.PCI0.SBUS.SMBI 1 (20130517/utaddress-251)
->              ACPI: This conflict may cause random problems and system instability
->              ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
->
->         Unfortunately workstation Raphson died this week. It was running a long process using MKL and ATLAS math libraries and when I got in the office in the morning it was shutdown.  Push power button: nothing happens. Unplug and plug power cable: the fans work for a few seconds and then stop. I was taken to the technical assistance.
->
->              Let's assume you don't see that. Next question is if your system supports IPMI.
->              If it does, there is a slight chance that the IPMI controller accesses the SMBUs,
->              causing an access conflict.
->
->         IPMI is an Intelligent Platform Management Interface, right? How can I check if my sistem supports IPMI?   Our workstations are using Ubuntu and Kubuntu 12.04 LTS. I don't remember if I did install such interface.
->
->
->
->     You'll find that information in the board specification. The output from sensors-detect below
->     also shows you that the board supports IPMI.
->
->     Furthermore, the Intel server board specification states that IPMI monitors the temperature
->     and voltage sensors on the board. So if Raphson uses the same board, the most likely explanation
->     for your problem is that IPMI and the jc42 driver try to access the DIMM temperature sensors
->     at the same time. This would expmain both the read errors and the occassional resets (if IPMI
->     resets the board if it happens and it reads a bad/high temperature).
->
->     Guenter
->
->
-> Thank you for your clarification, Guenter.
-> Kalman and Gauss have the same motherboard that Raphson. I'll uninstall lm-sensors and use ipmitools to monitor temperature instead, as Jean Delvare pointed.
->
-> Do you think that the conflict between IPMI and lm-sensors could also explain the last Raphson's failure? It worked for about one month at full load and suddenly shut down and never turned on again.
->
+The LM73 datasheet recommends resetting the sensor at power-up to avoid
+certain VDD ramp-up problems.  The full sequence and rationale is
+described in the LM73 datasheet, May 2009 revision, page 19, section
+"Power Supply Ramp-Up Considerations."
 
-That is really quite unlikely.
+This patch augments the lm73_probe() behavior to perform the described
+reset sequence at device initialization time.  The sequence performed
+is:
 
-Of course, it is theoretically possible that this could happen, for example
-if there is a badly managed power controller chip involved. I don't think that
-is the case here, though. After all, we are talking about access to temperature
-sensor chips, not power controllers.
+  1. Power down the LM73 using the "PD" bit in the CONF register.
+  2. Wait at least 115 msec for the LM73 to process the request.
+  3. Power up the LM73 using the reverse process.
 
-Guenter
+The datasheet recommends running the reset sequence only after VDD has
+been cut/restored to a LM73.  This patch assumes that VDD is provided to
+the sensor at system boot and is not cut/restored during the runtime of
+the system.  For embedded systems that may provide such control,
+additional patching of the driver or module unloading/loading would be
+required.
+
+Signed-off-by: Chris Verges <kg4ysn@gmail.com>
+---
+ Documentation/hwmon/lm73 |    9 ++++++++
+ drivers/hwmon/lm73.c     |   52 +++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 60 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/hwmon/lm73 b/Documentation/hwmon/lm73
+index 8af059d..a116fc8 100644
+--- a/Documentation/hwmon/lm73
++++ b/Documentation/hwmon/lm73
+@@ -18,6 +18,15 @@ Description
+ The LM73 is a digital temperature sensor.  All temperature values are
+ given in degrees Celsius.
+ 
++Initialization
++--------------
++
++At initialization, the LM73 driver attempts to detect the device by
++reading the control, configuration, and id registers.  The device is
++next probed, at which time a "soft reset" is performed, as recommended
++by TI in the "Power Supply Ramp-Up Considerations" section of the LM73
++datasheet (May 2009 revision, Page 19).
++
+ Measurement Resolution Support
+ ------------------------------
+ 
+diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
+index 9bde964..0f6ce2a 100644
+--- a/drivers/hwmon/lm73.c
++++ b/drivers/hwmon/lm73.c
+@@ -21,7 +21,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+-
++#include <linux/delay.h>
+ 
+ /* Addresses scanned */
+ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
+@@ -47,6 +47,15 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
+ #define LM73_CTRL_HI_SHIFT	2
+ #define LM73_CTRL_LO_SHIFT	1
+ 
++#define LM73_CONF_PD_MASK	BIT(7)
++
++/*
++ * When resetting the LM73, we must wait longer than the maximum
++ * conversion time specified in "Temperature-to-Digital Converter
++ * Characteristics" (LM73 datasheet, May 2009 rev, page 5)
++ */
++#define LM73_MIN_RESET_TIME_MS	115
++
+ static const unsigned short lm73_convrates[] = {
+ 	14,	/* 11-bits (0.25000 C/LSB): RES1 Bit = 0, RES0 Bit = 0 */
+ 	28,	/* 12-bits (0.12500 C/LSB): RES1 Bit = 0, RES0 Bit = 1 */
+@@ -201,6 +210,44 @@ static const struct attribute_group lm73_group = {
+ 
+ /* device probe and removal */
+ 
++static int lm73_soft_reset(struct i2c_client *client)
++{
++	struct device *hwmon_dev = i2c_get_clientdata(client);
++	s32 err;
++	u8 value;
++
++	err = i2c_smbus_read_byte_data(client, LM73_REG_CONF);
++	if (err < 0)
++		goto reset_error;
++
++	value = err;
++	value &= ~(3 << 0); /* always clear bits 1:0 */
++	value |= (1 << 6);  /* always set bit 6 */
++
++	dev_dbg(&client->dev, "%s: powering down the sensor\n",
++		dev_name(hwmon_dev));
++	value |= LM73_CONF_PD_MASK;
++	err = i2c_smbus_write_byte_data(client, LM73_REG_CONF, value);
++	if (err < 0)
++		goto reset_error;
++
++	mdelay(LM73_MIN_RESET_TIME_MS);
++
++	dev_dbg(&client->dev, "%s: powering up the sensor\n",
++		dev_name(hwmon_dev));
++	value &= ~LM73_CONF_PD_MASK;
++	err = i2c_smbus_write_byte_data(client, LM73_REG_CONF, value);
++	if (err < 0)
++		goto reset_error;
++
++	return 0;
++
++reset_error:
++	dev_err(&client->dev, "%s: unable to reset device\n",
++		dev_name(hwmon_dev));
++	return err;
++}
++
+ static int
+ lm73_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+@@ -235,6 +282,9 @@ lm73_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	dev_info(&client->dev, "%s: sensor '%s'\n",
+ 		 dev_name(data->hwmon_dev), client->name);
+ 
++	/* Reset the device */
++	status = lm73_soft_reset(client);
++
+ 	return 0;
+ 
+ exit_remove:
+-- 
+1.7.9.5
 
 
 _______________________________________________
