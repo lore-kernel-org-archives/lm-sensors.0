@@ -1,68 +1,48 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 31 Oct 2013 03:30:42 +0000
-Subject: Re: [lm-sensors] [PATCH v5 0/3] Add power control for lm90
-Message-Id: <5271CEE2.4000202@nvidia.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 30 Oct 2013 15:33:26 +0000
+Subject: Re: [lm-sensors] [PATCH v3 2/4] hwmon: (lm90) use macro defines for the status bit
+Message-Id: <20131030163326.4e7e0cfc@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1381137940-22608-1-git-send-email-wni@nvidia.com>
-	<525E05E3.4040708@nvidia.com>	<526092A6.4050205@nvidia.com>
-	<52707138.10903@nvidia.com> <20131030155542.7a09b861@endymion.delvare>
-In-Reply-To: <20131030155542.7a09b861-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
+	<1373615287-18502-3-git-send-email-wni@nvidia.com>
+	<20130715185727.4ebde8c4@endymion.delvare>
+	<20130715173322.GA20484@roeck-us.net>
+In-Reply-To: <20130715173322.GA20484-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Cc: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On 10/30/2013 10:55 PM, Jean Delvare wrote:
-> Hi Wei,
+Hi Guenter,
+
+On Mon, 15 Jul 2013 10:33:22 -0700, Guenter Roeck wrote:
+> On Mon, Jul 15, 2013 at 06:57:27PM +0200, Jean Delvare wrote:
+> > Unrelated to this patch, but Guenter, I am worried about the MAX6696
+> > handling here. I realize that I am the one who accepted your code, but
+> > now it looks wrong. Specifically:
+> > * We check for (status2 & 0xfe) i.e. 7 alarm bits, but the code below
+> >   only reports 2 alarms bits. So if any of the 5 other alarm bits in
+> >   STATUS2 are, we may return true (chip is tripped) but not print the
+> >   cause.
+> > * At least bits 1 and 2 of STATUS 2 fit totally fine in the driver as
+> >   it currently exists, so I can't think of any reason for not handling
+> >   them. Why are we not? Ideally we should print a message for every
+> >   alarm bit so that we never return "true" without printing a message.
+> >   Even though OT2 limits aren't handled by the driver...
+> > * If you think this piece of code shouldn't deal with OT/THERM limits
+> >   because they do not trigger an SMBus alarm, this can be discussed,
+> >   but all chips should be handled the same in this respect then.
+> > * Why in the first place is max6696's data->alert_alarms set to 0x187c
+> >   and not 0x1c7c? Including 1OPEN but not 2OPEN makes no sense.
 > 
-> I'm sorry again that I always take so much time reviewing your patches.
-> I always have higher priority tasks at work and at the end of the day
-> reviewing the lm90 patches never makes it to the top of my to-do
-> list :( I'll try to review a few lm90 patches today...
+> I am about to leave for vacation, so this will have to wait for a couple of
+> weeks. I'll look at it after I am back.
 
-I really appreciated you reviewed my patch so carefully.
-Since this series will block the lm90 on tegra board, so we wish to add
-this before v3.13 merge window.
-Looking forward your comments on this series :)
+Are you back now? ;-)
 
-Thanks.
-Wei.
-
-> 
-> Jean
-> 
-> On Wed, 30 Oct 2013 10:38:48 +0800, Wei Ni wrote:
->> Hi, Jean
->> Since no more comments on this series, could you take this series before
->> the 3.13 merge window ?
->> Because if without this series, the lm90 will be broken on the Tegra
->> Dalmore board, and this problem will be get into the v3.13 release.
->>
->> Looking forward to your reply :)
->>
->> Thanks.
->> Wei.
->>
->> On 10/18/2013 09:45 AM, Wei Ni wrote:
->>> On 10/16/2013 11:20 AM, Wei Ni wrote:
->>>> Hi, Jean
->>>>
->>>> Do you have any comments on this series, or will you take them ?
->>>
->>> Hi, Jean, will you apply this series befor the 3.13 merge window?
->>>
->>> Since I forgot to tell Stephen not to apply the "[PATCH 0/2] Update dts
->>> file to support lm90 well" untile this series are accept, so if without
->>> this change, the lm90 may be broken on the Dalmore board.
->>>
->>> Thanks.
->>> Wei.
->>>
->>>>
->>>> Thanks.
->>>> Wei.
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
