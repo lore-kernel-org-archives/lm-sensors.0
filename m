@@ -1,60 +1,70 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 05 Oct 2013 21:29:34 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (pmbus/ltc2978): Add support for LTC2978A
-Message-Id: <1381008574-21557-3-git-send-email-linux@roeck-us.net>
+Date: Wed, 30 Oct 2013 17:04:34 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm90) Fix max6696 alarm handling
+Message-Id: <1383152674-8018-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Detect LTC2978A chip ID. Treat it as LC2978.
+Bit 2 of status register 2 on MAX6696 (external diode 2 open)
+sets ALERT; the bit thus has to be listed in alert_alarms.
+Also display a message in the alert handler if the condition
+is encountered.
 
+Even though not all overtemperature conditions cause ALERT
+to be set, we should not ignore them in the alert handler.
+Display messages for all out-of-range conditions.
+
+Reported-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- Documentation/hwmon/ltc2978   |    3 ++-
- drivers/hwmon/pmbus/ltc2978.c |    4 +++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+Not sure how this fits into the ongoing restructuring.
+I may have to apply some of the other patches first; let me know.
 
-diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
-index 6934936..a0546fc 100644
---- a/Documentation/hwmon/ltc2978
-+++ b/Documentation/hwmon/ltc2978
-@@ -10,10 +10,11 @@ Supported chips:
-     Prefix: 'ltc2977'
-     Addresses scanned: -
-     Datasheet: http://www.linear.com/product/ltc2977
--  * Linear Technology LTC2978
-+  * Linear Technology LTC2978, LTC2978A
-     Prefix: 'ltc2978'
-     Addresses scanned: -
-     Datasheet: http://www.linear.com/product/ltc2978
-+    	       http://www.linear.com/product/ltc2978a
-   * Linear Technology LTC3880
-     Prefix: 'ltc3880'
-     Addresses scanned: -
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index e05ff56..de3c152 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -57,6 +57,7 @@ enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883 };
- #define LTC2977_ID			0x0130
- #define LTC2978_ID_REV1			0x0121
- #define LTC2978_ID_REV2			0x0122
-+#define LTC2978A_ID			0x0124
- #define LTC3880_ID			0x4000
- #define LTC3880_ID_MASK			0xff00
- #define LTC3883_ID			0x4300
-@@ -397,7 +398,8 @@ static int ltc2978_probe(struct i2c_client *client,
- 		data->id = ltc2974;
- 	} else if (chip_id = LTC2977_ID) {
- 		data->id = ltc2977;
--	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2) {
-+	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
-+		   chip_id = LTC2978A_ID) {
- 		data->id = ltc2978;
- 	} else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID) {
- 		data->id = ltc3880;
+ drivers/hwmon/lm90.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index cdff742..14e36c1 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -278,7 +278,7 @@ static const struct lm90_params lm90_params[] = {
+ 	[max6696] = {
+ 		.flags = LM90_HAVE_EMERGENCY
+ 		  | LM90_HAVE_EMERGENCY_ALARM | LM90_HAVE_TEMP3,
+-		.alert_alarms = 0x187c,
++		.alert_alarms = 0x1c7c,
+ 		.max_convrate = 6,
+ 		.reg_local_ext = MAX6657_REG_R_LOCAL_TEMPL,
+ 	},
+@@ -1500,19 +1500,22 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ 	if ((alarms & 0x7f) = 0 && (alarms2 & 0xfe) = 0) {
+ 		dev_info(&client->dev, "Everything OK\n");
+ 	} else {
+-		if (alarms & 0x61)
++		if ((alarms & 0x61) || (alarms2 & 0x80))
+ 			dev_warn(&client->dev,
+ 				 "temp%d out of range, please check!\n", 1);
+-		if (alarms & 0x1a)
++		if ((alarms & 0x1a) || (alarms2 & 0x20))
+ 			dev_warn(&client->dev,
+ 				 "temp%d out of range, please check!\n", 2);
+ 		if (alarms & 0x04)
+ 			dev_warn(&client->dev,
+ 				 "temp%d diode open, please check!\n", 2);
+ 
+-		if (alarms2 & 0x18)
++		if (alarms2 & 0x5a)
+ 			dev_warn(&client->dev,
+ 				 "temp%d out of range, please check!\n", 3);
++		if (alarms2 & 0x04)
++			dev_warn(&client->dev,
++				 "temp%d diode open, please check!\n", 3);
+ 
+ 		/*
+ 		 * Disable ALERT# output, because these chips don't implement
 -- 
 1.7.9.7
 
