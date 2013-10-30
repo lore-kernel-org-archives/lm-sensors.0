@@ -1,117 +1,156 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 02 Oct 2013 01:32:31 +0000
-Subject: Re: [lm-sensors] [PATCH 6/7] arm: dts: add tmp102 i2c sensor node on dra7-evm
-Message-Id: <524B77AF.3000308@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7435022953948302913=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 30 Oct 2013 15:41:13 +0000
+Subject: Re: [lm-sensors] [PATCH v4 1/3] hwmon: (lm90) Define status bits
+Message-Id: <20131030164113.1396964e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1380652344-18819-1-git-send-email-eduardo.valentin@ti.com> <1380652344-18819-7-git-send-email-eduardo.valentin@ti.com> <20131001225108.GA11885@kahuna>
-In-Reply-To: <20131001225108.GA11885@kahuna>
-To: Nishanth Menon <nm@ti.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, grant.likely@linaro.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
---===============7435022953948302913==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="W3ikvTtrxxa4tqqrJ3NBl0Buo7LudFqAd"
-
---W3ikvTtrxxa4tqqrJ3NBl0Buo7LudFqAd
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 01-10-2013 18:51, Nishanth Menon wrote:
-> On 14:32-20131001, Eduardo Valentin wrote:
->> On dra7-evm there is an tmp102 temperature sensor on i2c bus 1.
->> This patch adds its device tree node.
->>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> ---
->>  arch/arm/boot/dts/dra7-evm.dts | 8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-e=
-vm.dts
->> index 21fe16b..3b6c16a 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -7,6 +7,8 @@
->>   */
->>  /dts-v1/;
->> =20
->> +#include <dt-bindings/thermal/thermal.h>
->> +
->=20
-> ^^ needed?
-
-In  fact this is left over from previous local versions and can be
-removed from this patch.
-
-However, depending on how patch 7 evolves, it could be needed, yes.
-
->=20
->>  #include "dra7.dtsi"
->> =20
->>  / {
->> @@ -93,6 +95,12 @@
->>  	pinctrl-names =3D "default";
->>  	pinctrl-0 =3D <&i2c1_pins>;
->>  	clock-frequency =3D <400000>;
-> could you add an EOL here?
->> +	tmp102: tmp102@48{
-> 	a space before the {?
-
-ok for both cosmetic comments.
-
->> +		compatible =3D "ti,tmp102";
->> +		reg =3D <0x48>;
->> +
->> +		#thermal-sensor-cells =3D <0>;
->> +	};
->>  };
->> =20
->>  &i2c2 {
->> --=20
->> 1.8.2.1.342.gfa7285d
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pm" in=
-
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---W3ikvTtrxxa4tqqrJ3NBl0Buo7LudFqAd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlJLd68ACgkQCXcVR3XQvP2KfgEAltgysEAGI49iyk3AHtGGIuj7
-u+qmlLyq0CeTb9OVPp4A/i/znxhH6sq6nWKlDw00ZDTMY8tWdM0DNCB9NhhzVeNE
-=0zIH
------END PGP SIGNATURE-----
-
---W3ikvTtrxxa4tqqrJ3NBl0Buo7LudFqAd--
-
-
---===============7435022953948302913==
-Content-Type: text/plain; charset="us-ascii"
+References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
+	<1375856306-14415-2-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375856306-14415-2-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+
+Hi Wei,
+
+On Wed, 7 Aug 2013 14:18:24 +0800, Wei Ni wrote:
+> Add bit defines for the status register. And add a function
+> lm90_is_tripped() which will read status register and return
+> tripped or not, then lm90_alert can call it directly, and in the
+> future the IRQ thread also can use it.
+> 
+> Signed-off-by: Wei Ni <wni@nvidia.com>
+> ---
+>  drivers/hwmon/lm90.c |   75 +++++++++++++++++++++++++++++++++-----------------
+>  1 file changed, 50 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+> index cdff742..1da2eff 100644
+> --- a/drivers/hwmon/lm90.c
+> +++ b/drivers/hwmon/lm90.c
+> @@ -179,6 +179,18 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+>  #define LM90_HAVE_TEMP3		(1 << 6) /* 3rd temperature sensor	*/
+>  #define LM90_HAVE_BROKEN_ALERT	(1 << 7) /* Broken alert		*/
+>  
+> +/* LM90 status */
+> +#define LM90_STATUS_LTHRM	(1 << 0) /* local THERM limit tripped */
+> +#define LM90_STATUS_RTHRM	(1 << 1) /* remote THERM limit tripped */
+> +#define LM90_STATUS_OPEN	(1 << 2) /* remote is an open circuit */
+> +#define LM90_STATUS_RLOW	(1 << 3) /* remote low temp limit tripped */
+> +#define LM90_STATUS_RHIGH	(1 << 4) /* remote high temp limit tripped */
+> +#define LM90_STATUS_LLOW	(1 << 5) /* local low temp limit tripped */
+> +#define LM90_STATUS_LHIGH	(1 << 6) /* local high temp limit tripped */
+> +
+> +#define MAX6696_STATUS2_RLOW	(1 << 3) /* remote2 low temp limit tripped */
+> +#define MAX6696_STATUS2_RHIGH	(1 << 4) /* remote2 high temp limit tripped */
+> +
+>  /*
+>   * Driver data (common to all clients)
+>   */
+> @@ -1391,6 +1403,36 @@ static void lm90_init_client(struct i2c_client *client)
+>  		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
+>  }
+>  
+> +static bool lm90_is_tripped(struct i2c_client *client)
+> +{
+> +	struct lm90_data *data = i2c_get_clientdata(client);
+> +	u8 status, status2 = 0;
+> +
+> +	lm90_read_reg(client, LM90_REG_R_STATUS, &status);
+> +
+> +	if (data->kind = max6696)
+> +		lm90_read_reg(client, MAX6696_REG_R_STATUS2, &status2);
+> +
+> +	if ((status & 0x7f) = 0 && (status2 & 0xfe) = 0)
+> +		return false;
+> +
+> +	if (status & (LM90_STATUS_LLOW | LM90_STATUS_LHIGH | LM90_STATUS_LTHRM))
+> +		dev_warn(&client->dev,
+> +			 "temp%d out of range, please check!\n", 1);
+> +	if (status & (LM90_STATUS_RLOW | LM90_STATUS_RHIGH | LM90_STATUS_RTHRM))
+> +		dev_warn(&client->dev,
+> +			 "temp%d out of range, please check!\n", 2);
+> +	if (status & LM90_STATUS_OPEN)
+> +		dev_warn(&client->dev,
+> +			 "temp%d diode open, please check!\n", 2);
+> +
+> +	if (status2 & (MAX6696_STATUS2_RLOW | MAX6696_STATUS2_RHIGH))
+> +		dev_warn(&client->dev,
+> +			 "temp%d out of range, please check!\n", 3);
+> +
+> +	return true;
+> +}
+> +
+>  static int lm90_probe(struct i2c_client *client,
+>  		      const struct i2c_device_id *id)
+>  {
+> @@ -1489,36 +1531,17 @@ static int lm90_remove(struct i2c_client *client)
+>  
+>  static void lm90_alert(struct i2c_client *client, unsigned int flag)
+>  {
+> -	struct lm90_data *data = i2c_get_clientdata(client);
+> -	u8 config, alarms, alarms2 = 0;
+> -
+> -	lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
+> -
+> -	if (data->kind = max6696)
+> -		lm90_read_reg(client, MAX6696_REG_R_STATUS2, &alarms2);
+> -
+> -	if ((alarms & 0x7f) = 0 && (alarms2 & 0xfe) = 0) {
+> -		dev_info(&client->dev, "Everything OK\n");
+> -	} else {
+> -		if (alarms & 0x61)
+> -			dev_warn(&client->dev,
+> -				 "temp%d out of range, please check!\n", 1);
+> -		if (alarms & 0x1a)
+> -			dev_warn(&client->dev,
+> -				 "temp%d out of range, please check!\n", 2);
+> -		if (alarms & 0x04)
+> -			dev_warn(&client->dev,
+> -				 "temp%d diode open, please check!\n", 2);
+> -
+> -		if (alarms2 & 0x18)
+> -			dev_warn(&client->dev,
+> -				 "temp%d out of range, please check!\n", 3);
+> -
+> +	if (lm90_is_tripped(client)) {
+
+You are reading LM90_REG_R_STATUS here...
+
+>  		/*
+>  		 * Disable ALERT# output, because these chips don't implement
+>  		 * SMBus alert correctly; they should only hold the alert line
+>  		 * low briefly.
+>  		 */
+> +		struct lm90_data *data = i2c_get_clientdata(client);
+> +		u8 config, alarms;
+> +
+> +		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
+
+... and here again. I already complained about this in my previous
+review of this patch, and you were supposed to address it, but you did
+not. As a result I am still not happy with this patch and I can't apply
+it, sorry.
+
+> +
+>  		if ((data->flags & LM90_HAVE_BROKEN_ALERT)
+>  		 && (alarms & data->alert_alarms)) {
+>  			dev_dbg(&client->dev, "Disabling ALERT#\n");
+> @@ -1526,6 +1549,8 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+>  			i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+>  						  config | 0x80);
+>  		}
+> +	} else {
+> +		dev_info(&client->dev, "Everything OK\n");
+>  	}
+>  }
+>  
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7435022953948302913==--
