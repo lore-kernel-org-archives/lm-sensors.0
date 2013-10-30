@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 30 Oct 2013 16:11:17 +0000
+Date: Wed, 30 Oct 2013 16:56:44 +0000
 Subject: Re: [lm-sensors] [PATCH v3 2/4] hwmon: (lm90) use macro defines for the status bit
-Message-Id: <20131030161117.GB4526@roeck-us.net>
+Message-Id: <20131030165644.GC4526@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1373615287-18502-1-git-send-email-wni@nvidia.com>
  <1373615287-18502-3-git-send-email-wni@nvidia.com>
@@ -27,23 +27,35 @@ On Wed, Oct 30, 2013 at 04:33:26PM +0100, Jean Delvare wrote:
 > > >   only reports 2 alarms bits. So if any of the 5 other alarm bits in
 > > >   STATUS2 are, we may return true (chip is tripped) but not print the
 > > >   cause.
+
+Agreed, that doesn't make much sense, especially since we already check
+for R1OT1 and display a message if it is set. I'll add checks for the other
+bits.
+
 > > > * At least bits 1 and 2 of STATUS 2 fit totally fine in the driver as
 > > >   it currently exists, so I can't think of any reason for not handling
 > > >   them. Why are we not? Ideally we should print a message for every
 > > >   alarm bit so that we never return "true" without printing a message.
 > > >   Even though OT2 limits aren't handled by the driver...
+
+They actually are, through MAX6659_REG_R_REMOTE_EMERG and LM90_HAVE_EMERGENCY.
+
 > > > * If you think this piece of code shouldn't deal with OT/THERM limits
 > > >   because they do not trigger an SMBus alarm, this can be discussed,
+
+Yes, that was the logic. Presumably OT1 and OT2 are separate interrupts
+(if connected to interrupt pins) and would have to be handled separately.
+
 > > >   but all chips should be handled the same in this respect then.
+
+Agreed.
+
 > > > * Why in the first place is max6696's data->alert_alarms set to 0x187c
 > > >   and not 0x1c7c? Including 1OPEN but not 2OPEN makes no sense.
-> > 
-> > I am about to leave for vacation, so this will have to wait for a couple of
-> > weeks. I'll look at it after I am back.
-> 
-> Are you back now? ;-)
-> 
-Yes, only I completely forgot about this :-). I'll add it to my task list.
+
+Oversight. 2OPEN does trigger ALERT, so the bit should be set.
+
+I'll send a patch in a minute.
 
 Guenter
 
