@@ -1,52 +1,45 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:16 +0000
-Subject: [lm-sensors] [PATCHv5 14/20] arm: dts: add omap5 GPU thermal data
-Message-Id: <1384285582-16933-15-git-send-email-eduardo.valentin@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 04 Nov 2013 08:46:36 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (lm90) Fix max6696 alarm handling
+Message-Id: <20131104094636.06f68dae@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgR1BVIGRvbWFpbiBvbiBPTUFQNSBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
-ZW5hYmxlIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0aGVybWFsIGRhdGEgY2Fu
-IGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJlbm/DrnQgQ291c3NvbiIg
-PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBN
-b2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBh
-cm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElh
-biBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxp
-bnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzog
-ZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5
-OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCkNoYW5nZSBm
-cm9tIHY0OgotIFVzaW5nIHN0cmluZyBjb25zdGFudHMgaW5zdGVhZCBvZiBtYWNyb3Mgb24gdHJp
-cCB0eXBlcwoKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWdwdS10aGVybWFsLmR0c2kgfCAyOCAr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9u
-cygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWdwdS10aGVy
-bWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1h
-bC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaQpuZXcgZmls
-ZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi4xYjg3YWNhCi0tLSAvZGV2L251bGwKKysrIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaQpAQCAtMCwwICsxLDI4IEBA
-CisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNTQzeCBTb0MgR1BVIHRoZXJtYWwK
-KyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4YXMgSW5zdHJ1bWVudHMgSW5jb3Jwb3JhdGVk
-IC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250YWN0OiBFZHVhcmRvIFZhbGVudGluIDxlZHVh
-cmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBUaGlzIGZpbGUgaXMgbGljZW5zZWQgdW5kZXIg
-dGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICogdmVyc2lvbiAy
-LiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJhcyBpcyIgd2l0aG91dCBhbnkgd2FycmFudHkg
-b2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJlc3Mgb3IgaW1wbGllZC4KKyAqLworCisjaW5j
-bHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVybWFsLmg+CisKK2dwdV90aGVybWFsOiBncHVf
-dGhlcm1hbCB7CisJcG9sbGluZy1kZWxheS1wYXNzaXZlID0gPDI1MD47IC8qIG1pbGxpc2Vjb25k
-cyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJCQkv
-KiBzZW5zb3IgICAgICAgSUQgKi8KKwl0aGVybWFsLXNlbnNvcnMgPSA8JmJhbmRnYXAgICAgIDE+
-OworCisJdHJpcHMgeworCQlncHVfY3JpdDogZ3B1X2NyaXQgeworCQkJdGVtcGVyYXR1cmUgPSA8
-MTI1MDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBt
-aWxsaUNlbHNpdXMgKi8KKwkJCXR5cGUgPSAiY3JpdGljYWwiOworCQl9OworCX07Cit9OwotLSAK
-MS44LjIuMS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
-bnNvcnM
+Hi Guenter,
+
+On Wed, 30 Oct 2013 10:04:34 -0700, Guenter Roeck wrote:
+> Bit 2 of status register 2 on MAX6696 (external diode 2 open)
+> sets ALERT; the bit thus has to be listed in alert_alarms.
+> Also display a message in the alert handler if the condition
+> is encountered.
+> 
+> Even though not all overtemperature conditions cause ALERT
+> to be set, we should not ignore them in the alert handler.
+> Display messages for all out-of-range conditions.
+
+Thanks for the fix, it looks good, applied.
+
+> Reported-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> Not sure how this fits into the ongoing restructuring.
+> I may have to apply some of the other patches first; let me know.
+
+As this is a bug fix, I want to apply it first so that it can be
+backported easily. In fact I will even request it to go to the stable
+kernels, as I think it is important.
+
+So the other patches (from Wei) will indeed need some adjustments to go
+on top of it. I'll take care of that myself.
+
+Thanks,
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
