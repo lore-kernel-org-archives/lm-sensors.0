@@ -1,87 +1,76 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Date: Mon, 25 Nov 2013 23:17:08 +0000
-Subject: Re: [lm-sensors] [PATCH 3/5] ixgbe: Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1385421428.2270.15.camel@jtkirshe-mobl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8338423725379000968=="
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 04 Nov 2013 10:26:33 +0000
+Subject: [lm-sensors] [PATCH RESEND v4 2/3] hwmon: (lm90) add support to handle IRQ
+Message-Id: <1383560793-11039-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
-	 <1385186881-7931-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385186881-7931-4-git-send-email-linux@roeck-us.net>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Greg Rose <gregory.v.rose@intel.com>, Nithin Nayak Sujir <nsujir@broadcom.com>, Michael Chan <mchan@broadcom.com>, e1000-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org
-
-
---===============8338423725379000968==
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-oUI0QQLclxRcq2Zba0eC"
-
-
---=-oUI0QQLclxRcq2Zba0eC
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2013-11-22 at 22:07 -0800, Guenter Roeck wrote:
-> Simplify the code. Attach hwmon sysfs attributes to hwmon device
-> instead of pci device. Avoid race conditions caused by attributes
-> being created after hwmon device registration. Implicitly
-> (through hwmon API) add mandatory 'name' sysfs attribute.
->=20
-> Other cleanup:
->=20
-> Instead of allocating memory for hwmon attributes, move attributes
-> and all other hwmon related data into struct hwmon_buff and allocate
-> the entire structure using devm_kzalloc.
->=20
-> Check return value from calls to igb_add_hwmon_attr() one by one
-> instead
-> of logically combining them all together.
->=20
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/net/ethernet/intel/ixgbe/ixgbe.h       |    8 ++-
->  drivers/net/ethernet/intel/ixgbe/ixgbe_sysfs.c |   76
-> ++++++++++--------------
->  2 files changed, 36 insertions(+), 48 deletions(-)
-
-I have added this to my queue, thanks!
-
---=-oUI0QQLclxRcq2Zba0eC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAABCgAGBQJSk9p0AAoJEOVv75VaS+3OYvEP/RM07jlWycrhE4k8YJddAxX2
-8QoB7cPfHJF/rCwSzObGWPVO4QDR+NdkOKGErR8jhQzhhI4AVp+Nc92RAKcAKyx2
-hVqGJQeIVXsU5OdTki3p7pSVNKZjEqz54z7LT809S16AJSvJMJJKB0gTWLo5zdS4
-KuxOwN03tNvfTwPD68Jdh1l+iXCNRSpwceXIdqRSCUfAqQ3mYhlRsmnv8T+2Cpp4
-285jCqYgeZbfW8gboKzLK4W1g192gTIvlYwAed00X0aPmByWZCI00ckj87m4nSNC
-wu8RcEyvNvTbNWA1uZq/bmSTwQ25GdZaU2QvzHwANIo0UIPy95bwROTsezPpPwtG
-8P5eiufXv9kiIkkXW5B8+nfaoNr60rwANZohuT6DxolMuAYqSpa/rvO9Z2HtTIDc
-5EgK1PgdFAvtDCAd+B1Vf4IXw1UeszMPZZR2ruKtpDln4gBn6fHolGqEb4WxAt/H
-HfNos1Yod0uG3qZN4n+uQ7JiJU/Ghmim8CRnORdQ0dml5xoFeOmBQtGb54YEQWmO
-5QnzcECSl5ngugz7mBKWAzZMpJBHcx3Woe8tXXvtNdL9Gg/3WfCWs5Lq0gl5+Cm/
-wZcMDntM8v23fWHhE8TYteyEHtV9Wy4F5WX9Jjx8GearFtWhT8c3b7qutXtI2G8L
-/amh0NOwr5U3mvB6VBhK
-=S5Fr
------END PGP SIGNATURE-----
-
---=-oUI0QQLclxRcq2Zba0eC--
-
-
-
---===============8338423725379000968==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+
+When the temperature exceed the limit range value,
+the driver can handle the interrupt.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 57485ef..d55c25d 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -89,6 +89,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/interrupt.h>
+ 
+ /*
+  * Addresses to scan
+@@ -1435,6 +1436,17 @@ static bool lm90_is_tripped(struct i2c_client *client, u16 *status)
+ 	return true;
+ }
+ 
++static irqreturn_t lm90_irq_thread(int irq, void *dev_id)
++{
++	struct i2c_client *client = dev_id;
++	u16 status;
++
++	if (lm90_is_tripped(client, &status))
++		return IRQ_HANDLED;
++	else
++		return IRQ_NONE;
++}
++
+ static int lm90_probe(struct i2c_client *client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1511,6 +1523,18 @@ static int lm90_probe(struct i2c_client *client,
+ 		goto exit_remove_files;
+ 	}
+ 
++	if (client->irq) {
++		dev_dbg(dev, "IRQ: %d\n", client->irq);
++		err = devm_request_threaded_irq(dev, client->irq,
++						NULL, lm90_irq_thread,
++						IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++						"lm90", client);
++		if (err < 0) {
++			dev_err(dev, "cannot request IRQ: %d\n", client->irq);
++			goto exit_remove_files;
++		}
++	}
++
+ 	return 0;
+ 
+ exit_remove_files:
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8338423725379000968==--
-
