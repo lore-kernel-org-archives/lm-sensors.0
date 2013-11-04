@@ -1,62 +1,34 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:11 +0000
-Subject: [lm-sensors] [PATCHv5 09/20] arm: dts: add omap4 CPU thermal data
-Message-Id: <1384285582-16933-10-git-send-email-eduardo.valentin@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 04 Nov 2013 08:31:42 +0000
+Subject: Re: [lm-sensors] [PATCH RESEND v4 1/3] hwmon: (lm90) Define status bits
+Message-Id: <20131104093142.6a02b212@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+References: <1383188862-4157-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1383188862-4157-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
-ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
-IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
-ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
-Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
-bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
-bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
-dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
-QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
-PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
-cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
-cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
-bkB0aS5jb20+Ci0tLQpDaGFuZ2UgZnJvbSB2NDoKLSBVc2luZyBzdHJpbmcgY29uc3RhbnRzIGlu
-c3RlYWQgb2YgbWFjcm9zIG9uIHRyaXAgdHlwZXMKCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
-cHUtdGhlcm1hbC5kdHNpIHwgNDEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEg
-ZmlsZSBjaGFuZ2VkLCA0MSBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
-NC1jcHUtdGhlcm1hbC5kdHNpCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLmNi
-OTQ1OGYKLS0tIC9kZXYvbnVsbAorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhl
-cm1hbC5kdHNpCkBAIC0wLDAgKzEsNDEgQEAKKy8qCisgKiBEZXZpY2UgVHJlZSBTb3VyY2UgZm9y
-IE9NQVA0LzUgU29DIENQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0IChDKSAyMDEzIFRleGFz
-IEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGkuY29tLworICogQ29udGFj
-dDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+CisgKgorICogVGhp
-cyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVi
-bGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBpcyBsaWNlbnNlZCAiYXMg
-aXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwgd2hldGhlciBleHByZXNz
-IG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdzL3RoZXJtYWwvdGhlcm1h
-bC5oPgorCitjcHVfdGhlcm1hbDogY3B1X3RoZXJtYWwgeworCXBvbGxpbmctZGVsYXktcGFzc2l2
-ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlwb2xsaW5nLWRlbGF5ID0gPDEwMDA+OyAv
-KiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29yICAgICAgIElEICovCisgICAgICAgIHRo
-ZXJtYWwtc2Vuc29ycyA9IDwmYmFuZGdhcCAgICAgMD47CisKKyAgICAgICAgdHJpcHMgeworICAg
-ICAgICAgICAgICAgIGNwdV9hbGVydDA6IGNwdV9hbGVydCB7CisgICAgICAgICAgICAgICAgICAg
-ICAgICB0ZW1wZXJhdHVyZSA9IDwxMDAwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAg
-ICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLwor
-ICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9ICJwYXNzaXZlIjsKKyAgICAgICAgICAgICAg
-ICB9OworICAgICAgICAgICAgICAgIGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAg
-ICAgICAgICAgICB0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAg
-ICAgICAgICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1
-cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9ICJjcml0aWNhbCI7CisgICAgICAg
-ICAgICAgICAgfTsKKyAgICAgICAgfTsKKworCWNvb2xpbmctbWFwcyB7CisJCW1hcDAgeworCQkJ
-dHJpcCA9IDwmY3B1X2FsZXJ0MD47CisJCQljb29saW5nLWRldmljZSA9CisJCQkJPCZjcHUwIFRI
-RVJNQUxfTk9fTElNSVQgVEhFUk1BTF9OT19MSU1JVD47CisJCX07CisJfTsKK307Ci0tIAoxLjgu
-Mi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
-cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
-cw=
+On Thu, 31 Oct 2013 11:07:41 +0800, Wei Ni wrote:
+> Add bit defines for the status register. And add a function
+> lm90_is_tripped() which will read status register and return
+> tripped or not, then lm90_alert can call it directly, and in the
+> future the IRQ thread also can use it.
+> 
+> Signed-off-by: Wei Ni <wni@nvidia.com>
+> ---
+>  drivers/hwmon/lm90.c |   75 ++++++++++++++++++++++++++++++++++----------------
+>  1 file changed, 51 insertions(+), 24 deletions(-)
+> (...)
+
+Looks good now. Applied, thanks.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
