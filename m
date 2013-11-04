@@ -1,68 +1,89 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 Nov 2013 03:28:19 +0000
-Subject: Re: [lm-sensors] [PATCH 0/5] net: hwmon fixes
-Message-Id: <529566D3.8080801@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 04 Nov 2013 09:34:34 +0000
+Subject: Re: [lm-sensors] [PATCH v4 2/3] hwmon: (lm90) add support to handle IRQ
+Message-Id: <20131104103434.5a085e27@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>		 <1385225290.20467.73.camel@deadeye.wl.decadent.org.uk>		 <5290E0B9.1030606@roeck-us.net>	 <1385399750.1586.40.camel@bwh-desktop.uk.level5networks.com>	 <52938D67.2000401@roeck-us.net> <1385496510.1586.63.camel@bwh-desktop.uk.level5networks.com>
-In-Reply-To: <1385496510.1586.63.camel@bwh-desktop.uk.level5networks.com>
+References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
+	<1375856306-14415-3-git-send-email-wni@nvidia.com>
+In-Reply-To: <1375856306-14415-3-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Greg Rose <gregory.v.rose@intel.com>, Nithin Nayak Sujir <nsujir@broadcom.com>, Michael Chan <mchan@broadcom.com>, e1000-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On 11/26/2013 12:08 PM, Ben Hutchings wrote:
-> On Mon, 2013-11-25 at 09:48 -0800, Guenter Roeck wrote:
->> On 11/25/2013 09:15 AM, Ben Hutchings wrote:
->>> On Sat, 2013-11-23 at 09:07 -0800, Guenter Roeck wrote:
->>>> On 11/23/2013 08:48 AM, Ben Hutchings wrote:
->>>>> On Fri, 2013-11-22 at 22:07 -0800, Guenter Roeck wrote:
->>>>>> The hwmon subsystem is used by various network drivers to report temperature
->>>>>> sensor and other information. Unfortunately, its use is often not correct.
->>>>>> Typical errors are that the mandatory name sysfs attribute is not created,
->>>>>> that the temperature sensor index starts with 0 instead of 1, and/or that
->>>>>> sysfs attributes are created after the hwmon device was created.
->>>>>
->>>>> As it happens, I was just looking at what we do in sfc
->>>>> (drivers/net/ethernet/sfc/mcdi_mon.c) and wondering why I made it create
->>>>> the hwmon device before the attributes.  I think I avoided the other
->>>>> bugs though.
->>>>>
->>>> Hi Ben,
->>>>
->>>> Yes, I know about that one. It concluded that it would be too invasive
->>>> and risky to try to fix it without access to hardware to test the results.
->>>> That is why I said "fixes _most_ of the problems".
->>>>
->>>> As for why the attributes are created after registration, it was most likely
->>>> because there was no API available to attach the sysfs attributes to
->>>> the hwmon device in a clean way. The new APIs fix that.
->>>
->>> We don't attach them to the hwmon device either, and I would rather not
->>> change that yet because lm-sensors 2 is still widely used.
->>>
->>
->> Hmm .. then there should be no good reason to create the attributes
->> only after hwmon registration.
->>
->> As for lm-sensors 2 ... really ? Seems odd that people would use the
->> latest kernel with 5+ years old versions of applications / libraries.
->> but I guess the world is full of such oddities, so maybe I should not
->> be surprised.
-> [...]
->
-> As Jean pointed out, the net drivers implementing hwmon aren't supported
-> by lm-sensors 2 anyway.  So we should go ahead and use the new API in
-> sfc.  I've opened an internal bug report for this, but it is likely to
-> be low priority for the team.  But if you write a patch I can test it.
->
+Hi Wei,
 
-You'll get one shortly.
+I'm hitting a problem with that patch now...
 
-Thanks,
-Guenter
+On Wed, 7 Aug 2013 14:18:25 +0800, Wei Ni wrote:
+> When the temperature exceed the limit range value,
+> the driver can handle the interrupt.
+> 
+> Signed-off-by: Wei Ni <wni@nvidia.com>
+> ---
+>  drivers/hwmon/lm90.c |   23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+> 
+> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+> index 1da2eff..2e68773 100644
+> --- a/drivers/hwmon/lm90.c
+> +++ b/drivers/hwmon/lm90.c
+> @@ -89,6 +89,7 @@
+>  #include <linux/err.h>
+>  #include <linux/mutex.h>
+>  #include <linux/sysfs.h>
+> +#include <linux/interrupt.h>
+>  
+>  /*
+>   * Addresses to scan
+> @@ -1433,6 +1434,16 @@ static bool lm90_is_tripped(struct i2c_client *client)
+>  	return true;
+>  }
+>  
+> +static irqreturn_t lm90_irq_thread(int irq, void *dev_id)
+> +{
+> +	struct i2c_client *client = dev_id;
+> +
+> +	if (lm90_is_tripped(client))
+
+Did you really send the latest version of the patch? lm90_is_tripped()
+takes two arguments now, but here you only pass one.
+
+If you have a more up-to-date version of this patch, please send it
+over quickly.
+
+> +		return IRQ_HANDLED;
+> +	else
+> +		return IRQ_NONE;
+> +}
+> +
+>  static int lm90_probe(struct i2c_client *client,
+>  		      const struct i2c_device_id *id)
+>  {
+> @@ -1509,6 +1520,18 @@ static int lm90_probe(struct i2c_client *client,
+>  		goto exit_remove_files;
+>  	}
+>  
+> +	if (client->irq) {
+> +		dev_dbg(dev, "IRQ: %d\n", client->irq);
+> +		err = devm_request_threaded_irq(dev, client->irq,
+> +						NULL, lm90_irq_thread,
+> +						IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+> +						"lm90", client);
+> +		if (err < 0) {
+> +			dev_err(dev, "cannot request IRQ: %d\n", client->irq);
+> +			goto exit_remove_files;
+> +		}
+> +	}
+> +
+>  	return 0;
+>  
+>  exit_remove_files:
 
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
