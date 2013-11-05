@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 05 Nov 2013 15:01:12 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Tue, 05 Nov 2013 23:35:58 +0000
 Subject: Re: [lm-sensors] Patching driver for it8603e chip
-Message-Id: <20131105160112.43dfeb73@endymion.delvare>
+Message-Id: <527980DE.8020403@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5274CACD.60600@fastwebnet.it>
 In-Reply-To: <5274CACD.60600@fastwebnet.it>
@@ -10,21 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+On 5.11.2013 16:01, Jean Delvare wrote:
+> Hi Rudolf,
+>
+> It's a very long time since we last heard, I hope you're doing well :)
 
-It's a very long time since we last heard, I hope you're doing well :)
+Yes, I was active in coreboot.org project, but my time for it is also limited. 
+On the other hand I admire your discipline in the lm-sensors project. It has 
+been so many years and you are still taking care of it!
 
-On Tue, 05 Nov 2013 15:45:40 +0100, Rudolf Marek wrote:
-> Hi all,
-> 
-> Good news everyone,  I will add support for it8603e in next days/weeks as my 
-> time permits. Im doing the coreboot port for ASUS F2A85-M for this board and I 
-> managed to get some support.
+Thank you for that!
 
-That's excellent news indeed, thanks!
+Thanks
+Rudolf
 
--- 
-Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
