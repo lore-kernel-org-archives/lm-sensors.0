@@ -1,48 +1,57 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:18 +0000
-Subject: [lm-sensors] [PATCHv5 16/20] arm: dts: add omap5 thermal data
-Message-Id: <1384285582-16933-17-git-send-email-eduardo.valentin@ti.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Wed, 06 Nov 2013 02:56:48 +0000
+Subject: Re: [lm-sensors] [PATCHv4 02/18] thermal: core: allow binding via .bind when tzp is present
+Message-Id: <5279AFF0.1080105@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+ <1380251605-3804-3-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1380251605-3804-3-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>
+Cc: "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA1IHRvIGNvbnRhaW4KdGhl
-IHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xpbmcg
-d2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMuIFRoZQpzeXN0ZW0gd2lsbCBkbyBh
-IHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1QyB3aGVuZXZlcgphbnkgb2YgaXRzIHNlbnNvcnMgc2Vl
-cyB0aGlzIGxldmVsLgoKQ2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5j
-b20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcg
-PHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0u
-Y29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4g
-V2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1w
-YmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVr
-PgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJu
-ZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4
-LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8
-ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRz
-aSB8IDEyICsrKysrKysrKystLQogMSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDIg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaSBi
-L2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKaW5kZXggN2NkZWExYi4uMTg3Y2I3MSAxMDA2
-NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQorKysgYi9hcmNoL2FybS9ib290
-L2R0cy9vbWFwNS5kdHNpCkBAIC0zMyw3ICszMyw3IEBACiAJCSNhZGRyZXNzLWNlbGxzID0gPDE+
-OwogCQkjc2l6ZS1jZWxscyA9IDwwPjsKIAotCQljcHVAMCB7CisJCWNwdTA6IGNwdUAwIHsKIAkJ
-CWRldmljZV90eXBlID0gImNwdSI7CiAJCQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsK
-IAkJCXJlZyA9IDwweDA+OwpAQCAtNDUsNiArNDUsMTIgQEAKIAkJfTsKIAl9OwogCisJdGhlcm1h
-bC16b25lcyB7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNpIgorCQkjaW5jbHVk
-ZSAib21hcDUtZ3B1LXRoZXJtYWwuZHRzaSIKKwkJI2luY2x1ZGUgIm9tYXA1LWNvcmUtdGhlcm1h
-bC5kdHNpIgorCX07CisKIAl0aW1lciB7CiAJCWNvbXBhdGlibGUgPSAiYXJtLGFybXY3LXRpbWVy
-IjsKIAkJLyogUFBJIHNlY3VyZS9ub25zZWN1cmUgSVJRICovCkBAIC03MDUsMTMgKzcxMSwxNSBA
-QAogCQkJfTsKIAkJfTsKIAotCQliYW5kZ2FwQDRhMDAyMWUwIHsKKwkJYmFuZGdhcDogYmFuZGdh
-cEA0YTAwMjFlMCB7CiAJCQlyZWcgPSA8MHg0YTAwMjFlMCAweGMKIAkJCSAgICAgICAweDRhMDAy
-MzJjIDB4YwogCQkJICAgICAgIDB4NGEwMDIzODAgMHgyYwogCQkJICAgICAgIDB4NGEwMDIzQzAg
-MHgzYz47CiAJCQlpbnRlcnJ1cHRzID0gPEdJQ19TUEkgMTI2IElSUV9UWVBFX0xFVkVMX0hJR0g+
-OwogCQkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNTQzMC1iYW5kZ2FwIjsKKworCQkJI3RoZXJtYWwt
-c2Vuc29yLWNlbGxzID0gPDE+OwogCQl9OwogCX07CiB9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
-NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On 09/27/2013 11:13 AM, Eduardo Valentin wrote:
+> This patch allows drivers register thermal zone devices
+> with thermal zone params and .bind callbacks. In this case,
+> it will use the .bind callback.
+> 
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  drivers/thermal/thermal_core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+> index 8a94300..f7a9f4f 100644
+> --- a/drivers/thermal/thermal_core.c
+> +++ b/drivers/thermal/thermal_core.c
+> @@ -247,7 +247,7 @@ static void bind_cdev(struct thermal_cooling_device *cdev)
+>  		if (!pos->tzp && !pos->ops->bind)
+>  			continue;
+>  
+> -		if (!pos->tzp && pos->ops->bind) {
+> +		if (pos->ops->bind) {
+
+Hi, Eduardo
+In bind_tz() routine, it also has same problem.
+I had sent out similar patch "[PATCHv4 02/18] thermal: core: allow
+binding via .bind when tzp is present" to fix it, but no response yet.
+I think you can add my changes in your series :)
+
+Thanks.
+Wei.
+
+>  			ret = pos->ops->bind(pos, cdev);
+>  			if (ret)
+>  				print_bind_err_msg(pos, cdev, ret);
+> 
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
