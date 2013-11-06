@@ -1,35 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 26 Nov 2013 04:38:09 +0000
-Subject: Re: [lm-sensors] [PATCH] Input: ads7846: Convert to devm_hwmon_device_register_with_groups
-Message-Id: <529425B1.7000708@roeck-us.net>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Wed, 06 Nov 2013 19:28:41 +0000
+Subject: Re: [lm-sensors] hwmon: (tmp401) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <20131106192841.GB22627@elgon.mountain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385242620-21719-1-git-send-email-linux@roeck-us.net> <20131126030308.GF31517@core.coreip.homeip.net>
-In-Reply-To: <20131126030308.GF31517@core.coreip.homeip.net>
+References: <20131018142506.GA25585@longonot.mountain>
+In-Reply-To: <20131018142506.GA25585@longonot.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 11/25/2013 07:03 PM, Dmitry Torokhov wrote:
-> Hi Guenter,
->
-> On Sat, Nov 23, 2013 at 01:37:00PM -0800, Guenter Roeck wrote:
->> Simplify the code and create mandatory 'name' attribute by using
->> new hwmon API.
->>
->> Also use is_visible to determine visible attributes instead of creating
->> several different attribute groups.
->
-> This change does not quite work without converting the rest of the
-> driver to devm_ resources as it makes hwmon outlive regulator and other
-> essential resources when unbinding driver from the device.
->
-Ok, I'll use hwmon_device_register_with_groups instead.
+Hello Guenter Roeck,
 
-Thanks,
-Guenter
+The patch 42f309303902: "hwmon: (tmp401) Convert to use
+devm_hwmon_device_register_with_groups" from Sep 4, 2013, leads to
+the following
+static checker warning: "drivers/hwmon/tmp401.c:360 store_temp()
+	 warn: 'data' isn't an ERR_PTR"
 
+drivers/hwmon/tmp401.c
+   354          struct tmp401_data *data = dev_get_drvdata(dev);
+   355          struct i2c_client *client = data->client;
+   356          long val;
+   357          u16 reg;
+   358          u8 regaddr;
+   359  
+   360          if (IS_ERR(data))
+   361                  return PTR_ERR(data);
+
+dev_get_drvdata() returns NULL on error, but I'm not sure if that's
+possible here.  Can the check be removed?
+
+regards,
+dan carpenter
 
 
 _______________________________________________
