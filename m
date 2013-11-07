@@ -1,539 +1,190 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Nov 2013 05:52:01 +0000
-Subject: [lm-sensors] [PATCH 2/2] drm/nouveau/hwmon: Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1385185921-17220-2-git-send-email-linux@roeck-us.net>
+Date: Thu, 07 Nov 2013 05:03:24 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.13-rc1
+Message-Id: <20131107050324.GA6205@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2274320185020960228=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385185921-17220-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385185921-17220-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============2274320185020960228==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
+Content-Disposition: inline
+
+
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.13-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 61e6cfa80de5760bbe406f4e815b7739205754d2:
+
+  Linux 3.12-rc5 (2013-10-13 15:41:28 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 26336c8a36c0a6a28b9ecf6f1bb8c8f5605d6a21:
+
+  hwmon: (w83793) Clean up a signedness issue (2013-10-19 09:04:25 -0700)
+
+----------------------------------------------------------------
+hwmon updates for 3.13-rc1
+
+Introduce new hwmon API functions hwmon_device_register_with_groups and
+devm_hwmon_device_register_with_groups, and convert several drivers to use the
+new API.
+Add support for EMC1404, EMC1424, LTC2977, LTC2978A, LM25063 to exiting drivers
+Various cleanups in several drivers
+
+----------------------------------------------------------------
+Dan Carpenter (2):
+      hwmon: (nct6775) Remove an unused variable
+      hwmon: (w83793) Clean up a signedness issue
+
+Fengguang Wu (7):
+      hwmon: (nct6775) fix coccinelle warnings
+      hwmon: (ds1621) fix coccinelle warnings
+      hwmon: (max6642 fix coccinelle warnings
+      hwmon: (max6697) fix coccinelle warnings
+      hwmon: (lm95234) fix coccinelle warnings
+      hwmon: (ltc4261) fix coccinelle warnings
+      hwmon: (jc42) fix coccinelle warnings
+
+Guenter Roeck (36):
+      hwmon: Remove unnecessary semicolons
+      hwmon: (nct6775) Use return value from find_temp_source
+      hwmon: (nct6775) Check array index when accessing temp_offset
+      hwmon: (mc13783-adc) Increase size of name string
+      hwmon: (pmbus) Don't unnecessarily crash the kernel
+      hwmon: (adt7462) Use error value returned from find_trange_value()
+      hwmon: (gpio_fan) Use error value returned from get_fan_speed_index()
+      hwmon: (acpi_power_meter) Don't crash the kernel unnecessarily
+      hwmon: (acpi_power_meter) Use return value from acpi_bus_register_driver
+      hwmon: (atxp1) Set and use error code from vid_to_reg()
+      hwmon: (f75375s) Don't crash the kernel unnecessarily
+      hwmon: (f71882fg) Remove extra return statement
+      hwmon: Introduce hwmon_device_register_with_groups
+      hwmon: (ds1621) Convert to use hwmon_device_register_with_groups
+      hwmon: (gpio-fan) Convert to use hwmon_device_register_with_groups
+      hwmon: (ltc4245) Convert to use hwmon_device_register_with_groups
+      hwmon: (pmbus) Convert to use hwmon_device_register_with_groups
+      hwmon: (nct6775) Convert to use hwmon_device_register_with_groups
+      hwmon: Provide managed hwmon registration
+      hwmon: (nct6775) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (ds1621) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (max6642) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (lm73) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (max6697) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (max16065) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (ina2xx) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (tmp401) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (lm95234) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (ina209) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (ltc4261) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (jc42) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (pmbus/lm25066) Add support for LM25063
+      hwmon: (pmbus/ltc2978): Add support for LTC2977
+      hwmon: (pmbus/ltc2978): Add support for LTC2978A
+      hwmon: (emc1403) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (emc1403) Add support for EMC1404 and EMC1424
+
+LABBE Corentin (1):
+      hwmon: Correct some typos
+
+Sachin Kamat (3):
+      hwmon: (adcxx) Remove redundant spi_set_drvdata
+      hwmon: (lm70) Remove redundant spi_set_drvdata
+      hwmon: (gpio-fan) Include linux/of.h header
+
+ Documentation/hwmon/lm25066      |   20 ++++-
+ Documentation/hwmon/ltc2978      |   44 +++++----
+ drivers/hwmon/abituguru.c        |    6 +-
+ drivers/hwmon/abituguru3.c       |    2 +-
+ drivers/hwmon/acpi_power_meter.c |   13 ++-
+ drivers/hwmon/adcxx.c            |    2 -
+ drivers/hwmon/adm1026.c          |    6 +-
+ drivers/hwmon/adt7462.c          |    5 +-
+ drivers/hwmon/asc7621.c          |   12 +--
+ drivers/hwmon/asus_atk0110.c     |    2 +-
+ drivers/hwmon/atxp1.c            |    3 +-
+ drivers/hwmon/ds1621.c           |   63 ++++---------
+ drivers/hwmon/emc1403.c          |  120 +++++++++++++++----------
+ drivers/hwmon/f71882fg.c         |    1 -
+ drivers/hwmon/f75375s.c          |    4 +-
+ drivers/hwmon/gpio-fan.c         |   46 ++++------
+ drivers/hwmon/hwmon.c            |  185 ++++++++++++++++++++++++++++++++++----
+ drivers/hwmon/ina209.c           |   46 ++++------
+ drivers/hwmon/ina2xx.c           |   64 +++++--------
+ drivers/hwmon/jc42.c             |   62 +++++--------
+ drivers/hwmon/lm70.c             |    2 -
+ drivers/hwmon/lm73.c             |   70 +++++----------
+ drivers/hwmon/lm95234.c          |  138 ++++++++++------------------
+ drivers/hwmon/ltc4245.c          |   78 +++++-----------
+ drivers/hwmon/ltc4261.c          |   56 ++++--------
+ drivers/hwmon/max16065.c         |  124 +++++++++++--------------
+ drivers/hwmon/max6642.c          |   73 +++++----------
+ drivers/hwmon/max6650.c          |    2 +-
+ drivers/hwmon/max6697.c          |   55 ++++--------
+ drivers/hwmon/mc13783-adc.c      |    2 +-
+ drivers/hwmon/nct6775.c          |  143 +++++++++--------------------
+ drivers/hwmon/pmbus/lm25066.c    |   91 +++++++++++++++++--
+ drivers/hwmon/pmbus/ltc2978.c    |   16 +++-
+ drivers/hwmon/pmbus/pmbus_core.c |   24 ++---
+ drivers/hwmon/tmp401.c           |   92 ++++++-------------
+ drivers/hwmon/w83791d.c          |    2 +-
+ drivers/hwmon/w83792d.c          |    2 +-
+ drivers/hwmon/w83793.c           |    5 +-
+ include/linux/hwmon-vid.h        |    2 +-
+ include/linux/hwmon.h            |   10 +++
+ 40 files changed, 805 insertions(+), 888 deletions(-)
+
+--NzB8fVQJ5HfG6fxh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSex8cAAoJEMsfJm/On5mBDysQAIKAaxaqlgy8wZEmU/rxAyf3
+mid7psuPzQnG6clQHg4tS/I3TUpKdOxOWDNQTKDSshufKkzagsq8axR0Kz/h374d
+VLmxrNuTTvdkVlRZgAPU77bThfhtaGwX3UeV5pEk2SRBpmNuzXaafkpwlsT6YwjC
+d1E7kZqX5oEotu+L3nv4kiFFas09f1Sn5+baO413TjbHbzldAOT/j1RdeWj8y1Hv
+FP9HyKVQzbMq/rMmrh8MZfAATFmQUa4IrmdTOA2foqgrRv81BrqqiYOa+S8NDvhm
+3Q/nKWwvfcXA1Tq55e7IA2sIOTyn85OMdt6Yl2711FAO6eKCmA41qTjlA9lbGC0t
+NnsxeqnttFB0MGLg3/cNCcNaxcpZGh5mcq9IC1N+dFEQR6c+UefeBXqrdfeuELdt
+023u22jucadtiDxnSOHYlT04GvIiek5BdckEsn50PUpGpKSRNoBgUNiIT4m0bJBt
+NwKNWvqlVgKnn9rW4JMX2EtCe52zgwAzM/6krMOTFttP71DWtIdiBd1o6FcWUxji
+C44trs5NvydmdAWLiXR5+qfc7vs9WksTk1lU7/XtQmCvfWzBXXiHtAe9daVVLQX5
+tGXlAOCfbenFvhv2UbzUGLB7Z818BOJnxylGI8oiQb0J0R4XMZogNZMMoWv96MMO
+8oYU/YNl7T+iHAFYGiRF
+=OtI2
+-----END PGP SIGNATURE-----
+
+--NzB8fVQJ5HfG6fxh--
+
+
+--===============2274320185020960228==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: David Airlie <airlied@linux.ie>
-Cc: lm-sensors@lm-sensors.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
-
-Simplify the code and resolve race conditions seen because
-attribute files are created after hwmon device registration,
-and removed before hwmon device removal.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-Compile tested only; unfortunately I don't have the the necessary hardware.
-
- drivers/gpu/drm/nouveau/nouveau_hwmon.c |  243 +++++++++++--------------------
- drivers/gpu/drm/nouveau/nouveau_hwmon.h |   11 --
- 2 files changed, 84 insertions(+), 170 deletions(-)
-
-diff --git a/drivers/gpu/drm/nouveau/nouveau_hwmon.c b/drivers/gpu/drm/nouveau/nouveau_hwmon.c
-index 38a4db5..d4144b8 100644
---- a/drivers/gpu/drm/nouveau/nouveau_hwmon.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_hwmon.c
-@@ -42,9 +42,7 @@
- static ssize_t
- nouveau_hwmon_show_temp(struct device *d, struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	int temp = therm->temp_get(therm);
- 
- 	if (temp < 0)
-@@ -68,9 +66,7 @@ static ssize_t
- nouveau_hwmon_temp1_auto_point1_temp(struct device *d,
- 				     struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	      therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_FAN_BOOST) * 1000);
-@@ -80,9 +76,7 @@ nouveau_hwmon_set_temp1_auto_point1_temp(struct device *d,
- 					 struct device_attribute *a,
- 					 const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -101,9 +95,7 @@ static ssize_t
- nouveau_hwmon_temp1_auto_point1_temp_hyst(struct device *d,
- 					  struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	 therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_FAN_BOOST_HYST) * 1000);
-@@ -113,9 +105,7 @@ nouveau_hwmon_set_temp1_auto_point1_temp_hyst(struct device *d,
- 					      struct device_attribute *a,
- 					      const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -133,9 +123,7 @@ static SENSOR_DEVICE_ATTR(temp1_auto_point1_temp_hyst, S_IRUGO | S_IWUSR,
- static ssize_t
- nouveau_hwmon_max_temp(struct device *d, struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	       therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_DOWN_CLK) * 1000);
-@@ -144,9 +132,7 @@ static ssize_t
- nouveau_hwmon_set_max_temp(struct device *d, struct device_attribute *a,
- 						const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -164,9 +150,7 @@ static ssize_t
- nouveau_hwmon_max_temp_hyst(struct device *d, struct device_attribute *a,
- 			    char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	  therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_DOWN_CLK_HYST) * 1000);
-@@ -175,9 +159,7 @@ static ssize_t
- nouveau_hwmon_set_max_temp_hyst(struct device *d, struct device_attribute *a,
- 						const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -196,9 +178,7 @@ static ssize_t
- nouveau_hwmon_critical_temp(struct device *d, struct device_attribute *a,
- 							char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	       therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_CRITICAL) * 1000);
-@@ -208,9 +188,7 @@ nouveau_hwmon_set_critical_temp(struct device *d, struct device_attribute *a,
- 							    const char *buf,
- 								size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -229,9 +207,7 @@ static ssize_t
- nouveau_hwmon_critical_temp_hyst(struct device *d, struct device_attribute *a,
- 							char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	  therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_CRITICAL_HYST) * 1000);
-@@ -242,9 +218,7 @@ nouveau_hwmon_set_critical_temp_hyst(struct device *d,
- 				     const char *buf,
- 				     size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -262,9 +236,7 @@ static ssize_t
- nouveau_hwmon_emergency_temp(struct device *d, struct device_attribute *a,
- 							char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	       therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_SHUTDOWN) * 1000);
-@@ -274,9 +246,7 @@ nouveau_hwmon_set_emergency_temp(struct device *d, struct device_attribute *a,
- 							    const char *buf,
- 								size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -295,9 +265,7 @@ static ssize_t
- nouveau_hwmon_emergency_temp_hyst(struct device *d, struct device_attribute *a,
- 							char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
- 	  therm->attr_get(therm, NOUVEAU_THERM_ATTR_THRS_SHUTDOWN_HYST) * 1000);
-@@ -308,9 +276,7 @@ nouveau_hwmon_set_emergency_temp_hyst(struct device *d,
- 				      const char *buf,
- 				      size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -326,14 +292,6 @@ static SENSOR_DEVICE_ATTR(temp1_emergency_hyst, S_IRUGO | S_IWUSR,
- 					nouveau_hwmon_set_emergency_temp_hyst,
- 					0);
- 
--static ssize_t nouveau_hwmon_show_name(struct device *dev,
--				      struct device_attribute *attr,
--				      char *buf)
--{
--	return sprintf(buf, "nouveau\n");
--}
--static SENSOR_DEVICE_ATTR(name, S_IRUGO, nouveau_hwmon_show_name, NULL, 0);
--
- static ssize_t nouveau_hwmon_show_update_rate(struct device *dev,
- 				      struct device_attribute *attr,
- 				      char *buf)
-@@ -348,9 +306,7 @@ static ssize_t
- nouveau_hwmon_show_fan1_input(struct device *d, struct device_attribute *attr,
- 			      char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 
- 	return snprintf(buf, PAGE_SIZE, "%d\n", therm->fan_sense(therm));
- }
-@@ -361,9 +317,7 @@ static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, nouveau_hwmon_show_fan1_input,
- nouveau_hwmon_get_pwm1_enable(struct device *d,
- 			   struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	int ret;
- 
- 	ret = therm->attr_get(therm, NOUVEAU_THERM_ATTR_FAN_MODE);
-@@ -377,9 +331,7 @@ static ssize_t
- nouveau_hwmon_set_pwm1_enable(struct device *d, struct device_attribute *a,
- 			   const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 	int ret;
- 
-@@ -399,9 +351,7 @@ static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
- static ssize_t
- nouveau_hwmon_get_pwm1(struct device *d, struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	int ret;
- 
- 	ret = therm->fan_get(therm);
-@@ -415,10 +365,8 @@ static ssize_t
- nouveau_hwmon_set_pwm1(struct device *d, struct device_attribute *a,
- 		       const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
--	int ret = -ENODEV;
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
-+	int ret;
- 	long value;
- 
- 	if (kstrtol(buf, 10, &value) = -EINVAL)
-@@ -439,9 +387,7 @@ static ssize_t
- nouveau_hwmon_get_pwm1_min(struct device *d,
- 			   struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	int ret;
- 
- 	ret = therm->attr_get(therm, NOUVEAU_THERM_ATTR_FAN_MIN_DUTY);
-@@ -455,9 +401,7 @@ static ssize_t
- nouveau_hwmon_set_pwm1_min(struct device *d, struct device_attribute *a,
- 			   const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 	int ret;
- 
-@@ -479,9 +423,7 @@ static ssize_t
- nouveau_hwmon_get_pwm1_max(struct device *d,
- 			   struct device_attribute *a, char *buf)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	int ret;
- 
- 	ret = therm->attr_get(therm, NOUVEAU_THERM_ATTR_FAN_MAX_DUTY);
-@@ -495,9 +437,7 @@ static ssize_t
- nouveau_hwmon_set_pwm1_max(struct device *d, struct device_attribute *a,
- 			   const char *buf, size_t count)
- {
--	struct drm_device *dev = dev_get_drvdata(d);
--	struct nouveau_drm *drm = nouveau_drm(dev);
--	struct nouveau_therm *therm = nouveau_therm(drm->device);
-+	struct nouveau_therm *therm = dev_get_drvdata(d);
- 	long value;
- 	int ret;
- 
-@@ -516,7 +456,6 @@ static SENSOR_DEVICE_ATTR(pwm1_max, S_IRUGO | S_IWUSR,
- 			  nouveau_hwmon_set_pwm1_max, 0);
- 
- static struct attribute *hwmon_default_attributes[] = {
--	&sensor_dev_attr_name.dev_attr.attr,
- 	&sensor_dev_attr_update_rate.dev_attr.attr,
- 	NULL
- };
-@@ -545,18 +484,71 @@ static struct attribute *hwmon_pwm_fan_attributes[] = {
- 	NULL
- };
- 
-+static umode_t hwmon_temp_is_visible(struct kobject *kobj,
-+				     struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct nouveau_therm *therm = dev_get_drvdata(dev);
-+
-+	if (therm->temp_get(therm) < 0)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static umode_t hwmon_fan_rpm_is_visible(struct kobject *kobj,
-+					struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct nouveau_therm *therm = dev_get_drvdata(dev);
-+
-+	if (therm->fan_sense(therm) < 0)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static umode_t hwmon_pwm_fan_is_visible(struct kobject *kobj,
-+					struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct nouveau_therm *therm = dev_get_drvdata(dev);
-+
-+	/*
-+	 * XXX: incorrect, need better detection for this, some boards have
-+	 *     the gpio entries for pwm fan control even when there's no
-+	 *     actual fan connected to it... therm table?
-+	 */
-+	if (!therm->fan_get || therm->fan_get(therm) < 0)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
- static const struct attribute_group hwmon_default_attrgroup = {
- 	.attrs = hwmon_default_attributes,
- };
- static const struct attribute_group hwmon_temp_attrgroup = {
- 	.attrs = hwmon_temp_attributes,
-+	.is_visible = hwmon_temp_is_visible,
- };
- static const struct attribute_group hwmon_fan_rpm_attrgroup = {
- 	.attrs = hwmon_fan_rpm_attributes,
-+	.is_visible = hwmon_fan_rpm_is_visible,
- };
- static const struct attribute_group hwmon_pwm_fan_attrgroup = {
- 	.attrs = hwmon_pwm_fan_attributes,
-+	.is_visible = hwmon_pwm_fan_is_visible,
-+};
-+
-+static const struct attribute_group *hwmon_attr_groups[] = {
-+	&hwmon_default_attrgroup,
-+	&hwmon_temp_attrgroup,
-+	&hwmon_fan_rpm_attrgroup,
-+	&hwmon_pwm_fan_attrgroup,
-+	NULL
- };
-+
- #endif
- 
- int
-@@ -565,92 +557,25 @@ nouveau_hwmon_init(struct drm_device *dev)
- #if defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE))
- 	struct nouveau_drm *drm = nouveau_drm(dev);
- 	struct nouveau_therm *therm = nouveau_therm(drm->device);
--	struct nouveau_hwmon *hwmon;
- 	struct device *hwmon_dev;
- 	int ret = 0;
- 
--	hwmon = drm->hwmon = kzalloc(sizeof(*hwmon), GFP_KERNEL);
--	if (!hwmon)
--		return -ENOMEM;
--	hwmon->dev = dev;
--
- 	if (!therm || !therm->temp_get || !therm->attr_get || !therm->attr_set)
- 		return -ENODEV;
- 
--	hwmon_dev = hwmon_device_register(&dev->pdev->dev);
-+	hwmon_dev = devm_hwmon_device_register_with_groups(&dev->pdev->dev,
-+							   "nouveau", therm,
-+							   hwmon_attr_groups);
- 	if (IS_ERR(hwmon_dev)) {
- 		ret = PTR_ERR(hwmon_dev);
- 		NV_ERROR(drm, "Unable to register hwmon device: %d\n", ret);
- 		return ret;
- 	}
--	dev_set_drvdata(hwmon_dev, dev);
--
--	/* set the default attributes */
--	ret = sysfs_create_group(&hwmon_dev->kobj, &hwmon_default_attrgroup);
--	if (ret) {
--		if (ret)
--			goto error;
--	}
--
--	/* if the card has a working thermal sensor */
--	if (therm->temp_get(therm) >= 0) {
--		ret = sysfs_create_group(&hwmon_dev->kobj, &hwmon_temp_attrgroup);
--		if (ret) {
--			if (ret)
--				goto error;
--		}
--	}
--
--	/* if the card has a pwm fan */
--	/*XXX: incorrect, need better detection for this, some boards have
--	 *     the gpio entries for pwm fan control even when there's no
--	 *     actual fan connected to it... therm table? */
--	if (therm->fan_get && therm->fan_get(therm) >= 0) {
--		ret = sysfs_create_group(&hwmon_dev->kobj,
--					 &hwmon_pwm_fan_attrgroup);
--		if (ret)
--			goto error;
--	}
--
--	/* if the card can read the fan rpm */
--	if (therm->fan_sense(therm) >= 0) {
--		ret = sysfs_create_group(&hwmon_dev->kobj,
--					 &hwmon_fan_rpm_attrgroup);
--		if (ret)
--			goto error;
--	}
--
--	hwmon->hwmon = hwmon_dev;
--
--	return 0;
--
--error:
--	NV_ERROR(drm, "Unable to create some hwmon sysfs files: %d\n", ret);
--	hwmon_device_unregister(hwmon_dev);
--	hwmon->hwmon = NULL;
--	return ret;
--#else
--	hwmon->hwmon = NULL;
--	return 0;
- #endif
-+	return 0;
- }
- 
- void
- nouveau_hwmon_fini(struct drm_device *dev)
- {
--#if defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE))
--	struct nouveau_hwmon *hwmon = nouveau_hwmon(dev);
--
--	if (hwmon->hwmon) {
--		sysfs_remove_group(&hwmon->hwmon->kobj, &hwmon_default_attrgroup);
--		sysfs_remove_group(&hwmon->hwmon->kobj, &hwmon_temp_attrgroup);
--		sysfs_remove_group(&hwmon->hwmon->kobj, &hwmon_pwm_fan_attrgroup);
--		sysfs_remove_group(&hwmon->hwmon->kobj, &hwmon_fan_rpm_attrgroup);
--
--		hwmon_device_unregister(hwmon->hwmon);
--	}
--
--	nouveau_drm(dev)->hwmon = NULL;
--	kfree(hwmon);
--#endif
- }
-diff --git a/drivers/gpu/drm/nouveau/nouveau_hwmon.h b/drivers/gpu/drm/nouveau/nouveau_hwmon.h
-index 62ccbb3..21a2d1d 100644
---- a/drivers/gpu/drm/nouveau/nouveau_hwmon.h
-+++ b/drivers/gpu/drm/nouveau/nouveau_hwmon.h
-@@ -25,17 +25,6 @@
- #ifndef __NOUVEAU_PM_H__
- #define __NOUVEAU_PM_H__
- 
--struct nouveau_hwmon {
--	struct drm_device *dev;
--	struct device *hwmon;
--};
--
--static inline struct nouveau_hwmon *
--nouveau_hwmon(struct drm_device *dev)
--{
--	return nouveau_drm(dev)->hwmon;
--}
--
- /* nouveau_hwmon.c */
- int  nouveau_hwmon_init(struct drm_device *dev);
- void nouveau_hwmon_fini(struct drm_device *dev);
--- 
-1.7.9.7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2274320185020960228==--
