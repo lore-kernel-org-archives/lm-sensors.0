@@ -1,76 +1,55 @@
-From: arno@natisbad.org (Arnaud Ebalard)
-Date: Sat, 09 Nov 2013 17:39:14 +0000
-Subject: [lm-sensors] [PATCH] hwmon: add support for GMT G751 chip in lm75 driver
-Message-Id: <87bo1th3ul.fsf@natisbad.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 09 Nov 2013 18:27:07 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: add support for GMT G751 chip in lm75 driver
+Message-Id: <20131109182707.GA19407@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <87bo1th3ul.fsf@natisbad.org>
+In-Reply-To: <87bo1th3ul.fsf@natisbad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
+To: Arnaud Ebalard <arno@natisbad.org>
 Cc: Jean Delvare <khali@linux-fr.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-ClRoaXMgd2FzIHRlc3RlZCBvbiBhIE5FVEdFQVIgUmVhZHlOQVMgMjEyMCBkZXZpY2UgKE1hcnZl
-bGwgQXJtYWRhIFhQCmJhc2VkIGJvYXJkLCB2aWEgRFQpLgoKU2lnbmVkLW9mZi1ieTogQXJuYXVk
-IEViYWxhcmQgPGFybm9AbmF0aXNiYWQub3JnPgotLS0KSGkgR3VlbnRlciwKCkFzIGEgc2lkZSBu
-b3RlLCBJIHJlbW92ZWQgdGhlIGh1bmsgdGhhdCB3YXMgcHJlc2VudCBpbiBwcmV2aW91cyBwYXRj
-aCB0bwphZGQgZ210IHRvIHRoZSBsaXN0IG9mIERUIHZlbmRvciBwcmVmaXhlcyBiZWNhdXNlIEkg
-bm90aWNlZCBzb21lb25lIGhhZAp0YWtlbiBjYXJlOiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAx
-My85LzEyLzM2NQoKRm9yIHRoZSByZWNvcmRzLCBoZXJlIGlzIHdoYXQgSSBnZXQgb24gbXkgTkFT
-IHdpdGggdGhlIGF0dGFjaGVkIHBhdGNoOgoKcm9vdEB0aGluOi9zeXMjIHNlbnNvcnMKZzc2Mi1p
-MmMtMC0zZQpBZGFwdGVyOiBtdjY0eHh4X2kyYyBhZGFwdGVyCmZhbjE6ICAgICAgICA1NDYxIFJQ
-TSAgKGRpdiA9IDEpCgpnNzYyLWkyYy0wLTQ4CkFkYXB0ZXI6IG12NjR4eHhfaTJjIGFkYXB0ZXIK
-ZmFuMTogICAgICAgIDU0NjEgUlBNICAoZGl2ID0gMSkKCmc3NjItaTJjLTAtNDkKQWRhcHRlcjog
-bXY2NHh4eF9pMmMgYWRhcHRlcgpmYW4xOiAgICAgICAgNTQ2MSBSUE0gIChkaXYgPSAxKQoKZzc1
-MS1pMmMtMC00YwpBZGFwdGVyOiBtdjY0eHh4X2kyYyBhZGFwdGVyCnRlbXAxOiAgICAgICAgKzMw
-LjXCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykKCmFybWFkYV90aGVybWFs
-LXZpcnR1YWwtMApBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQp0ZW1wMTogICAgICAgICszNC4ywrBD
-Cgpyb290QHRoaW46L3N5cy9idXMvaTJjL2RyaXZlcnMvbG03NS8wLTAwNGMjIGxzCmRyaXZlciAg
-bW9kYWxpYXMgIHN1YnN5c3RlbSAgICB0ZW1wMV9tYXggICAgICAgdWV2ZW50Cmh3bW9uICAgbmFt
-ZSAgICAgIHRlbXAxX2lucHV0ICB0ZW1wMV9tYXhfaHlzdAoKcm9vdEB0aGluOi9zeXMvYnVzL2ky
-Yy9kcml2ZXJzL2xtNzUvMC0wMDRjIyBkbWVzZyB8IGdyZXAgbG0KWyAgMTIwLjk2MDQ3MV0gbG03
-NSAwLTAwNGM6IGh3bW9uMzogc2Vuc29yICdnNzUxJwoKCmp1c3QgYnkgYWRkaW5nIHRoZSBmb2xs
-b3dpbmcgdG8gdGhlIC5kdHM6CgoJZzc1MTogZzc1MUA0YyB7CgkJY29tcGF0aWJsZSA9ICJnbXQs
-Zzc1MSI7CgkJcmVnID0gPDB4NGM+OwoJfTsKCkRvIG5vdCBoZXNpdGF0ZSB0byB0ZWxsIG1lIGlm
-IEkgbWlzc2VkIHNvbWV0aGluZy4KCkNoZWVycywKCmErCgogRG9jdW1lbnRhdGlvbi9kZXZpY2V0
-cmVlL2JpbmRpbmdzL2kyYy90cml2aWFsLWRldmljZXMudHh0IHwgMSArCiBkcml2ZXJzL2h3bW9u
-L0tjb25maWcgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxICsKIGRyaXZl
-cnMvaHdtb24vbG03NS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8IDMg
-KysrCiAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL0RvY3Vt
-ZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9pMmMvdHJpdmlhbC1kZXZpY2VzLnR4dCBiL0Rv
-Y3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9pMmMvdHJpdmlhbC1kZXZpY2VzLnR4dApp
-bmRleCBhZDZhNzM4Li5jOThlNWEyIDEwMDY0NAotLS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRy
-ZWUvYmluZGluZ3MvaTJjL3RyaXZpYWwtZGV2aWNlcy50eHQKKysrIGIvRG9jdW1lbnRhdGlvbi9k
-ZXZpY2V0cmVlL2JpbmRpbmdzL2kyYy90cml2aWFsLWRldmljZXMudHh0CkBAIC0zNSw2ICszNSw3
-IEBAIGZzbCxtYzEzODkyCQlNQzEzODkyOiBQb3dlciBNYW5hZ2VtZW50IEludGVncmF0ZWQgQ2ly
-Y3VpdCAoUE1JQykgZm9yIGkuTVgzNS81MQogZnNsLG1tYTg0NTAJCU1NQTg0NTBROiBYdHJpbnNp
-YyBMb3ctcG93ZXIsIDMtYXhpcyBYdHJpbnNpYyBBY2NlbGVyb21ldGVyCiBmc2wsbXByMTIxCQlN
-UFIxMjE6IFByb3hpbWl0eSBDYXBhY2l0aXZlIFRvdWNoIFNlbnNvciBDb250cm9sbGVyCiBmc2ws
-c2d0bDUwMDAJCVNHVEw1MDAwOiBVbHRyYSBMb3ctUG93ZXIgQXVkaW8gQ29kZWMKK2dtdCxnNzUx
-CQlHNzUxOiBEaWdpdGFsIFRlbXBlcmF0dXJlIFNlbnNvciBhbmQgVGhlcm1hbCBXYXRjaGRvZyB3
-aXRoIFR3by1XaXJlIEludGVyZmFjZQogaW5maW5lb24sc2xiOTYzNXR0CUluZmluZW9uIFNMQjk2
-MzUgKFNvZnQtKSBJMkMgVFBNIChvbGQgcHJvdG9jb2wsIG1heCAxMDBraHopCiBpbmZpbmVvbixz
-bGI5NjQ1dHQJSW5maW5lb24gU0xCOTY0NSBJMkMgVFBNIChuZXcgcHJvdG9jb2wsIG1heCA0MDBr
-aHopCiBtYXhpbSxkczEwNTAJCTUgQml0IFByb2dyYW1tYWJsZSwgUHVsc2UtV2lkdGggTW9kdWxh
-dG9yCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL0tjb25maWcgYi9kcml2ZXJzL2h3bW9uL0tj
-b25maWcKaW5kZXggYjNhYjlkNC4uNTJkNTQ4ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9L
-Y29uZmlnCisrKyBiL2RyaXZlcnMvaHdtb24vS2NvbmZpZwpAQCAtNjU2LDYgKzY1Niw3IEBAIGNv
-bmZpZyBTRU5TT1JTX0xNNzUKIAogCQktIEFuYWxvZyBEZXZpY2VzIEFEVDc1CiAJCS0gRGFsbGFz
-IFNlbWljb25kdWN0b3IgRFM3NSwgRFMxNzc1IGFuZCBEUzc1MDUKKwkJLSBHbG9iYWwgTWl4ZWQt
-bW9kZSBUZWNobm9sb2d5IChHTVQpIEc3NTEKIAkJLSBNYXhpbSBNQVg2NjI1IGFuZCBNQVg2NjI2
-CiAJCS0gTWljcm9jaGlwIE1DUDk4MHgKIAkJLSBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzUs
-IExNNzVBCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2xtNzUuYyBiL2RyaXZlcnMvaHdtb24v
-bG03NS5jCmluZGV4IGMwM2I0OTAuLjdlM2VmMTMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24v
-bG03NS5jCisrKyBiL2RyaXZlcnMvaHdtb24vbG03NS5jCkBAIC0zOSw2ICszOSw3IEBAIGVudW0g
-bG03NV90eXBlIHsJCS8qIGtlZXAgc29ydGVkIGluIGFscGhhYmV0aWNhbCBvcmRlciAqLwogCWRz
-MTc3NSwKIAlkczc1LAogCWRzNzUwNSwKKwlnNzUxLAogCWxtNzUsCiAJbG03NWEsCiAJbWF4NjYy
-NSwKQEAgLTIwOCw2ICsyMDksNyBAQCBsbTc1X3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
-bnQsIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkICppZCkKIAkJZGF0YS0+cmVzb2x1dGlvbiA9
-IDEyOwogCQlkYXRhLT5zYW1wbGVfdGltZSA9IEhaIC8gNDsKIAkJYnJlYWs7CisJY2FzZSBnNzUx
-OgogCWNhc2UgbG03NToKIAljYXNlIGxtNzVhOgogCQlkYXRhLT5yZXNvbHV0aW9uID0gOTsKQEAg
-LTI5Niw2ICsyOTgsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgbG03NV9p
-ZHNbXSA9IHsKIAl7ICJkczE3NzUiLCBkczE3NzUsIH0sCiAJeyAiZHM3NSIsIGRzNzUsIH0sCiAJ
-eyAiZHM3NTA1IiwgZHM3NTA1LCB9LAorCXsgImc3NTEiLCBnNzUxLCB9LAogCXsgImxtNzUiLCBs
-bTc1LCB9LAogCXsgImxtNzVhIiwgbG03NWEsIH0sCiAJeyAibWF4NjYyNSIsIG1heDY2MjUsIH0s
-Ci0tIAoxLjguNC5yYzMKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
-Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Sat, Nov 09, 2013 at 06:39:14PM +0100, Arnaud Ebalard wrote:
+> 
+> This was tested on a NETGEAR ReadyNAS 2120 device (Marvell Armada XP
+> based board, via DT).
+> 
+> Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+
+Looks good. I'll apply it to my -next branch. Since I already sent my 
+pull request to Linus, this will only go in after -rc1, which I hope
+should be ok (unless Jean wants to pick it up for his pull request).
+
+> ---
+> Hi Guenter,
+> 
+> As a side note, I removed the hunk that was present in previous patch to
+> add gmt to the list of DT vendor prefixes because I noticed someone had
+> taken care: https://lkml.org/lkml/2013/9/12/365
+> 
+> For the records, here is what I get on my NAS with the attached patch:
+> 
+> root@thin:/sys# sensors
+> g762-i2c-0-3e
+> Adapter: mv64xxx_i2c adapter
+> fan1:        5461 RPM  (div = 1)
+> 
+> g762-i2c-0-48
+> Adapter: mv64xxx_i2c adapter
+> fan1:        5461 RPM  (div = 1)
+> 
+> g762-i2c-0-49
+> Adapter: mv64xxx_i2c adapter
+> fan1:        5461 RPM  (div = 1)
+> 
+Those rpms are pretty high. Are the fans all really running that fast ?
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
