@@ -1,35 +1,52 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:14 +0000
-Subject: [lm-sensors] [PATCHv5 12/20] arm: dts: add cooling properties on omap4430 cpu node
-Message-Id: <1384285582-16933-13-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 09 Nov 2013 17:51:08 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (coretemp) Add PCI device ID for CE41x0 CPUs
+Message-Id: <1384019469-18666-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+References: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Jean Delvare <khali@linux-fr.org>, Fenghua Yu <fenghua.yu@intel.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-T01BUDQ0MzAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
-ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
-cyBwYXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRo
-YXQgY3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJl
-bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcu
-dWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZS1kaXNjdXNz
-QGxpc3RzLm96bGFicy5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRv
-IFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0
-cy9vbWFwNDQzeC5kdHNpIHwgNSArKysrKwogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygr
-KQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9hcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IGU5Yzk3ZDYuLjkzMGFiNDcgMTAwNjQ0Ci0t
-LSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDQ0M3guZHRzaQpAQCAtMjIsNiArMjIsMTEgQEAKIAkJCQkxMDA4MDAwIDEzNzUwMDAK
-IAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAwMD47IC8qIEZyb20gbGVnYWN5IGRyaXZl
-ciAqLworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCWNvb2xpbmctbWluLWxldmVsID0g
-PDA+OworCQkJY29vbGluZy1tYXgtbGV2ZWwgPSA8Mz47CisJCQkjY29vbGluZy1jZWxscyA9IDwy
-PjsgLyogbWluIGZvbGxvd2VkIGJ5IG1heCAqLwogCQl9OwogCX07CiAKLS0gCjEuOC4yLjEuMzQy
-LmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
-Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Since we now have to use PCI IDs to detect CPU types anyway, use this mechanism
+to detect CE41x0 CPUs. Advantage is that it only requires a single entry and
+covers all variants of CE41x0, including those unknown to us.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/coretemp.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 5c8ab25..cde4e47 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -197,6 +197,7 @@ struct tjmax_pci {
+ };
+ 
+ static const struct tjmax_pci tjmax_pci_table[] __cpuinitconst = {
++	{ 0x0708, 110000 },	/* CE41x0 (Sodaville ) */
+ 	{ 0x0c72, 102000 },	/* Atom S1240 (Centerton) */
+ 	{ 0x0c73, 95000 },	/* Atom S1220 (Centerton) */
+ 	{ 0x0c75, 95000 },	/* Atom S1260 (Centerton) */
+@@ -210,9 +211,6 @@ struct tjmax {
+ static const struct tjmax tjmax_table[] = {
+ 	{ "CPU  230", 100000 },		/* Model 0x1c, stepping 2	*/
+ 	{ "CPU  330", 125000 },		/* Model 0x1c, stepping 2	*/
+-	{ "CPU CE4110", 110000 },	/* Model 0x1c, stepping 10 Sodaville */
+-	{ "CPU CE4150", 110000 },	/* Model 0x1c, stepping 10	*/
+-	{ "CPU CE4170", 110000 },	/* Model 0x1c, stepping 10	*/
+ };
+ 
+ struct tjmax_model {
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
