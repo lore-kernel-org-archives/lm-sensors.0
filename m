@@ -1,268 +1,33 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 25 Nov 2013 15:47:17 +0000
-Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52937105.6040505@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============9153287727009704959=="
+From: Bruno DUYE <brunetton@gmail.com>
+Date: Sun, 10 Nov 2013 21:49:55 +0000
+Subject: [lm-sensors] Submitting a patch
+Message-Id: <CAFCHPoNujkPUHfi1Ep4EnWm=aDUbMY=6PqRRS6_A7Es4+TzeXw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com> <20131125153721.GH32081@e106331-lin.cambridge.arm.com>
-In-Reply-To: <20131125153721.GH32081@e106331-lin.cambridge.arm.com>
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "wni@nvidia.com" <wni@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-
---===============9153287727009704959==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="Ju1ovUSkQSU9eUGcmI17HankcJHhb8UrX"
-
---Ju1ovUSkQSU9eUGcmI17HankcJHhb8UrX
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 25-11-2013 11:37, Mark Rutland wrote:
-> On Tue, Nov 12, 2013 at 07:46:04PM +0000, Eduardo Valentin wrote:
->> This patch introduces a device tree bindings for
->> describing the hardware thermal behavior and limits.
->> Also a parser to read and interpret the data and feed
->> it in the thermal framework is presented.
->>
->> This patch introduces a thermal data parser for device
->> tree. The parsed data is used to build thermal zones
->> and thermal binding parameters. The output data
->> can then be used to deploy thermal policies.
->>
->> This patch adds also documentation regarding this
->> API and how to define tree nodes to use
->> this infrastructure.
->>
->> Note that, in order to be able to have control
->> on the sensor registration on the DT thermal zone,
->> it was required to allow changing the thermal zone
->> .get_temp callback. For this reason, this patch
->> also removes the 'const' modifier from the .ops
->> field of thermal zone devices.
->>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->> Cc: linux-pm@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> ---
->>
->> Hello all,
->>
->> Very minor changes from v8 to v9.
->>
->> Changelog:
->>
->> - Rephrase a couple of sentences in the binding document
->> - Fixed a couple of property types in the binding document
->> - Removed the constant macro definitions for trip type. This
->> change also affected the bindings posted on patches 09/14/15.
->>
->>  .../devicetree/bindings/thermal/thermal.txt        | 586 ++++++++++++=
-++
->>  drivers/thermal/Kconfig                            |  13 +
->>  drivers/thermal/Makefile                           |   1 +
->>  drivers/thermal/of-thermal.c                       | 849 ++++++++++++=
-+++++++++
->>  drivers/thermal/thermal_core.c                     |   9 +-
->>  drivers/thermal/thermal_core.h                     |   9 +
->>  include/dt-bindings/thermal/thermal.h              |  17 +
->>  include/linux/thermal.h                            |  28 +-
->>  8 files changed, 1509 insertions(+), 3 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/thermal/thermal.=
-txt
->>  create mode 100644 drivers/thermal/of-thermal.c
->>  create mode 100644 include/dt-bindings/thermal/thermal.h
->>
->> diff --git a/Documentation/devicetree/bindings/thermal/thermal.txt b/D=
-ocumentation/devicetree/bindings/thermal/thermal.txt
->> new file mode 100644
->> index 0000000..59f5bd2
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/thermal/thermal.txt
->> @@ -0,0 +1,586 @@
->> +* Thermal Framework Device Tree descriptor
->> +
->> +This file describes a generic binding to provide a way of
->> +defining hardware thermal structure using device tree.
->> +A thermal structure includes thermal zones and their components,
->> +such as trip points, polling intervals, sensors and cooling devices
->> +binding descriptors.
->> +
->> +The target of device tree thermal descriptors is to describe only
->> +the hardware thermal aspects. The thermal device tree bindings are
->> +not about how the system must control or which algorithm or policy
->> +must be taken in place.
->> +
->> +There are five types of nodes involved to describe thermal bindings:
->> +- thermal sensors: devices which may be used to take temperature
->> +  measurements.
->> +- cooling devices: devices which may be used to dissipate heat.
->> +- trip points: describe key temperatures at which cooling is recommen=
-ded. The
->> +  set of points should be chosen based on hardware limits.
->> +- cooling maps: used to describe links between trip points and coolin=
-g devices;
->> +- thermal zones: used to describe thermal data within the hardware;
->> +
->> +The following is a description of each of these node types.
->> +
->> +* Thermal sensor devices
->> +
->> +Thermal sensor devices are nodes providing temperature sensing capabi=
-lities on
->> +thermal zones. Typical devices are I2C ADC converters and bandgaps. T=
-hese are
->> +nodes providing temperature data to thermal zones. Thermal sensor dev=
-ices may
->> +control one or more internal sensors.
->> +
->> +Required property:
->> +- #thermal-sensor-cells: Used to provide sensor device specific infor=
-mation
->> +  Type: unsigned        while referring to it. Typically 0 on thermal=
- sensor
->> +  Size: one cell        nodes with only one sensor, and at least 1 on=
- nodes
->> +                        with several internal sensors, in order
->> +                        to identify uniquely the sensor instances wit=
-hin
->> +                        the IC. See thermal zone binding for more det=
-ails
->> +                        on how consumers refer to sensor devices.
->> +
->> +* Cooling device nodes
->> +
->> +Cooling devices are nodes providing control on power dissipation. The=
-re
->> +are essentially two ways to provide control on power dissipation. Fir=
-st
->> +is by means of regulating device performance, which is known as passi=
-ve
->> +cooling. A typical passive cooling is a CPU that has dynamic voltage =
-and
->> +frequency scaling (DVFS), and uses lower frequencies as cooling state=
-s.
->> +Second is by means of activating devices in order to remove
->> +the dissipated heat, which is known as active cooling, e.g. regulatin=
-g
->> +fan speeds. In both cases, cooling devices shall have a way to determ=
-ine
->> +the state of cooling in which the device is.
->> +
->> +Required properties:
->> +- cooling-min-state:   An integer indicating the smallest
->> +  Type: unsigned       cooling state accepted. Typically 0.
->> +  Size: one cell
->> +
->> +- cooling-max-state:   An integer indicating the largest
->> +  Type: unsigned       cooling state accepted.
->> +  Size: one cell
->> +
->> +- #cooling-cells:      Used to provide cooling device specific inform=
-ation
->> +  Type: unsigned       while referring to it. Must be at least 2, in =
-order
->> +  Size: one cell       to specify minimum and maximum cooling state u=
-sed
->> +                       in the reference. The first cell is the minimu=
-m
->> +                       cooling state requested and the second cell is=
-
->> +                       the maximum cooling state requested in the ref=
-erence.
->> +                       See Cooling device maps section below for more=
- details
->> +                       on how consumers refer to cooling devices.
->=20
-> This is the point I'm still most concerned with, as it provides a
-> definite meaning to an otherwise abstract property. However, if you
-> believe this is sane and unlikely to be problematic, then I am happy to=
-
-> leave the decision to you.
->=20
->> +
->> +* Trip points
->> +
->> +The trip node is a node to describe a point in the temperature domain=
-
->> +in which the system takes an action. This node describes just the poi=
-nt,
->> +not the action.
->> +
->> +Required properties:
->> +- temperature:         An integer indicating the trip temperature lev=
-el,
->> +  Type: signed         in millicelsius.
->> +  Size: one cell
->> +
->> +- hysteresis:          A low hysteresis value on temperature property=
- (above).
->> +  Type: unsigned       This is a relative value, in millicelsius.
->> +  Size: one cell
->> +
->> +- type:                        a string containing the trip type. Sup=
-ported values are:
->=20
-> Get rid of the "Supported", that's a Linux detail.
->=20
-> s/Supported/expected/ ?
-
-OK.
-
->=20
-> Given the discussion has otherwise boiled down to bits that I think can=
-
-> change later, I'm happy to give my ack:
->=20
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
->=20
-
-Thanks for your valuable contributions to this work. For sure it would
-not be at the state it is without your punctual and objective review.
-
-> I'll leave it to the others to fight against this if they still have
-> concerns.
->=20
-> Thanks,
-> Mark.
->=20
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---Ju1ovUSkQSU9eUGcmI17HankcJHhb8UrX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlKTcQUACgkQCXcVR3XQvP3JcAD9G7l/FSYGUb8tAza2iug4I0LM
-CLsSoYa23nCjvtgMYGMA/2KmrwGNXT4g5be9vY6tMGKvQIvcSfnOKv5sHhT0eE/N
-=EnMx
------END PGP SIGNATURE-----
-
---Ju1ovUSkQSU9eUGcmI17HankcJHhb8UrX--
-
-
---===============9153287727009704959==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Hi all;
+
+Today, I found a little bug in lm-sensor, and wanted to submit you a
+patch using csv. Si I came to the doc, section "How to get CVS acces",
+clicked on the link of daily builds; but nothing appears here.
+The link http://www2.lm-sensors.nu/~lm78/download.html#cvs send a blank file.
+
+So, here is the patch, by email (not my prefered way so far).
+
+it's nearly nothing : in sensor-detect perl script; > 3.0 kernels
+numbers are not matched by the regex. Here's a quick patch :
+
+2666c2666
+< $kernel_version =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
+---
+> $kernel_version =~ /(\d+)\.(\d+)[-\.](\d+)(.*)/;
+
+Thanks
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9153287727009704959==--
