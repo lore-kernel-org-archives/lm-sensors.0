@@ -1,95 +1,24 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 25 Nov 2013 22:56:25 +0000
-Subject: Re: [lm-sensors] lm_sensors, hwmon, conky
-Message-Id: <5293D599.6020101@roeck-us.net>
+From: "p. stephen w" <p.stephenwille@gmail.com>
+Date: Mon, 11 Nov 2013 05:25:37 +0000
+Subject: [lm-sensors] Nuvoton NCT6791D support
+Message-Id: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CABfEahBWGnHRAPGXh1yao02OCGRjRFwKw=T4QSrXn1BKb7QyNA@mail.gmail.com>
-In-Reply-To: <CABfEahBWGnHRAPGXh1yao02OCGRjRFwKw=T4QSrXn1BKb7QyNA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 11/25/2013 02:49 PM, Patrick... wrote:
-> I'll try to provide extra info as needed.
->
-> The problem is when I set conky to use
-> /sys/class/hwmon/hwmon0
-> /sys/class/hwmon/hwmon1
-> /sys/class/hwmon/hwmon2
->
-> These are the only 3 I have.
->
-> OK. Sometimes hwmon0 is for the systemp, coretemp,
-> or fan speed.   It doesn't stay the same.   This affects
-> hwmon2 and hwmon3 the same way.     They constantly
-> change after reboot what they are doing in relation to
-> systemp, coretemp, or fan speed.    hwmon0 isn't always
-> the systemp and has to stay for systemp always, and the
-> same for hwmon2 and hwmon3.    How to fix ?     Just started
-> this after recent update.
->
-> Using kernel 3.4.70
->
-You can not depend on hwmonX staying the same across reboots.
-To associate hwmonX with a sensor, or rather with a specific
-hardware monitoring device, you have to check for the 'name'
-attribute, which is available either in /sys/class/hwmon/hwmonX/name
-or /sys/class/hwmon/hwmonX/device/name.
-
-Guenter
-
-> thanks for the response.
->
-> patrick
->
->
-> On Mon, Nov 25, 2013 at 3:15 PM, Guenter Roeck <linux@roeck-us.net <mailto:linux@roeck-us.net>> wrote:
->
->     On 11/25/2013 12:02 PM, Patrick... wrote:
->
->         Using hwmon to config conky.
->         At reboot the info from hwmon appears in different hwmon
->         directories.   Consequently, conky reads the wrong info into
->         it's output.
->
->         Is this an unreported bug or ?
->
->         Please advise.
->
->
->     Hi,
->
->     unfortunately, you don't provide enough information to really enable us to help.
->
->      >From looking into the conky source, I am making the assumption that
->     you see the problem when booting kernel version 3.13-rc1. Of course,
->     that is just a wild guess.
->
->     conky wrongly assumes that sensor attributes are available in directory
->     /sys/class/hwmon/hwmonX/__device. That assumption is wrong; attributes
->     can also be in /sys/class/hwmon/hwmonX directly. Several existing drivers
->     implement this scheme already and thus never worked with conky.
->     Starting with kernel version 3.13, several drivers have been converted
->     to attach sysfs attributes to the hwmon device and no longer to its
->     parent device. Going forward, more drivers will be converted to the new scheme.
->
->     Oddly enough, conky also searches through i2c and platform device directories
->     when looking for hwmon attributes. That is really not a good idea either.
->     It may work today, but there is no guarantee that it will work tomorrow.
->
->     conky should only look in /sys/class/hwmon/hwmonX and /sys/class/hwmon/hwmonX/device
->     for hwmon attributes. It can select the correct directory by searching for
->     the mandatory 'name' attribute. Of couse, an even better solution would
->     be to use libsensors to access hwmon attributes.
->
->     Thanks,
->     Guenter
->
->
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGV5IGd1eXMsCkknZCBiZSBoYXBweSB0byBjb250cmlidXRlICQ1MCB0byBnZXQgdGhpcyBjaGlw
+IHN1cHBvcnRlZCB2aWEKc2Vuc29ycy1kZXRlY3QuICBUaGUgd2Vla2VuZHMgb3ZlciwgYW5kIEkg
+aGF2ZSBub3QgYmVlbiBhYmxlIHRvIGdldCBpdAppbnN0YWxsZWQgYXMgYSBzdGFuZCBhbG9uZSBk
+cml2ZXIgZnJvbSB0aGUgR2l0SHViIHJlcG8uICBJIGhhdmUgc29tZSBBcGFjaGUKZXhwZXJpZW5j
+ZSwgYnV0IGFtIGNsdWVsZXNzIGFib3V0IExpbnV4OyBJJ20gcnVubmluZyB0aGUgbGF0ZXN0IE1p
+bnQKZGlzdHJvLiAgIEknbSBzdXJlIHRoZXJlJ3MgYSB3YXksIGJ1dCBJIGRvbid0IGtub3cgaXQu
+CgrigItJZiBpdHMgb2YgaW50ZXJlc3QsIHRoaXMgaXMgZm9yIGFuIEFzdXMgWjg3aS1EZWx1eGUg
+Ym9hcmQuICBZZXMsIGl0cyBPQydkLAp3aGljaCBpcyB3aHkgSSBuZWVkIHRoZSBQV00gY29udHJv
+bC4KCgoKS2VlcCB1cCB0aGUgZ29vZCB3b3JrLuKAiwoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fClN0ZXBoZW4gV2lsbGUgfCBwc3RlcGhlbndpbGxlLmNvbQoqbmV3IGFkZHJlc3MgcC5z
+dGVwaGVud2lsbGVAZ21haWwuY29tIDxwLnN0ZXBoZW53aWxsZUBnbWFpbC5jb20+KgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
+bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
