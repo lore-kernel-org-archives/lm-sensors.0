@@ -1,1110 +1,1074 @@
-From: "p. stephen w" <p.stephenwille@gmail.com>
-Date: Mon, 11 Nov 2013 17:04:13 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 11 Nov 2013 17:38:34 +0000
 Subject: Re: [lm-sensors] Nuvoton NCT6791D support
-Message-Id: <CADkjvt9ppBbaPTge9WEwGuwdJ3YSxS2Jj=8dvhiu7YWRvCCwfQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="001a11c24df6dce94604eae9b9a0"
+Message-Id: <20131111173834.GB25532@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
 In-Reply-To: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---001a11c24df6dce94604eae9b9a0
-Content-Type: text/plain; charset=UTF-8
+On Mon, Nov 11, 2013 at 09:04:13AM -0800, p. stephen w wrote:
+> Please see attached.
+> ______________________________________
+> If I had to guess, I may be installing the GitHub driver incorrectly.
+> Here's what I do....
+>=20
+> I clone the repo into my home dir, and run 'make -B', or 'make all'.  The
+> output is...
+>       Building modules, stage 2.
+>       MODPOST 1 modules
+>=20
+Did you run "sudo make install" ?
 
-Please see attached.
-______________________________________
-If I had to guess, I may be installing the GitHub driver incorrectly.
-Here's what I do....
+> Looking in the /kernel/drivers/hwmon/, I do not see the nct6791d.ko file,
+> which I expected.  I do have 'nct_thermistor.ko'.  The led me to suspect
 
-I clone the repo into my home dir, and run 'make -B', or 'make all'.  The
-output is...
-      Building modules, stage 2.
-      MODPOST 1 modules
+You would only see nct6775.ko, unless you are not using my driver from gith=
+ub.
+In that case, can you point me to the driver on github you are using ?
 
-Looking in the /kernel/drivers/hwmon/, I do not see the nct6791d.ko file,
-which I expected.  I do have 'nct_thermistor.ko'.  The led me to suspect
-something went wrong with the install.
+> something went wrong with the install.
+>=20
+> Running sensors-detect only finds the Intel CPU sensors.
+>=20
+Old version, most likely.
 
-Running sensors-detect only finds the Intel CPU sensors.
+> Running pwmconfig does not detect any sensors.  There are two PWM devices;
+> 1 fan and 1 pump on the CPU header.  These work fine under Windows 7 and
+> the Asus AI 3 utility.
+>=20
+>=20
+> I've also manually installed the latest lm-sensors, again by downloading
+> into my home dir, and running the make commands; make user, and make_dete=
+ct
+> (i think).  Attached is the output from running sensors-detect.
+>=20
+Just run sensors_detect from prog/detect/. I am not sure if you actually
+installed it. If not, you just keep running the installed version.
 
-Running pwmconfig does not detect any sensors.  There are two PWM devices;
-1 fan and 1 pump on the CPU header.  These work fine under Windows 7 and
-the Asus AI 3 utility.
+Thanks,
+Guenter
 
+> Uname -a:
+> Linux Mint 3.8.0-19-generic #29-Ubuntu SMP Wed Apr 17 18:16:28 UTC 2013
+> x86_64 x86_64 x86_64 GNU/Linux
+>=20
+>=20
+>=20
+> Hopefully this helps.  Let me know if you need more info.
+>=20
+>=20
+>=20
+> On Mon, Nov 11, 2013 at 6:28 AM, Guenter Roeck <linux@roeck-us.net> wrote:
+>=20
+> > On 11/10/2013 09:25 PM, p. stephen w wrote:
+> >
+> >> Hey guys,
+> >> I'd be happy to contribute $50 to get this chip supported via
+> >> sensors-detect.  The weekends over, and I have not been able to get it
+> >> installed as a stand alone driver from the GitHub repo.  I have some
+> >> Apache
+> >> experience, but am clueless about Linux; I'm running the latest Mint
+> >> distro.   I'm sure there's a way, but I don't know it.
+> >>
+> >>
+> > Hi Stephen,
+> >
+> > Can you provide details ? Both sensors-detect and the upstream kernel
+> > (3.12)
+> > support the chip, and the nct6775 driver on github should work as well.
+> > If it doesn't, it might be useful to tell us what exactly doesn't work =
+for
+> > you.
+> >
+> > Thanks,
+> > Guenter
+> >
+> >
+>=20
+>=20
+> --=20
+>=20
+>=20
+> _____________________________
+> Stephen Wille | pstephenwille.com
+> *new address p.stephenwille@gmail.com <p.stephenwille@gmail.com>*
 
-I've also manually installed the latest lm-sensors, again by downloading
-into my home dir, and running the make commands; make user, and make_detect
-(i think).  Attached is the output from running sensors-detect.
+> acpitz-virtual-0
+> Adapter: Virtual device
+> temp1:        +27.8=B0C  (crit =3D +105.0=B0C)
+> temp2:        +29.8=B0C  (crit =3D +105.0=B0C)
+>=20
+> coretemp-isa-0000
+> Adapter: ISA adapter
+> Physical id 0:  +33.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+> Core 0:         +31.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+> Core 1:         +30.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+> Core 2:         +32.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+> Core 3:         +30.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+>=20
+>=20
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+> # sensors-detect revision 6170 (2013-05-20 21:25:22 +0200)
+> # System: ASUS All Series
+> # Board: ASUSTeK COMPUTER INC. Z87I-DELUXE
+>=20
+> This program will help you determine which kernel modules you need
+> to load to use lm_sensors most effectively. It is generally safe
+> and recommended to accept the default answers to all questions,
+> unless you know what you're doing.
+>=20
+> Some south bridges, CPUs or memory controllers contain embedded sensors.
+> Do you want to scan for them? This is totally safe. (YES/no): y
+> Silicon Integrated Systems SIS5595...                       No
+> VIA VT82C686 Integrated Sensors...                          No
+> VIA VT8231 Integrated Sensors...                            No
+> AMD K8 thermal sensors...                                   No
+> AMD Family 10h thermal sensors...                           No
+> AMD Family 11h thermal sensors...                           No
+> AMD Family 12h and 14h thermal sensors...                   No
+> AMD Family 15h thermal sensors...                           No
+> AMD Family 15h power sensors...                             No
+> AMD Family 16h power sensors...                             No
+> Intel digital thermal sensor...                             Success!
+>     (driver `coretemp')
+> Intel AMB FB-DIMM thermal sensor...                         No
+> VIA C7 thermal sensor...                                    No
+> VIA Nano thermal sensor...                                  No
+>=20
+> Some Super I/O chips contain embedded sensors. We have to write to
+> standard I/O ports to probe them. This is usually safe.
+> Do you want to scan for Super I/O sensors? (YES/no): y
+> Probing for Super-I/O at 0x2e/0x2f
+> Trying family `National Semiconductor/ITE'...               No
+> Trying family `SMSC'...                                     No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+> Found unknown chip with ID 0xc803
+>     (logical device B has address 0x290, could be sensors)
+> Probing for Super-I/O at 0x4e/0x4f
+> Trying family `National Semiconductor/ITE'...               No
+> Trying family `SMSC'...                                     No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+> Trying family `ITE'...                                      No
+>=20
+> Some systems (mainly servers) implement IPMI, a set of common interfaces
+> through which system health data may be retrieved, amongst other things.
+> We first try to get the information from SMBIOS. If we don't find it
+> there, we have to read from arbitrary I/O ports to probe for such
+> interfaces. This is normally safe. Do you want to scan for IPMI
+> interfaces? (YES/no): y
+> Probing for `IPMI BMC KCS' at 0xca0...                      No
+> Probing for `IPMI BMC SMIC' at 0xca8...                     No
+>=20
+>=20
+>=20
+> Some hardware monitoring chips are accessible through the ISA I/O ports.
+> We have to write to arbitrary I/O ports to probe them. This is usually
+> safe though. Yes, you do have ISA I/O ports even if you do not have any
+> ISA slots! Do you want to scan the ISA I/O ports? (YES/no): y
+> Probing for `National Semiconductor LM78' at 0x290...       No
+> Probing for `National Semiconductor LM79' at 0x290...       No
+> Probing for `Winbond W83781D' at 0x290...                   No
+> Probing for `Winbond W83782D' at 0x290...                   No
+>=20
+> Lastly, we can probe the I2C/SMBus adapters for connected hardware
+> monitoring devices. This is the most risky part, and while it works
+> reasonably well on most systems, it has been reported to cause trouble
+> on some systems.
+> Do you want to probe the I2C/SMBus adapters now? (YES/no): y
+> Using driver `i2c-i801' for device 0000:00:1f.3: Intel Lynx Point (PCH)
+>=20
+> Next adapter: i915 gmbus ssc (i2c-0)
+> Do you want to scan it? (yes/NO/selectively): y
+>=20
+> Next adapter: i915 gmbus vga (i2c-1)
+> Do you want to scan it? (yes/NO/selectively): y
+>=20
+> Next adapter: i915 gmbus panel (i2c-2)
+> Do you want to scan it? (yes/NO/selectively): y
+>=20
+> Next adapter: i915 gmbus dpc (i2c-3)
+> Do you want to scan it? (yes/NO/selectively): y
+>=20
+> Next adapter: i915 gmbus dpb (i2c-4)
+> Do you want to scan it? (yes/NO/selectively): y
+>=20
+> Next adapter: i915 gmbus dpd (i2c-5)
+> Do you want to scan it? (yes/NO/selectively): y
+>=20
+> Next adapter: DPDDC-B (i2c-6)
+> Do you want to scan it? (YES/no/selectively): y
+> Client found at address 0x18
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `National Semiconductor LM95234'...             No
+> Probing for `National Semiconductor LM95245'...             No
+> Probing for `National Semiconductor LM64'...                No
+> Probing for `SMSC EMC1047'...                               No
+> Probing for `SMSC EMC1402'...                               No
+> Probing for `SMSC EMC1403'...                               No
+> Probing for `SMSC EMC1404'...                               No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x19
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `National Semiconductor LM95231'...             No
+> Probing for `National Semiconductor LM95241'...             No
+> Probing for `National Semiconductor LM95245'...             No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x1a
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x1b
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x1c
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `SMSC EMC1072'...                               No
+> Probing for `SMSC EMC1073'...                               No
+> Probing for `SMSC EMC1074'...                               No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x1d
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x1e
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x1f
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `ST STTS424'...                                 No
+> Probing for `ST STTS424E'...                                No
+> Probing for `ST STTS2002'...                                No
+> Probing for `ST STTS3000'...                                No
+> Probing for `NXP SE97/SE97B'...                             No
+> Probing for `NXP SE98'...                                   No
+> Probing for `Analog Devices ADT7408'...                     No
+> Probing for `IDT TS3000/TSE2002'...                         No
+> Probing for `Maxim MAX6604'...                              No
+> Probing for `Microchip MCP9804'...                          No
+> Probing for `Microchip MCP98242'...                         No
+> Probing for `Microchip MCP98243'...                         No
+> Probing for `Microchip MCP98244'...                         No
+> Probing for `Microchip MCP9843'...                          No
+> Probing for `ON CAT6095/CAT34TS02'...                       No
+> Probing for `Atmel AT30TS00'...                             No
+> Client found at address 0x28
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `ITE IT8712F'...                                No
+> Client found at address 0x29
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `National Semiconductor LM95245'...             No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `SMSC EMC1402'...                               No
+> Probing for `SMSC EMC1403'...                               No
+> Probing for `SMSC EMC1404'...                               No
+> Client found at address 0x2a
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `National Semiconductor LM95231'...             No
+> Probing for `National Semiconductor LM95241'...             No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `ITE IT8712F'...                                No
+> Client found at address 0x2b
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `National Semiconductor LM95231'...             No
+> Probing for `National Semiconductor LM95241'...             No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `ITE IT8712F'...                                No
+> Client found at address 0x2c
+> Probing for `Myson MTP008'...                               No
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `National Semiconductor LM85'...                No
+> Probing for `National Semiconductor LM96000 or PC8374L'...  No
+> Probing for `Analog Devices ADM1027'...                     No
+> Probing for `Analog Devices ADT7460 or ADT7463'...          No
+> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
+> Probing for `SMSC EMC6D102'...                              No
+> Probing for `SMSC EMC6D103'...                              No
+> Probing for `SMSC EMC6D103S or EMC2300'...                  No
+> Probing for `SMSC EMC6W201'...                              No
+> Probing for `Winbond WPCD377I'...                           No
+> Probing for `Analog Devices ADT7470'...                     No
+> Probing for `Analog Devices ADT7473'...                     No
+> Probing for `Analog Devices ADT7476'...                     No
+> Probing for `Analog Devices ADT7490'...                     No
+> Probing for `Andigilog aSC7611'...                          No
+> Probing for `Andigilog aSC7621'...                          No
+> Probing for `National Semiconductor LM87'...                No
+> Probing for `Analog Devices ADM1024'...                     No
+> Probing for `National Semiconductor LM93'...                No
+> Probing for `National Semiconductor LM94 or LM96194'...     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Genesys Logic GL518SM'...                      No
+> Probing for `Genesys Logic GL520SM'...                      No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Analog Devices ADM1026'...                     No
+> Probing for `Analog Devices ADM1025'...                     No
+> Probing for `Philips NE1619'...                             No
+> Probing for `Maxim MAX6639'...                              No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `Analog Devices ADM1030'...                     No
+> Probing for `Analog Devices ADM1031'...                     No
+> Probing for `Analog Devices ADM1022'...                     No
+> Probing for `Texas Instruments THMC50'...                   No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `ALi M5879'...                                  No
+> Probing for `SMSC LPC47M15x/192/292/997'...                 No
+> Probing for `SMSC DME1737'...                               No
+> Probing for `SMSC SCH5027D-NW'...                           No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x2d
+> Probing for `Myson MTP008'...                               No
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `National Semiconductor LM85'...                No
+> Probing for `National Semiconductor LM96000 or PC8374L'...  No
+> Probing for `Analog Devices ADM1027'...                     No
+> Probing for `Analog Devices ADT7460 or ADT7463'...          No
+> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
+> Probing for `SMSC EMC6D102'...                              No
+> Probing for `SMSC EMC6D103'...                              No
+> Probing for `SMSC EMC6D103S or EMC2300'...                  No
+> Probing for `SMSC EMC6W201'...                              No
+> Probing for `Winbond WPCD377I'...                           No
+> Probing for `Analog Devices ADT7473'...                     No
+> Probing for `Analog Devices ADT7476'...                     No
+> Probing for `Analog Devices ADT7490'...                     No
+> Probing for `Andigilog aSC7611'...                          No
+> Probing for `Andigilog aSC7621'...                          No
+> Probing for `National Semiconductor LM87'...                No
+> Probing for `Analog Devices ADM1024'...                     No
+> Probing for `National Semiconductor LM93'...                No
+> Probing for `National Semiconductor LM94 or LM96194'...     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83783S'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Winbond W83L784R/AR/G'...                      No
+> Probing for `Winbond W83L785R/G'...                         No
+> Probing for `Genesys Logic GL518SM'...                      No
+> Probing for `Genesys Logic GL520SM'...                      No
+> Probing for `Genesys Logic GL525SM'...                      No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Analog Devices ADM1026'...                     No
+> Probing for `Analog Devices ADM1025'...                     No
+> Probing for `Philips NE1619'...                             No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `Analog Devices ADM1030'...                     No
+> Probing for `Analog Devices ADM1031'...                     No
+> Probing for `Analog Devices ADM1022'...                     No
+> Probing for `Texas Instruments THMC50'...                   No
+> Probing for `VIA VT1211 (I2C)'...                           No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `ALi M5879'...                                  No
+> Probing for `SMSC LPC47M15x/192/292/997'...                 No
+> Probing for `SMSC DME1737'...                               No
+> Probing for `SMSC SCH5027D-NW'...                           No
+> Probing for `Fintek F75373S/SG'...                          No
+> Probing for `Fintek F75375S/SP'...                          No
+> Probing for `Fintek F75387SG/RG'...                         No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x2e
+> Probing for `Myson MTP008'...                               No
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `National Semiconductor LM85'...                No
+> Probing for `National Semiconductor LM96000 or PC8374L'...  No
+> Probing for `Analog Devices ADM1027'...                     No
+> Probing for `Analog Devices ADT7460 or ADT7463'...          No
+> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
+> Probing for `SMSC EMC6D102'...                              No
+> Probing for `SMSC EMC6D103'...                              No
+> Probing for `SMSC EMC6D103S or EMC2300'...                  No
+> Probing for `SMSC EMC6W201'...                              No
+> Probing for `Winbond WPCD377I'...                           No
+> Probing for `Analog Devices ADT7467 or ADT7468'...          No
+> Probing for `Analog Devices ADT7470'...                     No
+> Probing for `Analog Devices ADT7473'...                     No
+> Probing for `Analog Devices ADT7475'...                     No
+> Probing for `Analog Devices ADT7476'...                     No
+> Probing for `Analog Devices ADT7490'...                     No
+> Probing for `Andigilog aSC7611'...                          No
+> Probing for `Andigilog aSC7621'...                          No
+> Probing for `National Semiconductor LM87'...                No
+> Probing for `Analog Devices ADM1024'...                     No
+> Probing for `National Semiconductor LM93'...                No
+> Probing for `National Semiconductor LM94 or LM96194'...     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Winbond W83L786NR/NG/R/G'...                   No
+> Probing for `Winbond W83L785TS-S'...                        No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Analog Devices ADM1026'...                     No
+> Probing for `Analog Devices ADM1025'...                     No
+> Probing for `Maxim MAX6639'...                              No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `Analog Devices ADM1030'...                     No
+> Probing for `Analog Devices ADM1031'...                     No
+> Probing for `Analog Devices ADM1022'...                     No
+> Probing for `Texas Instruments THMC50'...                   No
+> Probing for `Analog Devices ADM1028'...                     No
+> Probing for `Texas Instruments THMC51'...                   No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `SMSC DME1737'...                               No
+> Probing for `SMSC SCH5027D-NW'...                           No
+> Probing for `SMSC EMC2103'...                               No
+> Probing for `Fintek F75373S/SG'...                          No
+> Probing for `Fintek F75375S/SP'...                          No
+> Probing for `Fintek F75387SG/RG'...                         No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x2f
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `Analog Devices ADT7470'...                     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Winbond W83L786NR/NG/R/G'...                   No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Maxim MAX6639'...                              No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `Fintek custom power control IC'...             No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x48
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `National Semiconductor LM77'...                No
+> Probing for `Analog Devices ADT7410/ADT7420'...             No
+> Probing for `Analog Devices ADT7411'...                     No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `National Semiconductor LM73'...                No
+> Probing for `National Semiconductor LM92'...                No
+> Probing for `National Semiconductor LM76'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `NXP/Philips SA56004'...                        No
+> Probing for `SMSC EMC1023'...                               No
+> Probing for `SMSC EMC1043'...                               No
+> Probing for `SMSC EMC1053'...                               No
+> Probing for `SMSC EMC1063'...                               No
+> Client found at address 0x49
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `National Semiconductor LM77'...                No
+> Probing for `Analog Devices ADT7410/ADT7420'...             No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `National Semiconductor LM73'...                No
+> Probing for `National Semiconductor LM92'...                No
+> Probing for `National Semiconductor LM76'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `NXP/Philips SA56004'...                        No
+> Probing for `SMSC EMC1023'...                               No
+> Probing for `SMSC EMC1043'...                               No
+> Probing for `SMSC EMC1053'...                               No
+> Probing for `SMSC EMC1063'...                               No
+> Client found at address 0x4a
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `National Semiconductor LM77'...                No
+> Probing for `Analog Devices ADT7410/ADT7420'...             No
+> Probing for `Analog Devices ADT7411'...                     No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `National Semiconductor LM73'...                No
+> Probing for `National Semiconductor LM92'...                No
+> Probing for `National Semiconductor LM76'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `NXP/Philips SA56004'...                        No
+> Client found at address 0x4b
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `National Semiconductor LM77'...                No
+> Probing for `Analog Devices ADT7410/ADT7420'...             No
+> Probing for `Analog Devices ADT7411'...                     No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `National Semiconductor LM92'...                No
+> Probing for `National Semiconductor LM76'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `NXP/Philips SA56004'...                        No
+> Probing for `Analog Devices ADT7481'...                     No
+> Client found at address 0x4c
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `Analog Devices ADT7466'...                     No
+> Probing for `Andigilog aSC7511'...                          No
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Global Mixed-mode Technology G781'...          No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `National Semiconductor LM90'...                No
+> Probing for `National Semiconductor LM89/LM99'...           No
+> Probing for `National Semiconductor LM86'...                No
+> Probing for `Analog Devices ADM1032'...                     No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6657/MAX6658/MAX6659'...              No
+> Probing for `Maxim MAX6648/MAX6649/MAX6692'...              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Winbond W83L771W/G'...                         No
+> Probing for `Winbond W83L771AWG/ASG'...                     No
+> Probing for `Texas Instruments TMP401'...                   No
+> Probing for `Texas Instruments TMP411'...                   No
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `Texas Instruments TMP422'...                   No
+> Probing for `Texas Instruments TMP423'...                   No
+> Probing for `Texas Instruments TMP431'...                   No
+> Probing for `Texas Instruments TMP432'...                   No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `National Semiconductor LM95245'...             No
+> Probing for `National Semiconductor LM63'...                No
+> Probing for `National Semiconductor LM96163'...             No
+> Probing for `Fintek F75363SG'...                            No
+> Probing for `National Semiconductor LM73'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `Analog Devices ADT7461'...                     No
+> Probing for `Analog Devices ADT7461A, ON Semiconductor NCT1008'... No
+> Probing for `NXP/Philips SA56004'...                        No
+> Probing for `Analog Devices ADT7481'...                     No
+> Probing for `Fintek F75383S/M'...                           No
+> Probing for `SMSC EMC1002'...                               No
+> Probing for `SMSC EMC1023'...                               No
+> Probing for `SMSC EMC1033'...                               No
+> Probing for `SMSC EMC1043'...                               No
+> Probing for `SMSC EMC1046'...                               No
+> Probing for `SMSC EMC1053'...                               No
+> Probing for `SMSC EMC1063'...                               No
+> Probing for `SMSC EMC1072'...                               No
+> Probing for `SMSC EMC1073'...                               No
+> Probing for `SMSC EMC1074'...                               No
+> Probing for `SMSC EMC1402'...                               No
+> Probing for `SMSC EMC1403'...                               No
+> Probing for `SMSC EMC1404'...                               No
+> Probing for `SMSC EMC1423'...                               No
+> Probing for `SMSC EMC1424'...                               No
+> Client found at address 0x4d
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Global Mixed-mode Technology G781'...          No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `National Semiconductor LM89/LM99'...           No
+> Probing for `Analog Devices ADM1032'...                     No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6659'...                              No
+> Probing for `Maxim MAX6646'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Texas Instruments TMP411'...                   No
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `Texas Instruments TMP422'...                   No
+> Probing for `Texas Instruments TMP423'...                   No
+> Probing for `Texas Instruments TMP431'...                   No
+> Probing for `Texas Instruments TMP432'...                   No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `National Semiconductor LM95234'...             No
+> Probing for `National Semiconductor LM95245'...             No
+> Probing for `National Semiconductor LM73'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `Analog Devices ADT7461'...                     No
+> Probing for `Analog Devices ADT7461A, ON Semiconductor NCT1008'... No
+> Probing for `NXP/Philips SA56004'...                        No
+> Probing for `Fintek F75384S/M'...                           No
+> Probing for `SMSC EMC1002'...                               No
+> Probing for `SMSC EMC1023'...                               No
+> Probing for `SMSC EMC1033'...                               No
+> Probing for `SMSC EMC1043'...                               No
+> Probing for `SMSC EMC1046'...                               No
+> Probing for `SMSC EMC1053'...                               No
+> Probing for `SMSC EMC1063'...                               No
+> Probing for `SMSC EMC1402'...                               No
+> Probing for `SMSC EMC1403'...                               No
+> Probing for `SMSC EMC1404'...                               No
+> Client found at address 0x4e
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `Analog Devices ADM1021'...                     No
+> Probing for `Analog Devices ADM1021A/ADM1023'...            No
+> Probing for `Maxim MAX1617'...                              No
+> Probing for `Maxim MAX1617A'...                             No
+> Probing for `Maxim MAX1668'...                              No
+> Probing for `Maxim MAX1805'...                              No
+> Probing for `Maxim MAX1989'...                              No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `Maxim MAX6655/MAX6656'...                      No
+> Probing for `TI THMC10'...                                  No
+> Probing for `National Semiconductor LM84'...                No
+> Probing for `Genesys Logic GL523SM'...                      No
+> Probing for `Onsemi MC1066'...                              No
+> Probing for `Maxim MAX1618'...                              No
+> Probing for `Maxim MAX1619'...                              No
+> Probing for `National Semiconductor LM82/LM83'...           No
+> Probing for `Maxim MAX6654'...                              No
+> Probing for `Maxim MAX6690'...                              No
+> Probing for `Maxim MAX6659'...                              No
+> Probing for `Maxim MAX6647'...                              No
+> Probing for `Maxim MAX6680/MAX6681'...                      No
+> Probing for `Maxim MAX6695/MAX6696'...                      No
+> Probing for `Texas Instruments TMP411'...                   No
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `Texas Instruments TMP422'...                   No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `National Semiconductor LM95234'...             No
+> Probing for `National Semiconductor LM64'...                No
+> Probing for `National Semiconductor LM73'...                No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `NXP/Philips SA56004'...                        No
+> Probing for `Fintek F75121R/F75122R/RG (VID+GPIO)'...       No
+> Probing for `Fintek F75111R/RG/N (GPIO)'...                 No
+> Probing for `ITE IT8201R/IT8203R/IT8206R/IT8266R'...        No
+> Client found at address 0x4f
+> Probing for `National Semiconductor LM75'...                No
+> Probing for `National Semiconductor LM75A'...               No
+> Probing for `Dallas Semiconductor DS75'...                  No
+> Probing for `Maxim MAX6642'...                              No
+> Probing for `Texas Instruments TMP421'...                   No
+> Probing for `Texas Instruments TMP422'...                   No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+> Probing for `NXP/Philips SA56004'...                        No
+> Client found at address 0x50
+> Probing for `Analog Devices ADM1033'...                     No
+> Probing for `Analog Devices ADM1034'...                     No
+> Probing for `SPD EEPROM'...                                 No
+> Probing for `EDID EEPROM'...                                Yes
+>     (confidence 8, not a hardware monitoring chip)
+> Client found at address 0x51
+> Probing for `Analog Devices ADM1033'...                     No
+> Probing for `Analog Devices ADM1034'...                     No
+> Probing for `SPD EEPROM'...                                 No
+> Client found at address 0x52
+> Probing for `Analog Devices ADM1033'...                     No
+> Probing for `Analog Devices ADM1034'...                     No
+> Probing for `SPD EEPROM'...                                 No
+> Client found at address 0x53
+> Probing for `Analog Devices ADM1033'...                     No
+> Probing for `Analog Devices ADM1034'...                     No
+> Probing for `SPD EEPROM'...                                 No
+> Client found at address 0x58
+> Probing for `Analog Devices ADT7462'...                     No
+> Probing for `Andigilog aSC7512'...                          No
+> Client found at address 0x5c
+> Probing for `Analog Devices ADT7462'...                     No
+> Probing for `SMSC EMC1072'...                               No
+> Probing for `SMSC EMC1073'...                               No
+> Probing for `SMSC EMC1074'...                               No
+> Client found at address 0x73
+> Probing for `FSC Poseidon I'...                             No
+> Probing for `FSC Poseidon II'...                            No
+> Probing for `FSC Scylla'...                                 No
+> Probing for `FSC Hermes'...                                 No
+> Probing for `FSC Heimdal'...                                No
+> Probing for `FSC Heracles'...                               No
+> Probing for `FSC Hades'...                                  No
+> Probing for `FSC Syleus'...                                 No
+> Client found at address 0x77
+> Probing for `Asus Mozart-2'...                              No
+>=20
+>=20
+>=20
+> Next adapter: DPDDC-C (i2c-7)
+> Do you want to scan it? (YES/no/selectively): y
+>=20
+> Next adapter: DPDDC-D (i2c-8)
+> Do you want to scan it? (YES/no/selectively): y
+>=20
+> Now follows a summary of the probes I have just done.
+> Just press ENTER to continue:
+>=20
+> Driver `coretemp':
+>   * Chip `Intel digital thermal sensor' (confidence: 9)
+>=20
+> Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): y
+> Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors
+> for initialization at boot time.
+> You should now start the lm_sensors service to load the required
+> kernel modules.
+>=20
+> Unloading i2c-dev... OK
+> Unloading i2c-i801... OK
+> Unloading cpuid... OK
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>=20
+> # pwmconfig revision 6166 (2013-05-01)
+> This program will search your sensors for pulse width modulation (pwm)
+> controls, and test each one to see if it controls a fan on
+> your motherboard. Note that many motherboards do not have pwm
+> circuitry installed, even if your sensor chip supports pwm.
+>=20
+> We will attempt to briefly stop each fan using the pwm controls.
+> The program will attempt to restore each fan to full speed
+> after testing. However, it is ** very important ** that you
+> physically verify that the fans have been to full speed
+> after the program has completed.
+>=20
+> /usr/local/sbin/pwmconfig: There are no pwm-capable sensor modules instal=
+led
+>=20
+>=20
+>      =20
 
-Uname -a:
-Linux Mint 3.8.0-19-generic #29-Ubuntu SMP Wed Apr 17 18:16:28 UTC 2013
-x86_64 x86_64 x86_64 GNU/Linux
-
-
-
-Hopefully this helps.  Let me know if you need more info.
-
-
-
-On Mon, Nov 11, 2013 at 6:28 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-
-> On 11/10/2013 09:25 PM, p. stephen w wrote:
->
->> Hey guys,
->> I'd be happy to contribute $50 to get this chip supported via
->> sensors-detect.  The weekends over, and I have not been able to get it
->> installed as a stand alone driver from the GitHub repo.  I have some
->> Apache
->> experience, but am clueless about Linux; I'm running the latest Mint
->> distro.   I'm sure there's a way, but I don't know it.
->>
->>
-> Hi Stephen,
->
-> Can you provide details ? Both sensors-detect and the upstream kernel
-> (3.12)
-> support the chip, and the nct6775 driver on github should work as well.
-> If it doesn't, it might be useful to tell us what exactly doesn't work for
-> you.
->
-> Thanks,
-> Guenter
->
->
-
-
--- 
-
-
-_____________________________
-Stephen Wille | pstephenwille.com
-*new address p.stephenwille@gmail.com <p.stephenwille@gmail.com>*
-
---001a11c24df6dce94604eae9b9a0
-Content-Type: text/plain; charset=UTF-8; name="sensorsDetect.txt"
-Content-Disposition: attachment; filename="sensorsDetect.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hnvyl7wz0
-
-YWNwaXR6LXZpcnR1YWwtMA0KQWRhcHRlcjogVmlydHVhbCBkZXZpY2UNCnRlbXAxOiAgICAgICAg
-KzI3LjjCsEMgIChjcml0ID0gKzEwNS4wwrBDKQ0KdGVtcDI6ICAgICAgICArMjkuOMKwQyAgKGNy
-aXQgPSArMTA1LjDCsEMpDQoNCmNvcmV0ZW1wLWlzYS0wMDAwDQpBZGFwdGVyOiBJU0EgYWRhcHRl
-cg0KUGh5c2ljYWwgaWQgMDogICszMy4wwrBDICAoaGlnaCA9ICs4MC4wwrBDLCBjcml0ID0gKzEw
-MC4wwrBDKQ0KQ29yZSAwOiAgICAgICAgICszMS4wwrBDICAoaGlnaCA9ICs4MC4wwrBDLCBjcml0
-ID0gKzEwMC4wwrBDKQ0KQ29yZSAxOiAgICAgICAgICszMC4wwrBDICAoaGlnaCA9ICs4MC4wwrBD
-LCBjcml0ID0gKzEwMC4wwrBDKQ0KQ29yZSAyOiAgICAgICAgICszMi4wwrBDICAoaGlnaCA9ICs4
-MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQ0KQ29yZSAzOiAgICAgICAgICszMC4wwrBDICAoaGln
-aCA9ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQ0KDQoNCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PQ0KIyBzZW5zb3JzLWRldGVjdCByZXZpc2lvbiA2MTcwICgyMDEzLTA1LTIwIDIxOjI1
-OjIyICswMjAwKQ0KIyBTeXN0ZW06IEFTVVMgQWxsIFNlcmllcw0KIyBCb2FyZDogQVNVU1RlSyBD
-T01QVVRFUiBJTkMuIFo4N0ktREVMVVhFDQoNClRoaXMgcHJvZ3JhbSB3aWxsIGhlbHAgeW91IGRl
-dGVybWluZSB3aGljaCBrZXJuZWwgbW9kdWxlcyB5b3UgbmVlZA0KdG8gbG9hZCB0byB1c2UgbG1f
-c2Vuc29ycyBtb3N0IGVmZmVjdGl2ZWx5LiBJdCBpcyBnZW5lcmFsbHkgc2FmZQ0KYW5kIHJlY29t
-bWVuZGVkIHRvIGFjY2VwdCB0aGUgZGVmYXVsdCBhbnN3ZXJzIHRvIGFsbCBxdWVzdGlvbnMsDQp1
-bmxlc3MgeW91IGtub3cgd2hhdCB5b3UncmUgZG9pbmcuDQoNClNvbWUgc291dGggYnJpZGdlcywg
-Q1BVcyBvciBtZW1vcnkgY29udHJvbGxlcnMgY29udGFpbiBlbWJlZGRlZCBzZW5zb3JzLg0KRG8g
-eW91IHdhbnQgdG8gc2NhbiBmb3IgdGhlbT8gVGhpcyBpcyB0b3RhbGx5IHNhZmUuIChZRVMvbm8p
-OiB5DQpTaWxpY29uIEludGVncmF0ZWQgU3lzdGVtcyBTSVM1NTk1Li4uICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KVklBIFZUODJDNjg2IEludGVncmF0ZWQgU2Vuc29ycy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClZJQSBWVDgyMzEgSW50ZWdyYXRlZCBTZW5zb3JzLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpBTUQgSzggdGhlcm1hbCBzZW5zb3JzLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KQU1EIEZhbWlseSAxMGggdGhlcm1hbCBz
-ZW5zb3JzLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkFNRCBGYW1pbHkgMTFoIHRo
-ZXJtYWwgc2Vuc29ycy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpBTUQgRmFtaWx5
-IDEyaCBhbmQgMTRoIHRoZXJtYWwgc2Vuc29ycy4uLiAgICAgICAgICAgICAgICAgICBObw0KQU1E
-IEZhbWlseSAxNWggdGhlcm1hbCBzZW5zb3JzLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NCkFNRCBGYW1pbHkgMTVoIHBvd2VyIHNlbnNvcnMuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpBTUQgRmFtaWx5IDE2aCBwb3dlciBzZW5zb3JzLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KSW50ZWwgZGlnaXRhbCB0aGVybWFsIHNlbnNvci4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgU3VjY2VzcyENCiAgICAoZHJpdmVyIGBjb3JldGVtcCcpDQpJ
-bnRlbCBBTUIgRkItRElNTSB0aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KVklBIEM3IHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClZJQSBOYW5vIHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQoNClNvbWUgU3VwZXIgSS9PIGNoaXBzIGNvbnRhaW4gZW1iZWRk
-ZWQgc2Vuc29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bw0Kc3RhbmRhcmQgSS9PIHBvcnRzIHRvIHBy
-b2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseSBzYWZlLg0KRG8geW91IHdhbnQgdG8gc2NhbiBmb3Ig
-U3VwZXIgSS9PIHNlbnNvcnM/IChZRVMvbm8pOiB5DQpQcm9iaW5nIGZvciBTdXBlci1JL08gYXQg
-MHgyZS8weDJmDQpUcnlpbmcgZmFtaWx5IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yL0lURScuLi4g
-ICAgICAgICAgICAgICBObw0KVHJ5aW5nIGZhbWlseSBgU01TQycuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClRyeWluZyBmYW1pbHkgYFZJQS9XaW5ib25kL051dm90
-b24vRmludGVrJy4uLiAgICAgICAgICAgICAgIFllcw0KRm91bmQgdW5rbm93biBjaGlwIHdpdGgg
-SUQgMHhjODAzDQogICAgKGxvZ2ljYWwgZGV2aWNlIEIgaGFzIGFkZHJlc3MgMHgyOTAsIGNvdWxk
-IGJlIHNlbnNvcnMpDQpQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHg0ZS8weDRmDQpUcnlpbmcg
-ZmFtaWx5IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yL0lURScuLi4gICAgICAgICAgICAgICBObw0K
-VHJ5aW5nIGZhbWlseSBgU01TQycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClRyeWluZyBmYW1pbHkgYFZJQS9XaW5ib25kL051dm90b24vRmludGVrJy4uLiAgICAg
-ICAgICAgICAgIE5vDQpUcnlpbmcgZmFtaWx5IGBJVEUnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObw0KDQpTb21lIHN5c3RlbXMgKG1haW5seSBzZXJ2ZXJzKSBpbXBs
-ZW1lbnQgSVBNSSwgYSBzZXQgb2YgY29tbW9uIGludGVyZmFjZXMNCnRocm91Z2ggd2hpY2ggc3lz
-dGVtIGhlYWx0aCBkYXRhIG1heSBiZSByZXRyaWV2ZWQsIGFtb25nc3Qgb3RoZXIgdGhpbmdzLg0K
-V2UgZmlyc3QgdHJ5IHRvIGdldCB0aGUgaW5mb3JtYXRpb24gZnJvbSBTTUJJT1MuIElmIHdlIGRv
-bid0IGZpbmQgaXQNCnRoZXJlLCB3ZSBoYXZlIHRvIHJlYWQgZnJvbSBhcmJpdHJhcnkgSS9PIHBv
-cnRzIHRvIHByb2JlIGZvciBzdWNoDQppbnRlcmZhY2VzLiBUaGlzIGlzIG5vcm1hbGx5IHNhZmUu
-IERvIHlvdSB3YW50IHRvIHNjYW4gZm9yIElQTUkNCmludGVyZmFjZXM/IChZRVMvbm8pOiB5DQpQ
-cm9iaW5nIGZvciBgSVBNSSBCTUMgS0NTJyBhdCAweGNhMC4uLiAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYElQTUkgQk1DIFNNSUMnIGF0IDB4Y2E4Li4uICAgICAgICAgICAg
-ICAgICAgICAgTm8NCg0KDQoNClNvbWUgaGFyZHdhcmUgbW9uaXRvcmluZyBjaGlwcyBhcmUgYWNj
-ZXNzaWJsZSB0aHJvdWdoIHRoZSBJU0EgSS9PIHBvcnRzLg0KV2UgaGF2ZSB0byB3cml0ZSB0byBh
-cmJpdHJhcnkgSS9PIHBvcnRzIHRvIHByb2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseQ0Kc2FmZSB0
-aG91Z2guIFllcywgeW91IGRvIGhhdmUgSVNBIEkvTyBwb3J0cyBldmVuIGlmIHlvdSBkbyBub3Qg
-aGF2ZSBhbnkNCklTQSBzbG90cyEgRG8geW91IHdhbnQgdG8gc2NhbiB0aGUgSVNBIEkvTyBwb3J0
-cz8gKFlFUy9ubyk6IHkNClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgn
-IGF0IDB4MjkwLi4uICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3Rv
-ciBMTTc5JyBhdCAweDI5MC4uLiAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgx
-RCcgYXQgMHgyOTAuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25k
-IFc4Mzc4MkQnIGF0IDB4MjkwLi4uICAgICAgICAgICAgICAgICAgIE5vDQoNCkxhc3RseSwgd2Ug
-Y2FuIHByb2JlIHRoZSBJMkMvU01CdXMgYWRhcHRlcnMgZm9yIGNvbm5lY3RlZCBoYXJkd2FyZQ0K
-bW9uaXRvcmluZyBkZXZpY2VzLiBUaGlzIGlzIHRoZSBtb3N0IHJpc2t5IHBhcnQsIGFuZCB3aGls
-ZSBpdCB3b3Jrcw0KcmVhc29uYWJseSB3ZWxsIG9uIG1vc3Qgc3lzdGVtcywgaXQgaGFzIGJlZW4g
-cmVwb3J0ZWQgdG8gY2F1c2UgdHJvdWJsZQ0Kb24gc29tZSBzeXN0ZW1zLg0KRG8geW91IHdhbnQg
-dG8gcHJvYmUgdGhlIEkyQy9TTUJ1cyBhZGFwdGVycyBub3c/IChZRVMvbm8pOiB5DQpVc2luZyBk
-cml2ZXIgYGkyYy1pODAxJyBmb3IgZGV2aWNlIDAwMDA6MDA6MWYuMzogSW50ZWwgTHlueCBQb2lu
-dCAoUENIKQ0KDQpOZXh0IGFkYXB0ZXI6IGk5MTUgZ21idXMgc3NjIChpMmMtMCkNCkRvIHlvdSB3
-YW50IHRvIHNjYW4gaXQ/ICh5ZXMvTk8vc2VsZWN0aXZlbHkpOiB5DQoNCk5leHQgYWRhcHRlcjog
-aTkxNSBnbWJ1cyB2Z2EgKGkyYy0xKQ0KRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKHllcy9OTy9z
-ZWxlY3RpdmVseSk6IHkNCg0KTmV4dCBhZGFwdGVyOiBpOTE1IGdtYnVzIHBhbmVsIChpMmMtMikN
-CkRvIHlvdSB3YW50IHRvIHNjYW4gaXQ/ICh5ZXMvTk8vc2VsZWN0aXZlbHkpOiB5DQoNCk5leHQg
-YWRhcHRlcjogaTkxNSBnbWJ1cyBkcGMgKGkyYy0zKQ0KRG8geW91IHdhbnQgdG8gc2NhbiBpdD8g
-KHllcy9OTy9zZWxlY3RpdmVseSk6IHkNCg0KTmV4dCBhZGFwdGVyOiBpOTE1IGdtYnVzIGRwYiAo
-aTJjLTQpDQpEbyB5b3Ugd2FudCB0byBzY2FuIGl0PyAoeWVzL05PL3NlbGVjdGl2ZWx5KTogeQ0K
-DQpOZXh0IGFkYXB0ZXI6IGk5MTUgZ21idXMgZHBkIChpMmMtNSkNCkRvIHlvdSB3YW50IHRvIHNj
-YW4gaXQ/ICh5ZXMvTk8vc2VsZWN0aXZlbHkpOiB5DQoNCk5leHQgYWRhcHRlcjogRFBEREMtQiAo
-aTJjLTYpDQpEbyB5b3Ugd2FudCB0byBzY2FuIGl0PyAoWUVTL25vL3NlbGVjdGl2ZWx5KTogeQ0K
-Q2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHgxOA0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2Vz
-IEFETTEwMjEnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cg
-RGV2aWNlcyBBRE0xMDIxQS9BRE0xMDIzJy4uLiAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-TWF4aW0gTUFYMTYxNycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYE1heGltIE1BWDE2MTdBJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjY4Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTgwNScuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE5ODknLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU1L01BWDY2NTYn
-Li4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVEkgVEhNQzEwJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFs
-IFNlbWljb25kdWN0b3IgTE04NCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBH
-ZW5lc3lzIExvZ2ljIEdMNTIzU00nLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgT25zZW1pIE1DMTA2NicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE5Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTgyL0xN
-ODMnLi4uICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NTQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjkwJy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjY4MC9NQVg2NjgxJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1h
-eGltIE1BWDY2OTUvTUFYNjY5NicuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBUZXhhcyBJbnN0cnVtZW50cyBBTUM2ODIxJy4uLiAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk1MjM0Jy4uLiAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05NTI0NScuLi4gICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNjQnLi4u
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxMDQ3Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTQwMicuLi4g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzE0
-MDMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01T
-QyBFTUMxNDA0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYFNUIFNUVFM0MjQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBTVCBTVFRTNDI0RScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgU1QgU1RUUzIwMDInLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFMzMDAwJy4uLiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOWFAgU0U5Ny9TRTk3QicuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTlhQIFNFOTgnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZp
-Y2VzIEFEVDc0MDgnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBJRFQg
-VFMzMDAwL1RTRTIwMDInLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgTWF4aW0gTUFYNjYwNCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODA0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTgyNDInLi4uICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4MjQzJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODI0NCcuLi4gICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTg0Mycu
-Li4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgT04gQ0FUNjA5NS9D
-QVQzNFRTMDInLi4uICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEF0bWVs
-IEFUMzBUUzAwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3Vu
-ZCBhdCBhZGRyZXNzIDB4MTkNClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDIxJy4u
-LiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURN
-MTAyMUEvQURNMTAyMycuLi4gICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE2
-MTcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhp
-bSBNQVgxNjE3QScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgTWF4aW0gTUFYMTY2OCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYE1heGltIE1BWDE4MDUnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxOTg5Jy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY1NS9NQVg2NjU2Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRJIFRITUMxMCcuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVj
-dG9yIExNODQnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgR2VuZXN5cyBMb2dp
-YyBHTDUyM1NNJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE9uc2Vt
-aSBNQzEwNjYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBNYXhpbSBNQVgxNjE4Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgTWF4aW0gTUFYMTYxOScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04Mi9MTTgzJy4uLiAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU0Jy4uLiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY5MCcuLi4gICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2ODAvTUFYNjY4
-MScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2Njk1
-L01BWDY2OTYnLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMg
-SW5zdHJ1bWVudHMgQU1DNjgyMScuLi4gICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05NTIzMScuLi4gICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTUyNDEnLi4uICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk1MjQ1Jy4uLiAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFM0MjQnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTVCBTVFRTNDI0RScuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU1QgU1RUUzIwMDInLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFMzMDAwJy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOWFAgU0U5
-Ny9TRTk3QicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-TlhQIFNFOTgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MDgnLi4uICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBJRFQgVFMzMDAwL1RTRTIwMDInLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjYwNCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODA0Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTgyNDInLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4
-MjQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hp
-cCBNQ1A5ODI0NCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBN
-aWNyb2NoaXAgTUNQOTg0MycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgT04gQ0FUNjA5NS9DQVQzNFRTMDInLi4uICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYEF0bWVsIEFUMzBUUzAwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4MWENClByb2JpbmcgZm9yIGBBbmFsb2cg
-RGV2aWNlcyBBRE0xMDIxJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-QW5hbG9nIERldmljZXMgQURNMTAyMUEvQURNMTAyMycuLi4gICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYE1heGltIE1BWDE2MTcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE3QScuLi4gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTY2OCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE4MDUnLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxOTg5Jy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY1NS9N
-QVg2NjU2Jy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRJIFRITUMx
-MCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBO
-YXRpb25hbCBTZW1pY29uZHVjdG9yIExNODQnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgR2VuZXN5cyBMb2dpYyBHTDUyM1NNJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE9uc2VtaSBNQzEwNjYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE4Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTYxOScuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3Ig
-TE04Mi9MTTgzJy4uLiAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU0Jy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjY5MCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1h
-eGltIE1BWDY2ODAvTUFYNjY4MScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBNYXhpbSBNQVg2Njk1L01BWDY2OTYnLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgQU1DNjgyMScuLi4gICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFM0MjQnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTVCBTVFRTNDI0RScuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU1QgU1RUUzIwMDInLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFMzMDAwJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOWFAgU0U5Ny9T
-RTk3QicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTlhQ
-IFNFOTgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MDgnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBJRFQgVFMzMDAwL1RTRTIwMDInLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjYwNCcuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODA0Jy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTgyNDInLi4uICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4MjQz
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBN
-Q1A5ODI0NCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNy
-b2NoaXAgTUNQOTg0MycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgT04gQ0FUNjA5NS9DQVQzNFRTMDInLi4uICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYEF0bWVsIEFUMzBUUzAwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4MWINClByb2JpbmcgZm9yIGBTVCBTVFRTNDI0
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU1Qg
-U1RUUzQyNEUnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYFNUIFNUVFMyMDAyJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBTVCBTVFRTMzAwMCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgTlhQIFNFOTcvU0U5N0InLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5YUCBTRTk4Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDA4Jy4u
-LiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSURUIFRTMzAwMC9UU0UyMDAy
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2
-MDQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNy
-b2NoaXAgTUNQOTgwNCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgTWljcm9jaGlwIE1DUDk4MjQyJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODI0MycuLi4gICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTgyNDQnLi4uICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4NDMnLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE9OIENBVDYwOTUvQ0FUMzRUUzAyJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBdG1lbCBBVDMwVFMwMCcuLi4g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAw
-eDFjDQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgVE1QNDIxJy4uLiAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTA3MicuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwNzMnLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxMDc0Jy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFM0MjQn
-Li4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTVCBT
-VFRTNDI0RScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgU1QgU1RUUzIwMDInLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYFNUIFNUVFMzMDAwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBOWFAgU0U5Ny9TRTk3QicuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTlhQIFNFOTgnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MDgnLi4u
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBJRFQgVFMzMDAwL1RTRTIwMDIn
-Li4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjYw
-NCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3Jv
-Y2hpcCBNQ1A5ODA0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBNaWNyb2NoaXAgTUNQOTgyNDInLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgTWljcm9jaGlwIE1DUDk4MjQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODI0NCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTg0MycuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgT04gQ0FUNjA5NS9DQVQzNFRTMDInLi4uICAg
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEF0bWVsIEFUMzBUUzAwJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4
-MWQNClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0cnVtZW50cyBUTVA0MjEnLi4uICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU1QgU1RUUzQyNCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFM0MjRFJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTVCBTVFRTMjAwMicuLi4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU1QgU1RUUzMwMDAn
-Li4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5YUCBT
-RTk3L1NFOTdCJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBOWFAgU0U5OCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQwOCcuLi4gICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYElEVCBUUzMwMDAvVFNFMjAwMicuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjA0Jy4uLiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4MDQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODI0Micu
-Li4gICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQ
-OTgyNDMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9j
-aGlwIE1DUDk4MjQ0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YE1pY3JvY2hpcCBNQ1A5ODQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBPTiBDQVQ2MDk1L0NBVDM0VFMwMicuLi4gICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgQXRtZWwgQVQzMFRTMDAnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHgxZQ0KUHJvYmluZyBmb3IgYFRleGFz
-IEluc3RydW1lbnRzIFRNUDQyMScuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBTVCBTVFRTNDI0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgU1QgU1RUUzQyNEUnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYFNUIFNUVFMyMDAyJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBTVCBTVFRTMzAwMCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTlhQIFNFOTcvU0U5N0InLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5YUCBTRTk4Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNl
-cyBBRFQ3NDA4Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSURUIFRT
-MzAwMC9UU0UyMDAyJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YE1heGltIE1BWDY2MDQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBNaWNyb2NoaXAgTUNQOTgwNCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4MjQyJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODI0MycuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTgyNDQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWljcm9jaGlwIE1DUDk4NDMnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE9OIENBVDYwOTUvQ0FU
-MzRUUzAyJy4uLiAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBdG1lbCBB
-VDMwVFMwMCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQg
-YXQgYWRkcmVzcyAweDFmDQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgVE1QNDIxJy4u
-LiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNUIFNUVFM0MjQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTVCBTVFRTNDI0RScu
-Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU1QgU1RU
-UzIwMDInLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YFNUIFNUVFMzMDAwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBOWFAgU0U5Ny9TRTk3QicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgTlhQIFNFOTgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MDgnLi4uICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBJRFQgVFMzMDAwL1RTRTIwMDInLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjYwNCcuLi4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1pY3JvY2hpcCBNQ1A5
-ODA0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNaWNyb2No
-aXAgTUNQOTgyNDInLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-TWljcm9jaGlwIE1DUDk4MjQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYE1pY3JvY2hpcCBNQ1A5ODI0NCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBNaWNyb2NoaXAgTUNQOTg0MycuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgT04gQ0FUNjA5NS9DQVQzNFRTMDInLi4uICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEF0bWVsIEFUMzBUUzAwJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4MjgNClByb2Jp
-bmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgnLi4uICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc5Jy4uLiAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04MCcuLi4gICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTYw
-ODAnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODFEJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgy
-RCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25k
-IFc4MzYyN0hGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-V2luYm9uZCBXODM2MjdFSEYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYFdpbmJvbmQgVzgzNjI3REhHL1c4MzY2N0hHL1c4MzY3N0hHJy4uLiAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBBc3VzIEFTOTkxMjdGIChyZXYuMSknLi4uICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2LjIpJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVNCMTAwIEJhY2gnLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI5
-Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSVRFIElUODcxMkYnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KQ2xpZW50IGZvdW5kIGF0IGFkZHJl
-c3MgMHgyOQ0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OCcuLi4gICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzkn
-Li4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3Rv
-ciBMTTgwJy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWlj
-b25kdWN0b3IgTE05NjA4MCcuLi4gICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25k
-IFc4Mzc4MUQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-V2luYm9uZCBXODM3ODJEJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYFdpbmJvbmQgVzgzNjI3SEYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBXaW5ib25kIFc4MzYyN0VIRicuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdESEcvVzgzNjY3SEcvVzgzNjc3SEcn
-Li4uICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVM5OTEyN0YgKHJldi4xKScuLi4gICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBc3VzIEFTOTkxMjdGIChyZXYuMikn
-Li4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBU0IxMDAgQmFj
-aCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBE
-ZXZpY2VzIEFETTEwMjEnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBB
-bmFsb2cgRGV2aWNlcyBBRE0xMDIxQS9BRE0xMDIzJy4uLiAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgTWF4aW0gTUFYMTYxNycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTdBJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjY4Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTgwNScuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE5ODknLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU1L01B
-WDY2NTYnLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVEkgVEhNQzEw
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5h
-dGlvbmFsIFNlbWljb25kdWN0b3IgTE04NCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBHZW5lc3lzIExvZ2ljIEdMNTIzU00nLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgT25zZW1pIE1DMTA2NicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTgnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE5Jy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBM
-TTgyL0xNODMnLi4uICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NTQnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2
-NjkwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4
-aW0gTUFYNjY4MC9NQVg2NjgxJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYE1heGltIE1BWDY2OTUvTUFYNjY5NicuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTUyNDUnLi4uICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyOScuLi4gICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYElURSBJVDg3MTJGJy4uLiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzE0MDInLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxNDAzJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTQw
-NCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBh
-ZGRyZXNzIDB4MmENClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgnLi4u
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBM
-TTc5Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25k
-dWN0b3IgTE04MCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBT
-ZW1pY29uZHVjdG9yIExNOTYwODAnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2lu
-Ym9uZCBXODM3ODFEJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYFdpbmJvbmQgVzgzNzgyRCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBXaW5ib25kIFc4MzYyN0hGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdFSEYnLi4uICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNjI3REhHL1c4MzY2N0hHL1c4MzY3
-N0hHJy4uLiAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBc3VzIEFTOTkxMjdGIChyZXYuMSknLi4u
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2
-LjIpJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVNCMTAw
-IEJhY2gnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFs
-b2cgRGV2aWNlcyBBRE0xMDIxJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgQW5hbG9nIERldmljZXMgQURNMTAyMUEvQURNMTAyMycuLi4gICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYE1heGltIE1BWDE2MTcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE3QScuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTY2OCcuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE4MDUnLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxOTg5Jy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY1
-NS9NQVg2NjU2Jy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRJIFRI
-TUMxMCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNODQnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgR2VuZXN5cyBMb2dpYyBHTDUyM1NNJy4uLiAgICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYE9uc2VtaSBNQzEwNjYnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE4Jy4uLiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTYxOScuLi4gICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0
-b3IgTE04Mi9MTTgzJy4uLiAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU0
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0g
-TUFYNjY5MCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YE1heGltIE1BWDY2ODAvTUFYNjY4MScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBNYXhpbSBNQVg2Njk1L01BWDY2OTYnLi4uICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgVE1QNDIxJy4uLiAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05NTIzMScuLi4g
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTUy
-NDEnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAy
-OScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYElURSBJVDg3MTJGJy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRy
-ZXNzIDB4MmINClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgnLi4uICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc5
-Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0
-b3IgTE04MCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1p
-Y29uZHVjdG9yIExNOTYwODAnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9u
-ZCBXODM3ODFEJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YFdpbmJvbmQgVzgzNzgyRCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBXaW5ib25kIFc4MzYyN0hGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdFSEYnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNjI3REhHL1c4MzY2N0hHL1c4MzY3N0hH
-Jy4uLiAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBc3VzIEFTOTkxMjdGIChyZXYuMSknLi4uICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2LjIp
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVNCMTAwIEJh
-Y2gnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cg
-RGV2aWNlcyBBRE0xMDIxJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-QW5hbG9nIERldmljZXMgQURNMTAyMUEvQURNMTAyMycuLi4gICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYE1heGltIE1BWDE2MTcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE3QScuLi4gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTY2OCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE4MDUnLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxOTg5Jy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY1NS9N
-QVg2NjU2Jy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRJIFRITUMx
-MCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBO
-YXRpb25hbCBTZW1pY29uZHVjdG9yIExNODQnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgR2VuZXN5cyBMb2dpYyBHTDUyM1NNJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE9uc2VtaSBNQzEwNjYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE4Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTYxOScuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3Ig
-TE04Mi9MTTgzJy4uLiAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU0Jy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjY5MCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1h
-eGltIE1BWDY2ODAvTUFYNjY4MScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBNYXhpbSBNQVg2Njk1L01BWDY2OTYnLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk1MjMxJy4uLiAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05NTI0MScuLi4gICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI5Jy4uLiAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSVRFIElUODcxMkYnLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBObw0KQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHgyYw0K
-UHJvYmluZyBmb3IgYE15c29uIE1UUDAwOCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgnLi4uICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc5Jy4u
-LiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3Ig
-TE04MCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29u
-ZHVjdG9yIExNOTYwODAnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwg
-U2VtaWNvbmR1Y3RvciBMTTg1Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5h
-dGlvbmFsIFNlbWljb25kdWN0b3IgTE05NjAwMCBvciBQQzgzNzRMJy4uLiAgTm8NClByb2Jpbmcg
-Zm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI3Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ2MCBvciBBRFQ3NDYzJy4uLiAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DNkQxMDAgb3IgRU1DNkQxMDEnLi4uICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzZEMTAyJy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUM2RDEwMycuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DNkQxMDNTIG9y
-IEVNQzIzMDAnLi4uICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzZX
-MjAxJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2lu
-Ym9uZCBXUENEMzc3SScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0NzAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDczJy4uLiAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ3NicuLi4gICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0OTAnLi4uICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmRpZ2lsb2cgYVNDNzYxMScuLi4gICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5kaWdpbG9nIGFTQzc2MjEn
-Li4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNl
-bWljb25kdWN0b3IgTE04NycuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFs
-b2cgRGV2aWNlcyBBRE0xMDI0Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTkzJy4uLiAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05NCBvciBMTTk2MTk0Jy4uLiAgICAg
-Tm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc4MUQnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODJEJy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxRCcuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc5MkQnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3
-OTNSL0cnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE51dm90
-b24gVzgzNzk1Ry9BREcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBXaW5ib25kIFc4MzYyN0hGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgV2luYm9uZCBXODM2MjdFSEYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNjI3REhHL1c4MzY2N0hHL1c4MzY3N0hHJy4uLiAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBBc3VzIEFTOTkxMjdGIChyZXYuMSknLi4uICAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2LjIpJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVNCMTAwIEJhY2gnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBHZW5lc3lzIExvZ2lj
-IEdMNTE4U00nLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgR2VuZXN5
-cyBMb2dpYyBHTDUyMFNNJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YEFuYWxvZyBEZXZpY2VzIEFETTkyNDAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzE3ODAnLi4uICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTgxJy4uLiAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjYnLi4uICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI1Jy4uLiAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgUGhpbGlwcyBORTE2MTknLi4uICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2Mzkn
-Li4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJ
-bnN0cnVtZW50cyBBTUM2ODIxJy4uLiAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-QW5hbG9nIERldmljZXMgQURNMTAyOScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMzAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDMxJy4uLiAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyMicuLi4gICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRITUM1MCcuLi4g
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBJVEUgSVQ4NzEyRicuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQUxpIE01ODc5Jy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgTFBD
-NDdNMTV4LzE5Mi8yOTIvOTk3Jy4uLiAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBT
-TVNDIERNRTE3MzcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgU01TQyBTQ0g1MDI3RC1OVycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxU0QnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4MmQNClByb2JpbmcgZm9yIGBNeXNvbiBN
-VFAwMDgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-TmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OScuLi4gICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNODAnLi4uICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk2MDgwJy4uLiAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04NScu
-Li4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9y
-IExNOTYwMDAgb3IgUEM4Mzc0TCcuLi4gIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMg
-QURNMTAyNycuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBE
-ZXZpY2VzIEFEVDc0NjAgb3IgQURUNzQ2MycuLi4gICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBT
-TVNDIEVNQzZEMTAwIG9yIEVNQzZEMTAxJy4uLiAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgU01TQyBFTUM2RDEwMicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYFNNU0MgRU1DNkQxMDMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzZEMTAzUyBvciBFTUMyMzAwJy4uLiAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUM2VzIwMScuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgV1BDRDM3N0knLi4uICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
-RFQ3NDczJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERl
-dmljZXMgQURUNzQ3NicuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFu
-YWxvZyBEZXZpY2VzIEFEVDc0OTAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBBbmRpZ2lsb2cgYVNDNzYxMScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgQW5kaWdpbG9nIGFTQzc2MjEnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04NycuLi4gICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI0Jy4uLiAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBM
-TTkzJy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25k
-dWN0b3IgTE05NCBvciBMTTk2MTk0Jy4uLiAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4
-Mzc4MUQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2lu
-Ym9uZCBXODM3ODJEJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYFdpbmJvbmQgVzgzNzgzUycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc5MUQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3OTJEJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzkzUi9HJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOdXZvdG9uIFc4Mzc5NUcvQURHJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdIRicu
-Li4gICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgz
-NjI3RUhGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5i
-b25kIFc4MzYyN0RIRy9XODM2NjdIRy9XODM2NzdIRycuLi4gICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgQXN1cyBBUzk5MTI3RiAocmV2LjEpJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYEFzdXMgQVM5OTEyN0YgKHJldi4yKScuLi4gICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBBc3VzIEFTQjEwMCBCYWNoJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODNMNzg0Ui9BUi9HJy4uLiAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzTDc4NVIvRycuLi4gICAg
-ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBHZW5lc3lzIExvZ2ljIEdMNTE4
-U00nLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgR2VuZXN5cyBMb2dp
-YyBHTDUyMFNNJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEdlbmVz
-eXMgTG9naWMgR0w1MjVTTScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBBbmFsb2cgRGV2aWNlcyBBRE05MjQwJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgRGFsbGFzIFNlbWljb25kdWN0b3IgRFMxNzgwJy4uLiAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04MScuLi4gICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI2Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyNScuLi4g
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFBoaWxpcHMgTkUxNjE5Jy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0cnVt
-ZW50cyBBTUM2ODIxJy4uLiAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9n
-IERldmljZXMgQURNMTAyOScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YEFuYWxvZyBEZXZpY2VzIEFETTEwMzAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDMxJy4uLiAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyMicuLi4gICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRITUM1MCcuLi4gICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBWSUEgVlQxMjExIChJMkMpJy4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSVRFIElUODcxMkYnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFMaSBNNTg3OScuLi4g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIExQ
-QzQ3TTE1eC8xOTIvMjkyLzk5NycuLi4gICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-U01TQyBETUUxNzM3Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYFNNU0MgU0NINTAyN0QtTlcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBGaW50ZWsgRjc1MzczUy9TRycuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgRmludGVrIEY3NTM3NVMvU1AnLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEZpbnRlayBGNzUzODdTRy9SRycuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc5MVNEJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDJl
-DQpQcm9iaW5nIGZvciBgTXlzb24gTVRQMDA4Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OCcuLi4gICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzkn
-Li4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3Rv
-ciBMTTgwJy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWlj
-b25kdWN0b3IgTE05NjA4MCcuLi4gICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25h
-bCBTZW1pY29uZHVjdG9yIExNODUnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-TmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk2MDAwIG9yIFBDODM3NEwnLi4uICBObw0KUHJvYmlu
-ZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjcnLi4uICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDYwIG9yIEFEVDc0NjMnLi4uICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUM2RDEwMCBvciBFTUM2RDEwMScuLi4gICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DNkQxMDInLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzZEMTAzJy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUM2RDEwM1Mg
-b3IgRU1DMjMwMCcuLi4gICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1D
-NlcyMDEnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBX
-aW5ib25kIFdQQ0QzNzdJJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ2NyBvciBBRFQ3NDY4Jy4uLiAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0NzAnLi4uICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDczJy4uLiAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ3NScuLi4gICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0NzYn
-Li4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
-RFQ3NDkwJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5kaWdpbG9n
-IGFTQzc2MTEnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFu
-ZGlnaWxvZyBhU0M3NjIxJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNODcnLi4uICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyNCcuLi4gICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05MycuLi4gICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTQgb3Ig
-TE05NjE5NCcuLi4gICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODFEJy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgyRCcu
-Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4
-Mzc5MUQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2lu
-Ym9uZCBXODM3OTJEJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYFdpbmJvbmQgVzgzNzkzUi9HJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBOdXZvdG9uIFc4Mzc5NUcvQURHJy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdIRicuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNjI3RUhGJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4MzYyN0RIRy9XODM2NjdI
-Ry9XODM2NzdIRycuLi4gICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2
-LjEpJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVM5OTEy
-N0YgKHJldi4yKScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBc3Vz
-IEFTQjEwMCBCYWNoJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgV2luYm9uZCBXODNMNzg2TlIvTkcvUi9HJy4uLiAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYFdpbmJvbmQgVzgzTDc4NVRTLVMnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE05MjQwJy4uLiAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRGFsbGFzIFNlbWljb25kdWN0b3IgRFMxNzgwJy4uLiAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04
-MScuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0x
-MDI2Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmlj
-ZXMgQURNMTAyNScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGlt
-IE1BWDY2MzknLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBUZXhhcyBJbnN0cnVtZW50cyBBTUM2ODIxJy4uLiAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyOScuLi4gICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMzAnLi4uICAgICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDMxJy4uLiAgICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyMicuLi4g
-ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRI
-TUM1MCcuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNl
-cyBBRE0xMDI4Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMg
-SW5zdHJ1bWVudHMgVEhNQzUxJy4uLiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YElURSBJVDg3MTJGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBTTVNDIERNRTE3MzcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgU01TQyBTQ0g1MDI3RC1OVycuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMjEwMycuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBGaW50ZWsgRjc1MzczUy9TRycuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRmludGVrIEY3NTM3NVMvU1AnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEZpbnRlayBGNzUzODdT
-Ry9SRycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25k
-IFc4Mzc5MVNEJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQg
-YXQgYWRkcmVzcyAweDJmDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4
-Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0
-b3IgTE03OScuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1p
-Y29uZHVjdG9yIExNODAnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9u
-YWwgU2VtaWNvbmR1Y3RvciBMTTk2MDgwJy4uLiAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YEFuYWxvZyBEZXZpY2VzIEFEVDc0NzAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBXaW5ib25kIFc4Mzc4MUQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODJEJy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxRCcuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc5MkQnLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3OTNSL0cnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE51dm90b24gVzgzNzk1
-Ry9BREcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25k
-IFc4MzYyN0hGJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-V2luYm9uZCBXODM2MjdFSEYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYFdpbmJvbmQgVzgzNjI3REhHL1c4MzY2N0hHL1c4MzY3N0hHJy4uLiAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBBc3VzIEFTOTkxMjdGIChyZXYuMSknLi4uICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2LjIpJy4uLiAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFzdXMgQVNCMTAwIEJhY2gnLi4uICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4M0w3ODZOUi9ORy9S
-L0cnLi4uICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMg
-QURNOTI0MCcuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYERhbGxhcyBT
-ZW1pY29uZHVjdG9yIERTMTc4MCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBO
-YXRpb25hbCBTZW1pY29uZHVjdG9yIExNODEnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgTWF4aW0gTUFYNjYzOScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjknLi4uICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBJVEUgSVQ4NzEyRicuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRmludGVrIGN1c3RvbSBwb3dlciBjb250cm9sIElD
-Jy4uLiAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxU0QnLi4uICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4NDgN
-ClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzUnLi4uICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc1QScuLi4gICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYERhbGxhcyBTZW1pY29uZHVjdG9yIERTNzUnLi4u
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9y
-IExNNzcnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMg
-QURUNzQxMC9BRFQ3NDIwJy4uLiAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBE
-ZXZpY2VzIEFEVDc0MTEnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBN
-YXhpbSBNQVg2NjQyJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTczJy4uLiAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE05MicuLi4gICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzYnLi4uICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjYzMy9NQVg2NjM0L01BWDY2MzUn
-Li4uICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5YUC9QaGlsaXBzIFNBNTYwMDQnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwMjMnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMx
-MDQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNN
-U0MgRU1DMTA1MycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBTTVNDIEVNQzEwNjMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpD
-bGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDQ5DQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNv
-bmR1Y3RvciBMTTc1Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFs
-IFNlbWljb25kdWN0b3IgTE03NUEnLi4uICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBE
-YWxsYXMgU2VtaWNvbmR1Y3RvciBEUzc1Jy4uLiAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc3Jy4uLiAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MTAvQURUNzQyMCcuLi4gICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjQyJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTczJy4u
-LiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3Ig
-TE05MicuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29u
-ZHVjdG9yIExNNzYnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjYzMy9NQVg2NjM0L01BWDY2MzUnLi4uICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5Y
-UC9QaGlsaXBzIFNBNTYwMDQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBTTVNDIEVNQzEwMjMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgU01TQyBFTUMxMDQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTA1MycuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwNjMnLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDRhDQpQcm9iaW5n
-IGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc1Jy4uLiAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03NUEnLi4uICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzc1Jy4uLiAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc3Jy4u
-LiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MTAv
-QURUNzQyMCcuLi4gICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
-RFQ3NDExJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjY0MicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5h
-dGlvbmFsIFNlbWljb25kdWN0b3IgTE03MycuLi4gICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTInLi4uICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc2Jy4uLiAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2MzMvTUFYNjYzNC9NQVg2NjM1Jy4uLiAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOWFAvUGhpbGlwcyBTQTU2MDA0Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDRiDQpQcm9iaW5n
-IGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc1Jy4uLiAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03NUEnLi4uICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzc1Jy4uLiAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc3Jy4u
-LiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0MTAv
-QURUNzQyMCcuLi4gICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
-RFQ3NDExJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjY0MicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5h
-dGlvbmFsIFNlbWljb25kdWN0b3IgTE05MicuLi4gICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzYnLi4uICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTWF4aW0gTUFYNjYzMy9NQVg2NjM0L01BWDY2MzUnLi4uICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE5YUC9QaGlsaXBzIFNBNTYwMDQnLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDgxJy4uLiAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDRjDQpQcm9iaW5n
-IGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc1Jy4uLiAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03NUEnLi4uICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzc1Jy4uLiAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ2NicuLi4gICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuZGlnaWxvZyBhU0M3NTExJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
-RE0xMDIxJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERl
-dmljZXMgQURNMTAyMUEvQURNMTAyMycuLi4gICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEds
-b2JhbCBNaXhlZC1tb2RlIFRlY2hub2xvZ3kgRzc4MScuLi4gICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBNYXhpbSBNQVgxNjE3Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTWF4aW0gTUFYMTYxN0EnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE2NjgnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxODA1Jy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTk4OScuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NDInLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2
-NjU1L01BWDY2NTYnLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVEkg
-VEhNQzEwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04NCcuLi4gICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBHZW5lc3lzIExvZ2ljIEdMNTIzU00nLi4uICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgT25zZW1pIE1DMTA2NicuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTgnLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE5Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1
-Y3RvciBMTTgyL0xNODMnLi4uICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNl
-bWljb25kdWN0b3IgTE05MCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRp
-b25hbCBTZW1pY29uZHVjdG9yIExNODkvTE05OScuLi4gICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTg2Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMzInLi4uICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY5MCcuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NTcvTUFYNjY1OC9NQVg2
-NjU5Jy4uLiAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjQ4L01BWDY2
-NDkvTUFYNjY5MicuLi4gICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY4
-MC9NQVg2NjgxJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGlt
-IE1BWDY2OTUvTUFYNjY5NicuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBXaW5ib25kIFc4M0w3NzFXL0cnLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgV2luYm9uZCBXODNMNzcxQVdHL0FTRycuLi4gICAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRNUDQwMScuLi4gICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0cnVtZW50cyBUTVA0MTEnLi4uICAgICAg
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgVE1QNDIxJy4u
-LiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRN
-UDQyMicuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0cnVt
-ZW50cyBUTVA0MjMnLi4uICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMg
-SW5zdHJ1bWVudHMgVE1QNDMxJy4uLiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YFRleGFzIEluc3RydW1lbnRzIFRNUDQzMicuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
-bmcgZm9yIGBUZXhhcyBJbnN0cnVtZW50cyBBTUM2ODIxJy4uLiAgICAgICAgICAgICAgICAgIE5v
-DQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk1MjQ1Jy4uLiAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE02MycuLi4gICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTYx
-NjMnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRmludGVrIEY3NTM2M1NHJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWlj
-b25kdWN0b3IgTE03MycuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBN
-QVg2NjMzL01BWDY2MzQvTUFYNjYzNScuLi4gICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-QW5hbG9nIERldmljZXMgQURUNzQ2MScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0NjFBLCBPTiBTZW1pY29uZHVjdG9yIE5DVDEwMDgn
-Li4uIE5vDQpQcm9iaW5nIGZvciBgTlhQL1BoaWxpcHMgU0E1NjAwNCcuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0ODEnLi4uICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBGaW50ZWsgRjc1MzgzUy9NJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxMDAyJy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1D
-MTAyMycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBT
-TVNDIEVNQzEwMzMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgU01TQyBFTUMxMDQzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYFNNU0MgRU1DMTA0NicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwNTMnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxMDYzJy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTA3MicuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwNzMnLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMx
-MDc0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNN
-U0MgRU1DMTQwMicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBTTVNDIEVNQzE0MDMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgU01TQyBFTUMxNDA0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTQyMycuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzE0MjQnLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDRkDQpQcm9iaW5n
-IGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc1Jy4uLiAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03NUEnLi4uICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzc1Jy4uLiAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyMScuLi4gICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjFB
-L0FETTEwMjMnLi4uICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBHbG9iYWwgTWl4ZWQtbW9k
-ZSBUZWNobm9sb2d5IEc3ODEnLi4uICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-MTYxNycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1h
-eGltIE1BWDE2MTdBJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBNYXhpbSBNQVgxNjY4Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTWF4aW0gTUFYMTgwNScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE5ODknLi4uICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjQyJy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY1NS9NQVg2NjU2Jy4u
-LiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRJIFRITUMxMCcuLi4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBT
-ZW1pY29uZHVjdG9yIExNODQnLi4uICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgR2Vu
-ZXN5cyBMb2dpYyBHTDUyM1NNJy4uLiAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYE9uc2VtaSBNQzEwNjYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE4Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTYxOScuLi4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04Mi9MTTgz
-Jy4uLiAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExN
-ODkvTE05OScuLi4gICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURN
-MTAzMicuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2
-NTQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhp
-bSBNQVg2NjkwJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
-ciBgTWF4aW0gTUFYNjY1OScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
-YmluZyBmb3IgYE1heGltIE1BWDY2NDYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjgwL01BWDY2ODEnLi4uICAgICAgICAgICAgICAg
-ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjY5NS9NQVg2Njk2Jy4uLiAgICAgICAg
-ICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRNUDQxMScu
-Li4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0cnVtZW50cyBU
-TVA0MjEnLi4uICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1
-bWVudHMgVE1QNDIyJy4uLiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFz
-IEluc3RydW1lbnRzIFRNUDQyMycuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBUZXhhcyBJbnN0cnVtZW50cyBUTVA0MzEnLi4uICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
-aW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgVE1QNDMyJy4uLiAgICAgICAgICAgICAgICAgICBO
-bw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIEFNQzY4MjEnLi4uICAgICAgICAgICAg
-ICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTUyMzQnLi4u
-ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTk1
-MjQ1Jy4uLiAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0
-b3IgTE03MycuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjMz
-L01BWDY2MzQvTUFYNjYzNScuLi4gICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9n
-IERldmljZXMgQURUNzQ2MScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3Ig
-YEFuYWxvZyBEZXZpY2VzIEFEVDc0NjFBLCBPTiBTZW1pY29uZHVjdG9yIE5DVDEwMDgnLi4uIE5v
-DQpQcm9iaW5nIGZvciBgTlhQL1BoaWxpcHMgU0E1NjAwNCcuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYEZpbnRlayBGNzUzODRTL00nLi4uICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwMDInLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxMDIzJy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTAzMycu
-Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVN
-QzEwNDMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-U01TQyBFTUMxMDQ2Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYFNNU0MgRU1DMTA1MycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwNjMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxNDAyJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTQwMycuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzE0MDQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDRl
-DQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc1Jy4uLiAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03NUEnLi4uICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzc1Jy4u
-LiAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAy
-MScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2Vz
-IEFETTEwMjFBL0FETTEwMjMnLi4uICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBN
-QVgxNjE3Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-TWF4aW0gTUFYMTYxN0EnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYE1heGltIE1BWDE2NjgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-ClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxODA1Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTk4OScuLi4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NDInLi4uICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU1L01BWDY2NTYn
-Li4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVEkgVEhNQzEwJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFs
-IFNlbWljb25kdWN0b3IgTE04NCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBH
-ZW5lc3lzIExvZ2ljIEdMNTIzU00nLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
-IGZvciBgT25zZW1pIE1DMTA2NicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0K
-UHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTgnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgxNjE5Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTgyL0xN
-ODMnLi4uICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NTQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVg2NjkwJy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFY
-NjY1OScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1h
-eGltIE1BWDY2NDcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBNYXhpbSBNQVg2NjgwL01BWDY2ODEnLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgTWF4aW0gTUFYNjY5NS9NQVg2Njk2Jy4uLiAgICAgICAgICAgICAgICAgICAg
-ICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRNUDQxMScuLi4gICAgICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0cnVtZW50cyBUTVA0MjEnLi4uICAg
-ICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgVE1QNDIy
-Jy4uLiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRz
-IEFNQzY4MjEnLi4uICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBT
-ZW1pY29uZHVjdG9yIExNOTUyMzQnLi4uICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0
-aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTY0Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03MycuLi4gICAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBNYXhpbSBNQVg2NjMzL01BWDY2MzQvTUFYNjYzNScuLi4gICAgICAgICAgICAg
-IE5vDQpQcm9iaW5nIGZvciBgTlhQL1BoaWxpcHMgU0E1NjAwNCcuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICBObw0KUHJvYmluZyBmb3IgYEZpbnRlayBGNzUxMjFSL0Y3NTEyMlIvUkcgKFZJRCtH
-UElPKScuLi4gICAgICAgTm8NClByb2JpbmcgZm9yIGBGaW50ZWsgRjc1MTExUi9SRy9OIChHUElP
-KScuLi4gICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSVRFIElUODIwMVIvSVQ4MjAz
-Ui9JVDgyMDZSL0lUODI2NlInLi4uICAgICAgICBObw0KQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3Mg
-MHg0Zg0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03NScuLi4gICAgICAg
-ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzVBJy4u
-LiAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRGFsbGFzIFNlbWljb25kdWN0b3IgRFM3
-NScuLi4gICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NDInLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBUZXhhcyBJbnN0
-cnVtZW50cyBUTVA0MjEnLi4uICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4
-YXMgSW5zdHJ1bWVudHMgVE1QNDIyJy4uLiAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
-b3IgYE1heGltIE1BWDY2MzMvTUFYNjYzNC9NQVg2NjM1Jy4uLiAgICAgICAgICAgICAgTm8NClBy
-b2JpbmcgZm9yIGBOWFAvUGhpbGlwcyBTQTU2MDA0Jy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-IE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDUwDQpQcm9iaW5nIGZvciBgQW5hbG9nIERl
-dmljZXMgQURNMTAzMycuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFu
-YWxvZyBEZXZpY2VzIEFETTEwMzQnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jpbmcg
-Zm9yIGBTUEQgRUVQUk9NJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQ
-cm9iaW5nIGZvciBgRURJRCBFRVBST00nLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBZZXMNCiAgICAoY29uZmlkZW5jZSA4LCBub3QgYSBoYXJkd2FyZSBtb25pdG9yaW5nIGNoaXAp
-DQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDUxDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmlj
-ZXMgQURNMTAzMycuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxv
-ZyBEZXZpY2VzIEFETTEwMzQnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
-IGBTUEQgRUVQUk9NJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGll
-bnQgZm91bmQgYXQgYWRkcmVzcyAweDUyDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURN
-MTAzMycuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZp
-Y2VzIEFETTEwMzQnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTUEQg
-RUVQUk9NJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91
-bmQgYXQgYWRkcmVzcyAweDUzDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAzMycu
-Li4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFE
-TTEwMzQnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTUEQgRUVQUk9N
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQg
-YWRkcmVzcyAweDU4DQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ2MicuLi4gICAg
-ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuZGlnaWxvZyBhU0M3NTEyJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4NWMN
-ClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDYyJy4uLiAgICAgICAgICAgICAgICAg
-ICAgIE5vDQpQcm9iaW5nIGZvciBgU01TQyBFTUMxMDcyJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DMTA3MycuLi4gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBTTVNDIEVNQzEwNzQnLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDcz
-DQpQcm9iaW5nIGZvciBgRlNDIFBvc2VpZG9uIEknLi4uICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBObw0KUHJvYmluZyBmb3IgYEZTQyBQb3NlaWRvbiBJSScuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBGU0MgU2N5bGxhJy4uLiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRlNDIEhlcm1lcycuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEZTQyBIZWltZGFsJy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBGU0MgSGVy
-YWNsZXMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
-RlNDIEhhZGVzJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmlu
-ZyBmb3IgYEZTQyBTeWxldXMnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
-CkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4NzcNClByb2JpbmcgZm9yIGBBc3VzIE1vemFydC0y
-Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQoNCg0KDQpOZXh0IGFkYXB0ZXI6
-IERQRERDLUMgKGkyYy03KQ0KRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFlFUy9uby9zZWxlY3Rp
-dmVseSk6IHkNCg0KTmV4dCBhZGFwdGVyOiBEUEREQy1EIChpMmMtOCkNCkRvIHlvdSB3YW50IHRv
-IHNjYW4gaXQ/IChZRVMvbm8vc2VsZWN0aXZlbHkpOiB5DQoNCk5vdyBmb2xsb3dzIGEgc3VtbWFy
-eSBvZiB0aGUgcHJvYmVzIEkgaGF2ZSBqdXN0IGRvbmUuDQpKdXN0IHByZXNzIEVOVEVSIHRvIGNv
-bnRpbnVlOg0KDQpEcml2ZXIgYGNvcmV0ZW1wJzoNCiAgKiBDaGlwIGBJbnRlbCBkaWdpdGFsIHRo
-ZXJtYWwgc2Vuc29yJyAoY29uZmlkZW5jZTogOSkNCg0KRG8geW91IHdhbnQgdG8gb3ZlcndyaXRl
-IC9ldGMvc3lzY29uZmlnL2xtX3NlbnNvcnM/IChZRVMvbm8pOiB5DQpDb3B5IHByb2cvaW5pdC9s
-bV9zZW5zb3JzLmluaXQgdG8gL2V0Yy9pbml0LmQvbG1fc2Vuc29ycw0KZm9yIGluaXRpYWxpemF0
-aW9uIGF0IGJvb3QgdGltZS4NCllvdSBzaG91bGQgbm93IHN0YXJ0IHRoZSBsbV9zZW5zb3JzIHNl
-cnZpY2UgdG8gbG9hZCB0aGUgcmVxdWlyZWQNCmtlcm5lbCBtb2R1bGVzLg0KDQpVbmxvYWRpbmcg
-aTJjLWRldi4uLiBPSw0KVW5sb2FkaW5nIGkyYy1pODAxLi4uIE9LDQpVbmxvYWRpbmcgY3B1aWQu
-Li4gT0sNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KDQojIHB3bWNv
-bmZpZyByZXZpc2lvbiA2MTY2ICgyMDEzLTA1LTAxKQ0KVGhpcyBwcm9ncmFtIHdpbGwgc2VhcmNo
-IHlvdXIgc2Vuc29ycyBmb3IgcHVsc2Ugd2lkdGggbW9kdWxhdGlvbiAocHdtKQ0KY29udHJvbHMs
-IGFuZCB0ZXN0IGVhY2ggb25lIHRvIHNlZSBpZiBpdCBjb250cm9scyBhIGZhbiBvbg0KeW91ciBt
-b3RoZXJib2FyZC4gTm90ZSB0aGF0IG1hbnkgbW90aGVyYm9hcmRzIGRvIG5vdCBoYXZlIHB3bQ0K
-Y2lyY3VpdHJ5IGluc3RhbGxlZCwgZXZlbiBpZiB5b3VyIHNlbnNvciBjaGlwIHN1cHBvcnRzIHB3
-bS4NCg0KV2Ugd2lsbCBhdHRlbXB0IHRvIGJyaWVmbHkgc3RvcCBlYWNoIGZhbiB1c2luZyB0aGUg
-cHdtIGNvbnRyb2xzLg0KVGhlIHByb2dyYW0gd2lsbCBhdHRlbXB0IHRvIHJlc3RvcmUgZWFjaCBm
-YW4gdG8gZnVsbCBzcGVlZA0KYWZ0ZXIgdGVzdGluZy4gSG93ZXZlciwgaXQgaXMgKiogdmVyeSBp
-bXBvcnRhbnQgKiogdGhhdCB5b3UNCnBoeXNpY2FsbHkgdmVyaWZ5IHRoYXQgdGhlIGZhbnMgaGF2
-ZSBiZWVuIHRvIGZ1bGwgc3BlZWQNCmFmdGVyIHRoZSBwcm9ncmFtIGhhcyBjb21wbGV0ZWQuDQoN
-Ci91c3IvbG9jYWwvc2Jpbi9wd21jb25maWc6IFRoZXJlIGFyZSBubyBwd20tY2FwYWJsZSBzZW5z
-b3IgbW9kdWxlcyBpbnN0YWxsZWQNCg0KDQogICAgICA=
---001a11c24df6dce94604eae9b9a0
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---001a11c24df6dce94604eae9b9a0--
