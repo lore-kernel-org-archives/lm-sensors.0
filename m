@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 Nov 2013 21:22:22 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 11 Nov 2013 22:00:26 +0000
 Subject: Re: [lm-sensors] Nuvoton NCT6791D support
-Message-Id: <20131111222222.01c284e2@endymion.delvare>
+Message-Id: <20131111220026.GA31323@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
 In-Reply-To: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, 11 Nov 2013 12:32:24 -0800, p. stephen w wrote:
+On Mon, Nov 11, 2013 at 12:32:24PM -0800, p. stephen w wrote:
 > that worked.
 >=20
 > I have configured the pwmconfig file, but its not affecting the fans.  I
@@ -34,16 +34,18 @@ e?
 > MINSTOP=3Dhwmon3/device/pwm2@ hwmon3/device/pwm1=140
 > MINPWM=3Dhwmon3/device/pwm2E hwmon3/device/pwm1=150
 > MAXPWM=3Dhwmon3/device/pwm2%5 hwmon3/device/pwm1%5
+>=20
+Can you send the output of "grep . /sys/class/hwmon/hwmon3/device/*" ?
 
-Do you have the fancontrol daemon running?
+Reason for asking is that the NCT chips are pretty good with automatic fan
+control. It should not be necessary to run manual (or script based) fan con=
+trol
+at all, unless you need to use a temperature which is not available to the =
+chip.
+The CPU temperature is usually available.
 
-# ps -ef | grep fancontrol
-
-I don't know how your distribution integrates is, you may have to
-enable some service for it to start at boot time.
-
---=20
-Jean Delvare
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
