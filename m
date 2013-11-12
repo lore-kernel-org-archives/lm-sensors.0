@@ -1,52 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 09 Nov 2013 17:51:08 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: (coretemp) Add PCI device ID for CE41x0 CPUs
-Message-Id: <1384019469-18666-2-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:18 +0000
+Subject: [lm-sensors] [PATCHv5 16/20] arm: dts: add omap5 thermal data
+Message-Id: <1384285582-16933-17-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Fenghua Yu <fenghua.yu@intel.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Since we now have to use PCI IDs to detect CPU types anyway, use this mechanism
-to detect CE41x0 CPUs. Advantage is that it only requires a single entry and
-covers all variants of CE41x0, including those unknown to us.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/coretemp.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 5c8ab25..cde4e47 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -197,6 +197,7 @@ struct tjmax_pci {
- };
- 
- static const struct tjmax_pci tjmax_pci_table[] __cpuinitconst = {
-+	{ 0x0708, 110000 },	/* CE41x0 (Sodaville ) */
- 	{ 0x0c72, 102000 },	/* Atom S1240 (Centerton) */
- 	{ 0x0c73, 95000 },	/* Atom S1220 (Centerton) */
- 	{ 0x0c75, 95000 },	/* Atom S1260 (Centerton) */
-@@ -210,9 +211,6 @@ struct tjmax {
- static const struct tjmax tjmax_table[] = {
- 	{ "CPU  230", 100000 },		/* Model 0x1c, stepping 2	*/
- 	{ "CPU  330", 125000 },		/* Model 0x1c, stepping 2	*/
--	{ "CPU CE4110", 110000 },	/* Model 0x1c, stepping 10 Sodaville */
--	{ "CPU CE4150", 110000 },	/* Model 0x1c, stepping 10	*/
--	{ "CPU CE4170", 110000 },	/* Model 0x1c, stepping 10	*/
- };
- 
- struct tjmax_model {
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA1IHRvIGNvbnRhaW4KdGhl
+IHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xpbmcg
+d2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMuIFRoZQpzeXN0ZW0gd2lsbCBkbyBh
+IHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1QyB3aGVuZXZlcgphbnkgb2YgaXRzIHNlbnNvcnMgc2Vl
+cyB0aGlzIGxldmVsLgoKQ2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5j
+b20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcg
+PHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0u
+Y29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4g
+V2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1w
+YmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVr
+PgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJu
+ZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4
+LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8
+ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRz
+aSB8IDEyICsrKysrKysrKystLQogMSBmaWxlIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDIg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaSBi
+L2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKaW5kZXggN2NkZWExYi4uMTg3Y2I3MSAxMDA2
+NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQorKysgYi9hcmNoL2FybS9ib290
+L2R0cy9vbWFwNS5kdHNpCkBAIC0zMyw3ICszMyw3IEBACiAJCSNhZGRyZXNzLWNlbGxzID0gPDE+
+OwogCQkjc2l6ZS1jZWxscyA9IDwwPjsKIAotCQljcHVAMCB7CisJCWNwdTA6IGNwdUAwIHsKIAkJ
+CWRldmljZV90eXBlID0gImNwdSI7CiAJCQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsK
+IAkJCXJlZyA9IDwweDA+OwpAQCAtNDUsNiArNDUsMTIgQEAKIAkJfTsKIAl9OwogCisJdGhlcm1h
+bC16b25lcyB7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNpIgorCQkjaW5jbHVk
+ZSAib21hcDUtZ3B1LXRoZXJtYWwuZHRzaSIKKwkJI2luY2x1ZGUgIm9tYXA1LWNvcmUtdGhlcm1h
+bC5kdHNpIgorCX07CisKIAl0aW1lciB7CiAJCWNvbXBhdGlibGUgPSAiYXJtLGFybXY3LXRpbWVy
+IjsKIAkJLyogUFBJIHNlY3VyZS9ub25zZWN1cmUgSVJRICovCkBAIC03MDUsMTMgKzcxMSwxNSBA
+QAogCQkJfTsKIAkJfTsKIAotCQliYW5kZ2FwQDRhMDAyMWUwIHsKKwkJYmFuZGdhcDogYmFuZGdh
+cEA0YTAwMjFlMCB7CiAJCQlyZWcgPSA8MHg0YTAwMjFlMCAweGMKIAkJCSAgICAgICAweDRhMDAy
+MzJjIDB4YwogCQkJICAgICAgIDB4NGEwMDIzODAgMHgyYwogCQkJICAgICAgIDB4NGEwMDIzQzAg
+MHgzYz47CiAJCQlpbnRlcnJ1cHRzID0gPEdJQ19TUEkgMTI2IElSUV9UWVBFX0xFVkVMX0hJR0g+
+OwogCQkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNTQzMC1iYW5kZ2FwIjsKKworCQkJI3RoZXJtYWwt
+c2Vuc29yLWNlbGxzID0gPDE+OwogCQl9OwogCX07CiB9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
+NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
