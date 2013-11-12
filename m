@@ -1,162 +1,92 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Nov 2013 19:03:20 +0000
-Subject: [lm-sensors] [PATCH 4/5] compal-laptop: Use devm_hwmon_device_register_with_groups
-Message-Id: <1385233401-21517-5-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:02 +0000
+Subject: [lm-sensors] [PATCHv5 00/20] device thermal limits represented in device tree nodes (v5)
+Message-Id: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-Simplify the code and create hwmon attributes as well as hwmon device in one go.
+Hello all,
 
-With the new hwmon API, hwmon attributes are now attached to the hwmon device.
-Therefore, split hwmon and device attributes into two separate groups.
-Platform attributes are still attached to the platform device.
+Here is v5 of the work of representing hardware thermal properties
+in device tree infrastructure. Previous versions can be
+found here:
+V4: https://lkml.org/lkml/2013/9/26/787
+V3: https://lkml.org/lkml/2013/9/15/122
+RFCv2: http://lkml.org/lkml/2013/8/23/594
+RFCv1: http://lkml.org/lkml/2013/7/22/319
 
-Also use devm_kzalloc to allocate local data structures for further
-simplification.
+The differences from V4 of this series are pretty minor. Here is a shortlog:
+1. Rephrased couple of sentences and improved description of a couple of properties.
+2. Removed the macro constants for trip type from the binding header file.
+3. Due to (3), patches 09/14/15 were adapted to use plain string constants
+4. As per suggestion by Nishanth M. I also included in this series two
+patches to move TI bandgap nodes to belong under OCP.
+5. I volunteered to maintain the thermal binding, so added that to MAINTAINERS.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/platform/x86/compal-laptop.c |   52 +++++++++++++++-------------------
- 1 file changed, 23 insertions(+), 29 deletions(-)
+This specific series has been tested on OMAP4430, OMAP4460, OMAP5432 and DRA7.
 
-diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
-index 9deb035..7297df2 100644
---- a/drivers/platform/x86/compal-laptop.c
-+++ b/drivers/platform/x86/compal-laptop.c
-@@ -173,8 +173,7 @@
- /* ==== */
- struct compal_data{
- 	/* Fan control */
--	struct device *hwmon_dev;
--	int pwm_enable; /* 0:full on, 1:set by pwm1, 2:control by moterboard */
-+	int pwm_enable; /* 0:full on, 1:set by pwm1, 2:control by motherboard */
- 	unsigned char curr_pwm;
- 
- 	/* Power supply */
-@@ -402,15 +401,6 @@ SIMPLE_MASKED_STORE_SHOW(wake_up_wlan,	WAKE_UP_ADDR, WAKE_UP_WLAN)
- SIMPLE_MASKED_STORE_SHOW(wake_up_key,	WAKE_UP_ADDR, WAKE_UP_KEY)
- SIMPLE_MASKED_STORE_SHOW(wake_up_mouse,	WAKE_UP_ADDR, WAKE_UP_MOUSE)
- 
--
--/* General hwmon interface */
--static ssize_t hwmon_name_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "%s\n", DRIVER_NAME);
--}
--
--
- /* Fan control interface */
- static ssize_t pwm_enable_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
-@@ -665,7 +655,6 @@ static DEVICE_ATTR(wake_up_key,
- static DEVICE_ATTR(wake_up_mouse,
- 		0644, wake_up_mouse_show,	wake_up_mouse_store);
- 
--static DEVICE_ATTR(name,        S_IRUGO, hwmon_name_show,   NULL);
- static DEVICE_ATTR(fan1_input,  S_IRUGO, fan_show,          NULL);
- static DEVICE_ATTR(temp1_input, S_IRUGO, temp_cpu,          NULL);
- static DEVICE_ATTR(temp2_input, S_IRUGO, temp_cpu_local,    NULL);
-@@ -683,16 +672,20 @@ static DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, pwm_show, pwm_store);
- static DEVICE_ATTR(pwm1_enable,
- 		   S_IRUGO | S_IWUSR, pwm_enable_show, pwm_enable_store);
- 
--static struct attribute *compal_attributes[] = {
-+static struct attribute *compal_platform_attrs[] = {
- 	&dev_attr_wake_up_pme.attr,
- 	&dev_attr_wake_up_modem.attr,
- 	&dev_attr_wake_up_lan.attr,
- 	&dev_attr_wake_up_wlan.attr,
- 	&dev_attr_wake_up_key.attr,
- 	&dev_attr_wake_up_mouse.attr,
--	/* Maybe put the sensor-stuff in a separate hwmon-driver? That way,
--	 * the hwmon sysfs won't be cluttered with the above files. */
--	&dev_attr_name.attr,
-+	NULL
-+};
-+static struct attribute_group compal_platform_attr_group = {
-+	.attrs = compal_platform_attrs
-+};
-+
-+static struct attribute *compal_hwmon_attrs[] = {
- 	&dev_attr_pwm1_enable.attr,
- 	&dev_attr_pwm1.attr,
- 	&dev_attr_fan1_input.attr,
-@@ -710,10 +703,7 @@ static struct attribute *compal_attributes[] = {
- 	&dev_attr_temp6_label.attr,
- 	NULL
- };
--
--static struct attribute_group compal_attribute_group = {
--	.attrs = compal_attributes
--};
-+ATTRIBUTE_GROUPS(compal_hwmon);
- 
- static int compal_probe(struct platform_device *);
- static int compal_remove(struct platform_device *);
-@@ -1021,6 +1011,7 @@ static int compal_probe(struct platform_device *pdev)
- {
- 	int err;
- 	struct compal_data *data;
-+	struct device *hwmon_dev;
- 
- 	if (!extra_features)
- 		return 0;
-@@ -1032,16 +1023,16 @@ static int compal_probe(struct platform_device *pdev)
- 
- 	initialize_fan_control_data(data);
- 
--	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group);
-+	err = sysfs_create_group(&pdev->dev.kobj, &compal_platform_attr_group);
- 	if (err)
- 		return err;
- 
--	data->hwmon_dev = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		sysfs_remove_group(&pdev->dev.kobj,
--				&compal_attribute_group);
--		return err;
-+	hwmon_dev = hwmon_device_register_with_groups(&pdev->dev,
-+						      DRIVER_NAME, data,
-+						      compal_hwmon_groups);
-+	if (IS_ERR(hwmon_dev)) {
-+		err = PTR_ERR(hwmon_dev);
-+		goto remove;
- 	}
- 
- 	/* Power supply */
-@@ -1051,6 +1042,10 @@ static int compal_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, data);
- 
- 	return 0;
-+
-+remove:
-+	sysfs_remove_group(&pdev->dev.kobj, &compal_platform_attr_group);
-+	return err;
- }
- 
- static void __exit compal_cleanup(void)
-@@ -1077,10 +1072,9 @@ static int compal_remove(struct platform_device *pdev)
- 	pwm_disable_control();
- 
- 	data = platform_get_drvdata(pdev);
--	hwmon_device_unregister(data->hwmon_dev);
- 	power_supply_unregister(&data->psy);
- 
--	sysfs_remove_group(&pdev->dev.kobj, &compal_attribute_group);
-+	sysfs_remove_group(&pdev->dev.kobj, &compal_platform_attr_group);
- 
- 	return 0;
- }
+All best,
+
+Eduardo Valentin (20):
+  thermal: allow registering without .get_temp
+  thermal: introduce device tree parser
+  thermal: core: introduce thermal_of_cooling_device_register
+  thermal: cpu_cooling: introduce of_cpufreq_cooling_register
+  cpufreq: cpufreq-cpu0: add dt node parsing for cooling device
+    properties
+  hwmon: lm75: expose to thermal fw via DT nodes
+  hwmon: tmp102: expose to thermal fw via DT nodes
+  thermal: ti-soc-thermal: use thermal DT infrastructure
+  arm: dts: add omap4 CPU thermal data
+  arm: dts: add omap4430 thermal data
+  arm: dts: add omap4460 thermal data
+  arm: dts: add cooling properties on omap4430 cpu node
+  arm: dts: add cooling properties on omap4460 cpu node
+  arm: dts: add omap5 GPU thermal data
+  arm: dts: add omap5 CORE thermal data
+  arm: dts: add omap5 thermal data
+  arm: dts: add cooling properties on omap5 cpu node
+  arm: dts: make OMAP443x bandgap node to belong to OCP
+  arm: dts: make OMAP4460 bandgap node to belong to OCP
+  MAINTAINERS: add maintainer entry for thermal bindings
+
+ .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |   7 +
+ .../devicetree/bindings/thermal/thermal.txt        | 586 ++++++++++++++
+ MAINTAINERS                                        |   1 +
+ arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  41 +
+ arch/arm/boot/dts/omap443x.dtsi                    |  23 +-
+ arch/arm/boot/dts/omap4460.dtsi                    |  29 +-
+ arch/arm/boot/dts/omap5-core-thermal.dtsi          |  28 +
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi           |  28 +
+ arch/arm/boot/dts/omap5.dtsi                       |  15 +-
+ drivers/cpufreq/Kconfig                            |   2 +-
+ drivers/cpufreq/cpufreq-cpu0.c                     |  16 +
+ drivers/hwmon/lm75.c                               |  35 +-
+ drivers/hwmon/tmp102.c                             |  19 +
+ drivers/thermal/Kconfig                            |  14 +
+ drivers/thermal/Makefile                           |   1 +
+ drivers/thermal/cpu_cooling.c                      |  56 +-
+ drivers/thermal/of-thermal.c                       | 849 +++++++++++++++++++++
+ drivers/thermal/thermal_core.c                     |  77 +-
+ drivers/thermal/thermal_core.h                     |   9 +
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  77 +-
+ include/dt-bindings/thermal/thermal.h              |  17 +
+ include/linux/cpu_cooling.h                        |  25 +
+ include/linux/thermal.h                            |  32 +-
+ 23 files changed, 1936 insertions(+), 51 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/thermal.txt
+ create mode 100644 arch/arm/boot/dts/omap4-cpu-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+ create mode 100644 drivers/thermal/of-thermal.c
+ create mode 100644 include/dt-bindings/thermal/thermal.h
+
 -- 
-1.7.9.7
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
