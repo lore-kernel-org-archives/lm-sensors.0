@@ -1,98 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 09 Nov 2013 17:51:07 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (coretemp) Use PCI host bridge ID to identify CPU if necessary
-Message-Id: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:15 +0000
+Subject: [lm-sensors] [PATCHv5 13/20] arm: dts: add cooling properties on omap4460 cpu node
+Message-Id: <1384285582-16933-14-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Fenghua Yu <fenghua.yu@intel.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Atom S12x0 CPUs are identified by the CPU host bridge ID. Add an override
-table based on PCI IDs as well as code to detect it.
-
-PCI access functions can now be called with PCI disabled, so unlike previous
-attempts to use PCI IDs, the code no longer depends on it. If PCI is disabled,
-the CPU will not be identified correctly. Since it is unlikely that anything
-will work in this case, this is an acceptable limitation.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/coretemp.c |   33 ++++++++++++++++++++++++++++++---
- 1 file changed, 30 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 78be661..5c8ab25 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -36,6 +36,7 @@
- #include <linux/cpu.h>
- #include <linux/smp.h>
- #include <linux/moduleparam.h>
-+#include <linux/pci.h>
- #include <asm/msr.h>
- #include <asm/processor.h>
- #include <asm/cpu_device_id.h>
-@@ -190,6 +191,17 @@ static ssize_t show_temp(struct device *dev,
- 	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
- }
- 
-+struct tjmax_pci {
-+	unsigned int device;
-+	int tjmax;
-+};
-+
-+static const struct tjmax_pci tjmax_pci_table[] __cpuinitconst = {
-+	{ 0x0c72, 102000 },	/* Atom S1240 (Centerton) */
-+	{ 0x0c73, 95000 },	/* Atom S1220 (Centerton) */
-+	{ 0x0c75, 95000 },	/* Atom S1260 (Centerton) */
-+};
-+
- struct tjmax {
- 	char const *id;
- 	int tjmax;
-@@ -222,8 +234,11 @@ static const struct tjmax_model tjmax_model_table[] = {
- 				 * is undetectable by software
- 				 */
- 	{ 0x27, ANY, 90000 },	/* Atom Medfield (Z2460) */
--	{ 0x35, ANY, 90000 },	/* Atom Clover Trail/Cloverview (Z2760) */
--	{ 0x36, ANY, 100000 },	/* Atom Cedar Trail/Cedarview (N2xxx, D2xxx) */
-+	{ 0x35, ANY, 90000 },	/* Atom Clover Trail/Cloverview (Z27x0) */
-+	{ 0x36, ANY, 100000 },	/* Atom Cedar Trail/Cedarview (N2xxx, D2xxx)
-+				 * Also matches S12x0 (stepping 9), covered by
-+				 * PCI table
-+				 */
- };
- 
- static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
-@@ -236,8 +251,20 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
- 	int err;
- 	u32 eax, edx;
- 	int i;
-+	struct pci_dev *host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
-+
-+	/*
-+	 * Explicit tjmax table entries override heuristics.
-+	 * First try PCI host bridge IDs, followed by model ID strings
-+	 * and model/stepping information.
-+	 */
-+	if (host_bridge && host_bridge->vendor = PCI_VENDOR_ID_INTEL) {
-+		for (i = 0; i < ARRAY_SIZE(tjmax_pci_table); i++) {
-+			if (host_bridge->device = tjmax_pci_table[i].device)
-+				return tjmax_pci_table[i].tjmax;
-+		}
-+	}
- 
--	/* explicit tjmax table entries override heuristics */
- 	for (i = 0; i < ARRAY_SIZE(tjmax_table); i++) {
- 		if (strstr(c->x86_model_id, tjmax_table[i].id))
- 			return tjmax_table[i].tjmax;
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T01BUDQ0NjAgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVl
+ZHMgdG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhp
+cyBwYXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRo
+YXQgY3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJl
+bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5j
+b20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQg
+PG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90
+b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBS
+dXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIu
+a2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
+ZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNv
+bT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpIHwgNSArKysrKwogMSBmaWxl
+IGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRz
+L29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCmluZGV4IDRk
+OTNhYmEuLmRjMjI3MTkgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0
+c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQpAQCAtMjAsNiArMjAsMTEg
+QEAKIAkJCQk5MjAwMDAgIDEzMTMwMDAKIAkJCT47CiAJCQljbG9jay1sYXRlbmN5ID0gPDMwMDAw
+MD47IC8qIEZyb20gbGVnYWN5IGRyaXZlciAqLworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8K
+KwkJCWNvb2xpbmctbWluLWxldmVsID0gPDA+OworCQkJY29vbGluZy1tYXgtbGV2ZWwgPSA8Mj47
+CisJCQkjY29vbGluZy1jZWxscyA9IDwyPjsgLyogbWluIGZvbGxvd2VkIGJ5IG1heCAqLwogCQl9
+OwogCX07CiAKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
+c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9sbS1zZW5zb3Jz
