@@ -1,29 +1,47 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Tue, 05 Nov 2013 23:35:58 +0000
-Subject: Re: [lm-sensors] Patching driver for it8603e chip
-Message-Id: <527980DE.8020403@assembler.cz>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:22 +0000
+Subject: [lm-sensors] [PATCHv5 20/20] MAINTAINERS: add maintainer entry for thermal bindings
+Message-Id: <1384285582-16933-21-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5274CACD.60600@fastwebnet.it>
-In-Reply-To: <5274CACD.60600@fastwebnet.it>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>
 
-On 5.11.2013 16:01, Jean Delvare wrote:
-> Hi Rudolf,
->
-> It's a very long time since we last heard, I hope you're doing well :)
+After discussion and agreement of thermal device tree bindings,
+it is desirable to properly maintain thermal bindings for
+existing and upcoming devices.
 
-Yes, I was active in coreboot.org project, but my time for it is also limited. 
-On the other hand I admire your discipline in the lm-sensors project. It has 
-been so many years and you are still taking care of it!
+As original author of thermal device tree bindings, I am
+volunteering to maintain them.
 
-Thank you for that!
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-Thanks
-Rudolf
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3438384..94bfc46 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6178,6 +6178,7 @@ M:	Pawel Moll <pawel.moll@arm.com>
+ M:	Mark Rutland <mark.rutland@arm.com>
+ M:	Stephen Warren <swarren@wwwdotorg.org>
+ M:	Ian Campbell <ijc+devicetree@hellion.org.uk>
++M:	Eduardo Valentin <eduardo.valentin@ti.com>
+ L:	devicetree@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/devicetree/
+-- 
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
