@@ -1,134 +1,45 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Nov 2013 19:03:21 +0000
-Subject: [lm-sensors] [PATCH 5/5] eeepc-laptop: Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1385233401-21517-6-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:13 +0000
+Subject: [lm-sensors] [PATCHv5 11/20] arm: dts: add omap4460 thermal data
+Message-Id: <1384285582-16933-12-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Simplify the code and avoid race condition caused by creating sysfs attributes
-after creating the hwmon device.
-
-Also replace SENSOR_DEVICE_ATTR with DEVICE_ATTR since the extra argument
-is not used and SENSOR_DEVICE_ATTR is not needed.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/platform/x86/eeepc-laptop.c |   52 +++++++----------------------------
- 1 file changed, 10 insertions(+), 42 deletions(-)
-
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index aefcc32..c15d339 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -166,7 +166,6 @@ struct eeepc_laptop {
- 
- 	struct platform_device *platform_device;
- 	struct acpi_device *device;		/* the device we are in */
--	struct device *hwmon_device;
- 	struct backlight_device *backlight_device;
- 
- 	struct input_dev *inputdev;
-@@ -1067,7 +1066,7 @@ static ssize_t show_sys_hwmon(int (*get)(void), char *buf)
- 	{								\
- 		return store_sys_hwmon(_get, buf, count);		\
- 	}								\
--	static SENSOR_DEVICE_ATTR(_name, _mode, show_##_name, store_##_name, 0);
-+	static DEVICE_ATTR(_name, _mode, show_##_name, store_##_name);
- 
- EEEPC_CREATE_SENSOR_ATTR(fan1_input, S_IRUGO, eeepc_get_fan_rpm, NULL);
- EEEPC_CREATE_SENSOR_ATTR(pwm1, S_IRUGO | S_IWUSR,
-@@ -1075,55 +1074,26 @@ EEEPC_CREATE_SENSOR_ATTR(pwm1, S_IRUGO | S_IWUSR,
- EEEPC_CREATE_SENSOR_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
- 			 eeepc_get_fan_ctrl, eeepc_set_fan_ctrl);
- 
--static ssize_t
--show_name(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "eeepc\n");
--}
--static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
--
--static struct attribute *hwmon_attributes[] = {
--	&sensor_dev_attr_pwm1.dev_attr.attr,
--	&sensor_dev_attr_fan1_input.dev_attr.attr,
--	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
--	&sensor_dev_attr_name.dev_attr.attr,
-+static struct attribute *hwmon_attrs[] = {
-+	&dev_attr_pwm1.attr,
-+	&dev_attr_fan1_input.attr,
-+	&dev_attr_pwm1_enable.attr,
- 	NULL
- };
--
--static struct attribute_group hwmon_attribute_group = {
--	.attrs = hwmon_attributes
--};
--
--static void eeepc_hwmon_exit(struct eeepc_laptop *eeepc)
--{
--	struct device *hwmon;
--
--	hwmon = eeepc->hwmon_device;
--	if (!hwmon)
--		return;
--	sysfs_remove_group(&hwmon->kobj,
--			   &hwmon_attribute_group);
--	hwmon_device_unregister(hwmon);
--	eeepc->hwmon_device = NULL;
--}
-+ATTRIBUTE_GROUPS(hwmon);
- 
- static int eeepc_hwmon_init(struct eeepc_laptop *eeepc)
- {
-+	struct device *dev = &eeepc->platform_device->dev;
- 	struct device *hwmon;
--	int result;
- 
--	hwmon = hwmon_device_register(&eeepc->platform_device->dev);
-+	hwmon = devm_hwmon_device_register_with_groups(dev, "eeepc", NULL,
-+						       hwmon_groups);
- 	if (IS_ERR(hwmon)) {
- 		pr_err("Could not register eeepc hwmon device\n");
--		eeepc->hwmon_device = NULL;
- 		return PTR_ERR(hwmon);
- 	}
--	eeepc->hwmon_device = hwmon;
--	result = sysfs_create_group(&hwmon->kobj,
--				    &hwmon_attribute_group);
--	if (result)
--		eeepc_hwmon_exit(eeepc);
--	return result;
-+	return 0;
- }
- 
- /*
-@@ -1481,7 +1451,6 @@ static int eeepc_acpi_add(struct acpi_device *device)
- fail_rfkill:
- 	eeepc_led_exit(eeepc);
- fail_led:
--	eeepc_hwmon_exit(eeepc);
- fail_hwmon:
- 	eeepc_input_exit(eeepc);
- fail_input:
-@@ -1501,7 +1470,6 @@ static int eeepc_acpi_remove(struct acpi_device *device)
- 	eeepc_backlight_exit(eeepc);
- 	eeepc_rfkill_exit(eeepc);
- 	eeepc_input_exit(eeepc);
--	eeepc_hwmon_exit(eeepc);
- 	eeepc_led_exit(eeepc);
- 	eeepc_platform_exit(eeepc);
- 
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDYwIHRvIGNvbnRhaW4K
+dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
+bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
+bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
+YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
+bT4KQ2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1v
+bGwgPHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFy
+bS5jb20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFu
+IENhbXBiZWxsIDxpYW4uY2FtcGJlbGxAY2l0cml4LmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGlu
+dXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBk
+ZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
+YWRlYWQub3JnCkNjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6
+IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgfCAxMCArKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwg
+OCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jv
+b3QvZHRzL29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCmlu
+ZGV4IGMyZjBmMzkuLjRkOTNhYmEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
+NDYwLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQpAQCAtMTIsNyAr
+MTIsNyBAQAogLyB7CiAJY3B1cyB7CiAJCS8qIE9NQVA0NDZ4ICdzdGFuZGFyZCBkZXZpY2UnIHZh
+cmlhbnRzIE9QUDUwIHRvIE9QUFR1cmJvICovCi0JCWNwdUAwIHsKKwkJY3B1MDogY3B1QDAgewog
+CQkJb3BlcmF0aW5nLXBvaW50cyA9IDwKIAkJCQkvKiBrSHogICAgdVYgKi8KIAkJCQkzNTAwMDAg
+IDEwMjUwMDAKQEAgLTMwLDEyICszMCwxOCBAQAogCQl0aSxod21vZHMgPSAiZGVidWdzcyI7CiAJ
+fTsKIAotCWJhbmRnYXAgeworCXRoZXJtYWwtem9uZXN7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUt
+dGhlcm1hbC5kdHNpIgorCX07CisKKwliYW5kZ2FwOiBiYW5kZ2FwIHsKIAkJcmVnID0gPDB4NGEw
+MDIyNjAgMHg0CiAJCSAgICAgICAweDRhMDAyMzJDIDB4NAogCQkgICAgICAgMHg0YTAwMjM3OCAw
+eDE4PjsKIAkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKIAkJaW50ZXJydXB0
+cyA9IDwwIDEyNiBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogdGFsZXJ0ICovCiAJCWdwaW9zID0g
+PCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KKworCQkjdGhlcm1hbC1zZW5zb3ItY2VsbHMgPSA8
+MD47CiAJfTsKIH07Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
+YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
