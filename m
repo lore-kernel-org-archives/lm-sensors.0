@@ -1,46 +1,52 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Thu, 28 Nov 2013 04:08:15 +0000
-Subject: Re: [lm-sensors] [PATCH v2] Input: ads7846: Convert to hwmon_device_register_with_groups
-Message-Id: <20131128040815.GE15452@core.coreip.homeip.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:16 +0000
+Subject: [lm-sensors] [PATCHv5 14/20] arm: dts: add omap5 GPU thermal data
+Message-Id: <1384285582-16933-15-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385440744-6607-1-git-send-email-linux@roeck-us.net>
- <20131126185846.GB22242@core.coreip.homeip.net>
- <529548CD.7060906@roeck-us.net>
-In-Reply-To: <529548CD.7060906@roeck-us.net>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-input@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 26, 2013 at 05:20:13PM -0800, Guenter Roeck wrote:
-> On 11/26/2013 10:58 AM, Dmitry Torokhov wrote:
-> >Hi Guenter,
-> >
-> >On Mon, Nov 25, 2013 at 08:39:04PM -0800, Guenter Roeck wrote:
-> >>Simplify the code and create mandatory 'name' attribute by using
-> >>new hwmon API.
-> >
-> >So this moves hwmon attributes from the parent i2c device to the hwmon
-> >device, right? Would not that break userspace which expects to find the
-> >attributes where they were?
-> >
-> 
-> In addition to Jean's earlier comments ... s/i2c/spi/, I assume. spi devices
-> don't create the mandatory name attribute automatically, which means
-> that the created hwmon device was not recognized by standard user space
-> applications (eg the sensors command or anything else using libsensors)
-> in the first place. Which in turn means that only applications which don't
-> support the standard hwmon ABI - if there are any - would be affected.
-> What we are more concerned about is to make sure that applications
-> which _do_ follow the hwmon ABI are working.
-
-OK, fair enough, I'll apply this then.
-
--- 
-Dmitry
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgR1BVIGRvbWFpbiBvbiBPTUFQNSBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0aGVybWFsIGRhdGEgY2Fu
+IGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJlbm/DrnQgQ291c3NvbiIg
+PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
+b20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBN
+b2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBh
+cm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElh
+biBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxp
+bnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzog
+ZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5
+OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCkNoYW5nZSBm
+cm9tIHY0OgotIFVzaW5nIHN0cmluZyBjb25zdGFudHMgaW5zdGVhZCBvZiBtYWNyb3Mgb24gdHJp
+cCB0eXBlcwoKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWdwdS10aGVybWFsLmR0c2kgfCAyOCAr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMjggaW5zZXJ0aW9u
+cygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWdwdS10aGVy
+bWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1h
+bC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaQpuZXcgZmls
+ZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi4xYjg3YWNhCi0tLSAvZGV2L251bGwKKysrIGIv
+YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaQpAQCAtMCwwICsxLDI4IEBA
+CisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNTQzeCBTb0MgR1BVIHRoZXJtYWwK
+KyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4YXMgSW5zdHJ1bWVudHMgSW5jb3Jwb3JhdGVk
+IC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250YWN0OiBFZHVhcmRvIFZhbGVudGluIDxlZHVh
+cmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBUaGlzIGZpbGUgaXMgbGljZW5zZWQgdW5kZXIg
+dGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICogdmVyc2lvbiAy
+LiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJhcyBpcyIgd2l0aG91dCBhbnkgd2FycmFudHkg
+b2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJlc3Mgb3IgaW1wbGllZC4KKyAqLworCisjaW5j
+bHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVybWFsLmg+CisKK2dwdV90aGVybWFsOiBncHVf
+dGhlcm1hbCB7CisJcG9sbGluZy1kZWxheS1wYXNzaXZlID0gPDI1MD47IC8qIG1pbGxpc2Vjb25k
+cyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJCQkv
+KiBzZW5zb3IgICAgICAgSUQgKi8KKwl0aGVybWFsLXNlbnNvcnMgPSA8JmJhbmRnYXAgICAgIDE+
+OworCisJdHJpcHMgeworCQlncHVfY3JpdDogZ3B1X2NyaXQgeworCQkJdGVtcGVyYXR1cmUgPSA8
+MTI1MDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBt
+aWxsaUNlbHNpdXMgKi8KKwkJCXR5cGUgPSAiY3JpdGljYWwiOworCQl9OworCX07Cit9OwotLSAK
+MS44LjIuMS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
+cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
+bnNvcnM
