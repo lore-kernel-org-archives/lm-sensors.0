@@ -1,65 +1,94 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Nov 2013 19:03:19 +0000
-Subject: [lm-sensors] [PATCH 3/5] compal-laptop: Use devm_kzalloc to allocate local data structure
-Message-Id: <1385233401-21517-4-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:09 +0000
+Subject: [lm-sensors] [PATCHv5 07/20] hwmon: tmp102: expose to thermal fw via DT nodes
+Message-Id: <1384285582-16933-8-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
 
-Reduce code size and simplify error path.
+This patch adds to tmp102 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the tmp102 DT node. Otherwise, the driver behavior
+will be the same.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/platform/x86/compal-laptop.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/hwmon/tmp102.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
-index 8b119a7..9deb035 100644
---- a/drivers/platform/x86/compal-laptop.c
-+++ b/drivers/platform/x86/compal-laptop.c
-@@ -1026,24 +1026,21 @@ static int compal_probe(struct platform_device *pdev)
- 		return 0;
+diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+index d7b47ab..6748b45 100644
+--- a/drivers/hwmon/tmp102.c
++++ b/drivers/hwmon/tmp102.c
+@@ -27,6 +27,8 @@
+ #include <linux/mutex.h>
+ #include <linux/device.h>
+ #include <linux/jiffies.h>
++#include <linux/thermal.h>
++#include <linux/of.h>
  
- 	/* Fan control */
--	data = kzalloc(sizeof(struct compal_data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(struct compal_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
+ #define	DRIVER_NAME "tmp102"
  
- 	initialize_fan_control_data(data);
+@@ -50,6 +52,7 @@
  
- 	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group);
--	if (err) {
--		kfree(data);
-+	if (err)
- 		return err;
--	}
+ struct tmp102 {
+ 	struct device *hwmon_dev;
++	struct thermal_zone_device *tz;
+ 	struct mutex lock;
+ 	u16 config_orig;
+ 	unsigned long last_update;
+@@ -93,6 +96,15 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
+ 	return tmp102;
+ }
  
- 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		err = PTR_ERR(data->hwmon_dev);
- 		sysfs_remove_group(&pdev->dev.kobj,
- 				&compal_attribute_group);
--		kfree(data);
- 		return err;
++static int tmp102_read_temp(void *dev, long *temp)
++{
++	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
++
++	*temp = tmp102->temp[0];
++
++	return 0;
++}
++
+ static ssize_t tmp102_show_temp(struct device *dev,
+ 				struct device_attribute *attr,
+ 				char *buf)
+@@ -204,6 +216,12 @@ static int tmp102_probe(struct i2c_client *client,
+ 		goto fail_remove_sysfs;
  	}
  
-@@ -1083,8 +1080,6 @@ static int compal_remove(struct platform_device *pdev)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	power_supply_unregister(&data->psy);
- 
--	kfree(data);
--
- 	sysfs_remove_group(&pdev->dev.kobj, &compal_attribute_group);
++	tmp102->tz = thermal_zone_of_sensor_register(&client->dev, 0,
++						     &client->dev,
++						     tmp102_read_temp, NULL);
++	if (IS_ERR(tmp102->tz))
++		tmp102->tz = NULL;
++
+ 	dev_info(&client->dev, "initialized\n");
  
  	return 0;
+@@ -220,6 +238,7 @@ static int tmp102_remove(struct i2c_client *client)
+ {
+ 	struct tmp102 *tmp102 = i2c_get_clientdata(client);
+ 
++	thermal_zone_of_sensor_unregister(&client->dev, tmp102->tz);
+ 	hwmon_device_unregister(tmp102->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
+ 
 -- 
-1.7.9.7
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
