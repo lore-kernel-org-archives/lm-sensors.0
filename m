@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:06 +0000
-Subject: [lm-sensors] [PATCHv5 04/20] thermal: cpu_cooling: introduce of_cpufreq_cooling_register
-Message-Id: <1384285582-16933-5-git-send-email-eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:11 +0000
+Subject: [lm-sensors] [PATCHv5 09/20] arm: dts: add omap4 CPU thermal data
+Message-Id: <1384285582-16933-10-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
@@ -9,185 +9,54 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch introduces an API to register cpufreq cooling device
-based on device tree node.
-
-The registration via device tree node differs from normal
-registration due to the fact that it is needed to fill
-the device_node structure in order to be able to match
-the cooling devices with trip points.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/Kconfig       |  1 +
- drivers/thermal/cpu_cooling.c | 56 ++++++++++++++++++++++++++++++++++++++-----
- include/linux/cpu_cooling.h   | 25 +++++++++++++++++++
- 3 files changed, 76 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 596eeee..754c65d 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -92,6 +92,7 @@ config THERMAL_GOV_USER_SPACE
- config CPU_THERMAL
- 	bool "generic cpu cooling support"
- 	depends on CPU_FREQ
-+	depends on THERMAL_OF
- 	select CPU_FREQ_TABLE
- 	help
- 	  This implements the generic cpu cooling mechanism through frequency
-diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-index 02a46f2..a6cb553 100644
---- a/drivers/thermal/cpu_cooling.c
-+++ b/drivers/thermal/cpu_cooling.c
-@@ -417,18 +417,21 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
- };
- 
- /**
-- * cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * __cpufreq_cooling_register - helper function to create cpufreq cooling device
-+ * @np: a valid struct device_node to the cooling device device tree node
-  * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-  *
-  * This interface function registers the cpufreq cooling device with the name
-  * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-- * cooling devices.
-+ * cooling devices. It also gives the opportunity to link the cooling device
-+ * with a device tree node, in order to bind it via the thermal DT code.
-  *
-  * Return: a valid struct thermal_cooling_device pointer on success,
-  * on failure, it returns a corresponding ERR_PTR().
-  */
--struct thermal_cooling_device *
--cpufreq_cooling_register(const struct cpumask *clip_cpus)
-+static struct thermal_cooling_device *
-+__cpufreq_cooling_register(struct device_node *np,
-+			   const struct cpumask *clip_cpus)
- {
- 	struct thermal_cooling_device *cool_dev;
- 	struct cpufreq_cooling_device *cpufreq_dev = NULL;
-@@ -467,8 +470,8 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
- 	snprintf(dev_name, sizeof(dev_name), "thermal-cpufreq-%d",
- 		 cpufreq_dev->id);
- 
--	cool_dev = thermal_cooling_device_register(dev_name, cpufreq_dev,
--						   &cpufreq_cooling_ops);
-+	cool_dev = thermal_of_cooling_device_register(np, dev_name, cpufreq_dev,
-+						      &cpufreq_cooling_ops);
- 	if (IS_ERR(cool_dev)) {
- 		release_idr(&cpufreq_idr, cpufreq_dev->id);
- 		kfree(cpufreq_dev);
-@@ -488,9 +491,50 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
- 
- 	return cool_dev;
- }
-+
-+/**
-+ * cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-+ *
-+ * This interface function registers the cpufreq cooling device with the name
-+ * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-+ * cooling devices.
-+ *
-+ * Return: a valid struct thermal_cooling_device pointer on success,
-+ * on failure, it returns a corresponding ERR_PTR().
-+ */
-+struct thermal_cooling_device *
-+cpufreq_cooling_register(const struct cpumask *clip_cpus)
-+{
-+	return __cpufreq_cooling_register(NULL, clip_cpus);
-+}
- EXPORT_SYMBOL_GPL(cpufreq_cooling_register);
- 
- /**
-+ * of_cpufreq_cooling_register - function to create cpufreq cooling device.
-+ * @np: a valid struct device_node to the cooling device device tree node
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-+ *
-+ * This interface function registers the cpufreq cooling device with the name
-+ * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-+ * cooling devices. Using this API, the cpufreq cooling device will be
-+ * linked to the device tree node provided.
-+ *
-+ * Return: a valid struct thermal_cooling_device pointer on success,
-+ * on failure, it returns a corresponding ERR_PTR().
-+ */
-+struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	if (!np)
-+		return ERR_PTR(-EINVAL);
-+
-+	return __cpufreq_cooling_register(np, clip_cpus);
-+}
-+EXPORT_SYMBOL_GPL(of_cpufreq_cooling_register);
-+
-+/**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-  * @cdev: thermal cooling device pointer.
-  *
-diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-index a5d52ee..c303d38 100644
---- a/include/linux/cpu_cooling.h
-+++ b/include/linux/cpu_cooling.h
-@@ -24,6 +24,7 @@
- #ifndef __CPU_COOLING_H__
- #define __CPU_COOLING_H__
- 
-+#include <linux/of.h>
- #include <linux/thermal.h>
- #include <linux/cpumask.h>
- 
-@@ -36,6 +37,24 @@ struct thermal_cooling_device *
- cpufreq_cooling_register(const struct cpumask *clip_cpus);
- 
- /**
-+ * of_cpufreq_cooling_register - create cpufreq cooling device based on DT.
-+ * @np: a valid struct device_node to the cooling device device tree node.
-+ * @clip_cpus: cpumask of cpus where the frequency constraints will happen
-+ */
-+#ifdef CONFIG_THERMAL_OF
-+struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus);
-+#else
-+static inline struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	return NULL;
-+}
-+#endif
-+
-+/**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-  * @cdev: thermal cooling device pointer.
-  */
-@@ -48,6 +67,12 @@ cpufreq_cooling_register(const struct cpumask *clip_cpus)
- {
- 	return NULL;
- }
-+static inline struct thermal_cooling_device *
-+of_cpufreq_cooling_register(struct device_node *np,
-+			    const struct cpumask *clip_cpus)
-+{
-+	return NULL;
-+}
- static inline
- void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
- {
--- 
-1.8.2.1.342.gfa7285d
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
+bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
+dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
+QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
+PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
+cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
+bkB0aS5jb20+Ci0tLQpDaGFuZ2UgZnJvbSB2NDoKLSBVc2luZyBzdHJpbmcgY29uc3RhbnRzIGlu
+c3RlYWQgb2YgbWFjcm9zIG9uIHRyaXAgdHlwZXMKCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
+cHUtdGhlcm1hbC5kdHNpIHwgNDEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEg
+ZmlsZSBjaGFuZ2VkLCA0MSBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9h
+cm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
+NC1jcHUtdGhlcm1hbC5kdHNpCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLmNi
+OTQ1OGYKLS0tIC9kZXYvbnVsbAorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhl
+cm1hbC5kdHNpCkBAIC0wLDAgKzEsNDEgQEAKKy8qCisgKiBEZXZpY2UgVHJlZSBTb3VyY2UgZm9y
+IE9NQVA0LzUgU29DIENQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0IChDKSAyMDEzIFRleGFz
+IEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGkuY29tLworICogQ29udGFj
+dDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+CisgKgorICogVGhp
+cyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVi
+bGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBpcyBsaWNlbnNlZCAiYXMg
+aXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwgd2hldGhlciBleHByZXNz
+IG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdzL3RoZXJtYWwvdGhlcm1h
+bC5oPgorCitjcHVfdGhlcm1hbDogY3B1X3RoZXJtYWwgeworCXBvbGxpbmctZGVsYXktcGFzc2l2
+ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlwb2xsaW5nLWRlbGF5ID0gPDEwMDA+OyAv
+KiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29yICAgICAgIElEICovCisgICAgICAgIHRo
+ZXJtYWwtc2Vuc29ycyA9IDwmYmFuZGdhcCAgICAgMD47CisKKyAgICAgICAgdHJpcHMgeworICAg
+ICAgICAgICAgICAgIGNwdV9hbGVydDA6IGNwdV9hbGVydCB7CisgICAgICAgICAgICAgICAgICAg
+ICAgICB0ZW1wZXJhdHVyZSA9IDwxMDAwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAg
+ICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLwor
+ICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9ICJwYXNzaXZlIjsKKyAgICAgICAgICAgICAg
+ICB9OworICAgICAgICAgICAgICAgIGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAg
+ICAgICAgICAgICB0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAg
+ICAgICAgICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1
+cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9ICJjcml0aWNhbCI7CisgICAgICAg
+ICAgICAgICAgfTsKKyAgICAgICAgfTsKKworCWNvb2xpbmctbWFwcyB7CisJCW1hcDAgeworCQkJ
+dHJpcCA9IDwmY3B1X2FsZXJ0MD47CisJCQljb29saW5nLWRldmljZSA9CisJCQkJPCZjcHUwIFRI
+RVJNQUxfTk9fTElNSVQgVEhFUk1BTF9OT19MSU1JVD47CisJCX07CisJfTsKK307Ci0tIAoxLjgu
+Mi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw=
