@@ -1,98 +1,142 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Mon, 04 Nov 2013 10:05:59 +0000
-Subject: Re: [lm-sensors] [PATCH v4 2/3] hwmon: (lm90) add support to handle IRQ
-Message-Id: <52777187.5010202@nvidia.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:07 +0000
+Subject: [lm-sensors] [PATCHv5 05/20] cpufreq: cpufreq-cpu0: add dt node parsing for cooling device propertie
+Message-Id: <1384285582-16933-6-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1375856306-14415-1-git-send-email-wni@nvidia.com>
-	<1375856306-14415-3-git-send-email-wni@nvidia.com>
- <20131104103434.5a085e27@endymion.delvare>
-In-Reply-To: <20131104103434.5a085e27-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>, cpufreq@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On 11/04/2013 05:34 PM, Jean Delvare wrote:
-> Hi Wei,
-> 
-> I'm hitting a problem with that patch now...
-> 
-> On Wed, 7 Aug 2013 14:18:25 +0800, Wei Ni wrote:
->> When the temperature exceed the limit range value,
->> the driver can handle the interrupt.
->>
->> Signed-off-by: Wei Ni <wni@nvidia.com>
->> ---
->>  drivers/hwmon/lm90.c |   23 +++++++++++++++++++++++
->>  1 file changed, 23 insertions(+)
->>
->> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
->> index 1da2eff..2e68773 100644
->> --- a/drivers/hwmon/lm90.c
->> +++ b/drivers/hwmon/lm90.c
->> @@ -89,6 +89,7 @@
->>  #include <linux/err.h>
->>  #include <linux/mutex.h>
->>  #include <linux/sysfs.h>
->> +#include <linux/interrupt.h>
->>  
->>  /*
->>   * Addresses to scan
->> @@ -1433,6 +1434,16 @@ static bool lm90_is_tripped(struct i2c_client *client)
->>  	return true;
->>  }
->>  
->> +static irqreturn_t lm90_irq_thread(int irq, void *dev_id)
->> +{
->> +	struct i2c_client *client = dev_id;
->> +
->> +	if (lm90_is_tripped(client))
-> 
-> Did you really send the latest version of the patch? lm90_is_tripped()
-> takes two arguments now, but here you only pass one.
-> 
-> If you have a more up-to-date version of this patch, please send it
-> over quickly.
+This patch changes the cpufreq-cpu0 driver to consider if
+a cpu needs cooling (with cpufreq). In case the cooling is needed,
+the cpu0 device tree node needs to be properly configured
+with cooling device properties.
 
-Hi, Jean
-It's so sorry. As you know I resend the "[PATCH RESEND v4 1/3] hwmon:
-(lm90) Define status bits" last week, but didn't rebase this patch. I
-will rebase it and send it right now.
+In case these properties are present,, the driver will
+load a cpufreq cooling device in the system. The cpufreq-cpu0
+driver is not interested in determining how the system should
+be using the cooling device. The driver is responsible
+only of loading the cooling device.
 
-Wei.
-Thanks.
+Describing how the cooling device will be used can be
+accomplished by setting up a thermal zone that references
+and is composed by the cpufreq cooling device.
 
-> 
->> +		return IRQ_HANDLED;
->> +	else
->> +		return IRQ_NONE;
->> +}
->> +
->>  static int lm90_probe(struct i2c_client *client,
->>  		      const struct i2c_device_id *id)
->>  {
->> @@ -1509,6 +1520,18 @@ static int lm90_probe(struct i2c_client *client,
->>  		goto exit_remove_files;
->>  	}
->>  
->> +	if (client->irq) {
->> +		dev_dbg(dev, "IRQ: %d\n", client->irq);
->> +		err = devm_request_threaded_irq(dev, client->irq,
->> +						NULL, lm90_irq_thread,
->> +						IRQF_TRIGGER_LOW | IRQF_ONESHOT,
->> +						"lm90", client);
->> +		if (err < 0) {
->> +			dev_err(dev, "cannot request IRQ: %d\n", client->irq);
->> +			goto exit_remove_files;
->> +		}
->> +	}
->> +
->>  	return 0;
->>  
->>  exit_remove_files:
-> 
-> 
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: cpufreq@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt         |  7 +++++++
+ drivers/cpufreq/Kconfig                                  |  2 +-
+ drivers/cpufreq/cpufreq-cpu0.c                           | 16 ++++++++++++++++
+ 3 files changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+index 051f764..f055515 100644
+--- a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
++++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+@@ -15,6 +15,10 @@ Optional properties:
+ - clock-latency: Specify the possible maximum transition latency for clock,
+   in unit of nanoseconds.
+ - voltage-tolerance: Specify the CPU voltage tolerance in percentage.
++- #cooling-cells:
++- cooling-min-level:
++- cooling-max-level:
++     Please refer to Documentation/devicetree/bindings/thermal/thermal.txt.
+ 
+ Examples:
+ 
+@@ -33,6 +37,9 @@ cpus {
+ 			198000  850000
+ 		>;
+ 		clock-latency = <61036>; /* two CLK32 periods */
++		#cooling-cells = <2>;
++		cooling-min-level = <0>;
++		cooling-max-level = <2>;
+ 	};
+ 
+ 	cpu@1 {
+diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
+index 534fcb8..fc1e9a5 100644
+--- a/drivers/cpufreq/Kconfig
++++ b/drivers/cpufreq/Kconfig
+@@ -186,7 +186,7 @@ config CPU_FREQ_GOV_CONSERVATIVE
+ 
+ config GENERIC_CPUFREQ_CPU0
+ 	tristate "Generic CPU0 cpufreq driver"
+-	depends on HAVE_CLK && REGULATOR && PM_OPP && OF
++	depends on HAVE_CLK && REGULATOR && PM_OPP && OF && THERMAL && CPU_THERMAL
+ 	select CPU_FREQ_TABLE
+ 	help
+ 	  This adds a generic cpufreq driver for CPU0 frequency management.
+diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-cpu0.c
+index c522a95..568aaf3 100644
+--- a/drivers/cpufreq/cpufreq-cpu0.c
++++ b/drivers/cpufreq/cpufreq-cpu0.c
+@@ -13,7 +13,9 @@
+ 
+ #include <linux/clk.h>
+ #include <linux/cpu.h>
++#include <linux/cpu_cooling.h>
+ #include <linux/cpufreq.h>
++#include <linux/cpumask.h>
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+@@ -21,6 +23,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/thermal.h>
+ 
+ static unsigned int transition_latency;
+ static unsigned int voltage_tolerance; /* in percentage */
+@@ -29,6 +32,7 @@ static struct device *cpu_dev;
+ static struct clk *cpu_clk;
+ static struct regulator *cpu_reg;
+ static struct cpufreq_frequency_table *freq_table;
++static struct thermal_cooling_device *cdev;
+ 
+ static int cpu0_verify_speed(struct cpufreq_policy *policy)
+ {
+@@ -260,6 +264,17 @@ static int cpu0_cpufreq_probe(struct platform_device *pdev)
+ 		goto out_free_table;
+ 	}
+ 
++	/*
++	 * For now, just loading the cooling device;
++	 * thermal DT code takes care of matching them.
++	 */
++	if (of_find_property(np, "#cooling-cells", NULL)) {
++		cdev = of_cpufreq_cooling_register(np, cpu_present_mask);
++		if (IS_ERR(cdev))
++			pr_err("running cpufreq without cooling device: %ld\n",
++			       PTR_ERR(cdev));
++	}
++
+ 	of_node_put(np);
+ 	return 0;
+ 
+@@ -272,6 +287,7 @@ out_put_node:
+ 
+ static int cpu0_cpufreq_remove(struct platform_device *pdev)
+ {
++	cpufreq_cooling_unregister(cdev);
+ 	cpufreq_unregister_driver(&cpu0_cpufreq_driver);
+ 	opp_free_cpufreq_table(cpu_dev, &freq_table);
+ 
+-- 
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
