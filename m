@@ -1,34 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 04 Nov 2013 08:31:42 +0000
-Subject: Re: [lm-sensors] [PATCH RESEND v4 1/3] hwmon: (lm90) Define status bits
-Message-Id: <20131104093142.6a02b212@endymion.delvare>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:17 +0000
+Subject: [lm-sensors] [PATCHv5 15/20] arm: dts: add omap5 CORE thermal data
+Message-Id: <1384285582-16933-16-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1383188862-4157-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1383188862-4157-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 31 Oct 2013 11:07:41 +0800, Wei Ni wrote:
-> Add bit defines for the status register. And add a function
-> lm90_is_tripped() which will read status register and return
-> tripped or not, then lm90_alert can call it directly, and in the
-> future the IRQ thread also can use it.
-> 
-> Signed-off-by: Wei Ni <wni@nvidia.com>
-> ---
->  drivers/hwmon/lm90.c |   75 ++++++++++++++++++++++++++++++++++----------------
->  1 file changed, 51 insertions(+), 24 deletions(-)
-> (...)
-
-Looks good now. Applied, thanks.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgQ09SRSBkb21haW4gb24gT01BUDUgYW5kIGxhdGVyIFNvQ3MuIFRoaXMgZGF0YSB3aWxs
+CmVuYWJsZSBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KClRoaXMgdGhlcm1hbCBkYXRhIGNh
+biBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoKQ2M6ICJCZW5vw650IENvdXNzb24i
+IDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
+Y29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwg
+TW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRA
+YXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJ
+YW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29tPgpDYzogUnVzc2VsbCBLaW5nIDxs
+aW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcKQ2M6
+IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
+ZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1i
+eTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQpDaGFuZ2Ug
+ZnJvbSB2NDoKLSBVc2luZyBzdHJpbmcgY29uc3RhbnRzIGluc3RlYWQgb2YgbWFjcm9zIG9uIHRy
+aXAgdHlwZXMKCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaSB8IDI4
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCAyOCBpbnNlcnRp
+b25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtY29yZS10
+aGVybWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1jb3JlLXRo
+ZXJtYWwuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWNvcmUtdGhlcm1hbC5kdHNpCm5l
+dyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjE5MjEyYWMKLS0tIC9kZXYvbnVsbAor
+KysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1jb3JlLXRoZXJtYWwuZHRzaQpAQCAtMCwwICsx
+LDI4IEBACisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNTQzeCBTb0MgQ09SRSB0
+aGVybWFsCisgKgorICogQ29weXJpZ2h0IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29y
+cG9yYXRlZCAtIGh0dHA6Ly93d3cudGkuY29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRp
+biA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2Vk
+IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZl
+cnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBpcyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdh
+cnJhbnR5IG9mIGFueQorICoga2luZCwgd2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8K
+KworI2luY2x1ZGUgPGR0LWJpbmRpbmdzL3RoZXJtYWwvdGhlcm1hbC5oPgorCitjb3JlX3RoZXJt
+YWw6IGNvcmVfdGhlcm1hbCB7CisJcG9sbGluZy1kZWxheS1wYXNzaXZlID0gPDI1MD47IC8qIG1p
+bGxpc2Vjb25kcyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAq
+LworCisJCQkvKiBzZW5zb3IgICAgICAgSUQgKi8KKwl0aGVybWFsLXNlbnNvcnMgPSA8JmJhbmRn
+YXAgICAgIDI+OworCisJdHJpcHMgeworCQljb3JlX2NyaXQ6IGNvcmVfY3JpdCB7CisJCQl0ZW1w
+ZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKwkJCWh5c3RlcmVzaXMgPSA8
+MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJdHlwZSA9ICJjcml0aWNhbCI7CisJCX07CisJ
+fTsKK307Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNv
+cnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlz
+dGluZm8vbG0tc2Vuc29ycw=
