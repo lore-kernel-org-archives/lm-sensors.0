@@ -1,190 +1,44 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 07 Nov 2013 05:03:24 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.13-rc1
-Message-Id: <20131107050324.GA6205@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2274320185020960228=="
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Tue, 12 Nov 2013 19:46:21 +0000
+Subject: [lm-sensors] [PATCHv5 19/20] arm: dts: make OMAP4460 bandgap node to belong to OCP
+Message-Id: <1384285582-16933-20-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============2274320185020960228==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
-Content-Disposition: inline
-
-
---NzB8fVQJ5HfG6fxh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon updates for Linux 3.13-rc1 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit 61e6cfa80de5760bbe406f4e815b7739205754d2:
-
-  Linux 3.12-rc5 (2013-10-13 15:41:28 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 26336c8a36c0a6a28b9ecf6f1bb8c8f5605d6a21:
-
-  hwmon: (w83793) Clean up a signedness issue (2013-10-19 09:04:25 -0700)
-
-----------------------------------------------------------------
-hwmon updates for 3.13-rc1
-
-Introduce new hwmon API functions hwmon_device_register_with_groups and
-devm_hwmon_device_register_with_groups, and convert several drivers to use the
-new API.
-Add support for EMC1404, EMC1424, LTC2977, LTC2978A, LM25063 to exiting drivers
-Various cleanups in several drivers
-
-----------------------------------------------------------------
-Dan Carpenter (2):
-      hwmon: (nct6775) Remove an unused variable
-      hwmon: (w83793) Clean up a signedness issue
-
-Fengguang Wu (7):
-      hwmon: (nct6775) fix coccinelle warnings
-      hwmon: (ds1621) fix coccinelle warnings
-      hwmon: (max6642 fix coccinelle warnings
-      hwmon: (max6697) fix coccinelle warnings
-      hwmon: (lm95234) fix coccinelle warnings
-      hwmon: (ltc4261) fix coccinelle warnings
-      hwmon: (jc42) fix coccinelle warnings
-
-Guenter Roeck (36):
-      hwmon: Remove unnecessary semicolons
-      hwmon: (nct6775) Use return value from find_temp_source
-      hwmon: (nct6775) Check array index when accessing temp_offset
-      hwmon: (mc13783-adc) Increase size of name string
-      hwmon: (pmbus) Don't unnecessarily crash the kernel
-      hwmon: (adt7462) Use error value returned from find_trange_value()
-      hwmon: (gpio_fan) Use error value returned from get_fan_speed_index()
-      hwmon: (acpi_power_meter) Don't crash the kernel unnecessarily
-      hwmon: (acpi_power_meter) Use return value from acpi_bus_register_driver
-      hwmon: (atxp1) Set and use error code from vid_to_reg()
-      hwmon: (f75375s) Don't crash the kernel unnecessarily
-      hwmon: (f71882fg) Remove extra return statement
-      hwmon: Introduce hwmon_device_register_with_groups
-      hwmon: (ds1621) Convert to use hwmon_device_register_with_groups
-      hwmon: (gpio-fan) Convert to use hwmon_device_register_with_groups
-      hwmon: (ltc4245) Convert to use hwmon_device_register_with_groups
-      hwmon: (pmbus) Convert to use hwmon_device_register_with_groups
-      hwmon: (nct6775) Convert to use hwmon_device_register_with_groups
-      hwmon: Provide managed hwmon registration
-      hwmon: (nct6775) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (ds1621) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (max6642) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (lm73) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (max6697) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (max16065) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (ina2xx) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (tmp401) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (lm95234) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (ina209) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (ltc4261) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (jc42) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (pmbus/lm25066) Add support for LM25063
-      hwmon: (pmbus/ltc2978): Add support for LTC2977
-      hwmon: (pmbus/ltc2978): Add support for LTC2978A
-      hwmon: (emc1403) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (emc1403) Add support for EMC1404 and EMC1424
-
-LABBE Corentin (1):
-      hwmon: Correct some typos
-
-Sachin Kamat (3):
-      hwmon: (adcxx) Remove redundant spi_set_drvdata
-      hwmon: (lm70) Remove redundant spi_set_drvdata
-      hwmon: (gpio-fan) Include linux/of.h header
-
- Documentation/hwmon/lm25066      |   20 ++++-
- Documentation/hwmon/ltc2978      |   44 +++++----
- drivers/hwmon/abituguru.c        |    6 +-
- drivers/hwmon/abituguru3.c       |    2 +-
- drivers/hwmon/acpi_power_meter.c |   13 ++-
- drivers/hwmon/adcxx.c            |    2 -
- drivers/hwmon/adm1026.c          |    6 +-
- drivers/hwmon/adt7462.c          |    5 +-
- drivers/hwmon/asc7621.c          |   12 +--
- drivers/hwmon/asus_atk0110.c     |    2 +-
- drivers/hwmon/atxp1.c            |    3 +-
- drivers/hwmon/ds1621.c           |   63 ++++---------
- drivers/hwmon/emc1403.c          |  120 +++++++++++++++----------
- drivers/hwmon/f71882fg.c         |    1 -
- drivers/hwmon/f75375s.c          |    4 +-
- drivers/hwmon/gpio-fan.c         |   46 ++++------
- drivers/hwmon/hwmon.c            |  185 ++++++++++++++++++++++++++++++++++----
- drivers/hwmon/ina209.c           |   46 ++++------
- drivers/hwmon/ina2xx.c           |   64 +++++--------
- drivers/hwmon/jc42.c             |   62 +++++--------
- drivers/hwmon/lm70.c             |    2 -
- drivers/hwmon/lm73.c             |   70 +++++----------
- drivers/hwmon/lm95234.c          |  138 ++++++++++------------------
- drivers/hwmon/ltc4245.c          |   78 +++++-----------
- drivers/hwmon/ltc4261.c          |   56 ++++--------
- drivers/hwmon/max16065.c         |  124 +++++++++++--------------
- drivers/hwmon/max6642.c          |   73 +++++----------
- drivers/hwmon/max6650.c          |    2 +-
- drivers/hwmon/max6697.c          |   55 ++++--------
- drivers/hwmon/mc13783-adc.c      |    2 +-
- drivers/hwmon/nct6775.c          |  143 +++++++++--------------------
- drivers/hwmon/pmbus/lm25066.c    |   91 +++++++++++++++++--
- drivers/hwmon/pmbus/ltc2978.c    |   16 +++-
- drivers/hwmon/pmbus/pmbus_core.c |   24 ++---
- drivers/hwmon/tmp401.c           |   92 ++++++-------------
- drivers/hwmon/w83791d.c          |    2 +-
- drivers/hwmon/w83792d.c          |    2 +-
- drivers/hwmon/w83793.c           |    5 +-
- include/linux/hwmon-vid.h        |    2 +-
- include/linux/hwmon.h            |   10 +++
- 40 files changed, 805 insertions(+), 888 deletions(-)
-
---NzB8fVQJ5HfG6fxh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSex8cAAoJEMsfJm/On5mBDysQAIKAaxaqlgy8wZEmU/rxAyf3
-mid7psuPzQnG6clQHg4tS/I3TUpKdOxOWDNQTKDSshufKkzagsq8axR0Kz/h374d
-VLmxrNuTTvdkVlRZgAPU77bThfhtaGwX3UeV5pEk2SRBpmNuzXaafkpwlsT6YwjC
-d1E7kZqX5oEotu+L3nv4kiFFas09f1Sn5+baO413TjbHbzldAOT/j1RdeWj8y1Hv
-FP9HyKVQzbMq/rMmrh8MZfAATFmQUa4IrmdTOA2foqgrRv81BrqqiYOa+S8NDvhm
-3Q/nKWwvfcXA1Tq55e7IA2sIOTyn85OMdt6Yl2711FAO6eKCmA41qTjlA9lbGC0t
-NnsxeqnttFB0MGLg3/cNCcNaxcpZGh5mcq9IC1N+dFEQR6c+UefeBXqrdfeuELdt
-023u22jucadtiDxnSOHYlT04GvIiek5BdckEsn50PUpGpKSRNoBgUNiIT4m0bJBt
-NwKNWvqlVgKnn9rW4JMX2EtCe52zgwAzM/6krMOTFttP71DWtIdiBd1o6FcWUxji
-C44trs5NvydmdAWLiXR5+qfc7vs9WksTk1lU7/XtQmCvfWzBXXiHtAe9daVVLQX5
-tGXlAOCfbenFvhv2UbzUGLB7Z818BOJnxylGI8oiQb0J0R4XMZogNZMMoWv96MMO
-8oYU/YNl7T+iHAFYGiRF
-=OtI2
------END PGP SIGNATURE-----
-
---NzB8fVQJ5HfG6fxh--
-
-
---===============2274320185020960228==
-Content-Type: text/plain; charset="us-ascii"
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2274320185020960228==--
+U21hbGwgZml4IG9uIHJlcHJlc2VudGF0aW9uLiBCYW5kZ2FwIG5vZGUgYmVsb25ncyB0byBPQ1Au
+CgpDYzogIkJlbm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkg
+TGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdA
+Y2FseGVkYS5jb20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJr
+IFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJy
+ZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWpjK2RldmljZXRyZWVAaGVsbGlv
+bi5vcmcudWs+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBs
+aW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcK
+Q2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVs
+QHZnZXIua2VybmVsLm9yZwpTdWdnZXN0ZWQtYnk6IE5pc2hhbnRoIE1lbm9uIDxubUB0aS5jb20+
+ClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29t
+PgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgfCAxOCArKysrKysrKysrLS0t
+LS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoK
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9i
+b290L2R0cy9vbWFwNDQ2MC5kdHNpCmluZGV4IGRjMjI3MTkuLmRlZjgxODMgMTAwNjQ0Ci0tLSBh
+L2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDQ0NjAuZHRzaQpAQCAtMzksMTQgKzM5LDE2IEBACiAJCSNpbmNsdWRlICJvbWFwNC1jcHUt
+dGhlcm1hbC5kdHNpIgogCX07CiAKLQliYW5kZ2FwOiBiYW5kZ2FwIHsKLQkJcmVnID0gPDB4NGEw
+MDIyNjAgMHg0Ci0JCSAgICAgICAweDRhMDAyMzJDIDB4NAotCQkgICAgICAgMHg0YTAwMjM3OCAw
+eDE4PjsKLQkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKLQkJaW50ZXJydXB0
+cyA9IDwwIDEyNiBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogdGFsZXJ0ICovCi0JCWdwaW9zID0g
+PCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KKwlvY3AgeworCQliYW5kZ2FwOiBiYW5kZ2FwIHsK
+KwkJCXJlZyA9IDwweDRhMDAyMjYwIDB4NAorCQkJICAgICAgIDB4NGEwMDIzMkMgMHg0CisJCQkg
+ICAgICAgMHg0YTAwMjM3OCAweDE4PjsKKwkJCWNvbXBhdGlibGUgPSAidGksb21hcDQ0NjAtYmFu
+ZGdhcCI7CisJCQlpbnRlcnJ1cHRzID0gPDAgMTI2IElSUV9UWVBFX0xFVkVMX0hJR0g+OyAvKiB0
+YWxlcnQgKi8KKwkJCWdwaW9zID0gPCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KIAotCQkjdGhl
+cm1hbC1zZW5zb3ItY2VsbHMgPSA8MD47CisJCQkjdGhlcm1hbC1zZW5zb3ItY2VsbHMgPSA8MD47
+CisJCX07CiAJfTsKIH07Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
+CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
+aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
