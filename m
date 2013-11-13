@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 12 Nov 2013 17:30:33 +0000
+Date: Wed, 13 Nov 2013 03:40:57 +0000
 Subject: Re: [lm-sensors] Nuvoton NCT6791D support
-Message-Id: <20131112173033.GC5449@roeck-us.net>
+Message-Id: <20131113034057.GA30601@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
 In-Reply-To: <CADkjvt_edGO-+NKbsUbNwN=DXod10WTUYmfjRTrQfYq_2no2uw@mail.gmail.com>
@@ -10,41 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Nov 12, 2013 at 09:24:54AM -0800, p. stephen w wrote:
-> nice.  let me know if I can do anything else.
+On Mon, Nov 11, 2013 at 11:27:03PM -0800, p. stephen w wrote:
+> Please see attached.
+> ___________________________________________________-
+> The output is attached and matches the order...
 > 
-Sure, you could try to use automatic fan control ;-).
+> isadump -k 0x55,0x55 0x295 0x296
+> isadump -k 0x55,0x55 0x295 0x296 1
+> ....
+> isadump -k 0x55,0x55 0x295 0x296 8
+> 
+> 
+> 
+> 
+> On Mon, Nov 11, 2013 at 9:22 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> 
+> > On Mon, Nov 11, 2013 at 08:05:46PM -0800, Guenter Roeck wrote:
+> >
+> > [ ... ]
+> >
+> > > No, it won't. I'll dig out other commands for you to run to give me some
+> > chip
+> > > register output.
+> > >
+> > Following up on this. It would be great if you can do the following.
+> >
+> > When executing the the sensors command, you see something like
+> >
+> > nct6791-isa-0a00
+> >
+> > for the NCT chip. Take the hex number at the end; based on it, run the
+> > following sequence of commands:
+> >
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 1
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 2
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 3
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 4
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 5
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 6
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 7
+> > sudo isadump -k 0x55,0x55 0xa05 0xa06 8
+> >
+> > In other words, add 5 and 6 to the hex number and pass it as parameter to
+> > the
+> > isadump commands.
+> >
+> > This should create a dump of chip registers, which would hopefully help me
+> > track
+> > down the problem with pwmX_temp_sel.
+> >
 
-Side note - top posting is discouraged on the lm-sensors mailing list.
-Sorry, should have mentioned earlier.
+Hi,
+
+I think I fixed the problem. It would be great if you can update the repository
+from github and try again.
+
+Please provide output from the sensors command as well as from
+"grep . /sys/class/hwmon/hwmon2/device/*".
 
 Thanks,
 Guenter
-
-> 
-> On Tue, Nov 12, 2013 at 9:23 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-> 
-> > On Mon, Nov 11, 2013 at 11:27:03PM -0800, p. stephen w wrote:
-> > > Please see attached.
-> >
-> > Excellent - that helped a lot. I know what is wrong (it is actually a
-> > general
-> > driver problem, not just related to the nct6791). I'll have to think about
-> > how
-> > to fix it. I'll let you know once I have a fix.
-> >
-> > Thanks,
-> > Guenter
-> >
-> 
-> 
-> 
-> -- 
-> 
-> 
-> _____________________________
-> Stephen Wille | pstephenwille.com
-> *new address p.stephenwille@gmail.com <p.stephenwille@gmail.com>*
 
 _______________________________________________
 lm-sensors mailing list
