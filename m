@@ -1,21 +1,21 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 13 Nov 2013 12:17:12 +0000
+Date: Wed, 13 Nov 2013 14:46:25 +0000
 Subject: Re: [lm-sensors] [PATCHv5 20/20] MAINTAINERS: add maintainer entry for thermal bindings
-Message-Id: <52836DC8.8080702@ti.com>
+Message-Id: <528390C1.2060902@ti.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0769835412581907893=="
+Content-Type: multipart/mixed; boundary="===============6723117436498425753=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <1384285582-16933-21-git-send-email-eduardo.valentin@ti.com> <CAOesGMiCh-nGPqJQd4NPz9st7mBT0JkZ9nEK1gfyF2RmnrXZog@mail.gmail.com> <52828C31.2050604@ti.com> <20131113094232.GB21713@e106331-lin.cambridge.arm.com>
 In-Reply-To: <20131113094232.GB21713@e106331-lin.cambridge.arm.com>
 To: Mark Rutland <mark.rutland@arm.com>
 Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Olof Johansson <olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, Ian Campbell <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Guenter Roeck <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "wni@nvidia.com" <wni@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>
 
---===============0769835412581907893==
+--===============6723117436498425753==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="xj7vtLu5XQTwRUPwdGgl6qRw5hxGB2OUA"
+	boundary="slmGsk2f3aKAX9TOXKTg41uE9VJimV0Lc"
 
---xj7vtLu5XQTwRUPwdGgl6qRw5hxGB2OUA
+--slmGsk2f3aKAX9TOXKTg41uE9VJimV0Lc
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
@@ -80,6 +80,10 @@ o
 > meant adding a line like:
 >=20
 > F:      Documentation/devicetree/bindings/thermal/
+
+This would work for me too. How about adding this to thermal subsys
+entry in MAINTAINERS file?
+
 >=20
 > To your MAINTAINERS entry, rather than adding yourself to the general
 > devicetree bindings MAINTAINERS entry. Sorry for the confusion regardin=
@@ -94,9 +98,6 @@ e
 >=20
 > However, we would certainly appreciate any review you'd be willing to
 > provide.
-
-No issues then folks. :-)
-
 >=20
 > Thanks,
 > Mark.
@@ -110,7 +111,7 @@ You have got to be excited about what you are doing. (L. Lamport)
 Eduardo Valentin
 
 
---xj7vtLu5XQTwRUPwdGgl6qRw5hxGB2OUA
+--slmGsk2f3aKAX9TOXKTg41uE9VJimV0Lc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -119,15 +120,15 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iF4EAREIAAYFAlKDbcgACgkQCXcVR3XQvP3gAAEApfSAfk67eq22FJy/dY46cxCZ
-1DhuZiTeUNPQYuLMkF8A/AkgSQAHK3nAzd3hGOmLOhbfElBIW4F8h0PU34gqqpZr
-=xlBF
+iF4EAREIAAYFAlKDkMEACgkQCXcVR3XQvP1MgQEA4A3me8OJdzA42F/3En97fxl8
++BMg42OFMOItYPRaNTABAJPGu4RiWaQFdYyCqzH50zMuushR8yN/BSnBnE6gu3d0
+=VWEh
 -----END PGP SIGNATURE-----
 
---xj7vtLu5XQTwRUPwdGgl6qRw5hxGB2OUA--
+--slmGsk2f3aKAX9TOXKTg41uE9VJimV0Lc--
 
 
---===============0769835412581907893==
+--===============6723117436498425753==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -137,4 +138,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0769835412581907893==--
+--===============6723117436498425753==--
