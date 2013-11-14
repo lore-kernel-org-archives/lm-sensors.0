@@ -1,78 +1,88 @@
-From: =?UTF-8?Q?Bj=C3=B6rn_Gerhart?= <oss@airbjorn.de>
-Date: Thu, 14 Nov 2013 15:36:46 +0000
-Subject: [lm-sensors] NCT6106D: strange VIN max behaviour (nct6775)
-Message-Id: <250339793.65111.1384443406161.open-xchange@app04.ox.hosteurope.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 14 Nov 2013 18:07:29 +0000
+Subject: Re: [lm-sensors] NCT6106D: strange VIN max behaviour (nct6775)
+Message-Id: <20131114180729.GA5858@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <250339793.65111.1384443406161.open-xchange@app04.ox.hosteurope.de>
+In-Reply-To: <250339793.65111.1384443406161.open-xchange@app04.ox.hosteurope.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGksCgpJJ20gYWJvdXQgdG8gdGVzdCB0aGUgbmV3IE5DVDYxMDZEIHBhcnQgb2YgdGhlIE51dm90
-b24gbmN0Njc3NSBkcml2ZXIuCkhvd2V2ZXIsIEkgZXhwZXJpZW5jZSBhIHN0cmFuZ2UgYmVoYXZp
-b3VyIGNvbmNlcm5pbmcgdGhlIG1heGltdW0KdGhyZXNob2xkcyBvZiBpbjEgKHdpcmluZzogKzVW
-IGF0IGNoaXAncyBWSU4wLCAxNS8xMCByZXNpc3RvciByYXRpbykgYW5kCmluNCAod2lyaW5nOiAr
-MTJWIGF0IGNoaXAncyBWSU4xLCAxMTAvMjIgcmF0aW8pLiBUaGUgYmVoYXZpb3VyIGlzIGFzCmZv
-bGxvd3M6Ci0gdGhlIGN1cnJlbnQgdmFsdWUgYWx3YXlzIGxvb2tzIGdvb2QKLSB0aGUgbWluaW11
-bSB0aHJlc2hvbGQgdmFsdWUgYWx3YXlzIGxvb2tzIGdvb2QKLSB0aGUgbWF4aW11bSB0aHJlc2hv
-bGQgdmFsdWUgX29ubHlfIGxvb2tzIGdvb2QsIHdoZW4gaXQgaXMgY29uZmlndXJlZApfbG93ZXJf
-IHRoYW4gdGhlIGN1cnJlbnQgdmFsdWUgKHdoaWNoIGRvZXNuJ3QgbWFrZSBhbnkgc2Vuc2UgYW55
-d2F5LCBidXQKSSBjaGVja2VkIGl0IGp1c3QgZm9yIGVycm9yIGFuYWx5c2lzKQotIGJ1dCBvbmNl
-IHRoZSBtYXhpbXVtIHRocmVzaG9sZCB2YWx1ZSBpcyBjb25maWd1cmVkIGhpZ2hlciB0aGFuIHRo
-ZQpjdXJyZW50IHZhbHVlICh3aGljaCBpdCBub3JtYWxseSBpcyksIHRoZW4gdGhlIHJlYWQgbWF4
-aW11bSB2YWx1ZSBpcwpleGFjdGx5IHRoZSBzYW1lIGFzIHRoZSBjdXJyZW50IHZhbHVlCgpQbGVh
-c2Ugc2VlIGF0IHRoZSBlbmQgb2YgdGhpcyBtYWlsIGZvciB0aGUgc2Vuc29ycyBjb21tYW5kIG91
-dHB1dCBhbmQKdGhlIHJlbGF0ZWQgc2Vuc29ycy5jb25mLgoKV2hlbiBJIGFuYWx5c2VkIHRoZSBu
-Y3Q2Nzc1LmMgc291cmNlIGNvZGUsIEkgbm90aWNlZCB0aGF0IHRoZSB2b2x0YWdlCnJlZ2lzdGVy
-cyBhcmUgcHJvZ3JhbW1lZCBhcyAidTE2IiByZWdpc3RlcnMuIEluIHRoZSBOQ1Q2MTAyRC9OQ1Q2
-MTA2RApzcGVjIChzZWUgWzFdLCBwYWdlIDExMSBhbmQgZm9sbG93aW5nKSwgdGhlIHRhYmxlcyBz
-YXkgdGhhdCB0aGUKcmVnaXN0ZXJzIGFyZSA4Yml0IG9ubHkuIE1heSB0aGlzIGJlIHRoZSByZWFz
-b24gZm9yIHRoZSBzdHJhbmdlCmJlaGF2aW91cj8gT3IgaXMgaXQgYSBiYWQgdHlwbyBOdXZvdG9u
-IG1hZGUgaW4gdGhlIHNwZWM/CgpIb3dldmVyLCB0aGUgcmVnaXN0ZXIgX2FkcmVzc2VzXyBpbiB0
-aGUgc291cmNlIGNvZGUgZm9yIHRoZSBjdXJyZW50CnZhbHVlIGFuZCB0aGUgbWluIGFuZCBtYXgg
-dGhyZXNob2xkcyBzZWVtIHRvIGFwcGx5IHdpdGggdGhlIG9uZXMKc3BlY2lmaWVkIGluIHRoZSBz
-cGVjLgoKQmrDtnJuCgpbMV0KaHR0cHM6Ly9kb3dubG9hZC5udXZvdG9uLmNvbS9OdXZvdG9uTU9T
-Uy9Eb3dubG9hZFNlcnZpY2UvTWVtYmVyL0RvY3VtZW50c0luZm8uYXNweD90cF9HVUlEPURBMDAt
-TkNUNjEwNkQKCk15IHNlbnNvcnMgb3V0cHV0Ogpbcm9vdEBhbGxpbm9uZS13bmxwb3Mgfl0jIExB
-Tkc9QyBzZW5zb3JzCm5jdDYxMDYtaXNhLTAyOTAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKQ1BVVkNP
-UkU6wqAgwqAgKzEuNzQgVsKgIChtaW4gPcKgICsxLjAwIFYsIG1heCA9wqAgKzIuMDAgVikKKzVW
-OsKgIMKgIMKgIMKgIMKgKzUuMTAgVsKgIChtaW4gPcKgICs0LjUwIFYsIG1heCA9wqAgKzUuMTAg
-VinCoCDCoEFMQVJNCisxMlY6wqAgwqAgwqAgwqArMTIuMjQgVsKgIChtaW4gPSArMTAuNzAgViwg
-bWF4ID0gKzEyLjI0IFYpwqAgwqBBTEFSTQpWQmF0OsKgIMKgIMKgIMKgICszLjE3IFbCoCAobWlu
-ID3CoCArMy4wMSBWLCBtYXggPcKgICs0LjAwIFYpCkNQVTrCoCDCoCDCoCDCoCAyODMwIFJQTcKg
-IChtaW4gPcKgIDMwMCBSUE0pClNZU1RFTTrCoCDCoCDCoCArMzIuMCBDwqAgKGhpZ2ggPSArMTAw
-LjAgQywgaHlzdCA9ICs3NS4wIEMpCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIChj
-cml0ID0gKzEyNy4wIEMpwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc2Vuc29yID0KdGhlcm1h
-bCBkaW9kZQpQQ0g6wqAgwqAgwqAgwqAgwqArNDMuMCBDwqAgKGhpZ2ggPSArODAuMCBDLCBoeXN0
-ID0gKzc1LjAgQykKwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgKGNyaXQgPSArMTI3
-LjAgQynCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzZW5zb3IgPQp0aGVybWFsIGRpb2RlCkNQ
-VTrCoCDCoCDCoCDCoCDCoCszNy4wIEPCoCAoaGlnaCA9ICs4MC4wIEMsIGh5c3QgPSArNzUuMCBD
-KQrCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAoY3JpdCA9ICsxMjcuMCBDKQoKCk15
-IGZpbGUgL2V0Yy9zZW5zb3JzMy5jb25mOgotLS0tLS0tLSU8LS0tLS0tLS0gc25pcApjaGlwICJu
-Y3Q2MTA2LWlzYS0wMjkwIgoKIz09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09CiMgVm9sdGFnZSBpbnB1dHMKIz09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09CgrCoCDCoCAjIENQVVZDT1JFCsKgIMKgIGxhYmVsIGlu
-MCAiQ1BVVkNPUkUiCsKgIMKgIGNvbXB1dGUgaW4wwqAgQCwgQArCoCDCoCBzZXQgaW4wX21pbsKg
-IDEKwqAgwqAgc2V0IGluMF9tYXjCoCAyCgrCoCDCoCAjICs1ViAob2spIChjaGlwOiBWSU4wKQrC
-oCDCoCBsYWJlbCBpbjEgIis1ViIKwqAgwqAgY29tcHV0ZSBpbjEgKCgxNS8xMCkgKzEpKkAsIEAv
-KCgxNS8xMCkgKzEpCsKgIMKgIHNldCBpbjFfbWluwqAgNC41CsKgIMKgIHNldCBpbjFfbWF4wqAg
-NS41CgrCoCDCoCAjICsxMlYgKG9rKSAoY2hpcDogVklOMSkKwqAgwqAgbGFiZWwgaW40ICIrMTJW
-IgrCoCDCoCBjb21wdXRlIGluNCAoKDExMC8yMikgKzEpKkAsIEAvKCgxMTAvMjIpICsxKQrCoCDC
-oCBzZXQgaW40X21pbsKgIDEwLjcKwqAgwqAgc2V0IGluNF9tYXjCoCAxMy43CgrCoCDCoCAjIFZC
-YXQKwqAgwqAgbGFiZWwgaW43ICJWQmF0IgrCoCDCoCBzZXQgaW43X21pbsKgIDMuMArCoCDCoCBz
-ZXQgaW43X21heMKgIDQuMAoKwqAgwqAgaWdub3JlwqAgaW4yCsKgIMKgIGlnbm9yZcKgIGluMwrC
-oCDCoCBpZ25vcmXCoCBpbjUKwqAgwqAgaWdub3JlwqAgaW42CsKgIMKgIGlnbm9yZcKgIGluOAoj
-wqAgwqAgaWdub3JlwqAgdmlkCgoKCiM9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PQojIFRlbXBlcmF0dXJlIGlucHV0cwojPT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KwqAgwqAgbGFiZWwgdGVtcDEgIlNZU1RF
-TSIKwqAgwqAgc2V0IHRlbXAxX21heCAxMDAKwqAgwqAgc2V0IHRlbXAxX21heF9oeXN0IDc1CgrC
-oCDCoCBsYWJlbCB0ZW1wMyAiUENIIgoKwqAgwqAgbGFiZWwgdGVtcDcgIkNQVSIKCsKgIMKgIGln
-bm9yZSB0ZW1wOArCoCDCoCBpZ25vcmUgdGVtcDkKwqAgwqAgaWdub3JlIHRlbXAxMAoKwqAgwqAg
-aWdub3JlIGJlZXBfZW5hYmxlCgoKIz09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09CiMgRmFuIGlucHV0cwojPT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT0KwqAgwqAgIyBDUFUgRmFuCsKgIMKgIGxhYmVsIGZhbjIg
-IkNQVSIKwqAgwqAgc2V0IGZhbjJfbWluwqAgMzAwCgrCoCDCoCBpZ25vcmUgZmFuMQrCoCDCoCBp
-Z25vcmUgZmFuMwotLS0tLS0tLT4lLS0tLS0tLS0gc25hcAoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
-c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9sbS1zZW5zb3Jz
+On Thu, Nov 14, 2013 at 04:36:46PM +0100, Bj=F6rn Gerhart wrote:
+> Hi,
+>=20
+Hi Bjoern,
+
+thanks a lot for the feedback.
+
+> I'm about to test the new NCT6106D part of the Nuvoton nct6775 driver.
+> However, I experience a strange behaviour concerning the maximum
+> thresholds of in1 (wiring: +5V at chip's VIN0, 15/10 resistor ratio) and
+> in4 (wiring: +12V at chip's VIN1, 110/22 ratio). The behaviour is as
+> follows:
+> - the current value always looks good
+> - the minimum threshold value always looks good
+> - the maximum threshold value _only_ looks good, when it is configured
+> _lower_ than the current value (which doesn't make any sense anyway, but
+> I checked it just for error analysis)
+> - but once the maximum threshold value is configured higher than the
+> current value (which it normally is), then the read maximum value is
+> exactly the same as the current value
+>=20
+> Please see at the end of this mail for the sensors command output and
+> the related sensors.conf.
+>=20
+> When I analysed the nct6775.c source code, I noticed that the voltage
+> registers are programmed as "u16" registers. In the NCT6102D/NCT6106D
+> spec (see [1], page 111 and following), the tables say that the
+> registers are 8bit only. May this be the reason for the strange
+> behaviour? Or is it a bad typo Nuvoton made in the spec?
+>=20
+The register addresses encode both bank and address.
+If you look into nct6775_read_value(), you'll see how the address
+is split into <bank, offset>.
+
+> However, the register _adresses_ in the source code for the current
+> value and the min and max thresholds seem to apply with the ones
+> specified in the spec.
+>=20
+> Bj=F6rn
+>=20
+> [1]
+> https://download.nuvoton.com/NuvotonMOSS/DownloadService/Member/Documents=
+Info.aspx?tp_GUID=3DDA00-NCT6106D
+>=20
+> My sensors output:
+> [root@allinone-wnlpos ~]# LANG=3DC sensors
+> nct6106-isa-0290
+> Adapter: ISA adapter
+> CPUVCORE:=A0 =A0 +1.74 V=A0 (min =3D=A0 +1.00 V, max =3D=A0 +2.00 V)
+> +5V:=A0 =A0 =A0 =A0 =A0+5.10 V=A0 (min =3D=A0 +4.50 V, max =3D=A0 +5.10 V=
+)=A0 =A0ALARM
+> +12V:=A0 =A0 =A0 =A0+12.24 V=A0 (min =3D +10.70 V, max =3D +12.24 V)=A0 =
+=A0ALARM
+
+Weird. Unfortunately, I don't immediately see what may be wrong in the code.
+
+Please provide the output of
+
+sudo isadump 0x295 0x296 0
+sudo isadump 0x295 0x296 1
+
+after programming the limits.
+
+This way we can see what is actually programmed into the chip.
+It would also be helpful if you can also provide the output of "sensors"
+as well as the output from above commands after booting, prior to
+running "sensors -s". This way we'll be able to see the initial
+chip programming by the BIOS.
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
