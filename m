@@ -1,60 +1,49 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 21 Nov 2013 17:47:58 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.13-rc1 [#2]
-Message-Id: <20131121174758.GA12141@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Thu, 14 Nov 2013 13:30:10 +0000
+Subject: [lm-sensors] [PATCHv6 20/20] MAINTAINERS: add thermal bindings entry in thermal domain
+Message-Id: <1384435810-8897-1-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20131113094232.GB21713@e106331-lin.cambridge.arm.com>
+In-Reply-To: <20131113094232.GB21713@e106331-lin.cambridge.arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: olof@lixom.net, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>
 
-Hi Linus,
+After discussion and agreement of thermal device tree bindings,
+it is desirable to properly maintain thermal bindings for
+existing and upcoming devices.
 
-Please pull hwmon updates for Linux 3.13-rc1 from signed tag:
+As original author of thermal device tree bindings, I am
+volunteering to maintain them. This then adds and entry
+for device tree bindings under thermal domain.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-Thanks,
-Guenter
-------
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3438384..57fbf81 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8411,6 +8411,7 @@ S:      Supported
+ F:      drivers/thermal/
+ F:      include/linux/thermal.h
+ F:      include/linux/cpu_cooling.h
++F:      Documentation/devicetree/bindings/thermal/
+ 
+ THINGM BLINK(1) USB RGB LED DRIVER
+ M:	Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+-- 
+1.8.2.1.342.gfa7285d
 
-The following changes since commit 2d3c627502f2a9b0a7de06a5a2df2365542a72c9:
-
-  Revert "init/Kconfig: add option to disable kernel compression" (2013-11-17 11:17:36 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 3a4cbc190643d0c6f7ca36a84af8367947f558c7:
-
-  hwmon: (acpi_power_meter) Fix acpi_bus_get_device() return value check (2013-11-20 08:31:01 -0800)
-
-----------------------------------------------------------------
-hwmon updates for 3.13-rc1 [#2]
-
-acpi_power_meter: Fix return value check from call to acpi_bus_get_device
-nct6775: Fix/improve NCT6791 support
-lm75: Add support for GMT G751
-
-----------------------------------------------------------------
-Arnaud Ebalard (1):
-      hwmon: (lm75) Add support for GMT G751 chip
-
-Guenter Roeck (2):
-      hwmon: (nct6775) Monitor additional temperature registers
-      hwmon: (nct6775) NCT6791 supports weight control only for CPUFAN
-
-Yijing Wang (1):
-      hwmon: (acpi_power_meter) Fix acpi_bus_get_device() return value check
-
- .../devicetree/bindings/i2c/trivial-devices.txt    |    1 +
- drivers/hwmon/Kconfig                              |    1 +
- drivers/hwmon/acpi_power_meter.c                   |    5 +-
- drivers/hwmon/lm75.c                               |    3 +
- drivers/hwmon/nct6775.c                            |   91 +++++++++++++++++---
- 5 files changed, 88 insertions(+), 13 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
