@@ -1,58 +1,78 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 Nov 2013 18:26:51 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Unregister hwmon device if interrupt setup fails
-Message-Id: <5296396B.1020207@roeck-us.net>
+From: =?UTF-8?Q?Bj=C3=B6rn_Gerhart?= <oss@airbjorn.de>
+Date: Thu, 14 Nov 2013 15:36:46 +0000
+Subject: [lm-sensors] NCT6106D: strange VIN max behaviour (nct6775)
+Message-Id: <250339793.65111.1384443406161.open-xchange@app04.ox.hosteurope.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385575486-8732-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385575486-8732-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 11/27/2013 10:04 AM, Guenter Roeck wrote:
-> Commit 109b1283fb (hwmon: (lm90) Add support to handle IRQ) introduced
-> interrupt support. Its error handling code fails to unregister the already
-> registered hwmon device.
->
-> Fixes: 109b1283fb532ac773a076748ffccf76a7067cab
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->   drivers/hwmon/lm90.c |    4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> index 4c4c142..8b8f3aa 100644
-> --- a/drivers/hwmon/lm90.c
-> +++ b/drivers/hwmon/lm90.c
-> @@ -1610,12 +1610,14 @@ static int lm90_probe(struct i2c_client *client,
->   						"lm90", client);
->   		if (err < 0) {
->   			dev_err(dev, "cannot request IRQ %d\n", client->irq);
-> -			goto exit_remove_files;
-> +			goto exit_unregister;
->   		}
->   	}
->
->   	return 0;
->
-> +exit_unregister:
-> +	hwmon_device_unregister(data->hwmon_dev);
->   exit_remove_files:
->   	lm90_remove_files(client, data);
->   exit_restore:
->
-
-Hi Jean,
-
-please ignore the 1/3 in the headline. The other two patches are the conversion
-to hwmon_device_register_with_groups which I'll need to test first.
-
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCgpJJ20gYWJvdXQgdG8gdGVzdCB0aGUgbmV3IE5DVDYxMDZEIHBhcnQgb2YgdGhlIE51dm90
+b24gbmN0Njc3NSBkcml2ZXIuCkhvd2V2ZXIsIEkgZXhwZXJpZW5jZSBhIHN0cmFuZ2UgYmVoYXZp
+b3VyIGNvbmNlcm5pbmcgdGhlIG1heGltdW0KdGhyZXNob2xkcyBvZiBpbjEgKHdpcmluZzogKzVW
+IGF0IGNoaXAncyBWSU4wLCAxNS8xMCByZXNpc3RvciByYXRpbykgYW5kCmluNCAod2lyaW5nOiAr
+MTJWIGF0IGNoaXAncyBWSU4xLCAxMTAvMjIgcmF0aW8pLiBUaGUgYmVoYXZpb3VyIGlzIGFzCmZv
+bGxvd3M6Ci0gdGhlIGN1cnJlbnQgdmFsdWUgYWx3YXlzIGxvb2tzIGdvb2QKLSB0aGUgbWluaW11
+bSB0aHJlc2hvbGQgdmFsdWUgYWx3YXlzIGxvb2tzIGdvb2QKLSB0aGUgbWF4aW11bSB0aHJlc2hv
+bGQgdmFsdWUgX29ubHlfIGxvb2tzIGdvb2QsIHdoZW4gaXQgaXMgY29uZmlndXJlZApfbG93ZXJf
+IHRoYW4gdGhlIGN1cnJlbnQgdmFsdWUgKHdoaWNoIGRvZXNuJ3QgbWFrZSBhbnkgc2Vuc2UgYW55
+d2F5LCBidXQKSSBjaGVja2VkIGl0IGp1c3QgZm9yIGVycm9yIGFuYWx5c2lzKQotIGJ1dCBvbmNl
+IHRoZSBtYXhpbXVtIHRocmVzaG9sZCB2YWx1ZSBpcyBjb25maWd1cmVkIGhpZ2hlciB0aGFuIHRo
+ZQpjdXJyZW50IHZhbHVlICh3aGljaCBpdCBub3JtYWxseSBpcyksIHRoZW4gdGhlIHJlYWQgbWF4
+aW11bSB2YWx1ZSBpcwpleGFjdGx5IHRoZSBzYW1lIGFzIHRoZSBjdXJyZW50IHZhbHVlCgpQbGVh
+c2Ugc2VlIGF0IHRoZSBlbmQgb2YgdGhpcyBtYWlsIGZvciB0aGUgc2Vuc29ycyBjb21tYW5kIG91
+dHB1dCBhbmQKdGhlIHJlbGF0ZWQgc2Vuc29ycy5jb25mLgoKV2hlbiBJIGFuYWx5c2VkIHRoZSBu
+Y3Q2Nzc1LmMgc291cmNlIGNvZGUsIEkgbm90aWNlZCB0aGF0IHRoZSB2b2x0YWdlCnJlZ2lzdGVy
+cyBhcmUgcHJvZ3JhbW1lZCBhcyAidTE2IiByZWdpc3RlcnMuIEluIHRoZSBOQ1Q2MTAyRC9OQ1Q2
+MTA2RApzcGVjIChzZWUgWzFdLCBwYWdlIDExMSBhbmQgZm9sbG93aW5nKSwgdGhlIHRhYmxlcyBz
+YXkgdGhhdCB0aGUKcmVnaXN0ZXJzIGFyZSA4Yml0IG9ubHkuIE1heSB0aGlzIGJlIHRoZSByZWFz
+b24gZm9yIHRoZSBzdHJhbmdlCmJlaGF2aW91cj8gT3IgaXMgaXQgYSBiYWQgdHlwbyBOdXZvdG9u
+IG1hZGUgaW4gdGhlIHNwZWM/CgpIb3dldmVyLCB0aGUgcmVnaXN0ZXIgX2FkcmVzc2VzXyBpbiB0
+aGUgc291cmNlIGNvZGUgZm9yIHRoZSBjdXJyZW50CnZhbHVlIGFuZCB0aGUgbWluIGFuZCBtYXgg
+dGhyZXNob2xkcyBzZWVtIHRvIGFwcGx5IHdpdGggdGhlIG9uZXMKc3BlY2lmaWVkIGluIHRoZSBz
+cGVjLgoKQmrDtnJuCgpbMV0KaHR0cHM6Ly9kb3dubG9hZC5udXZvdG9uLmNvbS9OdXZvdG9uTU9T
+Uy9Eb3dubG9hZFNlcnZpY2UvTWVtYmVyL0RvY3VtZW50c0luZm8uYXNweD90cF9HVUlEPURBMDAt
+TkNUNjEwNkQKCk15IHNlbnNvcnMgb3V0cHV0Ogpbcm9vdEBhbGxpbm9uZS13bmxwb3Mgfl0jIExB
+Tkc9QyBzZW5zb3JzCm5jdDYxMDYtaXNhLTAyOTAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKQ1BVVkNP
+UkU6wqAgwqAgKzEuNzQgVsKgIChtaW4gPcKgICsxLjAwIFYsIG1heCA9wqAgKzIuMDAgVikKKzVW
+OsKgIMKgIMKgIMKgIMKgKzUuMTAgVsKgIChtaW4gPcKgICs0LjUwIFYsIG1heCA9wqAgKzUuMTAg
+VinCoCDCoEFMQVJNCisxMlY6wqAgwqAgwqAgwqArMTIuMjQgVsKgIChtaW4gPSArMTAuNzAgViwg
+bWF4ID0gKzEyLjI0IFYpwqAgwqBBTEFSTQpWQmF0OsKgIMKgIMKgIMKgICszLjE3IFbCoCAobWlu
+ID3CoCArMy4wMSBWLCBtYXggPcKgICs0LjAwIFYpCkNQVTrCoCDCoCDCoCDCoCAyODMwIFJQTcKg
+IChtaW4gPcKgIDMwMCBSUE0pClNZU1RFTTrCoCDCoCDCoCArMzIuMCBDwqAgKGhpZ2ggPSArMTAw
+LjAgQywgaHlzdCA9ICs3NS4wIEMpCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIChj
+cml0ID0gKzEyNy4wIEMpwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc2Vuc29yID0KdGhlcm1h
+bCBkaW9kZQpQQ0g6wqAgwqAgwqAgwqAgwqArNDMuMCBDwqAgKGhpZ2ggPSArODAuMCBDLCBoeXN0
+ID0gKzc1LjAgQykKwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgKGNyaXQgPSArMTI3
+LjAgQynCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzZW5zb3IgPQp0aGVybWFsIGRpb2RlCkNQ
+VTrCoCDCoCDCoCDCoCDCoCszNy4wIEPCoCAoaGlnaCA9ICs4MC4wIEMsIGh5c3QgPSArNzUuMCBD
+KQrCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAoY3JpdCA9ICsxMjcuMCBDKQoKCk15
+IGZpbGUgL2V0Yy9zZW5zb3JzMy5jb25mOgotLS0tLS0tLSU8LS0tLS0tLS0gc25pcApjaGlwICJu
+Y3Q2MTA2LWlzYS0wMjkwIgoKIz09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09CiMgVm9sdGFnZSBpbnB1dHMKIz09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09CgrCoCDCoCAjIENQVVZDT1JFCsKgIMKgIGxhYmVsIGlu
+MCAiQ1BVVkNPUkUiCsKgIMKgIGNvbXB1dGUgaW4wwqAgQCwgQArCoCDCoCBzZXQgaW4wX21pbsKg
+IDEKwqAgwqAgc2V0IGluMF9tYXjCoCAyCgrCoCDCoCAjICs1ViAob2spIChjaGlwOiBWSU4wKQrC
+oCDCoCBsYWJlbCBpbjEgIis1ViIKwqAgwqAgY29tcHV0ZSBpbjEgKCgxNS8xMCkgKzEpKkAsIEAv
+KCgxNS8xMCkgKzEpCsKgIMKgIHNldCBpbjFfbWluwqAgNC41CsKgIMKgIHNldCBpbjFfbWF4wqAg
+NS41CgrCoCDCoCAjICsxMlYgKG9rKSAoY2hpcDogVklOMSkKwqAgwqAgbGFiZWwgaW40ICIrMTJW
+IgrCoCDCoCBjb21wdXRlIGluNCAoKDExMC8yMikgKzEpKkAsIEAvKCgxMTAvMjIpICsxKQrCoCDC
+oCBzZXQgaW40X21pbsKgIDEwLjcKwqAgwqAgc2V0IGluNF9tYXjCoCAxMy43CgrCoCDCoCAjIFZC
+YXQKwqAgwqAgbGFiZWwgaW43ICJWQmF0IgrCoCDCoCBzZXQgaW43X21pbsKgIDMuMArCoCDCoCBz
+ZXQgaW43X21heMKgIDQuMAoKwqAgwqAgaWdub3JlwqAgaW4yCsKgIMKgIGlnbm9yZcKgIGluMwrC
+oCDCoCBpZ25vcmXCoCBpbjUKwqAgwqAgaWdub3JlwqAgaW42CsKgIMKgIGlnbm9yZcKgIGluOAoj
+wqAgwqAgaWdub3JlwqAgdmlkCgoKCiM9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PQojIFRlbXBlcmF0dXJlIGlucHV0cwojPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KwqAgwqAgbGFiZWwgdGVtcDEgIlNZU1RF
+TSIKwqAgwqAgc2V0IHRlbXAxX21heCAxMDAKwqAgwqAgc2V0IHRlbXAxX21heF9oeXN0IDc1CgrC
+oCDCoCBsYWJlbCB0ZW1wMyAiUENIIgoKwqAgwqAgbGFiZWwgdGVtcDcgIkNQVSIKCsKgIMKgIGln
+bm9yZSB0ZW1wOArCoCDCoCBpZ25vcmUgdGVtcDkKwqAgwqAgaWdub3JlIHRlbXAxMAoKwqAgwqAg
+aWdub3JlIGJlZXBfZW5hYmxlCgoKIz09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09CiMgRmFuIGlucHV0cwojPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT0KwqAgwqAgIyBDUFUgRmFuCsKgIMKgIGxhYmVsIGZhbjIg
+IkNQVSIKwqAgwqAgc2V0IGZhbjJfbWluwqAgMzAwCgrCoCDCoCBpZ25vcmUgZmFuMQrCoCDCoCBp
+Z25vcmUgZmFuMwotLS0tLS0tLT4lLS0tLS0tLS0gc25hcAoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
+c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9sbS1zZW5zb3Jz
