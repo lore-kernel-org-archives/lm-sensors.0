@@ -1,107 +1,360 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 15 Nov 2013 08:07:36 +0000
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Fri, 15 Nov 2013 13:19:02 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <20131115090736.4f360dc8@endymion.delvare>
+Message-Id: <52861F46.8020900@ti.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6204222912708655970=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-	<1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <2523089.oKCvZdz31U@flatron> <5284B478.8090503@ti.com> <25668725.sMcoUCgCKk@flatron>
+In-Reply-To: <25668725.sMcoUCgCKk@flatron>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+
+--===============6204222912708655970==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq"
+
+--Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, devicetree@vger.kernel.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, grant.likely@linaro.org
 
-Hi Eduardo,
+Hello Tomasz,
 
-On Tue, 12 Nov 2013 15:46:04 -0400, Eduardo Valentin wrote:
-> This patch introduces a device tree bindings for
-> describing the hardware thermal behavior and limits.
-> Also a parser to read and interpret the data and feed
-> it in the thermal framework is presented.
+On 14-11-2013 09:40, Tomasz Figa wrote:
+> On Thursday 14 of November 2013 07:31:04 Eduardo Valentin wrote:
+>> On 13-11-2013 12:57, Tomasz Figa wrote:
+>>> Hi Eduardo,
+>>>
+>>
+>> Hello Tomaz
+>>
+>>> On Tuesday 12 of November 2013 15:46:04 Eduardo Valentin wrote:
+>>>> This patch introduces a device tree bindings for
+>>>> describing the hardware thermal behavior and limits.
+>>>> Also a parser to read and interpret the data and feed
+>>>> it in the thermal framework is presented.
+>>> [snip]
+>>>> diff --git a/Documentation/devicetree/bindings/thermal/thermal.txt b=
+/Documentation/devicetree/bindings/thermal/thermal.txt
+>>>> new file mode 100644
+>>>> index 0000000..59f5bd2
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/thermal/thermal.txt
+>>>> @@ -0,0 +1,586 @@
+>>> [snip]
+>>>> +* Cooling device nodes
+>>>> +
+>>>> +Cooling devices are nodes providing control on power dissipation. T=
+here
+>>>> +are essentially two ways to provide control on power dissipation. F=
+irst
+>>>> +is by means of regulating device performance, which is known as pas=
+sive
+>>>> +cooling. A typical passive cooling is a CPU that has dynamic voltag=
+e and
+>>>> +frequency scaling (DVFS), and uses lower frequencies as cooling sta=
+tes.
+>>>> +Second is by means of activating devices in order to remove
+>>>> +the dissipated heat, which is known as active cooling, e.g. regulat=
+ing
+>>>> +fan speeds. In both cases, cooling devices shall have a way to dete=
+rmine
+>>>> +the state of cooling in which the device is.
+>>>> +
+>>>> +Required properties:
+>>>> +- cooling-min-state:	An integer indicating the smallest
+>>>> +  Type: unsigned	cooling state accepted. Typically 0.
+>>>> +  Size: one cell
+>>>
+>>> Could you explain (just in a reply) what a cooling state is and what =
+are
+>>> the min and max values used for?
+>>
+>> Cooling state is an unsigned integer which represents heat control tha=
+t
+>> a cooling device implies.
 >=20
-> This patch introduces a thermal data parser for device
-> tree. The parsed data is used to build thermal zones
-> and thermal binding parameters. The output data
-> can then be used to deploy thermal policies.
+> OK. So you have a cooling device and it can have multiple cooling state=
+s,
+> like a cooling fan that has multiple speed levels. Did I understand thi=
+s
+> correctly?
 >=20
-> This patch adds also documentation regarding this
-> API and how to define tree nodes to use
-> this infrastructure.
+> IMHO this should be also explained in the documentation above, possibly=
+
+> with one or two examples.
+
+
+There are more than one example in this file. Even explaining why
+cooling min and max are used, and the difference of min and max
+properties that appear in cooling device and those present in a cooling
+specifier. Cooling devices and cooling state are described in the
+paragraph above.
+
 >=20
-> Note that, in order to be able to have control
-> on the sensor registration on the DT thermal zone,
-> it was required to allow changing the thermal zone
-> .get_temp callback. For this reason, this patch
-> also removes the 'const' modifier from the .ops
-> field of thermal zone devices.
+>>
+>>>
+>>>> +
+>>>> +- cooling-max-state:	An integer indicating the largest
+>>>> +  Type: unsigned	cooling state accepted.
+>>>> +  Size: one cell
+>>>> +
+>>>> +- #cooling-cells:	Used to provide cooling device specific informati=
+on
+>>>> +  Type: unsigned	while referring to it. Must be at least 2, in orde=
+r
+>>>> +  Size: one cell      	to specify minimum and maximum cooling state=
+ used
+>>>> +			in the reference. The first cell is the minimum
+>>>> +			cooling state requested and the second cell is
+>>>> +			the maximum cooling state requested in the reference.
+>>>> +			See Cooling device maps section below for more details
+>>>> +			on how consumers refer to cooling devices.
+>>>> +
+>>>> +* Trip points
+>>>> +
+>>>> +The trip node is a node to describe a point in the temperature doma=
+in
+>>>> +in which the system takes an action. This node describes just the p=
+oint,
+>>>> +not the action.
+>>>> +
+>>>> +Required properties:
+>>>> +- temperature:		An integer indicating the trip temperature level,
+>>>> +  Type: signed		in millicelsius.
+>>>> +  Size: one cell
+>>>> +
+>>>> +- hysteresis:		A low hysteresis value on temperature property (abov=
+e).
+>>>> +  Type: unsigned	This is a relative value, in millicelsius.
+>>>> +  Size: one cell
+>>>
+>>> What about replacing temperature and hysteresis with a single tempera=
+ture
+>>> property that can be either one cell for 0 hysteresis or two cells to=
+
+>>> specify lower and upper range of temperatures?
+>>
+>> What is the problem with using two properties? I think we loose
+>> representation by gluing two properties into one just because one cell=
+=2E
 >=20
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> ---
-> (...)
-> +static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
-> +				enum thermal_trend *trend)
-> +{
-> +	struct __thermal_zone *data =3D tz->devdata;
-> +	long dev_trend;
-> +	int r;
-> +
-> +	if (!data->get_trend)
-> +		return -EINVAL;
-> +
-> +	r =3D data->get_trend(data->sensor_data, &dev_trend);
-> +	if (r)
-> +		return r;
-> +
-> +	/* TODO: These intervals might have some thresholds, but in core code */
-> +	if (dev_trend > 0)
-> +		*trend =3D THERMAL_TREND_RAISING;
-> +	else if (dev_trend < 0)
-> +		*trend =3D THERMAL_TREND_DROPPING;
-> +	else
-> +		*trend =3D THERMAL_TREND_STABLE;
-> +
-> +	return 0;
-> +}
+> Ranges is the representation widely used in other bindings. In addition=
 
-I don't like the whole trend thing.
 
-I've been writing hwmon drivers for the past decade and I've never seen
-a thermal sensor device being able to report trends. And as a rule of
-thumb, if the hardware can't do it then the (hardware-specific) drivers
-should not report it.
+Well that sentence is arguable. It is not like all properties in DT are
+standardized as ranges, is it?
 
-Hwmon devices (and drivers) report temperature values, and sometimes
-historical min/max. They can do that because these are facts that need
-no interpretation.
+> I believe a range is more representative - when reading a DTS you don't=
 
-Defining a trend, however, requires care and, more importantly,
-decisions. For example, consider a thermal sensor which reports 50=B0C at
-time t, then 47=B0C at time t+3s, then 48=B0C at time t+6s. At t+7s someone
-asks for the trend, what should the driver reply? If you consider only
-the last 5 seconds, temperature is raising. If you consider the last 10
-seconds instead, temperature is dropping. How would the driver know
-what time frame the caller is interested in?
+> need to think whether the hysteresis is in temperature units, percents =
+or
+> something else and also is less ambiguous, because you have clearly
+> defined lower and upper bounds in one place.
 
-Another example: "small" temperature variations. If temperatures varies
-by 1=B0C in my kitchen's oven, I'd call it stable. If my body temperature
-varies by 1=B0C, I'd call it non-stable, and my doctor for an appointment
-also ;-)
+It is the other way around. For a person designing a thermal
+representation for a specific board it is intuitive to think about
+hysteresis in this case. It is a better representation because we are
+really talking about a hysteresis here in order to give some room for
+the system to react on temporary temperature transitions around that
+point. It is possible to use ranges as you are suggesting, but it
+becomes confusing.
 
-My point is that only the caller, and not the driver, knows how to
-convert a series of measurements into a trend. So I don't think drivers
-should implement anything like get_trend(). Whatever piece of code
-needs to establish a trend should call get_temp() repeatedly, store the
-results and do its own analysis of the data.
+
+>=20
+>>
+>>>
+>>>> +
+>>>> +- type:			a string containing the trip type. Supported values are:
+>>>> +	"active":	A trip point to enable active cooling
+>>>> +	"passive":	A trip point to enable passive cooling
+>>>
+>>> The two above seem to be implying action, as opposed to the general
+>>> comment about trip points.
+>>
+>> They do not imply action, they specify type of trip.
+>=20
+> For me "A trip point to enable active cooling" means that when this tri=
+p
+> point is crossed, active cooling must be enabled. What is it if not
+> implying action?
+
+But within a board there could be more than one active cooling actions
+that could be done, it is not a 1 to 1 relation. Same thing applies to
+passive cooling. The binding does not imply a specific action. Just the
+trip type.
+
+>=20
+>>
+>>>
+>>>> +	"hot":		A trip point to notify emergency
+>>>> +	"critical":	Hardware not reliable.
+>>>> +  Type: string
+>>>> +
+>>> [snip]
+>>>> +* Examples
+>>>> +
+>>>> +Below are several examples on how to use thermal data descriptors
+>>>> +using device tree bindings:
+>>>> +
+>>>> +(a) - CPU thermal zone
+>>>> +
+>>>> +The CPU thermal zone example below describes how to setup one therm=
+al zone
+>>>> +using one single sensor as temperature source and many cooling devi=
+ces and
+>>>> +power dissipation control sources.
+>>>> +
+>>>> +#include <dt-bindings/thermal/thermal.h>
+>>>> +
+>>>> +cpus {
+>>>> +	/*
+>>>> +	 * Here is an example of describing a cooling device for a DVFS
+>>>> +	 * capable CPU. The CPU node describes its four OPPs.
+>>>> +	 * The cooling states possible are 0..3, and they are
+>>>> +	 * used as OPP indexes. The minimum cooling state is 0, which mean=
+s
+>>>> +	 * all four OPPs can be available to the system. The maximum
+>>>> +	 * cooling state is 3, which means only the lowest OPPs (198MHz@0.=
+85V)
+>>>> +	 * can be available in the system.
+>>>> +	 */
+>>>> +	cpu0: cpu@0 {
+>>>> +		...
+>>>> +		operating-points =3D <
+>>>> +			/* kHz    uV */
+>>>> +			970000  1200000
+>>>> +			792000  1100000
+>>>> +			396000  950000
+>>>> +			198000  850000
+>>>> +		>;
+>>>> +		cooling-min-state =3D <0>;
+>>>> +		cooling-max-state =3D <3>;
+>>>> +		#cooling-cells =3D <2>; /* min followed by max */
+>>>
+>>> I believe you don't need the min- and max-state properties here then.=
+ Your
+>>> thermal core can simply query the cpufreq driver (which would be a co=
+oling
+>>> device here) about the range of states it supports
+>>
+>> This binding is not supposed to be aware of cpufreq, which is Linux
+>> specific implementation.
+>=20
+> I didn't say anything about making the binding aware of cpufreq, but
+> instead about getting rid of redundancy of data, that can be provided
+> by respective drivers anyway.
+
+There are cases in which cooling devices don't need to use all states
+for cooling, because either lower states does not provide cooling
+effectiveness or higher states must be avoided at all. So, allowing
+drivers to report this thermal info is possible, but questionable
+design, as you would be spreading the thermal info. Besides, for the
+example I gave, the driver would need to know board specifics, as the
+range of states would vary anyway across board.
+
+>=20
+>>
+>> Besides, the cpufreq layer is populated by data already specified in D=
+T.
+>> .
+>>>
+>>>> +	};
+>>>> +	...
+>>>> +};
+>>>> +
+>>>> +&i2c1 {
+>>>> +	...
+>>>> +	/*
+>>>> +	 * A simple fan controller which supports 10 speeds of operation
+>>>> +	 * (represented as 0-9).
+>>>> +	 */
+>>>> +	fan0: fan@0x48 {
+>>>> +		...
+>>>> +		cooling-min-state =3D <0>;
+>>>> +		cooling-max-state =3D <9>;
+>>>
+>>> This is similar. The fan driver will probaby know about available
+>>> fan speed levels and be able to report the range of states to thermal=
+
+>>> core.
+>>
+>> Then we loose also the flexibility to assign cooling states to trip
+>> points, as described in this binding.
+>=20
+> I don't think you got my point correctly.
+>=20
+> Let's say you have a CPU, which has 4 operating points. You don't need
+> to specify that min state is 0 and max state is 4, because it is implie=
+d
+> by the list of operating points.
+
+Please read my explanation above.
+
+>=20
+> Same goes for a fan controller that has, let's say, an 8-bit PWM duty
+> cycle register, which in turn allows 256 different speed states. This
+> implies that min state for it is 0 and max state 255 and you don't need=
+
+> to specify this in DT.
+
+ditto.
+
+>=20
+> Now, both a CPU and fan controller will have their thermal drivers, whi=
+ch
+> can report to the thermal core what ranges of cooling states they suppo=
+rt,
+> which again makes it wrong to specify such data in DT.
+
+
+Please also read the examples I gave in the thermal binding. There are
+case that the designer may want to assign a range of states to
+temperature trip points. This binding is flexible enough to cover for
+that situation. And without the representation of these limits it would
+be hard to read the binding. It is not redundant data, please check the
+documentation.
+
+>=20
+> Best regards,
+> Tomasz
+>=20
+>=20
+>=20
+
 
 --=20
-Jean Delvare
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlKGH0sACgkQCXcVR3XQvP04YAD/U4EUrd2Eyo5vIRPtS8VUtTfy
+7vm75ky69Kix7IRnhPwA/1nB7iEui0tGs1Sp4woqPxA6zuKg+ff5YfGAgsmPXBhb
+=sSU3
+-----END PGP SIGNATURE-----
+
+--Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq--
+
+
+--===============6204222912708655970==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6204222912708655970==--
