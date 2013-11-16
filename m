@@ -1,38 +1,105 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:19 +0000
-Subject: [lm-sensors] [PATCHv5 17/20] arm: dts: add cooling properties on omap5 cpu node
-Message-Id: <1384285582-16933-18-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 16 Nov 2013 15:06:56 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (nct6775) NCT6791 supports weight control only for CPUFAN
+Message-Id: <1384614416-27489-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-T01BUDUgZGV2aWNlcyBjYW4gcmVhY2ggaGlnaCB0ZW1wZXJhdHVyZXMgYW5kIHRodXMKbmVlZHMg
-dG8gaGF2ZSBjcHVmcmVxLWNvb2xpbmcgb24gc3lzdGVtcyBydW5uaW5nIG9uIGl0LgoKVGhpcyBw
-YXRjaCBhZGRzIHRoZSByZXF1aXJlZCBjb29saW5nIGRldmljZSBwcm9wZXJ0aWVzCnNvIHRoYXQg
-Y3B1ZnJlcS1jcHUwIGRyaXZlciBsb2FkcyB0aGUgY29vbGluZyBkZXZpY2UuCgpDYzogIkJlbm/D
-rnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRv
-bnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+
-CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1h
-cmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3Jn
-Lm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNz
-ZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2Vy
-bmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpT
-aWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4K
-LS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIHwgMyArKysKIDEgZmlsZSBjaGFuZ2Vk
-LCAzIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5k
-dHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQppbmRleCAxODdjYjcxLi5hMzVjZDYx
-IDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA1LmR0c2kKQEAgLTM3LDYgKzM3LDkgQEAKIAkJCWRldmljZV90eXBlID0g
-ImNwdSI7CiAJCQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsKIAkJCXJlZyA9IDwweDA+
-OworCisJCQkvKiBjb29saW5nIG9wdGlvbnMgKi8KKwkJCSNjb29saW5nLWNlbGxzID0gPDI+OyAv
-KiBtaW4gZm9sbG93ZWQgYnkgbWF4ICovCiAJCX07CiAJCWNwdUAxIHsKIAkJCWRldmljZV90eXBl
-ID0gImNwdSI7Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
-bGlzdGluZm8vbG0tc2Vuc29ycw=
+Unlike other chips supported by this driver, the NCT6791 only has a single
+set of registers to configure weighted fan control. Enable it only for the
+single channel supporting it.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6775.c |   29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 3f4ef21..cf811c1 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -510,6 +510,13 @@ static const u16 NCT6779_REG_TEMP_CRIT[ARRAY_SIZE(nct6779_temp_label) - 1]
+ 
+ #define NCT6791_REG_HM_IO_SPACE_LOCK_ENABLE	0x28
+ 
++static const u16 NCT6791_REG_WEIGHT_TEMP_SEL[6] = { 0, 0x239 };
++static const u16 NCT6791_REG_WEIGHT_TEMP_STEP[6] = { 0, 0x23a };
++static const u16 NCT6791_REG_WEIGHT_TEMP_STEP_TOL[6] = { 0, 0x23b };
++static const u16 NCT6791_REG_WEIGHT_DUTY_STEP[6] = { 0, 0x23c };
++static const u16 NCT6791_REG_WEIGHT_TEMP_BASE[6] = { 0, 0x23d };
++static const u16 NCT6791_REG_WEIGHT_DUTY_BASE[6] = { 0, 0x23e };
++
+ static const u16 NCT6791_REG_ALARM[NUM_REG_ALARM] = {
+ 	0x459, 0x45A, 0x45B, 0x568, 0x45D };
+ 
+@@ -1311,6 +1318,9 @@ static void nct6775_update_pwm(struct device *dev)
+ 		if (reg & 0x80)
+ 			data->pwm[2][i] = 0;
+ 
++		if (!data->REG_WEIGHT_TEMP_SEL[i])
++			continue;
++
+ 		reg = nct6775_read_value(data, data->REG_WEIGHT_TEMP_SEL[i]);
+ 		data->pwm_weight_temp_sel[i] = reg & 0x1f;
+ 		/* If weight is disabled, report weight source as 0 */
+@@ -2856,6 +2866,9 @@ static umode_t nct6775_pwm_is_visible(struct kobject *kobj,
+ 	if (!(data->has_pwm & (1 << pwm)))
+ 		return 0;
+ 
++	if ((nr >= 14 && nr <= 18) || nr = 21)   /* weight */
++		if (!data->REG_WEIGHT_TEMP_SEL[pwm])
++			return 0;
+ 	if (nr = 19 && data->REG_PWM[3] = NULL) /* pwm_max */
+ 		return 0;
+ 	if (nr = 20 && data->REG_PWM[4] = NULL) /* pwm_step */
+@@ -2949,11 +2962,11 @@ static struct sensor_device_template *nct6775_attributes_pwm_template[] = {
+ 	&sensor_dev_template_pwm_step_down_time,
+ 	&sensor_dev_template_pwm_start,
+ 	&sensor_dev_template_pwm_floor,
+-	&sensor_dev_template_pwm_weight_temp_sel,
++	&sensor_dev_template_pwm_weight_temp_sel,	/* 14 */
+ 	&sensor_dev_template_pwm_weight_temp_step,
+ 	&sensor_dev_template_pwm_weight_temp_step_tol,
+ 	&sensor_dev_template_pwm_weight_temp_step_base,
+-	&sensor_dev_template_pwm_weight_duty_step,
++	&sensor_dev_template_pwm_weight_duty_step,	/* 18 */
+ 	&sensor_dev_template_pwm_max,			/* 19 */
+ 	&sensor_dev_template_pwm_step,			/* 20 */
+ 	&sensor_dev_template_pwm_weight_duty_base,	/* 21 */
+@@ -3615,8 +3628,8 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->REG_PWM[0] = NCT6775_REG_PWM;
+ 		data->REG_PWM[1] = NCT6775_REG_FAN_START_OUTPUT;
+ 		data->REG_PWM[2] = NCT6775_REG_FAN_STOP_OUTPUT;
+-		data->REG_PWM[5] = NCT6775_REG_WEIGHT_DUTY_STEP;
+-		data->REG_PWM[6] = NCT6776_REG_WEIGHT_DUTY_BASE;
++		data->REG_PWM[5] = NCT6791_REG_WEIGHT_DUTY_STEP;
++		data->REG_PWM[6] = NCT6791_REG_WEIGHT_DUTY_BASE;
+ 		data->REG_PWM_READ = NCT6775_REG_PWM_READ;
+ 		data->REG_PWM_MODE = NCT6776_REG_PWM_MODE;
+ 		data->PWM_MODE_MASK = NCT6776_PWM_MODE_MASK;
+@@ -3632,10 +3645,10 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->REG_TEMP_OFFSET = NCT6779_REG_TEMP_OFFSET;
+ 		data->REG_TEMP_SOURCE = NCT6775_REG_TEMP_SOURCE;
+ 		data->REG_TEMP_SEL = NCT6775_REG_TEMP_SEL;
+-		data->REG_WEIGHT_TEMP_SEL = NCT6775_REG_WEIGHT_TEMP_SEL;
+-		data->REG_WEIGHT_TEMP[0] = NCT6775_REG_WEIGHT_TEMP_STEP;
+-		data->REG_WEIGHT_TEMP[1] = NCT6775_REG_WEIGHT_TEMP_STEP_TOL;
+-		data->REG_WEIGHT_TEMP[2] = NCT6775_REG_WEIGHT_TEMP_BASE;
++		data->REG_WEIGHT_TEMP_SEL = NCT6791_REG_WEIGHT_TEMP_SEL;
++		data->REG_WEIGHT_TEMP[0] = NCT6791_REG_WEIGHT_TEMP_STEP;
++		data->REG_WEIGHT_TEMP[1] = NCT6791_REG_WEIGHT_TEMP_STEP_TOL;
++		data->REG_WEIGHT_TEMP[2] = NCT6791_REG_WEIGHT_TEMP_BASE;
+ 		data->REG_ALARM = NCT6791_REG_ALARM;
+ 		data->REG_BEEP = NCT6776_REG_BEEP;
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
