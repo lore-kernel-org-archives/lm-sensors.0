@@ -1,28 +1,32 @@
-From: =?UTF-8?Q?Bj=C3=B6rn_Gerhart?= <oss@airbjorn.de>
-Date: Fri, 15 Nov 2013 08:54:07 +0000
-Subject: Re: [lm-sensors] NCT6106D: strange VIN max behaviour (nct6775)
-Message-Id: <541811605.85192.1384505647498.open-xchange@app04.ox.hosteurope.de>
+From: Commander <commander.alchemy@gmail.com>
+Date: Sun, 17 Nov 2013 11:02:06 +0000
+Subject: [lm-sensors] Asus Sabertooth AM3+ Rev 2.0 (PCIe 2.0)
+Message-Id: <CA+evzr7W9ViYuu82eFuNutRPLnde-+QBDAq0e82a6GHM8qNPbg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <250339793.65111.1384443406161.open-xchange@app04.ox.hosteurope.de>
-In-Reply-To: <250339793.65111.1384443406161.open-xchange@app04.ox.hosteurope.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgR3VlbnRlciBhbmQgSmVhbiwKCnRoYW5rcyBhIGxvdCBmb3IgeW91ciBhZHZpY2UgYWJvdXQg
-dGhlIHByb3BlciByZXNpc3RvciByYXRpb3MuIEknbGwKY29udGFjdCB0aGUgZGV2ZWxvcGVycyBp
-ZiB0aGV5IHJlYWxpemUgdGhlIHByb2JsZW0sIGFuZCBtYXliZSBldmVuIGZpeAp0aGUgYXNzZW1i
-bHkuIElmIHRoZXkgYXJlIG5vdCBhYmxlIHRvIGZpeCBpdCwgSSB3aWxsIGhhdmUgdG8gaWdub3Jl
-CnRoZXNlIHZvbHRhZ2VzIGluIHRoZSBmdXR1cmUuCgo+IFRoZSByZWdpc3RlciBhZGRyZXNzZXMg
-ZW5jb2RlIGJvdGggYmFuayBhbmQgYWRkcmVzcy4KPiBJZiB5b3UgbG9vayBpbnRvIG5jdDY3NzVf
-cmVhZF92YWx1ZSgpLCB5b3UnbGwgc2VlIGhvdyB0aGUgYWRkcmVzcwo+IGlzIHNwbGl0IGludG8g
-PGJhbmssIG9mZnNldD4uClRoYW5rcyBmb3IgY2xhcmlmeWluZywgZ290IHRoZSBpZGVhLgoKPiBQ
-bGVhc2UgcHJvdmlkZSB0aGUgb3V0cHV0IG9mCj4KPiBzdWRvIGlzYWR1bXAgMHgyOTUgMHgyOTYg
-MAo+IHN1ZG8gaXNhZHVtcCAweDI5NSAweDI5NiAxCkFzIEkgdW5kZXJzdGFuZCBpdCwgdGhpcyB5
-ZXQgZG9lc24ndCBtYWtlIHNlbnNlIGFzIGxvbmcgYXMgdGhlIHJlc2lzdG9yCnJhdGlvcyBhcmUg
-bm90IGZpeGVkLiBIb3dldmVyLCBpZiB0aGUgcmVnaXN0ZXIgY29udGVudCBpcyBvZiB2YWx1ZQph
-bnl3YXksIEkgY2FuIHByb3ZpZGUgaXQgYXMgd2VsbC4KCkJqw7ZybgoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
-bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Seems like i get some wrong readings.
+output of sensors : http://codepad.org/KicD4Woq
+
+fam15h_power-pci-00c4:
+6.75W
+
+temp3:
+-128c
+
+These are constant values no matter what, are these readings hardcoded or
+is there something wrong?
+
+Other than no labels the rest seems to be reported correctly (Other than
+low cpu temp in idle, but that's related to the chip from my investigation)
+
+Best Regards
+Artur O.
+Justice @ Freenode
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
