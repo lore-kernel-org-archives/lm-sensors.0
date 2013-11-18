@@ -1,47 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 28 Nov 2013 05:10:00 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (fam15h_power) use DEFINE_PCI_DEVICE_TABLE macro
-Message-Id: <5296D028.5050405@roeck-us.net>
+From: Tom Metro <tmetro+lmsensors@gmail.com>
+Date: Mon, 18 Nov 2013 03:41:28 +0000
+Subject: [lm-sensors] Acer Aspire 8930G laptop and general approach for reverse engineering sensors
+Message-Id: <loom.20131118T042931-981@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001701ceebdf$f0f70d00$d2e52700$%han@samsung.com>
-In-Reply-To: <001701ceebdf$f0f70d00$d2e52700$%han@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 11/27/2013 08:33 PM, Jingoo Han wrote:
-> On Thursday, November 28, 2013 12:03 PM, Guenter Roeck wrote:
->> On 11/27/2013 06:17 PM, Jingoo Han wrote:
->>> This macro is used to create a struct pci_device_id array.
->>>
->>> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
->>> ---
->>
->> Applied to -next.
->
-> Please, drop these patches.
-> According to the Greg Kroah-Hartman,
->
-> "Yeah, and it's a horrid macro that deserves to be removed, please don't
-> use it in more places.
->
-> Actually, if you could just remove it, that would be best, sorry, I'm
-> not going to take these patches."
->
-> So, I will send the patch to remove 'DEFINE_PCI_DEVICE_TABLE' instead.
-> Sorry for annoying. :-)
->
-
-Ok, I'll drop the patches. I hope Greg's statement is the "final" word from
-senior maintainers, though - I don't want to have to go back and forth with this.
-
-Thanks,
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+UnVubmluZyBsbS1zZW5zb3JzIG9uIFVidW50dSAxMi4wNCBvbiBhbiBBY2VyIEFzcGlyZSA4OTMw
+RyBsYXB0b3AgYW5kIEkgc2VlOgoKJSBzZW5zb3JzCmFjcGl0ei12aXJ0dWFsLTAKQWRhcHRlcjog
+VmlydHVhbCBkZXZpY2UKdGVtcDE6ICAgICAgICArMzguMMKwQyAgKGNyaXQgPSArMTA2LjDCsEMp
+CnRlbXAyOiAgICAgICAgKzQ4LjDCsEMgIChjcml0ID0gKzEwNi4wwrBDKQp0ZW1wMzogICAgICAg
+ICs0OC4wwrBDICAoY3JpdCA9ICsxMDYuMMKwQykKdGVtcDQ6ICAgICAgICArNDMuMMKwQyAgKGNy
+aXQgPSArMTA2LjDCsEMpCgpub3V2ZWF1LXBjaS0wMTAwCkFkYXB0ZXI6IFBDSSBhZGFwdGVyCnRl
+bXAxOiAgICAgICAgKzQ5LjDCsEMgIChoaWdoID0gKzEwMC4wwrBDLCBjcml0ID0gKzExMC4wwrBD
+KQoKY29yZXRlbXAtaXNhLTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICAr
+MzMuMMKwQyAgKGhpZ2ggPSArMTA1LjDCsEMsIGNyaXQgPSArMTA1LjDCsEMpCkNvcmUgMTogICAg
+ICAgKzMzLjDCsEMgIChoaWdoID0gKzEwNS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQoKSSdkIGxp
+a2UgdG8gZmlndXJlIG91dCBwcm9wZXIgbGFiZWxzIGZvciB0aGVzZS4gVGhlIHR3byBjb3JldGVt
+cCBzZW5zb3JzIChpZgp3b3JraW5nKSBhcmUgb2J2aW91cywgYW5kIG5vdXZlYXUgSSdkIGFzc3Vt
+ZSBpcyB0aGUgR1BVIHRlbXAuIFRoZSByZXN0IGZyb20KYWNwaXR6LXZpcnR1YWwtMCBhcmUgbGVz
+cyBjbGVhci4gVGhleSBhcHByb3hpbWF0ZWx5IG1hcCBvdXQgdGhlIHNhbWUKcGF0dGVybiwgdHJh
+Y2tpbmcgc3lzdGVtIGxvYWRpbmcsIHdpdGggc2xpZ2h0bHkgZGlmZmVyZW50IHNjYWxpbmcgZmFj
+dG9ycy4KCkkgZGlkbid0IHNlZSBhbnkgZ3VpZGFuY2UgaW4gdGhlIEZBUSBvbiBhIGdlbmVyYWwg
+YXBwcm9hY2ggdG8gcmV2ZXJzZQplbmdpbmVlcmluZyB0aGUgbGFiZWxpbmcgZm9yIHNlbnNvcnMu
+IFRoZXJlIG11c3QgYmUgYSByZWNvbW1lbmRlZCBhcHByb2FjaApmb3IgdGhpcy4KCkkgZGlkIHNl
+ZSBpbiB0aGUgRkFRIHRoYXQgdGhlcmUgaXMgbm8gZGF0YWJhc2Ugb2YgY29uZmlndXJhdGlvbnMg
+cGVyCm1vdGhlcmJvYXJkL2xhcHRvcCwgYnV0IEkgd291bGQgZXhwZWN0IHRoYXQgd2l0aCBhbGwg
+dGhlIHRlbXBlcmF0dXJlCm1vbml0b3JpbmcgdXRpbGl0aWVzIGZvciBXaW5kb3dzLCBvbmUgb3Ig
+bW9yZSBvZiB0aGVtIGxpa2VseSBoYXMgYnVuZGxlZApjb25maWd1cmF0aW9uIGZpbGVzIHRoYXQg
+Y2FuIGJlIHVzZWQgYXMgYSByZWZlcmVuY2UuIChJZiBzbywgdGhpcyBzb3J0IG9mCmFnZ3JlZ2F0
+ZWQgZmFjdHVhbCBpbmZvcm1hdGlvbiBjb3VsZCBldmVuIGJlIGJ1bGsgY29udmVydGVkIHRvIHNl
+bnNvcnMuY29uZgpmb3JtYXQgbGVnYWxseS4pCgogLVRvbQoKCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1z
+ZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xtLXNlbnNvcnM
