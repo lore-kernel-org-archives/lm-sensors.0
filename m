@@ -1,360 +1,108 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Fri, 15 Nov 2013 13:19:02 +0000
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Mon, 18 Nov 2013 06:04:10 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52861F46.8020900@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6204222912708655970=="
+Message-Id: <1384754650.2316.32.camel@rzhang-lenovo>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <2523089.oKCvZdz31U@flatron> <5284B478.8090503@ti.com> <25668725.sMcoUCgCKk@flatron>
-In-Reply-To: <25668725.sMcoUCgCKk@flatron>
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
---===============6204222912708655970==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq"
-
---Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hello Tomasz,
-
-On 14-11-2013 09:40, Tomasz Figa wrote:
-> On Thursday 14 of November 2013 07:31:04 Eduardo Valentin wrote:
->> On 13-11-2013 12:57, Tomasz Figa wrote:
->>> Hi Eduardo,
->>>
->>
->> Hello Tomaz
->>
->>> On Tuesday 12 of November 2013 15:46:04 Eduardo Valentin wrote:
->>>> This patch introduces a device tree bindings for
->>>> describing the hardware thermal behavior and limits.
->>>> Also a parser to read and interpret the data and feed
->>>> it in the thermal framework is presented.
->>> [snip]
->>>> diff --git a/Documentation/devicetree/bindings/thermal/thermal.txt b=
-/Documentation/devicetree/bindings/thermal/thermal.txt
->>>> new file mode 100644
->>>> index 0000000..59f5bd2
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/thermal/thermal.txt
->>>> @@ -0,0 +1,586 @@
->>> [snip]
->>>> +* Cooling device nodes
->>>> +
->>>> +Cooling devices are nodes providing control on power dissipation. T=
-here
->>>> +are essentially two ways to provide control on power dissipation. F=
-irst
->>>> +is by means of regulating device performance, which is known as pas=
-sive
->>>> +cooling. A typical passive cooling is a CPU that has dynamic voltag=
-e and
->>>> +frequency scaling (DVFS), and uses lower frequencies as cooling sta=
-tes.
->>>> +Second is by means of activating devices in order to remove
->>>> +the dissipated heat, which is known as active cooling, e.g. regulat=
-ing
->>>> +fan speeds. In both cases, cooling devices shall have a way to dete=
-rmine
->>>> +the state of cooling in which the device is.
->>>> +
->>>> +Required properties:
->>>> +- cooling-min-state:	An integer indicating the smallest
->>>> +  Type: unsigned	cooling state accepted. Typically 0.
->>>> +  Size: one cell
->>>
->>> Could you explain (just in a reply) what a cooling state is and what =
-are
->>> the min and max values used for?
->>
->> Cooling state is an unsigned integer which represents heat control tha=
-t
->> a cooling device implies.
->=20
-> OK. So you have a cooling device and it can have multiple cooling state=
-s,
-> like a cooling fan that has multiple speed levels. Did I understand thi=
-s
-> correctly?
->=20
-> IMHO this should be also explained in the documentation above, possibly=
-
-> with one or two examples.
-
-
-There are more than one example in this file. Even explaining why
-cooling min and max are used, and the difference of min and max
-properties that appear in cooling device and those present in a cooling
-specifier. Cooling devices and cooling state are described in the
-paragraph above.
-
->=20
->>
->>>
->>>> +
->>>> +- cooling-max-state:	An integer indicating the largest
->>>> +  Type: unsigned	cooling state accepted.
->>>> +  Size: one cell
->>>> +
->>>> +- #cooling-cells:	Used to provide cooling device specific informati=
-on
->>>> +  Type: unsigned	while referring to it. Must be at least 2, in orde=
-r
->>>> +  Size: one cell      	to specify minimum and maximum cooling state=
- used
->>>> +			in the reference. The first cell is the minimum
->>>> +			cooling state requested and the second cell is
->>>> +			the maximum cooling state requested in the reference.
->>>> +			See Cooling device maps section below for more details
->>>> +			on how consumers refer to cooling devices.
->>>> +
->>>> +* Trip points
->>>> +
->>>> +The trip node is a node to describe a point in the temperature doma=
-in
->>>> +in which the system takes an action. This node describes just the p=
-oint,
->>>> +not the action.
->>>> +
->>>> +Required properties:
->>>> +- temperature:		An integer indicating the trip temperature level,
->>>> +  Type: signed		in millicelsius.
->>>> +  Size: one cell
->>>> +
->>>> +- hysteresis:		A low hysteresis value on temperature property (abov=
-e).
->>>> +  Type: unsigned	This is a relative value, in millicelsius.
->>>> +  Size: one cell
->>>
->>> What about replacing temperature and hysteresis with a single tempera=
-ture
->>> property that can be either one cell for 0 hysteresis or two cells to=
-
->>> specify lower and upper range of temperatures?
->>
->> What is the problem with using two properties? I think we loose
->> representation by gluing two properties into one just because one cell=
-=2E
->=20
-> Ranges is the representation widely used in other bindings. In addition=
-
-
-Well that sentence is arguable. It is not like all properties in DT are
-standardized as ranges, is it?
-
-> I believe a range is more representative - when reading a DTS you don't=
-
-> need to think whether the hysteresis is in temperature units, percents =
-or
-> something else and also is less ambiguous, because you have clearly
-> defined lower and upper bounds in one place.
-
-It is the other way around. For a person designing a thermal
-representation for a specific board it is intuitive to think about
-hysteresis in this case. It is a better representation because we are
-really talking about a hysteresis here in order to give some room for
-the system to react on temporary temperature transitions around that
-point. It is possible to use ranges as you are suggesting, but it
-becomes confusing.
-
-
->=20
->>
->>>
->>>> +
->>>> +- type:			a string containing the trip type. Supported values are:
->>>> +	"active":	A trip point to enable active cooling
->>>> +	"passive":	A trip point to enable passive cooling
->>>
->>> The two above seem to be implying action, as opposed to the general
->>> comment about trip points.
->>
->> They do not imply action, they specify type of trip.
->=20
-> For me "A trip point to enable active cooling" means that when this tri=
-p
-> point is crossed, active cooling must be enabled. What is it if not
-> implying action?
-
-But within a board there could be more than one active cooling actions
-that could be done, it is not a 1 to 1 relation. Same thing applies to
-passive cooling. The binding does not imply a specific action. Just the
-trip type.
-
->=20
->>
->>>
->>>> +	"hot":		A trip point to notify emergency
->>>> +	"critical":	Hardware not reliable.
->>>> +  Type: string
->>>> +
->>> [snip]
->>>> +* Examples
->>>> +
->>>> +Below are several examples on how to use thermal data descriptors
->>>> +using device tree bindings:
->>>> +
->>>> +(a) - CPU thermal zone
->>>> +
->>>> +The CPU thermal zone example below describes how to setup one therm=
-al zone
->>>> +using one single sensor as temperature source and many cooling devi=
-ces and
->>>> +power dissipation control sources.
->>>> +
->>>> +#include <dt-bindings/thermal/thermal.h>
->>>> +
->>>> +cpus {
->>>> +	/*
->>>> +	 * Here is an example of describing a cooling device for a DVFS
->>>> +	 * capable CPU. The CPU node describes its four OPPs.
->>>> +	 * The cooling states possible are 0..3, and they are
->>>> +	 * used as OPP indexes. The minimum cooling state is 0, which mean=
-s
->>>> +	 * all four OPPs can be available to the system. The maximum
->>>> +	 * cooling state is 3, which means only the lowest OPPs (198MHz@0.=
-85V)
->>>> +	 * can be available in the system.
->>>> +	 */
->>>> +	cpu0: cpu@0 {
->>>> +		...
->>>> +		operating-points =3D <
->>>> +			/* kHz    uV */
->>>> +			970000  1200000
->>>> +			792000  1100000
->>>> +			396000  950000
->>>> +			198000  850000
->>>> +		>;
->>>> +		cooling-min-state =3D <0>;
->>>> +		cooling-max-state =3D <3>;
->>>> +		#cooling-cells =3D <2>; /* min followed by max */
->>>
->>> I believe you don't need the min- and max-state properties here then.=
- Your
->>> thermal core can simply query the cpufreq driver (which would be a co=
-oling
->>> device here) about the range of states it supports
->>
->> This binding is not supposed to be aware of cpufreq, which is Linux
->> specific implementation.
->=20
-> I didn't say anything about making the binding aware of cpufreq, but
-> instead about getting rid of redundancy of data, that can be provided
-> by respective drivers anyway.
-
-There are cases in which cooling devices don't need to use all states
-for cooling, because either lower states does not provide cooling
-effectiveness or higher states must be avoided at all. So, allowing
-drivers to report this thermal info is possible, but questionable
-design, as you would be spreading the thermal info. Besides, for the
-example I gave, the driver would need to know board specifics, as the
-range of states would vary anyway across board.
-
->=20
->>
->> Besides, the cpufreq layer is populated by data already specified in D=
-T.
->> .
->>>
->>>> +	};
->>>> +	...
->>>> +};
->>>> +
->>>> +&i2c1 {
->>>> +	...
->>>> +	/*
->>>> +	 * A simple fan controller which supports 10 speeds of operation
->>>> +	 * (represented as 0-9).
->>>> +	 */
->>>> +	fan0: fan@0x48 {
->>>> +		...
->>>> +		cooling-min-state =3D <0>;
->>>> +		cooling-max-state =3D <9>;
->>>
->>> This is similar. The fan driver will probaby know about available
->>> fan speed levels and be able to report the range of states to thermal=
-
->>> core.
->>
->> Then we loose also the flexibility to assign cooling states to trip
->> points, as described in this binding.
->=20
-> I don't think you got my point correctly.
->=20
-> Let's say you have a CPU, which has 4 operating points. You don't need
-> to specify that min state is 0 and max state is 4, because it is implie=
-d
-> by the list of operating points.
-
-Please read my explanation above.
-
->=20
-> Same goes for a fan controller that has, let's say, an 8-bit PWM duty
-> cycle register, which in turn allows 256 different speed states. This
-> implies that min state for it is 0 and max state 255 and you don't need=
-
-> to specify this in DT.
-
-ditto.
-
->=20
-> Now, both a CPU and fan controller will have their thermal drivers, whi=
-ch
-> can report to the thermal core what ranges of cooling states they suppo=
-rt,
-> which again makes it wrong to specify such data in DT.
-
-
-Please also read the examples I gave in the thermal binding. There are
-case that the designer may want to assign a range of states to
-temperature trip points. This binding is flexible enough to cover for
-that situation. And without the representation of these limits it would
-be hard to read the binding. It is not redundant data, please check the
-documentation.
-
->=20
-> Best regards,
-> Tomasz
->=20
->=20
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlKGH0sACgkQCXcVR3XQvP04YAD/U4EUrd2Eyo5vIRPtS8VUtTfy
-7vm75ky69Kix7IRnhPwA/1nB7iEui0tGs1Sp4woqPxA6zuKg+ff5YfGAgsmPXBhb
-=sSU3
------END PGP SIGNATURE-----
-
---Cs1tdUcWi2W2pUXopW6Amwvp5fhcichCq--
-
-
---===============6204222912708655970==
-Content-Type: text/plain; charset="us-ascii"
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+	 <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
+	 <20131115090736.4f360dc8@endymion.delvare>
+In-Reply-To: <20131115090736.4f360dc8@endymion.delvare>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, devicetree@vger.kernel.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, grant.likely@linaro.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6204222912708655970==--
+T24g5LqULCAyMDEzLTExLTE1IGF0IDA5OjA3ICswMTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
+SGkgRWR1YXJkbywKPiAKPiBPbiBUdWUsIDEyIE5vdiAyMDEzIDE1OjQ2OjA0IC0wNDAwLCBFZHVh
+cmRvIFZhbGVudGluIHdyb3RlOgo+ID4gVGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGEgZGV2aWNlIHRy
+ZWUgYmluZGluZ3MgZm9yCj4gPiBkZXNjcmliaW5nIHRoZSBoYXJkd2FyZSB0aGVybWFsIGJlaGF2
+aW9yIGFuZCBsaW1pdHMuCj4gPiBBbHNvIGEgcGFyc2VyIHRvIHJlYWQgYW5kIGludGVycHJldCB0
+aGUgZGF0YSBhbmQgZmVlZAo+ID4gaXQgaW4gdGhlIHRoZXJtYWwgZnJhbWV3b3JrIGlzIHByZXNl
+bnRlZC4KPiA+IAo+ID4gVGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGEgdGhlcm1hbCBkYXRhIHBhcnNl
+ciBmb3IgZGV2aWNlCj4gPiB0cmVlLiBUaGUgcGFyc2VkIGRhdGEgaXMgdXNlZCB0byBidWlsZCB0
+aGVybWFsIHpvbmVzCj4gPiBhbmQgdGhlcm1hbCBiaW5kaW5nIHBhcmFtZXRlcnMuIFRoZSBvdXRw
+dXQgZGF0YQo+ID4gY2FuIHRoZW4gYmUgdXNlZCB0byBkZXBsb3kgdGhlcm1hbCBwb2xpY2llcy4K
+PiA+IAo+ID4gVGhpcyBwYXRjaCBhZGRzIGFsc28gZG9jdW1lbnRhdGlvbiByZWdhcmRpbmcgdGhp
+cwo+ID4gQVBJIGFuZCBob3cgdG8gZGVmaW5lIHRyZWUgbm9kZXMgdG8gdXNlCj4gPiB0aGlzIGlu
+ZnJhc3RydWN0dXJlLgo+ID4gCj4gPiBOb3RlIHRoYXQsIGluIG9yZGVyIHRvIGJlIGFibGUgdG8g
+aGF2ZSBjb250cm9sCj4gPiBvbiB0aGUgc2Vuc29yIHJlZ2lzdHJhdGlvbiBvbiB0aGUgRFQgdGhl
+cm1hbCB6b25lLAo+ID4gaXQgd2FzIHJlcXVpcmVkIHRvIGFsbG93IGNoYW5naW5nIHRoZSB0aGVy
+bWFsIHpvbmUKPiA+IC5nZXRfdGVtcCBjYWxsYmFjay4gRm9yIHRoaXMgcmVhc29uLCB0aGlzIHBh
+dGNoCj4gPiBhbHNvIHJlbW92ZXMgdGhlICdjb25zdCcgbW9kaWZpZXIgZnJvbSB0aGUgLm9wcwo+
+ID4gZmllbGQgb2YgdGhlcm1hbCB6b25lIGRldmljZXMuCj4gPiAKPiA+IENjOiBaaGFuZyBSdWkg
+PHJ1aS56aGFuZ0BpbnRlbC5jb20+Cj4gPiBDYzogbGludXgtcG1Admdlci5rZXJuZWwub3JnCj4g
+PiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+ID4gQ2M6IE1hcmsgUnV0bGFuZCA8
+bWFyay5ydXRsYW5kQGFybS5jb20+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGlu
+IDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KPiA+IC0tLQo+ID4gKC4uLikKPiA+ICtzdGF0aWMg
+aW50IG9mX3RoZXJtYWxfZ2V0X3RyZW5kKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwg
+aW50IHRyaXAsCj4gPiArCQkJCWVudW0gdGhlcm1hbF90cmVuZCAqdHJlbmQpCj4gPiArewo+ID4g
+KwlzdHJ1Y3QgX190aGVybWFsX3pvbmUgKmRhdGEgPSB0ei0+ZGV2ZGF0YTsKPiA+ICsJbG9uZyBk
+ZXZfdHJlbmQ7Cj4gPiArCWludCByOwo+ID4gKwo+ID4gKwlpZiAoIWRhdGEtPmdldF90cmVuZCkK
+PiA+ICsJCXJldHVybiAtRUlOVkFMOwo+ID4gKwo+ID4gKwlyID0gZGF0YS0+Z2V0X3RyZW5kKGRh
+dGEtPnNlbnNvcl9kYXRhLCAmZGV2X3RyZW5kKTsKPiA+ICsJaWYgKHIpCj4gPiArCQlyZXR1cm4g
+cjsKPiA+ICsKPiA+ICsJLyogVE9ETzogVGhlc2UgaW50ZXJ2YWxzIG1pZ2h0IGhhdmUgc29tZSB0
+aHJlc2hvbGRzLCBidXQgaW4gY29yZSBjb2RlICovCj4gPiArCWlmIChkZXZfdHJlbmQgPiAwKQo+
+ID4gKwkJKnRyZW5kID0gVEhFUk1BTF9UUkVORF9SQUlTSU5HOwo+ID4gKwllbHNlIGlmIChkZXZf
+dHJlbmQgPCAwKQo+ID4gKwkJKnRyZW5kID0gVEhFUk1BTF9UUkVORF9EUk9QUElORzsKPiA+ICsJ
+ZWxzZQo+ID4gKwkJKnRyZW5kID0gVEhFUk1BTF9UUkVORF9TVEFCTEU7Cj4gPiArCj4gPiArCXJl
+dHVybiAwOwo+ID4gK30KPiAKPiBJIGRvbid0IGxpa2UgdGhlIHdob2xlIHRyZW5kIHRoaW5nLgo+
+IAo+IEkndmUgYmVlbiB3cml0aW5nIGh3bW9uIGRyaXZlcnMgZm9yIHRoZSBwYXN0IGRlY2FkZSBh
+bmQgSSd2ZSBuZXZlciBzZWVuCj4gYSB0aGVybWFsIHNlbnNvciBkZXZpY2UgYmVpbmcgYWJsZSB0
+byByZXBvcnQgdHJlbmRzLiBBbmQgYXMgYSBydWxlIG9mCj4gdGh1bWIsIGlmIHRoZSBoYXJkd2Fy
+ZSBjYW4ndCBkbyBpdCB0aGVuIHRoZSAoaGFyZHdhcmUtc3BlY2lmaWMpIGRyaXZlcnMKPiBzaG91
+bGQgbm90IHJlcG9ydCBpdC4KCkkgYWdyZWUgdGhhdCBhIHNlbnNvciBkZXZpY2Ugc2hvdWxkIG5v
+dCBiZSBhYmxlIHRvIHJlcG9ydCB0cmVuZHMuIEJ1dApjdXJyZW50bHksIHRoZSB0aGVybWFsIHpv
+bmUgZHJpdmVyIGlzIG5vdCBvbmx5IGEgc2Vuc29yIGRyaXZlciwgaXQgYWxzbwpvd25zIHRoZSBw
+bGF0Zm9ybSB0aGVybWFsIGNvb2xpbmcgc3RyYXRlZ3kuCkFuZCBzb21lIHBsYXRmb3JtcyBkbyBo
+YXZlIHRoaXMga2luZCBvZiBrbm93bGVkZ2UsIHJpZ2h0PwplLmcuIEFDUEkgc3BlYyBwcm92aWRl
+cyBhbiBlcXVhdGlvbiBmb3IgcHJvY2Vzc29yIHBhc3NpdmUgY29vbGluZyAoQUNQSQpTcGVjIDUu
+MCAxMS4xLjUpLgoKPiAKPiBId21vbiBkZXZpY2VzIChhbmQgZHJpdmVycykgcmVwb3J0IHRlbXBl
+cmF0dXJlIHZhbHVlcywgYW5kIHNvbWV0aW1lcwo+IGhpc3RvcmljYWwgbWluL21heC4gVGhleSBj
+YW4gZG8gdGhhdCBiZWNhdXNlIHRoZXNlIGFyZSBmYWN0cyB0aGF0IG5lZWQKPiBubyBpbnRlcnBy
+ZXRhdGlvbi4KPiAKPiBEZWZpbmluZyBhIHRyZW5kLCBob3dldmVyLCByZXF1aXJlcyBjYXJlIGFu
+ZCwgbW9yZSBpbXBvcnRhbnRseSwKPiBkZWNpc2lvbnMuCgpXZSBoYWQgdGhlIGFzc3VtcHRpb24g
+dGhhdCB3ZSB3aWxsIGdldCBhbiBpbnRlcnJ1cHQgd2hlbiB0aGUgZmlybXdhcmUKdGhpbmtzIHRo
+ZXJlIGlzIGFuIHRlbXBlcmF0dXJlIGNoYW5nZSB0aGF0IHNob3VsZCBiZSBub3RpY2VkIGJ5IE9T
+LgoKPiAgRm9yIGV4YW1wbGUsIGNvbnNpZGVyIGEgdGhlcm1hbCBzZW5zb3Igd2hpY2ggcmVwb3J0
+cyA1MMKwQyBhdAo+IHRpbWUgdCwgdGhlbiA0N8KwQyBhdCB0aW1lIHQrM3MsCgpkb2VzIGZpcm13
+YXJlIHRoaW5rcyB0aGlzIHNob3VsZCBiZSBub3RpY2VkIGJ5IE9TPwpJZiBubywgdGhlcmUgaXMg
+bm8gaW50ZXJydXB0IGFuZCB0aGlzIHRlbXBlcmF0dXJlIGNoYW5nZSBpcyB0b3RhbGx5CnRyYW5z
+cGFyZW50IHRvIHRoZSBPUyBhdCBhbGwuCklmIHllcywgdGhlIHRoZXJtYWwgY29yZSB3aWxsIGNo
+ZWNrIGlmIHRoZSBzeXN0ZW0gaXMgb3ZlcmhlYXRpbmcsIGlmCnllcywgaXQgdGhyb3R0bGVzIHRo
+ZSBkZXZpY2VzLCBhbmQgaWYgbm8sIGRvIG5vdGhpbmcuCgo+ICB0aGVuIDQ4wrBDIGF0IHRpbWUg
+dCs2cy4gQXQgdCs3cyBzb21lb25lCj4gYXNrcyBmb3IgdGhlIHRyZW5kLAoKdGhlIHRyZW5kIGlz
+IG5lZWRlZCB3aGVuIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyIGNhbGxzCnRoZXJtYWxfem9uZV9k
+ZXZpY2VfdXBkYXRlKCksIGFuZCBtb3N0bHkgZm9sbG93aW5nIGEgdGVtcGVyYXR1cmUgY2hhbmdl
+CmludGVycnVwdC4KCj4gIHdoYXQgc2hvdWxkIHRoZSBkcml2ZXIgcmVwbHk/Cj4gIElmIHlvdSBj
+b25zaWRlciBvbmx5Cj4gdGhlIGxhc3QgNSBzZWNvbmRzLCB0ZW1wZXJhdHVyZSBpcyByYWlzaW5n
+LiBJZiB5b3UgY29uc2lkZXIgdGhlIGxhc3QgMTAKPiBzZWNvbmRzIGluc3RlYWQsIHRlbXBlcmF0
+dXJlIGlzIGRyb3BwaW5nLiBIb3cgd291bGQgdGhlIGRyaXZlciBrbm93Cj4gd2hhdCB0aW1lIGZy
+YW1lIHRoZSBjYWxsZXIgaXMgaW50ZXJlc3RlZCBpbj8KPiAKPiBBbm90aGVyIGV4YW1wbGU6ICJz
+bWFsbCIgdGVtcGVyYXR1cmUgdmFyaWF0aW9ucy4gSWYgdGVtcGVyYXR1cmVzIHZhcmllcwo+IGJ5
+IDHCsEMgaW4gbXkga2l0Y2hlbidzIG92ZW4sIEknZCBjYWxsIGl0IHN0YWJsZS4gSWYgbXkgYm9k
+eSB0ZW1wZXJhdHVyZQo+IHZhcmllcyBieSAxwrBDLCBJJ2QgY2FsbCBpdCBub24tc3RhYmxlLCBh
+bmQgbXkgZG9jdG9yIGZvciBhbiBhcHBvaW50bWVudAo+IGFsc28gOy0pCj4gCgo+IE15IHBvaW50
+IGlzIHRoYXQgb25seSB0aGUgY2FsbGVyLCBhbmQgbm90IHRoZSBkcml2ZXIsIGtub3dzIGhvdyB0
+bwo+IGNvbnZlcnQgYSBzZXJpZXMgb2YgbWVhc3VyZW1lbnRzIGludG8gYSB0cmVuZC4gU28gSSBk
+b24ndCB0aGluayBkcml2ZXJzCj4gc2hvdWxkIGltcGxlbWVudCBhbnl0aGluZyBsaWtlIGdldF90
+cmVuZCgpLiBXaGF0ZXZlciBwaWVjZSBvZiBjb2RlCj4gbmVlZHMgdG8gZXN0YWJsaXNoIGEgdHJl
+bmQgc2hvdWxkIGNhbGwgZ2V0X3RlbXAoKSByZXBlYXRlZGx5LCBzdG9yZSB0aGUKPiByZXN1bHRz
+IGFuZCBkbyBpdHMgb3duIGFuYWx5c2lzIG9mIHRoZSBkYXRhLgo+IApJIHRoaW5rIHRoZSBrZXkg
+cHJvYmxlbSBpcyB0aGF0LAp0aGUgdGhlcm1hbCBzdWJzeXN0ZW0ganVzdCBwcm92aWRlcyBhIGJh
+c2ljL21pbmltdW0gdGhlcm1hbCBjb250cm9sCmZyYW1ld29yayBpbiBrZXJuZWwsIGFuZCBpdCBp
+cyB0b3RhbGx5IHBsYXRmb3JtIGluZGVwZW5kZW50LiBBbmQgYW55CnBsYXRmb3JtIGRyaXZlciBj
+YW4gdXNlIHRoaXMgZnJhbWV3b3JrIHRvIGRvIHNvbWUgYmFzaWMgdGhlcm1hbCBjb250cm9sCmVh
+c2lseSBidXQganVzdCB0ZWxsaW5nIHRoZXJtYWwgY29yZSBpZiB0aGUgdGhlcm1hbCBjb3JlIHNo
+b3VsZCB0YWtlCnNvbWUgY29vbGluZyBhY3Rpb25zICh0cmlwIHBvaW50cyArIHRyZW5kICsgY3Vy
+cmVudCB0ZW1wZXJhdHVyZSkgYW5kIGhvdwooYnkgY2hvb3NpbmcgdGhlcm1hbCBnb3Zlcm5vcnMp
+LgoKU28gaWYgeW91IHdhbnQgdG8gZG8gbW9yZSBwcmVjaXNlIHRoZXJtYWwgY29udHJvbCwgeW91
+J2QgYmV0dGVyIGRpc2FibGUKa2VybmVsIHRoZXJtYWwgY29udHJvbCBhbmQgZG8gaXQgaW4gdXNl
+cnNwYWNlLiBJbiB0aGlzIGNhc2UsCnRoZSAuZ2V0X3RyZW5kKCkgd2lsbCBuZXZlciBiZSBpbnZv
+a2VkIGF0IGFsbC4KRnVydGhlciBtb3JlLCBJJ20gaW5kZWVkIGNvbnNpZGVyaW5nIGludHJvZHVj
+ZSBwbGF0Zm9ybSBzcGVjaWZpYyB0aGVybWFsCmdvdmVybm9ycywgc28gdGhhdCBwbGF0Zm9ybSB0
+aGVybWFsIGRyaXZlciBjYW4gdGVsbCB0aGVybWFsIGNvcmUgd2hhdCB0bwpkbyBhdCBhIGNlcnRh
+aW4gcG9pbnQuCgp0aGFua3MsCnJ1aQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
+c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
+c2Vuc29ycw=
