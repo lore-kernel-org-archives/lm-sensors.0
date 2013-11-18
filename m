@@ -1,108 +1,254 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Mon, 18 Nov 2013 06:04:10 +0000
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Mon, 18 Nov 2013 14:45:02 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <1384754650.2316.32.camel@rzhang-lenovo>
+Message-Id: <528A27EE.9090604@ti.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7301172165765413850=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-	 <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
-	 <20131115090736.4f360dc8@endymion.delvare>
-In-Reply-To: <20131115090736.4f360dc8@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, devicetree@vger.kernel.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, grant.likely@linaro.org
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>  <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>  <20131115090736.4f360dc8@endymion.delvare> <1384754650.2316.32.camel@rzhang-lenovo>
+In-Reply-To: <1384754650.2316.32.camel@rzhang-lenovo>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, devicetree@vger.kernel.org, wni@nvidia.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, grant.likely@linaro.org
 
-T24g5LqULCAyMDEzLTExLTE1IGF0IDA5OjA3ICswMTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
-SGkgRWR1YXJkbywKPiAKPiBPbiBUdWUsIDEyIE5vdiAyMDEzIDE1OjQ2OjA0IC0wNDAwLCBFZHVh
-cmRvIFZhbGVudGluIHdyb3RlOgo+ID4gVGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGEgZGV2aWNlIHRy
-ZWUgYmluZGluZ3MgZm9yCj4gPiBkZXNjcmliaW5nIHRoZSBoYXJkd2FyZSB0aGVybWFsIGJlaGF2
-aW9yIGFuZCBsaW1pdHMuCj4gPiBBbHNvIGEgcGFyc2VyIHRvIHJlYWQgYW5kIGludGVycHJldCB0
-aGUgZGF0YSBhbmQgZmVlZAo+ID4gaXQgaW4gdGhlIHRoZXJtYWwgZnJhbWV3b3JrIGlzIHByZXNl
-bnRlZC4KPiA+IAo+ID4gVGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGEgdGhlcm1hbCBkYXRhIHBhcnNl
-ciBmb3IgZGV2aWNlCj4gPiB0cmVlLiBUaGUgcGFyc2VkIGRhdGEgaXMgdXNlZCB0byBidWlsZCB0
-aGVybWFsIHpvbmVzCj4gPiBhbmQgdGhlcm1hbCBiaW5kaW5nIHBhcmFtZXRlcnMuIFRoZSBvdXRw
-dXQgZGF0YQo+ID4gY2FuIHRoZW4gYmUgdXNlZCB0byBkZXBsb3kgdGhlcm1hbCBwb2xpY2llcy4K
-PiA+IAo+ID4gVGhpcyBwYXRjaCBhZGRzIGFsc28gZG9jdW1lbnRhdGlvbiByZWdhcmRpbmcgdGhp
-cwo+ID4gQVBJIGFuZCBob3cgdG8gZGVmaW5lIHRyZWUgbm9kZXMgdG8gdXNlCj4gPiB0aGlzIGlu
-ZnJhc3RydWN0dXJlLgo+ID4gCj4gPiBOb3RlIHRoYXQsIGluIG9yZGVyIHRvIGJlIGFibGUgdG8g
-aGF2ZSBjb250cm9sCj4gPiBvbiB0aGUgc2Vuc29yIHJlZ2lzdHJhdGlvbiBvbiB0aGUgRFQgdGhl
-cm1hbCB6b25lLAo+ID4gaXQgd2FzIHJlcXVpcmVkIHRvIGFsbG93IGNoYW5naW5nIHRoZSB0aGVy
-bWFsIHpvbmUKPiA+IC5nZXRfdGVtcCBjYWxsYmFjay4gRm9yIHRoaXMgcmVhc29uLCB0aGlzIHBh
-dGNoCj4gPiBhbHNvIHJlbW92ZXMgdGhlICdjb25zdCcgbW9kaWZpZXIgZnJvbSB0aGUgLm9wcwo+
-ID4gZmllbGQgb2YgdGhlcm1hbCB6b25lIGRldmljZXMuCj4gPiAKPiA+IENjOiBaaGFuZyBSdWkg
-PHJ1aS56aGFuZ0BpbnRlbC5jb20+Cj4gPiBDYzogbGludXgtcG1Admdlci5rZXJuZWwub3JnCj4g
-PiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+ID4gQ2M6IE1hcmsgUnV0bGFuZCA8
-bWFyay5ydXRsYW5kQGFybS5jb20+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGlu
-IDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KPiA+IC0tLQo+ID4gKC4uLikKPiA+ICtzdGF0aWMg
-aW50IG9mX3RoZXJtYWxfZ2V0X3RyZW5kKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwg
-aW50IHRyaXAsCj4gPiArCQkJCWVudW0gdGhlcm1hbF90cmVuZCAqdHJlbmQpCj4gPiArewo+ID4g
-KwlzdHJ1Y3QgX190aGVybWFsX3pvbmUgKmRhdGEgPSB0ei0+ZGV2ZGF0YTsKPiA+ICsJbG9uZyBk
-ZXZfdHJlbmQ7Cj4gPiArCWludCByOwo+ID4gKwo+ID4gKwlpZiAoIWRhdGEtPmdldF90cmVuZCkK
-PiA+ICsJCXJldHVybiAtRUlOVkFMOwo+ID4gKwo+ID4gKwlyID0gZGF0YS0+Z2V0X3RyZW5kKGRh
-dGEtPnNlbnNvcl9kYXRhLCAmZGV2X3RyZW5kKTsKPiA+ICsJaWYgKHIpCj4gPiArCQlyZXR1cm4g
-cjsKPiA+ICsKPiA+ICsJLyogVE9ETzogVGhlc2UgaW50ZXJ2YWxzIG1pZ2h0IGhhdmUgc29tZSB0
-aHJlc2hvbGRzLCBidXQgaW4gY29yZSBjb2RlICovCj4gPiArCWlmIChkZXZfdHJlbmQgPiAwKQo+
-ID4gKwkJKnRyZW5kID0gVEhFUk1BTF9UUkVORF9SQUlTSU5HOwo+ID4gKwllbHNlIGlmIChkZXZf
-dHJlbmQgPCAwKQo+ID4gKwkJKnRyZW5kID0gVEhFUk1BTF9UUkVORF9EUk9QUElORzsKPiA+ICsJ
-ZWxzZQo+ID4gKwkJKnRyZW5kID0gVEhFUk1BTF9UUkVORF9TVEFCTEU7Cj4gPiArCj4gPiArCXJl
-dHVybiAwOwo+ID4gK30KPiAKPiBJIGRvbid0IGxpa2UgdGhlIHdob2xlIHRyZW5kIHRoaW5nLgo+
-IAo+IEkndmUgYmVlbiB3cml0aW5nIGh3bW9uIGRyaXZlcnMgZm9yIHRoZSBwYXN0IGRlY2FkZSBh
-bmQgSSd2ZSBuZXZlciBzZWVuCj4gYSB0aGVybWFsIHNlbnNvciBkZXZpY2UgYmVpbmcgYWJsZSB0
-byByZXBvcnQgdHJlbmRzLiBBbmQgYXMgYSBydWxlIG9mCj4gdGh1bWIsIGlmIHRoZSBoYXJkd2Fy
-ZSBjYW4ndCBkbyBpdCB0aGVuIHRoZSAoaGFyZHdhcmUtc3BlY2lmaWMpIGRyaXZlcnMKPiBzaG91
-bGQgbm90IHJlcG9ydCBpdC4KCkkgYWdyZWUgdGhhdCBhIHNlbnNvciBkZXZpY2Ugc2hvdWxkIG5v
-dCBiZSBhYmxlIHRvIHJlcG9ydCB0cmVuZHMuIEJ1dApjdXJyZW50bHksIHRoZSB0aGVybWFsIHpv
-bmUgZHJpdmVyIGlzIG5vdCBvbmx5IGEgc2Vuc29yIGRyaXZlciwgaXQgYWxzbwpvd25zIHRoZSBw
-bGF0Zm9ybSB0aGVybWFsIGNvb2xpbmcgc3RyYXRlZ3kuCkFuZCBzb21lIHBsYXRmb3JtcyBkbyBo
-YXZlIHRoaXMga2luZCBvZiBrbm93bGVkZ2UsIHJpZ2h0PwplLmcuIEFDUEkgc3BlYyBwcm92aWRl
-cyBhbiBlcXVhdGlvbiBmb3IgcHJvY2Vzc29yIHBhc3NpdmUgY29vbGluZyAoQUNQSQpTcGVjIDUu
-MCAxMS4xLjUpLgoKPiAKPiBId21vbiBkZXZpY2VzIChhbmQgZHJpdmVycykgcmVwb3J0IHRlbXBl
-cmF0dXJlIHZhbHVlcywgYW5kIHNvbWV0aW1lcwo+IGhpc3RvcmljYWwgbWluL21heC4gVGhleSBj
-YW4gZG8gdGhhdCBiZWNhdXNlIHRoZXNlIGFyZSBmYWN0cyB0aGF0IG5lZWQKPiBubyBpbnRlcnBy
-ZXRhdGlvbi4KPiAKPiBEZWZpbmluZyBhIHRyZW5kLCBob3dldmVyLCByZXF1aXJlcyBjYXJlIGFu
-ZCwgbW9yZSBpbXBvcnRhbnRseSwKPiBkZWNpc2lvbnMuCgpXZSBoYWQgdGhlIGFzc3VtcHRpb24g
-dGhhdCB3ZSB3aWxsIGdldCBhbiBpbnRlcnJ1cHQgd2hlbiB0aGUgZmlybXdhcmUKdGhpbmtzIHRo
-ZXJlIGlzIGFuIHRlbXBlcmF0dXJlIGNoYW5nZSB0aGF0IHNob3VsZCBiZSBub3RpY2VkIGJ5IE9T
-LgoKPiAgRm9yIGV4YW1wbGUsIGNvbnNpZGVyIGEgdGhlcm1hbCBzZW5zb3Igd2hpY2ggcmVwb3J0
-cyA1MMKwQyBhdAo+IHRpbWUgdCwgdGhlbiA0N8KwQyBhdCB0aW1lIHQrM3MsCgpkb2VzIGZpcm13
-YXJlIHRoaW5rcyB0aGlzIHNob3VsZCBiZSBub3RpY2VkIGJ5IE9TPwpJZiBubywgdGhlcmUgaXMg
-bm8gaW50ZXJydXB0IGFuZCB0aGlzIHRlbXBlcmF0dXJlIGNoYW5nZSBpcyB0b3RhbGx5CnRyYW5z
-cGFyZW50IHRvIHRoZSBPUyBhdCBhbGwuCklmIHllcywgdGhlIHRoZXJtYWwgY29yZSB3aWxsIGNo
-ZWNrIGlmIHRoZSBzeXN0ZW0gaXMgb3ZlcmhlYXRpbmcsIGlmCnllcywgaXQgdGhyb3R0bGVzIHRo
-ZSBkZXZpY2VzLCBhbmQgaWYgbm8sIGRvIG5vdGhpbmcuCgo+ICB0aGVuIDQ4wrBDIGF0IHRpbWUg
-dCs2cy4gQXQgdCs3cyBzb21lb25lCj4gYXNrcyBmb3IgdGhlIHRyZW5kLAoKdGhlIHRyZW5kIGlz
-IG5lZWRlZCB3aGVuIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyIGNhbGxzCnRoZXJtYWxfem9uZV9k
-ZXZpY2VfdXBkYXRlKCksIGFuZCBtb3N0bHkgZm9sbG93aW5nIGEgdGVtcGVyYXR1cmUgY2hhbmdl
-CmludGVycnVwdC4KCj4gIHdoYXQgc2hvdWxkIHRoZSBkcml2ZXIgcmVwbHk/Cj4gIElmIHlvdSBj
-b25zaWRlciBvbmx5Cj4gdGhlIGxhc3QgNSBzZWNvbmRzLCB0ZW1wZXJhdHVyZSBpcyByYWlzaW5n
-LiBJZiB5b3UgY29uc2lkZXIgdGhlIGxhc3QgMTAKPiBzZWNvbmRzIGluc3RlYWQsIHRlbXBlcmF0
-dXJlIGlzIGRyb3BwaW5nLiBIb3cgd291bGQgdGhlIGRyaXZlciBrbm93Cj4gd2hhdCB0aW1lIGZy
-YW1lIHRoZSBjYWxsZXIgaXMgaW50ZXJlc3RlZCBpbj8KPiAKPiBBbm90aGVyIGV4YW1wbGU6ICJz
-bWFsbCIgdGVtcGVyYXR1cmUgdmFyaWF0aW9ucy4gSWYgdGVtcGVyYXR1cmVzIHZhcmllcwo+IGJ5
-IDHCsEMgaW4gbXkga2l0Y2hlbidzIG92ZW4sIEknZCBjYWxsIGl0IHN0YWJsZS4gSWYgbXkgYm9k
-eSB0ZW1wZXJhdHVyZQo+IHZhcmllcyBieSAxwrBDLCBJJ2QgY2FsbCBpdCBub24tc3RhYmxlLCBh
-bmQgbXkgZG9jdG9yIGZvciBhbiBhcHBvaW50bWVudAo+IGFsc28gOy0pCj4gCgo+IE15IHBvaW50
-IGlzIHRoYXQgb25seSB0aGUgY2FsbGVyLCBhbmQgbm90IHRoZSBkcml2ZXIsIGtub3dzIGhvdyB0
-bwo+IGNvbnZlcnQgYSBzZXJpZXMgb2YgbWVhc3VyZW1lbnRzIGludG8gYSB0cmVuZC4gU28gSSBk
-b24ndCB0aGluayBkcml2ZXJzCj4gc2hvdWxkIGltcGxlbWVudCBhbnl0aGluZyBsaWtlIGdldF90
-cmVuZCgpLiBXaGF0ZXZlciBwaWVjZSBvZiBjb2RlCj4gbmVlZHMgdG8gZXN0YWJsaXNoIGEgdHJl
-bmQgc2hvdWxkIGNhbGwgZ2V0X3RlbXAoKSByZXBlYXRlZGx5LCBzdG9yZSB0aGUKPiByZXN1bHRz
-IGFuZCBkbyBpdHMgb3duIGFuYWx5c2lzIG9mIHRoZSBkYXRhLgo+IApJIHRoaW5rIHRoZSBrZXkg
-cHJvYmxlbSBpcyB0aGF0LAp0aGUgdGhlcm1hbCBzdWJzeXN0ZW0ganVzdCBwcm92aWRlcyBhIGJh
-c2ljL21pbmltdW0gdGhlcm1hbCBjb250cm9sCmZyYW1ld29yayBpbiBrZXJuZWwsIGFuZCBpdCBp
-cyB0b3RhbGx5IHBsYXRmb3JtIGluZGVwZW5kZW50LiBBbmQgYW55CnBsYXRmb3JtIGRyaXZlciBj
-YW4gdXNlIHRoaXMgZnJhbWV3b3JrIHRvIGRvIHNvbWUgYmFzaWMgdGhlcm1hbCBjb250cm9sCmVh
-c2lseSBidXQganVzdCB0ZWxsaW5nIHRoZXJtYWwgY29yZSBpZiB0aGUgdGhlcm1hbCBjb3JlIHNo
-b3VsZCB0YWtlCnNvbWUgY29vbGluZyBhY3Rpb25zICh0cmlwIHBvaW50cyArIHRyZW5kICsgY3Vy
-cmVudCB0ZW1wZXJhdHVyZSkgYW5kIGhvdwooYnkgY2hvb3NpbmcgdGhlcm1hbCBnb3Zlcm5vcnMp
-LgoKU28gaWYgeW91IHdhbnQgdG8gZG8gbW9yZSBwcmVjaXNlIHRoZXJtYWwgY29udHJvbCwgeW91
-J2QgYmV0dGVyIGRpc2FibGUKa2VybmVsIHRoZXJtYWwgY29udHJvbCBhbmQgZG8gaXQgaW4gdXNl
-cnNwYWNlLiBJbiB0aGlzIGNhc2UsCnRoZSAuZ2V0X3RyZW5kKCkgd2lsbCBuZXZlciBiZSBpbnZv
-a2VkIGF0IGFsbC4KRnVydGhlciBtb3JlLCBJJ20gaW5kZWVkIGNvbnNpZGVyaW5nIGludHJvZHVj
-ZSBwbGF0Zm9ybSBzcGVjaWZpYyB0aGVybWFsCmdvdmVybm9ycywgc28gdGhhdCBwbGF0Zm9ybSB0
-aGVybWFsIGRyaXZlciBjYW4gdGVsbCB0aGVybWFsIGNvcmUgd2hhdCB0bwpkbyBhdCBhIGNlcnRh
-aW4gcG9pbnQuCgp0aGFua3MsCnJ1aQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
-c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
-c2Vuc29ycw=
+--===============7301172165765413850==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="cS4dWoBMcPp72AHaaoV2xdAjjHbVefF7C"
+
+--cS4dWoBMcPp72AHaaoV2xdAjjHbVefF7C
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hello Jean,
+
+I will try to complement what Rui's already commented.
+
+On 18-11-2013 02:04, Zhang Rui wrote:
+> On =E4=BA=94, 2013-11-15 at 09:07 +0100, Jean Delvare wrote:
+>> Hi Eduardo,
+>>
+>> On Tue, 12 Nov 2013 15:46:04 -0400, Eduardo Valentin wrote:
+>>> This patch introduces a device tree bindings for
+>>> describing the hardware thermal behavior and limits.
+>>> Also a parser to read and interpret the data and feed
+>>> it in the thermal framework is presented.
+>>>
+>>> This patch introduces a thermal data parser for device
+>>> tree. The parsed data is used to build thermal zones
+>>> and thermal binding parameters. The output data
+>>> can then be used to deploy thermal policies.
+>>>
+>>> This patch adds also documentation regarding this
+>>> API and how to define tree nodes to use
+>>> this infrastructure.
+>>>
+>>> Note that, in order to be able to have control
+>>> on the sensor registration on the DT thermal zone,
+>>> it was required to allow changing the thermal zone
+>>> .get_temp callback. For this reason, this patch
+>>> also removes the 'const' modifier from the .ops
+>>> field of thermal zone devices.
+>>>
+>>> Cc: Zhang Rui <rui.zhang@intel.com>
+>>> Cc: linux-pm@vger.kernel.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>>> ---
+>>> (...)
+>>> +static int of_thermal_get_trend(struct thermal_zone_device *tz, int =
+trip,
+>>> +				enum thermal_trend *trend)
+>>> +{
+>>> +	struct __thermal_zone *data =3D tz->devdata;
+>>> +	long dev_trend;
+>>> +	int r;
+>>> +
+>>> +	if (!data->get_trend)
+>>> +		return -EINVAL;
+>>> +
+>>> +	r =3D data->get_trend(data->sensor_data, &dev_trend);
+>>> +	if (r)
+>>> +		return r;
+>>> +
+>>> +	/* TODO: These intervals might have some thresholds, but in core co=
+de */
+>>> +	if (dev_trend > 0)
+>>> +		*trend =3D THERMAL_TREND_RAISING;
+>>> +	else if (dev_trend < 0)
+>>> +		*trend =3D THERMAL_TREND_DROPPING;
+>>> +	else
+>>> +		*trend =3D THERMAL_TREND_STABLE;
+>>> +
+>>> +	return 0;
+>>> +}
+>>
+>> I don't like the whole trend thing.
+>>
+>> I've been writing hwmon drivers for the past decade and I've never see=
+n
+>> a thermal sensor device being able to report trends. And as a rule of
+>> thumb, if the hardware can't do it then the (hardware-specific) driver=
+s
+>> should not report it.
+
+In fact, I would agree with you that it is not common to see such
+devices. What I've already seen is that HW provides is usually artifacts
+that may help on computing such statistic data. And in that case it may
+be the case that the data coming from the HW may have less noise, such
+as system overhead, than that computed by the caller.
+
+However, it is also the case that such artifacts do not work without a
+proper platform dependent configuration step, such as update interval
+and size of the history window.
+
+>=20
+> I agree that a sensor device should not be able to report trends. But
+> currently, the thermal zone driver is not only a sensor driver, it also=
+
+> owns the platform thermal cooling strategy.
+> And some platforms do have this kind of knowledge, right?
+> e.g. ACPI spec provides an equation for processor passive cooling (ACPI=
+
+> Spec 5.0 11.1.5).
+>=20
+
+Just a complementary point here, The design of current thermal framework
+is so that get_trend is zone specific, and thus, it has to consider the
+cooling strategy owned by the driver, like the update interval. And
+besides, in case the driver does not know how to compute the trend, the
+framework, the caller of that callback, also provides default behavior.
+
+The purpose of this series is to split the data that is platform
+dependent and allow designers to write those data points in device tree.
+That is why the "glue layer" still keeps the get_trend.
+
+
+>>
+>> Hwmon devices (and drivers) report temperature values, and sometimes
+>> historical min/max. They can do that because these are facts that need=
+
+>> no interpretation.
+>>
+>> Defining a trend, however, requires care and, more importantly,
+>> decisions.
+
+
+Maybe your concern is the fact that it would be very hard to provide a
+trend from a hwmon driver? And that I agree, unless the device provides
+artifacts. But that is not the case for all users of this API. For
+instance, some versions of TI SoC bandgap sensors may have historical
+buffers and cumulative values. But obviously, these features would work
+only if proper configuration is agreed.
+
+>=20
+> We had the assumption that we will get an interrupt when the firmware
+> thinks there is an temperature change that should be noticed by OS.
+>=20
+>>  For example, consider a thermal sensor which reports 50=C2=B0C at
+>> time t, then 47=C2=B0C at time t+3s,
+>=20
+> does firmware thinks this should be noticed by OS?
+> If no, there is no interrupt and this temperature change is totally
+> transparent to the OS at all.
+> If yes, the thermal core will check if the system is overheating, if
+> yes, it throttles the devices, and if no, do nothing.
+>=20
+>>  then 48=C2=B0C at time t+6s. At t+7s someone
+>> asks for the trend,
+>=20
+> the trend is needed when platform thermal driver calls
+> thermal_zone_device_update(), and mostly following a temperature change=
+
+> interrupt.
+>=20
+>>  what should the driver reply?
+>>  If you consider only
+>> the last 5 seconds, temperature is raising. If you consider the last 1=
+0
+>> seconds instead, temperature is dropping. How would the driver know
+>> what time frame the caller is interested in?
+>>
+>> Another example: "small" temperature variations. If temperatures varie=
+s
+>> by 1=C2=B0C in my kitchen's oven, I'd call it stable. If my body tempe=
+rature
+>> varies by 1=C2=B0C, I'd call it non-stable, and my doctor for an appoi=
+ntment
+>> also ;-)
+>>
+>=20
+>> My point is that only the caller, and not the driver, knows how to
+>> convert a series of measurements into a trend. So I don't think driver=
+s
+
+Agreed here. However, the caller can also instruct the device to help on
+the computation based on historical values. And historical values can be
+configured also by the caller.
+
+>> should implement anything like get_trend(). Whatever piece of code
+>> needs to establish a trend should call get_temp() repeatedly, store th=
+e
+>> results and do its own analysis of the data.
+>>
+> I think the key problem is that,
+> the thermal subsystem just provides a basic/minimum thermal control
+> framework in kernel, and it is totally platform independent. And any
+> platform driver can use this framework to do some basic thermal control=
+
+> easily but just telling thermal core if the thermal core should take
+> some cooling actions (trip points + trend + current temperature) and ho=
+w
+> (by choosing thermal governors).
+>=20
+> So if you want to do more precise thermal control, you'd better disable=
+
+> kernel thermal control and do it in userspace. In this case,
+> the .get_trend() will never be invoked at all.
+> Further more, I'm indeed considering introduce platform specific therma=
+l
+> governors, so that platform thermal driver can tell thermal core what t=
+o
+> do at a certain point.
+>=20
+> thanks,
+> rui
+>=20
+>=20
+>=20
+
+
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--cS4dWoBMcPp72AHaaoV2xdAjjHbVefF7C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlKKJ+4ACgkQCXcVR3XQvP0CNwD/dmNlvLGSoMdyDQ1gn6cEotoG
+u6UjjKJQYeqeyWgrbgQA/Avo7zGbLvfoKphA0m6+XVAQC5fZkKKIw00IBCgOIGJz
+=hUNh
+-----END PGP SIGNATURE-----
+
+--cS4dWoBMcPp72AHaaoV2xdAjjHbVefF7C--
+
+
+--===============7301172165765413850==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7301172165765413850==--
