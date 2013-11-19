@@ -1,123 +1,110 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Nov 2013 19:41:01 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 19 Nov 2013 21:14:20 +0000
 Subject: Re: [lm-sensors] Ticket #2382
-Message-Id: <20131119204101.15b7ea4d@endymion.delvare>
+Message-Id: <20131119211420.GA3642@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <528A62DC.9030107@baymicrosystems.com>
 In-Reply-To: <528A62DC.9030107@baymicrosystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 19 Nov 2013 09:53:51 -0800, Guenter Roeck wrote:
-> On Tue, Nov 19, 2013 at 06:18:57PM +0100, Jean Delvare wrote:
-> > Hi Guenter, Mike,
-> >=20
-> > On Tue, 19 Nov 2013 08:38:40 -0800, Guenter Roeck wrote:
-> > > On Tue, Nov 19, 2013 at 10:04:08AM -0500, Mike Gilbert wrote:
-> > > >=20
-> > > > Guenter,
-> > > >=20
-> > > > We're evaluating the new card in a open chassis. It is on the test
-> > > > bench with a table fan for cooling. I turned off the fan and got:
-> > > >=20
-> > > >     ENTER show_temp
-> > > >     cpu 0 (0)
-> > > >     status_reg @ 19C
-> > > >     eax =3D 885E0000 edx =3D 0
-> > > >     temp =3D 1770 valid =3D 1
-> > > >     EXIT show_temp
-> > > >=20
-> > > > It seems like you've seen this before. What's going on?
-> > >=20
-> > > No, I was just throwing darts at a wall with my eyes closed.
-> >=20
-> > Oh, you thought that was a wall? :D
-> >=20
-> > > Seriously, it was just a wild guess. Idea was that the valid bit may =
-be 0
-> > > if the temperature is too low to be even remotely close to the maximu=
-m.
-> >=20
-> > That was my theory in ticket #2382, indeed. It was never tested until
-> > today I think, thanks Mike for doing that.
-> >=20
-> > > For this chip, just to give you an example, the datasheet says that a=
-ny
-> > > reported temperature below 50 degrees C only means that the temperatu=
-re
-> > > is below 50 degrees C.
-> >=20
-> > That's a start... I didn't know it was documented. Is it documented for
-> > all CPU models? If we can gather the values at least for all affected
->=20
-> Uuh ... I didn't say it was documented. If it is, I don't know about it.
-> As I said, it was just a wild guess.... even without reading your comment
-> on the ticket.
-
-I must have misread you. What where you talking about when you said
-"For this chip, just to give you an example, the datasheet says that
-any reported temperature below 50 degrees C only means that the
-temperature is below 50 degrees C"?
-
-> > Atom CPU models (as I suppose the value will vary per model) we could
-> > tweak something in the driver.
-> >=20
-> > > Jean, any idea what we can do about this ? Report X degrees C (some c=
-onstant
-> > > below TjMax) if valid is 0 ?
-> >=20
-> > Well well, we don't really have a sane way to transmit the information
-> > ("temperature is below X") down to the monitoring applications. The
-> > sysfs interface has no provision for it, libsensors wouldn't handle it
-> > and "sensors" wouldn't either, of course.
-> >=20
-> > We could hard-code an arbitrarily low temperature as you suggest,
-> > however I'm not sure if we want to do it for all CPU models or only the
-> > ones listed in ticket #2382. My concern is that the Intel specification
-> > doesn't limit "valid =3D 0" to too low temperature values. They don't
-> > give any detail, so assuming that "too low" is the only reason seems
-> > weird. I remember we saw transient errors on coretemp readings in the
-> > past, but I can't remember if that was on these Atom models (i.e. just
-> > another incarnation of ticket #2382) or other CPU models. I'm afraid we
-> > may start reporting temperature values instead of actual errors if the
-> > fix-up is too broad.
-> >=20
-> > Either way, the current situation is rather bad, as "N/A" looks more
-> > like "it's broken" than "it's cold". So I have no objection to crafting
-> > "something" into the driver to make it look better, if you are
-> > motivated to give it a try.
-> >=20
-> > If you are even more motivated and want to extend the sysfs to properly
-> > report the situation to user-space, feel free to do that as well. I
-> > volunteer to review any kernel patch related to this, and to write the
-> > user-space code to deal with it. I'm just not sure it's worth the
-> > effort for just 3 CPU models.
->=20
-> I'd rather go with an exception table, or rather extend the existing tabl=
-es.
-> It is probably somewhat safe to assume that the problem applies to all CP=
-Us
-> with the same model/mask. Based on that we could declare a "tjmin" and
-> report that if it is 1) defined and 2) the valid bit is 0. A somewhat "sa=
-fe"
-> temperature to report for the D5xx (model 0x1c/mask 10), based on Mike's
-> numbers, would then be 36 degrees C (100 - 64).
-
-Not sure where you drew the "36" from. From Mike's table it seems the
-valid flag wears off when the reported temperature would be < 6=B0C. This
-correlates with my findings in the ticket where the valid flag would be
-0 for 1=B0C and 4=B0C.
-
-> If you are ok with that I'll submit a patch for it.
-
-Yes I am.
-
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCBOb3YgMTksIDIwMTMgYXQgMDg6NDE6MDFQTSArMDEwMCwgSmVhbiBEZWx2YXJlIHdy
+b3RlOgo+IE9uIFR1ZSwgMTkgTm92IDIwMTMgMDk6NTM6NTEgLTA4MDAsIEd1ZW50ZXIgUm9lY2sg
+d3JvdGU6Cj4gPiBPbiBUdWUsIE5vdiAxOSwgMjAxMyBhdCAwNjoxODo1N1BNICswMTAwLCBKZWFu
+IERlbHZhcmUgd3JvdGU6Cj4gPiA+IEhpIEd1ZW50ZXIsIE1pa2UsCj4gPiA+IAo+ID4gPiBPbiBU
+dWUsIDE5IE5vdiAyMDEzIDA4OjM4OjQwIC0wODAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+ID4g
+PiA+IE9uIFR1ZSwgTm92IDE5LCAyMDEzIGF0IDEwOjA0OjA4QU0gLTA1MDAsIE1pa2UgR2lsYmVy
+dCB3cm90ZToKPiA+ID4gPiA+IAo+ID4gPiA+ID4gR3VlbnRlciwKPiA+ID4gPiA+IAo+ID4gPiA+
+ID4gV2UncmUgZXZhbHVhdGluZyB0aGUgbmV3IGNhcmQgaW4gYSBvcGVuIGNoYXNzaXMuIEl0IGlz
+IG9uIHRoZSB0ZXN0Cj4gPiA+ID4gPiBiZW5jaCB3aXRoIGEgdGFibGUgZmFuIGZvciBjb29saW5n
+LiBJIHR1cm5lZCBvZmYgdGhlIGZhbiBhbmQgZ290Ogo+ID4gPiA+ID4gCj4gPiA+ID4gPiAgICAg
+RU5URVIgc2hvd190ZW1wCj4gPiA+ID4gPiAgICAgY3B1IDAgKDApCj4gPiA+ID4gPiAgICAgc3Rh
+dHVzX3JlZyBAIDE5Qwo+ID4gPiA+ID4gICAgIGVheCA9IDg4NUUwMDAwIGVkeCA9IDAKPiA+ID4g
+PiA+ICAgICB0ZW1wID0gMTc3MCB2YWxpZCA9IDEKPiA+ID4gPiA+ICAgICBFWElUIHNob3dfdGVt
+cAo+ID4gPiA+ID4gCj4gPiA+ID4gPiBJdCBzZWVtcyBsaWtlIHlvdSd2ZSBzZWVuIHRoaXMgYmVm
+b3JlLiBXaGF0J3MgZ29pbmcgb24/Cj4gPiA+ID4gCj4gPiA+ID4gTm8sIEkgd2FzIGp1c3QgdGhy
+b3dpbmcgZGFydHMgYXQgYSB3YWxsIHdpdGggbXkgZXllcyBjbG9zZWQuCj4gPiA+IAo+ID4gPiBP
+aCwgeW91IHRob3VnaHQgdGhhdCB3YXMgYSB3YWxsPyA6RAo+ID4gPiAKPiA+ID4gPiBTZXJpb3Vz
+bHksIGl0IHdhcyBqdXN0IGEgd2lsZCBndWVzcy4gSWRlYSB3YXMgdGhhdCB0aGUgdmFsaWQgYml0
+IG1heSBiZSAwCj4gPiA+ID4gaWYgdGhlIHRlbXBlcmF0dXJlIGlzIHRvbyBsb3cgdG8gYmUgZXZl
+biByZW1vdGVseSBjbG9zZSB0byB0aGUgbWF4aW11bS4KPiA+ID4gCj4gPiA+IFRoYXQgd2FzIG15
+IHRoZW9yeSBpbiB0aWNrZXQgIzIzODIsIGluZGVlZC4gSXQgd2FzIG5ldmVyIHRlc3RlZCB1bnRp
+bAo+ID4gPiB0b2RheSBJIHRoaW5rLCB0aGFua3MgTWlrZSBmb3IgZG9pbmcgdGhhdC4KPiA+ID4g
+Cj4gPiA+ID4gRm9yIHRoaXMgY2hpcCwganVzdCB0byBnaXZlIHlvdSBhbiBleGFtcGxlLCB0aGUg
+ZGF0YXNoZWV0IHNheXMgdGhhdCBhbnkKPiA+ID4gPiByZXBvcnRlZCB0ZW1wZXJhdHVyZSBiZWxv
+dyA1MCBkZWdyZWVzIEMgb25seSBtZWFucyB0aGF0IHRoZSB0ZW1wZXJhdHVyZQo+ID4gPiA+IGlz
+IGJlbG93IDUwIGRlZ3JlZXMgQy4KPiA+ID4gCj4gPiA+IFRoYXQncyBhIHN0YXJ0Li4uIEkgZGlk
+bid0IGtub3cgaXQgd2FzIGRvY3VtZW50ZWQuIElzIGl0IGRvY3VtZW50ZWQgZm9yCj4gPiA+IGFs
+bCBDUFUgbW9kZWxzPyBJZiB3ZSBjYW4gZ2F0aGVyIHRoZSB2YWx1ZXMgYXQgbGVhc3QgZm9yIGFs
+bCBhZmZlY3RlZAo+ID4gCj4gPiBVdWggLi4uIEkgZGlkbid0IHNheSBpdCB3YXMgZG9jdW1lbnRl
+ZC4gSWYgaXQgaXMsIEkgZG9uJ3Qga25vdyBhYm91dCBpdC4KPiA+IEFzIEkgc2FpZCwgaXQgd2Fz
+IGp1c3QgYSB3aWxkIGd1ZXNzLi4uLiBldmVuIHdpdGhvdXQgcmVhZGluZyB5b3VyIGNvbW1lbnQK
+PiA+IG9uIHRoZSB0aWNrZXQuCj4gCj4gSSBtdXN0IGhhdmUgbWlzcmVhZCB5b3UuIFdoYXQgd2hl
+cmUgeW91IHRhbGtpbmcgYWJvdXQgd2hlbiB5b3Ugc2FpZAo+ICJGb3IgdGhpcyBjaGlwLCBqdXN0
+IHRvIGdpdmUgeW91IGFuIGV4YW1wbGUsIHRoZSBkYXRhc2hlZXQgc2F5cyB0aGF0Cj4gYW55IHJl
+cG9ydGVkIHRlbXBlcmF0dXJlIGJlbG93IDUwIGRlZ3JlZXMgQyBvbmx5IG1lYW5zIHRoYXQgdGhl
+Cj4gdGVtcGVyYXR1cmUgaXMgYmVsb3cgNTAgZGVncmVlcyBDIj8KPiAKSXQgZG9lcy4gU29ycnks
+IEkgdGhvdWdodCB5b3UgcmVmZXIgdG8gdGhlIHZhbGlkIGJpdC4gTXkgYmFkLgoKVGhlIGV4YWN0
+IHdvcmRpbmcgaXMgIkFueSBEVFMgcmVhZGluZyBiZWxvdyA1MMKwQyBzaG91bGQgYmUgY29uc2lk
+ZXJlZAp0byBpbmRpY2F0ZSBvbmx5IGEgdGVtcGVyYXR1cmUgYmVsb3cgNTDCsEMgYW5kIG5vdCBh
+IHNwZWNpZmljIHRlbXBlcmF0dXJlIi4KVGhpcyBpcyBmcm9tIEludGVswq4gQXRvbeKEoiBQcm9j
+ZXNzb3IgRDQwMCBhbmQgRDUwMCBTZXJpZXMgRGF0YXNoZWV0LApWb2x1bWUgMSwgIjcuMS4zIERp
+Z2l0YWwgVGhlcm1hbCBTZW5zb3IiLgoKSnVzdCBmb3IgZnVuLCBJIGFsc28gY2hlY2tlZCB0aGUg
+ZGF0YXNoZWV0cyBmb3IgWjV4eCwgWjZ4eCwgTjQwMC9ONTAwLCBhbmQKRDIwMDAvTjIwMDAuIFRo
+ZSBEMjAwL04yMDAwIGRhdGFzaGVldHMgc2F5cyAiQW55IHRlbXBlcmF0dXJlIGJlbG93IDI1IC4u
+LiIsCnRoZSBvdGhlcnMgYXJlIHNpbGVudCBvbiB0aGUgc3ViamVjdC4KCj4gPiA+IEF0b20gQ1BV
+IG1vZGVscyAoYXMgSSBzdXBwb3NlIHRoZSB2YWx1ZSB3aWxsIHZhcnkgcGVyIG1vZGVsKSB3ZSBj
+b3VsZAo+ID4gPiB0d2VhayBzb21ldGhpbmcgaW4gdGhlIGRyaXZlci4KPiA+ID4gCj4gPiA+ID4g
+SmVhbiwgYW55IGlkZWEgd2hhdCB3ZSBjYW4gZG8gYWJvdXQgdGhpcyA/IFJlcG9ydCBYIGRlZ3Jl
+ZXMgQyAoc29tZSBjb25zdGFudAo+ID4gPiA+IGJlbG93IFRqTWF4KSBpZiB2YWxpZCBpcyAwID8K
+PiA+ID4gCj4gPiA+IFdlbGwgd2VsbCwgd2UgZG9uJ3QgcmVhbGx5IGhhdmUgYSBzYW5lIHdheSB0
+byB0cmFuc21pdCB0aGUgaW5mb3JtYXRpb24KPiA+ID4gKCJ0ZW1wZXJhdHVyZSBpcyBiZWxvdyBY
+IikgZG93biB0byB0aGUgbW9uaXRvcmluZyBhcHBsaWNhdGlvbnMuIFRoZQo+ID4gPiBzeXNmcyBp
+bnRlcmZhY2UgaGFzIG5vIHByb3Zpc2lvbiBmb3IgaXQsIGxpYnNlbnNvcnMgd291bGRuJ3QgaGFu
+ZGxlIGl0Cj4gPiA+IGFuZCAic2Vuc29ycyIgd291bGRuJ3QgZWl0aGVyLCBvZiBjb3Vyc2UuCj4g
+PiA+IAo+ID4gPiBXZSBjb3VsZCBoYXJkLWNvZGUgYW4gYXJiaXRyYXJpbHkgbG93IHRlbXBlcmF0
+dXJlIGFzIHlvdSBzdWdnZXN0LAo+ID4gPiBob3dldmVyIEknbSBub3Qgc3VyZSBpZiB3ZSB3YW50
+IHRvIGRvIGl0IGZvciBhbGwgQ1BVIG1vZGVscyBvciBvbmx5IHRoZQo+ID4gPiBvbmVzIGxpc3Rl
+ZCBpbiB0aWNrZXQgIzIzODIuIE15IGNvbmNlcm4gaXMgdGhhdCB0aGUgSW50ZWwgc3BlY2lmaWNh
+dGlvbgo+ID4gPiBkb2Vzbid0IGxpbWl0ICJ2YWxpZCA9IDAiIHRvIHRvbyBsb3cgdGVtcGVyYXR1
+cmUgdmFsdWVzLiBUaGV5IGRvbid0Cj4gPiA+IGdpdmUgYW55IGRldGFpbCwgc28gYXNzdW1pbmcg
+dGhhdCAidG9vIGxvdyIgaXMgdGhlIG9ubHkgcmVhc29uIHNlZW1zCj4gPiA+IHdlaXJkLiBJIHJl
+bWVtYmVyIHdlIHNhdyB0cmFuc2llbnQgZXJyb3JzIG9uIGNvcmV0ZW1wIHJlYWRpbmdzIGluIHRo
+ZQo+ID4gPiBwYXN0LCBidXQgSSBjYW4ndCByZW1lbWJlciBpZiB0aGF0IHdhcyBvbiB0aGVzZSBB
+dG9tIG1vZGVscyAoaS5lLiBqdXN0Cj4gPiA+IGFub3RoZXIgaW5jYXJuYXRpb24gb2YgdGlja2V0
+ICMyMzgyKSBvciBvdGhlciBDUFUgbW9kZWxzLiBJJ20gYWZyYWlkIHdlCj4gPiA+IG1heSBzdGFy
+dCByZXBvcnRpbmcgdGVtcGVyYXR1cmUgdmFsdWVzIGluc3RlYWQgb2YgYWN0dWFsIGVycm9ycyBp
+ZiB0aGUKPiA+ID4gZml4LXVwIGlzIHRvbyBicm9hZC4KPiA+ID4gCj4gPiA+IEVpdGhlciB3YXks
+IHRoZSBjdXJyZW50IHNpdHVhdGlvbiBpcyByYXRoZXIgYmFkLCBhcyAiTi9BIiBsb29rcyBtb3Jl
+Cj4gPiA+IGxpa2UgIml0J3MgYnJva2VuIiB0aGFuICJpdCdzIGNvbGQiLiBTbyBJIGhhdmUgbm8g
+b2JqZWN0aW9uIHRvIGNyYWZ0aW5nCj4gPiA+ICJzb21ldGhpbmciIGludG8gdGhlIGRyaXZlciB0
+byBtYWtlIGl0IGxvb2sgYmV0dGVyLCBpZiB5b3UgYXJlCj4gPiA+IG1vdGl2YXRlZCB0byBnaXZl
+IGl0IGEgdHJ5Lgo+ID4gPiAKPiA+ID4gSWYgeW91IGFyZSBldmVuIG1vcmUgbW90aXZhdGVkIGFu
+ZCB3YW50IHRvIGV4dGVuZCB0aGUgc3lzZnMgdG8gcHJvcGVybHkKPiA+ID4gcmVwb3J0IHRoZSBz
+aXR1YXRpb24gdG8gdXNlci1zcGFjZSwgZmVlbCBmcmVlIHRvIGRvIHRoYXQgYXMgd2VsbC4gSQo+
+ID4gPiB2b2x1bnRlZXIgdG8gcmV2aWV3IGFueSBrZXJuZWwgcGF0Y2ggcmVsYXRlZCB0byB0aGlz
+LCBhbmQgdG8gd3JpdGUgdGhlCj4gPiA+IHVzZXItc3BhY2UgY29kZSB0byBkZWFsIHdpdGggaXQu
+IEknbSBqdXN0IG5vdCBzdXJlIGl0J3Mgd29ydGggdGhlCj4gPiA+IGVmZm9ydCBmb3IganVzdCAz
+IENQVSBtb2RlbHMuCj4gPiAKPiA+IEknZCByYXRoZXIgZ28gd2l0aCBhbiBleGNlcHRpb24gdGFi
+bGUsIG9yIHJhdGhlciBleHRlbmQgdGhlIGV4aXN0aW5nIHRhYmxlcy4KPiA+IEl0IGlzIHByb2Jh
+Ymx5IHNvbWV3aGF0IHNhZmUgdG8gYXNzdW1lIHRoYXQgdGhlIHByb2JsZW0gYXBwbGllcyB0byBh
+bGwgQ1BVcwo+ID4gd2l0aCB0aGUgc2FtZSBtb2RlbC9tYXNrLiBCYXNlZCBvbiB0aGF0IHdlIGNv
+dWxkIGRlY2xhcmUgYSAidGptaW4iIGFuZAo+ID4gcmVwb3J0IHRoYXQgaWYgaXQgaXMgMSkgZGVm
+aW5lZCBhbmQgMikgdGhlIHZhbGlkIGJpdCBpcyAwLiBBIHNvbWV3aGF0ICJzYWZlIgo+ID4gdGVt
+cGVyYXR1cmUgdG8gcmVwb3J0IGZvciB0aGUgRDV4eCAobW9kZWwgMHgxYy9tYXNrIDEwKSwgYmFz
+ZWQgb24gTWlrZSdzCj4gPiBudW1iZXJzLCB3b3VsZCB0aGVuIGJlIDM2IGRlZ3JlZXMgQyAoMTAw
+IC0gNjQpLgo+IAo+IE5vdCBzdXJlIHdoZXJlIHlvdSBkcmV3IHRoZSAiMzYiIGZyb20uIEZyb20g
+TWlrZSdzIHRhYmxlIGl0IHNlZW1zIHRoZQo+IHZhbGlkIGZsYWcgd2VhcnMgb2ZmIHdoZW4gdGhl
+IHJlcG9ydGVkIHRlbXBlcmF0dXJlIHdvdWxkIGJlIDwgNsKwQy4gVGhpcwo+IGNvcnJlbGF0ZXMg
+d2l0aCBteSBmaW5kaW5ncyBpbiB0aGUgdGlja2V0IHdoZXJlIHRoZSB2YWxpZCBmbGFnIHdvdWxk
+IGJlCj4gMCBmb3IgMcKwQyBhbmQgNMKwQy4KPiAKWW91IGFyZSByaWdodC4gTm8gaWRlYSBteXNl
+bGY7IG1heWJlIGl0IHdhcyB0b28gZWFybHkgYW5kIEkgZGlkbid0IGhhdmUgZW5vdWdoIGNvZmZl
+ZS4KCkhvdyBhYm91dCB0aGF0OiBkZWZpbmUgdGptaW4gYXQgWCBkZWdyZWVzIEMsIGFuZCByZXBv
+cnQgdGhhdCB0ZW1wZXJhdHVyZSBpZgp2YWxpZD09MCBvciBpZiB0aGUgcmVwb3J0ZWQgdGVtcGVy
+YXR1cmUgaXMgbG93ZXIuIFdvdWxkIHRoYXQgbWFrZSBzZW5zZSA/CgpPbmx5IHF1ZXN0aW9uIHJl
+bWFpbnMgd2hhdCBYIHNob3VsZCBiZSBmb3IgbW9kZWwgMHgxYy8xMC4gMjUgPyAzMCA/CgpUaGFu
+a3MsCkd1ZW50ZXIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
