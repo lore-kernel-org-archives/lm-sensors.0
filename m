@@ -1,67 +1,45 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 20 Nov 2013 18:38:38 +0000
-Subject: Re: [lm-sensors] Ticket #2382
-Message-Id: <20131120183838.GB30952@roeck-us.net>
+From: Tom Metro <tmetro+lmsensors@gmail.com>
+Date: Tue, 19 Nov 2013 06:28:53 +0000
+Subject: [lm-sensors] coretemp readings are static/constant
+Message-Id: <loom.20131119T072701-70@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <528A62DC.9030107@baymicrosystems.com>
-In-Reply-To: <528A62DC.9030107@baymicrosystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Nov 20, 2013 at 07:25:09PM +0100, Jean Delvare wrote:
-> On Wed, 20 Nov 2013 10:15:29 -0800, Guenter Roeck wrote:
-> > On Wed, Nov 20, 2013 at 07:06:41PM +0100, Jean Delvare wrote:
-> > > Personally I'd just do the minimum to avoid returning an error. In
-> > > other words I'd be fine returning values down to 6 degrees (for the
-> > > Atom D510 at least). We know the value is wrong but it can be correct=
-ed
-> > > in user-space, while if we clamp higher, it can no longer be correcte=
-d.
-> >=20
-> > Seems to me it would be much simpler to just return 0 if the valid bit =
-is 0,
-> > and not bother returning -EAGAIN in that case. After all, that is what
-> > it boils down to, isn't it ?
->=20
-> In the specific case of these Atom chips, sort of, yes (although I'd
-> return maybe 5000 for continuity with the last known good value, but
-> that's not so important in the end, plus there's no guarantee that the
-> limit is the same for other Atom CPU models / samples.)
->=20
-> However we can't really do that in general, as again there is no Intel
-> documentation saying that valid =3D=3D 0 can only mean "temperature too
-> low". There may be other causes.
->=20
-> Now I really can't remember if we ever had reports of -EAGAIN being
-> returned transiently. If the error is always permanent then I'd agree
-> that returning 0 (or any other arbitrarily low value) is no worse than
-> returning -EAGAIN.
->=20
-> Alternatively, as long as we have no clean way to return "lower than X
-> but I don't know the exact value" to user-space, it might be more
-> simple to just ignore the valid bit and always return the value. In
-> ticket #2382 I found that values 1=B0C and 4=B0C would be returned instead
-> of the error in that case, it's no worse than returning 0=B0C or an
-> arbitrary 5=B0C, and it would come for absolutely no extra code.
->=20
-Both are ok with me. Either case it would be a one-line change.
-
--       return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
-+       return sprintf(buf, "%d\n", tdata->valid ? tdata->temp : 0);
-
-or
-
--       return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
-+       return sprintf(buf, "%d\n", tdata->temp);
-
-Let me know which one you prefer and I'll submit a patch.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+UnVubmluZzoKCiUgc2Vuc29ycyAtdgpzZW5zb3JzIHZlcnNpb24gMy4zLjEgd2l0aCBsaWJzZW5z
+b3JzIHZlcnNpb24gMy4zLjEKCm9uIFVidW50dSAxMi4wNCBvbiBhbiBBY2VyIEFzcGlyZSA4OTMw
+RyBsYXB0b3Agd2l0aDoKCiUgY2F0IC9wcm9jL2NwdWluZm8gfCBmZ3JlcCBuYW1lCm1vZGVsIG5h
+bWUJOiBJbnRlbChSKSBDb3JlKFRNKTIgRHVvIENQVSAgICAgUDg0MDAgIEAgMi4yNkdIegptb2Rl
+bCBuYW1lCTogSW50ZWwoUikgQ29yZShUTSkyIER1byBDUFUgICAgIFA4NDAwICBAIDIuMjZHSHoK
+CmFuZCBJIHNlZToKCiUgc2Vuc29ycwphY3BpdHotdmlydHVhbC0wCkFkYXB0ZXI6IFZpcnR1YWwg
+ZGV2aWNlCnRlbXAxOiAgICAgICAgKzM4LjDCsEMgIChjcml0ID0gKzEwNi4wwrBDKQp0ZW1wMjog
+ICAgICAgICs0OC4wwrBDICAoY3JpdCA9ICsxMDYuMMKwQykKdGVtcDM6ICAgICAgICArNDguMMKw
+QyAgKGNyaXQgPSArMTA2LjDCsEMpCnRlbXA0OiAgICAgICAgKzQzLjDCsEMgIChjcml0ID0gKzEw
+Ni4wwrBDKQoKbm91dmVhdS1wY2ktMDEwMApBZGFwdGVyOiBQQ0kgYWRhcHRlcgp0ZW1wMTogICAg
+ICAgICs0OS4wwrBDICAoaGlnaCA9ICsxMDAuMMKwQywgY3JpdCA9ICsxMTAuMMKwQykKCmNvcmV0
+ZW1wLWlzYS0wMDAwCkFkYXB0ZXI6IElTQSBhZGFwdGVyCkNvcmUgMDogICAgICAgKzMzLjDCsEMg
+IChoaWdoID0gKzEwNS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQpDb3JlIDE6ICAgICAgICszMy4w
+wrBDICAoaGlnaCA9ICsxMDUuMMKwQywgY3JpdCA9ICsxMDUuMMKwQykKClRoZSB2YWx1ZXMgcmVw
+b3J0ZWQgYnkgY29yZXRlbXAgYXJlIGFsd2F5cyAzMzAwMCBtaWxsaWRlZ3JlZXM6CgolIHN1ZG8g
+Y2F0IC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9jb3JldGVtcC4wL3RlbXAyX2lucHV0CjMzMDAwCgph
+cyBvYnNlcnZlZCBvdmVyIHRoZSBjb3Vyc2Ugb2YgYSB3ZWVrLiBJIGhhdmUgbm90IHRyaWVkIHRv
+IGludGVudGlvbmFsbHkKc3RyZXNzIHRoZSBDUFUsIGJ1dCBoYWQgYXNzdW1lZCB0aGF0IGlmIGl0
+IHdhcyByZWFkaW5nIHJlYWwgdmFsdWVzLCBJIHdvdWxkCmhhdmUgc2VlbiBzb21lIHZhcmlhdGlv
+bi4KCkhvd2V2ZXIsIEkgcmVhZCBpbiB0aGUgRkFROgpodHRwOi8vbG0tc2Vuc29ycy5vcmcvd2lr
+aS9GQVEvQ2hhcHRlcjMjY29yZXRlbXByZXR1cm5zdW5yZWFsaXN0aWN2YWx1ZXMKCiAgSXQgaXNu
+J3QgcmVhbGx5IHJldHVybmluZyBkZWdyZWVzIENlbHNpdXMuIEF0IGhpZ2ggdGVtcGVyYXR1cmVz
+LCB0aGUgCiAgKHNtYWxsKSB0aGVybWFsIG1hcmdpbiBpcyBhbG1vc3QgZXhwcmVzc2VkIGluIGRl
+Z3JlZXMgQ2Vsc2l1cywgYnV0IGF0IGxvdyAKICB0ZW1wZXJhdHVyZSwgdGhlIChoaWdoKSB0aGVy
+bWFsIG1hcmdpbiBpcyBubyBsb25nZXIgZXhwcmVzc2VkIGluIGFjdHVhbCAKICBkZWdyZWVzIENl
+bHNpdXMuIFNvLCBpZiB0aGUgdGVtcGVyYXR1cmUgdmFsdWUgcmVwb3J0ZWQgYnkgY29yZXRlbXAg
+aXMgCiAgdW5yZWFsaXN0aWNhbGx5IGxvdywgYWxsIGl0IG1lYW5zIGlzIHRoYXQgeW91IGFyZSBm
+YXIgYXdheSBmcm9tIHRoZSAKICBjcml0aWNhbCBsaW1pdCBzbyB5b3VyIHN5c3RlbXMgYXJlIHJ1
+bm5pbmcgdG90YWxseSBmaW5lIGFuZCBjb29sLi4uCgpTbyBkb2VzIHRoYXQgbWVhbiBpdCBpcyBl
+eHBlY3RlZCB0byBzZWUgYSBjb25zdGFudCAodG8gNSBkZWNpbWFsIHBsYWNlcykKdmFsdWUsIHVu
+dGlsIHRoZSBjb3JlcyBoZWF0IHVwIGJleW9uZCBzb21lIHRocmVzaG9sZD8gKElmIHNvLCBJJ2xs
+IGFkZCB0aGlzCnRvIHRoZSBGQVEuKQoKIC1Ub20KCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
