@@ -1,38 +1,80 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:12 +0000
-Subject: [lm-sensors] [PATCHv5 10/20] arm: dts: add omap4430 thermal data
-Message-Id: <1384285582-16933-11-git-send-email-eduardo.valentin@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Date: Wed, 20 Nov 2013 12:32:45 +0000
+Subject: Re: [lm-sensors] [PATCHv5 10/20] arm: dts: add omap4430 thermal data
+Message-Id: <20131120123245.GA3242@amd.pavel.ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+ <1384285582-16933-11-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-11-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDMwIHRvIGNvbnRhaW4K
-dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
-bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
-bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
-YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9t
-YXBAdmdlci5rZXJuZWwub3JnCkNjOiBkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9y
-ZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCkNjOiBsaW51eC1rZXJu
-ZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFy
-ZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kg
-fCAxMCArKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0
-aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9h
-cmNoL2FybS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IGJjZjQ1NWUuLmU5Yzk3ZDYgMTAw
-NjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDQ0M3guZHRzaQpAQCAtMTIsNyArMTIsNyBAQAogCiAvIHsKIAljcHVzIHsK
-LQkJY3B1QDAgeworCQljcHUwOiBjcHVAMCB7CiAJCQkvKiBPTUFQNDQzeCB2YXJpYW50cyBPUFA1
-MC1PUFBOVCAqLwogCQkJb3BlcmF0aW5nLXBvaW50cyA9IDwKIAkJCQkvKiBrSHogICAgdVYgKi8K
-QEAgLTI1LDkgKzI1LDE1IEBACiAJCX07CiAJfTsKIAotCWJhbmRnYXAgeworCXRoZXJtYWwtem9u
-ZXN7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNpIgorCX07CisKKwliYW5kZ2Fw
-OiBiYW5kZ2FwIHsKIAkJcmVnID0gPDB4NGEwMDIyNjAgMHg0CiAJCSAgICAgICAweDRhMDAyMzJD
-IDB4ND47CiAJCWNvbXBhdGlibGUgPSAidGksb21hcDQ0MzAtYmFuZGdhcCI7CisKKwkJI3RoZXJt
-YWwtc2Vuc29yLWNlbGxzID0gPDA+OwogCX07CiB9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4NWQK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5z
-b3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5s
-bS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+HI!
+
+> This patch changes the dtsi entry on omap4430 to contain
+> the thermal data. This data will enable the passive
+> cooling with CPUfreq cooling device at 100C and the
+> system will do a thermal shutdown at 125C.
+>=20
+> Cc: "Beno=EEt Cousson" <bcousson@baylibre.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: linux-omap@vger.kernel.org
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  arch/arm/boot/dts/omap443x.dtsi | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x=
+.dtsi
+> index bcf455e..e9c97d6 100644
+> --- a/arch/arm/boot/dts/omap443x.dtsi
+> +++ b/arch/arm/boot/dts/omap443x.dtsi
+> @@ -12,7 +12,7 @@
+> =20
+>  / {
+>  	cpus {
+> -		cpu@0 {
+> +		cpu0: cpu@0 {
+>  			/* OMAP443x variants OPP50-OPPNT */
+>  			operating-points =3D <
+>  				/* kHz    uV */
+
+I see you also add labels to various other entries...
+
+> @@ -25,9 +25,15 @@
+>  		};
+>  	};
+> =20
+> -	bandgap {
+> +	thermal-zones{
+
+You may want to include space here.
+
+> +		#include "omap4-cpu-thermal.dtsi"
+> +	};
+> +
+> +	bandgap: bandgap {
+>  		reg =3D <0x4a002260 0x4
+>  		       0x4a00232C 0x4>;
+>  		compatible =3D "ti,omap4430-bandgap";
+> +
+> +		#thermal-sensor-cells =3D <0>;
+>  	};
+>  };
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
