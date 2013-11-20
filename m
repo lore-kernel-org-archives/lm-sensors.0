@@ -1,47 +1,28 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 09 Nov 2013 17:51:09 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (coretemp) Refine TjMax detection
-Message-Id: <1384019469-18666-3-git-send-email-linux@roeck-us.net>
+From: Avrel Vor <avrel.vor@orange.fr>
+Date: Wed, 20 Nov 2013 08:13:04 +0000
+Subject: [lm-sensors] Super I/O chip Fintek F71868AD
+Message-Id: <528C6F10.8090305@orange.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1384019469-18666-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Fenghua Yu <fenghua.yu@intel.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-Intel's turbostat code uses only 7 bits from MSR_IA32_TEMPERATURE_TARGET to
-read TjMax, and also only accepts it if the reported temperature is at least
-85 degrees C. Play safe and do the same.
+Hello,
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/coretemp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The Super I/O chip Fintek F71868AD is not included in the configuration 
+file "sensors3.conf".
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index cde4e47..310ce19 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -368,12 +368,12 @@ static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
- 		if (cpu_has_tjmax(c))
- 			dev_warn(dev, "Unable to read TjMax from CPU %u\n", id);
- 	} else {
--		val = (eax >> 16) & 0xff;
-+		val = (eax >> 16) & 0x7f;
- 		/*
- 		 * If the TjMax is not plausible, an assumption
- 		 * will be used
- 		 */
--		if (val) {
-+		if (val >= 85) {
- 			dev_dbg(dev, "TjMax is %d degrees C\n", val);
- 			return val * 1000;
- 		}
--- 
-1.7.9.7
+Some months ago, in June, I sent the datasheet that I received from 
+Fintek to two people, Hans de Goede and zthomas.
 
+I am ready to send again this datasheet, in order to help managing the 
+sensors on motherboards such as the MSI FM2-A55M-E33.
+The size of the PDF is 3.6 Mb.
+
+Thank you for your attention.
+
+Avrel Vor
 
 _______________________________________________
 lm-sensors mailing list
