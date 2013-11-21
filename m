@@ -1,45 +1,62 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:13 +0000
-Subject: [lm-sensors] [PATCHv5 11/20] arm: dts: add omap4460 thermal data
-Message-Id: <1384285582-16933-12-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 21 Nov 2013 17:47:58 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.13-rc1 [#2]
+Message-Id: <20131121174758.GA12141@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDYwIHRvIGNvbnRhaW4K
-dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
-bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
-bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
-YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KQ2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1v
-bGwgPHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFy
-bS5jb20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFu
-IENhbXBiZWxsIDxpYW4uY2FtcGJlbGxAY2l0cml4LmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGlu
-dXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBk
-ZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
-YWRlYWQub3JnCkNjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6
-IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgfCAxMCArKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwg
-OCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jv
-b3QvZHRzL29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCmlu
-ZGV4IGMyZjBmMzkuLjRkOTNhYmEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
-NDYwLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQpAQCAtMTIsNyAr
-MTIsNyBAQAogLyB7CiAJY3B1cyB7CiAJCS8qIE9NQVA0NDZ4ICdzdGFuZGFyZCBkZXZpY2UnIHZh
-cmlhbnRzIE9QUDUwIHRvIE9QUFR1cmJvICovCi0JCWNwdUAwIHsKKwkJY3B1MDogY3B1QDAgewog
-CQkJb3BlcmF0aW5nLXBvaW50cyA9IDwKIAkJCQkvKiBrSHogICAgdVYgKi8KIAkJCQkzNTAwMDAg
-IDEwMjUwMDAKQEAgLTMwLDEyICszMCwxOCBAQAogCQl0aSxod21vZHMgPSAiZGVidWdzcyI7CiAJ
-fTsKIAotCWJhbmRnYXAgeworCXRoZXJtYWwtem9uZXN7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUt
-dGhlcm1hbC5kdHNpIgorCX07CisKKwliYW5kZ2FwOiBiYW5kZ2FwIHsKIAkJcmVnID0gPDB4NGEw
-MDIyNjAgMHg0CiAJCSAgICAgICAweDRhMDAyMzJDIDB4NAogCQkgICAgICAgMHg0YTAwMjM3OCAw
-eDE4PjsKIAkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKIAkJaW50ZXJydXB0
-cyA9IDwwIDEyNiBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogdGFsZXJ0ICovCiAJCWdwaW9zID0g
-PCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KKworCQkjdGhlcm1hbC1zZW5zb3ItY2VsbHMgPSA8
-MD47CiAJfTsKIH07Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.13-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 2d3c627502f2a9b0a7de06a5a2df2365542a72c9:
+
+  Revert "init/Kconfig: add option to disable kernel compression" (2013-11-17 11:17:36 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 3a4cbc190643d0c6f7ca36a84af8367947f558c7:
+
+  hwmon: (acpi_power_meter) Fix acpi_bus_get_device() return value check (2013-11-20 08:31:01 -0800)
+
+----------------------------------------------------------------
+hwmon updates for 3.13-rc1 [#2]
+
+acpi_power_meter: Fix return value check from call to acpi_bus_get_device
+nct6775: Fix/improve NCT6791 support
+lm75: Add support for GMT G751
+
+----------------------------------------------------------------
+Arnaud Ebalard (1):
+      hwmon: (lm75) Add support for GMT G751 chip
+
+Guenter Roeck (2):
+      hwmon: (nct6775) Monitor additional temperature registers
+      hwmon: (nct6775) NCT6791 supports weight control only for CPUFAN
+
+Yijing Wang (1):
+      hwmon: (acpi_power_meter) Fix acpi_bus_get_device() return value check
+
+ .../devicetree/bindings/i2c/trivial-devices.txt    |    1 +
+ drivers/hwmon/Kconfig                              |    1 +
+ drivers/hwmon/acpi_power_meter.c                   |    5 +-
+ drivers/hwmon/lm75.c                               |    3 +
+ drivers/hwmon/nct6775.c                            |   91 +++++++++++++++++---
+ 5 files changed, 88 insertions(+), 13 deletions(-)
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
