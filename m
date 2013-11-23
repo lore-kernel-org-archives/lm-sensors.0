@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Nov 2013 19:03:17 +0000
-Subject: [lm-sensors] [PATCH 1/5] asus-wmi: Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1385233401-21517-2-git-send-email-linux@roeck-us.net>
+Date: Sat, 23 Nov 2013 19:03:18 +0000
+Subject: [lm-sensors] [PATCH 2/5] compal-laptop: Replace SENSOR_DEVICE_ATTR with DEVICE_ATTR
+Message-Id: <1385233401-21517-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
@@ -11,121 +11,99 @@ Content-Transfer-Encoding: 7bit
 To: Matthew Garrett <matthew.garrett@nebula.com>
 Cc: Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Simplify the code and avoid race conditions due to late sysfs attribute
-registration. Also replace SENSOR_DEVICE_ATTR with DEVICE_ATTR;
-the additional parameter is not used and thus unnecessary.
+The extra argument to SENSOR_DEVICE_ATTR is not used. It is therefore not
+necessary to use SENSOR_DEVICE_ATTR in the first place. Replace it with
+DEVICE_ATTR.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/platform/x86/asus-wmi.c |   48 +++++++++------------------------------
- 1 file changed, 11 insertions(+), 37 deletions(-)
+ drivers/platform/x86/compal-laptop.c |   66 +++++++++++++++++-----------------
+ 1 file changed, 33 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index 19c313b..e9e22a5 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -184,7 +184,6 @@ struct asus_wmi {
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+index eaa78ed..8b119a7 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -665,23 +665,23 @@ static DEVICE_ATTR(wake_up_key,
+ static DEVICE_ATTR(wake_up_mouse,
+ 		0644, wake_up_mouse_show,	wake_up_mouse_store);
  
- 	struct input_dev *inputdev;
- 	struct backlight_device *backlight_device;
--	struct device *hwmon_device;
- 	struct platform_device *platform_device;
+-static SENSOR_DEVICE_ATTR(name,        S_IRUGO, hwmon_name_show,   NULL, 1);
+-static SENSOR_DEVICE_ATTR(fan1_input,  S_IRUGO, fan_show,          NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, temp_cpu,          NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, temp_cpu_local,    NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, temp_cpu_DTS,      NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, temp_northbridge,  NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp5_input, S_IRUGO, temp_vga,          NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp6_input, S_IRUGO, temp_SKIN,         NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, label_cpu,         NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, label_cpu_local,   NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp3_label, S_IRUGO, label_cpu_DTS,     NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp4_label, S_IRUGO, label_northbridge, NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp5_label, S_IRUGO, label_vga,         NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp6_label, S_IRUGO, label_SKIN,        NULL, 1);
+-static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, pwm_show, pwm_store, 1);
+-static SENSOR_DEVICE_ATTR(pwm1_enable,
+-		S_IRUGO | S_IWUSR, pwm_enable_show, pwm_enable_store, 0);
++static DEVICE_ATTR(name,        S_IRUGO, hwmon_name_show,   NULL);
++static DEVICE_ATTR(fan1_input,  S_IRUGO, fan_show,          NULL);
++static DEVICE_ATTR(temp1_input, S_IRUGO, temp_cpu,          NULL);
++static DEVICE_ATTR(temp2_input, S_IRUGO, temp_cpu_local,    NULL);
++static DEVICE_ATTR(temp3_input, S_IRUGO, temp_cpu_DTS,      NULL);
++static DEVICE_ATTR(temp4_input, S_IRUGO, temp_northbridge,  NULL);
++static DEVICE_ATTR(temp5_input, S_IRUGO, temp_vga,          NULL);
++static DEVICE_ATTR(temp6_input, S_IRUGO, temp_SKIN,         NULL);
++static DEVICE_ATTR(temp1_label, S_IRUGO, label_cpu,         NULL);
++static DEVICE_ATTR(temp2_label, S_IRUGO, label_cpu_local,   NULL);
++static DEVICE_ATTR(temp3_label, S_IRUGO, label_cpu_DTS,     NULL);
++static DEVICE_ATTR(temp4_label, S_IRUGO, label_northbridge, NULL);
++static DEVICE_ATTR(temp5_label, S_IRUGO, label_vga,         NULL);
++static DEVICE_ATTR(temp6_label, S_IRUGO, label_SKIN,        NULL);
++static DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, pwm_show, pwm_store);
++static DEVICE_ATTR(pwm1_enable,
++		   S_IRUGO | S_IWUSR, pwm_enable_show, pwm_enable_store);
  
- 	struct led_classdev wlan_led;
-@@ -1071,20 +1070,12 @@ static ssize_t asus_hwmon_temp1(struct device *dev,
- 	return sprintf(buf, "%d\n", value);
- }
- 
--static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO, asus_hwmon_pwm1, NULL, 0);
--static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, asus_hwmon_temp1, NULL, 0);
--
--static ssize_t
--show_name(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "asus\n");
--}
--static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
-+static DEVICE_ATTR(pwm1, S_IRUGO, asus_hwmon_pwm1, NULL);
-+static DEVICE_ATTR(temp1_input, S_IRUGO, asus_hwmon_temp1, NULL);
- 
- static struct attribute *hwmon_attributes[] = {
--	&sensor_dev_attr_pwm1.dev_attr.attr,
--	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ static struct attribute *compal_attributes[] = {
+ 	&dev_attr_wake_up_pme.attr,
+@@ -692,22 +692,22 @@ static struct attribute *compal_attributes[] = {
+ 	&dev_attr_wake_up_mouse.attr,
+ 	/* Maybe put the sensor-stuff in a separate hwmon-driver? That way,
+ 	 * the hwmon sysfs won't be cluttered with the above files. */
 -	&sensor_dev_attr_name.dev_attr.attr,
+-	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
+-	&sensor_dev_attr_pwm1.dev_attr.attr,
+-	&sensor_dev_attr_fan1_input.dev_attr.attr,
+-	&sensor_dev_attr_temp1_input.dev_attr.attr,
+-	&sensor_dev_attr_temp2_input.dev_attr.attr,
+-	&sensor_dev_attr_temp3_input.dev_attr.attr,
+-	&sensor_dev_attr_temp4_input.dev_attr.attr,
+-	&sensor_dev_attr_temp5_input.dev_attr.attr,
+-	&sensor_dev_attr_temp6_input.dev_attr.attr,
+-	&sensor_dev_attr_temp1_label.dev_attr.attr,
+-	&sensor_dev_attr_temp2_label.dev_attr.attr,
+-	&sensor_dev_attr_temp3_label.dev_attr.attr,
+-	&sensor_dev_attr_temp4_label.dev_attr.attr,
+-	&sensor_dev_attr_temp5_label.dev_attr.attr,
+-	&sensor_dev_attr_temp6_label.dev_attr.attr,
++	&dev_attr_name.attr,
++	&dev_attr_pwm1_enable.attr,
 +	&dev_attr_pwm1.attr,
++	&dev_attr_fan1_input.attr,
 +	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp3_input.attr,
++	&dev_attr_temp4_input.attr,
++	&dev_attr_temp5_input.attr,
++	&dev_attr_temp6_input.attr,
++	&dev_attr_temp1_label.attr,
++	&dev_attr_temp2_label.attr,
++	&dev_attr_temp3_label.attr,
++	&dev_attr_temp4_label.attr,
++	&dev_attr_temp5_label.attr,
++	&dev_attr_temp6_label.attr,
  	NULL
  };
  
-@@ -1098,9 +1089,9 @@ static umode_t asus_hwmon_sysfs_is_visible(struct kobject *kobj,
- 	int dev_id = -1;
- 	u32 value = ASUS_WMI_UNSUPPORTED_METHOD;
- 
--	if (attr = &sensor_dev_attr_pwm1.dev_attr.attr)
-+	if (attr = &dev_attr_pwm1.attr)
- 		dev_id = ASUS_WMI_DEVID_FAN_CTRL;
--	else if (attr = &sensor_dev_attr_temp1_input.dev_attr.attr)
-+	else if (attr = &dev_attr_temp1_input.attr)
- 		dev_id = ASUS_WMI_DEVID_THERMAL_CTRL;
- 
- 	if (dev_id != -1) {
-@@ -1135,35 +1126,20 @@ static struct attribute_group hwmon_attribute_group = {
- 	.is_visible = asus_hwmon_sysfs_is_visible,
- 	.attrs = hwmon_attributes
- };
--
--static void asus_wmi_hwmon_exit(struct asus_wmi *asus)
--{
--	struct device *hwmon;
--
--	hwmon = asus->hwmon_device;
--	if (!hwmon)
--		return;
--	sysfs_remove_group(&hwmon->kobj, &hwmon_attribute_group);
--	hwmon_device_unregister(hwmon);
--	asus->hwmon_device = NULL;
--}
-+__ATTRIBUTE_GROUPS(hwmon_attribute);
- 
- static int asus_wmi_hwmon_init(struct asus_wmi *asus)
- {
- 	struct device *hwmon;
--	int result;
- 
--	hwmon = hwmon_device_register(&asus->platform_device->dev);
-+	hwmon = hwmon_device_register_with_groups(&asus->platform_device->dev,
-+						  "asus", asus,
-+						  hwmon_attribute_groups);
- 	if (IS_ERR(hwmon)) {
- 		pr_err("Could not register asus hwmon device\n");
- 		return PTR_ERR(hwmon);
- 	}
--	dev_set_drvdata(hwmon, asus);
--	asus->hwmon_device = hwmon;
--	result = sysfs_create_group(&hwmon->kobj, &hwmon_attribute_group);
--	if (result)
--		asus_wmi_hwmon_exit(asus);
--	return result;
-+	return 0;
- }
- 
- /*
-@@ -1834,7 +1810,6 @@ fail_backlight:
- fail_rfkill:
- 	asus_wmi_led_exit(asus);
- fail_leds:
--	asus_wmi_hwmon_exit(asus);
- fail_hwmon:
- 	asus_wmi_input_exit(asus);
- fail_input:
-@@ -1852,7 +1827,6 @@ static int asus_wmi_remove(struct platform_device *device)
- 	wmi_remove_notify_handler(asus->driver->event_guid);
- 	asus_wmi_backlight_exit(asus);
- 	asus_wmi_input_exit(asus);
--	asus_wmi_hwmon_exit(asus);
- 	asus_wmi_led_exit(asus);
- 	asus_wmi_rfkill_exit(asus);
- 	asus_wmi_debugfs_exit(asus);
 -- 
 1.7.9.7
 
