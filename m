@@ -1,94 +1,162 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:09 +0000
-Subject: [lm-sensors] [PATCHv5 07/20] hwmon: tmp102: expose to thermal fw via DT nodes
-Message-Id: <1384285582-16933-8-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 23 Nov 2013 19:03:20 +0000
+Subject: [lm-sensors] [PATCH 4/5] compal-laptop: Use devm_hwmon_device_register_with_groups
+Message-Id: <1385233401-21517-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+References: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Jean Delvare <khali@linux-fr.org>
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-This patch adds to tmp102 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+Simplify the code and create hwmon attributes as well as hwmon device in one go.
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the tmp102 DT node. Otherwise, the driver behavior
-will be the same.
+With the new hwmon API, hwmon attributes are now attached to the hwmon device.
+Therefore, split hwmon and device attributes into two separate groups.
+Platform attributes are still attached to the platform device.
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Also use devm_kzalloc to allocate local data structures for further
+simplification.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/tmp102.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/platform/x86/compal-laptop.c |   52 +++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
-index d7b47ab..6748b45 100644
---- a/drivers/hwmon/tmp102.c
-+++ b/drivers/hwmon/tmp102.c
-@@ -27,6 +27,8 @@
- #include <linux/mutex.h>
- #include <linux/device.h>
- #include <linux/jiffies.h>
-+#include <linux/thermal.h>
-+#include <linux/of.h>
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+index 9deb035..7297df2 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -173,8 +173,7 @@
+ /* ==== */
+ struct compal_data{
+ 	/* Fan control */
+-	struct device *hwmon_dev;
+-	int pwm_enable; /* 0:full on, 1:set by pwm1, 2:control by moterboard */
++	int pwm_enable; /* 0:full on, 1:set by pwm1, 2:control by motherboard */
+ 	unsigned char curr_pwm;
  
- #define	DRIVER_NAME "tmp102"
+ 	/* Power supply */
+@@ -402,15 +401,6 @@ SIMPLE_MASKED_STORE_SHOW(wake_up_wlan,	WAKE_UP_ADDR, WAKE_UP_WLAN)
+ SIMPLE_MASKED_STORE_SHOW(wake_up_key,	WAKE_UP_ADDR, WAKE_UP_KEY)
+ SIMPLE_MASKED_STORE_SHOW(wake_up_mouse,	WAKE_UP_ADDR, WAKE_UP_MOUSE)
  
-@@ -50,6 +52,7 @@
+-
+-/* General hwmon interface */
+-static ssize_t hwmon_name_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%s\n", DRIVER_NAME);
+-}
+-
+-
+ /* Fan control interface */
+ static ssize_t pwm_enable_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+@@ -665,7 +655,6 @@ static DEVICE_ATTR(wake_up_key,
+ static DEVICE_ATTR(wake_up_mouse,
+ 		0644, wake_up_mouse_show,	wake_up_mouse_store);
  
- struct tmp102 {
- 	struct device *hwmon_dev;
-+	struct thermal_zone_device *tz;
- 	struct mutex lock;
- 	u16 config_orig;
- 	unsigned long last_update;
-@@ -93,6 +96,15 @@ static struct tmp102 *tmp102_update_device(struct i2c_client *client)
- 	return tmp102;
- }
+-static DEVICE_ATTR(name,        S_IRUGO, hwmon_name_show,   NULL);
+ static DEVICE_ATTR(fan1_input,  S_IRUGO, fan_show,          NULL);
+ static DEVICE_ATTR(temp1_input, S_IRUGO, temp_cpu,          NULL);
+ static DEVICE_ATTR(temp2_input, S_IRUGO, temp_cpu_local,    NULL);
+@@ -683,16 +672,20 @@ static DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, pwm_show, pwm_store);
+ static DEVICE_ATTR(pwm1_enable,
+ 		   S_IRUGO | S_IWUSR, pwm_enable_show, pwm_enable_store);
  
-+static int tmp102_read_temp(void *dev, long *temp)
-+{
-+	struct tmp102 *tmp102 = tmp102_update_device(to_i2c_client(dev));
+-static struct attribute *compal_attributes[] = {
++static struct attribute *compal_platform_attrs[] = {
+ 	&dev_attr_wake_up_pme.attr,
+ 	&dev_attr_wake_up_modem.attr,
+ 	&dev_attr_wake_up_lan.attr,
+ 	&dev_attr_wake_up_wlan.attr,
+ 	&dev_attr_wake_up_key.attr,
+ 	&dev_attr_wake_up_mouse.attr,
+-	/* Maybe put the sensor-stuff in a separate hwmon-driver? That way,
+-	 * the hwmon sysfs won't be cluttered with the above files. */
+-	&dev_attr_name.attr,
++	NULL
++};
++static struct attribute_group compal_platform_attr_group = {
++	.attrs = compal_platform_attrs
++};
 +
-+	*temp = tmp102->temp[0];
-+
-+	return 0;
-+}
-+
- static ssize_t tmp102_show_temp(struct device *dev,
- 				struct device_attribute *attr,
- 				char *buf)
-@@ -204,6 +216,12 @@ static int tmp102_probe(struct i2c_client *client,
- 		goto fail_remove_sysfs;
++static struct attribute *compal_hwmon_attrs[] = {
+ 	&dev_attr_pwm1_enable.attr,
+ 	&dev_attr_pwm1.attr,
+ 	&dev_attr_fan1_input.attr,
+@@ -710,10 +703,7 @@ static struct attribute *compal_attributes[] = {
+ 	&dev_attr_temp6_label.attr,
+ 	NULL
+ };
+-
+-static struct attribute_group compal_attribute_group = {
+-	.attrs = compal_attributes
+-};
++ATTRIBUTE_GROUPS(compal_hwmon);
+ 
+ static int compal_probe(struct platform_device *);
+ static int compal_remove(struct platform_device *);
+@@ -1021,6 +1011,7 @@ static int compal_probe(struct platform_device *pdev)
+ {
+ 	int err;
+ 	struct compal_data *data;
++	struct device *hwmon_dev;
+ 
+ 	if (!extra_features)
+ 		return 0;
+@@ -1032,16 +1023,16 @@ static int compal_probe(struct platform_device *pdev)
+ 
+ 	initialize_fan_control_data(data);
+ 
+-	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group);
++	err = sysfs_create_group(&pdev->dev.kobj, &compal_platform_attr_group);
+ 	if (err)
+ 		return err;
+ 
+-	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		sysfs_remove_group(&pdev->dev.kobj,
+-				&compal_attribute_group);
+-		return err;
++	hwmon_dev = hwmon_device_register_with_groups(&pdev->dev,
++						      DRIVER_NAME, data,
++						      compal_hwmon_groups);
++	if (IS_ERR(hwmon_dev)) {
++		err = PTR_ERR(hwmon_dev);
++		goto remove;
  	}
  
-+	tmp102->tz = thermal_zone_of_sensor_register(&client->dev, 0,
-+						     &client->dev,
-+						     tmp102_read_temp, NULL);
-+	if (IS_ERR(tmp102->tz))
-+		tmp102->tz = NULL;
-+
- 	dev_info(&client->dev, "initialized\n");
+ 	/* Power supply */
+@@ -1051,6 +1042,10 @@ static int compal_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, data);
  
  	return 0;
-@@ -220,6 +238,7 @@ static int tmp102_remove(struct i2c_client *client)
- {
- 	struct tmp102 *tmp102 = i2c_get_clientdata(client);
++
++remove:
++	sysfs_remove_group(&pdev->dev.kobj, &compal_platform_attr_group);
++	return err;
+ }
  
-+	thermal_zone_of_sensor_unregister(&client->dev, tmp102->tz);
- 	hwmon_device_unregister(tmp102->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &tmp102_attr_group);
+ static void __exit compal_cleanup(void)
+@@ -1077,10 +1072,9 @@ static int compal_remove(struct platform_device *pdev)
+ 	pwm_disable_control();
  
+ 	data = platform_get_drvdata(pdev);
+-	hwmon_device_unregister(data->hwmon_dev);
+ 	power_supply_unregister(&data->psy);
+ 
+-	sysfs_remove_group(&pdev->dev.kobj, &compal_attribute_group);
++	sysfs_remove_group(&pdev->dev.kobj, &compal_platform_attr_group);
+ 
+ 	return 0;
+ }
 -- 
-1.8.2.1.342.gfa7285d
+1.7.9.7
 
 
 _______________________________________________
