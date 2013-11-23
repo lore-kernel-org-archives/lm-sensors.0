@@ -1,292 +1,216 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 21 Nov 2013 17:11:46 +0000
-Subject: Re: [lm-sensors] how to adjust properties?
-Message-Id: <20131121171146.GA10783@roeck-us.net>
+Date: Sat, 23 Nov 2013 06:07:58 +0000
+Subject: [lm-sensors] [PATCH 2/5] igb: Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1385186881-7931-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384981512.39249.YahooMailNeo@web122905.mail.ne1.yahoo.com>
-In-Reply-To: <1384981512.39249.YahooMailNeo@web122905.mail.ne1.yahoo.com>
+References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Greg Rose <gregory.v.rose@intel.com>, Nithin Nayak Sujir <nsujir@broadcom.com>, Michael Chan <mchan@broadcom.com>, e1000-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-On Thu, Nov 21, 2013 at 12:51:02AM -0800, jonathan stewart wrote:
->=20
-> # sensors-detect revision 6031 (2012-03-07 17:14:01 +0100)
-> # Board: Micro-Star International Co., Ltd. MS-1761
->=20
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
->=20
-> Some south bridges, CPUs or memory controllers contain embedded sensors.
-> Do you want to scan for them? This is totally safe. (YES/no): yes
-> Module cpuid loaded successfully.
-> Silicon Integrated Systems SIS5595...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> VIA VT82C686 Integrated Sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> VIA VT8231 Integrated Sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> AMD K8 thermal sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> AMD Family 10h thermal sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> AMD Family 11h thermal sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> AMD Family 12h and 14h thermal sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 No
-> AMD Family 15h thermal sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> AMD Family 15h power sensors...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Intel digital thermal sensor...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Success!
-> =A0=A0=A0 (driver `coretemp')
-> Intel AMB FB-DIMM thermal sensor...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> VIA C7 thermal sensor...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> VIA Nano thermal sensor...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
->=20
-> Some Super I/O chips contain embedded sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no): yes
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor/ITE'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0 No
-> Trying family `SMSC'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0 No
-> Trying family `ITE'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor/ITE'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0 No
-> Trying family `SMSC'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0 No
-> Trying family `ITE'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
->=20
-> Some hardware monitoring chips are accessible through the ISA I/O ports.
-> We have to write to arbitrary I/O ports to probe them. This is usually
-> safe though. Yes, you do have ISA I/O ports even if you do not have any
-> ISA slots! Do you want to scan the ISA I/O ports? (YES/no): yes
-> Probing for `National Semiconductor LM78' at 0x290...=A0=A0=A0=A0=A0=A0 No
-> Probing for `National Semiconductor LM79' at 0x290...=A0=A0=A0=A0=A0=A0 No
-> Probing for `Winbond W83781D' at 0x290...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Probing for `Winbond W83782D' at 0x290...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 No
->=20
-> Lastly, we can probe the I2C/SMBus adapters for connected hardware
-> monitoring devices. This is the most risky part, and while it works
-> reasonably well on most systems, it has been reported to cause trouble
-> on some systems.
-> Do you want to probe the I2C/SMBus adapters now? (YES/no): yes
-> Using driver `i2c-i801' for device 0000:00:1f.3: Intel Cougar Point (PCH)
-> Module i2c-i801 loaded successfully.
-> Module i2c-dev loaded successfully.
->=20
-> Next adapter: NVIDIA i2c adapter 0 at 1:00.0 (i2c-0)
-> Do you want to scan it? (YES/no/selectively): yes
->=20
-> Next adapter: NVIDIA i2c adapter 1 at 1:00.0 (i2c-1)
-> Do you want to scan it? (YES/no/selectively): yes
-> Client found at address 0x50
-> Probing for `Analog Devices ADM1033'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Probing for `Analog Devices ADM1034'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Probing for `SPD EEPROM'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 No
-> Probing for `EDID EEPROM'...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Yes
-> =A0=A0=A0 (confidence 8, not a hardware monitoring chip)
->=20
-> Next adapter: NVIDIA i2c adapter 2 at 1:00.0 (i2c-2)
-> Do you want to scan it? (YES/no/selectively): yes
->=20
-> Next adapter: NVIDIA i2c adapter 3 at 1:00.0 (i2c-3)
-> Do you want to scan it? (YES/no/selectively): yes
->=20
-> Next adapter: NVIDIA i2c adapter 5 at 1:00.0 (i2c-4)
-> Do you want to scan it? (YES/no/selectively): yes
->=20
-> Next adapter: NVIDIA i2c adapter 8 at 1:00.0 (i2c-5)
-> Do you want to scan it? (YES/no/selectively): yes
->=20
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:=20
->=20
-> Driver `coretemp':
-> =A0 * Chip `Intel digital thermal sensor' (confidence: 9)
->=20
-> Module=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Size=A0 Used by
-> snd_hda_codec_hdmi=A0=A0=A0=A0 36906=A0 4=20
-> coretemp=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13355=A0 0=20
-> kvm_intel=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 132891=A0 0=20
-> kvm=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 443165=A0 1 kvm=
-_intel
-> ghash_clmulni_intel=A0=A0=A0 13259=A0 0=20
-> aesni_intel=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 55399=A0 1=20
-> aes_x86_64=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17255=A0 1 aesni_intel
-> xts=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 12885=A0 1 a=
-esni_intel
-> lrw=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13257=A0 1 a=
-esni_intel
-> gf128mul=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 14951=A0 2 lrw,xts
-> ablk_helper=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13597=A0 1 aesni_intel
-> cryptd=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 20373=A0 3 ghash_c=
-lmulni_intel,aesni_intel,ablk_helper
-> nvidia=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 11309139=A0 43=20
-> arc4=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 12615=A0 2=20
-> snd_hda_codec_realtek=A0=A0=A0 78399=A0 1=20
-> ath9k=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 149924=A0 0=20
-> ath9k_common=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 14055=A0 1 ath9k
-> snd_hda_intel=A0=A0=A0=A0=A0=A0=A0=A0=A0 39619=A0 5=20
-> ath9k_hw=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 413629=A0 2 ath9k_common,=
-ath9k
-> snd_hda_codec=A0=A0=A0=A0=A0=A0=A0=A0 136498=A0 3 snd_hda_codec_realtek,s=
-nd_hda_codec_hdmi,snd_hda_intel
-> ath=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 23827=A0 3 a=
-th9k_common,ath9k,ath9k_hw
-> snd_hwdep=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13602=A0 1 snd_hda_codec
-> snd_pcm=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 97451=A0 3 snd_hda_c=
-odec_hdmi,snd_hda_codec,snd_hda_intel
-> mac80211=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 606457=A0 1 ath9k
-> rts5139=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 352481=A0 0=20
-> snd_page_alloc=A0=A0=A0=A0=A0=A0=A0=A0 18710=A0 2 snd_pcm,snd_hda_intel
-> snd_seq_midi=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13324=A0 0=20
-> snd_seq_midi_event=A0=A0=A0=A0 14899=A0 1 snd_seq_midi
-> snd_rawmidi=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 30180=A0 1 snd_seq_midi
-> microcode=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 22881=A0 0=20
-> snd_seq=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 61554=A0 2 snd_seq_m=
-idi_event,snd_seq_midi
-> cfg80211=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 511019=A0 3 ath,ath9k,mac=
-80211
-> joydev=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17377=A0 0=20
-> psmouse=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 95905=A0 0=20
-> serio_raw=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13215=A0 0=20
-> snd_seq_device=A0=A0=A0=A0=A0=A0=A0=A0 14497=A0 3 snd_seq,snd_rawmidi,snd=
-_seq_midi
-> snd_timer=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 29425=A0 2 snd_pcm,snd_s=
-eq
-> lpc_ich=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17061=A0 0=20
-> mei=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 41158=A0 0=20
-> snd=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 68876=A0 20 =
-snd_hda_codec_realtek,snd_hwdep,snd_timer,snd_hda_codec_hdmi,snd_pcm,snd_se=
-q,snd_rawmidi,snd_hda_codec,snd_hda_intel,snd_seq_device
-> soundcore=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 12680=A0 1 snd
-> mxm_wmi=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13021=A0 0=20
-> parport_pc=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 28152=A0 0=20
-> bnep=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 18036=A0 2=20
-> ppdev=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17073=A0 0=20
-> rfcomm=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 42641=A0 0=20
-> bluetooth=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 228808=A0 10 bnep,rfcomm
-> binfmt_misc=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17500=A0 1=20
-> dm_multipath=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 22843=A0 0=20
-> scsi_dh=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 14843=A0 1 dm_multip=
-ath
-> wmi=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 19070=A0 1 m=
-xm_wmi
-> video=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 19390=A0 0=20
-> mac_hid=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 13205=A0 0=20
-> lp=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17759=A0 0=
-=20
-> parport=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 46345=A0 3 lp,ppdev,=
-parport_pc
-> hid_generic=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 12540=A0 0=20
-> usbhid=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 47074=A0 0=20
-> hid=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 101042=A0 2 hid=
-_generic,usbhid
-> dm_raid45=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 76725=A0 0=20
-> r8169=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 67466=A0 0=20
-> ahci=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 25731=A0 2=20
-> libahci=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 31364=A0 1 ahci
-> xor=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 17116=A0 1 d=
-m_raid45
-> dm_mirror=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 21946=A0 0=20
-> dm_region_hash=A0=A0=A0=A0=A0=A0=A0=A0 20820=A0 1 dm_mirror
-> dm_log=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 18529=A0 3 dm_regi=
-on_hash,dm_mirror,dm_raid45
->=20
->=20
->=20
-> it is a laptop, its from xoticpc.com its a force1761 based on the msi gt7=
-90dxr it has an i7-2670qm, 4gb patriot ddr3 1600mhz, nvidia gtx570m, corsai=
-r performance pro 128gb ssd, 750gb seagate 7200 rpm hdd (? on actual speed =
-but its not the 5k version), and a dvd burner
->=20
-> it says in synaptic=20
->=20
->=20
-> "Lm-sensors is a hardware health monitoring package for Linux. It allows =
-you
-> to access information from temperature, voltage, and fan speed sensors. It
-> works with most newer systems.
->=20
-> This package contains a daemon that calculates fan speeds from temperatur=
-es
-> and sets the corresponding PWM outputs to the computed values."
->=20
->=20
-> so i am curious on how to adjust the calculations because at them moment =
-my fan does not increase in rpm enough to keep itself cool. if i am playing=
- minecraft on a public server with 200+ people the cpu temps will hit 90C+ =
-and sometimes it crashes my game. i have the same issue with left4dead2 onl=
-y it begins lagging bad and will start temporarily disconnecting me from st=
-eam. if i hit a button above my keyboard it forces the fan to 100% which th=
-en cools it down and stops my lagging but also prevents me from using my mi=
-c for voip as the fan is loud and sounds like a blow dryer. after i downloa=
-ded/installed the fansensors thing from synaptic my minecraft temps dropped=
- to upper 80C's which is better but i would like it to be in the 60's or 70=
-'s which i know its capable of if the fan would just turn on so it will sta=
-y moderatly cool and not cook itself.
->=20
-Interesting; based on the information you provided I would have assumed
-that fan control is not available in your system.
+Simplify the code. Attach hwmon sysfs attributes to hwmon device
+instead of pci device. Avoid race conditions caused by attributes
+being created after registration and provide mandatory 'name'
+attribute by using new hwmon API.
 
-Did you run the 'pwmconfig' script ? If so, what did it report ?
-Also, can you provide output from the 'sensors' command ?
+Other cleanup:
 
-Thanks,
-Guenter
+Instead of allocating memory for hwmon attributes, move attributes
+and all other hwmon related data into struct hwmon_buff and allocate
+the entire structure using devm_kzalloc.
 
-> sorry if this still isnt enough information i am good at building pc's an=
-d judging their performance but i've just started learning about the softwa=
-re/os side of things
->=20
->=20
->=20
->=20
-> On Wednesday, November 20, 2013 5:02 PM, Guenter Roeck <linux@roeck-us.ne=
-t> wrote:
-> =20
-> On Wed, Nov 20, 2013 at 01:05:12PM -0800, jonathan stewart wrote:
->=20
-> > i have downloaded/installed the lm sensors (and related packages) and f=
-ancontrol through the synaptic package manager. i was wondering if you coul=
-d tell me how to adjust the fan speed. i am using ubuntu 13.04 64bit and i =
-only ask because my temps get up to the low 90C's and my fan doesnt spin up=
- much. i have a button that sets fan speed at 100% then temps drop to 50C's=
- but its way to noisy. sorry if this is confusing i'm not entirely sure on =
-how to state my problem.
-> > _______________________________________________
->=20
-> Hi,
->=20
-> you do not really provide enough information to enable us to help.
-> Output from "sensors" command might be helpful, as well as
-> some more information about your hardware.
-> PC ? Laptop ? CPU type ? Super-IO chip ? fancontrol configuration ?
->=20
-> Guenter
+Check return value from calls to igb_add_hwmon_attr() one by one instead
+of logically combining them all together.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/net/ethernet/intel/igb/igb.h       |    8 ++-
+ drivers/net/ethernet/intel/igb/igb_hwmon.c |  100 +++++++++++++---------------
+ 2 files changed, 53 insertions(+), 55 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/igb/igb.h b/drivers/net/ethernet/intel/igb/igb.h
+index 5e9ed89..99c3d33 100644
+--- a/drivers/net/ethernet/intel/igb/igb.h
++++ b/drivers/net/ethernet/intel/igb/igb.h
+@@ -337,8 +337,10 @@ struct hwmon_attr {
+ 	};
+ 
+ struct hwmon_buff {
+-	struct device *device;
+-	struct hwmon_attr *hwmon_list;
++	struct attribute_group group;
++	const struct attribute_group *groups[2];
++	struct attribute *attrs[E1000_MAX_SENSORS * 4 + 1];
++	struct hwmon_attr hwmon_list[E1000_MAX_SENSORS * 4];
+ 	unsigned int n_hwmon;
+ 	};
+ #endif
+@@ -440,7 +442,7 @@ struct igb_adapter {
+ 
+ 	char fw_version[32];
+ #ifdef CONFIG_IGB_HWMON
+-	struct hwmon_buff igb_hwmon_buff;
++	struct hwmon_buff *igb_hwmon_buff;
+ 	bool ets;
+ #endif
+ 	struct i2c_algo_bit_data i2c_algo;
+diff --git a/drivers/net/ethernet/intel/igb/igb_hwmon.c b/drivers/net/ethernet/intel/igb/igb_hwmon.c
+index 58f1ce9..2e7ef2d 100644
+--- a/drivers/net/ethernet/intel/igb/igb_hwmon.c
++++ b/drivers/net/ethernet/intel/igb/igb_hwmon.c
+@@ -117,8 +117,8 @@ static int igb_add_hwmon_attr(struct igb_adapter *adapter,
+ 	unsigned int n_attr;
+ 	struct hwmon_attr *igb_attr;
+ 
+-	n_attr = adapter->igb_hwmon_buff.n_hwmon;
+-	igb_attr = &adapter->igb_hwmon_buff.hwmon_list[n_attr];
++	n_attr = adapter->igb_hwmon_buff->n_hwmon;
++	igb_attr = &adapter->igb_hwmon_buff->hwmon_list[n_attr];
+ 
+ 	switch (type) {
+ 	case IGB_HWMON_TYPE_LOC:
+@@ -154,30 +154,16 @@ static int igb_add_hwmon_attr(struct igb_adapter *adapter,
+ 	igb_attr->dev_attr.attr.mode = S_IRUGO;
+ 	igb_attr->dev_attr.attr.name = igb_attr->name;
+ 	sysfs_attr_init(&igb_attr->dev_attr.attr);
+-	rc = device_create_file(&adapter->pdev->dev,
+-				&igb_attr->dev_attr);
+-	if (rc = 0)
+-		++adapter->igb_hwmon_buff.n_hwmon;
+ 
+-	return rc;
++	adapter->igb_hwmon_buff->attrs[n_attr] = &igb_attr->dev_attr.attr;
++
++	++adapter->igb_hwmon_buff->n_hwmon;
++
++	return 0;
+ }
+ 
+ static void igb_sysfs_del_adapter(struct igb_adapter *adapter)
+ {
+-	int i;
+-
+-	if (adapter = NULL)
+-		return;
+-
+-	for (i = 0; i < adapter->igb_hwmon_buff.n_hwmon; i++) {
+-		device_remove_file(&adapter->pdev->dev,
+-			   &adapter->igb_hwmon_buff.hwmon_list[i].dev_attr);
+-	}
+-
+-	kfree(adapter->igb_hwmon_buff.hwmon_list);
+-
+-	if (adapter->igb_hwmon_buff.device)
+-		hwmon_device_unregister(adapter->igb_hwmon_buff.device);
+ }
+ 
+ /* called from igb_main.c */
+@@ -189,11 +175,11 @@ void igb_sysfs_exit(struct igb_adapter *adapter)
+ /* called from igb_main.c */
+ int igb_sysfs_init(struct igb_adapter *adapter)
+ {
+-	struct hwmon_buff *igb_hwmon = &adapter->igb_hwmon_buff;
++	struct hwmon_buff *igb_hwmon;
++	struct i2c_client *client;
++	struct device *hwmon_dev;
+ 	unsigned int i;
+-	int n_attrs;
+ 	int rc = 0;
+-	struct i2c_client *client = NULL;
+ 
+ 	/* If this method isn't defined we don't support thermals */
+ 	if (adapter->hw.mac.ops.init_thermal_sensor_thresh = NULL)
+@@ -201,34 +187,16 @@ int igb_sysfs_init(struct igb_adapter *adapter)
+ 
+ 	/* Don't create thermal hwmon interface if no sensors present */
+ 	rc = (adapter->hw.mac.ops.init_thermal_sensor_thresh(&adapter->hw));
+-		if (rc)
+-			goto exit;
+-
+-	/* init i2c_client */
+-	client = i2c_new_device(&adapter->i2c_adap, &i350_sensor_info);
+-	if (client = NULL) {
+-		dev_info(&adapter->pdev->dev,
+-			"Failed to create new i2c device..\n");
++	if (rc)
+ 		goto exit;
+-	}
+-	adapter->i2c_client = client;
+ 
+-	/* Allocation space for max attributes
+-	 * max num sensors * values (loc, temp, max, caution)
+-	 */
+-	n_attrs = E1000_MAX_SENSORS * 4;
+-	igb_hwmon->hwmon_list = kcalloc(n_attrs, sizeof(struct hwmon_attr),
+-					GFP_KERNEL);
+-	if (!igb_hwmon->hwmon_list) {
++	igb_hwmon = devm_kzalloc(&adapter->pdev->dev, sizeof(*igb_hwmon),
++				 GFP_KERNEL);
++	if (!igb_hwmon) {
+ 		rc = -ENOMEM;
+-		goto err;
+-	}
+-
+-	igb_hwmon->device = hwmon_device_register(&adapter->pdev->dev);
+-	if (IS_ERR(igb_hwmon->device)) {
+-		rc = PTR_ERR(igb_hwmon->device);
+-		goto err;
++		goto exit;
+ 	}
++	adapter->igb_hwmon_buff = igb_hwmon;
+ 
+ 	for (i = 0; i < E1000_MAX_SENSORS; i++) {
+ 
+@@ -240,11 +208,39 @@ int igb_sysfs_init(struct igb_adapter *adapter)
+ 
+ 		/* Bail if any hwmon attr struct fails to initialize */
+ 		rc = igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_CAUTION);
+-		rc |= igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_LOC);
+-		rc |= igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_TEMP);
+-		rc |= igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_MAX);
+ 		if (rc)
+-			goto err;
++			goto exit;
++		rc = igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_LOC);
++		if (rc)
++			goto exit;
++		rc = igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_TEMP);
++		if (rc)
++			goto exit;
++		rc = igb_add_hwmon_attr(adapter, i, IGB_HWMON_TYPE_MAX);
++		if (rc)
++			goto exit;
++	}
++
++	/* init i2c_client */
++	client = i2c_new_device(&adapter->i2c_adap, &i350_sensor_info);
++	if (client = NULL) {
++		dev_info(&adapter->pdev->dev,
++			 "Failed to create new i2c device.\n");
++		rc = -ENODEV;
++		goto exit;
++	}
++	adapter->i2c_client = client;
++
++	igb_hwmon->groups[0] = &igb_hwmon->group;
++	igb_hwmon->group.attrs = igb_hwmon->attrs;
++
++	hwmon_dev = devm_hwmon_device_register_with_groups(&adapter->pdev->dev,
++							   client->name,
++							   igb_hwmon,
++							   igb_hwmon->groups);
++	if (IS_ERR(hwmon_dev)) {
++		rc = PTR_ERR(hwmon_dev);
++		goto err;
+ 	}
+ 
+ 	goto exit;
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
