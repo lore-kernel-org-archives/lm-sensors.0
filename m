@@ -1,39 +1,30 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:20 +0000
-Subject: [lm-sensors] [PATCHv5 18/20] arm: dts: make OMAP443x bandgap node to belong to OCP
-Message-Id: <1384285582-16933-19-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 23 Nov 2013 19:03:16 +0000
+Subject: [lm-sensors] [PATCH 0/5] hwmon updates for x86 platform drivers
+Message-Id: <1385233401-21517-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-U21hbGwgZml4IG9uIHJlcHJlc2VudGF0aW9uLiBCYW5kZ2FwIG5vZGUgYmVsb25ncyB0byBPQ1Au
-CgpDYzogIkJlbm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkg
-TGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdA
-Y2FseGVkYS5jb20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJr
-IFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJy
-ZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWpjK2RldmljZXRyZWVAaGVsbGlv
-bi5vcmcudWs+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBs
-aW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcK
-Q2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVs
-QHZnZXIua2VybmVsLm9yZwpTdWdnZXN0ZWQtYnk6IE5pc2hhbnRoIE1lbm9uIDxubUB0aS5jb20+
-ClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29t
-PgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgfCAxMiArKysrKysrLS0tLS0K
-IDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCgpkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0M3guZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRz
-L29tYXA0NDN4LmR0c2kKaW5kZXggOTMwYWI0Ny4uMmZjYTRlNSAxMDA2NDQKLS0tIGEvYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDQ0M3guZHRzaQorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQz
-eC5kdHNpCkBAIC0zNCwxMSArMzQsMTMgQEAKIAkJI2luY2x1ZGUgIm9tYXA0LWNwdS10aGVybWFs
-LmR0c2kiCiAJfTsKIAotCWJhbmRnYXA6IGJhbmRnYXAgewotCQlyZWcgPSA8MHg0YTAwMjI2MCAw
-eDQKLQkJICAgICAgIDB4NGEwMDIzMkMgMHg0PjsKLQkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQz
-MC1iYW5kZ2FwIjsKKwlvY3AgeworCQliYW5kZ2FwOiBiYW5kZ2FwIHsKKwkJCXJlZyA9IDwweDRh
-MDAyMjYwIDB4NAorCQkJICAgICAgIDB4NGEwMDIzMkMgMHg0PjsKKwkJCWNvbXBhdGlibGUgPSAi
-dGksb21hcDQ0MzAtYmFuZGdhcCI7CiAKLQkJI3RoZXJtYWwtc2Vuc29yLWNlbGxzID0gPDA+Owor
-CQkJI3RoZXJtYWwtc2Vuc29yLWNlbGxzID0gPDA+OworCQl9OwogCX07CiB9OwotLSAKMS44LjIu
-MS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
-Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Common changes:
+- Convert to new hwmon API to simplify code and avoid race conditions
+  due to late sysfs attribute registration.
+  With this change, hwmon sysfs attributes are now always attached
+  to the hwmon device and no longer to its parent device (where this
+  was the case).
+- Replace SENSOR_DEVICE_ATTR with DEVICE_ATTR where appropriate,
+  ie if the additional parameter provided by SENSOR_DEVICE_ATTR
+  was not used.
+- Use devm_kzalloc() instead of kzalloc() where appropriate to reduce
+  code size and simplify error path.
+
+All patches were compile tested only. Unfortunately, I don't have
+the necessary hardware to test on real systems.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
