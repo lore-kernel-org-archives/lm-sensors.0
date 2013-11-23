@@ -1,49 +1,57 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 15 Nov 2013 07:20:02 +0000
-Subject: Re: [lm-sensors] [PATCH v5 3/3] Documentation: dt: hwmon: add OF document for LM90
-Message-Id: <20131115082002.196b4149@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 23 Nov 2013 06:08:00 +0000
+Subject: [lm-sensors] [PATCH 4/5] igb: Start temperature sensor attribute index with 1
+Message-Id: <1385186881-7931-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1381137940-22608-1-git-send-email-wni@nvidia.com>
-	<1381137940-22608-4-git-send-email-wni@nvidia.com>
-	<20131114133320.00ad70c0@endymion.delvare>
-	<5285772E.2090700@nvidia.com>
-In-Reply-To: <5285772E.2090700-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev@vger.kernel.org
+Cc: Nithin Nayak Sujir <nsujir@broadcom.com>, e1000-devel@lists.sourceforge.net, Bruce Allan <bruce.w.allan@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, lm-sensors@lm-sensors.org, Michael Chan <mchan@broadcom.com>, "David S. Miller" <davem@davemloft.net>, Guenter Roeck <linux@roeck-us.net>
 
-On Fri, 15 Nov 2013 09:21:50 +0800, Wei Ni wrote:
-> On 11/14/2013 08:33 PM, Jean Delvare wrote:
-> > Hi Wei,
-> > 
-> > On Mon, 7 Oct 2013 17:25:40 +0800, Wei Ni wrote:
-> >> Add OF document for LM90 in Documentation/devicetree/.
-> ...
-> >> +
-> >> +Example LM90 node:
-> >> +
-> >> +temp-sensor {
-> >> +	compatible = "onnn,nct1008";
-> >> +	reg = <0x4c>;
-> >> +	vcc-supply = <&palmas_ldo6_reg>;
-> >> +	interrupt-parent = <&gpio>;
-> >> +	interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
-> >> +}
-> > 
-> > Looks good to me, just one question: is it OK that interrupt-parent is
-> > not described in the document? Is it supposed to be a standard property?
-> 
-> As Stephen said in this series v3:
-> "I believe it's common not to document this, since it's implicitly
-> supported as part of any node that is an interrupt source."
-> This is a standard property.
+Per hwmon ABI, temperature sensor attribute index starts with 1, not 0.
 
-Perfect, thanks for the clarification.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/net/ethernet/intel/igb/igb_hwmon.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/net/ethernet/intel/igb/igb_hwmon.c b/drivers/net/ethernet/intel/igb/igb_hwmon.c
+index 2e7ef2d..e0af5bc 100644
+--- a/drivers/net/ethernet/intel/igb/igb_hwmon.c
++++ b/drivers/net/ethernet/intel/igb/igb_hwmon.c
+@@ -124,22 +124,22 @@ static int igb_add_hwmon_attr(struct igb_adapter *adapter,
+ 	case IGB_HWMON_TYPE_LOC:
+ 		igb_attr->dev_attr.show = igb_hwmon_show_location;
+ 		snprintf(igb_attr->name, sizeof(igb_attr->name),
+-			 "temp%u_label", offset);
++			 "temp%u_label", offset + 1);
+ 		break;
+ 	case IGB_HWMON_TYPE_TEMP:
+ 		igb_attr->dev_attr.show = igb_hwmon_show_temp;
+ 		snprintf(igb_attr->name, sizeof(igb_attr->name),
+-			 "temp%u_input", offset);
++			 "temp%u_input", offset + 1);
+ 		break;
+ 	case IGB_HWMON_TYPE_CAUTION:
+ 		igb_attr->dev_attr.show = igb_hwmon_show_cautionthresh;
+ 		snprintf(igb_attr->name, sizeof(igb_attr->name),
+-			 "temp%u_max", offset);
++			 "temp%u_max", offset + 1);
+ 		break;
+ 	case IGB_HWMON_TYPE_MAX:
+ 		igb_attr->dev_attr.show = igb_hwmon_show_maxopthresh;
+ 		snprintf(igb_attr->name, sizeof(igb_attr->name),
+-			 "temp%u_crit", offset);
++			 "temp%u_crit", offset + 1);
+ 		break;
+ 	default:
+ 		rc = -EPERM;
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
