@@ -1,73 +1,98 @@
-From: Bruno DUYE <brunetton@gmail.com>
-Date: Tue, 12 Nov 2013 17:39:59 +0000
-Subject: Re: [lm-sensors] Submitting a patch
-Message-Id: <CAFCHPoN-=Ni=A6+HERJ0ibOx+SA4+KbGn_pFgfni8KsVxRhV+A@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 23 Nov 2013 06:07:57 +0000
+Subject: [lm-sensors] [PATCH 1/5] tg3: Convert to use hwmon_device_register_with_groups
+Message-Id: <1385186881-7931-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAFCHPoNujkPUHfi1Ep4EnWm=aDUbMY=6PqRRS6_A7Es4+TzeXw@mail.gmail.com>
-In-Reply-To: <CAFCHPoNujkPUHfi1Ep4EnWm=aDUbMY=6PqRRS6_A7Es4+TzeXw@mail.gmail.com>
+References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Greg Rose <gregory.v.rose@intel.com>, Nithin Nayak Sujir <nsujir@broadcom.com>, Michael Chan <mchan@broadcom.com>, e1000-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-Okay ... I'm totaly ashamed now. I thing I was too tired when I sent
-that mail; I better should have gone to bed.
+Use new hwmon API to simplify code, provide missing mandatory 'name'
+sysfs attribute, and attach hwmon attributes to hwmon device instead
+of pci device.
 
-I didn't check the url of the page I was reading, it's here :
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/net/ethernet/broadcom/tg3.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-http://tyruiop.eu/~melodie/Downloads/Documentations/Informatique/lm_sensors-fr/lm_sensors-FAQ.html#Section-6_002e2
+diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
+index a9e0684..369b736 100644
+--- a/drivers/net/ethernet/broadcom/tg3.c
++++ b/drivers/net/ethernet/broadcom/tg3.c
+@@ -10629,10 +10629,8 @@ static void tg3_sd_scan_scratchpad(struct tg3 *tp, struct tg3_ocir *ocir)
+ static ssize_t tg3_show_temp(struct device *dev,
+ 			     struct device_attribute *devattr, char *buf)
+ {
+-	struct pci_dev *pdev = to_pci_dev(dev);
+-	struct net_device *netdev = pci_get_drvdata(pdev);
+-	struct tg3 *tp = netdev_priv(netdev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct tg3 *tp = dev_get_drvdata(dev);
+ 	u32 temperature;
+ 
+ 	spin_lock_bh(&tp->lock);
+@@ -10650,29 +10648,25 @@ static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, tg3_show_temp, NULL,
+ static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, tg3_show_temp, NULL,
+ 			  TG3_TEMP_MAX_OFFSET);
+ 
+-static struct attribute *tg3_attributes[] = {
++static struct attribute *tg3_attrs[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	NULL
+ };
+-
+-static const struct attribute_group tg3_group = {
+-	.attrs = tg3_attributes,
+-};
++ATTRIBUTE_GROUPS(tg3);
+ 
+ static void tg3_hwmon_close(struct tg3 *tp)
+ {
+ 	if (tp->hwmon_dev) {
+ 		hwmon_device_unregister(tp->hwmon_dev);
+ 		tp->hwmon_dev = NULL;
+-		sysfs_remove_group(&tp->pdev->dev.kobj, &tg3_group);
+ 	}
+ }
+ 
+ static void tg3_hwmon_open(struct tg3 *tp)
+ {
+-	int i, err;
++	int i;
+ 	u32 size = 0;
+ 	struct pci_dev *pdev = tp->pdev;
+ 	struct tg3_ocir ocirs[TG3_SD_NUM_RECS];
+@@ -10690,18 +10684,11 @@ static void tg3_hwmon_open(struct tg3 *tp)
+ 	if (!size)
+ 		return;
+ 
+-	/* Register hwmon sysfs hooks */
+-	err = sysfs_create_group(&pdev->dev.kobj, &tg3_group);
+-	if (err) {
+-		dev_err(&pdev->dev, "Cannot create sysfs group, aborting\n");
+-		return;
+-	}
+-
+-	tp->hwmon_dev = hwmon_device_register(&pdev->dev);
++	tp->hwmon_dev = hwmon_device_register_with_groups(&pdev->dev, "tg3",
++							  tp, tg3_groups);
+ 	if (IS_ERR(tp->hwmon_dev)) {
+ 		tp->hwmon_dev = NULL;
+ 		dev_err(&pdev->dev, "Cannot register hwmon device, aborting\n");
+-		sysfs_remove_group(&pdev->dev.kobj, &tg3_group);
+ 	}
+ }
+ 
+-- 
+1.7.9.7
 
-
-So, nevermind, and sorry that.
-
-2013/11/11 Jean Delvare <khali@linux-fr.org>:
-> Hi Bruno,
->
-> On Sun, 10 Nov 2013 22:49:55 +0100, Bruno DUYE wrote:
->> Today, I found a little bug in lm-sensor, and wanted to submit you a
->> patch using csv. Si I came to the doc, section "How to get CVS acces",
->> clicked on the link of daily builds; but nothing appears here.
->> The link http://www2.lm-sensors.nu/~lm78/download.html#cvs send a blank file.
->
-> I'm very curious where you found references to CVS and the link above,
-> as we migrated away from lm-sensors.nu and CVS many years ago. We're
-> using Subversion now, hosted on lm-sensors.org. See:
->
-> http://www.lm-sensors.org/wiki/Download
->
->> So, here is the patch, by email (not my prefered way so far).
->
-> Patches sent by e-mail are just fine, we would not have created you a
-> write access to our repository just for one patch anyway. But please
-> use the unified format (diff -up) when sending patches.
->
->> it's nearly nothing : in sensor-detect perl script; > 3.0 kernels
->> numbers are not matched by the regex. Here's a quick patch :
->>
->> 2666c2666
->> < $kernel_version =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
->> ---
->> > $kernel_version =~ /(\d+)\.(\d+)[-\.](\d+)(.*)/;
->
-> This has been discussed many times before, and rejected each time so
-> far. This isn't a bug in sensors-detect per se, 3.x kernels from
-> upstream do have a 3rd (sublevel) version number. The problem is that
-> some distributions decided to hide it from their user. I believe this
-> is bad practice as this information is very useful when investigating
-> user problems. The sensors-detect breakage is only another proof that
-> they are doing the wrong thing. Distributions who decide to do this are
-> on their own and have to patch every application they broke.
->
-> Anyway, your proposed fix is not even correct. The number behind the
-> "-" in version strings is the build number, it has nothing to do with
-> the upstream kernel sublevel number. Debian (one of the offending
-> distributions) does have a correct fix, see 14-2-digits-kernel.patch in
-> http://ftp.de.debian.org/debian/pool/main/l/lm-sensors/lm-sensors_3.3.2-2+deb7u1.debian.tar.xz
->
-> If we ever accept a patch for this issue, it would be that one.
->
-> --
-> Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
