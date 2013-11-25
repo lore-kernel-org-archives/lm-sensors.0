@@ -1,39 +1,25 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Fri, 08 Nov 2013 00:07:40 +0000
-Subject: Re: [lm-sensors] About the Asus F2A85 temperature sensor (it8603e)
-Message-Id: <527C2B4C.9030000@assembler.cz>
+From: "Patrick..." <0001patrick@gmail.com>
+Date: Mon, 25 Nov 2013 20:02:35 +0000
+Subject: [lm-sensors] lm_sensors, hwmon, conky
+Message-Id: <CABfEahBWGnHRAPGXh1yao02OCGRjRFwKw=T4QSrXn1BKb7QyNA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <527C23BE.9030308@assembler.cz>
-In-Reply-To: <527C23BE.9030308@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> That is a good idea. The current driver causes the chip to stop updating
-> temperatures, though fan control continues to work. That probably means a
-> different/additional exit sequence is needed -- or perhaps writing to the chip
-> is entirely wrong.
+Using hwmon to config conky.
+At reboot the info from hwmon appears in different hwmon
+directories.   Consequently, conky reads the wrong info into
+it's output.
 
-Hm maybe we just hit some undefined register due to feature reduction. Does it 
-happen with coreboot too? (You will have to enable the logical device, I think 
-Im not doing that). How you know it is not updating? If you program own io 
-routine to just read out temps, does it work?
+Is this an unreported bug or ?
 
-I can check more stuff next week.
+Please advise.
 
-> I'll look for an 8728 datasheet
+THX
 
-Looks I found something through google on ulozto.
-
-Thanks
-Rudolf
-
-
-.
->
-> David
-
+Patrick
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
