@@ -1,63 +1,73 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 23 Nov 2013 12:58:30 +0000
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Date: Mon, 25 Nov 2013 23:17:47 +0000
 Subject: Re: [lm-sensors] [PATCH 4/5] igb: Start temperature sensor attribute index with 1
-Message-Id: <20131123135830.66889fb7@endymion.delvare>
+Message-Id: <1385421467.2270.16.camel@jtkirshe-mobl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6654803701795833292=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
-	<1385186881-7931-5-git-send-email-linux@roeck-us.net>
+	 <1385186881-7931-5-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1385186881-7931-5-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
-Cc: netdev@vger.kernel.org, Nithin Nayak Sujir <nsujir@broadcom.com>, e1000-devel@lists.sourceforge.net, Don Skidmore <donald.c.skidmore@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, lm-sensors@lm-sensors.org, Greg Rose <gregory.v.rose@intel.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Michael Chan <mchan@broadcom.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Greg Rose <gregory.v.rose@intel.com>, Nithin Nayak Sujir <nsujir@broadcom.com>, Michael Chan <mchan@broadcom.com>, e1000-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org
 
-On Fri, 22 Nov 2013 22:08:00 -0800, Guenter Roeck wrote:
-> Per hwmon ABI, temperature sensor attribute index starts with 1, not 0.
-> 
+
+--===============6654803701795833292==
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-f2BmIOG1F4VKcn8DMp9t"
+
+
+--=-f2BmIOG1F4VKcn8DMp9t
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 2013-11-22 at 22:08 -0800, Guenter Roeck wrote:
+> Per hwmon ABI, temperature sensor attribute index starts with 1, not
+> 0.
+>=20
 > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
 >  drivers/net/ethernet/intel/igb/igb_hwmon.c |    8 ++++----
 >  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/intel/igb/igb_hwmon.c b/drivers/net/ethernet/intel/igb/igb_hwmon.c
-> index 2e7ef2d..e0af5bc 100644
-> --- a/drivers/net/ethernet/intel/igb/igb_hwmon.c
-> +++ b/drivers/net/ethernet/intel/igb/igb_hwmon.c
-> @@ -124,22 +124,22 @@ static int igb_add_hwmon_attr(struct igb_adapter *adapter,
->  	case IGB_HWMON_TYPE_LOC:
->  		igb_attr->dev_attr.show = igb_hwmon_show_location;
->  		snprintf(igb_attr->name, sizeof(igb_attr->name),
-> -			 "temp%u_label", offset);
-> +			 "temp%u_label", offset + 1);
->  		break;
->  	case IGB_HWMON_TYPE_TEMP:
->  		igb_attr->dev_attr.show = igb_hwmon_show_temp;
->  		snprintf(igb_attr->name, sizeof(igb_attr->name),
-> -			 "temp%u_input", offset);
-> +			 "temp%u_input", offset + 1);
->  		break;
->  	case IGB_HWMON_TYPE_CAUTION:
->  		igb_attr->dev_attr.show = igb_hwmon_show_cautionthresh;
->  		snprintf(igb_attr->name, sizeof(igb_attr->name),
-> -			 "temp%u_max", offset);
-> +			 "temp%u_max", offset + 1);
->  		break;
->  	case IGB_HWMON_TYPE_MAX:
->  		igb_attr->dev_attr.show = igb_hwmon_show_maxopthresh;
->  		snprintf(igb_attr->name, sizeof(igb_attr->name),
-> -			 "temp%u_crit", offset);
-> +			 "temp%u_crit", offset + 1);
->  		break;
->  	default:
->  		rc = -EPERM;
 
-Reviewed-by: Jean Delvare <khali@linux-fr.org>
+I have also added this to my queue, thank you.
 
--- 
-Jean Delvare
+--=-f2BmIOG1F4VKcn8DMp9t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAABCgAGBQJSk9qbAAoJEOVv75VaS+3OSs4QAIDhuBtyJ7eP/AXMdgrp+xyG
+6nzNRSP4JyfBl1fq5zT46XoBYvN6k4xDzC/Hdb5LymE4LP7egJsrKJ7ABZ2kb5lN
+hUuRaedybwyX65xnf9tw7fQyfPrJloHo1McwL6Ye4J5tcJHSVnqD5I+vHHSMFc+L
+JkJRYhV2+tUIJ3QHFpMAA7MH8ruiYT56TsFWhS7A5uXLt8t2FYbYpmJpvkuIMrX/
+o9h/alBHj66oc/lVVFckyZiOVUGFmUbI17Ic0vokc82c9JzBcnJzGk8aHiwutACv
+8fE9NEsOpwcj20vzz6MoszxWaYfZ8NTDuFIloW0Y+r13pAvQ+JP8GzieyDrtfAuO
+/p/UZQbYRFeFifag1kdlm/J8CFVPEKmMGth+6jQcH/kcbUaviXtA7mbMTEnBMfeU
+1A54j2ofdy2NqLlkXd2xKCvvPOY/jmircCdh+0u4Mx7uekMZOoJlmN0DA+BWiora
+CgjbKTl9jvPyriNaq3GvcD6rqZnYkRC6/I2InrYLrLzFxzQ21BB+UgCyKAvFMR9T
+LrkO/5tWYyGynoSjRk9dXtBG70LRhm/JBzy5Vb2chvNxeKMRQop/FoYz/NTi3n4U
+5Q6vi1I/iBlsrogGXfHojw/DXN00TRJtHeAIs6om4D9Pvaw2PMMJkqlNOw/YDnwf
+4GlS8wJW2f5eoi0YjcoO
+=O4HA
+-----END PGP SIGNATURE-----
+
+--=-f2BmIOG1F4VKcn8DMp9t--
+
+
+
+--===============6654803701795833292==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6654803701795833292==--
+
