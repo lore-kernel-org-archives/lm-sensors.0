@@ -1,290 +1,185 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 25 Nov 2013 15:34:32 +0000
+From: Mark Rutland <mark.rutland@arm.com>
+Date: Mon, 25 Nov 2013 15:37:21 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52936E08.9050404@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6135753727352678987=="
+Message-Id: <20131125153721.GH32081@e106331-lin.cambridge.arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <25668725.sMcoUCgCKk@flatron> <52861F46.8020900@ti.com> <1574695.YAEZXuUskK@amdc1227> <20131125151421.GF32081@e106331-lin.cambridge.arm.com>
-In-Reply-To: <20131125151421.GF32081@e106331-lin.cambridge.arm.com>
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Tomasz Figa <t.figa@samsung.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Tomasz Figa <tomasz.figa@gmail.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "wni@nvidia.com" <wni@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-
---===============6135753727352678987==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="E4bmB7knd5kf53k5lgwmsSkDrBigLufi0"
-
---E4bmB7knd5kf53k5lgwmsSkDrBigLufi0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 25-11-2013 11:14, Mark Rutland wrote:
-> [...]
->=20
->>>>>>> +* Trip points
->>>>>>> +
->>>>>>> +The trip node is a node to describe a point in the temperature d=
-omain
->>>>>>> +in which the system takes an action. This node describes just th=
-e point,
->>>>>>> +not the action.
->>>>>>> +
->>>>>>> +Required properties:
->>>>>>> +- temperature:          An integer indicating the trip temperatu=
-re level,
->>>>>>> +  Type: signed          in millicelsius.
->>>>>>> +  Size: one cell
->>>>>>> +
->>>>>>> +- hysteresis:           A low hysteresis value on temperature pr=
-operty (above).
->>>>>>> +  Type: unsigned        This is a relative value, in millicelsiu=
-s.
->>>>>>> +  Size: one cell
->>>>>>
->>>>>> What about replacing temperature and hysteresis with a single temp=
-erature
->>>>>> property that can be either one cell for 0 hysteresis or two cells=
- to
->>>>>> specify lower and upper range of temperatures?
->>>>>
->>>>> What is the problem with using two properties? I think we loose
->>>>> representation by gluing two properties into one just because one c=
-ell.
->>>>
->>>> Ranges is the representation widely used in other bindings. In addit=
-ion
->>>
->>> Well that sentence is arguable. It is not like all properties in DT a=
-re
->>> standardized as ranges, is it?
->>
->> No, they are not, but property range is a common concept of representi=
-ng
->> range of some values.
->>
->> Anyway, I won't insist on this, as it's just a minor detail. However I=
-'d
->> like to see comments from more people on this.
->=20
-> I'm happy with having these as separate properties.
->=20
-> [...]
->=20
->>>>>>> +
->>>>>>> +- type:                 a string containing the trip type. Suppo=
-rted values are:
->>>>>>> +        "active":       A trip point to enable active cooling
->>>>>>> +        "passive":      A trip point to enable passive cooling
->>>>>>
->>>>>> The two above seem to be implying action, as opposed to the genera=
-l
->>>>>> comment about trip points.
->>>>>
->>>>> They do not imply action, they specify type of trip.
->>>>
->>>> For me "A trip point to enable active cooling" means that when this =
-trip
->>>> point is crossed, active cooling must be enabled. What is it if not
->>>> implying action?
->>>
->>> But within a board there could be more than one active cooling action=
-s
->>> that could be done, it is not a 1 to 1 relation. Same thing applies t=
-o
->>> passive cooling. The binding does not imply a specific action. Just t=
-he
->>> trip type.
->>
->> I'd prefer the "active" and "passive" states to be renamed an their
->> descriptions rephrased. In general, the idea of having just four trip
->> point types seems like bound to a single specific hardware platform.
->>
->> That's a wild guess, but maybe having an unsigned integer to represent=
-
->> trip point "attention level" would be a better idea?
->=20
-> The set of names can be extended in future, and we can choose to have a=
-n
-> attention-level property in future, and map the existing types to them.=
-
-> If we don't have something fundamantally better, I think this should be=
-
-> OK for now.
->=20
->>
->>>
->>>>
->>>>>
->>>>>>
->>>>>>> +        "hot":          A trip point to notify emergency
->>>>>>> +        "critical":     Hardware not reliable.
->>>>>>> +  Type: string
->>>>>>> +
->>>>>> [snip]
->>>>>>> +* Examples
->>>>>>> +
->>>>>>> +Below are several examples on how to use thermal data descriptor=
-s
->>>>>>> +using device tree bindings:
->>>>>>> +
->>>>>>> +(a) - CPU thermal zone
->>>>>>> +
->>>>>>> +The CPU thermal zone example below describes how to setup one th=
-ermal zone
->>>>>>> +using one single sensor as temperature source and many cooling d=
-evices and
->>>>>>> +power dissipation control sources.
->>>>>>> +
->>>>>>> +#include <dt-bindings/thermal/thermal.h>
->>>>>>> +
->>>>>>> +cpus {
->>>>>>> +        /*
->>>>>>> +         * Here is an example of describing a cooling device for=
- a DVFS
->>>>>>> +         * capable CPU. The CPU node describes its four OPPs.
->>>>>>> +         * The cooling states possible are 0..3, and they are
->>>>>>> +         * used as OPP indexes. The minimum cooling state is 0, =
-which means
->>>>>>> +         * all four OPPs can be available to the system. The max=
-imum
->>>>>>> +         * cooling state is 3, which means only the lowest OPPs =
-(198MHz@0.85V)
->>>>>>> +         * can be available in the system.
->>>>>>> +         */
->>>>>>> +        cpu0: cpu@0 {
->>>>>>> +                ...
->>>>>>> +                operating-points =3D <
->>>>>>> +                        /* kHz    uV */
->>>>>>> +                        970000  1200000
->>>>>>> +                        792000  1100000
->>>>>>> +                        396000  950000
->>>>>>> +                        198000  850000
->>>>>>> +                >;
->>>>>>> +                cooling-min-state =3D <0>;
->>>>>>> +                cooling-max-state =3D <3>;
->>>>>>> +                #cooling-cells =3D <2>; /* min followed by max *=
-/
->>>>>>
->>>>>> I believe you don't need the min- and max-state properties here th=
-en. Your
->>>>>> thermal core can simply query the cpufreq driver (which would be a=
- cooling
->>>>>> device here) about the range of states it supports
->>>>>
->>>>> This binding is not supposed to be aware of cpufreq, which is Linux=
-
->>>>> specific implementation.
->>>>
->>>> I didn't say anything about making the binding aware of cpufreq, but=
-
->>>> instead about getting rid of redundancy of data, that can be provide=
-d
->>>> by respective drivers anyway.
->>>
->>> There are cases in which cooling devices don't need to use all states=
-
->>> for cooling, because either lower states does not provide cooling
->>> effectiveness or higher states must be avoided at all. So, allowing
->>> drivers to report this thermal info is possible, but questionable
->>> design, as you would be spreading the thermal info. Besides, for the
->>> example I gave, the driver would need to know board specifics, as the=
-
->>> range of states would vary anyway across board.
->>
->> One thing is the allowed range of cooling states supported by the
->> cooling device and another is the range of states that are usable on
->> given board. The former is a property of the cooling device that
->> in most cases is implied by its compatible string, so to eliminate the=
-
->> bad data redundancy, you should not make the user respecify that. The
->> latter you have as a part of your cooling device specifier tuple.
->>
->> As an example of this, see PWM, GPIO or IRQ bindings. You don't have
->> {pwm-channel,pwm-duty,interrupt,gpio}-{min,max} properties, because th=
-is
->> is not needed by respective PWM, GPIO or IRQ drivers, as they already
->> know these parameters.
->=20
-> This is arguable. The {min,max} levels associated with a cooling state
-> is essentially a recommendation of a sane set of values you might want
-> to use the cooling device with.
->=20
-> It could work using only the cooling device's information, but it might=
-
-> not be all that useful. The range might not represent a linear scale,
-> and there might be secondary effects to consider (e.g. noise) that woul=
-d
-> affect the decision and would likely need to be considered by the
-> particular drivers.
->=20
-> The key question is where do we make the trade off? How much platform
-> knowledge do we want each driver to have to handle, and how much are we=
-
-> happy to place in DT?
->=20
-> It is possible to use the information from particular devices and ignor=
-e
-> the {min,max} cooling state properties in future if that turns out to b=
-e
-> better. I think that would be reasonable for now.
-
-I agree that we surely can rip off unused properties if they turn out to
-be not helping at all. On the min/max specific case, I do have board
-that investigation (by experimentation on real board and simulation)
-showed that, for instance, allowing maximum power delta can cause burst
-on temperature, and those bursts are hard to detect on higher levels of
-temperature domain. Well, it turns out that this is essentially how
-temperature behaves.  Obviously, behavior on different boards is also
-different, or at least produce different bursts. It would require
-drivers to have board knowledge in order to properly report this.
-
-As it has been already discussed during the development of this work,
-one can also develop a PID controller to minimize the board dependency.
-However, the board dependency can only be minimized, not avoided, as not
-all board have needed sensors, say power, current sensor, or not enough
-temperature sensors, and power estimation based only on cpu load is
-known to not be strongly correlated to overall board power dissipation.
-
-The proposal of using min max on trip point is not coming from nowhere.
->=20
-> Thanks,
-> Mark.
->=20
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---E4bmB7knd5kf53k5lgwmsSkDrBigLufi0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlKTbhAACgkQCXcVR3XQvP02TgD/c9hjPqWFRZu1xMChZbOADx95
-FGVmgT5d8RhqC4GC3hoA/1jfSFjZVM8gFSglk3uYgr6ps/h0rbQiDwzbvABkzue4
-=3z0J
------END PGP SIGNATURE-----
-
---E4bmB7knd5kf53k5lgwmsSkDrBigLufi0--
-
-
---===============6135753727352678987==
-Content-Type: text/plain; charset="us-ascii"
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+ <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Pawel Moll <Pawel.Moll@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "wni@nvidia.com" <wni@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+
+On Tue, Nov 12, 2013 at 07:46:04PM +0000, Eduardo Valentin wrote:
+> This patch introduces a device tree bindings for
+> describing the hardware thermal behavior and limits.
+> Also a parser to read and interpret the data and feed
+> it in the thermal framework is presented.
+> 
+> This patch introduces a thermal data parser for device
+> tree. The parsed data is used to build thermal zones
+> and thermal binding parameters. The output data
+> can then be used to deploy thermal policies.
+> 
+> This patch adds also documentation regarding this
+> API and how to define tree nodes to use
+> this infrastructure.
+> 
+> Note that, in order to be able to have control
+> on the sensor registration on the DT thermal zone,
+> it was required to allow changing the thermal zone
+> .get_temp callback. For this reason, this patch
+> also removes the 'const' modifier from the .ops
+> field of thermal zone devices.
+> 
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+> 
+> Hello all,
+> 
+> Very minor changes from v8 to v9.
+> 
+> Changelog:
+> 
+> - Rephrase a couple of sentences in the binding document
+> - Fixed a couple of property types in the binding document
+> - Removed the constant macro definitions for trip type. This
+> change also affected the bindings posted on patches 09/14/15.
+> 
+>  .../devicetree/bindings/thermal/thermal.txt        | 586 ++++++++++++++
+>  drivers/thermal/Kconfig                            |  13 +
+>  drivers/thermal/Makefile                           |   1 +
+>  drivers/thermal/of-thermal.c                       | 849 +++++++++++++++++++++
+>  drivers/thermal/thermal_core.c                     |   9 +-
+>  drivers/thermal/thermal_core.h                     |   9 +
+>  include/dt-bindings/thermal/thermal.h              |  17 +
+>  include/linux/thermal.h                            |  28 +-
+>  8 files changed, 1509 insertions(+), 3 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/thermal/thermal.txt
+>  create mode 100644 drivers/thermal/of-thermal.c
+>  create mode 100644 include/dt-bindings/thermal/thermal.h
+> 
+> diff --git a/Documentation/devicetree/bindings/thermal/thermal.txt b/Documentation/devicetree/bindings/thermal/thermal.txt
+> new file mode 100644
+> index 0000000..59f5bd2
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/thermal/thermal.txt
+> @@ -0,0 +1,586 @@
+> +* Thermal Framework Device Tree descriptor
+> +
+> +This file describes a generic binding to provide a way of
+> +defining hardware thermal structure using device tree.
+> +A thermal structure includes thermal zones and their components,
+> +such as trip points, polling intervals, sensors and cooling devices
+> +binding descriptors.
+> +
+> +The target of device tree thermal descriptors is to describe only
+> +the hardware thermal aspects. The thermal device tree bindings are
+> +not about how the system must control or which algorithm or policy
+> +must be taken in place.
+> +
+> +There are five types of nodes involved to describe thermal bindings:
+> +- thermal sensors: devices which may be used to take temperature
+> +  measurements.
+> +- cooling devices: devices which may be used to dissipate heat.
+> +- trip points: describe key temperatures at which cooling is recommended. The
+> +  set of points should be chosen based on hardware limits.
+> +- cooling maps: used to describe links between trip points and cooling devices;
+> +- thermal zones: used to describe thermal data within the hardware;
+> +
+> +The following is a description of each of these node types.
+> +
+> +* Thermal sensor devices
+> +
+> +Thermal sensor devices are nodes providing temperature sensing capabilities on
+> +thermal zones. Typical devices are I2C ADC converters and bandgaps. These are
+> +nodes providing temperature data to thermal zones. Thermal sensor devices may
+> +control one or more internal sensors.
+> +
+> +Required property:
+> +- #thermal-sensor-cells: Used to provide sensor device specific information
+> +  Type: unsigned        while referring to it. Typically 0 on thermal sensor
+> +  Size: one cell        nodes with only one sensor, and at least 1 on nodes
+> +                        with several internal sensors, in order
+> +                        to identify uniquely the sensor instances within
+> +                        the IC. See thermal zone binding for more details
+> +                        on how consumers refer to sensor devices.
+> +
+> +* Cooling device nodes
+> +
+> +Cooling devices are nodes providing control on power dissipation. There
+> +are essentially two ways to provide control on power dissipation. First
+> +is by means of regulating device performance, which is known as passive
+> +cooling. A typical passive cooling is a CPU that has dynamic voltage and
+> +frequency scaling (DVFS), and uses lower frequencies as cooling states.
+> +Second is by means of activating devices in order to remove
+> +the dissipated heat, which is known as active cooling, e.g. regulating
+> +fan speeds. In both cases, cooling devices shall have a way to determine
+> +the state of cooling in which the device is.
+> +
+> +Required properties:
+> +- cooling-min-state:   An integer indicating the smallest
+> +  Type: unsigned       cooling state accepted. Typically 0.
+> +  Size: one cell
+> +
+> +- cooling-max-state:   An integer indicating the largest
+> +  Type: unsigned       cooling state accepted.
+> +  Size: one cell
+> +
+> +- #cooling-cells:      Used to provide cooling device specific information
+> +  Type: unsigned       while referring to it. Must be at least 2, in order
+> +  Size: one cell       to specify minimum and maximum cooling state used
+> +                       in the reference. The first cell is the minimum
+> +                       cooling state requested and the second cell is
+> +                       the maximum cooling state requested in the reference.
+> +                       See Cooling device maps section below for more details
+> +                       on how consumers refer to cooling devices.
+
+This is the point I'm still most concerned with, as it provides a
+definite meaning to an otherwise abstract property. However, if you
+believe this is sane and unlikely to be problematic, then I am happy to
+leave the decision to you.
+
+> +
+> +* Trip points
+> +
+> +The trip node is a node to describe a point in the temperature domain
+> +in which the system takes an action. This node describes just the point,
+> +not the action.
+> +
+> +Required properties:
+> +- temperature:         An integer indicating the trip temperature level,
+> +  Type: signed         in millicelsius.
+> +  Size: one cell
+> +
+> +- hysteresis:          A low hysteresis value on temperature property (above).
+> +  Type: unsigned       This is a relative value, in millicelsius.
+> +  Size: one cell
+> +
+> +- type:                        a string containing the trip type. Supported values are:
+
+Get rid of the "Supported", that's a Linux detail.
+
+s/Supported/expected/ ?
+
+Given the discussion has otherwise boiled down to bits that I think can
+change later, I'm happy to give my ack:
+
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+
+I'll leave it to the others to fight against this if they still have
+concerns.
+
+Thanks,
+Mark.
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6135753727352678987==--
