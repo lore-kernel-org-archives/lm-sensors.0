@@ -1,47 +1,49 @@
-From: Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
-Date: Thu, 28 Nov 2013 21:40:24 +0000
-Subject: [lm-sensors] How can temp_crit for virtual device be set?
-Message-Id: <5297B848.4080906@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 28 Nov 2013 22:05:46 +0000
+Subject: Re: [lm-sensors] How can temp_crit for virtual device be set?
+Message-Id: <20131128230546.678f5ff1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <5297B848.4080906@gmail.com>
+In-Reply-To: <5297B848.4080906@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8hCgpNeSBsYXB0b3AgKHRvc2hpYmEgc2F0ZWxsaXRlIGw3NzAtMTE2LCBJbnRlbCBITTY1
-IG1haW5ib2FyZCkgc2h1dHMgZG93bgpmcmVxdWVudGx5IHdoZW4gSSBydW4gQ1BVIGludGVuc2l2
-ZSB0YXNrcy4gSSBndWVzcyAoYnV0IEkgY291bGQgbm90IGZpbmQKb3V0IGZvciBzdXJlKSB0aGF0
-IHRoZSB0ZW1wMV9jcml0IHNldHRpbmcgb2YgZm9yIHRoZSBhY3BpdHotdmlydHVhbC0wCmRldmlj
-ZSBtYXkgYmUgdGhlIGN1bHByaXQuIEl0IHNlZW1zIHRvIG1lIHRoYXQgYQpwcmV0dHkgbG93IHZh
-bHVlIG9mIDg0wrBDIGlzIHNldCBoZXJlLiBUaGlzIGlzIHRoZSBzYW1lIHZhbHVlIEkgc2VlIHdo
-ZW4KSSBkbyBhY3BpIC1WIChjZi4gb3V0cHV0IGJlbG93KS4gSSBub3RpY2VkIHRoYXQgc29tZXRp
-bWVzIChJIGhhdmVuJ3QKZm91bmQgb3V0IHVuZGVyIHdoaWNoIGNpcmN1bXN0YW5jZXMpIHRoaXMg
-dmFsdWUgaXMgc2V0IGF0IDk5wrBDLCB3aGljaApzZWVtcyBtb3JlIHJlYXNvbmFibGUgdG8gbWUg
-YXMgaXQgY29ycmVuc3BvbmRzIG1vcmUgY2xvc2VseSB0byB0aGUgdmFsdWUKc2hvd24gZm9yIHRo
-ZSBwaHlzaWNhbCBkZXZpY2VzICgxMDDCsEMpLCBhbmQgYWxsb3dzIGZvciByZWFzb25hYmxlIHVz
-YWdlCm9mIHRoZSBsYXB0b3AuCgoKSSB0cmllZCBhZGRpbmcgdGhlc2UgdmFsdWVzOgoKY2hpcCAi
-YWNwaXR6LXZpcnR1YWwtMCIKICBzZXQgdGVtcDFfY3JpdCA5OS4wCgpUbyAvZXRjL3NlbnNvcnMu
-ZC9jb3JldGVtcCwgYnV0IHdoZW4gZG9pbmcgc2Vuc29yIC1zLCBJIGdldDoKCkVycm9yOiBGaWxl
-IC9ldGMvc2Vuc29ycy5kL2NvcmV0ZW1wLCBsaW5lIDM6IEZhaWxlZCB0byBzZXQgdmFsdWUKYWNw
-aXR6LXZpcnR1YWwtMDogQXQgbGVhc3Qgb25lICJzZXQiIHN0YXRlbWVudCBmYWlsZWQKClNvLCBo
-b3cgY2FuIEkgYWRqdXN0IHRoZSB0ZW1wX2NyaXQxIHZhbHVlIG9mIHRoZSBhY3BpdHotdmlydHVh
-bC0wIGRldmljZT8KCgpUaGFuayB5b3UgZm9yIHlvdXIgaGVscCwKClRob21hcwoKCiMgYWNwaSAt
-Vgpb4oCmXQpUaGVybWFsIDA6IG9rLCA1Ny4wIGRlZ3JlZXMgQwpUaGVybWFsIDA6IHRyaXAgcG9p
-bnQgMCBzd2l0Y2hlcyB0byBtb2RlIGNyaXRpY2FsIGF0IHRlbXBlcmF0dXJlIDg0LjAKZGVncmVl
-cyBDClRoZXJtYWwgMDogdHJpcCBwb2ludCAxIHN3aXRjaGVzIHRvIG1vZGUgcGFzc2l2ZSBhdCB0
-ZW1wZXJhdHVyZSAxMDUuMApkZWdyZWVzIENUaGVybWFsIDA6IG9rLCA1Ny4wIGRlZ3JlZXMgQwpU
-aGVybWFsIDA6IHRyaXAgcG9pbnQgMCBzd2l0Y2hlcyB0byBtb2RlIGNyaXRpY2FsIGF0IHRlbXBl
-cmF0dXJlIDg0LjAKZGVncmVlcyBDClRoZXJtYWwgMDogdHJpcCBwb2ludCAxIHN3aXRjaGVzIHRv
-IG1vZGUgcGFzc2l2ZSBhdCB0ZW1wZXJhdHVyZSAxMDUuMApkZWdyZWVzIEM6ClvigKZdCgojIHNl
-bnNvcnMgLXUKCmFjcGl0ei12aXJ0dWFsLTAKQWRhcHRlcjogVmlydHVhbCBkZXZpY2UKdGVtcDE6
-CiAgdGVtcDFfaW5wdXQ6IDczLjAwMAogIHRlbXAxX2NyaXQ6IDg0LjAwMAoKY29yZXRlbXAtaXNh
-LTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKUGh5c2ljYWwgaWQgMDoKICB0ZW1wMV9pbnB1dDog
-NzEuMDAwCiAgdGVtcDFfbWF4OiA4Ni4wMDAKICB0ZW1wMV9jcml0OiAxMDAuMDAwCiAgdGVtcDFf
-Y3JpdF9hbGFybTogMC4wMDAKQ29yZSAwOgogIHRlbXAyX2lucHV0OiA3MS4wMDAKICB0ZW1wMl9t
-YXg6IDg2LjAwMAogIHRlbXAyX2NyaXQ6IDEwMC4wMDAKICB0ZW1wMl9jcml0X2FsYXJtOiAwLjAw
-MApDb3JlIDE6CiAgdGVtcDNfaW5wdXQ6IDcxLjAwMAogIHRlbXAzX21heDogODYuMDAwCiAgdGVt
-cDNfY3JpdDogMTAwLjAwMAogIHRlbXAzX2NyaXRfYWxhcm06IDAuMDAwCgpwa2ctdGVtcC0wLXZp
-cnR1YWwtMApBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQp0ZW1wMToKICB0ZW1wMV9pbnB1dDogNzEu
-MDAwCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Thu, 28 Nov 2013 22:40:24 +0100, Thomas Mitterfellner wrote:
+> Hello!
+>=20
+> My laptop (toshiba satellite l770-116, Intel HM65 mainboard) shuts down
+> frequently when I run CPU intensive tasks. I guess (but I could not find
+> out for sure) that the temp1_crit setting of for the acpitz-virtual-0
+> device may be the culprit. It seems to me that a
+> pretty low value of 84=B0C is set here. This is the same value I see when
+> I do acpi -V (cf. output below). I noticed that sometimes (I haven't
+> found out under which circumstances) this value is set at 99=B0C, which
+> seems more reasonable to me as it corrensponds more closely to the value
+> shown for the physical devices (100=B0C), and allows for reasonable usage
+> of the laptop.
+>=20
+>=20
+> I tried adding these values:
+>=20
+> chip "acpitz-virtual-0"
+>   set temp1_crit 99.0
+>=20
+> To /etc/sensors.d/coretemp, but when doing sensor -s, I get:
+>=20
+> Error: File /etc/sensors.d/coretemp, line 3: Failed to set value
+> acpitz-virtual-0: At least one "set" statement failed
+>=20
+> So, how can I adjust the temp_crit1 value of the acpitz-virtual-0 device?
+
+You can't, thermal zones are read-only at least through the hwmon
+interface. If anything can be done, this is through ACPI.
+
+--=20
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
