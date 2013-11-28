@@ -1,31 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Nov 2013 23:22:28 +0000
-Subject: Re: [lm-sensors] [PATCH 1/5] tg3: Convert to use hwmon_device_register_with_groups
-Message-Id: <20131128.182228.1780515135706805369.davem@davemloft.net>
+From: =?ISO-8859-1?Q?Fr=E9d=E9ric_Beaudoin?= <frederic.beaudoin@ncf.ca>
+Date: Thu, 28 Nov 2013 15:57:37 +0000
+Subject: [lm-sensors] Support for Fintek F71868A
+Message-Id: <CABQ2jog_K-0Bo5sAFfrR0++r-p3-rW7+ps6o97r6c-NkXeMaOw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1385186881-7931-1-git-send-email-linux@roeck-us.net>
-	<1385186881-7931-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1385186881-7931-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net
-Cc: netdev@vger.kernel.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, bruce.w.allan@intel.com, carolyn.wyborny@intel.com, donald.c.skidmore@intel.com, gregory.v.rose@intel.com, nsujir@broadcom.com, mchan@broadcom.com, e1000-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 22 Nov 2013 22:07:57 -0800
+Hi,
 
-> Use new hwmon API to simplify code, provide missing mandatory 'name'
-> sysfs attribute, and attach hwmon attributes to hwmon device instead
-> of pci device.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+I would like to add my "vote" to add support for the Fintek F71868A chip.
 
-Applied, thanks.
+I have an MS-7721 MSI board.
 
-Jeff Kirsher will pull the rest of this series in via his Intel ethernet
-driver tree.
+I am not sure how I can help; I do work in software development though, so
+I should be able to at least help in testing. I should note that the
+PC/server I am using is kinda hobby PC used for backups and
+experimentation, so I do not mind stress-testing it.
 
+
+Regards,
+
+Fr=E9d=E9ric Beaudoin
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
