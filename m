@@ -1,49 +1,36 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Wed, 06 Nov 2013 20:38:57 +0000
-Subject: Re: [lm-sensors] hwmon: (tmp401) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <20131106203856.GK20521@mwanda>
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Thu, 28 Nov 2013 02:18:28 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (i5k_amb) use DEFINE_PCI_DEVICE_TABLE macro
+Message-Id: <001801ceebe0$2070ad20$61520760$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20131018142506.GA25585@longonot.mountain>
-In-Reply-To: <20131018142506.GA25585@longonot.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Nov 06, 2013 at 11:39:24AM -0800, Guenter Roeck wrote:
-> On Wed, Nov 06, 2013 at 10:28:41PM +0300, Dan Carpenter wrote:
-> > Hello Guenter Roeck,
-> > 
-> > The patch 42f309303902: "hwmon: (tmp401) Convert to use
-> > devm_hwmon_device_register_with_groups" from Sep 4, 2013, leads to
-> > the following
-> > static checker warning: "drivers/hwmon/tmp401.c:360 store_temp()
-> > 	 warn: 'data' isn't an ERR_PTR"
-> > 
-> > drivers/hwmon/tmp401.c
-> >    354          struct tmp401_data *data = dev_get_drvdata(dev);
-> >    355          struct i2c_client *client = data->client;
-> >    356          long val;
-> >    357          u16 reg;
-> >    358          u8 regaddr;
-> >    359  
-> >    360          if (IS_ERR(data))
-> >    361                  return PTR_ERR(data);
-> > 
-> > dev_get_drvdata() returns NULL on error, but I'm not sure if that's
-> > possible here.  Can the check be removed?
-> > 
-> Hi Dan,
-> 
-> I am a bit confused. I seem to recall that you reported this before,
-> and I am quite sure I had it fixed. Looking at my hwmon-next branch,
-> that code is no longer in there. linux-next doesn't have it either.
-> What repository are you checking ?
+This macro is used to create a struct pci_device_id array.
 
-Oops.  Sorry about that.  I sent this by mistake.
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/hwmon/i5k_amb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-regards,
-dan carpenter
+diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
+index 6c0080a..0d33f72 100644
+--- a/drivers/hwmon/i5k_amb.c
++++ b/drivers/hwmon/i5k_amb.c
+@@ -495,7 +495,7 @@ static struct {
+ };
+ 
+ #ifdef MODULE
+-static struct pci_device_id i5k_amb_ids[] = {
++static DEFINE_PCI_DEVICE_TABLE(i5k_amb_ids) = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5400_ERR) },
+ 	{ 0, }
+-- 
+1.7.10.4
+
 
 
 _______________________________________________
