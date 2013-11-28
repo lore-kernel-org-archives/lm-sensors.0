@@ -1,35 +1,24 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Date: Thu, 28 Nov 2013 02:17:09 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (fam15h_power) use DEFINE_PCI_DEVICE_TABLE macro
-Message-Id: <001701ceebdf$f0f70d00$d2e52700$%han@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 28 Nov 2013 03:02:32 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (fam15h_power) use DEFINE_PCI_DEVICE_TABLE macro
+Message-Id: <5296B248.3060301@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <001701ceebdf$f0f70d00$d2e52700$%han@samsung.com>
+In-Reply-To: <001701ceebdf$f0f70d00$d2e52700$%han@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This macro is used to create a struct pci_device_id array.
+On 11/27/2013 06:17 PM, Jingoo Han wrote:
+> This macro is used to create a struct pci_device_id array.
+>
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> ---
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- drivers/hwmon/fam15h_power.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied to -next.
 
-diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
-index dff8410..dd0006c 100644
---- a/drivers/hwmon/fam15h_power.c
-+++ b/drivers/hwmon/fam15h_power.c
-@@ -132,7 +132,7 @@ static bool fam15h_power_is_internal_node0(struct pci_dev *f4)
-  * counter saturations resulting in bogus power readings.
-  * We correct this value ourselves to cope with older BIOSes.
-  */
--static const struct pci_device_id affected_device[] = {
-+static DEFINE_PCI_DEVICE_TABLE(affected_device) = {
- 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
- 	{ 0 }
- };
--- 
-1.7.10.4
+Guenter
 
 
 
