@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Nov 2013 07:57:54 +0000
+From: Tom Metro <tmetro@tommetro.com>
+Date: Fri, 29 Nov 2013 21:41:37 +0000
 Subject: Re: [lm-sensors] coretemp readings are static/constant
-Message-Id: <20131119085754.40f8ecb5@endymion.delvare>
+Message-Id: <52990A11.8060001@tommetro.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20131119T072701-70@post.gmane.org>
 In-Reply-To: <loom.20131119T072701-70@post.gmane.org>
@@ -10,84 +10,52 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Tom,
+Hi Jean,
 
-On Tue, 19 Nov 2013 06:28:53 +0000 (UTC), Tom Metro wrote:
-> Running:
+Jean Delvare wrote:
+> Tom Metro wrote:
+>> % sensors
+>> [...]
+>> coretemp-isa-0000
+>> Adapter: ISA adapter
+>> Core 0:       +33.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
+>> Core 1:       +33.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
+>>
+>> The values reported by coretemp are always 33000 millidegrees:
 >=20
-> % sensors -v
-> sensors version 3.3.1 with libsensors version 3.3.1
->=20
-> on Ubuntu 12.04 on an Acer Aspire 8930G laptop with:
->=20
-> % cat /proc/cpuinfo | fgrep name
-> model name	: Intel(R) Core(TM)2 Duo CPU     P8400  @ 2.26GHz
-> model name	: Intel(R) Core(TM)2 Duo CPU     P8400  @ 2.26GHz
->=20
-> and I see:
->=20
-> % sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +38.0=B0C  (crit =3D +106.0=B0C)
-> temp2:        +48.0=B0C  (crit =3D +106.0=B0C)
-> temp3:        +48.0=B0C  (crit =3D +106.0=B0C)
-> temp4:        +43.0=B0C  (crit =3D +106.0=B0C)
->=20
-> nouveau-pci-0100
-> Adapter: PCI adapter
-> temp1:        +49.0=B0C  (high =3D +100.0=B0C, crit =3D +110.0=B0C)
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:       +33.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-> Core 1:       +33.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->=20
-> The values reported by coretemp are always 33000 millidegrees:
->=20
-> % sudo cat /sys/devices/platform/coretemp.0/temp2_input
-> 33000
->=20
-> as observed over the course of a week. I have not tried to intentionally
-> stress the CPU, but had assumed that if it was reading real values, I wou=
-ld
-> have seen some variation.
->=20
-> However, I read in the FAQ:
-> http://lm-sensors.org/wiki/FAQ/Chapter3#coretempreturnsunrealisticvalues
->=20
->   It isn't really returning degrees Celsius. At high temperatures, the=20
->   (small) thermal margin is almost expressed in degrees Celsius, but at l=
-ow=20
->   temperature, the (high) thermal margin is no longer expressed in actual=
-=20
->   degrees Celsius. So, if the temperature value reported by coretemp is=20
->   unrealistically low, all it means is that you are far away from the=20
->   critical limit so your systems are running totally fine and cool...
->=20
-> So does that mean it is expected to see a constant (to 5 decimal places)
-> value, until the cores heat up beyond some threshold? (If so, I'll add th=
-is
-> to the FAQ.)
+> You should really stress the CPU and see what happens.
 
-Don't get fooled by the 5 decimal places, all drivers return values in
-millidegrees Celsius regardless of their accuracy and resolution. The
-coretemp resolution is 1 degree so you'll always see 000 as the last 3
-digits.
+I ran:
 
-You should really stress the CPU and see what happens. With really good
-cooling and no CPU load at all, it is possible for temperatures to stay
-stable within one degree Celsius.
+% stress --cpu 2 --timeout 7200
+stress: info: [14967] dispatching hogs: 2 cpu, 0 io, 0 vm, 0 hdd
+stress: info: [14967] successful run completed in 7200s
 
-Another possibility is that this particular incarnation of the sensors
-do not report values below 33=B0C. We know these sensors have poor
-accuracy at low temperatures, maybe Intel decided to not expose too low
-values to make them look plausible. In that case you'd see 33=B0C most of
-the time, as a floor measurement, with temperature peaks on high CPU
-load.
+And just to be sure, I also thew in a couple of these:
 
---=20
-Jean Delvare
+% dd bs=3D10 if=3D/dev/urandom | bzip2 -z -s -9 -c > /dev/null &
+
+and let the latter run for 8 hours.
+
+I saw some new peaks on the 'acpitz-virtual-0' sensors, but the
+'coretemp-isa-0000' sensors didn't budge.
+
+
+> Another possibility is that this particular incarnation of the sensors
+> do not report values below 33=B0C.=20
+
+Right, that was the theory I was going on based on the FAQ entry I
+quoted. Apparently not the case here.
+
+
+So this would appear to be a problem with the coretemp kernel module.
+This CPU (Intel Core 2 Duo P8400) is from the right era to be supported
+by coretemp. Where is the best place to go to file a bug against that
+module?
+
+Thanks for the suggestions.
+
+ -Tom
 
 _______________________________________________
 lm-sensors mailing list
