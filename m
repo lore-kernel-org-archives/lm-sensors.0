@@ -1,38 +1,68 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 29 Nov 2013 08:12:48 +0000
+From: Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
+Date: Sat, 30 Nov 2013 11:37:15 +0000
 Subject: Re: [lm-sensors] How can temp_crit for virtual device be set?
-Message-Id: <20131129091248.1be6012e@endymion.delvare>
+Message-Id: <5299CDEB.9040502@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5297B848.4080906@gmail.com>
 In-Reply-To: <5297B848.4080906@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Thomas,
+>> So, how can I adjust the temp_crit1 value of the acpitz-virtual-0 device?
+>=20
+> You can't, thermal zones are read-only at least through the hwmon
+> interface. If anything can be done, this is through ACPI.
 
-Please don't top-post.
+Just for reference: I asked at the linux-acpi list and they advised me
+to add termal.crt=3D<value> to the kernel boot paramters, which I did
+(<value>=99) and it actually sets the temperature of the virtual device.
 
-On Fri, 29 Nov 2013 09:00:04 +0100, Thomas Mitterfellner wrote:
-> OK, thanks for that clarification. Do you have a tip on how I could go
-> about to  set it through ACPI?
+Now I get:
 
-I think it used to be overridable with boot parameters and/or procfs
-attributes but I seem to recall this feature was removed from the
-kernel some times ago. You'll have to ask the ACPI people for the
-current status.
+# acpi -V
+Thermal 0: ok, 64.0 degrees C
+Thermal 0: trip point 0 switches to mode critical at temperature 99.0
+degrees C
+Thermal 0: trip point 1 switches to mode passive at temperature 105.0
+degrees C
 
-I'm afraid the only possibility left is to customize your DSDT and
-override the DSDT with your modified copy at boot time.
+and
 
-> Who (which program/demon/whatever) is responsible for creating this virtual
-> device and its settings?
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:
+  temp1_input: 66.000
+  temp1_crit: 99.000
 
-The kernel itself is doing it, based on ACPI tables / BIOS information.
+coretemp-isa-0000
+Adapter: ISA adapter
+Physical id 0:
+  temp1_input: 66.000
+  temp1_max: 86.000
+  temp1_crit: 100.000
+  temp1_crit_alarm: 0.000
+Core 0:
+  temp2_input: 63.000
+  temp2_max: 86.000
+  temp2_crit: 100.000
+  temp2_crit_alarm: 0.000
+Core 1:
+  temp3_input: 66.000
+  temp3_max: 86.000
+  temp3_crit: 100.000
+  temp3_crit_alarm: 0.000
 
--- 
-Jean Delvare
+pkg-temp-0-virtual-0
+Adapter: Virtual device
+temp1:
+  temp1_input: 67.000
+
+
+Thanks for your hints,
+
+Thomas
 
 _______________________________________________
 lm-sensors mailing list
