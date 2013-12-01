@@ -1,116 +1,54 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 12 Dec 2013 04:58:40 +0000
-Subject: Re: [lm-sensors] w83l786ng driver bug, questions, and 1st round patch
-Message-Id: <52A94280.5000006@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 01 Dec 2013 10:56:54 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Unregister hwmon device if interrupt setup fails
+Message-Id: <20131201115654.3987b628@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CABhEY3OZAkB=NxDj-QSjWATQAPG-Akhr2a0CHTB7wahLJVH6aQ@mail.gmail.com>
-In-Reply-To: <CABhEY3OZAkB=NxDj-QSjWATQAPG-Akhr2a0CHTB7wahLJVH6aQ@mail.gmail.com>
+References: <1385575486-8732-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1385575486-8732-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 12/11/2013 06:33 AM, Jean Delvare wrote:
-> Hi Brian,
->
-> On Mon, 2 Dec 2013 10:17:56 +0100, Jean Delvare wrote:
->> If I'm not mistaken, the following minimal fix should work:
->>
->> From: Jean Delvare <khali@linux-fr.org>
->> Subject: hwmon: (w83l768ng) Fix fan speed control range
->>
->> The W83L786NG stores the fan speed on 4 bits while the sysfs interface
->> uses a 0-255 range. Thus the driver should scale the user input down
->> to map it to the device range, and scale up the value read from the
->> device before presenting it to the user.
->>
->> Signed-off-by: Jean Delvare <khali@linux-fr.org>
->> Cc: stable@vger.kernel.org
->> ---
->>   drivers/hwmon/w83l786ng.c |    6 ++++--
->>   1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> --- linux-3.13-rc2.orig/drivers/hwmon/w83l786ng.c	2013-12-02 09:14:56.247009803 +0100
->> +++ linux-3.13-rc2/drivers/hwmon/w83l786ng.c	2013-12-02 10:07:49.718037923 +0100
->> @@ -481,6 +481,7 @@ store_pwm(struct device *dev, struct dev
->>   	if (err)
->>   		return err;
->>   	val = clamp_val(val, 0, 255);
->> +	val = DIV_ROUND_CLOSEST(val, 0x11);
->>
->>   	mutex_lock(&data->update_lock);
->>   	data->pwm[nr] = val;
->> @@ -777,8 +778,9 @@ static struct w83l786ng_data *w83l786ng_
->>   			    ? 0 : 1;
->>   			data->pwm_enable[i] >>   			    ((pwmcfg >> W83L786NG_PWM_ENABLE_SHIFT[i]) & 3) + 1;
->> -			data->pwm[i] = w83l786ng_read_value(client,
->> -			    W83L786NG_REG_PWM[i]);
->> +			data->pwm[i] >> +			    (w83l786ng_read_value(client, W83L786NG_REG_PWM[i])
->> +			     & 0x0f) * 0x11;
->>   		}
->>
->>
->> Please test and confirm.
->
-> I was actually mistaken, my patch had a minor flaw that caused the
-> driver to temporarily return the wrong pwmN value right after setting
-> it. Additionally it was overwriting reserved bits in registers
-> W83L786NG_REG_PWM, which is bad. Patch V2 below fixes both issues:
->
-> From: Jean Delvare <khali@linux-fr.org>
-> Subject: hwmon: (w83l768ng) Fix fan speed control range
->
-> The W83L786NG stores the fan speed on 4 bits while the sysfs interface
-> uses a 0-255 range. Thus the driver should scale the user input down
-> to map it to the device range, and scale up the value read from the
-> device before presenting it to the user. The reserved register nibble
-> should be left unchanged.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: stable@vger.kernel.org
+Hi Guenter,
+
+On Wed, 27 Nov 2013 10:04:46 -0800, Guenter Roeck wrote:
+> Commit 109b1283fb (hwmon: (lm90) Add support to handle IRQ) introduced
+> interrupt support. Its error handling code fails to unregister the already
+> registered hwmon device.
+> 
+> Fixes: 109b1283fb532ac773a076748ffccf76a7067cab
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
-> Changes in v2:
->   * Scale data->pwm[nr] up when writing a new value to the
->     W83L786NG_REG_PWM[nr] register.
->   * Don't overwrite the 4 MSB of W83L786NG_REG_PWM.
->
+>  drivers/hwmon/lm90.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+> index 4c4c142..8b8f3aa 100644
+> --- a/drivers/hwmon/lm90.c
+> +++ b/drivers/hwmon/lm90.c
+> @@ -1610,12 +1610,14 @@ static int lm90_probe(struct i2c_client *client,
+>  						"lm90", client);
+>  		if (err < 0) {
+>  			dev_err(dev, "cannot request IRQ %d\n", client->irq);
+> -			goto exit_remove_files;
+> +			goto exit_unregister;
+>  		}
+>  	}
+>  
+>  	return 0;
+>  
+> +exit_unregister:
+> +	hwmon_device_unregister(data->hwmon_dev);
+>  exit_remove_files:
+>  	lm90_remove_files(client, data);
+>  exit_restore:
 
-Looks reasonable.
+Good catch, thanks for reporting and sorry for missing this during my
+code review. Applied.
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-
->   drivers/hwmon/w83l786ng.c |    9 ++++++---
->   1 file changed, 6 insertions(+), 3 deletions(-)
->
-> --- linux-3.13-rc3.orig/drivers/hwmon/w83l786ng.c	2013-12-11 15:01:33.162221180 +0100
-> +++ linux-3.13-rc3/drivers/hwmon/w83l786ng.c	2013-12-11 15:22:36.004771774 +0100
-> @@ -481,9 +481,11 @@ store_pwm(struct device *dev, struct dev
->   	if (err)
->   		return err;
->   	val = clamp_val(val, 0, 255);
-> +	val = DIV_ROUND_CLOSEST(val, 0x11);
->
->   	mutex_lock(&data->update_lock);
-> -	data->pwm[nr] = val;
-> +	data->pwm[nr] = val * 0x11;
-> +	val |= w83l786ng_read_value(client, W83L786NG_REG_PWM[nr]) & 0xf0;
->   	w83l786ng_write_value(client, W83L786NG_REG_PWM[nr], val);
->   	mutex_unlock(&data->update_lock);
->   	return count;
-> @@ -777,8 +779,9 @@ static struct w83l786ng_data *w83l786ng_
->   			    ? 0 : 1;
->   			data->pwm_enable[i] >   			    ((pwmcfg >> W83L786NG_PWM_ENABLE_SHIFT[i]) & 3) + 1;
-> -			data->pwm[i] = w83l786ng_read_value(client,
-> -			    W83L786NG_REG_PWM[i]);
-> +			data->pwm[i] > +			    (w83l786ng_read_value(client, W83L786NG_REG_PWM[i])
-> +			     & 0x0f) * 0x11;
->   		}
->
-> Again, testing would be appreciated.
->
-> Thanks,
->
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
