@@ -1,43 +1,43 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 16 Dec 2013 19:55:33 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Add support for gpiodef
-Message-Id: <20131216195533.GA6462@roeck-us.net>
+Date: Sun, 01 Dec 2013 19:05:09 +0000
+Subject: Re: [lm-sensors] Acer Aspire 8930G laptop and general approach for reverse engineering sensors
+Message-Id: <20131201190509.GA19549@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <528F6BB8.8040504@roeck-us.net>
- <CAOMwXhNx0v52BvxSWPrHFsGTvxss7N4tZT3gHMFJ8hz_HmvS5w@mail.gmail.com>
- <20131122160457.GA3951@roeck-us.net>
- <CAOMwXhO525BAJ+ESLaJ-62vkL7mAxLMULuaphE6YVda02beqfg@mail.gmail.com>
- <20131122180501.GA8547@roeck-us.net>
- <CAOMwXhO_D3cR5QfXp3wZGrO+i85X5H=Q0HAr2VCB6=96nLx4yQ@mail.gmail.com>
- <CAOMwXhPDgw4Cex-_ORh26VVN93L_kxApoNzGe4M+r2Vm6HGB=A@mail.gmail.com>
- <20131216172710.GA1811@roeck-us.net>
- <CAOMwXhMkgzqK7PHGhW441NOOR_9iwZYoLG-Qki6yv4bsA3zBWQ@mail.gmail.com>
- <CAOMwXhN5pdUO1B56LVG=pA5-3ag9K=Ly8QQs-pog0iP2JnOczw@mail.gmail.com>
-In-Reply-To: <CAOMwXhN5pdUO1B56LVG=pA5-3ag9K=Ly8QQs-pog0iP2JnOczw@mail.gmail.com>
+References: <loom.20131118T042931-981@post.gmane.org>
+In-Reply-To: <loom.20131118T042931-981@post.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
-Cc: Marcus Folkesson <marcus.folkesson@gmail.com>, hjk@hansjkoch.de, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 16, 2013 at 06:28:34PM +0000, Laszlo Papp wrote:
-> On Mon, Dec 16, 2013 at 6:28 PM, Laszlo Papp <lpapp@kde.org> wrote:
-> > On Mon, Dec 16, 2013 at 5:27 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> >> On Mon, Dec 16, 2013 at 03:56:33PM +0000, Laszlo Papp wrote:
-> >>> So, Mr. Roeck, how do you suggest to handle input or output port
-> >>> configuration? Should it be coming from platform data, or should it be
-> >>> more dynamic? I would say, it is usually static, but I do not know if
-> >>> it is common to be dynamic. I am not a hardware designer.
-> >>>
-> >>
-> >> Platform and/or devicetree.
+On Fri, Nov 29, 2013 at 06:29:27PM -0500, Tom Metro wrote:
+> Guenter Roeck wrote:
+> > Tom Metro wrote:
+> >> I did see in the FAQ that there is no database of configurations per
+> >> motherboard/laptop, but I would expect that with all the temperature
+> >> monitoring utilities for Windows, one or more of them likely has bundled
+> >> configuration files that can be used as a reference.
 > >
-> > Works for me. Should I apply the gpio and mfd drivers separately or in
-> > one single patch?
+> > Would be great. Unfortunately, it appears that the creators of the 
+> > various Windows utilities are not very enthusiastic about sharing...
 > 
-> s/apply/send/
+> While voluntary sharing would be preferable, I was thinking more along
+> the lines of reverse engineering their configuration files. Then
+> creating a script to translate them into a collection of sensors.conf
+> files. (You can't copyright a compilation of factual data, like a phone
+> book, so there's isn't a legal problem with doing this. Though it might
+> inspire them to start encrypting the data. Or downloading settings
+> on-demand from an online service.)
 > 
-Separately.
+> Is anyone aware of a Windows utility that comes with accessible
+> configuration files covering a wide range of hardware?
+> 
+I am not aware of any such packages which would let you do that.
+Either configuration files don't exist and everything is hard-coded,
+or the configuration is embedded in the code.
+
+One exception is Open Hardware Monitor, for which source is available.
+This package is already used for input whereever possible, though.
 
 Guenter
 
