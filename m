@@ -1,44 +1,111 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 17 Dec 2013 18:53:23 +0000
-Subject: Re: [lm-sensors] I2C support for AMD Hudson-1
-Message-Id: <20131217195323.581143a8@endymion.delvare>
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Mon, 02 Dec 2013 23:10:29 +0000
+Subject: [lm-sensors] [PATCH 10/39] hwmon: remove DEFINE_PCI_DEVICE_TABLE macro
+Message-Id: <001f01ceefb3$b1968820$14c39860$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20131217063226.GD25105@phys.ethz.ch>
-	<20131217180131.GB2840@roeck-us.net>
-	<20131217181053.GE7071@katana>
-In-Reply-To: <20131217181053.GE7071@katana>
+References: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
+In-Reply-To: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christian Herzog <herzog-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+To: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>, 'Jean Delvare' <khali@linux-fr.org>, 'Guenter Roeck' <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-On Tue, 17 Dec 2013 19:10:53 +0100, Wolfram Sang wrote:
-> 
-> > > I'm currently beta testing a pretty cool embedded board for router
-> > > applications etc. (http://www.pcengines.ch/apu.htm) that sports a Hudson-1 FCH
-> > > which is pretty similar to the Hudson-2 your module supports but sufficiently
-> > > different so that i2c-piix4 doesn't work.
-> > > I found a patched i2c-piix4 source that adds support for the Hudson-1 and it
-> > > works beautifully: http://www.men.de/products/13SC24-90.html#t=overview
-> > > Now I'm wondering if you would be willing to get this patch into lm-sensors
-> > > and also the kernel.
-> > > If there's anything I can do to help, please let me know.
-> 
-> Can't say anything about the patch since it requires registration to get
-> it :(
-> 
-> What you/someone can do:
-> 
-> * get the patch
-> * port it to a recent kernel and verify it still works
-> * read Documentation/SubmittingPatches
-> * send the patch
+Don't use DEFINE_PCI_DEVICE_TABLE macro, because this macro
+is not preferred.
 
-... with me in Cc, I'll review it.
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/hwmon/fam15h_power.c |    2 +-
+ drivers/hwmon/k10temp.c      |    2 +-
+ drivers/hwmon/k8temp.c       |    2 +-
+ drivers/hwmon/sis5595.c      |    2 +-
+ drivers/hwmon/via686a.c      |    2 +-
+ drivers/hwmon/vt8231.c       |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index dff8410..6040121 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -249,7 +249,7 @@ static void fam15h_power_remove(struct pci_dev *pdev)
+ 	sysfs_remove_group(&dev->kobj, &fam15h_power_attr_group);
+ }
+ 
+-static DEFINE_PCI_DEVICE_TABLE(fam15h_power_id_table) = {
++static const struct pci_device_id fam15h_power_id_table[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F4) },
+ 	{}
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index d65f3fd..e375e9f 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -204,7 +204,7 @@ static void k10temp_remove(struct pci_dev *pdev)
+ 			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
+ }
+ 
+-static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
++static const struct pci_device_id k10temp_id_table[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_10H_NB_MISC) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_11H_NB_MISC) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
+diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+index 5b50e9e..734d55d 100644
+--- a/drivers/hwmon/k8temp.c
++++ b/drivers/hwmon/k8temp.c
+@@ -135,7 +135,7 @@ static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 1, 0);
+ static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 1, 1);
+ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+ 
+-static DEFINE_PCI_DEVICE_TABLE(k8temp_ids) = {
++static const struct pci_device_id k8temp_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_NB_MISC) },
+ 	{ 0 },
+ };
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 1404e63..05565d2d 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -752,7 +752,7 @@ static struct sis5595_data *sis5595_update_device(struct device *dev)
+ 	return data;
+ }
+ 
+-static DEFINE_PCI_DEVICE_TABLE(sis5595_pci_ids) = {
++static const struct pci_device_id sis5595_pci_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_503) },
+ 	{ 0, }
+ };
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index c9dcce8..babd732 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -824,7 +824,7 @@ static struct via686a_data *via686a_update_device(struct device *dev)
+ 	return data;
+ }
+ 
+-static DEFINE_PCI_DEVICE_TABLE(via686a_pci_ids) = {
++static const struct pci_device_id via686a_pci_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4) },
+ 	{ }
+ };
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 0e70178..48025b7 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -766,7 +766,7 @@ static struct platform_driver vt8231_driver = {
+ 	.remove	= vt8231_remove,
+ };
+ 
+-static DEFINE_PCI_DEVICE_TABLE(vt8231_pci_ids) = {
++static const struct pci_device_id vt8231_pci_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8231_4) },
+ 	{ 0, }
+ };
 -- 
-Jean Delvare
+1.7.10.4
+
+
 
 _______________________________________________
 lm-sensors mailing list
