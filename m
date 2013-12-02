@@ -1,463 +1,261 @@
-From: Brian Carnes <bmcarnes@gmail.com>
-Date: Mon, 02 Dec 2013 05:21:29 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 02 Dec 2013 09:17:56 +0000
 Subject: Re: [lm-sensors] w83l786ng driver bug, questions, and 1st round patch
-Message-Id: <CABhEY3Nj0EmamjBAe8wZO=2VT3b-p3uj+TpmwhQ7edpwgOa5FQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="047d7b2e4d584160ce04ec865a22"
+Message-Id: <20131202101756.1d4da957@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CABhEY3OZAkB=NxDj-QSjWATQAPG-Akhr2a0CHTB7wahLJVH6aQ@mail.gmail.com>
 In-Reply-To: <CABhEY3OZAkB=NxDj-QSjWATQAPG-Akhr2a0CHTB7wahLJVH6aQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Brian,
 
-> The "enable" and "mode" sysfs files are hooked up to the bitfields
-backward.
->> No. There is a standard for sysfs attributes of hwmon drivers.
+On Sun, 1 Dec 2013 21:21:29 -0800, Brian Carnes wrote:
+> > The "enable" and "mode" sysfs files are hooked up to the bitfields
+> backward.
+> >> No. There is a standard for sysfs attributes of hwmon drivers.
+> 
+> Gotcha.  Having now read and digested hwmon's sysfs doc, I agree completely.
+> 
+> My path to this was:
+>  a) What chip do I have here?
+>  b) Where's the datasheet?
+>  c) Ooh, there's a kernel module for this already!
+>  d) The names match the datasheet, but backwards... :(
 
-Gotcha.  Having now read and digested hwmon's sysfs doc, I agree completely.
+I understand :)
 
-My path to this was:
- a) What chip do I have here?
- b) Where's the datasheet?
- c) Ooh, there's a kernel module for this already!
- d) The names match the datasheet, but backwards... :(
+> I'll view the world through hwmon-ABI-colored glasses for the rest of this
+> discussion...
+> 
+> > switching from DC to PWM or the other way around is normally not needed
+> > as both modes need different electronics on the board and the BIOS should
+> > set the right mode.
+> 
+> Embedded.  pre-boot environment is just leaving things at power-on
+> defaults...
 
-I'll view the world through hwmon-ABI-colored glasses for the rest of this
-discussion...
+Sysfs is not the proper interface to work around the lack of proper
+BIOS-style initialization. Embedded systems should provide device
+initialization data and the driver should initialize the chip based on
+that. Leaving the responsibility to the user is insane. I would even
+argue that, in the case of fans, leaving the responsibility to the OS
+is quite dangerous already.
 
-> switching from DC to PWM or the other way around is normally not needed
-as both
-> modes need different electronics on the board and the BIOS should set
-> the right mode.
+> > I see. This is caused by the mask error you have already found out.
+> > Looks like this feature of the driver didn't receive much testing...
+> 
+> Kevin concurred on the fix.  The patch as an attachment is re-included w/
+> this msg as patch #1.
 
-Embedded.  pre-boot environment is just leaving things at power-on
-defaults...
+Got it, thanks. For next time:
+* Each patch should come with a subject and a description.
+* Each patch should come with its own Signed-off-by line.
+* It's much easier for me if the patches can be applied with patch -p1,
+  i.e. the file paths in the patch header includes the directory where
+  the source files live.
+* No compressed tarballs please. Patches are preferred inline or as
+  plain-text attachments.
 
-> I see. This is caused by the mask error you have already found out.
-> Looks like this feature of the driver didn't receive much testing...
+I did it this time, the result is:
+http://khali.linux-fr.org/devel/linux-3/jdelvare-hwmon/hwmon-w83l786ng-01-fix-pwmX_enable.patch
 
-Kevin concurred on the fix.  The patch as an attachment is re-included w/
-this msg as patch #1.
+> > Mode "FAN_SET" is problematic on its own, independent of the bug...
+> > It's not really an automatic fan speed mode so it shouldn't have value >> > 2 The closest standard mode would be 0, except that 0 is supposed to mean
+> > "100%", not "some arbitrary initial value".
+> 
+> I like keeping mode 0 as universal fail-safe "100% fan".  We can synthesize
+> a mode 0 for this hardware even though it is lacking one.
+> 
+> See patch #3, attached.
 
-> Mode "FAN_SET" is problematic on its own, independent of the bug...
-> It's not really an automatic fan speed mode so it shouldn't have value >=
-2.
-> The closest standard mode would be 0, except that 0 is supposed to mean
-"100%", not "some arbitrary initial value".
+It isn't necessary, we have a lot of drivers already which do not
+implement mode 0, exactly because the hardware itself does not.
+User-space already knows how to deal with this. In other words, I am
+not interested in 03_pwmX_enable_synthetic_mode_0.diff.
 
-I like keeping mode 0 as universal fail-safe "100% fan".  We can synthesize
-a mode 0 for this hardware even though it is lacking one.
+> > Well, we could write 0xf to register 0x90 bits 3..0 (assuming they are
+> > writable as the datasheet says) to force the 100% but then this would
+> > prevent the user from returning to the initial state, plus I'm not sure
+> > what would happen at suspend/resume or reboot.
+> 
+> They are writable.  But part of the current behavior is nice in that the
+> driver doesn't change the state of the hardware at all upon loading.  It'd
+> be nice to preserve the passive nature of the driver until someone actually
+> writes to a sysfs file.
 
-See patch #3, attached.
+This is generally desirable indeed. However there are a few cases where
+transparently reconfiguring the chip at driver load time allows for
+run-time code simplification. This is allowed as long as there is no
+side effect.
 
-> Well, we could write 0xf to register 0x90 bits 3..0 (assuming they are
-writable
+> > OTOH, if we stick to value 4 for this mode, then there's no reason to
+> > not let the user switch back to it. Supporting it would be truly
+> > trivial.
+> 
+> Yes, but your ABI seems to want to have enable modes >= 2 be
+> smart/non-manual.  This is like another flavor of manual, with a separate
+> pwm register for FAN_SET.
 
-> as the datasheet says) to force the 100% but then this would prevent
-> the user from returning to the initial state, plus I'm not sure what
-> would happen at suspend/resume or reboot.
->
+Yes, you are correct.
 
-They are writable.  But part of the current behavior is nice in that the
-driver doesn't change the state of the hardware at all upon loading.  It'd
-be nice to preserve the passive nature of the driver until someone actually
-writes to a sysfs file.
+> > Another possibility would be to hide this mode, by transparently
+> > switching to the equivalent speed in manual control mode when the
+> > driver is loaded. Then only modes 1, 2 and 3 would be visible to the
+> > user. To be honest I'm not sure why the chip maker didn't implement it
+> > this way in the first place. I think this option has my preference.
+> > Guenter, what do you think? Do we have any precedent?
+> 
+> This is my preference also.  Although I'd do the extra work to make this
+> passive (FAN_SET appears as manual w/ pwmX sys returning the special
+> FAN_INI duty cycle, until such time as someone writes to sysfs in a way to
+> have us commit to switching from hardware mode 4 (fan_set) to hardware mode
+> 1 (manual).
+> 
+> See patch #4, attached.
 
+I would do the transition from FAN_SET to manual transparently at
+driver initialization time, to make the run-time code as fast as
+possible. But I understand and respect your views on this.
 
+> > Indeed, Richard (Cc'd) noticed some problems with fan speed control
+> > back then, but he did not provide enough details for investigation. The
+> > bug you found could well explain these problems, and Richard would
+> > probably be interested in testing your fix.
+> 
+> There's a 2nd bug, that almost certainly affected Richard also.
 
-> OTOH, if we stick to value 4 for this mode, then there's no reason to
-> not let the user switch back to it. Supporting it would be truly
-> trivial.
->
+As a side note, since Lavabit is down *sigh*, I'm not sure if Richard
+can actually read us.
 
-Yes, but your ABI seems to want to have enable modes >= 2 be
-smart/non-manual.  This is like another flavor of manual, with a separate
-pwm register for FAN_SET.
+> The current code sets "pwmX" as an 8-bit value.  This hardware has a 4-bit
+> pwm field.  The driver is setting both pwmX (aka pwmX_auto_point1) and
+> pwmX_auto_point2 when the user attempts to assign to pwmX.
+> 
+> It's especially noticeable when running pwmconfig, as the 2nd level
+> attempted is "240", which has the low 4-bits cleared, so the fan speed
+> drops to zero on step 2.  Example:
+> 
+> Would you like to generate a detailed correlation (y)?
+>     PWM 255 FAN 3026
+>     PWM 240 FAN 0
+>     Fan Stopped at PWM = 240
 
+Doh, this is very bad :(
 
+> See attached patch #2.  After applying it, we get instead:
+> 
+> Would you like to generate a detailed correlation (y)?
+>     PWM 255 FAN 3096
+>     PWM 240 FAN 2909
+>     PWM 225 FAN 2721
+>     PWM 210 FAN 2500
+>     PWM 195 FAN 2343
+>     PWM 180 FAN 2327
+>     PWM 165 FAN 2096
+>     PWM 150 FAN 1885
+>     PWM 135 FAN 1614
+>     PWM 120 FAN 1424
+>     PWM 105 FAN 0
+>     Fan Stopped at PWM = 105
 
-> Another possibility would be to hide this mode, by transparently
-> switching to the equivalent speed in manual control mode when the
-> driver is loaded. Then only modes 1, 2 and 3 would be visible to the
-> user. To be honest I'm not sure why the chip maker didn't implement it
-> this way in the first place. I think this option has my preference.
-> Guenter, what do you think? Do we have any precedent?
->
+Much better... Unfortunately your patch is too large to qualify for
+stable kernel series. We'll have to find a more simple fix which really
+only addresses the immediate problem. The rest of the code can go in a
+separate patch, to go in kernel 3.13+ but not older stable kernel
+series.
 
-This is my preference also.  Although I'd do the extra work to make this
-passive (FAN_SET appears as manual w/ pwmX sys returning the special
-FAN_INI duty cycle, until such time as someone writes to sysfs in a way to
-have us commit to switching from hardware mode 4 (fan_set) to hardware mode
-1 (manual).
+If I'm not mistaken, the following minimal fix should work:
 
-See patch #4, attached.
+From: Jean Delvare <khali@linux-fr.org>
+Subject: hwmon: (w83l768ng) Fix fan speed control range
 
-> Indeed, Richard (Cc'd) noticed some problems with fan speed control
+The W83L786NG stores the fan speed on 4 bits while the sysfs interface
+uses a 0-255 range. Thus the driver should scale the user input down
+to map it to the device range, and scale up the value read from the
+device before presenting it to the user.
 
-> back then, but he did not provide enough details for investigation. The
-> bug you found could well explain these problems, and Richard would
-> probably be interested in testing your fix.
->
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: stable@vger.kernel.org
+---
+ drivers/hwmon/w83l786ng.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-There's a 2nd bug, that almost certainly affected Richard also.
+--- linux-3.13-rc2.orig/drivers/hwmon/w83l786ng.c	2013-12-02 09:14:56.247009803 +0100
++++ linux-3.13-rc2/drivers/hwmon/w83l786ng.c	2013-12-02 10:07:49.718037923 +0100
+@@ -481,6 +481,7 @@ store_pwm(struct device *dev, struct dev
+ 	if (err)
+ 		return err;
+ 	val = clamp_val(val, 0, 255);
++	val = DIV_ROUND_CLOSEST(val, 0x11);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm[nr] = val;
+@@ -777,8 +778,9 @@ static struct w83l786ng_data *w83l786ng_
+ 			    ? 0 : 1;
+ 			data->pwm_enable[i]  			    ((pwmcfg >> W83L786NG_PWM_ENABLE_SHIFT[i]) & 3) + 1;
+-			data->pwm[i] = w83l786ng_read_value(client,
+-			    W83L786NG_REG_PWM[i]);
++			data->pwm[i] +			    (w83l786ng_read_value(client, W83L786NG_REG_PWM[i])
++			     & 0x0f) * 0x11;
+ 		}
+ 
+ 
+Please test and confirm.
 
-The current code sets "pwmX" as an 8-bit value.  This hardware has a 4-bit
-pwm field.  The driver is setting both pwmX (aka pwmX_auto_point1) and
-pwmX_auto_point2 when the user attempts to assign to pwmX.
+> >Thanks for finding and fixing this bug. Please resend your
+> >patch as explained above and I'll be happy to apply it, forward it to
+> >the stable kernel maintainers, and make the updated driver available in
+> >a stand-alone flavor.
+> 
+> First time submitter.  Sorry for the newbie submission mistake.
 
-It's especially noticeable when running pwmconfig, as the 2nd level
-attempted is "240", which has the low 4-bits cleared, so the fan speed
-drops to zero on step 2.  Example:
+It's all OK, no worry. Be persistent and I'll be patient :)
 
-Would you like to generate a detailed correlation (y)?
-    PWM 255 FAN 3026
-    PWM 240 FAN 0
-    Fan Stopped at PWM = 240
+> Between gmail and the mailing list software, don't know who's mangling.
 
-See attached patch #2.  After applying it, we get instead:
+That would be gmail, the mailing list software does not. It might be
+configurable, I don't know, I don't use gmail.
 
-Would you like to generate a detailed correlation (y)?
-    PWM 255 FAN 3096
-    PWM 240 FAN 2909
-    PWM 225 FAN 2721
-    PWM 210 FAN 2500
-    PWM 195 FAN 2343
-    PWM 180 FAN 2327
-    PWM 165 FAN 2096
-    PWM 150 FAN 1885
-    PWM 135 FAN 1614
-    PWM 120 FAN 1424
-    PWM 105 FAN 0
-    Fan Stopped at PWM = 105
+> I'll just attach the patches as files to be safe.
 
->Thanks for finding and fixing this bug. Please resend your
->patch as explained above and I'll be happy to apply it, forward it to
->the stable kernel maintainers, and make the updated driver available in
->a stand-alone flavor.
+This is OK with me.
 
-First time submitter.  Sorry for the newbie submission mistake.
+> As for Guenter's comments on using pwmX_enable=0, it sounds like everyone
+> prefers enable=0 to be 100% fan if we can present it that way.
 
-Between gmail and the mailing list software, don't know who's mangling.
-I'll just attach the patches as files to be safe.
+Yes.
 
-As for Guenter's comments on using pwmX_enable=0, it sounds like everyone
-prefers enable=0 to be 100% fan if we can present it that way.
+> After the patches below, we get the illusion of FAN_SET as manual mode,
+> which then collapses into actual manual mode upon touching pwmX or
+> pwmX_enable in a way that matters.
 
-After the patches below, we get the illusion of FAN_SET as manual mode,
-which then collapses into actual manual mode upon touching pwmX or
-pwmX_enable in a way that matters.
+Fine with me.
 
-If anyone wanted to return to FAN_SET mode, they could save off the initial
-value returned by pwmX (which is the masquerading FAN_INI value)  and use
-that in manual mode to reach a state indistinguishable from FAN_SET mode.
-I'm also open to exposing FAN_INI value directly in sysfs, if you had a
-preferred naming convention for that.
+> If anyone wanted to return to FAN_SET mode, they could save off the initial
+> value returned by pwmX (which is the masquerading FAN_INI value)  and use
+> that in manual mode to reach a state indistinguishable from FAN_SET mode.
 
-Regards,
+Indeed... Same as for every other device BTW.
 
-  Brian
+> I'm also open to exposing FAN_INI value directly in sysfs, if you had a
+> preferred naming convention for that.
 
-01_pwmX_enable_bugfix.diff
-02_pwmX_bugfix.diff
-03_pwmX_enable_synthetic_mode_0.diff
-04_pwmX_enable_collapse_and_hide_fan_set_mode_4.diff
-Signed-off-by: Brian Carnes <bmcarnes@gmail.com>
+No, we don't have a standard file name for that and I don't think it
+makes sense to craft one for just this rare device.
 
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset=US-ASCII; name="01_pwmX_enable_bugfix.diff"
-Content-Disposition: attachment; filename="01_pwmX_enable_bugfix.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hop9lw2p0
+So, please confirm that my patch above is enough to fix the second bug.
+Then rebase your second patch on top of it, drop your third patch,
+rebase the 4th patch on top of the result, and resubmit the two rebased
+patches for me to review (could be in a separate discussion thread.)
 
-ZGlmZiAtLWdpdCBhL3c4M2w3ODZuZy5jIGIvdzgzbDc4Nm5nLmMKaW5kZXggZTM0MzA5OS4uNjY3
-MGYzOCAxMDA2NDQKLS0tIGEvdzgzbDc4Nm5nLmMKKysrIGIvdzgzbDc4Nm5nLmMKQEAgLTUyMyw3
-ICs1MjMsNyBAQCBzdG9yZV9wd21fZW5hYmxlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRl
-dmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwog
-CXJlZyA9IHc4M2w3ODZuZ19yZWFkX3ZhbHVlKGNsaWVudCwgVzgzTDc4Nk5HX1JFR19GQU5fQ0ZH
-KTsKIAlkYXRhLT5wd21fZW5hYmxlW25yXSA9IHZhbDsKLQlyZWcgJj0gfigweDAyIDw8IFc4M0w3
-ODZOR19QV01fRU5BQkxFX1NISUZUW25yXSk7CisJcmVnICY9IH4oMHgwMyA8PCBXODNMNzg2Tkdf
-UFdNX0VOQUJMRV9TSElGVFtucl0pOwogCXJlZyB8PSAodmFsIC0gMSkgPDwgVzgzTDc4Nk5HX1BX
-TV9FTkFCTEVfU0hJRlRbbnJdOwogCXc4M2w3ODZuZ193cml0ZV92YWx1ZShjbGllbnQsIFc4M0w3
-ODZOR19SRUdfRkFOX0NGRywgcmVnKTsKIAltdXRleF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2Nr
-KTsKQEAgLTc5MCw3ICs3OTAsNyBAQCBzdGF0aWMgc3RydWN0IHc4M2w3ODZuZ19kYXRhICp3ODNs
-Nzg2bmdfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2aWNlICpkZXYpCiAJCQkgICAgKChwd21jZmcg
-Pj4gVzgzTDc4Nk5HX1BXTV9NT0RFX1NISUZUW2ldKSAmIDEpCiAJCQkgICAgPyAwIDogMTsKIAkJ
-CWRhdGEtPnB3bV9lbmFibGVbaV0gPQotCQkJICAgICgocHdtY2ZnID4+IFc4M0w3ODZOR19QV01f
-RU5BQkxFX1NISUZUW2ldKSAmIDIpICsgMTsKKwkJCSAgICAoKHB3bWNmZyA+PiBXODNMNzg2Tkdf
-UFdNX0VOQUJMRV9TSElGVFtpXSkgJiAzKSArIDE7CiAJCQlkYXRhLT5wd21baV0gPSB3ODNsNzg2
-bmdfcmVhZF92YWx1ZShjbGllbnQsCiAJCQkgICAgVzgzTDc4Nk5HX1JFR19QV01baV0pOwogCQl9
-Cg==
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset=US-ASCII; name="02_pwmX_bugfix.diff"
-Content-Disposition: attachment; filename="02_pwmX_bugfix.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hop9lw321
-
-ZGlmZiAtLWdpdCBhL3c4M2w3ODZuZy5jIGIvdzgzbDc4Nm5nLmMKaW5kZXggNjY3MGYzOC4uYTY3
-ZGViOSAxMDA2NDQKLS0tIGEvdzgzbDc4Nm5nLmMKKysrIGIvdzgzbDc4Nm5nLmMKQEAgLTE0MCw3
-ICsxNDAsNyBAQCBzdHJ1Y3QgdzgzbDc4Nm5nX2RhdGEgewogCXU4IGZhbl9taW5bMl07CiAJdTgg
-dGVtcF90eXBlWzJdOwogCXU4IHRlbXBbMl1bM107Ci0JdTggcHdtWzJdOworCXU4IHB3bVsyXVs0
-XTsKIAl1OCBwd21fbW9kZVsyXTsJLyogMC0+REMgdmFyaWFibGUgdm9sdGFnZQogCQkJICogMS0+
-UFdNIHZhcmlhYmxlIGR1dHkgY3ljbGUgKi8KIApAQCAtNDUwLDcgKzQ1MCw2IEBAIHN0YXRpYyBz
-c2l6ZV90IHNob3dfIyNyZWcoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJp
-YnV0ZSAqYXR0ciwgXAogCiBzaG93X3B3bV9yZWcocHdtX21vZGUpCiBzaG93X3B3bV9yZWcocHdt
-X2VuYWJsZSkKLXNob3dfcHdtX3JlZyhwd20pCiAKIHN0YXRpYyBzc2l6ZV90CiBzdG9yZV9wd21f
-bW9kZShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLApA
-QCAtNDgxLDIzICs0ODAsNTQgQEAgc3RvcmVfcHdtX21vZGUoc3RydWN0IGRldmljZSAqZGV2LCBz
-dHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKIH0KIAogc3RhdGljIHNzaXplX3QKK3Nob3df
-cHdtKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJ
-CQkgIGNoYXIgKmJ1ZikKK3sKKwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGVfMiAqc2Vu
-c29yX2F0dHIgPQorCSAgICB0b19zZW5zb3JfZGV2X2F0dHJfMihhdHRyKTsKKwlzdHJ1Y3Qgdzgz
-bDc4Nm5nX2RhdGEgKmRhdGEgPSB3ODNsNzg2bmdfdXBkYXRlX2RldmljZShkZXYpOworCWludCBu
-ciA9IHNlbnNvcl9hdHRyLT5ucjsKKwlpbnQgcG9pbnQgPSBzZW5zb3JfYXR0ci0+aW5kZXg7CisJ
-dTggcmVnID0gZGF0YS0+cHdtW25yXVtwb2ludF07CisJaW50IHZhbDsKKworCS8qIG1hcCAwLi4x
-NSAtPiAwLi4yNTUgaW4gYSBuaWNlIHdheSwgcy50LiAwLT4wIGFuZCAxNS0+MjU1ICovCisJdmFs
-ID0gcmVnICogMHgxMTsKKwlyZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwgdmFsKTsKK30KKwor
-c3RhdGljIHNzaXplX3QKIHN0b3JlX3B3bShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZp
-Y2VfYXR0cmlidXRlICphdHRyLAogCSAgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQpCiB7
-Ci0JaW50IG5yID0gdG9fc2Vuc29yX2Rldl9hdHRyKGF0dHIpLT5pbmRleDsKKwlzdHJ1Y3Qgc2Vu
-c29yX2RldmljZV9hdHRyaWJ1dGVfMiAqc2Vuc29yX2F0dHIgPQorCSAgICB0b19zZW5zb3JfZGV2
-X2F0dHJfMihhdHRyKTsKKwlpbnQgbnIgPSBzZW5zb3JfYXR0ci0+bnI7CisJaW50IHBvaW50ID0g
-c2Vuc29yX2F0dHItPmluZGV4OwogCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNf
-Y2xpZW50KGRldik7CiAJc3RydWN0IHc4M2w3ODZuZ19kYXRhICpkYXRhID0gaTJjX2dldF9jbGll
-bnRkYXRhKGNsaWVudCk7CiAJdW5zaWduZWQgbG9uZyB2YWw7CiAJaW50IGVycjsKKwlpbnQgcmVn
-b2ZzID0gcG9pbnQgLyAyOworCWludCByZWdzaGlmdCA9IChwb2ludCAlIDIpICogNDsKKwl1OCBy
-ZWc7CiAKIAllcnIgPSBrc3RydG91bChidWYsIDEwLCAmdmFsKTsKIAlpZiAoZXJyKQogCQlyZXR1
-cm4gZXJyOwotCXZhbCA9IGNsYW1wX3ZhbCh2YWwsIDAsIDI1NSk7CisKKwkvKiBkdXR5IGN5Y2xl
-cyBhcmUgMC4uMTUgKi8KKwkvKiBiZWhhdmUgYWNjb3JkaW5nIHRvIHRoZSBtYXBwaW5nIGluIHNo
-b3dfcHdtLCBzLnQuIDAtPjAsIDE1LT4yNTUgKi8KKwkvKiBzbyByb3VuZCBhY2NvcmRpbmcgdG8g
-c2V0IHBvaW50czogMHgwMCwgMHgxMSwgLi4uLCAweGVlLCAweGZmICovCisJdmFsID0gKHZhbCAr
-IDgpIC8gMTc7CisJdmFsID0gY2xhbXBfdmFsKHZhbCwgMCwgMTUpOwogCiAJbXV0ZXhfbG9jaygm
-ZGF0YS0+dXBkYXRlX2xvY2spOwotCWRhdGEtPnB3bVtucl0gPSB2YWw7Ci0JdzgzbDc4Nm5nX3dy
-aXRlX3ZhbHVlKGNsaWVudCwgVzgzTDc4Nk5HX1JFR19QV01bbnJdLCB2YWwpOworCWRhdGEtPnB3
-bVtucl1bcG9pbnRdID0gdmFsOworCXJlZyA9IHc4M2w3ODZuZ19yZWFkX3ZhbHVlKGNsaWVudCwg
-VzgzTDc4Nk5HX1JFR19QV01bbnJdICsgcmVnb2ZzKTsKKwlyZWcgJj0gfigweGYgPDwgcmVnc2hp
-ZnQpOworCXJlZyB8PSB2YWwgPDwgcmVnc2hpZnQ7CisJdzgzbDc4Nm5nX3dyaXRlX3ZhbHVlKGNs
-aWVudCwgVzgzTDc4Nk5HX1JFR19QV01bbnJdICsgcmVnb2ZzLCByZWcpOwogCW11dGV4X3VubG9j
-aygmZGF0YS0+dXBkYXRlX2xvY2spOwogCXJldHVybiBjb3VudDsKIH0KQEAgLTUzMCw5ICs1NjAs
-MjggQEAgc3RvcmVfcHdtX2VuYWJsZShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2Vf
-YXR0cmlidXRlICphdHRyLAogCXJldHVybiBjb3VudDsKIH0KIAotc3RhdGljIHN0cnVjdCBzZW5z
-b3JfZGV2aWNlX2F0dHJpYnV0ZSBzZGFfcHdtW10gPSB7Ci0JU0VOU09SX0FUVFIocHdtMSwgU19J
-V1VTUiB8IFNfSVJVR08sIHNob3dfcHdtLCBzdG9yZV9wd20sIDApLAotCVNFTlNPUl9BVFRSKHB3
-bTIsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X3B3bSwgc3RvcmVfcHdtLCAxKSwKK3N0YXRpYyBz
-dHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGVfMiBzZGFfcHdtW10gPSB7CisJU0VOU09SX0FU
-VFJfMihwd20xLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHN0b3JlX3B3bSwgMCwgMCks
-CisJU0VOU09SX0FUVFJfMihwd20yLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19wd20sIHN0b3Jl
-X3B3bSwgMSwgMCksCit9OworCitzdGF0aWMgc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRl
-XzIgc2RhX3B3bV9wb2ludHNbXSA9IHsKKwlTRU5TT1JfQVRUUl8yKHB3bTFfYXV0b19wb2ludF8x
-LCBTX0lXVVNSIHwgU19JUlVHTywKKwkJICAgICAgc2hvd19wd20sIHN0b3JlX3B3bSwgMCwgMCks
-CisJU0VOU09SX0FUVFJfMihwd20xX2F1dG9fcG9pbnRfMiwgU19JV1VTUiB8IFNfSVJVR08sCisJ
-CSAgICAgIHNob3dfcHdtLCBzdG9yZV9wd20sIDAsIDEpLAorCVNFTlNPUl9BVFRSXzIocHdtMV9h
-dXRvX3BvaW50XzMsIFNfSVdVU1IgfCBTX0lSVUdPLAorCQkgICAgICBzaG93X3B3bSwgc3RvcmVf
-cHdtLCAwLCAyKSwKKwlTRU5TT1JfQVRUUl8yKHB3bTFfYXV0b19wb2ludF80LCBTX0lXVVNSIHwg
-U19JUlVHTywKKwkJICAgICAgc2hvd19wd20sIHN0b3JlX3B3bSwgMCwgMyksCisJU0VOU09SX0FU
-VFJfMihwd20yX2F1dG9fcG9pbnRfMSwgU19JV1VTUiB8IFNfSVJVR08sCisJCSAgICAgIHNob3df
-cHdtLCBzdG9yZV9wd20sIDEsIDApLAorCVNFTlNPUl9BVFRSXzIocHdtMl9hdXRvX3BvaW50XzIs
-IFNfSVdVU1IgfCBTX0lSVUdPLAorCQkgICAgICBzaG93X3B3bSwgc3RvcmVfcHdtLCAxLCAxKSwK
-KwlTRU5TT1JfQVRUUl8yKHB3bTJfYXV0b19wb2ludF8zLCBTX0lXVVNSIHwgU19JUlVHTywKKwkJ
-ICAgICAgc2hvd19wd20sIHN0b3JlX3B3bSwgMSwgMiksCisJU0VOU09SX0FUVFJfMihwd20yX2F1
-dG9fcG9pbnRfNCwgU19JV1VTUiB8IFNfSVJVR08sCisJCSAgICAgIHNob3dfcHdtLCBzdG9yZV9w
-d20sIDEsIDMpLAogfTsKIAogc3RhdGljIHN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSBz
-ZGFfcHdtX21vZGVbXSA9IHsKQEAgLTYxNCw3ICs2NjMsMTEgQEAgc3RhdGljIHN0cnVjdCBzZW5z
-b3JfZGV2aWNlX2F0dHJpYnV0ZSBzZGFfdG9sZXJhbmNlW10gPSB7CiAjZGVmaW5lIFBXTV9VTklU
-X0FUVFJTKFgpCVwKIAkmc2RhX3B3bVtYXS5kZXZfYXR0ci5hdHRyLAkJXAogCSZzZGFfcHdtX21v
-ZGVbWF0uZGV2X2F0dHIuYXR0ciwJCVwKLQkmc2RhX3B3bV9lbmFibGVbWF0uZGV2X2F0dHIuYXR0
-cgorCSZzZGFfcHdtX2VuYWJsZVtYXS5kZXZfYXR0ci5hdHRyLAlcCisJJnNkYV9wd21fcG9pbnRz
-W1gqNCswXS5kZXZfYXR0ci5hdHRyLAlcCisJJnNkYV9wd21fcG9pbnRzW1gqNCsxXS5kZXZfYXR0
-ci5hdHRyLAlcCisJJnNkYV9wd21fcG9pbnRzW1gqNCsyXS5kZXZfYXR0ci5hdHRyLAlcCisJJnNk
-YV9wd21fcG9pbnRzW1gqNCszXS5kZXZfYXR0ci5hdHRyCiAKICNkZWZpbmUgVE9MRVJBTkNFX1VO
-SVRfQVRUUlMoWCkJXAogCSZzZGFfdG9sZXJhbmNlW1hdLmRldl9hdHRyLmF0dHIKQEAgLTc5MSw4
-ICs4NDQsMTIgQEAgc3RhdGljIHN0cnVjdCB3ODNsNzg2bmdfZGF0YSAqdzgzbDc4Nm5nX3VwZGF0
-ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQogCQkJICAgID8gMCA6IDE7CiAJCQlkYXRhLT5w
-d21fZW5hYmxlW2ldID0KIAkJCSAgICAoKHB3bWNmZyA+PiBXODNMNzg2TkdfUFdNX0VOQUJMRV9T
-SElGVFtpXSkgJiAzKSArIDE7Ci0JCQlkYXRhLT5wd21baV0gPSB3ODNsNzg2bmdfcmVhZF92YWx1
-ZShjbGllbnQsCi0JCQkgICAgVzgzTDc4Nk5HX1JFR19QV01baV0pOworCQkJZm9yIChqID0gMDsg
-aiA8IDI7IGorKykgeworCQkJCXU4IHB3bXNfcGFja2VkID0gdzgzbDc4Nm5nX3JlYWRfdmFsdWUo
-Y2xpZW50LAorCQkJCQkJVzgzTDc4Nk5HX1JFR19QV01baV0gKyBqKTsKKwkJCQlkYXRhLT5wd21b
-aV1baioyXSA9IHB3bXNfcGFja2VkICYgMHhmOworCQkJCWRhdGEtPnB3bVtpXVtqKjIgKyAxXSA9
-IHB3bXNfcGFja2VkID4+IDQ7CisJCQl9CiAJCX0KIAogCg==
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset=US-ASCII; name="03_pwmX_enable_synthetic_mode_0.diff"
-Content-Disposition: attachment; 
-	filename="03_pwmX_enable_synthetic_mode_0.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hop9lw392
-
-ZGlmZiAtLWdpdCBhL3c4M2w3ODZuZy5jIGIvdzgzbDc4Nm5nLmMKaW5kZXggYTY3ZGViOS4uMWI2
-ZDA0MCAxMDA2NDQKLS0tIGEvdzgzbDc4Nm5nLmMKKysrIGIvdzgzbDc4Nm5nLmMKQEAgLTE0NCw3
-ICsxNDQsOCBAQCBzdHJ1Y3QgdzgzbDc4Nm5nX2RhdGEgewogCXU4IHB3bV9tb2RlWzJdOwkvKiAw
-LT5EQyB2YXJpYWJsZSB2b2x0YWdlCiAJCQkgKiAxLT5QV00gdmFyaWFibGUgZHV0eSBjeWNsZSAq
-LwogCi0JdTggcHdtX2VuYWJsZVsyXTsgLyogMS0+bWFudWFsCisJdTggcHdtX2VuYWJsZVsyXTsg
-LyogMC0+MTAwJSBmYW4gbW9kZSAoc3ludGhldGljKQorCQkJICAgKiAxLT5tYW51YWwKIAkJCSAg
-ICogMi0+dGhlcm1hbCBjcnVpc2UgKGFsc28gY2FsbGVkIFNtYXJ0RmFuIEkpICovCiAJdTggdG9s
-ZXJhbmNlWzJdOwogfTsKQEAgLTU0NywxMiArNTQ4LDIxIEBAIHN0b3JlX3B3bV9lbmFibGUoc3Ry
-dWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKIAlpZiAoZXJy
-KQogCQlyZXR1cm4gZXJyOwogCi0JaWYgKCF2YWwgfHwgdmFsID4gMikgIC8qIG9ubHkgbW9kZXMg
-MSBhbmQgMiBhcmUgc3VwcG9ydGVkICovCisJaWYgKHZhbCA+IDIpICAvKiBvbmx5IG1vZGVzIDAs
-IDEgYW5kIDIgYXJlIHN1cHBvcnRlZCAqLwogCQlyZXR1cm4gLUVJTlZBTDsKIAogCW11dGV4X2xv
-Y2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKLQlyZWcgPSB3ODNsNzg2bmdfcmVhZF92YWx1ZShjbGll
-bnQsIFc4M0w3ODZOR19SRUdfRkFOX0NGRyk7CiAJZGF0YS0+cHdtX2VuYWJsZVtucl0gPSB2YWw7
-CisJaWYgKHZhbCA9PSAwKSB7IC8qIHN5bnRoZXNpemUgYSAxMDAlIGZhbiBtb2RlICovCisJCS8q
-IHR1cm4gcHdtWCBhbGwgdGhlIHdheSB1cCAqLworCQkvKiAoYnV0IGRvbid0IHRvdWNoIHB3bVhf
-YXV0b19wb2ludF8yIGluIGhpZ2ggYml0cykgKi8KKwkJcmVnID0gdzgzbDc4Nm5nX3JlYWRfdmFs
-dWUoY2xpZW50LCBXODNMNzg2TkdfUkVHX1BXTVtucl0pOworCQlyZWcgfD0gMHhmOworCQl3ODNs
-Nzg2bmdfd3JpdGVfdmFsdWUoY2xpZW50LCBXODNMNzg2TkdfUkVHX1BXTVtucl0sIHJlZyk7CisJ
-CS8qIG5vdyB0ZWxsIGhhcmR3YXJlIHdlJ3JlIGluIG1hbnVhbCBtb2RlICovCisJCXZhbCA9IDE7
-CisJfQorCXJlZyA9IHc4M2w3ODZuZ19yZWFkX3ZhbHVlKGNsaWVudCwgVzgzTDc4Nk5HX1JFR19G
-QU5fQ0ZHKTsKIAlyZWcgJj0gfigweDAzIDw8IFc4M0w3ODZOR19QV01fRU5BQkxFX1NISUZUW25y
-XSk7CiAJcmVnIHw9ICh2YWwgLSAxKSA8PCBXODNMNzg2TkdfUFdNX0VOQUJMRV9TSElGVFtucl07
-CiAJdzgzbDc4Nm5nX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzTDc4Nk5HX1JFR19GQU5fQ0ZHLCBy
-ZWcpOwpAQCAtNzU3LDYgKzc2NywxNCBAQCB3ODNsNzg2bmdfcHJvYmUoc3RydWN0IGkyY19jbGll
-bnQgKmNsaWVudCwgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKQogCWRhdGEtPmZhbl9k
-aXZbMF0gPSByZWdfdG1wICYgMHgwNzsKIAlkYXRhLT5mYW5fZGl2WzFdID0gKHJlZ190bXAgPj4g
-NCkgJiAweDA3OwogCisJLyogRW5zdXJlIHRoZSBwd21fZW5hYmxlIHNhdmVkIHJlZ3Mgc3RhcnQg
-b2ZmIG5vbi16ZXJvLAorCSAqIHRvIGhlbHAgd2l0aCByZW1lbWJlcmluZyBpZiB0aGUgdXNlciBo
-YXMgY2hvc2VuCisJICogb3VyIHN5bnRoZXRpYyBwd21fZW5hYmxlID0gMCBtb2RlLgorCSAqICh1
-cGRhdGVfZGV2aWNlIG5vdyByZWFkcyB0aGVtIGJlZm9yZSBvdmVyd3JpdGluZyB0aGVtKS4KKwkg
-Ki8KKwlkYXRhLT5wd21fZW5hYmxlWzBdID0gMHhmZjsKKwlkYXRhLT5wd21fZW5hYmxlWzFdID0g
-MHhmZjsKKwogCS8qIFJlZ2lzdGVyIHN5c2ZzIGhvb2tzICovCiAJZXJyID0gc3lzZnNfY3JlYXRl
-X2dyb3VwKCZjbGllbnQtPmRldi5rb2JqLCAmdzgzbDc4Nm5nX2dyb3VwKTsKIAlpZiAoZXJyKQpA
-QCAtODM5LDYgKzg1Nyw4IEBAIHN0YXRpYyBzdHJ1Y3QgdzgzbDc4Nm5nX2RhdGEgKnc4M2w3ODZu
-Z191cGRhdGVfZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldikKIAogCQlwd21jZmcgPSB3ODNsNzg2
-bmdfcmVhZF92YWx1ZShjbGllbnQsIFc4M0w3ODZOR19SRUdfRkFOX0NGRyk7CiAJCWZvciAoaSA9
-IDA7IGkgPCAyOyBpKyspIHsKKwkJCXU4IHByZXZfZW5hYmxlID0gZGF0YS0+cHdtX2VuYWJsZVtp
-XTsKKwogCQkJZGF0YS0+cHdtX21vZGVbaV0gPQogCQkJICAgICgocHdtY2ZnID4+IFc4M0w3ODZO
-R19QV01fTU9ERV9TSElGVFtpXSkgJiAxKQogCQkJICAgID8gMCA6IDE7CkBAIC04NTAsNiArODcw
-LDEyIEBAIHN0YXRpYyBzdHJ1Y3QgdzgzbDc4Nm5nX2RhdGEgKnc4M2w3ODZuZ191cGRhdGVfZGV2
-aWNlKHN0cnVjdCBkZXZpY2UgKmRldikKIAkJCQlkYXRhLT5wd21baV1baioyXSA9IHB3bXNfcGFj
-a2VkICYgMHhmOwogCQkJCWRhdGEtPnB3bVtpXVtqKjIgKyAxXSA9IHB3bXNfcGFja2VkID4+IDQ7
-CiAJCQl9CisJCQkvKiBpZiB3ZSB3ZXJlIGluIHN5bnRoZXRpYyBtb2RlIDAsIHByZXNlcnZlIHRo
-YXQgaWxsdXNpb24uICovCisJCQlpZiAocHJldl9lbmFibGUgPT0gMCAmJgorCQkJICAgIGRhdGEt
-PnB3bV9lbmFibGVbaV0gPT0gMSAmJgorCQkJICAgIGRhdGEtPnB3bVtpXVswXSA9PSAweGYpIHsK
-KwkJCQlkYXRhLT5wd21fZW5hYmxlW2ldID0gMDsKKwkJCX0KIAkJfQogCiAK
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset=US-ASCII; 
-	name="04_pwmX_enable_collapse_and_hide_fan_set_mode_4.diff"
-Content-Disposition: attachment; 
-	filename="04_pwmX_enable_collapse_and_hide_fan_set_mode_4.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hop9lw3f3
-
-ZGlmZiAtLWdpdCBhL3c4M2w3ODZuZy5jIGIvdzgzbDc4Nm5nLmMKaW5kZXggMWI2ZDA0MC4uZWQw
-OWEyNyAxMDA2NDQKLS0tIGEvdzgzbDc4Nm5nLmMKKysrIGIvdzgzbDc4Nm5nLmMKQEAgLTgxLDYg
-KzgxLDkgQEAgc3RhdGljIGNvbnN0IHU4IFc4M0w3ODZOR19QV01fRU5BQkxFX1NISUZUW10gPSB7
-MiwgNH07CiAvKiBGQU4gRHV0eSBDeWNsZSwgYmUgdXNlZCB0byBjb250cm9sICovCiBzdGF0aWMg
-Y29uc3QgdTggVzgzTDc4Nk5HX1JFR19QV01bXSA9IHsweDgxLCAweDg3fTsKIAorLyogSW5pdGlh
-bCBmYW4gc3BlZWQgYXQgcG93ZXIgdXAgKi8KK3N0YXRpYyBjb25zdCB1OCBXODNMNzg2TkdfUkVH
-X0ZBTklOSSA9IDB4OTA7CisKIAogc3RhdGljIGlubGluZSB1OAogRkFOX1RPX1JFRyhsb25nIHJw
-bSwgaW50IGRpdikKQEAgLTE0NCw5ICsxNDcsMTIgQEAgc3RydWN0IHc4M2w3ODZuZ19kYXRhIHsK
-IAl1OCBwd21fbW9kZVsyXTsJLyogMC0+REMgdmFyaWFibGUgdm9sdGFnZQogCQkJICogMS0+UFdN
-IHZhcmlhYmxlIGR1dHkgY3ljbGUgKi8KIAotCXU4IHB3bV9lbmFibGVbMl07IC8qIDAtPjEwMCUg
-ZmFuIG1vZGUgKHN5bnRoZXRpYykKLQkJCSAgICogMS0+bWFudWFsCi0JCQkgICAqIDItPnRoZXJt
-YWwgY3J1aXNlIChhbHNvIGNhbGxlZCBTbWFydEZhbiBJKSAqLworCXU4IHB3bV9lbmFibGVbMl07
-CS8qIDAtPjEwMCUgZmFuIG1vZGUgKHN5bnRoZXRpYykKKwkJCQkgKiAxLT5tYW51YWwKKwkJCQkg
-KiAyLT50aGVybWFsIGNydWlzZSAoYWxzbyBjYWxsZWQgU21hcnRGYW4gSSkKKwkJCQkgKiAzLT5T
-bWFydEZhbiBJSQorCQkJCSAqIDQtPihpbnRlcm5hbCkgRkFOX1NFVCAoc3lzZnMgc2VlcyBtYW51
-YWwpICovCisJdTggcHdtX2luaTsJLyogcG93ZXIgb24gc2V0dGluZyAqLwogCXU4IHRvbGVyYW5j
-ZVsyXTsKIH07CiAKQEAgLTQ1MCw3ICs0NTYsNTAgQEAgc3RhdGljIHNzaXplX3Qgc2hvd18jI3Jl
-ZyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBcCiB9
-CiAKIHNob3dfcHdtX3JlZyhwd21fbW9kZSkKLXNob3dfcHdtX3JlZyhwd21fZW5hYmxlKQorCisv
-KiBJbnRlcm5hbCBoZWxwZXIgZnVuY3Rpb24gdG8gZ2V0IHRoZSBjdXJyZW50IEhBUkRXQVJFIGVu
-YWJsZSBtb2RlLgorICogVGhpcyB3aWxsIGJlIGluIHRoZSByYW5nZSBvZiAxLi40IC0gaXQgaXMg
-YmxpbmQgdG8gZmFrZSBlbmFibGUgbW9kZSAwLgorICogRmFjdG9yZWQgb3V0LCBzaW5jZSB0aGUg
-aGFyZHdhcmUgbW9kZSBpcyBuZWVkZWQgaW4gbXVsdGlwbGUgc3RvcmUqIGZ1bmN0aW9ucywKKyAq
-IHRvIGFzc2lzdCB3aXRoIGNvbGxhcHNpbmcgdGhlIEZBTl9TRVQgZW5hYmxlIG1vZGUgaW50byBt
-YW51YWwuCisgKi8KK3N0YXRpYyB1OCBnZXRfaHdfcHdtX2VuYWJsZShzdHJ1Y3QgaTJjX2NsaWVu
-dCAqY2xpZW50LCBpbnQgbnIpIHsKKwl1OCBwd21fY2ZnID0gdzgzbDc4Nm5nX3JlYWRfdmFsdWUo
-Y2xpZW50LCBXODNMNzg2TkdfUkVHX0ZBTl9DRkcpOworCXJldHVybiAoKHB3bV9jZmcgPj4gVzgz
-TDc4Nk5HX1BXTV9FTkFCTEVfU0hJRlRbbnJdKSAmIDMpICsgMTsKK30KKworc3RhdGljIHZvaWQg
-c2V0X2h3X3B3bV9lbmFibGUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwgaW50IG5yLCB1OCB2
-YWwpIHsKKwl1OCByZWcgPSB3ODNsNzg2bmdfcmVhZF92YWx1ZShjbGllbnQsIFc4M0w3ODZOR19S
-RUdfRkFOX0NGRyk7CisJcmVnICY9IH4oMHgwMyA8PCBXODNMNzg2TkdfUFdNX0VOQUJMRV9TSElG
-VFtucl0pOworCXJlZyB8PSAodmFsIC0gMSkgPDwgVzgzTDc4Nk5HX1BXTV9FTkFCTEVfU0hJRlRb
-bnJdOworCXc4M2w3ODZuZ193cml0ZV92YWx1ZShjbGllbnQsIFc4M0w3ODZOR19SRUdfRkFOX0NG
-RywgcmVnKTsKK30KKworc3RhdGljIHZvaWQKK3NldF9od19wd21fcG9pbnQoc3RydWN0IGkyY19j
-bGllbnQgKmNsaWVudCwgaW50IG5yLCB1OCBwb2ludCwgdTggdmFsKSB7CisJaW50IHJlZ29mcyA9
-IHBvaW50IC8gMjsKKwlpbnQgcmVnc2hpZnQgPSAocG9pbnQgJSAyKSAqIDQ7CisJdTggcmVnID0g
-dzgzbDc4Nm5nX3JlYWRfdmFsdWUoY2xpZW50LCBXODNMNzg2TkdfUkVHX1BXTVtucl0gKyByZWdv
-ZnMpOworCXJlZyAmPSB+KDB4ZiA8PCByZWdzaGlmdCk7CisJcmVnIHw9IHZhbCA8PCByZWdzaGlm
-dDsKKwl3ODNsNzg2bmdfd3JpdGVfdmFsdWUoY2xpZW50LCBXODNMNzg2TkdfUkVHX1BXTVtucl0g
-KyByZWdvZnMsIHJlZyk7Cit9CisKK3N0YXRpYyB1OCBnZXRfaHdfcHdtX2luaShzdHJ1Y3QgaTJj
-X2NsaWVudCAqY2xpZW50KSB7CisJcmV0dXJuIHc4M2w3ODZuZ19yZWFkX3ZhbHVlKGNsaWVudCwg
-VzgzTDc4Nk5HX1JFR19GQU5JTkkpICYgMHhmOworfQorCitzdGF0aWMgc3NpemVfdCBzaG93X3B3
-bV9lbmFibGUoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0
-ciwKKwkJCSAgY2hhciAqYnVmKQoreworCXN0cnVjdCB3ODNsNzg2bmdfZGF0YSAqZGF0YSA9IHc4
-M2w3ODZuZ191cGRhdGVfZGV2aWNlKGRldik7CisJaW50IG5yID0gdG9fc2Vuc29yX2Rldl9hdHRy
-KGF0dHIpLT5pbmRleDsKKwl1OCBlbmFibGVfbW9kZSA9IGRhdGEtPnB3bV9lbmFibGVbbnJdOwor
-CWlmIChlbmFibGVfbW9kZSA9PSA0KSB7CisJCS8qIHByZXNlbnQgRkFOX1NFVCBlbmFibGUgbW9k
-ZSBhcyBtYW51YWwgKi8KKwkJZW5hYmxlX21vZGUgPSAxOworCX0KKwlyZXR1cm4gc3ByaW50Zihi
-dWYsICIlZFxuIiwgZW5hYmxlX21vZGUpOworfQogCiBzdGF0aWMgc3NpemVfdAogc3RvcmVfcHdt
-X21vZGUoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwK
-QEAgLTQ5Miw4ICs1NDEsMTIgQEAgc2hvd19wd20oc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3Qg
-ZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKIAl1OCByZWcgPSBkYXRhLT5wd21bbnJdW3BvaW50XTsK
-IAlpbnQgdmFsOwogCisJaWYgKGRhdGEtPnB3bV9lbmFibGVbbnJdID09IDQgJiYgcG9pbnQgPT0g
-MCkgeworCQkvKiBwcmVzZW50IEZBTl9TRVQgZW5hYmxlIG1vZGUgYXMgbWFudWFsICovCisJCXJl
-ZyA9IGRhdGEtPnB3bV9pbmk7CisJfQogCS8qIG1hcCAwLi4xNSAtPiAwLi4yNTUgaW4gYSBuaWNl
-IHdheSwgcy50LiAwLT4wIGFuZCAxNS0+MjU1ICovCi0JdmFsID0gcmVnICogMHgxMTsKKwl2YWwg
-PSByZWcgKiAweDExOwogCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLCB2YWwpOwogfQogCkBA
-IC01MDksOSArNTYyLDYgQEAgc3RvcmVfcHdtKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRl
-dmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJc3RydWN0IHc4M2w3ODZuZ19kYXRhICpkYXRhID0gaTJj
-X2dldF9jbGllbnRkYXRhKGNsaWVudCk7CiAJdW5zaWduZWQgbG9uZyB2YWw7CiAJaW50IGVycjsK
-LQlpbnQgcmVnb2ZzID0gcG9pbnQgLyAyOwotCWludCByZWdzaGlmdCA9IChwb2ludCAlIDIpICog
-NDsKLQl1OCByZWc7CiAKIAllcnIgPSBrc3RydG91bChidWYsIDEwLCAmdmFsKTsKIAlpZiAoZXJy
-KQpAQCAtNTI1LDEwICs1NzUsMTQgQEAgc3RvcmVfcHdtKHN0cnVjdCBkZXZpY2UgKmRldiwgc3Ry
-dWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAKIAltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVf
-bG9jayk7CiAJZGF0YS0+cHdtW25yXVtwb2ludF0gPSB2YWw7Ci0JcmVnID0gdzgzbDc4Nm5nX3Jl
-YWRfdmFsdWUoY2xpZW50LCBXODNMNzg2TkdfUkVHX1BXTVtucl0gKyByZWdvZnMpOwotCXJlZyAm
-PSB+KDB4ZiA8PCByZWdzaGlmdCk7Ci0JcmVnIHw9IHZhbCA8PCByZWdzaGlmdDsKLQl3ODNsNzg2
-bmdfd3JpdGVfdmFsdWUoY2xpZW50LCBXODNMNzg2TkdfUkVHX1BXTVtucl0gKyByZWdvZnMsIHJl
-Zyk7CisJc2V0X2h3X3B3bV9wb2ludChjbGllbnQsIG5yLCBwb2ludCwgdmFsKTsKKwkvKiBNYXli
-ZSB3ZSdyZSBhIEZBTl9TRVQgbWFzcXVlcmFkaW5nIGFzIG1hbnVhbCwgYW5kIHNvbWVvbmUKKwkg
-KiBqdXN0IGNhbGxlZCBvdXIgYmx1ZmYgYnkgc2V0dGluZyBwd21YIChha2EgcG9pbnQgMCkKKwkg
-Ki8KKwlpZiAocG9pbnQgPT0gMCAmJiBnZXRfaHdfcHdtX2VuYWJsZShjbGllbnQsIG5yKSA9PSA0
-KSB7CisJCS8qIFRpbWUgdG8gY29tbWl0IHRvIGJlaW5nIGluIG1hbnVhbCBtb2RlLiAqLworCQlz
-ZXRfaHdfcHdtX2VuYWJsZShjbGllbnQsIG5yLCAxKTsKKwl9CiAJbXV0ZXhfdW5sb2NrKCZkYXRh
-LT51cGRhdGVfbG9jayk7CiAJcmV0dXJuIGNvdW50OwogfQpAQCAtNTUzLDYgKzYwNywxNiBAQCBz
-dG9yZV9wd21fZW5hYmxlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1
-dGUgKmF0dHIsCiAKIAltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CiAJZGF0YS0+cHdt
-X2VuYWJsZVtucl0gPSB2YWw7CisJLyogTWF5YmUgd2UncmUgYSBGQU5fU0VUIG1hc3F1ZXJhZGlu
-ZyBhcyBtYW51YWwsIGFuZCBzb21lb25lCisJICoganVzdCBjYWxsZWQgb3VyIGJsdWZmIGJ5IHNl
-dHRpbmcgcHdtX2VuYWJsZSB0byAxLgorCSAqLworCWlmICh2YWwgPT0gMSAmJiBnZXRfaHdfcHdt
-X2VuYWJsZShjbGllbnQsIG5yKSA9PSA0KSB7CisJCS8qIFdlJ3JlIGFib3V0IHRvIGJlIGluIG1h
-bnVhbCBtb2RlIGZvciByZWFsLgorCQkgKiAgU28gYmV0dGVyIHNldCBwd21YLCBha2EgcG9pbnQg
-MCwgdG8gcHdtX2luaS4KKwkJICovCisJCXNldF9od19wd21fcG9pbnQoY2xpZW50LCBuciwgMCwg
-Z2V0X2h3X3B3bV9pbmkoY2xpZW50KSk7CisJfQorCiAJaWYgKHZhbCA9PSAwKSB7IC8qIHN5bnRo
-ZXNpemUgYSAxMDAlIGZhbiBtb2RlICovCiAJCS8qIHR1cm4gcHdtWCBhbGwgdGhlIHdheSB1cCAq
-LwogCQkvKiAoYnV0IGRvbid0IHRvdWNoIHB3bVhfYXV0b19wb2ludF8yIGluIGhpZ2ggYml0cykg
-Ki8KQEAgLTU2MiwxMCArNjI2LDcgQEAgc3RvcmVfcHdtX2VuYWJsZShzdHJ1Y3QgZGV2aWNlICpk
-ZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAogCQkvKiBub3cgdGVsbCBoYXJkd2Fy
-ZSB3ZSdyZSBpbiBtYW51YWwgbW9kZSAqLwogCQl2YWwgPSAxOwogCX0KLQlyZWcgPSB3ODNsNzg2
-bmdfcmVhZF92YWx1ZShjbGllbnQsIFc4M0w3ODZOR19SRUdfRkFOX0NGRyk7Ci0JcmVnICY9IH4o
-MHgwMyA8PCBXODNMNzg2TkdfUFdNX0VOQUJMRV9TSElGVFtucl0pOwotCXJlZyB8PSAodmFsIC0g
-MSkgPDwgVzgzTDc4Nk5HX1BXTV9FTkFCTEVfU0hJRlRbbnJdOwotCXc4M2w3ODZuZ193cml0ZV92
-YWx1ZShjbGllbnQsIFc4M0w3ODZOR19SRUdfRkFOX0NGRywgcmVnKTsKKwlzZXRfaHdfcHdtX2Vu
-YWJsZShjbGllbnQsIG5yLCB2YWwpOwogCW11dGV4X3VubG9jaygmZGF0YS0+dXBkYXRlX2xvY2sp
-OwogCXJldHVybiBjb3VudDsKIH0KQEAgLTg3OCw2ICs5MzksOCBAQCBzdGF0aWMgc3RydWN0IHc4
-M2w3ODZuZ19kYXRhICp3ODNsNzg2bmdfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2aWNlICpkZXYp
-CiAJCQl9CiAJCX0KIAorCQkvKiBHZXQgdGhlIHBvd2VyIG9uIGRlZmF1bHQgZHV0eSBjeWNsZSwg
-Zm9yIEZBTl9TRVQgKi8KKwkJZGF0YS0+cHdtX2luaSA9IGdldF9od19wd21faW5pKGNsaWVudCk7
-CiAKIAkJLyogVXBkYXRlIHRoZSB0ZW1wZXJhdHVyZSBzZW5zb3JzICovCiAJCWZvciAoaSA9IDA7
-IGkgPCAyOyBpKyspIHsK
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset=US-ASCII; name="signed-off-by.txt"
-Content-Disposition: attachment; filename="signed-off-by.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hop9lw3k4
-
-MDFfcHdtWF9lbmFibGVfYnVnZml4LmRpZmYKMDJfcHdtWF9idWdmaXguZGlmZgowM19wd21YX2Vu
-YWJsZV9zeW50aGV0aWNfbW9kZV8wLmRpZmYKMDRfcHdtWF9lbmFibGVfY29sbGFwc2VfYW5kX2hp
-ZGVfZmFuX3NldF9tb2RlXzQuZGlmZgpTaWduZWQtb2ZmLWJ5OiBCcmlhbiBDYXJuZXMgPGJtY2Fy
-bmVzQGdtYWlsLmNvbT4K
---047d7b2e4d584160ce04ec865a22
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---047d7b2e4d584160ce04ec865a22--
