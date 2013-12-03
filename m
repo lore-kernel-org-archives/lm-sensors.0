@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 03 Dec 2013 16:22:38 +0000
+Date: Tue, 03 Dec 2013 16:37:54 +0000
 Subject: Re: [lm-sensors] Strange sensor values ASUS M5A97 Pro
-Message-Id: <20131203162238.GA16048@roeck-us.net>
+Message-Id: <20131203163754.GB16048@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4a2b86669bfcfeb87b592fc7bb443eb0@secure.lordvan.com>
 In-Reply-To: <4a2b86669bfcfeb87b592fc7bb443eb0@secure.lordvan.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 03, 2013 at 07:28:59AM +0100, Thomas Raschbacher wrote:
+On Tue, Dec 03, 2013 at 04:12:45PM +0100, Thomas Raschbacher wrote:
 > On 2013-12-02 20:48, Guenter Roeck wrote:
 > >On Mon, Dec 02, 2013 at 08:23:15PM +0100, Thomas Raschbacher wrote:
 > >>On 2013-12-02 19:10, Guenter Roeck wrote:
@@ -39,45 +39,35 @@ On Tue, Dec 03, 2013 at 07:28:59AM +0100, Thomas Raschbacher wrote:
 > >>>>sensor = thermistor
 > >>>>temp3:       -128.0 C  (low  = -11.0 C, high = +94.0 C)  sensor > >>>>disabled
 > >>>>intrusion0:  OK
-> >>>>
-> >>>>How can I fix this?
-> >>>>
-> >>>Did you try setting the limits via /etc/sensors3.conf and 'sensors
-> >>>-s' ?
-> >>>
-> >>>Thanks,
-> >>>Guenter
-> >>
-> >>Not yet as I do not know what to set exactly. any clue as to how to
-> >>find out what would be sensible values?
-> >>
-> >One of the sensors is likely the CPU. If you load the temp sensor
-> >driver
-> >for it you should see its limits; alternatively, check the CPU
-> >datasheet.
-> >The other sensor is likely the board temperature; its limits should be
-> >available in the product datasheet.
-> >
-> >For testing, you can put in something reasonable like a minimum of
-> >0 degrees C
-> >and a maximum of 80 or 90 degrees C.
-> >
-> ok will have a go a bit later.
-> I'd also like to get the voltages right if possible. I have some
-> vague guesses as to what is what (I took some photos of my bios
-> monitoring ;))
 > 
-> So anyway is there some page to post/upload those settings once I
-> figured them out in case someone else has the same mainboard?
+> Actually I was just thinking ... somethign is not right with those
+> values anyway ..
 > 
-The lm-sensors mailing list. If Jean agrees he'll post it on 
-http://www.lm-sensors.org/wiki/Configurations.
-I could do it too but I am not that good in identifying problems
-with submitted configurations, so I rather not do it.
+> I mean look at the voltages ..t he only one that sounds vaguely
+> reasonable is the 3.3V one .. and one of the other ones might be CPU
+> ..
+> but where is the CPU one ..
+> 
+> also i got 2 chassis fans (and the bios can show all values properly)
+> 
+> So I got a missing fan value and voltages that don'T make sense ..
+> any clue what to do about this?
+> 
+Voltages have to be scaled.
 
-[ Please keep the mailing list on Cc: ]
+Useful resources:
+	http://www.lm-sensors.org/wiki/AsusFormulaHacking
+	http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
+	http://www.lm-sensors.org/wiki/Configurations/Asus
 
-Thanks,
+As for the missing fan speed, many ASUS boards implement GPIO based multiplexers
+to support additional fans. Those multiplexers are not supported in Linux.
+Since ASUS does not release specifications, there is little chance to ever add
+support for those multiplexed fans.
+
+Asking ASUS for support won't help, since ASUS officially does not support Linux
+on its desktop boards.
+
 Guenter
 
 _______________________________________________
