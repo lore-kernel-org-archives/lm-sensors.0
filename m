@@ -1,45 +1,57 @@
-From: linuxcbon <linuxcbon@yahoo.fr>
-Date: Wed, 25 Dec 2013 19:52:30 +0000
-Subject: [lm-sensors] wrong datas ?
-Message-Id: <1388001150.7351.YahooMailBasic@web173205.mail.ir2.yahoo.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Thu, 05 Dec 2013 10:58:45 +0000
+Subject: [lm-sensors] [patch] hwmon: prevent some divide by zeros in FAN_TO_REG()
+Message-Id: <20131205105845.GA23161@elgon.mountain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-Hi,
-I run ssensors version 3.3.4 with libsensors version 3.3.4. (got the same results with other versions).
+It's not enough to just test if "rpm" is zero, the "rpm * div" operation
+could overflow and that could also lead to a divide by zero.
 
-# sensors
-it8718-isa-0228
-Adapter: ISA adapter
-in0:          +1.04 V  (min =  +0.00 V, max =  +4.08 V)
-in1:          +1.84 V  (min =  +0.00 V, max =  +4.08 V)
-in2:          +3.33 V  (min =  +0.00 V, max =  +4.08 V)
-+5V:          +3.01 V  (min =  +0.00 V, max =  +4.08 V)
-in4:          +3.04 V  (min =  +0.00 V, max =  +4.08 V)
-in5:          +3.22 V  (min =  +0.00 V, max =  +4.08 V)
-in6:          +4.08 V  (min =  +0.00 V, max =  +4.08 V)  ALARM
-in7:          +2.00 V  (min =  +0.00 V, max =  +4.08 V)
-Vbat:         +3.20 V  
-fan1:        1979 RPM  (min =   10 RPM)
-fan2:           0 RPM  (min =    0 RPM)
-fan3:           0 RPM  (min =    0 RPM)
-fan4:           0 RPM  (min =    0 RPM)
-temp1:        +34.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
-temp2:        +35.0 C  (low  = +127.0 C, high = +70.0 C)  sensor = thermal diode
-temp3:        +44.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
-cpu0_vid:    +1.050 V
-intrusion0:  OK
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Remarks :
-Is it normal that +5V is displayed as  +3.01 V ? Or should it be renamed as +...something else ?
-in6 should not be ALARM ?
-
-Thanks in advance
-
-
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 0e7017841f7d..923c18034a5f 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -145,7 +145,7 @@ static const u8 regtempmin[] = { 0x3a, 0x3e, 0x2c, 0x2e, 0x30, 0x32 };
+  */
+ static inline u8 FAN_TO_REG(long rpm, int div)
+ {
+-	if (rpm = 0)
++	if (rpm * div = 0)
+ 		return 0;
+ 	return clamp_val(1310720 / (rpm * div), 1, 255);
+ }
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+index 6cf6bff79003..fc4578195674 100644
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -92,7 +92,7 @@ static inline u8 IN_TO_REG(unsigned long val)
+ 
+ static inline u8 FAN_TO_REG(long rpm, int div)
+ {
+-	if (rpm <= 0)
++	if (rpm <= 0 || rpm * div = 0)
+ 		return 255;
+ 	return clamp_val((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
+ }
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 1404e6319deb..811620fe63b4 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -139,7 +139,7 @@ static inline u8 IN_TO_REG(unsigned long val)
+ 
+ static inline u8 FAN_TO_REG(long rpm, int div)
+ {
+-	if (rpm <= 0)
++	if (rpm <= 0 || rpm * div = 0)
+ 		return 255;
+ 	return clamp_val((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
+ }
 
 _______________________________________________
 lm-sensors mailing list
