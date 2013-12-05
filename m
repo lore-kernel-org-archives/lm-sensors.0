@@ -1,7 +1,7 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Thu, 05 Dec 2013 12:59:25 +0000
+Date: Thu, 05 Dec 2013 13:13:32 +0000
 Subject: Re: [lm-sensors] [patch] hwmon: prevent some divide by zeros in FAN_TO_REG()
-Message-Id: <20131205125925.GB28413@mwanda>
+Message-Id: <20131205131332.GY5443@mwanda>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20131205105845.GA23161@elgon.mountain>
 In-Reply-To: <20131205105845.GA23161@elgon.mountain>
@@ -32,12 +32,8 @@ On Thu, Dec 05, 2013 at 01:06:13PM +0100, Jean Delvare wrote:
 > 		return 255;
 > 	if (rpm > 1350000)
 > 		return 0;
-> 
-> That way you're certain to never overflow (the maximum value for div is
-> 8), and insanely large values are handled properly instead of resulting
-> in random register values.
 
-Yes.  I will resend.
+For these two are you sure the return value shouldn't be 1?
 
 regards,
 dan carpenter
