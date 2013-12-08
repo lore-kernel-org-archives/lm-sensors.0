@@ -1,44 +1,35 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Tue, 12 Nov 2013 19:46:21 +0000
-Subject: [lm-sensors] [PATCHv5 19/20] arm: dts: make OMAP4460 bandgap node to belong to OCP
-Message-Id: <1384285582-16933-20-git-send-email-eduardo.valentin@ti.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Date: Sun, 08 Dec 2013 21:02:16 +0000
+Subject: [lm-sensors] [PATCH 1/3] dt: Add adt7411 to trivial devices list
+Message-Id: <1386536538-14861-1-git-send-email-bgamari.foss@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Cc: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-U21hbGwgZml4IG9uIHJlcHJlc2VudGF0aW9uLiBCYW5kZ2FwIG5vZGUgYmVsb25ncyB0byBPQ1Au
-CgpDYzogIkJlbm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkg
-TGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdA
-Y2FseGVkYS5jb20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJr
-IFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJy
-ZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWpjK2RldmljZXRyZWVAaGVsbGlv
-bi5vcmcudWs+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBs
-aW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcK
-Q2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVs
-QHZnZXIua2VybmVsLm9yZwpTdWdnZXN0ZWQtYnk6IE5pc2hhbnRoIE1lbm9uIDxubUB0aS5jb20+
-ClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29t
-PgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgfCAxOCArKysrKysrKysrLS0t
-LS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoK
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9i
-b290L2R0cy9vbWFwNDQ2MC5kdHNpCmluZGV4IGRjMjI3MTkuLmRlZjgxODMgMTAwNjQ0Ci0tLSBh
-L2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMv
-b21hcDQ0NjAuZHRzaQpAQCAtMzksMTQgKzM5LDE2IEBACiAJCSNpbmNsdWRlICJvbWFwNC1jcHUt
-dGhlcm1hbC5kdHNpIgogCX07CiAKLQliYW5kZ2FwOiBiYW5kZ2FwIHsKLQkJcmVnID0gPDB4NGEw
-MDIyNjAgMHg0Ci0JCSAgICAgICAweDRhMDAyMzJDIDB4NAotCQkgICAgICAgMHg0YTAwMjM3OCAw
-eDE4PjsKLQkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKLQkJaW50ZXJydXB0
-cyA9IDwwIDEyNiBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogdGFsZXJ0ICovCi0JCWdwaW9zID0g
-PCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KKwlvY3AgeworCQliYW5kZ2FwOiBiYW5kZ2FwIHsK
-KwkJCXJlZyA9IDwweDRhMDAyMjYwIDB4NAorCQkJICAgICAgIDB4NGEwMDIzMkMgMHg0CisJCQkg
-ICAgICAgMHg0YTAwMjM3OCAweDE4PjsKKwkJCWNvbXBhdGlibGUgPSAidGksb21hcDQ0NjAtYmFu
-ZGdhcCI7CisJCQlpbnRlcnJ1cHRzID0gPDAgMTI2IElSUV9UWVBFX0xFVkVMX0hJR0g+OyAvKiB0
-YWxlcnQgKi8KKwkJCWdwaW9zID0gPCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KIAotCQkjdGhl
-cm1hbC1zZW5zb3ItY2VsbHMgPSA8MD47CisJCQkjdGhlcm1hbC1zZW5zb3ItY2VsbHMgPSA8MD47
-CisJCX07CiAJfTsKIH07Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
-CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
-aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
+---
+ Documentation/devicetree/bindings/i2c/trivial-devices.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/i2c/trivial-devices.txt b/Documentation/devicetree/bindings/i2c/trivial-devices.txt
+index b1cb341..9c3a684 100644
+--- a/Documentation/devicetree/bindings/i2c/trivial-devices.txt
++++ b/Documentation/devicetree/bindings/i2c/trivial-devices.txt
+@@ -9,6 +9,7 @@ document for it just like any other devices.
+ 
+ Compatible		Vendor / Chip
+ =====		======+ad,adt7411		I2C Digital 8-channel 10-bit ADC and temperature sensor
+ ad,ad7414		SMBus/I2C Digital Temperature Sensor in 6-Pin SOT with SMBus Alert and Over Temperature Pin
+ ad,adm9240		ADM9240:  Complete System Hardware Monitor for uProcessor-Based Systems
+ adi,adt7461		+/-1C TDM Extended Temp Range I.C
+-- 
+1.8.3.2
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
