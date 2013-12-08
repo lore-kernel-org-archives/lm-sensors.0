@@ -1,40 +1,42 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Fri, 27 Dec 2013 14:59:57 +0000
-Subject: [lm-sensors] [PATCH v2 3/5] ARM: dts: sun4i: Add rtp controller node
-Message-Id: <1388156399-29677-4-git-send-email-hdegoede@redhat.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Date: Sun, 08 Dec 2013 21:02:18 +0000
+Subject: [lm-sensors] [PATCH 3/3] dt: Describe modalias resolution in i2c/trivial-devices.txt
+Message-Id: <1386536538-14861-3-git-send-email-bgamari.foss@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388156399-29677-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1388156399-29677-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <1386536538-14861-1-git-send-email-bgamari.foss@gmail.com>
+In-Reply-To: <1386536538-14861-1-git-send-email-bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Cc: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+To someone with little device-tree experience these details aren't at
+all obvious. Make the fact that the manufacturer prefix is dropped
+explicit.
+
+Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
 ---
- arch/arm/boot/dts/sun4i-a10.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/devicetree/bindings/i2c/trivial-devices.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/sun4i-a10.dtsi b/arch/arm/boot/dts/sun4i-a10.dtsi
-index de1dd73..502f3e2 100644
---- a/arch/arm/boot/dts/sun4i-a10.dtsi
-+++ b/arch/arm/boot/dts/sun4i-a10.dtsi
-@@ -452,6 +452,12 @@
- 			reg = <0x01c23800 0x10>;
- 		};
+diff --git a/Documentation/devicetree/bindings/i2c/trivial-devices.txt b/Documentation/devicetree/bindings/i2c/trivial-devices.txt
+index c475c3a..59bbb07 100644
+--- a/Documentation/devicetree/bindings/i2c/trivial-devices.txt
++++ b/Documentation/devicetree/bindings/i2c/trivial-devices.txt
+@@ -1,6 +1,9 @@
+ This is a list of trivial i2c devices that have simple device tree
+ bindings, consisting only of a compatible field, an address and
+-possibly an interrupt line.
++possibly an interrupt line. The compatible field is used by lookup
++the modalias for the driver which will handle the device. A
++manufacturer prefix (separated by a comma) will be stripped off during
++this lookup.
  
-+		rtp: rtp@01c25000 {
-+			compatible = "allwinner,sun4i-ts";
-+			reg = <0x01c25000 0x100>;
-+			interrupts = <29>;
-+		};
-+
- 		uart0: serial@01c28000 {
- 			compatible = "snps,dw-apb-uart";
- 			reg = <0x01c28000 0x400>;
+ If a device needs more specific bindings, such as properties to
+ describe some aspect of it, there needs to be a specific binding
 -- 
-1.8.4.2
+1.8.3.2
 
 
 _______________________________________________
