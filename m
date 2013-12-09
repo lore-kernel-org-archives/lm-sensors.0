@@ -1,42 +1,38 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 31 Dec 2013 15:02:32 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/5] input: sun4i-ts: Add support for temperature sensor
-Message-Id: <52C2DC88.3060902@redhat.com>
+From: =?ISO-8859-1?Q?Jos=E9_Miguel_Gon=E7alves?= <jose.goncalves@inov.pt>
+Date: Mon, 09 Dec 2013 11:42:13 +0000
+Subject: [lm-sensors] Problem with a hih6130 sensor in a OMAP I2C bus
+Message-Id: <52A5AC95.3050803@inov.pt>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388156399-29677-1-git-send-email-hdegoede@redhat.com> <1388156399-29677-3-git-send-email-hdegoede@redhat.com> <20131228011304.GB14188@core.coreip.homeip.net> <20131231130006.GW3144@lukather>
-In-Reply-To: <20131231130006.GW3144@lukather>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
 Hi,
 
-On 12/31/2013 02:00 PM, Maxime Ripard wrote:
-> Hi,
->
-> On Fri, Dec 27, 2013 at 05:13:04PM -0800, Dmitry Torokhov wrote:
->> On Fri, Dec 27, 2013 at 03:59:56PM +0100, Hans de Goede wrote:
->>>
->>> +Optional properties:
->>> + - ts-attached: boolean set this to tell the driver that an actual touchscreen
->>> +		is attached and that it should register an input device,
->>> +		without this it only registers the builtin temperate sensor
->>
->> I believe the guidance is to avoid describing kernel behavior in DT
->> property so I think it should say:
->>
->>   - ts-attached: boolean indicating that an actual touchscreen is
->> 		attached to the controller.
->
-> Custom properties are also supposed to be prefixed by the vendor prefix.
+While testing an HIH6130 humidity and temperature sensor with I2C=20
+interface in a BeagleBone board I've found that I was unable to read it=20
+because the driver always returned EINVAL. With some debugging I've=20
+found that the error was due to a test on omap_i2c_xfer_msg() in OMAP=20
+I2C driver that invalidates zero length writes. The hwmon hih6130 driver=20
+issues such kind of request in hih6130_update_measurements() to issue a=20
+measurement request to the sensor.
 
-Will fix for v3.
+I was able to get measurements from the sensor by hacking the hih6130=20
+driver replacing the following line in hih6130_update_measurements();
 
-Regards,
+         ret =3D i2c_master_send(client, tmp, 0);
 
-Hans
+by
+
+         tmp[0] =3D 0;
+         ret =3D i2c_master_send(client, tmp, 1);
+
+Is this the correct way to fix this issue, or should the fix be in the=20
+I2C OMAP driver to accept zero length transfers?
+
+Best regards,
+Jos=E9 Gon=E7alves
 
 _______________________________________________
 lm-sensors mailing list
