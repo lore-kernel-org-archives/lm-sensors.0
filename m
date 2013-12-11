@@ -1,70 +1,40 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 Dec 2013 15:00:50 +0000
-Subject: Re: [lm-sensors] [patch v2] hwmon: prevent some divide by zeros in FAN_TO_REG()
-Message-Id: <20131205160050.68bb31f9@endymion.delvare>
+From: =?UTF-8?q?Jos=C3=A9=20Miguel=20Gon=C3=A7alves?= <jose.goncalves@inov.pt>
+Date: Wed, 11 Dec 2013 00:57:42 +0000
+Subject: [lm-sensors] [PATCH] hwmon: HIH-6130: Support I2C bus drivers without I2C_FUNC_SMBUS_QUICK
+Message-Id: <1386723462-21388-1-git-send-email-jose.goncalves@inov.pt>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20131205145459.GB13302@elgon.mountain>
-In-Reply-To: <20131205145459.GB13302@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: =?UTF-8?q?Jos=C3=A9=20Miguel=20Gon=C3=A7alves?= <jose.goncalves@inov.pt>
 
-On Thu, 5 Dec 2013 17:54:59 +0300, Dan Carpenter wrote:
-> The "rpm * div" operations can overflow here, so this patch adds an
-> upper limit to rpm to prevent that.  Jean Delvare helped me with this
-> patch.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> v2: cap "rpm" instead of just checking for divide by zero.
-> 
-> diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
-> index 48025b725777..b3babe3326fb 100644
-> --- a/drivers/hwmon/vt8231.c
-> +++ b/drivers/hwmon/vt8231.c
-> @@ -145,7 +145,7 @@ static const u8 regtempmin[] = { 0x3a, 0x3e, 0x2c, 0x2e, 0x30, 0x32 };
->   */
->  static inline u8 FAN_TO_REG(long rpm, int div)
->  {
-> -	if (rpm = 0)
-> +	if (rpm <= 0 || rpm > 1310720)
->  		return 0;
->  	return clamp_val(1310720 / (rpm * div), 1, 255);
->  }
-> diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
-> index 6cf6bff79003..28976d64aa2b 100644
-> --- a/drivers/hwmon/lm78.c
-> +++ b/drivers/hwmon/lm78.c
-> @@ -94,6 +94,8 @@ static inline u8 FAN_TO_REG(long rpm, int div)
->  {
->  	if (rpm <= 0)
->  		return 255;
-> +	if (rpm > 1350000)
-> +		return 1;
->  	return clamp_val((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
->  }
->  
-> diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
-> index 05565d2d1e54..7e7e25b0473d 100644
-> --- a/drivers/hwmon/sis5595.c
-> +++ b/drivers/hwmon/sis5595.c
-> @@ -141,6 +141,8 @@ static inline u8 FAN_TO_REG(long rpm, int div)
->  {
->  	if (rpm <= 0)
->  		return 255;
-> +	if (rpm > 1350000)
-> +		return 1;
->  	return clamp_val((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
->  }
->  
-
-Applied, thanks.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U29tZSBJMkMgYnVzIGRyaXZlcnMgZG8gbm90IGFsbG93IHplcm8tbGVuZ2h0IGRhdGEgdHJhbnNm
+ZXJzIHdoaWNoIGFyZQpyZXF1aXJlZCB0byBzdGFydCBhIG1lc3VyZW1lbnQgd2l0aCB0aGUgSElI
+NjEzMC8xIHNlbnNvci4gTmV2ZXJ0aGVsZXNzLAp3ZSBjYW4gb3ZlcmNvbWUgdGhpcyBsaW1pdGF0
+aW9uIGJ5IHdyaXRpbmcgYSB6ZXJvIGR1bW15IGJ5dGUuIFRoaXMgYnl0ZQppcyBpZ25vcmVkIGJ5
+IHRoZSBzZW5zb3IgYW5kIHdhcyB2ZXJpZmllZCB0byBiZSB3b3JraW5nIHdpdGggdGhlIE9NQVAK
+STJDIGJ1cyBkcml2ZXIgaW4gYSBCZWFnbGVCb25lIGJvYXJkLgoKU2lnbmVkLW9mZi1ieTogSm9z
+w6kgTWlndWVsIEdvbsOnYWx2ZXMgPGpvc2UuZ29uY2FsdmVzQGlub3YucHQ+Ci0tLQogZHJpdmVy
+cy9od21vbi9oaWg2MTMwLmMgfCAgIDE2ICsrKysrKysrKysrKysrLS0KIDEgZmlsZSBjaGFuZ2Vk
+LCAxNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+aHdtb24vaGloNjEzMC5jIGIvZHJpdmVycy9od21vbi9oaWg2MTMwLmMKaW5kZXggMmRjMzdjNy4u
+YTg2MGNjNCAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9oaWg2MTMwLmMKKysrIGIvZHJpdmVy
+cy9od21vbi9oaWg2MTMwLmMKQEAgLTEyMSw4ICsxMjEsMjAgQEAgc3RhdGljIGludCBoaWg2MTMw
+X3VwZGF0ZV9tZWFzdXJlbWVudHMoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCkKIAkgKi8KIAlp
+ZiAodGltZV9hZnRlcihqaWZmaWVzLCBoaWg2MTMwLT5sYXN0X3VwZGF0ZSArIEhaKSB8fCAhaGlo
+NjEzMC0+dmFsaWQpIHsKIAotCQkvKiB3cml0ZSB0byBzbGF2ZSBhZGRyZXNzLCBubyBkYXRhLCB0
+byByZXF1ZXN0IGEgbWVhc3VyZW1lbnQgKi8KLQkJcmV0ID0gaTJjX21hc3Rlcl9zZW5kKGNsaWVu
+dCwgdG1wLCAwKTsKKwkJLyoKKwkJICogV3JpdGUgdG8gc2xhdmUgYWRkcmVzcywgdG8gcmVxdWVz
+dCBhIG1lYXN1cmVtZW50LgorCQkgKiBBY2NvcmRpbmcgd2l0aCB0aGUgZGF0YXNoZWV0IGl0IHNo
+b3VsZCBiZSB3aXRoIG5vIGRhdGEsIGJ1dAorCQkgKiBmb3Igc3lzdGVtcyB3aXRoIEkyQyBidXMg
+ZHJpdmVycyB0aGF0IGRvIG5vdCBhbGxvdyB6ZXJvCisJCSAqIGxlbmd0aCBwYWNrZXRzIHdlIHdy
+aXRlIG9uZSBkdW1teSBieXRlIHRvIGFsbG93IHNlbnNvcgorCQkgKiBtZWFzdXJlbWVudHMgb24g
+dGhlbS4KKwkJICovCisJCWlmIChpMmNfZ2V0X2Z1bmN0aW9uYWxpdHkoY2xpZW50LT5hZGFwdGVy
+KSAmCisJCSAgICBJMkNfRlVOQ19TTUJVU19RVUlDSykgeworCQkJcmV0ID0gaTJjX21hc3Rlcl9z
+ZW5kKGNsaWVudCwgdG1wLCAwKTsKKwkJfSBlbHNlIHsKKwkJCXRtcFswXSA9IDA7CisJCQlyZXQg
+PSBpMmNfbWFzdGVyX3NlbmQoY2xpZW50LCB0bXAsIDEpOworCQl9CiAJCWlmIChyZXQgPCAwKQog
+CQkJZ290byBvdXQ7CiAKLS0gCjEuNy4xMC40CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
+bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
+by9sbS1zZW5zb3Jz
