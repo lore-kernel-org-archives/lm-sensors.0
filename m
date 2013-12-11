@@ -1,53 +1,32 @@
-From: =?UTF-8?q?Jos=C3=A9=20Miguel=20Gon=C3=A7alves?= <jose.goncalves@inov.pt>
-Date: Wed, 11 Dec 2013 11:11:13 +0000
-Subject: [lm-sensors] [PATCH] hwmon: HIH-6130: Support I2C bus drivers without I2C_FUNC_SMBUS_QUICK
-Message-Id: <1386760273-7703-1-git-send-email-jose.goncalves@inov.pt>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 11 Dec 2013 19:29:54 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: HIH-6130: Support I2C bus drivers without I2C_FUNC_SMBUS_QUICK
+Message-Id: <20131211192954.GA21751@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1386723462-21388-1-git-send-email-jose.goncalves@inov.pt>
-In-Reply-To: <1386723462-21388-1-git-send-email-jose.goncalves@inov.pt>
+References: <1386760273-7703-1-git-send-email-jose.goncalves@inov.pt>
+In-Reply-To: <1386760273-7703-1-git-send-email-jose.goncalves@inov.pt>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-Cc: =?UTF-8?q?Jos=C3=A9=20Miguel=20Gon=C3=A7alves?= <jose.goncalves@inov.pt>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: =?iso-8859-1?Q?Jos=E9_Miguel_Gon=E7alves?= <jose.goncalves@inov.pt>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-U29tZSBJMkMgYnVzIGRyaXZlcnMgZG8gbm90IGFsbG93IHplcm8tbGVuZ3RoIGRhdGEgdHJhbnNm
-ZXJzIHdoaWNoIGFyZQpyZXF1aXJlZCB0byBzdGFydCBhIG1lYXN1cmVtZW50IHdpdGggdGhlIEhJ
-SDYxMzAvMSBzZW5zb3IuIE5ldmVydGhlbGVzcywKd2UgY2FuIG92ZXJjb21lIHRoaXMgbGltaXRh
-dGlvbiBieSB3cml0aW5nIGEgemVybyBkdW1teSBieXRlLiBUaGlzIGJ5dGUKaXMgaWdub3JlZCBi
-eSB0aGUgc2Vuc29yIGFuZCB3YXMgdmVyaWZpZWQgdG8gYmUgd29ya2luZyB3aXRoIHRoZSBPTUFQ
-CkkyQyBidXMgZHJpdmVyIGluIGEgQmVhZ2xlQm9uZSBib2FyZC4KClNpZ25lZC1vZmYtYnk6IEpv
-c8OpIE1pZ3VlbCBHb27Dp2FsdmVzIDxqb3NlLmdvbmNhbHZlc0Bpbm92LnB0PgotLS0KdjI6IFVz
-ZSBhIGZpZWxkIGluIHN0cnVjdCBoaWg2MTMwIHRvIHN0b3JlIHRoZSBtZWFzdXJlbWVudCByZXF1
-ZXN0J3MgCiAgICB3cml0ZSBsZW5ndGggd2hlbiBwcm9iaW5nLgoKIGRyaXZlcnMvaHdtb24vaGlo
-NjEzMC5jIHwgICAxNiArKysrKysrKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMTQgaW5zZXJ0
-aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2hpaDYx
-MzAuYyBiL2RyaXZlcnMvaHdtb24vaGloNjEzMC5jCmluZGV4IDJkYzM3YzcuLjhlNDYyNjUgMTAw
-NjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vaGloNjEzMC5jCisrKyBiL2RyaXZlcnMvaHdtb24vaGlo
-NjEzMC5jCkBAIC00Myw2ICs0Myw3IEBACiAgKiBAbGFzdF91cGRhdGU6IHRpbWUgb2YgbGFzdCB1
-cGRhdGUgKGppZmZpZXMpCiAgKiBAdGVtcGVyYXR1cmU6IGNhY2hlZCB0ZW1wZXJhdHVyZSBtZWFz
-dXJlbWVudCB2YWx1ZQogICogQGh1bWlkaXR5OiBjYWNoZWQgaHVtaWRpdHkgbWVhc3VyZW1lbnQg
-dmFsdWUKKyAqIEB3cml0ZV9sZW5ndGg6IGxlbmd0aCBmb3IgSTJDIG1lYXN1cmVtZW50IHJlcXVl
-c3QKICAqLwogc3RydWN0IGhpaDYxMzAgewogCXN0cnVjdCBkZXZpY2UgKmh3bW9uX2RldjsKQEAg
-LTUxLDYgKzUyLDcgQEAgc3RydWN0IGhpaDYxMzAgewogCXVuc2lnbmVkIGxvbmcgbGFzdF91cGRh
-dGU7CiAJaW50IHRlbXBlcmF0dXJlOwogCWludCBodW1pZGl0eTsKKwlzaXplX3Qgd3JpdGVfbGVu
-Z3RoOwogfTsKIAogLyoqCkBAIC0xMjEsOCArMTIzLDE1IEBAIHN0YXRpYyBpbnQgaGloNjEzMF91
-cGRhdGVfbWVhc3VyZW1lbnRzKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCiAJICovCiAJaWYg
-KHRpbWVfYWZ0ZXIoamlmZmllcywgaGloNjEzMC0+bGFzdF91cGRhdGUgKyBIWikgfHwgIWhpaDYx
-MzAtPnZhbGlkKSB7CiAKLQkJLyogd3JpdGUgdG8gc2xhdmUgYWRkcmVzcywgbm8gZGF0YSwgdG8g
-cmVxdWVzdCBhIG1lYXN1cmVtZW50ICovCi0JCXJldCA9IGkyY19tYXN0ZXJfc2VuZChjbGllbnQs
-IHRtcCwgMCk7CisJCS8qCisJCSAqIFdyaXRlIHRvIHNsYXZlIGFkZHJlc3MgdG8gcmVxdWVzdCBh
-IG1lYXN1cmVtZW50LgorCQkgKiBBY2NvcmRpbmcgd2l0aCB0aGUgZGF0YXNoZWV0IGl0IHNob3Vs
-ZCBiZSB3aXRoIG5vIGRhdGEsIGJ1dAorCQkgKiBmb3Igc3lzdGVtcyB3aXRoIEkyQyBidXMgZHJp
-dmVycyB0aGF0IGRvIG5vdCBhbGxvdyB6ZXJvCisJCSAqIGxlbmd0aCBwYWNrZXRzIHdlIHdyaXRl
-IG9uZSBkdW1teSBieXRlIHRvIGFsbG93IHNlbnNvcgorCQkgKiBtZWFzdXJlbWVudHMgb24gdGhl
-bS4KKwkJICovCisJCXRtcFswXSA9IDA7CisJCXJldCA9IGkyY19tYXN0ZXJfc2VuZChjbGllbnQs
-IHRtcCwgaGloNjEzMC0+d3JpdGVfbGVuZ3RoKTsKIAkJaWYgKHJldCA8IDApCiAJCQlnb3RvIG91
-dDsKIApAQCAtMjUyLDYgKzI2MSw5IEBAIHN0YXRpYyBpbnQgaGloNjEzMF9wcm9iZShzdHJ1Y3Qg
-aTJjX2NsaWVudCAqY2xpZW50LAogCQlnb3RvIGZhaWxfcmVtb3ZlX3N5c2ZzOwogCX0KIAorCWhp
-aDYxMzAtPndyaXRlX2xlbmd0aCA9IChpMmNfZ2V0X2Z1bmN0aW9uYWxpdHkoY2xpZW50LT5hZGFw
-dGVyKSAmCisJCQkJIEkyQ19GVU5DX1NNQlVTX1FVSUNLID8gMCA6IDEpOworCiAJcmV0dXJuIDA7
-CiAKIGZhaWxfcmVtb3ZlX3N5c2ZzOgotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1z
-ZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Wed, Dec 11, 2013 at 11:11:13AM +0000, Jos=E9 Miguel Gon=E7alves wrote:
+> Some I2C bus drivers do not allow zero-length data transfers which are
+> required to start a measurement with the HIH6130/1 sensor. Nevertheless,
+> we can overcome this limitation by writing a zero dummy byte. This byte
+> is ignored by the sensor and was verified to be working with the OMAP
+> I2C bus driver in a BeagleBone board.
+>=20
+> Signed-off-by: Jos=E9 Miguel Gon=E7alves <jose.goncalves@inov.pt>
+
+Applied, after simplifying write_length initialization a bit.
+
+Should this go to -stable ?
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
