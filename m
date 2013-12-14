@@ -1,48 +1,113 @@
-From: Paul Walmsley <pwalmsley@nvidia.com>
-Date: Sat, 21 Dec 2013 05:47:16 +0000
-Subject: Re: [lm-sensors] Unhandled LM90 irq 308 on Dalmore?
-Message-Id: <52B52B64.5020304@nvidia.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:30:21 +0000
+Subject: [lm-sensors] [PATCH 14/14] i8k: Implement hwmon based fan speed control
+Message-Id: <1387042221-3671-15-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52B2C5AD.5080405@nvidia.com> <20131219114500.1b1ea0b7@endymion.delvare> <alpine.DEB.2.02.1312191423090.30198@tamien> <52B3B679.20206@nvidia.com> <52B46FD2.1030409@wwwdotorg.org>
-In-Reply-To: <52B46FD2.1030409-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>
 
+Fan speed can be set to off, slow, and fast, which can be exported
+to userspace through the hwmon ABI as pwm1 / pwm2.
 
-On 12/20/2013 08:26 AM, Stephen Warren wrote:
-> On 12/19/2013 08:16 PM, Wei Ni wrote:
->>> Hi, Paul
->>> When I developed it, my Dalmore board used GPIO 116 (GPIO_PO4) as
->>> interrupt line, but according to our downsttream kernel, there also have
->>> other Dalmore board used GPIO 190 (GPIO_PX6). So I think your
->>> problems was caused by it. Please try to change the interrupt line in
->>> dts file.
-> Paul, which board revision of Dalmore do you have?
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/char/i8k.c |   49 ++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 44 insertions(+), 5 deletions(-)
 
-Looks like an A03.
+diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
+index ce826d9..70c8df2 100644
+--- a/drivers/char/i8k.c
++++ b/drivers/char/i8k.c
+@@ -509,6 +509,39 @@ static ssize_t i8k_hwmon_show_fan(struct device *dev,
+ 	return sprintf(buf, "%d\n", fan_speed);
+ }
+ 
++static ssize_t i8k_hwmon_show_pwm(struct device *dev,
++				  struct device_attribute *devattr,
++				  char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	int status;
++
++	status = i8k_get_fan_status(index);
++	if (status < 0)
++		return -EIO;
++	return sprintf(buf, "%d\n", clamp_val(status * 128, 0, 255));
++}
++
++static ssize_t i8k_hwmon_set_pwm(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t count)
++{
++	int index = to_sensor_dev_attr(attr)->index;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
++	val = clamp_val(DIV_ROUND_CLOSEST(val, 128), 0, 2);
++
++	mutex_lock(&i8k_mutex);
++	err = i8k_set_fan(index, val);
++	mutex_unlock(&i8k_mutex);
++
++	return err < 0 ? -EIO : count;
++}
++
+ static ssize_t i8k_hwmon_show_label(struct device *dev,
+ 				    struct device_attribute *devattr,
+ 				    char *buf)
+@@ -529,8 +562,12 @@ static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, i8k_hwmon_show_temp, NULL, 2);
+ static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, i8k_hwmon_show_temp, NULL, 3);
+ static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, i8k_hwmon_show_fan, NULL,
+ 			  I8K_FAN_LEFT);
++static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, i8k_hwmon_show_pwm,
++			  i8k_hwmon_set_pwm, I8K_FAN_LEFT);
+ static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, i8k_hwmon_show_fan, NULL,
+ 			  I8K_FAN_RIGHT);
++static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, i8k_hwmon_show_pwm,
++			  i8k_hwmon_set_pwm, I8K_FAN_RIGHT);
+ static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, i8k_hwmon_show_label, NULL, 0);
+ static SENSOR_DEVICE_ATTR(fan1_label, S_IRUGO, i8k_hwmon_show_label, NULL, 1);
+ static SENSOR_DEVICE_ATTR(fan2_label, S_IRUGO, i8k_hwmon_show_label, NULL, 2);
+@@ -542,9 +579,11 @@ static struct attribute *i8k_attrs[] = {
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,	/* 3 */
+ 	&sensor_dev_attr_temp4_input.dev_attr.attr,	/* 4 */
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,	/* 5 */
+-	&sensor_dev_attr_fan1_label.dev_attr.attr,	/* 6 */
+-	&sensor_dev_attr_fan2_input.dev_attr.attr,	/* 7 */
+-	&sensor_dev_attr_fan2_label.dev_attr.attr,	/* 8 */
++	&sensor_dev_attr_pwm1.dev_attr.attr,		/* 6 */
++	&sensor_dev_attr_fan1_label.dev_attr.attr,	/* 7 */
++	&sensor_dev_attr_fan2_input.dev_attr.attr,	/* 8 */
++	&sensor_dev_attr_pwm2.dev_attr.attr,		/* 9 */
++	&sensor_dev_attr_fan2_label.dev_attr.attr,	/* 10 */
+ 	NULL
+ };
+ 
+@@ -560,10 +599,10 @@ static umode_t i8k_is_visible(struct kobject *kobj, struct attribute *attr,
+ 		return 0;
+ 	if (index = 4 && !(i8k_hwmon_flags & I8K_HWMON_HAVE_TEMP4))
+ 		return 0;
+-	if ((index = 5 || index = 6) &&
++	if (index >= 5 && index <= 7 &&
+ 	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_FAN1))
+ 		return 0;
+-	if ((index = 7 || index = 8) &&
++	if (index >= 8 && index <= 10 &&
+ 	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_FAN2))
+ 		return 0;
+ 
+-- 
+1.7.9.7
 
-> According to the schematics, Dalmore A02 and A03 had TEMP_ALERT routed
-> to GPIO PX6, and that was the only option. Dalmore A04 and A05 can route
-> TEMP_ALERT to either GPIO PO4, or GPIO PX6 using 0-Ohm resistors, with
-> GPIO PO4 being the default stuffing option.
->
-> Note that upstream Linux *only* supports Dalmore A04, and no other
-> version. If you have a different board revision, it's not expected to
-> work with upstream. IIRC, Eric Brower volunteered to track down the
-> correct board revision for people working on upstream.
-
-Indeed, that's probably the problem, then
-
-It would be good if this was documented somewhere in the upstream kernel 
-tree.  And even better if the kernel was able to read the Dalmore EEPROM 
-and print out a warning upon kernel boot...
-
-thanks,
-
-- Paul
 
 _______________________________________________
 lm-sensors mailing list
