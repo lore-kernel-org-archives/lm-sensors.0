@@ -1,363 +1,88 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 31 Dec 2013 16:20:48 +0000
-Subject: [lm-sensors] [PATCH v3 1/5] input: Add new sun4i-ts driver for Allwinner sunxi SoC's rtp controller
-Message-Id: <1388506852-3548-2-git-send-email-hdegoede@redhat.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:30:19 +0000
+Subject: [lm-sensors] [PATCH 12/14] i8k: Use driver_data field of dmi_system_id to override fan multiplier
+Message-Id: <1387042221-3671-13-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1388506852-3548-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Note the sun4i-ts controller is capable of detecting a second touch, but when
-a second touch is present then the accuracy becomes so bad the reported touch
-location is not useable.
+At least on Studio 1555 and XPS M140, the fan speed is reported directly,
+not with the default speed multiplier of 30. Information on the web
+suggests that this may be true for other models as well, though it is
+unknown at this time which systems may be affected.
 
-The original android driver contains some complicated heuristics using the
-aprox. distance between the 2 touches to see if the user is making a pinch
-open / close movement, and then reports emulated multi-touch events around
-the last touch coordinate (as the dual-touch coordinates are worthless).
+Use the driver_data field of dmi_system_id to override the default fan
+multiplier value for the two systems known to use a multiplier of 1.
 
-These kinds of heuristics are just asking for trouble (and don't belong
-in the kernel). So this driver offers straight forward, reliable single
-touch functionality only.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- .../bindings/input/touchscreen/sun4i.txt           |  15 ++
- drivers/input/touchscreen/Kconfig                  |  10 +
- drivers/input/touchscreen/Makefile                 |   1 +
- drivers/input/touchscreen/sun4i-ts.c               | 262 +++++++++++++++++++++
- 4 files changed, 288 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
- create mode 100644 drivers/input/touchscreen/sun4i-ts.c
+ drivers/char/i8k.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-new file mode 100644
-index 0000000..e45927e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-@@ -0,0 +1,15 @@
-+sun4i resistive touchscreen controller
-+--------------------------------------
-+
-+Required properties:
-+ - compatible: "allwinner,sun4i-ts"
-+ - reg: mmio address range of the chip
-+ - interrupts: interrupt to which the chip is connected
-+
-+Example:
-+
-+	rtp: rtp@01c25000 {
-+		compatible = "allwinner,sun4i-ts";
-+		reg = <0x01c25000 0x100>;
-+		interrupts = <29>;
-+	};
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index 961d58d..95023de 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -906,6 +906,16 @@ config TOUCHSCREEN_STMPE
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called stmpe-ts.
+diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
+index bd11dac..67e4256 100644
+--- a/drivers/char/i8k.c
++++ b/drivers/char/i8k.c
+@@ -65,6 +65,7 @@ static DEFINE_MUTEX(i8k_mutex);
+ static char bios_version[4];
+ static struct device *i8k_hwmon_dev;
+ static u32 i8k_hwmon_flags;
++static int i8k_fan_mult;
  
-+config TOUCHSCREEN_SUN4I
-+	tristate "Allwinner sun4i resistive touchscreen controller support"
-+	depends on ARCH_SUNXI
-+	help
-+	  This selects support for the resistive touchscreen controller
-+	  found on Allwinner sunxi SoCs.
+ #define I8K_HWMON_HAVE_TEMP1	(1 << 0)
+ #define I8K_HWMON_HAVE_TEMP2	(1 << 1)
+@@ -275,7 +276,7 @@ static int i8k_get_fan_speed(int fan)
+ 	struct smm_regs regs = { .eax = I8K_SMM_GET_SPEED, };
+ 
+ 	regs.ebx = fan & 0xff;
+-	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * fan_mult;
++	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * i8k_fan_mult;
+ }
+ 
+ /*
+@@ -691,6 +692,7 @@ static struct dmi_system_id i8k_dmi_table[] __initdata = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Studio"),
+ 		},
++		.driver_data = (void *)1,	/* fan multiplier override */
+ 	},
+ 	{
+ 		.ident = "Dell XPS M140",
+@@ -698,6 +700,7 @@ static struct dmi_system_id i8k_dmi_table[] __initdata = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "MXC051"),
+ 		},
++		.driver_data = (void *)1,	/* fan multiplier override */
+ 	},
+ 	{ }
+ };
+@@ -709,6 +712,7 @@ static int __init i8k_probe(void)
+ {
+ 	char buff[4];
+ 	int version;
++	const struct dmi_system_id *id;
+ 
+ 	/*
+ 	 * Get DMI information
+@@ -762,6 +766,11 @@ static int __init i8k_probe(void)
+ 				buff, bios_version);
+ 	}
+ 
++	i8k_fan_mult = fan_mult;
++	id = dmi_first_match(i8k_dmi_table);
++	if (id && fan_mult = I8K_FAN_MULT && id->driver_data)
++		i8k_fan_mult = (unsigned long)id->driver_data;
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called sun4i-ts.
-+
- config TOUCHSCREEN_SUR40
- 	tristate "Samsung SUR40 (Surface 2.0/PixelSense) touchscreen"
- 	depends on USB
-diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index 62801f2..c8f7375 100644
---- a/drivers/input/touchscreen/Makefile
-+++ b/drivers/input/touchscreen/Makefile
-@@ -54,6 +54,7 @@ obj-$(CONFIG_TOUCHSCREEN_PIXCIR)	+= pixcir_i2c_ts.o
- obj-$(CONFIG_TOUCHSCREEN_S3C2410)	+= s3c2410_ts.o
- obj-$(CONFIG_TOUCHSCREEN_ST1232)	+= st1232.o
- obj-$(CONFIG_TOUCHSCREEN_STMPE)		+= stmpe-ts.o
-+obj-$(CONFIG_TOUCHSCREEN_SUN4I)		+= sun4i-ts.o
- obj-$(CONFIG_TOUCHSCREEN_SUR40)		+= sur40.o
- obj-$(CONFIG_TOUCHSCREEN_TI_AM335X_TSC)	+= ti_am335x_tsc.o
- obj-$(CONFIG_TOUCHSCREEN_TNETV107X)	+= tnetv107x-ts.o
-diff --git a/drivers/input/touchscreen/sun4i-ts.c b/drivers/input/touchscreen/sun4i-ts.c
-new file mode 100644
-index 0000000..5945219
---- /dev/null
-+++ b/drivers/input/touchscreen/sun4i-ts.c
-@@ -0,0 +1,262 @@
-+/*
-+ * Allwinner sunxi resistive touchscreen controller driver
-+ *
-+ * Copyright (C) 2013 - 2014 Hans de Goede <hdegoede@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/*
-+ * The sun4i-ts controller is capable of detecting a second touch, but when a
-+ * second touch is present then the accuracy becomes so bad the reported touch
-+ * location is not useable.
-+ *
-+ * The original android driver contains some complicated heuristics using the
-+ * aprox. distance between the 2 touches to see if the user is making a pinch
-+ * open / close movement, and then reports emulated multi-touch events around
-+ * the last touch coordinate (as the dual-touch coordinates are worthless).
-+ *
-+ * These kinds of heuristics are just asking for trouble (and don't belong
-+ * in the kernel). So this driver offers straight forward, reliable single
-+ * touch functionality only.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#define TP_CTRL0		0x00
-+#define TP_CTRL1		0x04
-+#define TP_CTRL2		0x08
-+#define TP_CTRL3		0x0c
-+#define TP_INT_FIFOC		0x10
-+#define TP_INT_FIFOS		0x14
-+#define TP_TPR			0x18
-+#define TP_CDAT			0x1c
-+#define TEMP_DATA		0x20
-+#define TP_DATA			0x24
-+
-+/* TP_CTRL0 bits */
-+#define ADC_FIRST_DLY(x)	((x) << 24) /* 8 bits */
-+#define ADC_FIRST_DLY_MODE(x)	((x) << 23)
-+#define ADC_CLK_SEL(x)		((x) << 22)
-+#define ADC_CLK_DIV(x)		((x) << 20) /* 3 bits */
-+#define FS_DIV(x)		((x) << 16) /* 4 bits */
-+#define T_ACQ(x)		((x) << 0) /* 16 bits */
-+
-+/* TP_CTRL1 bits */
-+#define STYLUS_UP_DEBOUN(x)	((x) << 12) /* 8 bits */
-+#define STYLUS_UP_DEBOUN_EN(x)	((x) << 9)
-+#define TOUCH_PAN_CALI_EN(x)	((x) << 6)
-+#define TP_DUAL_EN(x)		((x) << 5)
-+#define TP_MODE_EN(x)		((x) << 4)
-+#define TP_ADC_SELECT(x)	((x) << 3)
-+#define ADC_CHAN_SELECT(x)	((x) << 0)  /* 3 bits */
-+
-+/* TP_CTRL2 bits */
-+#define TP_SENSITIVE_ADJUST(x)	((x) << 28) /* 4 bits */
-+#define TP_MODE_SELECT(x)	((x) << 26) /* 2 bits */
-+#define PRE_MEA_EN(x)		((x) << 24)
-+#define PRE_MEA_THRE_CNT(x)	((x) << 0) /* 24 bits */
-+
-+/* TP_CTRL3 bits */
-+#define FILTER_EN(x)		((x) << 2)
-+#define FILTER_TYPE(x)		((x) << 0)  /* 2 bits */
-+
-+/* TP_INT_FIFOC irq and fifo mask / control bits */
-+#define TEMP_IRQ_EN(x)		((x) << 18)
-+#define OVERRUN_IRQ_EN(x)	((x) << 17)
-+#define DATA_IRQ_EN(x)		((x) << 16)
-+#define TP_DATA_XY_CHANGE(x)	((x) << 13)
-+#define FIFO_TRIG(x)		((x) << 8)  /* 5 bits */
-+#define DATA_DRQ_EN(x)		((x) << 7)
-+#define FIFO_FLUSH(x)		((x) << 4)
-+#define TP_UP_IRQ_EN(x)		((x) << 1)
-+#define TP_DOWN_IRQ_EN(x)	((x) << 0)
-+
-+/* TP_INT_FIFOS irq and fifo status bits */
-+#define TEMP_DATA_PENDING	BIT(18)
-+#define FIFO_OVERRUN_PENDING	BIT(17)
-+#define FIFO_DATA_PENDING	BIT(16)
-+#define TP_IDLE_FLG		BIT(2)
-+#define TP_UP_PENDING		BIT(1)
-+#define TP_DOWN_PENDING		BIT(0)
-+
-+/* TP_TPR bits */
-+#define TEMP_ENABLE(x)		((x) << 16)
-+#define TEMP_PERIOD(x)		((x) << 0)  /* t = x * 256 * 16 / clkin */
-+
-+struct sun4i_ts_data {
-+	struct device *dev;
-+	struct input_dev *input;
-+	void __iomem *base;
-+	unsigned int irq;
-+	bool ignore_fifo_data;
-+};
-+
-+static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
-+{
-+	struct sun4i_ts_data *ts = dev_id;
-+	u32 reg_val, x, y;
-+
-+	reg_val  = readl(ts->base + TP_INT_FIFOS);
-+
-+	if (reg_val & FIFO_DATA_PENDING) {
-+		x = readl(ts->base + TP_DATA);
-+		y = readl(ts->base + TP_DATA);
-+		/* The 1st location reported after an up event is unreliable */
-+		if (!ts->ignore_fifo_data) {
-+			input_report_abs(ts->input, ABS_X, x);
-+			input_report_abs(ts->input, ABS_Y, y);
-+			/*
-+			 * The hardware has a separate down status bit, but
-+			 * that gets set before we get the first location,
-+			 * resulting in reporting a click on the old location.
-+			 */
-+			input_report_key(ts->input, BTN_TOUCH, 1);
-+			input_sync(ts->input);
-+		} else {
-+			ts->ignore_fifo_data = false;
-+		}
-+	}
-+
-+	if (reg_val & TP_UP_PENDING) {
-+		ts->ignore_fifo_data = true;
-+		input_report_key(ts->input, BTN_TOUCH, 0);
-+		input_sync(ts->input);
-+	}
-+
-+	writel(reg_val, ts->base + TP_INT_FIFOS);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int sun4i_ts_open(struct input_dev *dev)
-+{
-+	struct sun4i_ts_data *ts = input_get_drvdata(dev);
-+
-+	/* Flush, set trig level to 1, enable data and up irqs */
-+	writel(DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) | TP_UP_IRQ_EN(1),
-+	       ts->base + TP_INT_FIFOC);
-+
-+	return 0;
-+}
-+
-+static void sun4i_ts_close(struct input_dev *dev)
-+{
-+	struct sun4i_ts_data *ts = input_get_drvdata(dev);
-+
-+	/* Deactivate all IRQs */
-+	writel(0, ts->base + TP_INT_FIFOC);
-+}
-+
-+static int sun4i_ts_probe(struct platform_device *pdev)
-+{
-+	struct sun4i_ts_data *ts;
-+	struct device *dev = &pdev->dev;
-+	int ret;
-+
-+	ts = devm_kzalloc(dev, sizeof(struct sun4i_ts_data), GFP_KERNEL);
-+	if (!ts)
-+		return -ENOMEM;
-+
-+	ts->dev = dev;
-+	ts->ignore_fifo_data = true;
-+
-+	ts->input = devm_input_allocate_device(dev);
-+	if (!ts->input)
-+		return -ENOMEM;
-+
-+	ts->input->name = pdev->name;
-+	ts->input->phys = "sun4i_ts/input0";
-+	ts->input->open = sun4i_ts_open;
-+	ts->input->close = sun4i_ts_close;
-+	ts->input->id.bustype = BUS_HOST;
-+	ts->input->id.vendor = 0x0001;
-+	ts->input->id.product = 0x0001;
-+	ts->input->id.version = 0x0100;
-+	ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
-+	set_bit(BTN_TOUCH, ts->input->keybit);
-+	input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
-+	input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
-+	input_set_drvdata(ts->input, ts);
-+
-+	ts->base = devm_ioremap_resource(dev,
-+			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
-+	if (IS_ERR(ts->base))
-+		return PTR_ERR(ts->base);
-+
-+	ts->irq = platform_get_irq(pdev, 0);
-+	ret = devm_request_irq(dev, ts->irq, sun4i_ts_irq, 0, "sun4i-ts", ts);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Select HOSC clk, clkin = clk / 6, adc samplefreq = clkin / 8192,
-+	 * t_acq = clkin / (16 * 64)
-+	 */
-+	writel(ADC_CLK_SEL(0) | ADC_CLK_DIV(2) | FS_DIV(7) | T_ACQ(63),
-+	       ts->base + TP_CTRL0);
-+
-+	/*
-+	 * sensitive_adjust = 15 : max, which is not all that sensitive,
-+	 * tp_mode = 0 : only x and y coordinates, as we don't use dual touch
-+	 */
-+	writel(TP_SENSITIVE_ADJUST(15) | TP_MODE_SELECT(0),
-+	       ts->base + TP_CTRL2);
-+
-+	/* Enable median filter, type 1 : 5/3 */
-+	writel(FILTER_EN(1) | FILTER_TYPE(1), ts->base + TP_CTRL3);
-+
-+	/* Enable temperature measurement, period 1953 (2 seconds) */
-+	writel(TEMP_ENABLE(1) | TEMP_PERIOD(1953), ts->base + TP_TPR);
-+
-+	/*
-+	 * Set stylus up debounce to aprox 10 ms, enable debounce, and
-+	 * finally enable tp mode.
-+	 */
-+	writel(STYLUS_UP_DEBOUN(5) | STYLUS_UP_DEBOUN_EN(1) | TP_MODE_EN(1),
-+	       ts->base + TP_CTRL1);
-+
-+	ret = input_register_device(ts->input);
-+	if (ret)
-+		return ret;
-+
-+	platform_set_drvdata(pdev, ts);
-+	return 0;
-+}
-+
-+static const struct of_device_id sun4i_ts_of_match[] = {
-+	{ .compatible = "allwinner,sun4i-ts", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, sun4i_ts_of_match);
-+
-+static struct platform_driver sun4i_ts_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "sun4i-ts",
-+		.of_match_table = of_match_ptr(sun4i_ts_of_match),
-+	},
-+	.probe	= sun4i_ts_probe,
-+};
-+
-+module_platform_driver(sun4i_ts_driver);
-+
-+MODULE_DESCRIPTION("Allwinner sun4i resistive touchscreen controller driver");
-+MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
-+MODULE_LICENSE("GPL");
+ 	return 0;
+ }
+ 
 -- 
-1.8.4.2
+1.7.9.7
 
 
 _______________________________________________
