@@ -1,31 +1,39 @@
-From: Robert Coulson <rob.coulson@gmail.com>
-Date: Mon, 09 Dec 2013 17:15:01 +0000
-Subject: Re: [lm-sensors] Device Support information update
-Message-Id: <CAEZKy8LYt=RgajjVaJHYBSbooiZRZJReUzA5Fj2S_tc=HwZiDw@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:30:07 +0000
+Subject: [lm-sensors] [PATCH 00/12] i8k patch series
+Message-Id: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAEZKy8Jn2akvQQ+3i_tXZvc5EydS18k2_ovz9zSs+1N-adeZ_A@mail.gmail.com>
-In-Reply-To: <CAEZKy8Jn2akvQQ+3i_tXZvc5EydS18k2_ovz9zSs+1N-adeZ_A@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-perfect.
+Clean up and simplify the driver, add support for additional temperature
+sensors, fix a problem seen with multi-core CPU, and add support
+for additional systems.
 
+----------------------------------------------------------------
+Guenter Roeck (14):
+      i8k: Convert to use pr_ functions instead of printk
+      i8k: Fix various checkpatch warnings and errors
+      i8k: Convert to use to hwmon_device_register_with_groups hwmon API
+      i8k: Support additional temperature sensors
+      MAINTAINERS: Add myself as i8k maintainer
+      i8k: Remove obsolete link to out-of-tree driver
+      i8k: Drop driver version number and info message at startup
+      i8k: Force SMM to run on CPU 0
+      i8k: Add copyright
+      i8k: Add support for Dell Studio laptops
+      i8k: Add support for Dell XPS M140
+      i8k: Use driver_data field of dmi_system_id to override fan multiplier
+      i8k: Stop reading SMM BIOS version during driver probe
+      i8k: Implement hwmon based fan speed control
 
-On Sun, Dec 8, 2013 at 11:05 PM, Jean Delvare <khali@linux-fr.org> wrote:
+ MAINTAINERS        |    2 +-
+ drivers/char/i8k.c |  358 +++++++++++++++++++++++++++++-----------------------
+ 2 files changed, 201 insertions(+), 159 deletions(-)
 
-> On Sun, 8 Dec 2013 17:21:56 -0800, Robert Coulson wrote:
-> > Thank you, the changes look great to me. (-:
-> >
-> > With regard to the DS1625, since it is no longer handled as a DS1621,
-> > perhaps the comment about it should be changed?
->
-> Good point, done.
->
-> --
-> Jean Delvare
->
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
