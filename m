@@ -1,42 +1,43 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Date: Sun, 08 Dec 2013 21:02:18 +0000
-Subject: [lm-sensors] [PATCH 3/3] dt: Describe modalias resolution in i2c/trivial-devices.txt
-Message-Id: <1386536538-14861-3-git-send-email-bgamari.foss@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:30:17 +0000
+Subject: [lm-sensors] [PATCH 10/14] i8k: Add support for Dell Studio laptops
+Message-Id: <1387042221-3671-11-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1386536538-14861-1-git-send-email-bgamari.foss@gmail.com>
-In-Reply-To: <1386536538-14861-1-git-send-email-bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-Cc: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-To someone with little device-tree experience these details aren't at
-all obvious. Make the fact that the manufacturer prefix is dropped
-explicit.
+Tested with Dell Studio 1555.
 
-Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- Documentation/devicetree/bindings/i2c/trivial-devices.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/i8k.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/i2c/trivial-devices.txt b/Documentation/devicetree/bindings/i2c/trivial-devices.txt
-index c475c3a..59bbb07 100644
---- a/Documentation/devicetree/bindings/i2c/trivial-devices.txt
-+++ b/Documentation/devicetree/bindings/i2c/trivial-devices.txt
-@@ -1,6 +1,9 @@
- This is a list of trivial i2c devices that have simple device tree
- bindings, consisting only of a compatible field, an address and
--possibly an interrupt line.
-+possibly an interrupt line. The compatible field is used by lookup
-+the modalias for the driver which will handle the device. A
-+manufacturer prefix (separated by a comma) will be stripped off during
-+this lookup.
+diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
+index 6aed11f..b35ccaa 100644
+--- a/drivers/char/i8k.c
++++ b/drivers/char/i8k.c
+@@ -685,6 +685,13 @@ static struct dmi_system_id i8k_dmi_table[] __initdata = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Vostro"),
+ 		},
+ 	},
++	{
++		.ident = "Dell Studio",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Studio"),
++		},
++	},
+ 	{ }
+ };
  
- If a device needs more specific bindings, such as properties to
- describe some aspect of it, there needs to be a specific binding
 -- 
-1.8.3.2
+1.7.9.7
 
 
 _______________________________________________
