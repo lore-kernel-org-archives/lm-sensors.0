@@ -1,28 +1,79 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 31 Dec 2013 16:20:47 +0000
-Subject: [lm-sensors] [PATCH v3 0/5] input: Add new sun4i-ts driver for Allwinner sunxi
-Message-Id: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:30:15 +0000
+Subject: [lm-sensors] [PATCH 08/14] i8k: Force SMM to run on CPU 0
+Message-Id: <1387042221-3671-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>
 
-Hi All,
+On Studio 1555 with dual-core CPU, reading sensor attributes
+exported by this driver resulted in random failures combined
+with system hangups and forced logouts. Information in
+drivers/firmware/dcdbas.c suggests that SMM accesses must
+run on CPU 0. With this patch, the problems are gone,
+suggesting that this is in fact the case.
 
-Here is v3 of my sun4i-ts driver for Allwinner sunxi patch-set.
+Code derived from drivers/firmware/dcdbas.c.
 
-Changed this version:
--Addressed review comments from Dimitri
--Addressed review comments from Guenter
--Addressed review comments from Maxime
--Initialize ignore_fifo_data to true, the very first coordinate can be
- wrong too
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/char/i8k.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-Thanks & Regards,
+diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
+index ad0acef..264be2b 100644
+--- a/drivers/char/i8k.c
++++ b/drivers/char/i8k.c
+@@ -31,6 +31,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
++#include <linux/sched.h>
+ 
+ #include <linux/i8k.h>
+ 
+@@ -130,6 +131,17 @@ static int i8k_smm(struct smm_regs *regs)
+ {
+ 	int rc;
+ 	int eax = regs->eax;
++	cpumask_var_t old_mask;
++
++	/* SMM requires CPU 0 */
++	if (!alloc_cpumask_var(&old_mask, GFP_KERNEL))
++		return -ENOMEM;
++	cpumask_copy(old_mask, &current->cpus_allowed);
++	set_cpus_allowed_ptr(current, cpumask_of(0));
++	if (smp_processor_id() != 0) {
++		rc = -EBUSY;
++		goto out;
++	}
+ 
+ #if defined(CONFIG_X86_64)
+ 	asm volatile("pushq %%rax\n\t"
+@@ -185,9 +197,12 @@ static int i8k_smm(struct smm_regs *regs)
+ 	    :    "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory");
+ #endif
+ 	if (rc != 0 || (regs->eax & 0xffff) = 0xffff || regs->eax = eax)
+-		return -EINVAL;
++		rc = -EINVAL;
+ 
+-	return 0;
++out:
++	set_cpus_allowed_ptr(current, old_mask);
++	free_cpumask_var(old_mask);
++	return rc;
+ }
+ 
+ /*
+-- 
+1.7.9.7
 
-Hans
 
 _______________________________________________
 lm-sensors mailing list
