@@ -1,33 +1,50 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Fri, 27 Dec 2013 14:59:54 +0000
-Subject: [lm-sensors] [PATCH v2 0/5] input: Add new sun4i-ts driver for Allwinner sunxi
-Message-Id: <1388156399-29677-1-git-send-email-hdegoede@redhat.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:30:14 +0000
+Subject: [lm-sensors] [PATCH 07/14] i8k: Drop driver version number and info message at startup
+Message-Id: <1387042221-3671-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Hi Dimitri et al,
+The driver version number is long since obsolete, so drop it.
+Also, drop the info message at driver startup to reduce boot noise.
 
-Here is v2 of my sun4i-ts patch-set.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/char/i8k.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-Changes since v1:
--Use devm_kzalloc and devm_hwmon_device_register_with_groups as suggested
- by Guenter Roeck
--Various small cleanups suggested by Thomas Petazzoni
--Add open/close methods and enable/disable the input related interrupts from
- there as suggested by you (Dimitri)
+diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
+index 5b3682c..ad0acef 100644
+--- a/drivers/char/i8k.c
++++ b/drivers/char/i8k.c
+@@ -34,8 +34,6 @@
+ 
+ #include <linux/i8k.h>
+ 
+-#define I8K_VERSION		"1.14 21/02/2005"
+-
+ #define I8K_SMM_FN_STATUS	0x0025
+ #define I8K_SMM_POWER_STATUS	0x0069
+ #define I8K_SMM_SET_FAN		0x01a3
+@@ -755,9 +753,6 @@ static int __init i8k_init(void)
+ 	if (err)
+ 		goto exit_remove_proc;
+ 
+-	pr_info("Dell laptop SMM driver v%s Massimo Dal Zotto (dz@debian.org)\n",
+-		I8K_VERSION);
+-
+ 	return 0;
+ 
+  exit_remove_proc:
+-- 
+1.7.9.7
 
-Assuming there is no more feedback, can you please add the 1st 2 patches
-to your tree for 3.14 ?
-
-Maxime, can you please add the dts bits to your dts tree for 3.14 ?
-
-Thanks & Regards,
-
-Hans
 
 _______________________________________________
 lm-sensors mailing list
