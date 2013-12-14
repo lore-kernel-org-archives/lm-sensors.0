@@ -1,38 +1,48 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Dec 2013 17:30:07 +0000
-Subject: [lm-sensors] [PATCH 00/12] i8k patch series
-Message-Id: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+Date: Sat, 14 Dec 2013 17:38:21 +0000
+Subject: Re: [lm-sensors] [PATCH 00/12] i8k patch series
+Message-Id: <52AC978D.6020602@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Clean up and simplify the driver, add support for additional temperature
-sensors, fix a problem seen with multi-core CPU, and add support
-for additional systems.
+On 12/14/2013 09:30 AM, Guenter Roeck wrote:
+> Clean up and simplify the driver, add support for additional temperature
+> sensors, fix a problem seen with multi-core CPU, and add support
+> for additional systems.
+>
+Sigh. Headline should have read 00/14, obviously.
 
-----------------------------------------------------------------
-Guenter Roeck (14):
-      i8k: Convert to use pr_ functions instead of printk
-      i8k: Fix various checkpatch warnings and errors
-      i8k: Convert to use to hwmon_device_register_with_groups hwmon API
-      i8k: Support additional temperature sensors
-      MAINTAINERS: Add myself as i8k maintainer
-      i8k: Remove obsolete link to out-of-tree driver
-      i8k: Drop driver version number and info message at startup
-      i8k: Force SMM to run on CPU 0
-      i8k: Add copyright
-      i8k: Add support for Dell Studio laptops
-      i8k: Add support for Dell XPS M140
-      i8k: Use driver_data field of dmi_system_id to override fan multiplier
-      i8k: Stop reading SMM BIOS version during driver probe
-      i8k: Implement hwmon based fan speed control
+Guenter
 
- MAINTAINERS        |    2 +-
- drivers/char/i8k.c |  358 +++++++++++++++++++++++++++++-----------------------
- 2 files changed, 201 insertions(+), 159 deletions(-)
+> ----------------------------------------------------------------
+> Guenter Roeck (14):
+>        i8k: Convert to use pr_ functions instead of printk
+>        i8k: Fix various checkpatch warnings and errors
+>        i8k: Convert to use to hwmon_device_register_with_groups hwmon API
+>        i8k: Support additional temperature sensors
+>        MAINTAINERS: Add myself as i8k maintainer
+>        i8k: Remove obsolete link to out-of-tree driver
+>        i8k: Drop driver version number and info message at startup
+>        i8k: Force SMM to run on CPU 0
+>        i8k: Add copyright
+>        i8k: Add support for Dell Studio laptops
+>        i8k: Add support for Dell XPS M140
+>        i8k: Use driver_data field of dmi_system_id to override fan multiplier
+>        i8k: Stop reading SMM BIOS version during driver probe
+>        i8k: Implement hwmon based fan speed control
+>
+>   MAINTAINERS        |    2 +-
+>   drivers/char/i8k.c |  358 +++++++++++++++++++++++++++++-----------------------
+>   2 files changed, 201 insertions(+), 159 deletions(-)
+>
+>
+
 
 _______________________________________________
 lm-sensors mailing list
