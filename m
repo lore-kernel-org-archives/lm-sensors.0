@@ -1,48 +1,41 @@
 From: Anthony Olech <anthony.olech.opensource@diasemi.com>
-Date: Wed, 18 Dec 2013 15:15:31 +0000
-Subject: [lm-sensors] [PATCH V1] fix adc to voltage calculation in da9052 hwmon driver
-Message-Id: <201312181524.rBIFOhNp017016@swsrvapps-02.lan>
+Date: Wed, 18 Dec 2013 15:21:13 +0000
+Subject: [lm-sensors] [PATCH V1] fix adc to voltage calculation in da9052 power driver
+Message-Id: <201312181524.rBIFOv96017094@swsrvapps-02.lan>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201312181524.rBIFOhNp017016@swsrvapps-02.lan>
+In-Reply-To: <201312181524.rBIFOhNp017016@swsrvapps-02.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+To: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>
 Cc: "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>, David Dajun Chen <david.chen@diasemi.com>
 
 The ADC resolution of the PMIC is 10-bits, this means that the maximum
-possible value is 1023 and not the 1024 as originally in the code.
+possible value is 1023 and not the 1024 as in the code.
 
 Signed-off-by: Anthony Olech <anthony.olech.opensource@diasemi.com>
 ---
 This patch is relative to linux-next repository tag next-20131218
 
- drivers/hwmon/da9052-hwmon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/power/da9052-battery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-index 960fac3..afd3104 100644
---- a/drivers/hwmon/da9052-hwmon.c
-+++ b/drivers/hwmon/da9052-hwmon.c
-@@ -45,7 +45,7 @@ static const char * const input_names[] = {
- /* Conversion function for VDDOUT and VBAT */
- static inline int volt_reg_to_mv(int value)
+diff --git a/drivers/power/da9052-battery.c b/drivers/power/da9052-battery.c
+index f8f4c0f..8f0f259 100644
+--- a/drivers/power/da9052-battery.c
++++ b/drivers/power/da9052-battery.c
+@@ -178,7 +178,7 @@ struct da9052_battery {
+ 
+ static inline int volt_reg_to_mV(int value)
  {
--	return DIV_ROUND_CLOSEST(value * 1000, 512) + 2500;
+-	return ((value * 1000) / 512) + 2500;
 +	return DIV_ROUND_CLOSEST(value * 2000, 1023) + 2500;
  }
  
- /* Conversion function for ADC channels 4, 5 and 6 */
-@@ -57,7 +57,7 @@ static inline int input_reg_to_mv(int value)
- /* Conversion function for VBBAT */
- static inline int vbbat_reg_to_mv(int value)
- {
--	return DIV_ROUND_CLOSEST(value * 2500, 512);
-+	return DIV_ROUND_CLOSEST(value * 5000, 1023);
- }
- 
- static inline int da9052_enable_vddout_channel(struct da9052 *da9052)
+ static inline int ichg_reg_to_mA(int value)
 -- 
-end-of-patch for fix adc to voltage calculation in da9052 hwmon driver V1
+end-of-patch for fix adc to voltage calculation in da9052 power driver V1
 
 
 _______________________________________________
