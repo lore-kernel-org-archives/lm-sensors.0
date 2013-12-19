@@ -1,87 +1,94 @@
-From: "Opensource [Anthony Olech]" <anthony.olech.opensource@diasemi.com>
-Date: Thu, 19 Dec 2013 14:13:09 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 19 Dec 2013 14:54:54 +0000
 Subject: Re: [lm-sensors] [PATCH V1] fix adc to voltage calculation in da9052 power driver
-Message-Id: <24DF37198A1E704D9811D8F72B87EB51847AC2C3@NB-EX-MBX02.diasemi.com>
+Message-Id: <20131219155454.40100f4d@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201312181524.rBIFOv96017094@swsrvapps-02.lan>
- <20131218163234.714a166c@endymion.delvare>
- <24DF37198A1E704D9811D8F72B87EB51847ABF61@NB-EX-MBX02.diasemi.com>
- <20131218172402.GA18892@roeck-us.net>
-In-Reply-To: <20131218172402.GA18892@roeck-us.net>
+	<20131218163234.714a166c@endymion.delvare>
+	<24DF37198A1E704D9811D8F72B87EB51847ABF61@NB-EX-MBX02.diasemi.com>
+	<20131218172402.GA18892@roeck-us.net>
+	<24DF37198A1E704D9811D8F72B87EB51847AC2C3@NB-EX-MBX02.diasemi.com>
+In-Reply-To: <24DF37198A1E704D9811D8F72B87EB51847AC2C3@NB-EX-MBX02.diasemi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, "Opensource [Anthony Olech]" <anthony.olech.opensource@diasemi.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, open list <linux-kernel@vger.kernel.org>, David Dajun Chen <david.chen@diasemi.com>
+To: Anthony Olech <anthony.olech.opensource@diasemi.com>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, David Dajun Chen <david.chen@diasemi.com>
 
-> -----Original Message-----
-> From: Guenter Roeck [mailto:groeck7@gmail.com] On Behalf Of Guenter
-> Roeck
-> Sent: 18 December 2013 17:24
-> To: Opensource [Anthony Olech]
-> Cc: Jean Delvare; open list:HARDWARE MONITORING; Anton Vorontsov;
-> David Woodhouse; open list; David Dajun Chen
-> Subject: Re: [lm-sensors] [PATCH V1] fix adc to voltage calculation in da9052
-> power driver
-> On Wed, Dec 18, 2013 at 03:45:32PM +0000, Opensource [Anthony Olech]
-> wrote:
-> > > -----Original Message-----
-> > > From: Jean Delvare [mailto:khali@linux-fr.org]
-> > > Sent: 18 December 2013 15:33
-> > > To: Opensource [Anthony Olech]
-> > > Cc: Anton Vorontsov; David Woodhouse; David Dajun Chen; open list;
-> > > open list:HARDWARE MONITORING
-> > > Subject: Re: [lm-sensors] [PATCH V1] fix adc to voltage calculation
-> > > in da9052 power driver On Wed, 18 Dec 2013 15:21:13 +0000, Anthony
-> > > Olech wrote:
-> > > > The ADC resolution of the PMIC is 10-bits, this means that the
-> > > > maximum possible value is 1023 and not the 1024 as in the code.
-> > > The conversion from register value to mV depends on the ADC's LSB,
-> > > not its range. So the maximum value which can be represented is
-> irrelevant.
-> > thanks for the speedy response, but the converted value returned by
-> > the function does depend on the scaling.
-> > For example take the two cases where value in 0x1F0, then the
-> > erroneous previous calculation yields 3469 and the new corrected
-> > calculation yields 3470
-> > So please apply the patch as it truly fixes an error.
-> AFAICS the previous calculation should return 3468. Replacing the division by
-> 512 with DIV_ROUND_CLOSEST would return 3469, and the new calculation
-> would return 3470.
-> Still, an ADC would typically have an LSB. Question here is what that LSB is (in
-> mV), or in other words what the maximim voltage represented by 0x3ff is.
-> Current assumption is that it is 1.9531 mV or 2000/1024, which admittedly is
-> odd. It might be 2000/1023 = 1.9550 mV, or it might be 2 mV.
-
-the maximum voltage represented by 0x3ff is 2000 mV, so the existing code is
-incorrect and the patch is to correct the error.
-
-many thanks for your comment,
-
-Tony Olech
- 
-> Thanks,
-> Guenter
-> > many thanks
-> > Tony Olech
-> > > > Signed-off-by: Anthony Olech
-> > > > <anthony.olech.opensource@diasemi.com>
-> > > > This patch is relative to linux-next repository tag next-20131218
-> > > >  drivers/power/da9052-battery.c |    2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-) diff --git
-> > > > a/drivers/power/da9052-battery.c b/drivers/power/da9052-battery.c
-> > > > index f8f4c0f..8f0f259 100644
-> > > > --- a/drivers/power/da9052-battery.c
-> > > > +++ b/drivers/power/da9052-battery.c
-> > > > @@ -178,7 +178,7 @@ struct da9052_battery {  static inline int
-> > > > volt_reg_to_mV(int value)  {
-> > > > -	return ((value * 1000) / 512) + 2500;
-> > > > +	return DIV_ROUND_CLOSEST(value * 2000, 1023) + 2500;
-> > > >  }
-> > > >  static inline int ichg_reg_to_mA(int value)
-> > > Jean Delvare 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQW50aG9ueSwKCk9uIFRodSwgMTkgRGVjIDIwMTMgMTQ6MTM6MDkgKzAwMDAsIE9wZW5zb3Vy
+Y2UgW0FudGhvbnkgT2xlY2hdIHdyb3RlOgo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0K
+PiA+IEZyb206IEd1ZW50ZXIgUm9lY2sgW21haWx0bzpncm9lY2s3QGdtYWlsLmNvbV0gT24gQmVo
+YWxmIE9mIEd1ZW50ZXIKPiA+IFJvZWNrCj4gPiBTZW50OiAxOCBEZWNlbWJlciAyMDEzIDE3OjI0
+Cj4gPiBUbzogT3BlbnNvdXJjZSBbQW50aG9ueSBPbGVjaF0KPiA+IENjOiBKZWFuIERlbHZhcmU7
+IG9wZW4gbGlzdDpIQVJEV0FSRSBNT05JVE9SSU5HOyBBbnRvbiBWb3JvbnRzb3Y7Cj4gPiBEYXZp
+ZCBXb29kaG91c2U7IG9wZW4gbGlzdDsgRGF2aWQgRGFqdW4gQ2hlbgo+ID4gU3ViamVjdDogUmU6
+IFtsbS1zZW5zb3JzXSBbUEFUQ0ggVjFdIGZpeCBhZGMgdG8gdm9sdGFnZSBjYWxjdWxhdGlvbiBp
+biBkYTkwNTIKPiA+IHBvd2VyIGRyaXZlcgo+ID4gT24gV2VkLCBEZWMgMTgsIDIwMTMgYXQgMDM6
+NDU6MzJQTSArMDAwMCwgT3BlbnNvdXJjZSBbQW50aG9ueSBPbGVjaF0KPiA+IHdyb3RlOgo+ID4g
+PiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gPiA+ID4gRnJvbTogSmVhbiBEZWx2YXJl
+IFttYWlsdG86a2hhbGlAbGludXgtZnIub3JnXQo+ID4gPiA+IFNlbnQ6IDE4IERlY2VtYmVyIDIw
+MTMgMTU6MzMKPiA+ID4gPiBUbzogT3BlbnNvdXJjZSBbQW50aG9ueSBPbGVjaF0KPiA+ID4gPiBD
+YzogQW50b24gVm9yb250c292OyBEYXZpZCBXb29kaG91c2U7IERhdmlkIERhanVuIENoZW47IG9w
+ZW4gbGlzdDsKPiA+ID4gPiBvcGVuIGxpc3Q6SEFSRFdBUkUgTU9OSVRPUklORwo+ID4gPiA+IFN1
+YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gW1BBVENIIFYxXSBmaXggYWRjIHRvIHZvbHRhZ2UgY2Fs
+Y3VsYXRpb24KPiA+ID4gPiBpbiBkYTkwNTIgcG93ZXIgZHJpdmVyIE9uIFdlZCwgMTggRGVjIDIw
+MTMgMTU6MjE6MTMgKzAwMDAsIEFudGhvbnkKPiA+ID4gPiBPbGVjaCB3cm90ZToKPiA+ID4gPiA+
+IFRoZSBBREMgcmVzb2x1dGlvbiBvZiB0aGUgUE1JQyBpcyAxMC1iaXRzLCB0aGlzIG1lYW5zIHRo
+YXQgdGhlCj4gPiA+ID4gPiBtYXhpbXVtIHBvc3NpYmxlIHZhbHVlIGlzIDEwMjMgYW5kIG5vdCB0
+aGUgMTAyNCBhcyBpbiB0aGUgY29kZS4KPiA+ID4gPiBUaGUgY29udmVyc2lvbiBmcm9tIHJlZ2lz
+dGVyIHZhbHVlIHRvIG1WIGRlcGVuZHMgb24gdGhlIEFEQydzIExTQiwKPiA+ID4gPiBub3QgaXRz
+IHJhbmdlLiBTbyB0aGUgbWF4aW11bSB2YWx1ZSB3aGljaCBjYW4gYmUgcmVwcmVzZW50ZWQgaXMK
+PiA+IGlycmVsZXZhbnQuCj4gPiA+IHRoYW5rcyBmb3IgdGhlIHNwZWVkeSByZXNwb25zZSwgYnV0
+IHRoZSBjb252ZXJ0ZWQgdmFsdWUgcmV0dXJuZWQgYnkKPiA+ID4gdGhlIGZ1bmN0aW9uIGRvZXMg
+ZGVwZW5kIG9uIHRoZSBzY2FsaW5nLgo+ID4gPiBGb3IgZXhhbXBsZSB0YWtlIHRoZSB0d28gY2Fz
+ZXMgd2hlcmUgdmFsdWUgaW4gMHgxRjAsIHRoZW4gdGhlCj4gPiA+IGVycm9uZW91cyBwcmV2aW91
+cyBjYWxjdWxhdGlvbiB5aWVsZHMgMzQ2OSBhbmQgdGhlIG5ldyBjb3JyZWN0ZWQKPiA+ID4gY2Fs
+Y3VsYXRpb24geWllbGRzIDM0NzAKPiA+ID4gU28gcGxlYXNlIGFwcGx5IHRoZSBwYXRjaCBhcyBp
+dCB0cnVseSBmaXhlcyBhbiBlcnJvci4KPiA+IEFGQUlDUyB0aGUgcHJldmlvdXMgY2FsY3VsYXRp
+b24gc2hvdWxkIHJldHVybiAzNDY4LiBSZXBsYWNpbmcgdGhlIGRpdmlzaW9uIGJ5Cj4gPiA1MTIg
+d2l0aCBESVZfUk9VTkRfQ0xPU0VTVCB3b3VsZCByZXR1cm4gMzQ2OSwgYW5kIHRoZSBuZXcgY2Fs
+Y3VsYXRpb24KPiA+IHdvdWxkIHJldHVybiAzNDcwLgo+ID4gU3RpbGwsIGFuIEFEQyB3b3VsZCB0
+eXBpY2FsbHkgaGF2ZSBhbiBMU0IuIFF1ZXN0aW9uIGhlcmUgaXMgd2hhdCB0aGF0IExTQiBpcyAo
+aW4KPiA+IG1WKSwgb3IgaW4gb3RoZXIgd29yZHMgd2hhdCB0aGUgbWF4aW1pbSB2b2x0YWdlIHJl
+cHJlc2VudGVkIGJ5IDB4M2ZmIGlzLgo+ID4gQ3VycmVudCBhc3N1bXB0aW9uIGlzIHRoYXQgaXQg
+aXMgMS45NTMxIG1WIG9yIDIwMDAvMTAyNCwgd2hpY2ggYWRtaXR0ZWRseSBpcwo+ID4gb2RkLiBJ
+dCBtaWdodCBiZSAyMDAwLzEwMjMgPSAxLjk1NTAgbVYsIG9yIGl0IG1pZ2h0IGJlIDIgbVYuCj4g
+Cj4gdGhlIG1heGltdW0gdm9sdGFnZSByZXByZXNlbnRlZCBieSAweDNmZiBpcyAyMDAwIG1WLCBz
+byB0aGUgZXhpc3RpbmcgY29kZSBpcwo+IGluY29ycmVjdCBhbmQgdGhlIHBhdGNoIGlzIHRvIGNv
+cnJlY3QgdGhlIGVycm9yLgoKV2hhdCBtYWtlcyB5b3UgdGhpbmsgc28/IFRoZSBkYXRhc2hlZXQg
+aXMgbm90IHB1YmxpYyBzbyB1bmZvcnR1bmF0ZWx5IEkKY2Fubm90IGNoZWNrIGl0IG15c2VsZi4g
+UGxlYXNlIHF1b3RlIHRoZSBwYXJ0cyBvZiB0aGUgZGF0YXNoZWV0IHdoaWNoCnlvdSB0aGluayBh
+cmUgcmVsZXZhbnQgdG8gY29udmluY2UgdXMuCgpJIGFuZCBHdWVudGVyIGFyZSBvbmx5IHNwZWFr
+aW5nIGJ5IGV4cGVyaWVuY2UuIFByb2R1Y3QgYnJpZWZzIG9mdGVuCm1lbnRpb24gdGhlIEFEQyBy
+YW5nZSBhcyBhbiBpbmZvcm1hdGl2ZSB2YWx1ZSBhbmQgdGhpcyBpcyBub3Qgc29tZXRoaW5nCnlv
+dSBjYW4gcmVseSBvbi4gRm9yIGV4YW1wbGUgOC1iaXQgQURDIGFyZSBvZnRlbiByZWZlcnJlZCB0
+byBhcyBoYXZpbmcKYSAyIFYsIDMgViBvciA0IFYgcmFuZ2UsIHdoaWxlIHdoZW4geW91IGxvb2sg
+YXQgdGhlIGRhdGFzaGVldCwgdGhleQpoYXZlIGEgOCBtViwgMTIgbVYgb3IgMTYgbVYgTFNCLCB3
+aGljaCBtZWFucyB0aGVpciBhY3R1YWwgcmFuZ2UgaXMKMi4wNDggViwgMy4wNzIgViBhbmQgNC4w
+OTYgViByZXNwZWN0aXZlbHkuCgpBZGRpdGlvbmFsbHksIGR1ZSB0byB0aGUgbGltaXRlZCByZXNv
+bHV0aW9uLCBlYWNoIEFEQyB2YWx1ZSByZXByZXNlbnRzCmEgcmFuZ2Ugb2YgaW5wdXQgdmFsdWVz
+LCByYXRoZXIgdGhhbiBhbiBpbnB1dCB2YWx1ZS4gMHgwMCBkb2Vzbid0IG1lYW4KIjAgbVYiLCBp
+cyB0eXBpY2FsbHkgbWVhbnMgImxlc3MgdGhhbiB3aGF0ZXZlciAxIExTQiByZXByZXNlbnRzIi4g
+U29tZQpkYXRhc2hlZXRzIGFyZSB2ZXJ5IGNsZWFyIG9uIHRoYXQsIHNlZSBmb3IgZXhhbXBsZSB0
+aGUgQURUNzQ5MApkYXRhc2hlZXQsIHBhZ2UgMTYsIHRhYmxlIDcsICIxMOKIkkJpdCBBREMgT3V0
+cHV0IENvZGUgdnMuIFYgSU4iLiBUaGlzCm1lYW5zIHRoYXQgd2hhdCB0aGUgZHJpdmVycyByZXBv
+cnQgKHJlZ2lzdGVyIHZhbHVlICogTFNCKSBpcyBvZmYgYnkgMC41CkxTQiBvbiBhdmVyYWdlLiBB
+bGwgZHJpdmVycyBkbyB0aGF0IGFuZCB0aGlzIGlzIGNvbnNpZGVyZWQgT0suCgpUaGlzIGFsc28g
+bWVhbnMgdGhhdCB0aGUgdG9wIHZhbHVlIG9mIHRoZSByYW5nZSBpcyBuZXZlciByZXBvcnRlZC4K
+Q29uc2lkZXIgYW4gOC1iaXQgQURDIHdpdGggYSBMU0Igb2YgMTYgbVYsIGl0J3MgcmFuZ2UgaXMg
+NC4wOTYgViBidXQKdGhlIHRvcCB2YWx1ZSAoMHhmZikgcmVhbGx5IG1lYW5zICI0LjA4MCBWIDw9
+IGlucHV0IHZhbHVlIi4gV2hpY2gKdGhlIGRyaXZlciB3aWxsIHJlcG9ydCBhcyA0LjA4MCBWIGJ5
+IGNvbnZlbnRpb24uCgpCVFcsIHlvdSAoYW5kIHdlKSBwcm9iYWJseSBzaG91bGRuJ3Qgd2FzdGUg
+dG9vIG11Y2ggZW5lcmd5IG9uIHRoaXMuCkFEQ3MgYXJlIG9ubHkgYWNjdXJhdGUgdG8gc29tZSBk
+ZWdyZWUgYW55d2F5LiBJZiB5b3UgdGFrZSB0aGUKY29tcG9uZW50cyBjb25uZWN0ZWQgdG8gdGhl
+IGlucHV0IGludG8gY29uc2lkZXJhdGlvbiwgdGhlIGFjY3VyYWN5IGdldHMKZXZlbiB3b3JzZS4g
+Rm9yIGV4YW1wbGUsIGlmIHRoZSBpbnB1dCB2b2x0YWdlIG11c3QgYmUgc2NhbGVkIGRvd24gdG8K
+Zml0IGluIHRoZSBBREMncyByYW5nZSwgeW91IG5lZWQgYXQgbGVhc3Qgb25lIHJlc2lzdG9yLCB3
+aGljaCBpbiBiZXN0CmNhc2VzIHdpbGwgaGF2ZSBhIDElIGFjY3VyYXRlIHZhbHVlIChrbm93biBh
+cyB0b2xlcmFuY2UuKSBUaGF0J3MgdGVuCnRpbWVzIHRoZSBMU0Igb2YgeW91ciAxMC1iaXQgQURD
+LCBhdCB3aGljaCBwb2ludCAvIDEwMjMgb3IgLyAxMDI0CnJlYWxseSBtYWtlcyBubyBwcmFjdGlj
+YWwgZGlmZmVyZW5jZS4gU3ViLXBlcmNlbnQgdG9sZXJhbnQgcmVzaXN0b3JzIGFyZQpleHBlbnNp
+dmUgYW5kIHJhcmUgaW4gY29uc3VtZXIgZWxlY3Ryb25pY3MgaW4gbXkgZXhwZXJpZW5jZS4KCi0t
+IApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcK
+aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
