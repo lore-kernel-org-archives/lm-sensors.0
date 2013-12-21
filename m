@@ -1,69 +1,53 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Dec 2013 15:53:11 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 21 Dec 2013 18:14:56 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Do not return -EAGAIN for low temperatures
-Message-Id: <20131220155311.GA8935@roeck-us.net>
+Message-Id: <20131221191456.5b519b6c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1386439557-27341-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1386439557-27341-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sat, Dec 07, 2013 at 10:05:57AM -0800, Guenter Roeck wrote:
-> Some Intel CPUs do not set the 'valid' bit in IA32_THERM_STATUS if the
-> temperature is too low to be measured. This condition will not change until
-> the CPU is hot enough for its temperature to be measured. Returning an error
-> in such conditions is not very useful. Drop checking the valid bit and just
-> return the reported temperature instead.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> I don't think we ever closed on this. Giving it a shot.
-> 
-No feedback. This will go into 3.14 unless there are objections.
+On Fri, 20 Dec 2013 07:53:11 -0800, Guenter Roeck wrote:
+> On Sat, Dec 07, 2013 at 10:05:57AM -0800, Guenter Roeck wrote:
+> > Some Intel CPUs do not set the 'valid' bit in IA32_THERM_STATUS if the
+> > temperature is too low to be measured. This condition will not change u=
+ntil
+> > the CPU is hot enough for its temperature to be measured. Returning an =
+error
+> > in such conditions is not very useful. Drop checking the valid bit and =
+just
+> > return the reported temperature instead.
+> >=20
+> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > ---
+> > I don't think we ever closed on this. Giving it a shot.
+> >=20
+> No feedback. This will go into 3.14 unless there are objections.
 
-Guenter
+I have no objection, I just don't want this change to go to stable, I
+believe it needs a lot of testing on a broad range of hardware before
+we can even think of it.
 
->  drivers/hwmon/coretemp.c |   17 +++++++++--------
->  1 file changed, 9 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> index 310ce19..6e0579e 100644
-> --- a/drivers/hwmon/coretemp.c
-> +++ b/drivers/hwmon/coretemp.c
-> @@ -177,18 +177,19 @@ static ssize_t show_temp(struct device *dev,
->  	/* Check whether the time interval has elapsed */
->  	if (!tdata->valid || time_after(jiffies, tdata->last_updated + HZ)) {
->  		rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
-> -		tdata->valid = 0;
-> -		/* Check whether the data is valid */
-> -		if (eax & 0x80000000) {
-> -			tdata->temp = tdata->tjmax -
-> -					((eax >> 16) & 0x7f) * 1000;
-> -			tdata->valid = 1;
-> -		}
-> +		/*
-> +		 * Ignore the valid bit. In all observed cases the register
-> +		 * value is either low or zero if the valid bit is 0.
-> +		 * Return it instead of reporting an error which doesn't
-> +		 * really help at all.
-> +		 */
-> +		tdata->temp = tdata->tjmax - ((eax >> 16) & 0x7f) * 1000;
-> +		tdata->valid = 1;
->  		tdata->last_updated = jiffies;
->  	}
->  
->  	mutex_unlock(&tdata->update_lock);
-> -	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
-> +	return sprintf(buf, "%d\n", tdata->temp);
->  }
->  
->  struct tjmax_pci {
-> -- 
-> 1.7.9.7
-> 
-> 
+Reviewed-by: Jean Delvare <khali@linux-fr.org>
+
+On a related note, I think we already noticed that different CPU models
+behave differently in low temperature ranges. As an additional data
+point, I noticed when staring at sensord graphs that my wife's Core2
+Duo E8400 does clamp at 40=B0C (which is 60=B0C below Tjmax). It never ever
+reports values below this. Somehow it is a saner implementation than
+clearing the valid bit. Too bad we have no way to represent this in
+sysfs. Would it make sense to define for example tempX_floor (can't
+remember if a better name was ever proposed) so that sensors can report
+"< 40=B0C" instead of "40=B0C" in this case? The problem is that I don't
+think these clamp values can be read from a register, I'm not even sure
+if they are documented, so I'm not sure how useful this would be in
+practice...
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
