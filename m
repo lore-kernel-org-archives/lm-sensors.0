@@ -1,36 +1,134 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Thu, 26 Dec 2013 23:30:00 +0000
-Subject: Re: [lm-sensors] [PATCH 1/5] input: Add new sun4i-ts driver for Allwinner sunxi SoC's rtp controller
-Message-Id: <20131226233000.GE18562@core.coreip.homeip.net>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Mon, 23 Dec 2013 16:23:40 +0000
+Subject: [lm-sensors] [RFC 08/18] hwmon: vexpress: Use regmap instead of custom interface
+Message-Id: <1387815830-8794-9-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1387923847-1294-1-git-send-email-hdegoede@redhat.com>
- <1387923847-1294-2-git-send-email-hdegoede@redhat.com>
- <20131226221558.GA18562@core.coreip.homeip.net>
- <52BCAEA2.6040607@redhat.com>
-In-Reply-To: <52BCAEA2.6040607-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <1387815830-8794-1-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1387815830-8794-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Jon Medhurst <tixy@linaro.org>, arm@kernel.org, Olof Johansson <olof@lixom.net>, Pawel Moll <pawel.moll@arm.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-On Thu, Dec 26, 2013 at 11:33:06PM +0100, Hans de Goede wrote:
-> On 12/26/2013 11:15 PM, Dmitry Torokhov wrote:
-> >
-> >Are we 1000% sure that the device is quiesced here and we will not get a
-> >stray interrupt? Even if we are sure I'd still rather allocate input
-> >device earlier, together with ts structure.
-> 
-> I will change things to allocate the input device earlier. What about
-> registering it, when is the best time to do that?
+This patch makes the Versatile Express hwmon driver
+use regmap interface, instead of custom vexpress config
+one. It will request the regmap resource associated
+with the device, which makes it pretty much hardware
+agnostic.
 
-The common pattern for the most input drivers is to register it last,
-but that usually matters when you are not using managed input devices
-since it helps making error unwinding path simpler. I'd still register
-it last just so it looks the same as the rest of the drivers.
+Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+---
+ drivers/hwmon/Kconfig    |  3 ++-
+ drivers/hwmon/vexpress.c | 29 +++++++++++------------------
+ 2 files changed, 13 insertions(+), 19 deletions(-)
 
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 52d548f..7747a47 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1324,7 +1324,8 @@ config SENSORS_TWL4030_MADC
+ 
+ config SENSORS_VEXPRESS
+ 	tristate "Versatile Express"
+-	depends on VEXPRESS_CONFIG
++	depends on ARM || ARM64
++	depends on REGMAP
+ 	help
+ 	  This driver provides support for hardware sensors available on
+ 	  the ARM Ltd's Versatile Express platform. It can provide wide
+diff --git a/drivers/hwmon/vexpress.c b/drivers/hwmon/vexpress.c
+index d867e6b..b58cf1c 100644
+--- a/drivers/hwmon/vexpress.c
++++ b/drivers/hwmon/vexpress.c
+@@ -22,11 +22,11 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
+-#include <linux/vexpress.h>
++#include <linux/regmap.h>
+ 
+ struct vexpress_hwmon_data {
+ 	struct device *hwmon_dev;
+-	struct vexpress_config_func *func;
++	struct regmap *reg;
+ };
+ 
+ static ssize_t vexpress_hwmon_name_show(struct device *dev,
+@@ -56,7 +56,7 @@ static ssize_t vexpress_hwmon_u32_show(struct device *dev,
+ 	int err;
+ 	u32 value;
+ 
+-	err = vexpress_config_read(data->func, 0, &value);
++	err = regmap_read(data->reg, 0, &value);
+ 	if (err)
+ 		return err;
+ 
+@@ -69,13 +69,13 @@ static ssize_t vexpress_hwmon_u64_show(struct device *dev,
+ {
+ 	struct vexpress_hwmon_data *data = dev_get_drvdata(dev);
+ 	int err;
+-	u32 value_hi, value_lo;
++	unsigned int value_hi, value_lo;
+ 
+-	err = vexpress_config_read(data->func, 0, &value_lo);
++	err = regmap_read(data->reg, 0, &value_lo);
+ 	if (err)
+ 		return err;
+ 
+-	err = vexpress_config_read(data->func, 1, &value_hi);
++	err = regmap_read(data->reg, 1, &value_hi);
+ 	if (err)
+ 		return err;
+ 
+@@ -175,26 +175,21 @@ static int vexpress_hwmon_probe(struct platform_device *pdev)
+ 	if (!match)
+ 		return -ENODEV;
+ 
+-	data->func = vexpress_config_func_get_by_dev(&pdev->dev);
+-	if (!data->func)
++	data->reg = dev_get_regmap(&pdev->dev, NULL);
++	if (!data->reg)
+ 		return -ENODEV;
+ 
+ 	err = sysfs_create_group(&pdev->dev.kobj, match->data);
+ 	if (err)
+-		goto error;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
++		sysfs_remove_group(&pdev->dev.kobj, match->data);
++		return PTR_ERR(data->hwmon_dev);
+ 	}
+ 
+ 	return 0;
+-
+-error:
+-	sysfs_remove_group(&pdev->dev.kobj, match->data);
+-	vexpress_config_func_put(data->func);
+-	return err;
+ }
+ 
+ static int vexpress_hwmon_remove(struct platform_device *pdev)
+@@ -207,8 +202,6 @@ static int vexpress_hwmon_remove(struct platform_device *pdev)
+ 	match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
+ 	sysfs_remove_group(&pdev->dev.kobj, match->data);
+ 
+-	vexpress_config_func_put(data->func);
+-
+ 	return 0;
+ }
+ 
 -- 
-Dmitry
+1.8.3.2
+
+
 
 _______________________________________________
 lm-sensors mailing list
