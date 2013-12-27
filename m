@@ -1,59 +1,33 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 31 Dec 2013 16:20:51 +0000
-Subject: [lm-sensors] [PATCH v3 4/5] ARM: dts: sun5i: Add rtp controller node
-Message-Id: <1388506852-3548-5-git-send-email-hdegoede@redhat.com>
+Date: Fri, 27 Dec 2013 14:59:54 +0000
+Subject: [lm-sensors] [PATCH v2 0/5] input: Add new sun4i-ts driver for Allwinner sunxi
+Message-Id: <1388156399-29677-1-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1388506852-3548-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- arch/arm/boot/dts/sun5i-a10s.dtsi | 6 ++++++
- arch/arm/boot/dts/sun5i-a13.dtsi  | 6 ++++++
- 2 files changed, 12 insertions(+)
+Hi Dimitri et al,
 
-diff --git a/arch/arm/boot/dts/sun5i-a10s.dtsi b/arch/arm/boot/dts/sun5i-a10s.dtsi
-index 948eb10..34dd303 100644
---- a/arch/arm/boot/dts/sun5i-a10s.dtsi
-+++ b/arch/arm/boot/dts/sun5i-a10s.dtsi
-@@ -409,6 +409,12 @@
- 			reg = <0x01c23800 0x10>;
- 		};
- 
-+		rtp: rtp@01c25000 {
-+			compatible = "allwinner,sun4i-ts";
-+			reg = <0x01c25000 0x100>;
-+			interrupts = <29>;
-+		};
-+
- 		uart0: serial@01c28000 {
- 			compatible = "snps,dw-apb-uart";
- 			reg = <0x01c28000 0x400>;
-diff --git a/arch/arm/boot/dts/sun5i-a13.dtsi b/arch/arm/boot/dts/sun5i-a13.dtsi
-index ca15672..264cfa4 100644
---- a/arch/arm/boot/dts/sun5i-a13.dtsi
-+++ b/arch/arm/boot/dts/sun5i-a13.dtsi
-@@ -367,6 +367,12 @@
- 			reg = <0x01c23800 0x10>;
- 		};
- 
-+		rtp: rtp@01c25000 {
-+			compatible = "allwinner,sun4i-ts";
-+			reg = <0x01c25000 0x100>;
-+			interrupts = <29>;
-+		};
-+
- 		uart1: serial@01c28400 {
- 			compatible = "snps,dw-apb-uart";
- 			reg = <0x01c28400 0x400>;
--- 
-1.8.4.2
+Here is v2 of my sun4i-ts patch-set.
 
+Changes since v1:
+-Use devm_kzalloc and devm_hwmon_device_register_with_groups as suggested
+ by Guenter Roeck
+-Various small cleanups suggested by Thomas Petazzoni
+-Add open/close methods and enable/disable the input related interrupts from
+ there as suggested by you (Dimitri)
+
+Assuming there is no more feedback, can you please add the 1st 2 patches
+to your tree for 3.14 ?
+
+Maxime, can you please add the dts bits to your dts tree for 3.14 ?
+
+Thanks & Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
