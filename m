@@ -1,39 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Dec 2013 17:30:12 +0000
-Subject: [lm-sensors] [PATCH 05/14] MAINTAINERS: Add myself as i8k maintainer
-Message-Id: <1387042221-3671-6-git-send-email-linux@roeck-us.net>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 27 Dec 2013 14:59:59 +0000
+Subject: [lm-sensors] [PATCH v2 5/5] ARM: dts: sun7i: Add rtp controller node
+Message-Id: <1388156399-29677-6-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+References: <1388156399-29677-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1388156399-29677-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-I have a couple of Dell laptops running Linux, so I have a vested
-interest to keep this driver supported.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/sun7i-a20.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 13c15c8..7bc4772 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2618,7 +2618,7 @@ S:	Maintained
- F:	drivers/platform/x86/dell-laptop.c
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 3231789..68e825a 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -536,6 +536,12 @@
+ 			reg = <0x01c23800 0x200>;
+ 		};
  
- DELL LAPTOP SMM DRIVER
--S:	Orphan
-+M:	Guenter Roeck <linux@roeck-us.net>
- F:	drivers/char/i8k.c
- F:	include/uapi/linux/i8k.h
- 
++		rtp: rtp@01c25000 {
++			compatible = "allwinner,sun4i-ts";
++			reg = <0x01c25000 0x100>;
++			interrupts = <0 29 4>;
++		};
++
+ 		uart0: serial@01c28000 {
+ 			compatible = "snps,dw-apb-uart";
+ 			reg = <0x01c28000 0x400>;
 -- 
-1.7.9.7
+1.8.4.2
 
 
 _______________________________________________
