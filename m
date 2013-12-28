@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 27 Dec 2013 16:34:19 +0000
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Sat, 28 Dec 2013 01:10:07 +0000
 Subject: Re: [lm-sensors] [PATCH v2 2/5] input: sun4i-ts: Add support for temperature sensor
-Message-Id: <20131227163419.GA20135@roeck-us.net>
+Message-Id: <20131228011007.GA14188@core.coreip.homeip.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1388156399-29677-1-git-send-email-hdegoede@redhat.com>
  <1388156399-29677-3-git-send-email-hdegoede@redhat.com>
@@ -10,105 +10,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-
-On Fri, Dec 27, 2013 at 03:59:56PM +0100, Hans de Goede wrote:
-> The sun4i resisitive touchscreen controller also comes with a built-in
-> temperature sensor. This commit adds support for it.
->=20
-> This commit also introduces a new "ts-attached" device-tree property,
-> when this is not set, the input part of the driver won't register. This w=
-ay
-> the internal temperature sensor can be used to measure the SoC temperature
-> independent of there actually being a touchscreen attached to the control=
-ler.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 
 Hi Hans,
 
-Almost good, except for a couple of nitpicks and one moe question.
-Assuming you fix the nitpicks and the question is not a concern,
-feel free to add
-
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-
-Guenter
-
-> ---
->  .../bindings/input/touchscreen/sun4i.txt           |   6 +
->  drivers/input/touchscreen/sun4i-ts.c               | 129 +++++++++++++++=
-+-----
->  2 files changed, 109 insertions(+), 26 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.tx=
-t b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> index e45927e..1fffd11 100644
-> --- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> @@ -6,10 +6,16 @@ Required properties:
->   - reg: mmio address range of the chip
->   - interrupts: interrupt to which the chip is connected
-> =20
-> +Optional properties:
-> + - ts-attached: boolean set this to tell the driver that an actual touch=
-screen
-> +		is attached and that it should register an input device,
-> +		without this it only registers the builtin temperate sensor
-> +
->  Example:
-> =20
->  	rtp: rtp@01c25000 {
->  		compatible =3D "allwinner,sun4i-ts";
->  		reg =3D <0x01c25000 0x100>;
->  		interrupts =3D <29>;
-> +		ts-attached;
->  	};
-> diff --git a/drivers/input/touchscreen/sun4i-ts.c b/drivers/input/touchsc=
-reen/sun4i-ts.c
-> index 10839d2..2d437f6 100644
-> --- a/drivers/input/touchscreen/sun4i-ts.c
-> +++ b/drivers/input/touchscreen/sun4i-ts.c
-> @@ -3,6 +3,9 @@
->   *
->   * Copyright (C) 2013 - 2014 Hans de Goede <hdegoede@redhat.com>
->   *
-> + * The hwmon parts are based on work by Corentin LABBE which is:
-> + * Copyright (C) 2013 Corentin LABBE <clabbe.montjoie@gmail.com>
-> + *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
->   * the Free Software Foundation; either version 2 of the License, or
-> @@ -30,6 +33,7 @@
->   */
-> =20
->  #include <linux/err.h>
-> +#include <linux/hwmon.h>
->  #include <linux/init.h>
->  #include <linux/input.h>
->  #include <linux/interrupt.h>
-> @@ -106,6 +110,7 @@ struct sun4i_ts_data {
->  	void __iomem *base;
->  	unsigned int irq;
->  	bool ignore_fifo_data;
-> +	int temp_data;
->  };
-> =20
->  static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
-> @@ -115,6 +120,12 @@ static irqreturn_t sun4i_ts_irq(int irq, void *dev_i=
-d)
-> =20
->  	reg_val  =3D readl(ts->base + TP_INT_FIFOS);
-> =20
-> +	if (reg_val & TEMP_DATA_PENDING)
-> +		ts->temp_data =3D readl(ts->base + TEMP_DATA);
-
-Is this read guaranteed to return 0 in the upper bit, or in other words is =
-it
-guaranteed to never return 0xffffffff ? Otherwise there might be a problem =
-with
-the implicit conversion to a negative integer.
-
+On Fri, Dec 27, 2013 at 03:59:56PM +0100, Hans de Goede wrote:
 > +
 > +	if (!ts->input)
 > +		goto leave;
@@ -121,6 +27,15 @@ the implicit conversion to a negative integer.
 >  	}
 > =20
 > +leave:
+
+Can we please not introduce gotos where they are not needed? If you
+concerned about extra indent just split touchscreen handling into a
+separate function and then do
+
+	if (ts->input)
+		sun4i_ts_handle_touchscreen_data(...);
+
+
 >  	writel(reg_val, ts->base + TP_INT_FIFOS);
 > =20
 >  	return IRQ_HANDLED;
@@ -146,6 +61,12 @@ the implicit conversion to a negative integer.
 > +	/* Deactivate all input IRQs */
 > +	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
 >  	synchronize_irq(ts->irq);
+
+Hmm, it would be nice we touchscreen methods only affected touchscreen
+functionality. Can you read current state and adjust it as needed
+instead of clobbering it? Then you could do away with remove() method
+altogether.
+
 >  }
 > =20
 > +static ssize_t show_temp(struct device *dev, struct device_attribute *de=
@@ -182,9 +103,6 @@ vattr,
 >  	struct sun4i_ts_data *ts;
 >  	struct device *dev =3D &pdev->dev;
 > +	struct device_node *np =DEv->of_node;
-
-Missing space after '=3D' (checkpatch error).
-
 > +	struct device *hwmon;
 >  	int ret;
 > +	bool ts_attached;
@@ -251,9 +169,6 @@ dev)
 > +	if (IS_ERR(hwmon)) {
 > +		return PTR_ERR(hwmon);
 > +	}
-
-{ } are not needed here (checkpatch warning).
-
 > +
 > +	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
 > +
@@ -262,6 +177,12 @@ dev)
 > +		if (ret) {
 > +			writel(0, ts->base + TP_INT_FIFOC);
 > +			synchronize_irq(ts->irq);
+
+Given that we now can't avoid freeing irq before freeing ts memory or
+input device I think you can do away with synchronize_irq() here and
+elsewhere as freeing irq is guaranteed to wait for current interrupt to
+complete.
+
 > +			return ret;
 > +		}
 > +	}
@@ -299,12 +220,11 @@ dev)
 > --=20
 > 1.8.4.2
 >=20
->=20
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->=20
+
+Thanks.
+
+--=20
+Dmitry
 
 _______________________________________________
 lm-sensors mailing list
