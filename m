@@ -1,84 +1,49 @@
-From: Thomas Raschbacher <lordvan@lordvan.com>
-Date: Thu, 12 Dec 2013 07:28:44 +0000
-Subject: Re: [lm-sensors] Configuration for motherboard Asus M5A97 PRO
-Message-Id: <5cabf4d6830dabfe024fae354466da6b@secure.lordvan.com>
+From: singumal <qdmd-pu1o@dea.spamcon.org>
+Date: Sun, 29 Dec 2013 04:52:26 +0000
+Subject: Re: [lm-sensors] trying to free nonexistent resource [was: ASRock IMB-170 configuration help]
+Message-Id: <siavb9d0inqfc6gfq0ko28nelcemujtn68@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CANd=OGHaRax2kRYepnUrLX8KN1VwmLxkse_ObbOYOyQhTUc5cQ@mail.gmail.com>
-In-Reply-To: <CANd=OGHaRax2kRYepnUrLX8KN1VwmLxkse_ObbOYOyQhTUc5cQ@mail.gmail.com>
+References: <523F4C0A.1050800@roeck-us.net>
+In-Reply-To: <523F4C0A.1050800@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
+Guenter Roeck <linux@roeck-us.net> wrote:
 
-I will have a look when I get a chance (but it might have to wait until=20
-the weekend - or even longer if i don'T get aroudn to it then-)
+>On 09/22/2013 11:41 AM, singumal wrote:
+>> singumal <qdmd-pu1o@dea.spamcon.org> wrote:
+>>
+>[ ... ]
+>>
+>> Noticed an error message on physical console when restarting
+>> lm_sensors, look in syslog, here are all the messages:
+>>
+>> Sep 19 08:38:49 localhost kernel: Trying to free nonexistent resource
+>> <0000000000000295-0000000000000296>
+>> Sep 19 08:38:49 localhost kernel: coretemp coretemp.0: TjMax is 105 C.
+>> Sep 19 08:38:49 localhost kernel: coretemp coretemp.1: TjMax is 105 C.
+>> Sep 19 08:38:49 localhost kernel: coretemp coretemp.2: TjMax is 105 C.
+>> Sep 19 08:38:49 localhost kernel: coretemp coretemp.3: TjMax is 105 C.
+>> Sep 19 08:38:49 localhost kernel: w83627ehf: Found W83627UHG chip at 0x290
+>>
+>>
+>> Does that resource message indicate misconfiguration, or some other problem?
+>>
+>AFAIK this problem has been solved in a later kernel version, though I may be wrong.
+>What is your kernel version ? I don't think you ever mentioned it.
+>
+>Thanks,
+>Guenter
 
-Regards
+Sorry for the delay in replying; kernel is as shipped with CentOS 5.7:
 
-On 2013-12-09 09:20, Jean Delvare wrote:
-> Hi Felipe,
->=20
-> On Sun, 8 Dec 2013 21:54:34 -0200, Felipe Almeida Lessa wrote:
->> I've tried to adjust the values to my motherboard.  The result is
->> pasted below.  I hope it can make it to the wiki :).
->>=20
->> Cheers!
->>=20
->> PS: I'm not subscribed to the mailing list.
->>=20
->> # Asus M5A97 PRO
->> # http://blog.felipe.lessa.nom.br/?p=93
->> chip "k10temp-pci-00c3"
->>      label temp1 "CPU Temp (rel)"
->>=20
->> chip "it8721-*"
->>      label  in0 "+12V"
->>      label  in1 "+5V"
->>      label  in2 "Vcore"
->>      ignore in4
->>      ignore in5
->>      ignore in6
->=20
-> I'm quite surprised by this, that's a rather uncommon voltage input
-> mapping. How did you figure it out?
->=20
->>=20
->>      compute in0  @ * (515/120), @ / (515/120)
->>      compute in1  @ * (215/120), @ / (215/120)
->=20
-> And where do these scaling factors come from?
->=20
->>=20
->>      ignore temp3
->>      label temp1 "CPU Temp"
->>      label temp2 "M/B Temp"
->>=20
->>      label fan1 "CPU Fan"
->>      label fan2 "Chassis Fan"
->>      label fan3 "Power Fan"
->>=20
->>      ignore intrusion0
->=20
-> I've added your configuration file at:
-> http://www.lm-sensors.org/wiki/Configurations/Asus/M5A97-Pro
->=20
-> Thomas, you have the same board and have been asking for a
-> configuration file for it last week, so you could give it a try. If you
-> and Felipe share your findings, you may be able to improve Felipe's
-> initial file (which I suspect needs improvements, but I may be wrong.)
->=20
-> I wrote an article on how to figure out voltage mappings and scales:
-> http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
-> The IT8721F has 0.012 mV LSB. If you both gather all the different
-> values you get in the BIOS for +5V and +12V, we should be able to come
-> up with something.
->=20
-> Or if any of you have Windows and the Asus monitoring tool installed on
-> the same machine, even better.
->=20
-> Please keep the list in Cc if you want us to be able to help.
+# uname -a
+Linux q57-1 2.6.18-274.el5 #1 SMP Fri Jul 22 04:43:29 EDT 2011 x86_64 x86_64 x86_64
+GNU/Linux
+
+
 
 _______________________________________________
 lm-sensors mailing list
