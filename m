@@ -1,63 +1,142 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Dec 2013 19:50:13 +0000
-Subject: Re: [lm-sensors] [PATCH 00/12] i8k patch series
-Message-Id: <52ACB675.6060304@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Tue, 31 Dec 2013 10:17:12 +0000
+Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
+Message-Id: <52C299A8.4010108@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>	<201312141945.20348.arnd@arndb.de> <20131214200309.3a2007f4@endymion.delvare>
-In-Reply-To: <20131214200309.3a2007f4@endymion.delvare>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+ <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Matthew Garrett <mjg59@srcf.ucam.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On 12/14/2013 11:03 AM, Jean Delvare wrote:
-> On Sat, 14 Dec 2013 19:45:19 +0100, Arnd Bergmann wrote:
->> On Saturday 14 December 2013, Guenter Roeck wrote:
->>> Clean up and simplify the driver, add support for additional temperature
->>> sensors, fix a problem seen with multi-core CPU, and add support
->>> for additional systems.
->>>
->>> ----------------------------------------------------------------
->>> Guenter Roeck (14):
->>>        i8k: Convert to use pr_ functions instead of printk
->>>        i8k: Fix various checkpatch warnings and errors
->>>        i8k: Convert to use to hwmon_device_register_with_groups hwmon API
->>>        i8k: Support additional temperature sensors
->>>        MAINTAINERS: Add myself as i8k maintainer
->>>        i8k: Remove obsolete link to out-of-tree driver
->>>        i8k: Drop driver version number and info message at startup
->>>        i8k: Force SMM to run on CPU 0
->>>        i8k: Add copyright
->>>        i8k: Add support for Dell Studio laptops
->>>        i8k: Add support for Dell XPS M140
->>>        i8k: Use driver_data field of dmi_system_id to override fan multiplier
->>>        i8k: Stop reading SMM BIOS version during driver probe
->>>        i8k: Implement hwmon based fan speed control
->>>
->>>   MAINTAINERS        |    2 +-
->>>   drivers/char/i8k.c |  358 +++++++++++++++++++++++++++++-----------------------
->>>   2 files changed, 201 insertions(+), 159 deletions(-)
->>>
->>
->> All changes in this patch set look good to me.
->>
->> Acked-by: Arnd Bergmann <arnd@arndb.de>
->>
->> I wonder if it makes sense to move the driver to drivers/platform/x86/, which
->> has a bunch of similar ones already.
+On 11/13/2013 03:46 AM, Eduardo Valentin wrote:
+> This patch introduces a device tree bindings for
+> describing the hardware thermal behavior and limits.
+> Also a parser to read and interpret the data and feed
+> it in the thermal framework is presented.
 >
-> That would be a good idea IMHO.
+> This patch introduces a thermal data parser for device
+> tree. The parsed data is used to build thermal zones
+> and thermal binding parameters. The output data
+> can then be used to deploy thermal policies.
 >
+> This patch adds also documentation regarding this
+> API and how to define tree nodes to use
+> this infrastructure.
+>
+> Note that, in order to be able to have control
+> on the sensor registration on the DT thermal zone,
+> it was required to allow changing the thermal zone
+> .get_temp callback. For this reason, this patch
+> also removes the 'const' modifier from the .ops
+> field of thermal zone devices.
+>
+> ...
+> +
+> +static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
+> +				enum thermal_trend *trend)
+> +{
+> +	struct __thermal_zone *data = tz->devdata;
+> +	long dev_trend;
+> +	int r;
+> +
+> +	if (!data->get_trend)
+> +		return -EINVAL;
+> +
+> +	r = data->get_trend(data->sensor_data, &dev_trend);
+I think the ->get_trend should be defined as:
+.get_trend(*dev, int, *long)
+so that the "trip" can be passed into it, otherwise the "trip" can't be
+used.
+And the dev_trend should be returned as THERMAL_TREND_XXX directly.
+because the THERM_TREND_xx is more than three states.
 
-I agree; drivers/char doesn't seem to be a good location. Guess it is mostly historic
-that it is there in the first place. Maybe it can even use the API provided by the
-dell-laptop driver if I can ever figure out how that works.
+The code may be something like:
+r = data->get_trend(data->sensor_data, trip, &dev_trend);
+if (r)
+    return r;
+*trend = dev_trend;
+return 0;
+> +	if (r)
+> +		return r;
+> +
+> +	/* TODO: These intervals might have some thresholds, but in core code */
+> +	if (dev_trend > 0)
+> +		*trend = THERMAL_TREND_RAISING;
+> +	else if (dev_trend < 0)
+> +		*trend = THERMAL_TREND_DROPPING;
+> +	else
+> +		*trend = THERMAL_TREND_STABLE;
+> +
+> +	return 0;
+> +}
+> +
+> .....
+> +
+> +/***   sensor API   ***/
+> +
+> +static struct thermal_zone_device *
+> +thermal_zone_of_add_sensor(struct device_node *zone,
+> +			   struct device_node *sensor, void *data,
+> +			   int (*get_temp)(void *, long *),
+> +			   int (*get_trend)(void *, long *))
+> +{
+> +	struct thermal_zone_device *tzd;
+> +	struct __thermal_zone *tz;
+> +
+> +	tzd = thermal_zone_get_zone_by_name(zone->name);
+I think we could get the thermal zone by node,
+something like:
+thermal_zone_get_zone_by_node(zone);
+so that it can get unique zone.
 
-Copying the platform-x86 mailing list and Matthew for additional input.
+I think we can add a member "struct device_node *np" in the
+thermal_zone_device,
+and set it after you call thermal_zone_device_register successfully.
+Then add following codes:
+thermal_zone_get_zone_by_node(struct device_node *node)
+{
+        struct thermal_zone_device *pos = NULL, *ref = ERR_PTR(-ENODEV);
+        bool found = false;
 
-Thanks,
-Guenter
+        if (!node)
+                return ERR_PTR(-EINVAL);
+
+        mutex_lock(&thermal_list_lock);
+        list_for_each_entry(pos, &thermal_tz_list, node)
+                if (node = pos->np) {
+                        ref = pos;
+                        found = true;
+                        break;
+                }
+        mutex_unlock(&thermal_list_lock);
+
+        return ref;
+}
+
+Thanks.
+Wei.
+> +	if (IS_ERR(tzd))
+> +		return ERR_PTR(-EPROBE_DEFER);
+> +
+> +	tz = tzd->devdata;
+> +
+> +	mutex_lock(&tzd->lock);
+> +	tz->get_temp = get_temp;
+> +	tz->get_trend = get_trend;
+> +	tz->sensor_data = data;
+> +
+> +	tzd->ops->get_temp = of_thermal_get_temp;
+> +	tzd->ops->get_trend = of_thermal_get_trend;
+> +	mutex_unlock(&tzd->lock);
+> +
+> +	return tzd;
+> +}
+> +
+>
 
 
 _______________________________________________
