@@ -1,142 +1,274 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Tue, 31 Dec 2013 10:17:12 +0000
-Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52C299A8.4010108@nvidia.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 31 Dec 2013 16:20:49 +0000
+Subject: [lm-sensors] [PATCH v3 2/5] input: sun4i-ts: Add support for temperature sensor
+Message-Id: <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
- <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
+References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1388506852-3548-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-On 11/13/2013 03:46 AM, Eduardo Valentin wrote:
-> This patch introduces a device tree bindings for
-> describing the hardware thermal behavior and limits.
-> Also a parser to read and interpret the data and feed
-> it in the thermal framework is presented.
->
-> This patch introduces a thermal data parser for device
-> tree. The parsed data is used to build thermal zones
-> and thermal binding parameters. The output data
-> can then be used to deploy thermal policies.
->
-> This patch adds also documentation regarding this
-> API and how to define tree nodes to use
-> this infrastructure.
->
-> Note that, in order to be able to have control
-> on the sensor registration on the DT thermal zone,
-> it was required to allow changing the thermal zone
-> .get_temp callback. For this reason, this patch
-> also removes the 'const' modifier from the .ops
-> field of thermal zone devices.
->
-> ...
-> +
-> +static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
-> +				enum thermal_trend *trend)
-> +{
-> +	struct __thermal_zone *data = tz->devdata;
-> +	long dev_trend;
-> +	int r;
-> +
-> +	if (!data->get_trend)
-> +		return -EINVAL;
-> +
-> +	r = data->get_trend(data->sensor_data, &dev_trend);
-I think the ->get_trend should be defined as:
-.get_trend(*dev, int, *long)
-so that the "trip" can be passed into it, otherwise the "trip" can't be
-used.
-And the dev_trend should be returned as THERMAL_TREND_XXX directly.
-because the THERM_TREND_xx is more than three states.
+The sun4i resisitive touchscreen controller also comes with a built-in
+temperature sensor. This commit adds support for it.
 
-The code may be something like:
-r = data->get_trend(data->sensor_data, trip, &dev_trend);
-if (r)
-    return r;
-*trend = dev_trend;
-return 0;
-> +	if (r)
-> +		return r;
-> +
-> +	/* TODO: These intervals might have some thresholds, but in core code */
-> +	if (dev_trend > 0)
-> +		*trend = THERMAL_TREND_RAISING;
-> +	else if (dev_trend < 0)
-> +		*trend = THERMAL_TREND_DROPPING;
-> +	else
-> +		*trend = THERMAL_TREND_STABLE;
-> +
-> +	return 0;
-> +}
-> +
-> .....
-> +
-> +/***   sensor API   ***/
-> +
-> +static struct thermal_zone_device *
-> +thermal_zone_of_add_sensor(struct device_node *zone,
-> +			   struct device_node *sensor, void *data,
-> +			   int (*get_temp)(void *, long *),
-> +			   int (*get_trend)(void *, long *))
-> +{
-> +	struct thermal_zone_device *tzd;
-> +	struct __thermal_zone *tz;
-> +
-> +	tzd = thermal_zone_get_zone_by_name(zone->name);
-I think we could get the thermal zone by node,
-something like:
-thermal_zone_get_zone_by_node(zone);
-so that it can get unique zone.
+This commit also introduces a new "ts-attached" device-tree property,
+when this is not set, the input part of the driver won't register. This way
+the internal temperature sensor can be used to measure the SoC temperature
+independent of there actually being a touchscreen attached to the controller.
 
-I think we can add a member "struct device_node *np" in the
-thermal_zone_device,
-and set it after you call thermal_zone_device_register successfully.
-Then add following codes:
-thermal_zone_get_zone_by_node(struct device_node *node)
-{
-        struct thermal_zone_device *pos = NULL, *ref = ERR_PTR(-ENODEV);
-        bool found = false;
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ .../bindings/input/touchscreen/sun4i.txt           |   5 +
+ drivers/input/touchscreen/sun4i-ts.c               | 140 ++++++++++++++++-----
+ 2 files changed, 114 insertions(+), 31 deletions(-)
 
-        if (!node)
-                return ERR_PTR(-EINVAL);
-
-        mutex_lock(&thermal_list_lock);
-        list_for_each_entry(pos, &thermal_tz_list, node)
-                if (node = pos->np) {
-                        ref = pos;
-                        found = true;
-                        break;
-                }
-        mutex_unlock(&thermal_list_lock);
-
-        return ref;
-}
-
-Thanks.
-Wei.
-> +	if (IS_ERR(tzd))
-> +		return ERR_PTR(-EPROBE_DEFER);
-> +
-> +	tz = tzd->devdata;
-> +
-> +	mutex_lock(&tzd->lock);
-> +	tz->get_temp = get_temp;
-> +	tz->get_trend = get_trend;
-> +	tz->sensor_data = data;
-> +
-> +	tzd->ops->get_temp = of_thermal_get_temp;
-> +	tzd->ops->get_trend = of_thermal_get_trend;
-> +	mutex_unlock(&tzd->lock);
-> +
-> +	return tzd;
-> +}
-> +
->
+diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+index e45927e..6bac67b 100644
+--- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
++++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+@@ -6,10 +6,15 @@ Required properties:
+  - reg: mmio address range of the chip
+  - interrupts: interrupt to which the chip is connected
+ 
++Optional properties:
++ - allwinner,ts-attached: boolean indicating that an actual touchscreen is
++			  attached to the controller
++
+ Example:
+ 
+ 	rtp: rtp@01c25000 {
+ 		compatible = "allwinner,sun4i-ts";
+ 		reg = <0x01c25000 0x100>;
+ 		interrupts = <29>;
++		allwinner,ts-attached;
+ 	};
+diff --git a/drivers/input/touchscreen/sun4i-ts.c b/drivers/input/touchscreen/sun4i-ts.c
+index 5945219..16cbb01 100644
+--- a/drivers/input/touchscreen/sun4i-ts.c
++++ b/drivers/input/touchscreen/sun4i-ts.c
+@@ -3,6 +3,9 @@
+  *
+  * Copyright (C) 2013 - 2014 Hans de Goede <hdegoede@redhat.com>
+  *
++ * The hwmon parts are based on work by Corentin LABBE which is:
++ * Copyright (C) 2013 Corentin LABBE <clabbe.montjoie@gmail.com>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -30,6 +33,7 @@
+  */
+ 
+ #include <linux/err.h>
++#include <linux/hwmon.h>
+ #include <linux/init.h>
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
+@@ -106,14 +110,12 @@ struct sun4i_ts_data {
+ 	void __iomem *base;
+ 	unsigned int irq;
+ 	bool ignore_fifo_data;
++	int temp_data;
+ };
+ 
+-static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
++static void sun4i_ts_irq_handle_input(struct sun4i_ts_data *ts, u32 reg_val)
+ {
+-	struct sun4i_ts_data *ts = dev_id;
+-	u32 reg_val, x, y;
+-
+-	reg_val  = readl(ts->base + TP_INT_FIFOS);
++	u32 x, y;
+ 
+ 	if (reg_val & FIFO_DATA_PENDING) {
+ 		x = readl(ts->base + TP_DATA);
+@@ -139,6 +141,20 @@ static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
+ 		input_report_key(ts->input, BTN_TOUCH, 0);
+ 		input_sync(ts->input);
+ 	}
++}
++
++static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
++{
++	struct sun4i_ts_data *ts = dev_id;
++	u32 reg_val;
++
++	reg_val  = readl(ts->base + TP_INT_FIFOS);
++
++	if (reg_val & TEMP_DATA_PENDING)
++		ts->temp_data = readl(ts->base + TEMP_DATA);
++
++	if (ts->input)
++		sun4i_ts_irq_handle_input(ts, reg_val);
+ 
+ 	writel(reg_val, ts->base + TP_INT_FIFOS);
+ 
+@@ -149,9 +165,9 @@ static int sun4i_ts_open(struct input_dev *dev)
+ {
+ 	struct sun4i_ts_data *ts = input_get_drvdata(dev);
+ 
+-	/* Flush, set trig level to 1, enable data and up irqs */
+-	writel(DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) | TP_UP_IRQ_EN(1),
+-	       ts->base + TP_INT_FIFOC);
++	/* Flush, set trig level to 1, enable temp, data and up irqs */
++	writel(TEMP_IRQ_EN(1) | DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) |
++		TP_UP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
+ 
+ 	return 0;
+ }
+@@ -160,15 +176,48 @@ static void sun4i_ts_close(struct input_dev *dev)
+ {
+ 	struct sun4i_ts_data *ts = input_get_drvdata(dev);
+ 
+-	/* Deactivate all IRQs */
+-	writel(0, ts->base + TP_INT_FIFOC);
++	/* Deactivate all input IRQs */
++	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
++}
++
++static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
++			 char *buf)
++{
++	struct sun4i_ts_data *ts = dev_get_drvdata(dev);
++
++	/* No temp_data until the first irq */
++	if (ts->temp_data = -1)
++		return -EAGAIN;
++
++	return sprintf(buf, "%d\n", (ts->temp_data - 1447) * 100);
++}
++
++static ssize_t show_temp_label(struct device *dev,
++			      struct device_attribute *devattr, char *buf)
++{
++	return sprintf(buf, "SoC temperature\n");
+ }
+ 
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
++static DEVICE_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL);
++
++static struct attribute *sun4i_ts_attrs[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_label.attr,
++	NULL
++};
++ATTRIBUTE_GROUPS(sun4i_ts);
++
+ static int sun4i_ts_probe(struct platform_device *pdev)
+ {
+ 	struct sun4i_ts_data *ts;
+ 	struct device *dev = &pdev->dev;
++	struct device_node *np = dev->of_node;
++	struct device *hwmon;
+ 	int ret;
++	bool ts_attached;
++
++	ts_attached = of_property_read_bool(np, "allwinner,ts-attached");
+ 
+ 	ts = devm_kzalloc(dev, sizeof(struct sun4i_ts_data), GFP_KERNEL);
+ 	if (!ts)
+@@ -176,24 +225,27 @@ static int sun4i_ts_probe(struct platform_device *pdev)
+ 
+ 	ts->dev = dev;
+ 	ts->ignore_fifo_data = true;
+-
+-	ts->input = devm_input_allocate_device(dev);
+-	if (!ts->input)
+-		return -ENOMEM;
+-
+-	ts->input->name = pdev->name;
+-	ts->input->phys = "sun4i_ts/input0";
+-	ts->input->open = sun4i_ts_open;
+-	ts->input->close = sun4i_ts_close;
+-	ts->input->id.bustype = BUS_HOST;
+-	ts->input->id.vendor = 0x0001;
+-	ts->input->id.product = 0x0001;
+-	ts->input->id.version = 0x0100;
+-	ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
+-	set_bit(BTN_TOUCH, ts->input->keybit);
+-	input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
+-	input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
+-	input_set_drvdata(ts->input, ts);
++	ts->temp_data = -1;
++
++	if (ts_attached) {
++		ts->input = devm_input_allocate_device(dev);
++		if (!ts->input)
++			return -ENOMEM;
++
++		ts->input->name = pdev->name;
++		ts->input->phys = "sun4i_ts/input0";
++		ts->input->open = sun4i_ts_open;
++		ts->input->close = sun4i_ts_close;
++		ts->input->id.bustype = BUS_HOST;
++		ts->input->id.vendor = 0x0001;
++		ts->input->id.product = 0x0001;
++		ts->input->id.version = 0x0100;
++		ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
++		set_bit(BTN_TOUCH, ts->input->keybit);
++		input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
++		input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
++		input_set_drvdata(ts->input, ts);
++	}
+ 
+ 	ts->base = devm_ioremap_resource(dev,
+ 			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
+@@ -232,14 +284,39 @@ static int sun4i_ts_probe(struct platform_device *pdev)
+ 	writel(STYLUS_UP_DEBOUN(5) | STYLUS_UP_DEBOUN_EN(1) | TP_MODE_EN(1),
+ 	       ts->base + TP_CTRL1);
+ 
+-	ret = input_register_device(ts->input);
+-	if (ret)
+-		return ret;
++	hwmon = devm_hwmon_device_register_with_groups(ts->dev, "sun4i_ts",
++						       ts, sun4i_ts_groups);
++	if (IS_ERR(hwmon))
++		return PTR_ERR(hwmon);
++
++	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
++
++	if (ts_attached) {
++		ret = input_register_device(ts->input);
++		if (ret) {
++			writel(0, ts->base + TP_INT_FIFOC);
++			return ret;
++		}
++	}
+ 
+ 	platform_set_drvdata(pdev, ts);
+ 	return 0;
+ }
+ 
++static int sun4i_ts_remove(struct platform_device *pdev)
++{
++	struct sun4i_ts_data *ts = platform_get_drvdata(pdev);
++
++	/* Explicit unregister to avoid open/close changing the imask later */
++	if (ts->input)
++		input_unregister_device(ts->input);
++
++	/* Deactivate all IRQs */
++	writel(0, ts->base + TP_INT_FIFOC);
++
++	return 0;
++}
++
+ static const struct of_device_id sun4i_ts_of_match[] = {
+ 	{ .compatible = "allwinner,sun4i-ts", },
+ 	{ /* sentinel */ }
+@@ -253,6 +330,7 @@ static struct platform_driver sun4i_ts_driver = {
+ 		.of_match_table = of_match_ptr(sun4i_ts_of_match),
+ 	},
+ 	.probe	= sun4i_ts_probe,
++	.remove	= sun4i_ts_remove,
+ };
+ 
+ module_platform_driver(sun4i_ts_driver);
+-- 
+1.8.4.2
 
 
 _______________________________________________
