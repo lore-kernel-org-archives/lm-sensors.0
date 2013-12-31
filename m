@@ -1,49 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Dec 2013 17:30:14 +0000
-Subject: [lm-sensors] [PATCH 07/14] i8k: Drop driver version number and info message at startup
-Message-Id: <1387042221-3671-8-git-send-email-linux@roeck-us.net>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 31 Dec 2013 16:20:50 +0000
+Subject: [lm-sensors] [PATCH v3 3/5] ARM: dts: sun4i: Add rtp controller node
+Message-Id: <1388506852-3548-4-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1388506852-3548-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-The driver version number is long since obsolete, so drop it.
-Also, drop the info message at driver startup to reduce boot noise.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/char/i8k.c |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/arm/boot/dts/sun4i-a10.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
-index 5b3682c..ad0acef 100644
---- a/drivers/char/i8k.c
-+++ b/drivers/char/i8k.c
-@@ -34,8 +34,6 @@
+diff --git a/arch/arm/boot/dts/sun4i-a10.dtsi b/arch/arm/boot/dts/sun4i-a10.dtsi
+index de1dd73..502f3e2 100644
+--- a/arch/arm/boot/dts/sun4i-a10.dtsi
++++ b/arch/arm/boot/dts/sun4i-a10.dtsi
+@@ -452,6 +452,12 @@
+ 			reg = <0x01c23800 0x10>;
+ 		};
  
- #include <linux/i8k.h>
- 
--#define I8K_VERSION		"1.14 21/02/2005"
--
- #define I8K_SMM_FN_STATUS	0x0025
- #define I8K_SMM_POWER_STATUS	0x0069
- #define I8K_SMM_SET_FAN		0x01a3
-@@ -755,9 +753,6 @@ static int __init i8k_init(void)
- 	if (err)
- 		goto exit_remove_proc;
- 
--	pr_info("Dell laptop SMM driver v%s Massimo Dal Zotto (dz@debian.org)\n",
--		I8K_VERSION);
--
- 	return 0;
- 
-  exit_remove_proc:
++		rtp: rtp@01c25000 {
++			compatible = "allwinner,sun4i-ts";
++			reg = <0x01c25000 0x100>;
++			interrupts = <29>;
++		};
++
+ 		uart0: serial@01c28000 {
+ 			compatible = "snps,dw-apb-uart";
+ 			reg = <0x01c28000 0x400>;
 -- 
-1.7.9.7
+1.8.4.2
 
 
 _______________________________________________
