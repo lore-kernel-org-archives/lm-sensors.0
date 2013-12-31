@@ -1,41 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Dec 2013 17:30:18 +0000
-Subject: [lm-sensors] [PATCH 11/14] i8k: Add support for Dell XPS M140
-Message-Id: <1387042221-3671-12-git-send-email-linux@roeck-us.net>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 31 Dec 2013 16:20:52 +0000
+Subject: [lm-sensors] [PATCH v3 5/5] ARM: dts: sun7i: Add rtp controller node
+Message-Id: <1388506852-3548-6-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1387042221-3671-1-git-send-email-linux@roeck-us.net>
+References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1388506852-3548-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/char/i8k.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/sun7i-a20.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
-index b35ccaa..bd11dac 100644
---- a/drivers/char/i8k.c
-+++ b/drivers/char/i8k.c
-@@ -692,6 +692,13 @@ static struct dmi_system_id i8k_dmi_table[] __initdata = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Studio"),
- 		},
- 	},
-+	{
-+		.ident = "Dell XPS M140",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MXC051"),
-+		},
-+	},
- 	{ }
- };
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 3231789..68e825a 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -536,6 +536,12 @@
+ 			reg = <0x01c23800 0x200>;
+ 		};
  
++		rtp: rtp@01c25000 {
++			compatible = "allwinner,sun4i-ts";
++			reg = <0x01c25000 0x100>;
++			interrupts = <0 29 4>;
++		};
++
+ 		uart0: serial@01c28000 {
+ 			compatible = "snps,dw-apb-uart";
+ 			reg = <0x01c28000 0x400>;
 -- 
-1.7.9.7
+1.8.4.2
 
 
 _______________________________________________
