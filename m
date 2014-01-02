@@ -1,9 +1,10 @@
-From: Wei Ni <wei.nee.1977@gmail.com>
-Date: Thu, 02 Jan 2014 02:55:15 +0000
+From: Wei Ni <wni@nvidia.com>
+Date: Thu, 02 Jan 2014 02:59:30 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52C4D513.50404@gmail.com>
+Message-Id: <52C4D612.2090808@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+ <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
 In-Reply-To: <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,7 +13,7 @@ To: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.mol
 Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
 On 11/13/2013 03:46 AM, Eduardo Valentin wrote:
-> ....
+> ...
 > +
 > +/**
 > + * of_parse_thermal_zones - parse device tree thermal data
@@ -62,10 +63,9 @@ On 11/13/2013 03:46 AM, Eduardo Valentin wrote:
 > +
 > +		/* No hwmon because there might be hwmon drivers registering */
 > +		tzp->no_hwmon = true;
-
-I think the platform driver may set the governor for the thermal zone,
+I think the platform driver may set governor for the thermal zone,
 so how about to add a property named as "governor",
-and parse it to tzp->governor_name ?
+and parse it to tzp->governor_name,
 something like:
                 ret = of_property_read_string(child, "governor", &str);
                 if (ret = 0)
@@ -74,7 +74,6 @@ something like:
 
 Thanks.
 Wei.
-
 > +
 > +		zone = thermal_zone_device_register(child->name, tz->ntrips,
 > +						    0, tz,
@@ -102,7 +101,167 @@ Wei.
 > +	return -ENOMEM;
 > +}
 > +
->
+> +/**
+> + * of_thermal_destroy_zones - remove all zones parsed and allocated resources
+> + *
+> + * Finds all zones parsed and added to the thermal framework and remove them
+> + * from the system, together with their resources.
+> + *
+> + */
+> +void __exit of_thermal_destroy_zones(void)
+> +{
+> +	struct device_node *np, *child;
+> +
+> +	np = of_find_node_by_name(NULL, "thermal-zones");
+> +	if (!np) {
+> +		pr_err("unable to find thermal zones\n");
+> +		return;
+> +	}
+> +
+> +	for_each_child_of_node(np, child) {
+> +		struct thermal_zone_device *zone;
+> +
+> +		zone = thermal_zone_get_zone_by_name(child->name);
+> +		if (IS_ERR(zone))
+> +			continue;
+> +
+> +		thermal_zone_device_unregister(zone);
+> +		kfree(zone->tzp);
+> +		kfree(zone->ops);
+> +		of_thermal_free_zone(zone->devdata);
+> +	}
+> +}
+> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+> index f4c9021..aba68dc 100644
+> --- a/drivers/thermal/thermal_core.c
+> +++ b/drivers/thermal/thermal_core.c
+> @@ -1373,7 +1373,7 @@ static void remove_trip_attrs(struct thermal_zone_device *tz)
+>   */
+>  struct thermal_zone_device *thermal_zone_device_register(const char *type,
+>  	int trips, int mask, void *devdata,
+> -	const struct thermal_zone_device_ops *ops,
+> +	struct thermal_zone_device_ops *ops,
+>  	const struct thermal_zone_params *tzp,
+>  	int passive_delay, int polling_delay)
+>  {
+> @@ -1753,8 +1753,14 @@ static int __init thermal_init(void)
+>  	if (result)
+>  		goto unregister_class;
+>  
+> +	result = of_parse_thermal_zones();
+> +	if (result)
+> +		goto exit_netlink;
+> +
+>  	return 0;
+>  
+> +exit_netlink:
+> +	genetlink_exit();
+>  unregister_governors:
+>  	thermal_unregister_governors();
+>  unregister_class:
+> @@ -1770,6 +1776,7 @@ error:
+>  
+>  static void __exit thermal_exit(void)
+>  {
+> +	of_thermal_destroy_zones();
+>  	genetlink_exit();
+>  	class_unregister(&thermal_class);
+>  	thermal_unregister_governors();
+> diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
+> index 7cf2f66..3db339f 100644
+> --- a/drivers/thermal/thermal_core.h
+> +++ b/drivers/thermal/thermal_core.h
+> @@ -77,4 +77,13 @@ static inline int thermal_gov_user_space_register(void) { return 0; }
+>  static inline void thermal_gov_user_space_unregister(void) {}
+>  #endif /* CONFIG_THERMAL_GOV_USER_SPACE */
+>  
+> +/* device tree support */
+> +#ifdef CONFIG_THERMAL_OF
+> +int of_parse_thermal_zones(void);
+> +void of_thermal_destroy_zones(void);
+> +#else
+> +static inline int of_parse_thermal_zones(void) { return 0; }
+> +static inline void of_thermal_destroy_zones(void) { }
+> +#endif
+> +
+>  #endif /* __THERMAL_CORE_H__ */
+> diff --git a/include/dt-bindings/thermal/thermal.h b/include/dt-bindings/thermal/thermal.h
+> new file mode 100644
+> index 0000000..59822a9
+> --- /dev/null
+> +++ b/include/dt-bindings/thermal/thermal.h
+> @@ -0,0 +1,17 @@
+> +/*
+> + * This header provides constants for most thermal bindings.
+> + *
+> + * Copyright (C) 2013 Texas Instruments
+> + *	Eduardo Valentin <eduardo.valentin@ti.com>
+> + *
+> + * GPLv2 only
+> + */
+> +
+> +#ifndef _DT_BINDINGS_THERMAL_THERMAL_H
+> +#define _DT_BINDINGS_THERMAL_THERMAL_H
+> +
+> +/* On cooling devices upper and lower limits */
+> +#define THERMAL_NO_LIMIT		(-1UL)
+> +
+> +#endif
+> +
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index b268d3c..b780c5b 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -143,6 +143,7 @@ struct thermal_cooling_device {
+>  	int id;
+>  	char type[THERMAL_NAME_LENGTH];
+>  	struct device device;
+> +	struct device_node *np;
+>  	void *devdata;
+>  	const struct thermal_cooling_device_ops *ops;
+>  	bool updated; /* true if the cooling device does not need update */
+> @@ -172,7 +173,7 @@ struct thermal_zone_device {
+>  	int emul_temperature;
+>  	int passive;
+>  	unsigned int forced_passive;
+> -	const struct thermal_zone_device_ops *ops;
+> +	struct thermal_zone_device_ops *ops;
+>  	const struct thermal_zone_params *tzp;
+>  	struct thermal_governor *governor;
+>  	struct list_head thermal_instances;
+> @@ -242,8 +243,31 @@ struct thermal_genl_event {
+>  };
+>  
+>  /* Function declarations */
+> +#ifdef CONFIG_THERMAL_OF
+> +struct thermal_zone_device *
+> +thermal_zone_of_sensor_register(struct device *dev, int id,
+> +				void *data, int (*get_temp)(void *, long *),
+> +				int (*get_trend)(void *, long *));
+> +void thermal_zone_of_sensor_unregister(struct device *dev,
+> +				       struct thermal_zone_device *tz);
+> +#else
+> +static inline struct thermal_zone_device *
+> +thermal_zone_of_sensor_register(struct device *dev, int id,
+> +				void *data, int (*get_temp)(void *, long *),
+> +				int (*get_trend)(void *, long *))
+> +{
+> +	return NULL;
+> +}
+> +
+> +static inline
+> +void thermal_zone_of_sensor_unregister(struct device *dev,
+> +				       struct thermal_zone_device *tz)
+> +{
+> +}
+> +
+> +#endif
+>  struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
+> -		void *, const struct thermal_zone_device_ops *,
+> +		void *, struct thermal_zone_device_ops *,
+>  		const struct thermal_zone_params *, int, int);
+>  void thermal_zone_device_unregister(struct thermal_zone_device *);
+>  
 
 
 _______________________________________________
