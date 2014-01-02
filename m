@@ -1,116 +1,74 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Thu, 02 Jan 2014 03:03:15 +0000
+From: Matthew Longnecker <mlongnecker@nvidia.com>
+Date: Thu, 02 Jan 2014 17:35:00 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52C4D6F3.1040407@nvidia.com>
+Message-Id: <52C5A344.2060908@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com> <52C4D513.50404@gmail.com>
-In-Reply-To: <52C4D513.50404@gmail.com>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wei.nee.1977@gmail.com>, Eduardo Valentin <eduardo.valentin@ti.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>
-Cc: "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Sorry, please ignore this mail.
-This is not my regularly mail address.
+Eduardo,
 
-Thanks.
-Wei.
+For the most part, this binding is really well thought out. It makes a 
+lot of sense to me (as someone who has been working with thermal 
+management in Linux/Android-based mobile devices for a few years).
 
-On 01/02/2014 10:55 AM, Wei Ni wrote:
-> On 11/13/2013 03:46 AM, Eduardo Valentin wrote:
->> ....
->> +
->> +/**
->> + * of_parse_thermal_zones - parse device tree thermal data
->> + *
->> + * Initialization function that can be called by machine initialization
->> + * code to parse thermal data and populate the thermal framework
->> + * with hardware thermal zones info. This function only parses thermal zones.
->> + * Cooling devices and sensor devices nodes are supposed to be parsed
->> + * by their respective drivers.
->> + *
->> + * Return: 0 on success, proper error code otherwise
->> + *
->> + */
->> +int __init of_parse_thermal_zones(void)
->> +{
->> +	struct device_node *np, *child;
->> +	struct __thermal_zone *tz;
->> +	struct thermal_zone_device_ops *ops;
->> +
->> +	np = of_find_node_by_name(NULL, "thermal-zones");
->> +	if (!np) {
->> +		pr_debug("unable to find thermal zones\n");
->> +		return 0; /* Run successfully on systems without thermal DT */
->> +	}
->> +
->> +	for_each_child_of_node(np, child) {
->> +		struct thermal_zone_device *zone;
->> +		struct thermal_zone_params *tzp;
->> +
->> +		tz = thermal_of_build_thermal_zone(child);
->> +		if (IS_ERR(tz)) {
->> +			pr_err("failed to build thermal zone %s: %ld\n",
->> +			       child->name,
->> +			       PTR_ERR(tz));
->> +			continue;
->> +		}
->> +
->> +		ops = kmemdup(&of_thermal_ops, sizeof(*ops), GFP_KERNEL);
->> +		if (!ops)
->> +			goto exit_free;
->> +
->> +		tzp = kzalloc(sizeof(*tzp), GFP_KERNEL);
->> +		if (!tzp) {
->> +			kfree(ops);
->> +			goto exit_free;
->> +		}
->> +
->> +		/* No hwmon because there might be hwmon drivers registering */
->> +		tzp->no_hwmon = true;
-> 
-> I think the platform driver may set the governor for the thermal zone,
-> so how about to add a property named as "governor",
-> and parse it to tzp->governor_name ?
-> something like:
->                 ret = of_property_read_string(child, "governor", &str);
->                 if (ret = 0)
->                         if (strlen(str) < THERMAL_NAME_LENGTH)
->                                 strcpy(tzp->governor_name, str);
-> 
-> Thanks.
-> Wei.
-> 
->> +
->> +		zone = thermal_zone_device_register(child->name, tz->ntrips,
->> +						    0, tz,
->> +						    ops, tzp,
->> +						    tz->passive_delay,
->> +						    tz->polling_delay);
->> +		if (IS_ERR(zone)) {
->> +			pr_err("Failed to build %s zone %ld\n", child->name,
->> +			       PTR_ERR(zone));
->> +			kfree(tzp);
->> +			kfree(ops);
->> +			of_thermal_free_zone(tz);
->> +			/* attempting to build remaining zones still */
->> +		}
->> +	}
->> +
->> +	return 0;
->> +
->> +exit_free:
->> +	of_thermal_free_zone(tz);
->> +
->> +	/* no memory available, so free what we have built */
->> +	of_thermal_destroy_zones();
->> +
->> +	return -ENOMEM;
->> +}
->> +
->>
-> 
+However, I have one substantive criticism.
+
+On 11/12/2013 11:46 AM, Eduardo Valentin wrote:
+> +* Thermal zone nodes
+> +
+> +The thermal zone node is the node containing all the required info
+> +for describing a thermal zone, including its cooling device bindings. The
+> +thermal zone node must contain, apart from its own properties, one sub-node
+> +containing trip nodes and one sub-node containing all the zone cooling maps.
+> +
+> +Required properties:
+...
+> +- thermal-sensors:	A list of thermal sensor phandles and sensor specifier
+> +  Type: list of 	used while monitoring the thermal zone.
+> +  phandles + sensor
+> +  specifier
+...
+> +Optional property:
+> +- coefficients:		An array of integers (one signed cell) containing
+> +  Type: array		coefficients to compose a linear relation between
+> +  Elem size: one cell	the sensors listed in the thermal-sensors property.
+> +  Elem type: signed	Coefficients defaults to 1, in case this property
+> +			is not specified. A simple linear polynomial is used:
+> +			Z = c0 * x0 + c1 + x1 + ... + c(n-1) * x(n-1) + cn.
+> +
+> +			The coefficients are ordered and they match with sensors
+> +			by means of sensor ID. Additional coefficients are
+> +			interpreted as constant offset.
+
+
+"coefficients" is a problematic way of describing the relationship 
+between temperatures at various sensors and temperature at some other 
+location. It would make sense if heat flowed infinitely quickly. 
+However, in practice thermal capacitance means that we need to take into 
+account the _history_ of temperature at sensors in order to predict heat 
+coupled into a distant point.
+
+For example, assuming that handset enclosure starts at ~25C, the CPU 
+could burst to 100C for many minutes before the handset enclosure 
+reaches ~40C. However, at steady-state, the CPU might only be able to 
+sustain 65C without pushing the enclosure above 40C.
+
+I wouldn't be complaining except that you're proposing this as a DT 
+definition. In this case, the binding you've proposed is poor 
+abstraction of the hardware.
+
+thanks,
+Matt Longnecker
+
+p.s. I apologize for chiming in without having read the entire history 
+of the patch set. Engineers on my team will be trying this out for Tegra 
+within the next few weeks.
 
 
 _______________________________________________
