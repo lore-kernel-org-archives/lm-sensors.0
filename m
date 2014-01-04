@@ -1,110 +1,285 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 20 Jan 2014 18:38:45 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: (lm63) Create all sysfs groups in one call
-Message-Id: <1390243126-19519-3-git-send-email-linux@roeck-us.net>
+Date: Sat, 04 Jan 2014 17:35:33 +0000
+Subject: Re: [lm-sensors] [PATCH v3 2/5] input: sun4i-ts: Add support for temperature sensor
+Message-Id: <52C84665.5070203@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com> <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-sunxi@googlegroups.com, Corentin LABBE <clabbe.montjoie@gmail.com>, linux-input@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, linux-arm-kernel@lists.infradead.org
 
-We can create all sysfs groups in one call by using sysfs_create_groups
-instead of using sysfs_create_group individually for each group.
+On 12/31/2013 08:20 AM, Hans de Goede wrote:
+> The sun4i resisitive touchscreen controller also comes with a built-in
+> temperature sensor. This commit adds support for it.
+>
+> This commit also introduces a new "ts-attached" device-tree property,
+> when this is not set, the input part of the driver won't register. This way
+> the internal temperature sensor can be used to measure the SoC temperature
+> independent of there actually being a touchscreen attached to the controller.
+>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-This patch is purely to prepare for the next patch in the series.
-Both could be merged, though I think it makes sense to keep it separate
-to show the sequence of changes.
+Couple of minor comments below, though no need to resubmit unless someone else has comments.
 
- drivers/hwmon/lm63.c |   38 +++++++++++++++-----------------------
- 1 file changed, 15 insertions(+), 23 deletions(-)
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
 
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-index 438e612..b56cb9f 100644
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -157,6 +157,7 @@ enum chips { lm63, lm64, lm96163 };
- struct lm63_data {
- 	struct device *hwmon_dev;
- 	struct mutex update_lock;
-+	const struct attribute_group *groups[4];
- 	char valid; /* zero until following fields are valid */
- 	char lut_valid; /* zero until lut fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -1105,10 +1106,12 @@ static void lm63_init_client(struct i2c_client *client)
- static int lm63_probe(struct i2c_client *client,
- 		      const struct i2c_device_id *id)
- {
-+	struct device *dev = &client->dev;
- 	struct lm63_data *data;
-+	int groups = 0;
- 	int err;
- 
--	data = devm_kzalloc(&client->dev, sizeof(struct lm63_data), GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(struct lm63_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
-@@ -1125,22 +1128,18 @@ static int lm63_probe(struct i2c_client *client,
- 	lm63_init_client(client);
- 
- 	/* Register sysfs hooks */
--	err = sysfs_create_group(&client->dev.kobj, &lm63_group);
-+	data->groups[groups++] = &lm63_group;
-+	if (data->config & 0x04)	/* tachometer enabled */
-+		data->groups[groups++] = &lm63_group_fan1;
-+
-+	if (data->kind = lm96163)
-+		data->groups[groups++] = &lm63_group_lm96163;
-+
-+	err = sysfs_create_groups(&dev->kobj, data->groups);
- 	if (err)
- 		return err;
--	if (data->config & 0x04) { /* tachometer enabled */
--		err = sysfs_create_group(&client->dev.kobj, &lm63_group_fan1);
--		if (err)
--			goto exit_remove_files;
--	}
--	if (data->kind = lm96163) {
--		err = sysfs_create_group(&client->dev.kobj,
--					 &lm63_group_lm96163);
--		if (err)
--			goto exit_remove_files;
--	}
- 
--	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	data->hwmon_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		err = PTR_ERR(data->hwmon_dev);
- 		goto exit_remove_files;
-@@ -1149,10 +1148,7 @@ static int lm63_probe(struct i2c_client *client,
- 	return 0;
- 
- exit_remove_files:
--	sysfs_remove_group(&client->dev.kobj, &lm63_group);
--	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
--	if (data->kind = lm96163)
--		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
-+	sysfs_remove_groups(&dev->kobj, data->groups);
- 	return err;
- }
- 
-@@ -1161,11 +1157,7 @@ static int lm63_remove(struct i2c_client *client)
- 	struct lm63_data *data = i2c_get_clientdata(client);
- 
- 	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm63_group);
--	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
--	if (data->kind = lm96163)
--		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
--
-+	sysfs_remove_groups(&client->dev.kobj, data->groups);
- 	return 0;
- }
- 
--- 
-1.7.9.7
+> ---
+>   .../bindings/input/touchscreen/sun4i.txt           |   5 +
+>   drivers/input/touchscreen/sun4i-ts.c               | 140 ++++++++++++++++-----
+>   2 files changed, 114 insertions(+), 31 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+> index e45927e..6bac67b 100644
+> --- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+> +++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+> @@ -6,10 +6,15 @@ Required properties:
+>    - reg: mmio address range of the chip
+>    - interrupts: interrupt to which the chip is connected
+>
+> +Optional properties:
+> + - allwinner,ts-attached: boolean indicating that an actual touchscreen is
+> +			  attached to the controller
+> +
+Brr. While I understand that you were asked to do this, I don't really see the benefit
+of another "allwinner" here. As if this wasn't implied by the "compatible" property.
+
+>   Example:
+>
+>   	rtp: rtp@01c25000 {
+>   		compatible = "allwinner,sun4i-ts";
+>   		reg = <0x01c25000 0x100>;
+>   		interrupts = <29>;
+> +		allwinner,ts-attached;
+>   	};
+> diff --git a/drivers/input/touchscreen/sun4i-ts.c b/drivers/input/touchscreen/sun4i-ts.c
+> index 5945219..16cbb01 100644
+> --- a/drivers/input/touchscreen/sun4i-ts.c
+> +++ b/drivers/input/touchscreen/sun4i-ts.c
+> @@ -3,6 +3,9 @@
+>    *
+>    * Copyright (C) 2013 - 2014 Hans de Goede <hdegoede@redhat.com>
+>    *
+> + * The hwmon parts are based on work by Corentin LABBE which is:
+> + * Copyright (C) 2013 Corentin LABBE <clabbe.montjoie@gmail.com>
+> + *
+>    * This program is free software; you can redistribute it and/or modify
+>    * it under the terms of the GNU General Public License as published by
+>    * the Free Software Foundation; either version 2 of the License, or
+> @@ -30,6 +33,7 @@
+>    */
+>
+>   #include <linux/err.h>
+> +#include <linux/hwmon.h>
+>   #include <linux/init.h>
+>   #include <linux/input.h>
+>   #include <linux/interrupt.h>
+> @@ -106,14 +110,12 @@ struct sun4i_ts_data {
+>   	void __iomem *base;
+>   	unsigned int irq;
+>   	bool ignore_fifo_data;
+> +	int temp_data;
+>   };
+>
+> -static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
+> +static void sun4i_ts_irq_handle_input(struct sun4i_ts_data *ts, u32 reg_val)
+>   {
+> -	struct sun4i_ts_data *ts = dev_id;
+> -	u32 reg_val, x, y;
+> -
+> -	reg_val  = readl(ts->base + TP_INT_FIFOS);
+> +	u32 x, y;
+>
+>   	if (reg_val & FIFO_DATA_PENDING) {
+>   		x = readl(ts->base + TP_DATA);
+> @@ -139,6 +141,20 @@ static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
+>   		input_report_key(ts->input, BTN_TOUCH, 0);
+>   		input_sync(ts->input);
+>   	}
+> +}
+> +
+> +static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
+> +{
+> +	struct sun4i_ts_data *ts = dev_id;
+> +	u32 reg_val;
+> +
+> +	reg_val  = readl(ts->base + TP_INT_FIFOS);
+> +
+> +	if (reg_val & TEMP_DATA_PENDING)
+> +		ts->temp_data = readl(ts->base + TEMP_DATA);
+> +
+> +	if (ts->input)
+> +		sun4i_ts_irq_handle_input(ts, reg_val);
+>
+>   	writel(reg_val, ts->base + TP_INT_FIFOS);
+>
+> @@ -149,9 +165,9 @@ static int sun4i_ts_open(struct input_dev *dev)
+>   {
+>   	struct sun4i_ts_data *ts = input_get_drvdata(dev);
+>
+> -	/* Flush, set trig level to 1, enable data and up irqs */
+> -	writel(DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) | TP_UP_IRQ_EN(1),
+> -	       ts->base + TP_INT_FIFOC);
+> +	/* Flush, set trig level to 1, enable temp, data and up irqs */
+> +	writel(TEMP_IRQ_EN(1) | DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) |
+> +		TP_UP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
+>
+>   	return 0;
+>   }
+> @@ -160,15 +176,48 @@ static void sun4i_ts_close(struct input_dev *dev)
+>   {
+>   	struct sun4i_ts_data *ts = input_get_drvdata(dev);
+>
+> -	/* Deactivate all IRQs */
+> -	writel(0, ts->base + TP_INT_FIFOC);
+> +	/* Deactivate all input IRQs */
+> +	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
+> +}
+> +
+> +static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
+> +			 char *buf)
+> +{
+> +	struct sun4i_ts_data *ts = dev_get_drvdata(dev);
+> +
+> +	/* No temp_data until the first irq */
+> +	if (ts->temp_data = -1)
+> +		return -EAGAIN;
+> +
+> +	return sprintf(buf, "%d\n", (ts->temp_data - 1447) * 100);
+> +}
+> +
+> +static ssize_t show_temp_label(struct device *dev,
+> +			      struct device_attribute *devattr, char *buf)
+> +{
+> +	return sprintf(buf, "SoC temperature\n");
+>   }
+>
+> +static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
+> +static DEVICE_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL);
+> +
+
+Just remembered ... there is now also a DEVICE_ATTR_RO() macro.
+
+> +static struct attribute *sun4i_ts_attrs[] = {
+> +	&dev_attr_temp1_input.attr,
+> +	&dev_attr_temp1_label.attr,
+> +	NULL
+> +};
+> +ATTRIBUTE_GROUPS(sun4i_ts);
+> +
+>   static int sun4i_ts_probe(struct platform_device *pdev)
+>   {
+>   	struct sun4i_ts_data *ts;
+>   	struct device *dev = &pdev->dev;
+> +	struct device_node *np = dev->of_node;
+> +	struct device *hwmon;
+>   	int ret;
+> +	bool ts_attached;
+> +
+> +	ts_attached = of_property_read_bool(np, "allwinner,ts-attached");
+>
+>   	ts = devm_kzalloc(dev, sizeof(struct sun4i_ts_data), GFP_KERNEL);
+>   	if (!ts)
+> @@ -176,24 +225,27 @@ static int sun4i_ts_probe(struct platform_device *pdev)
+>
+>   	ts->dev = dev;
+>   	ts->ignore_fifo_data = true;
+> -
+> -	ts->input = devm_input_allocate_device(dev);
+> -	if (!ts->input)
+> -		return -ENOMEM;
+> -
+> -	ts->input->name = pdev->name;
+> -	ts->input->phys = "sun4i_ts/input0";
+> -	ts->input->open = sun4i_ts_open;
+> -	ts->input->close = sun4i_ts_close;
+> -	ts->input->id.bustype = BUS_HOST;
+> -	ts->input->id.vendor = 0x0001;
+> -	ts->input->id.product = 0x0001;
+> -	ts->input->id.version = 0x0100;
+> -	ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
+> -	set_bit(BTN_TOUCH, ts->input->keybit);
+> -	input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
+> -	input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
+> -	input_set_drvdata(ts->input, ts);
+> +	ts->temp_data = -1;
+> +
+> +	if (ts_attached) {
+> +		ts->input = devm_input_allocate_device(dev);
+> +		if (!ts->input)
+> +			return -ENOMEM;
+> +
+> +		ts->input->name = pdev->name;
+> +		ts->input->phys = "sun4i_ts/input0";
+> +		ts->input->open = sun4i_ts_open;
+> +		ts->input->close = sun4i_ts_close;
+> +		ts->input->id.bustype = BUS_HOST;
+> +		ts->input->id.vendor = 0x0001;
+> +		ts->input->id.product = 0x0001;
+> +		ts->input->id.version = 0x0100;
+> +		ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
+> +		set_bit(BTN_TOUCH, ts->input->keybit);
+> +		input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
+> +		input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
+> +		input_set_drvdata(ts->input, ts);
+> +	}
+>
+>   	ts->base = devm_ioremap_resource(dev,
+>   			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
+> @@ -232,14 +284,39 @@ static int sun4i_ts_probe(struct platform_device *pdev)
+>   	writel(STYLUS_UP_DEBOUN(5) | STYLUS_UP_DEBOUN_EN(1) | TP_MODE_EN(1),
+>   	       ts->base + TP_CTRL1);
+>
+> -	ret = input_register_device(ts->input);
+> -	if (ret)
+> -		return ret;
+> +	hwmon = devm_hwmon_device_register_with_groups(ts->dev, "sun4i_ts",
+> +						       ts, sun4i_ts_groups);
+> +	if (IS_ERR(hwmon))
+> +		return PTR_ERR(hwmon);
+> +
+> +	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
+> +
+> +	if (ts_attached) {
+> +		ret = input_register_device(ts->input);
+> +		if (ret) {
+> +			writel(0, ts->base + TP_INT_FIFOC);
+> +			return ret;
+> +		}
+> +	}
+>
+>   	platform_set_drvdata(pdev, ts);
+>   	return 0;
+>   }
+>
+> +static int sun4i_ts_remove(struct platform_device *pdev)
+> +{
+> +	struct sun4i_ts_data *ts = platform_get_drvdata(pdev);
+> +
+> +	/* Explicit unregister to avoid open/close changing the imask later */
+> +	if (ts->input)
+> +		input_unregister_device(ts->input);
+> +
+> +	/* Deactivate all IRQs */
+> +	writel(0, ts->base + TP_INT_FIFOC);
+> +
+> +	return 0;
+> +}
+> +
+>   static const struct of_device_id sun4i_ts_of_match[] = {
+>   	{ .compatible = "allwinner,sun4i-ts", },
+>   	{ /* sentinel */ }
+> @@ -253,6 +330,7 @@ static struct platform_driver sun4i_ts_driver = {
+>   		.of_match_table = of_match_ptr(sun4i_ts_of_match),
+>   	},
+>   	.probe	= sun4i_ts_probe,
+> +	.remove	= sun4i_ts_remove,
+>   };
+>
+>   module_platform_driver(sun4i_ts_driver);
+>
 
 
 _______________________________________________
