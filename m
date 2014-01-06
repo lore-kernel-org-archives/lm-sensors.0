@@ -1,44 +1,35 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 14 Jan 2014 21:24:52 +0000
-Subject: Re: [lm-sensors] k10temp Kaveri support (was: Re: Test patch)
-Message-Id: <20140114212452.GA27681@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Mon, 06 Jan 2014 12:36:50 +0000
+Subject: [lm-sensors] [PATCHv2 6/7] arm: dts: add tmp102 i2c sensor node on dra7-evm
+Message-Id: <1389011811-13004-7-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: rui.zhang@intel.com
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 14, 2014 at 10:46:46AM -0800, Phil Pokorny wrote:
-> Add new PCI ID to k10temp in support of new model "Kaveri" family.
-> 
-> Signed-off-by: Philip Pokorny <ppokorny@penguincomputing.com>
-> 
-Odd headline ;-). I fixed that as well as the patch format (spaces instead of
-tabs below) and applied it to hwmon-next.
-
-Thanks,
-Guenter
-
-> diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
-> index d65f3fd..758774f 100644
-> --- a/drivers/hwmon/k10temp.c
-> +++ b/drivers/hwmon/k10temp.c
-> @@ -210,6 +210,7 @@ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
->         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
->         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
->         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_F3) },
-> +       { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F3) },
->         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F3) },
->         {}
->  };
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gZHJhNy1ldm0gdGhlcmUgaXMgYW4gdG1wMTAyIHRlbXBlcmF0dXJlIHNlbnNvciBvbiBpMmMg
+YnVzIDEuClRoaXMgcGF0Y2ggYWRkcyBpdHMgZGV2aWNlIHRyZWUgbm9kZS4KCkNjOiBCZW5vw650
+IENvdXNzb24gPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFpoYW5nIFJ1aSA8cnVpLnpoYW5n
+QGludGVsLmNvbT4KQ2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6
+IFBhd2VsIE1vbGwgPHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5y
+dXRsYW5kQGFybS5jb20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3Jn
+PgpDYzogSWFuIENhbXBiZWxsIDxpamMrZGV2aWNldHJlZUBoZWxsaW9uLm9yZy51az4KQ2M6IFJ1
+c3NlbGwgS2luZyA8bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGRldmljZXRyZWVAdmdlci5r
+ZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxp
+bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRp
+biA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1l
+dm0uZHRzIHwgNyArKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspCgpkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9k
+dHMvZHJhNy1ldm0uZHRzCmluZGV4IDViYWJiYTAuLjM2ZTJjOWUgMTAwNjQ0Ci0tLSBhL2FyY2gv
+YXJtL2Jvb3QvZHRzL2RyYTctZXZtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3LWV2
+bS5kdHMKQEAgLTIxMiw2ICsyMTIsMTMgQEAKIAkJCX07CiAJCX07CiAJfTsKKworCXRtcDEwMjog
+dG1wMTAyQDQ4IHsKKwkJY29tcGF0aWJsZSA9ICJ0aSx0bXAxMDIiOworCQlyZWcgPSA8MHg0OD47
+CisKKwkJI3RoZXJtYWwtc2Vuc29yLWNlbGxzID0gPDA+OworCX07CiB9OwogCiAmaTJjMiB7Ci0t
+IAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
+c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
+c2Vuc29ycw=
