@@ -1,52 +1,52 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 10 Jan 2014 23:09:49 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (sht15) add include guard
-Message-Id: <52D07DBD.9060700@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Mon, 06 Jan 2014 12:36:44 +0000
+Subject: [lm-sensors] [PATCHv2 0/7] DRA7: DT thermal support
+Message-Id: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1389390286-6287-1-git-send-email-vivien.didelot@savoirfairelinux.com> <1389390286-6287-2-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1389390286-6287-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, lm-sensors@lm-sensors.org
-Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, kernel@savoirfairelinux.com
+To: rui.zhang@intel.com
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-On 01/10/2014 01:44 PM, Vivien Didelot wrote:
-> Add include guard to include/linux/platform_data/sht15.h to prevent
-> multiple inclusion.
->
-> Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-> ---
+Hello all,
 
-Applied to hwmon-next.
+Now that the basic thermal DT support is merged into Rui's tree,
+I am resending this series, which introduces the DT node entries
+for DRA7 thermal limits representation.
 
-Thanks,
-Guenter
+The series adds two thermal zones, to represent IVA and DSPEVE,
+respectively. It also adds the support to tmp102 and a corresponding
+pcb thermal zone.
 
->   include/linux/platform_data/sht15.h | 5 +++++
->   1 file changed, 5 insertions(+)
->
-> diff --git a/include/linux/platform_data/sht15.h b/include/linux/platform_data/sht15.h
-> index 33e0fd2..12289c1 100644
-> --- a/include/linux/platform_data/sht15.h
-> +++ b/include/linux/platform_data/sht15.h
-> @@ -12,6 +12,9 @@
->    * For further information, see the Documentation/hwmon/sht15 file.
->    */
->
-> +#ifndef _PDATA_SHT15_H
-> +#define _PDATA_SHT15_H
-> +
->   /**
->    * struct sht15_platform_data - sht15 connectivity info
->    * @gpio_data:		no. of gpio to which bidirectional data line is
-> @@ -31,3 +34,5 @@ struct sht15_platform_data {
->   	bool no_otp_reload;
->   	bool low_resolution;
->   };
-> +
-> +#endif /* _PDATA_SHT15_H */
->
+There are only cosmetic changes from v1. A couple of spaces and tabulations
+have been fixed, and minor changes in sentences present in commit log.
+One difference from V1 is the fact that now bandgap is introduced under
+OCP, which is also a minor diff.
+
+This patch series has been runtime tested on DRA7-evm.
+
+All best
+
+Eduardo Valentin (7):
+  arm: dts: add dra7 DSPEVE thermal data
+  arm: dts: add dra7 IVA thermal data
+  arm: dts: dra7: add bandgap entry
+  arm: dts: add cooling properties on dra7 cpu node
+  arm: dts: dra7: add thermal data
+  arm: dts: add tmp102 i2c sensor node on dra7-evm
+  arm: dts: add thermal zones info on tmp102 for DRA7-EVM
+
+ arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 28 ++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7-evm.dts             | 22 ++++++++++++++++++++++
+ arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 28 ++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                | 26 ++++++++++++++++++++++++++
+ 4 files changed, 104 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
+
+-- 
+1.8.2.1.342.gfa7285d
 
 
 _______________________________________________
