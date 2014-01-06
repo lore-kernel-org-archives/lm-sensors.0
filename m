@@ -1,288 +1,129 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Jan 2014 17:35:33 +0000
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Date: Mon, 06 Jan 2014 11:00:25 +0000
 Subject: Re: [lm-sensors] [PATCH v3 2/5] input: sun4i-ts: Add support for temperature sensor
-Message-Id: <52C84665.5070203@roeck-us.net>
+Message-Id: <20140106110025.GQ3144@lukather>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8485953158507616494=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com> <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
-MIME-Version: 1.0
+References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
+ <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
+ <52C84665.5070203@roeck-us.net>
+In-Reply-To: <52C84665.5070203-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+
+
+--===============8485953158507616494==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cnn+CxJy/uys8v1I"
+Content-Disposition: inline
+
+
+--cnn+CxJy/uys8v1I
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Guenter,
+
+On Sat, Jan 04, 2014 at 09:35:33AM -0800, Guenter Roeck wrote:
+> On 12/31/2013 08:20 AM, Hans de Goede wrote:
+> >The sun4i resisitive touchscreen controller also comes with a built-in
+> >temperature sensor. This commit adds support for it.
+> >
+> >This commit also introduces a new "ts-attached" device-tree property,
+> >when this is not set, the input part of the driver won't register. This =
+way
+> >the internal temperature sensor can be used to measure the SoC temperatu=
+re
+> >independent of there actually being a touchscreen attached to the contro=
+ller.
+> >
+> >Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>=20
+> Couple of minor comments below, though no need to resubmit unless someone=
+ else has comments.
+>=20
+> Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+>=20
+> >---
+> >  .../bindings/input/touchscreen/sun4i.txt           |   5 +
+> >  drivers/input/touchscreen/sun4i-ts.c               | 140 +++++++++++++=
++++-----
+> >  2 files changed, 114 insertions(+), 31 deletions(-)
+> >
+> >diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.t=
+xt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+> >index e45927e..6bac67b 100644
+> >--- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+> >+++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+> >@@ -6,10 +6,15 @@ Required properties:
+> >   - reg: mmio address range of the chip
+> >   - interrupts: interrupt to which the chip is connected
+> >
+> >+Optional properties:
+> >+ - allwinner,ts-attached: boolean indicating that an actual touchscreen=
+ is
+> >+			  attached to the controller
+> >+
+> Brr. While I understand that you were asked to do this, I don't
+> really see the benefit of another "allwinner" here. As if this
+> wasn't implied by the "compatible" property.
+
+It's actually the ePAPR that recommends this.
+
+Section 6.1.1, General Principles
+
+"
+Some recommended practices includes:
+[..]
+  5. If new properties are needed by the binding, the recommended
+     format for property names is: =E2=80=9C<company>,<property-name>=E2=80=
+=9D, where
+     <company> is an OUI or short unique string like a stock ticker
+     that identifies the creator of the binding.
+"
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--cnn+CxJy/uys8v1I
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSyozJAAoJEBx+YmzsjxAgjU0P/RIYTx1rAGb1hvM+wlF73kIS
+nebYQNz7z9/KJbmgqCPF2XRC1NQmL3t2//evAgVrQ9jTqzW6USJ0Erw17YZswWl8
+nPgL35OqRAxdqOFOug1VMxX3EW2+Q6Khi6VSz4Cg9G17K64nsgkIO4a40OUIaEOS
+XdVvdygoNJCN7HO9WxMMe9vbrib2qMZ+UjrO6+YLUK91rQkZB22vWj0/EblUEwj9
+GgCQT3pibzS+AG2xq8GQ4RJJc3bE5GO3BQ6mP/xazI1KOip0cGxanMqYgjhmfPR2
+dGSb+6rvAZSkkQaXsDj6uVOZu2KtOSqTGXYYcHeFzBJcvHJ7nr6PbRiNucOsDtlG
+G1wX4m+94eQMPNtYC4/55Av/TICfF/icZ9Rx2Dz50Uom3Z7QgxbJ1S5oXKdX5j/h
+qe+52Olpp2/G320SrdaMt/7Zt7g2t/GJw9G6GY1KuGwoHrQwAlLLkVy6l4ja6dKF
++QryIOjH9J64bvsjPhM5VxCeFpCVxJByjC8pPx6Dbco6QNfPwADVLz5g0hTw1HAY
+7ZWXFEwPCkLdJmKc8ZQVwM65AQx5eB6eQBJ+o21KFTK0G8BS68Q1d+mxFwkIlnKP
+8ZI+atbPNXiJgOv15aUcpCqc9Vbk4rLzztXex3t1fm/spVJz66If1WXjbLZ/Ugzf
+bmswACwgVxopKv4zA8To
+=SFGh
+-----END PGP SIGNATURE-----
+
+--cnn+CxJy/uys8v1I--
+
+
+--===============8485953158507616494==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <hdegoede@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-sunxi@googlegroups.com, Corentin LABBE <clabbe.montjoie@gmail.com>, linux-input@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, linux-arm-kernel@lists.infradead.org
-
-On 12/31/2013 08:20 AM, Hans de Goede wrote:
-> The sun4i resisitive touchscreen controller also comes with a built-in
-> temperature sensor. This commit adds support for it.
->
-> This commit also introduces a new "ts-attached" device-tree property,
-> when this is not set, the input part of the driver won't register. This way
-> the internal temperature sensor can be used to measure the SoC temperature
-> independent of there actually being a touchscreen attached to the controller.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-Couple of minor comments below, though no need to resubmit unless someone else has comments.
-
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-
-> ---
->   .../bindings/input/touchscreen/sun4i.txt           |   5 +
->   drivers/input/touchscreen/sun4i-ts.c               | 140 ++++++++++++++++-----
->   2 files changed, 114 insertions(+), 31 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> index e45927e..6bac67b 100644
-> --- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> @@ -6,10 +6,15 @@ Required properties:
->    - reg: mmio address range of the chip
->    - interrupts: interrupt to which the chip is connected
->
-> +Optional properties:
-> + - allwinner,ts-attached: boolean indicating that an actual touchscreen is
-> +			  attached to the controller
-> +
-Brr. While I understand that you were asked to do this, I don't really see the benefit
-of another "allwinner" here. As if this wasn't implied by the "compatible" property.
-
->   Example:
->
->   	rtp: rtp@01c25000 {
->   		compatible = "allwinner,sun4i-ts";
->   		reg = <0x01c25000 0x100>;
->   		interrupts = <29>;
-> +		allwinner,ts-attached;
->   	};
-> diff --git a/drivers/input/touchscreen/sun4i-ts.c b/drivers/input/touchscreen/sun4i-ts.c
-> index 5945219..16cbb01 100644
-> --- a/drivers/input/touchscreen/sun4i-ts.c
-> +++ b/drivers/input/touchscreen/sun4i-ts.c
-> @@ -3,6 +3,9 @@
->    *
->    * Copyright (C) 2013 - 2014 Hans de Goede <hdegoede@redhat.com>
->    *
-> + * The hwmon parts are based on work by Corentin LABBE which is:
-> + * Copyright (C) 2013 Corentin LABBE <clabbe.montjoie@gmail.com>
-> + *
->    * This program is free software; you can redistribute it and/or modify
->    * it under the terms of the GNU General Public License as published by
->    * the Free Software Foundation; either version 2 of the License, or
-> @@ -30,6 +33,7 @@
->    */
->
->   #include <linux/err.h>
-> +#include <linux/hwmon.h>
->   #include <linux/init.h>
->   #include <linux/input.h>
->   #include <linux/interrupt.h>
-> @@ -106,14 +110,12 @@ struct sun4i_ts_data {
->   	void __iomem *base;
->   	unsigned int irq;
->   	bool ignore_fifo_data;
-> +	int temp_data;
->   };
->
-> -static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
-> +static void sun4i_ts_irq_handle_input(struct sun4i_ts_data *ts, u32 reg_val)
->   {
-> -	struct sun4i_ts_data *ts = dev_id;
-> -	u32 reg_val, x, y;
-> -
-> -	reg_val  = readl(ts->base + TP_INT_FIFOS);
-> +	u32 x, y;
->
->   	if (reg_val & FIFO_DATA_PENDING) {
->   		x = readl(ts->base + TP_DATA);
-> @@ -139,6 +141,20 @@ static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
->   		input_report_key(ts->input, BTN_TOUCH, 0);
->   		input_sync(ts->input);
->   	}
-> +}
-> +
-> +static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
-> +{
-> +	struct sun4i_ts_data *ts = dev_id;
-> +	u32 reg_val;
-> +
-> +	reg_val  = readl(ts->base + TP_INT_FIFOS);
-> +
-> +	if (reg_val & TEMP_DATA_PENDING)
-> +		ts->temp_data = readl(ts->base + TEMP_DATA);
-> +
-> +	if (ts->input)
-> +		sun4i_ts_irq_handle_input(ts, reg_val);
->
->   	writel(reg_val, ts->base + TP_INT_FIFOS);
->
-> @@ -149,9 +165,9 @@ static int sun4i_ts_open(struct input_dev *dev)
->   {
->   	struct sun4i_ts_data *ts = input_get_drvdata(dev);
->
-> -	/* Flush, set trig level to 1, enable data and up irqs */
-> -	writel(DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) | TP_UP_IRQ_EN(1),
-> -	       ts->base + TP_INT_FIFOC);
-> +	/* Flush, set trig level to 1, enable temp, data and up irqs */
-> +	writel(TEMP_IRQ_EN(1) | DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) |
-> +		TP_UP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
->
->   	return 0;
->   }
-> @@ -160,15 +176,48 @@ static void sun4i_ts_close(struct input_dev *dev)
->   {
->   	struct sun4i_ts_data *ts = input_get_drvdata(dev);
->
-> -	/* Deactivate all IRQs */
-> -	writel(0, ts->base + TP_INT_FIFOC);
-> +	/* Deactivate all input IRQs */
-> +	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
-> +}
-> +
-> +static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-> +			 char *buf)
-> +{
-> +	struct sun4i_ts_data *ts = dev_get_drvdata(dev);
-> +
-> +	/* No temp_data until the first irq */
-> +	if (ts->temp_data = -1)
-> +		return -EAGAIN;
-> +
-> +	return sprintf(buf, "%d\n", (ts->temp_data - 1447) * 100);
-> +}
-> +
-> +static ssize_t show_temp_label(struct device *dev,
-> +			      struct device_attribute *devattr, char *buf)
-> +{
-> +	return sprintf(buf, "SoC temperature\n");
->   }
->
-> +static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
-> +static DEVICE_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL);
-> +
-
-Just remembered ... there is now also a DEVICE_ATTR_RO() macro.
-
-> +static struct attribute *sun4i_ts_attrs[] = {
-> +	&dev_attr_temp1_input.attr,
-> +	&dev_attr_temp1_label.attr,
-> +	NULL
-> +};
-> +ATTRIBUTE_GROUPS(sun4i_ts);
-> +
->   static int sun4i_ts_probe(struct platform_device *pdev)
->   {
->   	struct sun4i_ts_data *ts;
->   	struct device *dev = &pdev->dev;
-> +	struct device_node *np = dev->of_node;
-> +	struct device *hwmon;
->   	int ret;
-> +	bool ts_attached;
-> +
-> +	ts_attached = of_property_read_bool(np, "allwinner,ts-attached");
->
->   	ts = devm_kzalloc(dev, sizeof(struct sun4i_ts_data), GFP_KERNEL);
->   	if (!ts)
-> @@ -176,24 +225,27 @@ static int sun4i_ts_probe(struct platform_device *pdev)
->
->   	ts->dev = dev;
->   	ts->ignore_fifo_data = true;
-> -
-> -	ts->input = devm_input_allocate_device(dev);
-> -	if (!ts->input)
-> -		return -ENOMEM;
-> -
-> -	ts->input->name = pdev->name;
-> -	ts->input->phys = "sun4i_ts/input0";
-> -	ts->input->open = sun4i_ts_open;
-> -	ts->input->close = sun4i_ts_close;
-> -	ts->input->id.bustype = BUS_HOST;
-> -	ts->input->id.vendor = 0x0001;
-> -	ts->input->id.product = 0x0001;
-> -	ts->input->id.version = 0x0100;
-> -	ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
-> -	set_bit(BTN_TOUCH, ts->input->keybit);
-> -	input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
-> -	input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
-> -	input_set_drvdata(ts->input, ts);
-> +	ts->temp_data = -1;
-> +
-> +	if (ts_attached) {
-> +		ts->input = devm_input_allocate_device(dev);
-> +		if (!ts->input)
-> +			return -ENOMEM;
-> +
-> +		ts->input->name = pdev->name;
-> +		ts->input->phys = "sun4i_ts/input0";
-> +		ts->input->open = sun4i_ts_open;
-> +		ts->input->close = sun4i_ts_close;
-> +		ts->input->id.bustype = BUS_HOST;
-> +		ts->input->id.vendor = 0x0001;
-> +		ts->input->id.product = 0x0001;
-> +		ts->input->id.version = 0x0100;
-> +		ts->input->evbit[0] =  BIT(EV_SYN) | BIT(EV_KEY) | BIT(EV_ABS);
-> +		set_bit(BTN_TOUCH, ts->input->keybit);
-> +		input_set_abs_params(ts->input, ABS_X, 0, 4095, 0, 0);
-> +		input_set_abs_params(ts->input, ABS_Y, 0, 4095, 0, 0);
-> +		input_set_drvdata(ts->input, ts);
-> +	}
->
->   	ts->base = devm_ioremap_resource(dev,
->   			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
-> @@ -232,14 +284,39 @@ static int sun4i_ts_probe(struct platform_device *pdev)
->   	writel(STYLUS_UP_DEBOUN(5) | STYLUS_UP_DEBOUN_EN(1) | TP_MODE_EN(1),
->   	       ts->base + TP_CTRL1);
->
-> -	ret = input_register_device(ts->input);
-> -	if (ret)
-> -		return ret;
-> +	hwmon = devm_hwmon_device_register_with_groups(ts->dev, "sun4i_ts",
-> +						       ts, sun4i_ts_groups);
-> +	if (IS_ERR(hwmon))
-> +		return PTR_ERR(hwmon);
-> +
-> +	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
-> +
-> +	if (ts_attached) {
-> +		ret = input_register_device(ts->input);
-> +		if (ret) {
-> +			writel(0, ts->base + TP_INT_FIFOC);
-> +			return ret;
-> +		}
-> +	}
->
->   	platform_set_drvdata(pdev, ts);
->   	return 0;
->   }
->
-> +static int sun4i_ts_remove(struct platform_device *pdev)
-> +{
-> +	struct sun4i_ts_data *ts = platform_get_drvdata(pdev);
-> +
-> +	/* Explicit unregister to avoid open/close changing the imask later */
-> +	if (ts->input)
-> +		input_unregister_device(ts->input);
-> +
-> +	/* Deactivate all IRQs */
-> +	writel(0, ts->base + TP_INT_FIFOC);
-> +
-> +	return 0;
-> +}
-> +
->   static const struct of_device_id sun4i_ts_of_match[] = {
->   	{ .compatible = "allwinner,sun4i-ts", },
->   	{ /* sentinel */ }
-> @@ -253,6 +330,7 @@ static struct platform_driver sun4i_ts_driver = {
->   		.of_match_table = of_match_ptr(sun4i_ts_of_match),
->   	},
->   	.probe	= sun4i_ts_probe,
-> +	.remove	= sun4i_ts_remove,
->   };
->
->   module_platform_driver(sun4i_ts_driver);
->
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8485953158507616494==--
