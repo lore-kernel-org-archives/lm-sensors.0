@@ -1,91 +1,41 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 15 Jan 2014 14:33:54 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fix for 3.13
-Message-Id: <20140115143354.GA25243@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3940408039190688857=="
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Mon, 06 Jan 2014 12:36:49 +0000
+Subject: [lm-sensors] [PATCHv2 5/7] arm: dts: dra7: add thermal data
+Message-Id: <1389011811-13004-6-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============3940408039190688857==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
-Content-Disposition: inline
-
-
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull the following hwmon fix for Linux 3.13 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit 319e2e3f63c348a9b66db4667efa73178e18b17d:
-
-  Linux 3.13-rc4 (2013-12-15 12:31:33 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 3f9aec7610b39521c7c69d754de7265f6994c194:
-
-  hwmon: (coretemp) Fix truncated name of alarm attributes (2014-01-14 09:47:52 -0800)
-
-----------------------------------------------------------------
-hwmon fixes for 3.13 final
-
-Fix attribute length problem in coretemp driver
-
-----------------------------------------------------------------
-Jean Delvare (1):
-      hwmon: (coretemp) Fix truncated name of alarm attributes
-
- drivers/hwmon/coretemp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS1pxSAAoJEMsfJm/On5mBaGYP/iya6E+ta/LnkgeheVgTJYpn
-cwPTtmZAoMMxf2smeNi+WRyYZ0kGrr6hiwCxmWwdXPHglnf+nGF56RxEHP/L508H
-JpOOSMoDrn/hbx3y/mroy+RHMBohkA51Bnq5FTzrcIo1GnqtbU4Sf7S+L4L+amKQ
-TdO7iKvK43gtLnPMVAAwioc5+v2lMpp/AXnnLEu2uaSHlk+JF9vs2PcYJ0TLSJOk
-wFLoOdDx8jXIfFHkf8MasSG9a3Es3TnHS4KXFiXO3kkWj4quNyEOwcR7wEYRcngJ
-G6MhqPb42hEr1f5aMOJuILmkZz8sN8NS5p/N992RKlTELb/GzfnUGcYomo8fLR+h
-UKfrNIWmGSC/ruZGIG3XLYluvIUcUAM8cXxCr0dUPrkCmt1lxOOtZGxlS03n7u5/
-qUcU7bkhQdNrs3CvYolWB4JptaUdxlrzufENyZ6cdRsmElOSRsKNkUk+LvToALpu
-h9RH9fKHOHyTcegf9mw1ATeGmL0XTkyrbrfR1berNCrom8r12LrgYldmxLAZLugd
-ezhIxTVQA8bHlAxtO+dxzRn/a5MVjnoffN8kfhfh8HL0AHTNc3hhWEfpK73epBXw
-XHTIANzGzW0hWshfDt8DL+soeJv5FUijDKCOJz9lw47WFQeqBpp40Cpmvp4tp+bM
-BcplgqUi7mHTcBuNPgrQ
-=uXvs
------END PGP SIGNATURE-----
-
---mP3DRpeJDSE+ciuQ--
-
-
---===============3940408039190688857==
-Content-Type: text/plain; charset="us-ascii"
+References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: rui.zhang@intel.com
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3940408039190688857==--
+VGhpcyBwYXRjaCBhZGRzIHRoZXJtYWwgZGF0YSBmb3IgRFJBNyBTb0NzLiBDcHVmcmVxIGNvb2xp
+bmcKd2lsbCBiZSBlbmFibGVkIGZvciBNUFUgZG9tYWluIHdoZW5ldmVyIGl0IGNyb3NzZXMgMTAw
+Qy4KR1BVLCBDT1JFLCBEU1BFVkUsIElWQSB3aWxsIGJlIGV4cG9zZWQgYW5kIHN5c3RlbSBzaGFs
+bApzaHV0ZG93biB3aGVuIHRoZXkgY3Jvc3MgMTI1Qy4KCkNjOiBCZW5vw650IENvdXNzb24gPGJj
+b3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFpoYW5nIFJ1aSA8cnVpLnpoYW5nQGludGVsLmNvbT4K
+Q2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1vbGwg
+PHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFybS5j
+b20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFuIENh
+bXBiZWxsIDxpamMrZGV2aWNldHJlZUBoZWxsaW9uLm9yZy51az4KQ2M6IFJ1c3NlbGwgS2luZyA8
+bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNj
+OiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2
+Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52
+YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpIHwgOSArKysr
+KysrKysKIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNo
+L2FybS9ib290L2R0cy9kcmE3LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3LmR0c2kKaW5k
+ZXggMTM5NDcyYy4uNDc4NGMwYyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5k
+dHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaQpAQCAtNjgsNiArNjgsMTUgQEAK
+IAkJCSAgICAgPEdJQ19QUEkgMTAgKEdJQ19DUFVfTUFTS19TSU1QTEUoMikgfCBJUlFfVFlQRV9M
+RVZFTF9MT1cpPjsKIAl9OwogCisJdGhlcm1hbF96b25lczogdGhlcm1hbC16b25lcyB7CisJCS8q
+IFNvQyB0aGVybWFsIHpvbmVzICovCisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNp
+IgorCQkjaW5jbHVkZSAib21hcDUtZ3B1LXRoZXJtYWwuZHRzaSIKKwkJI2luY2x1ZGUgIm9tYXA1
+LWNvcmUtdGhlcm1hbC5kdHNpIgorCQkjaW5jbHVkZSAiZHJhNy1kc3BldmUtdGhlcm1hbC5kdHNp
+IgorCQkjaW5jbHVkZSAiZHJhNy1pdmEtdGhlcm1hbC5kdHNpIgorCX07CisKIAlnaWM6IGludGVy
+cnVwdC1jb250cm9sbGVyQDQ4MjExMDAwIHsKIAkJY29tcGF0aWJsZSA9ICJhcm0sY29ydGV4LWEx
+NS1naWMiOwogCQlpbnRlcnJ1cHQtY29udHJvbGxlcjsKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVk
+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
+c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
+bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
