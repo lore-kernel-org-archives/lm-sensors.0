@@ -1,114 +1,49 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 20 Jan 2014 18:40:48 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (iio_hwmon) Convert to use hwmon_device_register_with_groups
-Message-Id: <1390243248-19684-1-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Mon, 06 Jan 2014 12:36:45 +0000
+Subject: [lm-sensors] [PATCHv2 1/7] arm: dts: add dra7 DSPEVE thermal data
+Message-Id: <1389011811-13004-2-git-send-email-eduardo.valentin@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: rui.zhang@intel.com
+Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 
-Simplify code and create name attribute automatically.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/iio_hwmon.c |   37 ++++++++++++-------------------------
- 1 file changed, 12 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/hwmon/iio_hwmon.c b/drivers/hwmon/iio_hwmon.c
-index 708081b..9fbb1b1 100644
---- a/drivers/hwmon/iio_hwmon.c
-+++ b/drivers/hwmon/iio_hwmon.c
-@@ -31,6 +31,7 @@ struct iio_hwmon_state {
- 	int num_channels;
- 	struct device *hwmon_dev;
- 	struct attribute_group attr_group;
-+	const struct attribute_group *groups[2];
- 	struct attribute **attrs;
- };
- 
-@@ -56,19 +57,6 @@ static ssize_t iio_hwmon_read_val(struct device *dev,
- 	return sprintf(buf, "%d\n", result);
- }
- 
--static ssize_t show_name(struct device *dev, struct device_attribute *attr,
--			 char *buf)
--{
--	const char *name = "iio_hwmon";
--
--	if (dev->of_node && dev->of_node->name)
--		name = dev->of_node->name;
--
--	return sprintf(buf, "%s\n", name);
--}
--
--static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
--
- static int iio_hwmon_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -78,6 +66,10 @@ static int iio_hwmon_probe(struct platform_device *pdev)
- 	int in_i = 1, temp_i = 1, curr_i = 1;
- 	enum iio_chan_type type;
- 	struct iio_channel *channels;
-+	const char *name = "iio_hwmon";
-+
-+	if (dev->of_node && dev->of_node->name)
-+		name = dev->of_node->name;
- 
- 	channels = iio_channel_get_all(dev);
- 	if (IS_ERR(channels))
-@@ -96,7 +88,7 @@ static int iio_hwmon_probe(struct platform_device *pdev)
- 		st->num_channels++;
- 
- 	st->attrs = devm_kzalloc(dev,
--				 sizeof(*st->attrs) * (st->num_channels + 2),
-+				 sizeof(*st->attrs) * (st->num_channels + 1),
- 				 GFP_KERNEL);
- 	if (st->attrs = NULL) {
- 		ret = -ENOMEM;
-@@ -144,22 +136,18 @@ static int iio_hwmon_probe(struct platform_device *pdev)
- 		a->index = i;
- 		st->attrs[i] = &a->dev_attr.attr;
- 	}
--	st->attrs[st->num_channels] = &dev_attr_name.attr;
--	st->attr_group.attrs = st->attrs;
--	platform_set_drvdata(pdev, st);
--	ret = sysfs_create_group(&dev->kobj, &st->attr_group);
--	if (ret < 0)
--		goto error_release_channels;
- 
--	st->hwmon_dev = hwmon_device_register(dev);
-+	st->attr_group.attrs = st->attrs;
-+	st->groups[0] = &st->attr_group;
-+	st->hwmon_dev = hwmon_device_register_with_groups(dev, name, st,
-+							  st->groups);
- 	if (IS_ERR(st->hwmon_dev)) {
- 		ret = PTR_ERR(st->hwmon_dev);
--		goto error_remove_group;
-+		goto error_release_channels;
- 	}
-+	platform_set_drvdata(pdev, st);
- 	return 0;
- 
--error_remove_group:
--	sysfs_remove_group(&dev->kobj, &st->attr_group);
- error_release_channels:
- 	iio_channel_release_all(channels);
- 	return ret;
-@@ -170,7 +158,6 @@ static int iio_hwmon_remove(struct platform_device *pdev)
- 	struct iio_hwmon_state *st = platform_get_drvdata(pdev);
- 
- 	hwmon_device_unregister(st->hwmon_dev);
--	sysfs_remove_group(&pdev->dev.kobj, &st->attr_group);
- 	iio_channel_release_all(st->channels);
- 
- 	return 0;
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwg
+ZGF0YQpmb3IgRFNQRVZFIGRvbWFpbiBvbiBEUkE3IGFuZCBsYXRlciBTb0NzLiBUaGlzIGRhdGEg
+d2lsbAplbmFibGUgYSB0aGVybWFsIHNodXRkb3duIGF0IDEyNUMuCgpDYzogQmVub8OudCBDb3Vz
+c29uIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBaaGFuZyBSdWkgPHJ1aS56aGFuZ0BpbnRl
+bC5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdl
+bCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFu
+ZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6
+IElhbiBDYW1wYmVsbCA8aWpjK2RldmljZXRyZWVAaGVsbGlvbi5vcmcudWs+CkNjOiBSdXNzZWxs
+IEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBkZXZpY2V0cmVlQHZnZXIua2VybmVs
+Lm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCkNjOiBsaW51eC1r
+ZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVk
+dWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL2RyYTctZHNwZXZl
+LXRoZXJtYWwuZHRzaSB8IDI4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBj
+aGFuZ2VkLCAyOCBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9v
+dC9kdHMvZHJhNy1kc3BldmUtdGhlcm1hbC5kdHNpCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9v
+dC9kdHMvZHJhNy1kc3BldmUtdGhlcm1hbC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1k
+c3BldmUtdGhlcm1hbC5kdHNpCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjUw
+ZTc4YjYKLS0tIC9kZXYvbnVsbAorKysgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3LWRzcGV2ZS10
+aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERldmljZSBUcmVlIFNvdXJjZSBm
+b3IgRFJBNyBTb0MgRFNQRVZFIHRoZXJtYWwKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4
+YXMgSW5zdHJ1bWVudHMgSW5jb3Jwb3JhdGVkIC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250
+YWN0OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBU
+aGlzIGZpbGUgaXMgbGljZW5zZWQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQ
+dWJsaWMgTGljZW5zZQorICogdmVyc2lvbiAyLiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJh
+cyBpcyIgd2l0aG91dCBhbnkgd2FycmFudHkgb2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJl
+c3Mgb3IgaW1wbGllZC4KKyAqLworCisjaW5jbHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVy
+bWFsLmg+CisKK2RzcGV2ZV90aGVybWFsOiBkc3BldmVfdGhlcm1hbCB7CisJcG9sbGluZy1kZWxh
+eS1wYXNzaXZlID0gPDI1MD47IC8qIG1pbGxpc2Vjb25kcyAqLworCXBvbGxpbmctZGVsYXkgPSA8
+MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJCQkvKiBzZW5zb3IgICAgICAgSUQgKi8KKwl0
+aGVybWFsLXNlbnNvcnMgPSA8JmJhbmRnYXAgICAgIDM+OworCisJdHJpcHMgeworCQlkc3BldmVf
+Y3JpdDogZHNwZXZlX2NyaXQgeworCQkJdGVtcGVyYXR1cmUgPSA8MTI1MDAwPjsgLyogbWlsbGlD
+ZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKwkJ
+CXR5cGUgPSAiY3JpdGljYWwiOworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
+NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
