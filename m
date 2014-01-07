@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Jan 2014 16:02:36 +0000
+Date: Tue, 07 Jan 2014 16:10:18 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon/sensors: fix SENSORS_LM75 dependencies
-Message-Id: <20140107160236.GA24018@roeck-us.net>
+Message-Id: <20140107161018.GB24018@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140106204020.b47e53cc3ead8f90164ef5b7@canb.auug.org.au>
  <52CB0948.6030702@infradead.org>
@@ -9,66 +9,37 @@ References: <20140106204020.b47e53cc3ead8f90164ef5b7@canb.auug.org.au>
  <52CB53DC.4030901@infradead.org>
  <52CB65DA.2010103@roeck-us.net>
  <20140107130401.23bffcd2@endymion.delvare>
-In-Reply-To: <20140107130401.23bffcd2@endymion.delvare>
+ <52CBF1CF.2000603@ti.com>
+ <744357E9AAD1214791ACBA4B0B909263011BC64C@SHSMSX101.ccr.corp.intel.com>
+ <52CC15F0.6020209@ti.com>
+ <20140107160738.4a76a6d0@endymion.delvare>
+In-Reply-To: <20140107160738.4a76a6d0@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Frodo Looijaard <frodol@dds.nl>, lm-sensors@lm-sensors.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, linux-pm@vger.kernel.org
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, "Zhang, Rui" <rui.zhang@intel.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-pm@vger.kernel.org
 
-On Tue, Jan 07, 2014 at 01:04:01PM +0100, Jean Delvare wrote:
-> Hi Guenter, Randy,
+On Tue, Jan 07, 2014 at 04:07:38PM +0100, Jean Delvare wrote:
+> On Tue, 7 Jan 2014 10:57:52 -0400, Eduardo Valentin wrote:
+> > On 07-01-2014 10:05, Zhang, Rui wrote:
+> > > BTW, I've been thinking of make CONFIG_THERMAL a bool since long time ago, the only thing that blocks me is that Thermal subsystem needs to register a hwmon device for each thermal zone and CONFIG_HWMON is a tristate.
+> > 
+> > I agree with the move of having CONFIG_THERMAL as bool. Unless you have
+> > use cases where users are dynamically loading and unloading thermal per
+> > user demand, which I doubt.
 > 
-> On Mon, 06 Jan 2014 18:26:34 -0800, Guenter Roeck wrote:
-> > On 01/06/2014 05:09 PM, Randy Dunlap wrote:
-> > > From: Randy Dunlap <rdunlap@infradead.org>
-> > >
-> > > Fix SENSORS_LM75 dependencies to eliminate build errors:
-> > >
-> > > drivers/built-in.o: In function `lm75_remove':
-> > > lm75.c:(.text+0x12bd8c): undefined reference to `thermal_zone_of_sensor_unregister'
-> > > drivers/built-in.o: In function `lm75_probe':
-> > > lm75.c:(.text+0x12c123): undefined reference to `thermal_zone_of_sensor_register'
-> > >
-> > > Add depends on THERMAL_OF since that is what provides the
-> > > register/unregister functions above.
-> > >
-> > > Add depends on THERMAL since THERMAL is a tristate (while THERMAL_OF
-> > > is a bool) and SENSORS_LM75 (tristate) needs to be limited to modular
-> > > builds when THERMAL=m.
-> > >
-> > > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> > > ---
-> > >   drivers/hwmon/Kconfig |    2 ++
-> > >   1 file changed, 2 insertions(+)
-> > >
-> > > --- linux-next-20140106.orig/drivers/hwmon/Kconfig
-> > > +++ linux-next-20140106/drivers/hwmon/Kconfig
-> > > @@ -650,6 +650,8 @@ config SENSORS_LM73
-> > >   config SENSORS_LM75
-> > >   	tristate "National Semiconductor LM75 and compatibles"
-> > >   	depends on I2C
-> > > +	depends on THERMAL
-> > > +	depends on THERMAL_OF
-> > >   	help
-> > >   	  If you say yes here you get support for one common type of
-> > >   	  temperature sensor chip, with models including:
-> > >
-> > >
-> > NACK. The driver does not and must not depend on THERMAL.
+> Modularity is not only about reloading modules (although this can be
+> useful for developers in particular.) It's also about enabling many
+> features in a generic distribution kernel and each feature only gets
+> loaded/used on the hardware which needs it. This is why, as a
+> distribution kernel maintainer, I keep complaining when I see boolean
+> options which might easily be tristates.
 > 
-> Correct.
-> 
-> > This needs to be addressed
-> > in the thermal code, for example with dummy declarations if THERMAL=m but
-> > SENSORS_LM75=y. The functions are already declared as dummies if THERMAL_OF=n.
-> 
-> This won't fly I'm afraid, the number of hwmon drivers affected will
-> grow in the future and you certainly don't want to have to change the
-> generic thermal code every time a new driver is added/converted.
-> 
-That is not really necessary - see the patch fragment I sent as response to
-the other patch.
+Agreed. Problem is really that it is not easy to declare cross-module
+dependencies (eg THERMAL=m -> HWMON=m and THERMAL=y -> HWMON=y and
+vice versa) in Kconfig. Declaring everything as bool can not be
+the solution to that.
 
 Guenter
 
