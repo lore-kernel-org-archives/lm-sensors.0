@@ -1,32 +1,43 @@
-From: Zeke Fast <zekefast@gmail.com>
-Date: Mon, 13 Jan 2014 12:29:31 +0000
-Subject: Re: [lm-sensors] Configuration to place in Wiki for motherboards GA-A870-UD3 and GA-A870-USB3
-Message-Id: <1389616171.6315.0.camel@zf-mws>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 08 Jan 2014 07:05:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Fix SENSORS_TMP102 dependencies to eliminate build errors
+Message-Id: <20140108080557.3439ec23@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1389531184.16038.6.camel@zf-mws>
-In-Reply-To: <1389531184.16038.6.camel@zf-mws>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-pm@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, Guenter Roeck <linux@roeck-us.net>
 
-VGhhbmsgeW91IQotLSAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpLaW5kIHJlZ2FyZHMsClpla2UgRmFzdAoK
-CgrQkiDQn9C90LQsIDEzLzAxLzIwMTQg0LIgMDk6MjMgKzAxMDAsIEplYW4gRGVsdmFyZSDQv9C4
-0YjQtdGCOgo+IE9uIFN1biwgMTIgSmFuIDIwMTQgMTQ6NTM6MDQgKzAyMDAsIFpla2UgRmFzdCB3
-cm90ZToKPiA+IEhlbGxvIGV2ZXJ5Ym9keSwKPiA+IAo+ID4gSSBoYXZlIG5vIFRyYWMgYWNjb3Vu
-dCwgYnV0IHdvdWxkIGxpa2UgdG8gcGxhY2UgY29uZmlndXJhdGlvbiBleGFtcGxlCj4gPiBmb3Ig
-R2lnYWJ5dGUgbW90aGVyYm9hcmRzIG1vZGVsczogR0EtQTg3MC1VRDMsIEdBLUE4NzAtVVNCMy4K
-PiA+IAo+ID4gUHJvdmlkZWQgY29uZmlndXJhdGlvbiB3YXMgb3JpZ2luYWxseSBmb3VuZCBieSBh
-bm90aGVyIGd1eSBpbiBoaXMKPiA+IHBvc3QoaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9s
-bS1zZW5zb3JzL21zZzMyNzUxLmh0bWwpIGZvcgo+ID4gR0EtQTg3MC1VRDMgbW9kZWwsIGJ1dCBJ
-IHRlc3RlZCB0aGlzIGNvbmZpZ3VyYXRpb24gb24gbXkgR0EtQTg3MC1VU0IzCj4gPiBhbmQgaXQg
-d29ya3MgcHJldHR5IGdvb2QgYXMgd2VsbC4KPiA+IAo+ID4gSGVyZSBpcyBhbiBleGFjdCBjb25m
-aWd1cmF0aW9uOgo+ID4gKC4uLikKPiAKPiBUaGFua3MgZm9yIHNlbmRpbmcgdGhlIGNvbmZpZ3Vy
-YXRpb24gZmlsZSwgSSd2ZSBhZGRlZCBpdCB0byB0aGUgd2lraSBmb3IgYm90aCBib2FyZHM6Cj4g
-Cj4gaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtpL0NvbmZpZ3VyYXRpb25zL0dpZ2FieXRl
-L0dBLTg3MEEtVUQzCj4gaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtpL0NvbmZpZ3VyYXRp
-b25zL0dpZ2FieXRlL0dBLTg3MEEtVVNCMwo+IAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+Similar to what was done for the lm75 driver.
+
+Add depends on THERMAL since that is what provides the
+register/unregister functions above, but only if THERMAL_OF was
+selected as this is an optional feature of the driver.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/hwmon/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- linux-3.13-rc7.orig/drivers/hwmon/Kconfig	2014-01-08 08:00:58.583072658 +0100
++++ linux-3.13-rc7/drivers/hwmon/Kconfig	2014-01-08 08:01:36.928977997 +0100
+@@ -1285,6 +1285,7 @@ config SENSORS_THMC50
+ config SENSORS_TMP102
+ 	tristate "Texas Instruments TMP102"
+ 	depends on I2C
++	depends on THERMAL || !THERMAL_OF
+ 	help
+ 	  If you say yes here you get support for Texas Instruments TMP102
+ 	  sensor chips.
+
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
