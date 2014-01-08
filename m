@@ -1,129 +1,82 @@
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Date: Mon, 06 Jan 2014 11:00:25 +0000
-Subject: Re: [lm-sensors] [PATCH v3 2/5] input: sun4i-ts: Add support for temperature sensor
-Message-Id: <20140106110025.GQ3144@lukather>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8485953158507616494=="
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Wed, 08 Jan 2014 15:57:49 +0000
+Subject: Re: [lm-sensors] [RFC 08/18] hwmon: vexpress: Use regmap instead of custom interface
+Message-Id: <1389196669.23721.17.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388506852-3548-1-git-send-email-hdegoede@redhat.com>
- <1388506852-3548-3-git-send-email-hdegoede@redhat.com>
- <52C84665.5070203@roeck-us.net>
-In-Reply-To: <52C84665.5070203-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Corentin LABBE <clabbe.montjoie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-
-
---===============8485953158507616494==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cnn+CxJy/uys8v1I"
-Content-Disposition: inline
-
-
---cnn+CxJy/uys8v1I
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Guenter,
-
-On Sat, Jan 04, 2014 at 09:35:33AM -0800, Guenter Roeck wrote:
-> On 12/31/2013 08:20 AM, Hans de Goede wrote:
-> >The sun4i resisitive touchscreen controller also comes with a built-in
-> >temperature sensor. This commit adds support for it.
-> >
-> >This commit also introduces a new "ts-attached" device-tree property,
-> >when this is not set, the input part of the driver won't register. This =
-way
-> >the internal temperature sensor can be used to measure the SoC temperatu=
-re
-> >independent of there actually being a touchscreen attached to the contro=
-ller.
-> >
-> >Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->=20
-> Couple of minor comments below, though no need to resubmit unless someone=
- else has comments.
->=20
-> Reviewed-by: Guenter Roeck <linux@roeck-us.net>
->=20
-> >---
-> >  .../bindings/input/touchscreen/sun4i.txt           |   5 +
-> >  drivers/input/touchscreen/sun4i-ts.c               | 140 +++++++++++++=
-+++-----
-> >  2 files changed, 114 insertions(+), 31 deletions(-)
-> >
-> >diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.t=
-xt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> >index e45927e..6bac67b 100644
-> >--- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> >+++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
-> >@@ -6,10 +6,15 @@ Required properties:
-> >   - reg: mmio address range of the chip
-> >   - interrupts: interrupt to which the chip is connected
-> >
-> >+Optional properties:
-> >+ - allwinner,ts-attached: boolean indicating that an actual touchscreen=
- is
-> >+			  attached to the controller
-> >+
-> Brr. While I understand that you were asked to do this, I don't
-> really see the benefit of another "allwinner" here. As if this
-> wasn't implied by the "compatible" property.
-
-It's actually the ePAPR that recommends this.
-
-Section 6.1.1, General Principles
-
-"
-Some recommended practices includes:
-[..]
-  5. If new properties are needed by the binding, the recommended
-     format for property names is: =E2=80=9C<company>,<property-name>=E2=80=
-=9D, where
-     <company> is an OUI or short unique string like a stock ticker
-     that identifies the creator of the binding.
-"
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---cnn+CxJy/uys8v1I
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSyozJAAoJEBx+YmzsjxAgjU0P/RIYTx1rAGb1hvM+wlF73kIS
-nebYQNz7z9/KJbmgqCPF2XRC1NQmL3t2//evAgVrQ9jTqzW6USJ0Erw17YZswWl8
-nPgL35OqRAxdqOFOug1VMxX3EW2+Q6Khi6VSz4Cg9G17K64nsgkIO4a40OUIaEOS
-XdVvdygoNJCN7HO9WxMMe9vbrib2qMZ+UjrO6+YLUK91rQkZB22vWj0/EblUEwj9
-GgCQT3pibzS+AG2xq8GQ4RJJc3bE5GO3BQ6mP/xazI1KOip0cGxanMqYgjhmfPR2
-dGSb+6rvAZSkkQaXsDj6uVOZu2KtOSqTGXYYcHeFzBJcvHJ7nr6PbRiNucOsDtlG
-G1wX4m+94eQMPNtYC4/55Av/TICfF/icZ9Rx2Dz50Uom3Z7QgxbJ1S5oXKdX5j/h
-qe+52Olpp2/G320SrdaMt/7Zt7g2t/GJw9G6GY1KuGwoHrQwAlLLkVy6l4ja6dKF
-+QryIOjH9J64bvsjPhM5VxCeFpCVxJByjC8pPx6Dbco6QNfPwADVLz5g0hTw1HAY
-7ZWXFEwPCkLdJmKc8ZQVwM65AQx5eB6eQBJ+o21KFTK0G8BS68Q1d+mxFwkIlnKP
-8ZI+atbPNXiJgOv15aUcpCqc9Vbk4rLzztXex3t1fm/spVJz66If1WXjbLZ/Ugzf
-bmswACwgVxopKv4zA8To
-=SFGh
------END PGP SIGNATURE-----
-
---cnn+CxJy/uys8v1I--
-
-
---===============8485953158507616494==
-Content-Type: text/plain; charset="us-ascii"
+References: <1387815830-8794-1-git-send-email-pawel.moll@arm.com>
+	 <1387815830-8794-9-git-send-email-pawel.moll@arm.com>
+	 <20131223173139.GA1678@roeck-us.net>
+In-Reply-To: <20131223173139.GA1678@roeck-us.net>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Jon Medhurst <tixy@linaro.org>, "arm@kernel.org" <arm@kernel.org>, Olof Johansson <olof@lixom.net>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8485953158507616494==--
+T24gTW9uLCAyMDEzLTEyLTIzIGF0IDE3OjMxICswMDAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
+IE9uIE1vbiwgRGVjIDIzLCAyMDEzIGF0IDA0OjIzOjQwUE0gKzAwMDAsIFBhd2VsIE1vbGwgd3Jv
+dGU6Cj4gPiBUaGlzIHBhdGNoIG1ha2VzIHRoZSBWZXJzYXRpbGUgRXhwcmVzcyBod21vbiBkcml2
+ZXIKPiA+IHVzZSByZWdtYXAgaW50ZXJmYWNlLCBpbnN0ZWFkIG9mIGN1c3RvbSB2ZXhwcmVzcyBj
+b25maWcKPiA+IG9uZS4gSXQgd2lsbCByZXF1ZXN0IHRoZSByZWdtYXAgcmVzb3VyY2UgYXNzb2Np
+YXRlZAo+ID4gd2l0aCB0aGUgZGV2aWNlLCB3aGljaCBtYWtlcyBpdCBwcmV0dHkgbXVjaCBoYXJk
+d2FyZQo+ID4gYWdub3N0aWMuCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IFBhd2VsIE1vbGwgPHBh
+d2VsLm1vbGxAYXJtLmNvbT4KPiA+IENjOiBKZWFuIERlbHZhcmUgPGtoYWxpQGxpbnV4LWZyLm9y
+Zz4KPiA+IENjOiBHdWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Cj4gPiBDYzogbG0t
+c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwo+ID4gLS0tCj4gPiAgZHJpdmVycy9od21vbi9LY29uZmln
+ICAgIHwgIDMgKystCj4gPiAgZHJpdmVycy9od21vbi92ZXhwcmVzcy5jIHwgMjkgKysrKysrKysr
+KystLS0tLS0tLS0tLS0tLS0tLS0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDEzIGluc2VydGlvbnMo
+KyksIDE5IGRlbGV0aW9ucygtKQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9L
+Y29uZmlnIGIvZHJpdmVycy9od21vbi9LY29uZmlnCj4gPiBpbmRleCA1MmQ1NDhmLi43NzQ3YTQ3
+IDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9od21vbi9LY29uZmlnCj4gPiArKysgYi9kcml2ZXJz
+L2h3bW9uL0tjb25maWcKPiA+IEBAIC0xMzI0LDcgKzEzMjQsOCBAQCBjb25maWcgU0VOU09SU19U
+V0w0MDMwX01BREMKPiA+ICAKPiA+ICBjb25maWcgU0VOU09SU19WRVhQUkVTUwo+ID4gIAl0cmlz
+dGF0ZSAiVmVyc2F0aWxlIEV4cHJlc3MiCj4gPiAtCWRlcGVuZHMgb24gVkVYUFJFU1NfQ09ORklH
+Cj4gPiArCWRlcGVuZHMgb24gQVJNIHx8IEFSTTY0Cj4gPiArCWRlcGVuZHMgb24gUkVHTUFQCj4g
+PiAgCWhlbHAKPiA+ICAJICBUaGlzIGRyaXZlciBwcm92aWRlcyBzdXBwb3J0IGZvciBoYXJkd2Fy
+ZSBzZW5zb3JzIGF2YWlsYWJsZSBvbgo+ID4gIAkgIHRoZSBBUk0gTHRkJ3MgVmVyc2F0aWxlIEV4
+cHJlc3MgcGxhdGZvcm0uIEl0IGNhbiBwcm92aWRlIHdpZGUKPiA+IGRpZmYgLS1naXQgYS9kcml2
+ZXJzL2h3bW9uL3ZleHByZXNzLmMgYi9kcml2ZXJzL2h3bW9uL3ZleHByZXNzLmMKPiA+IGluZGV4
+IGQ4NjdlNmIuLmI1OGNmMWMgMTAwNjQ0Cj4gPiAtLS0gYS9kcml2ZXJzL2h3bW9uL3ZleHByZXNz
+LmMKPiA+ICsrKyBiL2RyaXZlcnMvaHdtb24vdmV4cHJlc3MuYwo+ID4gQEAgLTIyLDExICsyMiwx
+MSBAQAo+ID4gICNpbmNsdWRlIDxsaW51eC9vZi5oPgo+ID4gICNpbmNsdWRlIDxsaW51eC9vZl9k
+ZXZpY2UuaD4KPiA+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4gPiAtI2lu
+Y2x1ZGUgPGxpbnV4L3ZleHByZXNzLmg+Cj4gPiArI2luY2x1ZGUgPGxpbnV4L3JlZ21hcC5oPgo+
+ID4gIAo+ID4gIHN0cnVjdCB2ZXhwcmVzc19od21vbl9kYXRhIHsKPiA+ICAJc3RydWN0IGRldmlj
+ZSAqaHdtb25fZGV2Owo+ID4gLQlzdHJ1Y3QgdmV4cHJlc3NfY29uZmlnX2Z1bmMgKmZ1bmM7Cj4g
+PiArCXN0cnVjdCByZWdtYXAgKnJlZzsKPiA+ICB9Owo+ID4gIAo+ID4gIHN0YXRpYyBzc2l6ZV90
+IHZleHByZXNzX2h3bW9uX25hbWVfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gPiBAQCAtNTYs
+NyArNTYsNyBAQCBzdGF0aWMgc3NpemVfdCB2ZXhwcmVzc19od21vbl91MzJfc2hvdyhzdHJ1Y3Qg
+ZGV2aWNlICpkZXYsCj4gPiAgCWludCBlcnI7Cj4gPiAgCXUzMiB2YWx1ZTsKPiA+ICAKPiA+IC0J
+ZXJyID0gdmV4cHJlc3NfY29uZmlnX3JlYWQoZGF0YS0+ZnVuYywgMCwgJnZhbHVlKTsKPiA+ICsJ
+ZXJyID0gcmVnbWFwX3JlYWQoZGF0YS0+cmVnLCAwLCAmdmFsdWUpOwo+ID4gIAlpZiAoZXJyKQo+
+ID4gIAkJcmV0dXJuIGVycjsKPiA+ICAKPiA+IEBAIC02OSwxMyArNjksMTMgQEAgc3RhdGljIHNz
+aXplX3QgdmV4cHJlc3NfaHdtb25fdTY0X3Nob3coc3RydWN0IGRldmljZSAqZGV2LAo+ID4gIHsK
+PiA+ICAJc3RydWN0IHZleHByZXNzX2h3bW9uX2RhdGEgKmRhdGEgPSBkZXZfZ2V0X2RydmRhdGEo
+ZGV2KTsKPiA+ICAJaW50IGVycjsKPiA+IC0JdTMyIHZhbHVlX2hpLCB2YWx1ZV9sbzsKPiA+ICsJ
+dW5zaWduZWQgaW50IHZhbHVlX2hpLCB2YWx1ZV9sbzsKPiA+ICAKPiA+IC0JZXJyID0gdmV4cHJl
+c3NfY29uZmlnX3JlYWQoZGF0YS0+ZnVuYywgMCwgJnZhbHVlX2xvKTsKPiA+ICsJZXJyID0gcmVn
+bWFwX3JlYWQoZGF0YS0+cmVnLCAwLCAmdmFsdWVfbG8pOwo+ID4gIAlpZiAoZXJyKQo+ID4gIAkJ
+cmV0dXJuIGVycjsKPiA+ICAKPiA+IC0JZXJyID0gdmV4cHJlc3NfY29uZmlnX3JlYWQoZGF0YS0+
+ZnVuYywgMSwgJnZhbHVlX2hpKTsKPiA+ICsJZXJyID0gcmVnbWFwX3JlYWQoZGF0YS0+cmVnLCAx
+LCAmdmFsdWVfaGkpOwo+ID4gIAlpZiAoZXJyKQo+ID4gIAkJcmV0dXJuIGVycjsKPiA+ICAKPiA+
+IEBAIC0xNzUsMjYgKzE3NSwyMSBAQCBzdGF0aWMgaW50IHZleHByZXNzX2h3bW9uX3Byb2JlKHN0
+cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gPiAgCWlmICghbWF0Y2gpCj4gPiAgCQlyZXR1
+cm4gLUVOT0RFVjsKPiA+ICAKPiA+IC0JZGF0YS0+ZnVuYyA9IHZleHByZXNzX2NvbmZpZ19mdW5j
+X2dldF9ieV9kZXYoJnBkZXYtPmRldik7Cj4gPiAtCWlmICghZGF0YS0+ZnVuYykKPiA+ICsJZGF0
+YS0+cmVnID0gZGV2X2dldF9yZWdtYXAoJnBkZXYtPmRldiwgTlVMTCk7Cj4gPiArCWlmICghZGF0
+YS0+cmVnKQo+ID4gIAkJcmV0dXJuIC1FTk9ERVY7Cj4gPiAgCj4gPiAgCWVyciA9IHN5c2ZzX2Ny
+ZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosIG1hdGNoLT5kYXRhKTsKPiA+ICAJaWYgKGVycikK
+PiA+IC0JCWdvdG8gZXJyb3I7Cj4gPiArCQlyZXR1cm4gZXJyOwo+ID4gIAo+ID4gIAlkYXRhLT5o
+d21vbl9kZXYgPSBod21vbl9kZXZpY2VfcmVnaXN0ZXIoJnBkZXYtPmRldik7Cj4gPiAgCWlmIChJ
+U19FUlIoZGF0YS0+aHdtb25fZGV2KSkgewo+ID4gLQkJZXJyID0gUFRSX0VSUihkYXRhLT5od21v
+bl9kZXYpOwo+ID4gLQkJZ290byBlcnJvcjsKPiA+ICsJCXN5c2ZzX3JlbW92ZV9ncm91cCgmcGRl
+di0+ZGV2LmtvYmosIG1hdGNoLT5kYXRhKTsKPiA+ICsJCXJldHVybiBQVFJfRVJSKGRhdGEtPmh3
+bW9uX2Rldik7Cj4gCj4gVGhpcyBjaGFuZ2UgaXMgdW5yZWxhdGVkIGFuZCB2aW9sYXRlcyBjb2Rp
+bmcgc3R5bGUuIElmIHRoZSBnb3RvIGRpc3R1cmJzIHlvdSwKPiBJIHdvdWxkIHN1Z2dlc3QgdG8g
+Y29udmVydCB0aGUgZHJpdmVyIHRvIHVzZSBkZXZtX2h3bW9uX2RldmljZV9yZWdpc3Rlcl93aXRo
+X2dyb3VwcygpIAo+IGluIGEgc2VwYXJhdGUgcGF0Y2ggYW5kIGdldCByaWQgb2YgdGhlIGVycm9y
+IGhhbmRsaW5nIGFuZCB0aGUgZW50aXJlIHJlbW92ZSgpIGZ1bmN0aW9uLgoKT2ssIHdpbGwgZG8s
+IHRoYW5rcyEKClBhd2XFggoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw=
