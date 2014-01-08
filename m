@@ -1,76 +1,77 @@
-From: "Frederic @ GMX" <freederic@gmx.com>
-Date: Tue, 28 Jan 2014 11:51:44 +0000
-Subject: Re: [lm-sensors] FanControl can not auto"load"
-Message-Id: <1390909904.5646.11.camel@X4-955>
+From: Martin Herrman <martin.herrman@gmail.com>
+Date: Wed, 08 Jan 2014 20:54:20 +0000
+Subject: [lm-sensors] Some questions from first user
+Message-Id: <CADR1r6jbaekgXZTJQ7n+5MJW13miQdtbGG=KimEqTT8t2BDKLg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1390846853.4041.38.camel@X4-955>
-In-Reply-To: <1390846853.4041.38.camel@X4-955>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCkxlIG1hcmRpIDI4IGphbnZpZXIgMjAxNCDDoCAxMTo0OSArMDEwMCwgSmVhbiBE
-ZWx2YXJlIGEgw6ljcml0IDoKPiBIaSBGcmVkZXJpYywKPiAKPiBPbiBUdWUsIDI4IEphbiAyMDE0
-IDExOjIwOjQ0ICswMTAwLCBGcmVkZXJpYyBAIEdNWCB3cm90ZToKPiA+IExlIG1hcmRpIDI4IGph
-bnZpZXIgMjAxNCDDoCAwODoxMiArMDEwMCwgSmVhbiBEZWx2YXJlIGEgw6ljcml0IDoKPiA+ID4g
-V2h5IGRpZCB5b3Ugd2FudCB0byB1cGRhdGUgaW4gdGhlIGZpcnN0IHBsYWNlPyBXaGF0IHByb2Js
-ZW0gd2VyZSB5b3UKPiA+ID4gdHJ5aW5nIHRvIHNvbHZlPwo+ID4gQSBzdHVwaWQgcmFpc29uIDoo
-IAo+ID4gMSAtIEkgY2hhbmdlIG15IENQVSBDb29sZXIgZnJvbSBhIENvb2xlciBNYXN0ZXIgSHlw
-ZXIgVFgzIHRvIGEgU2N5dGhlCj4gPiBNdWdlbiAzIAo+ID4gMiAtIEkgd291bGQgbGlrZSBjaGFu
-Z2UgbXkgQ1BVIHRvIGp1bXAgdG8gYSBBTUQgRlggc2VyaWVzIC4uLiB3aXRoIGEgbmV3IG1vdGhl
-cmJvYXJkLgo+ID4gMyAtIEkgd2FudCBtYWtlIGEgbG0tc2Vuc29ycyBjb25maWcgdG8gY2hlY2sv
-cmVtZW1iZXIgdGhlIGxpbmtzIGJldHdlZW4KPiA+IHNlbnNvcnMgY29tcG9uYW50cywgcGFyYW1l
-dGVycyBhbmQgZmFucwo+ID4gU28sIGFzIEkgYmVsZWl2ZWQgSSBjYW4gY2hhbmdlIHRoaXMgY29u
-ZmlnIGFuZCBzd2l0aCBiYWNrIHdpdGggbXkKPiA+IHByZXZpb3VzIGJhY2tlZC11cCBjb25maWcg
-Li4uIGl0IHdhcyBhIGRyZWFtLgo+ID4gSSBmb3Jnb3QgdGhlIG1hbnVhbCBpbnN0YWxsIG9mIHRo
-ZSBkb3dubG9hZGVkIHBhY2thZ2Ugd2FzIG5vdCB0aGUgc2FtZQo+ID4gd2F5IG9mIGFuICJvZmZp
-Y2lhbCBkZWJpYW4gcGFja2FnZSIKPiAKPiBOb3QgdGhhdCBpdCByZWFsbHkgbWF0dGVycywgYnV0
-IEkgZG9uJ3QgcXVpdGUgdW5kZXJzdGFuZCBob3cgYW55IG9mCj4gdGhlc2UgcmVxdWlyZWQgdXBk
-YXRpbmcgdG8gdGhlIGxhdGVzdCB2ZXJzaW9uIG9mIGxtLXNlbnNvcnMuCj4gCj4gQWxzbyBub3Rl
-IHRoYXQgZXZlcnkgbW90aGVyYm9hcmQgdXNlcyBkaWZmZXJlbnQgbW9uaXRvcmluZyBjaGlwcywK
-PiBtb25pdG9yaW5nIGRyaXZlcnMsIGFuZCBpbnB1dCBhbmQgb3V0cHV0IG1hcHBpbmdzLiBTbyB0
-aGVyZSdzIG5vdCBzbwo+IG11Y2ggZnJvbSB5b3VyIG9sZCBjb25maWd1cmF0aW9uIGluZm9ybWF0
-aW9uIHlvdSB3aWxsIGJlIGFibGUgdG8gcmV1c2UKPiBvbiB0aGUgbmV3IHN5c3RlbSwgSSdtIGFm
-cmFpZC4KTm8gISBEb24ndCBiZSBhZnJhaWQgOikKSSBkb24ndCB3YW50IHRvIGNvcHkgY29uZmln
-IGZpbGUgbGlrZSB0aGF0ICEKSXQgd2FzIGp1c3QgZm9yIGhhdmUgYSBzdGVwLCBhIGZpbGUgdG8g
-Y29tcGFyZSBmb3IgY2hlY2sgcG9pbnQgdG8KbW9kaWZ5LgoKPiA+ID4gPiBXaGF0IEkgaGF2ZSB0
-byBjaGVjay9jb3JyZWN0ID8KPiA+ID4gCj4gPiA+IFRoZSB3YXkgc2VydmljZXMgYXJlIHN0YXJ0
-ZWQgYXQgYm9vdCB0aW1lIGlzIGRpc3RyaWJ1dGlvbiBzcGVjaWZpYy4gSQo+ID4gPiBhbSBub3Qg
-ZmFtaWxpYXIgd2l0aCBEZWJpYW4gc28gSSBjYW4ndCByZWFsbHkgaGVscCB0aGVyZS4KPiA+IEkg
-aGFkIHNvbWUgZG91YnRzIGFib3V0IHRoZSBzZXJ2aWNlcy4gCj4gPiBPbiB0aGUgZG9ud2xvYWRl
-ZCBpbnN0YWxsYXRpb24gd2hlcmUgaXMgc2V0IHRoZSBzZXJ2aWNlIHN0YXJ0dXAgPwo+IAo+IEJ5
-IGRlZmF1bHQgaXQgZG9lc24ndCBpbnN0YWxsIGFueXRoaW5nIHJlbGF0ZWQgdG8gc2VydmljZXMu
-IFNvbWUKPiBkaXN0cmlidXRpb25zIHdhbnQgc3lzdGVtZCBzZXJ2aWNlIGZpbGVzLCBzb21lIHdh
-bnQgbGVnYWN5IGluaXQKPiBzY3JpcHRzLCBzbyB3ZSBsZWF2ZSBpdCBvbiB0aGUgcGFja2FnZXIg
-LyB1c2VyLgpSaWdodC4KCj4gPiBNYXkgYmUgdGhlcmUgaXMgYWx3YXlzIHRoZSBsaW5rIGF2YWls
-YWJsZSBhbmQgdGhlIHJlLWluc3RhbGwgZG9uJ3QKPiA+IHVwZGF0ZSB0aGlzIGluZm9ybWF0aW9u
-cyA/Cj4gPiBJIGhhdmUgdG8gcXVlc3Rpb24gR29vZ2xlIGFib3V0IHNlcnZpY2Ugb24gZGViaWFu
-IGRpc3RyaS4KPiAKPiBZZXMsIHlvdSdsbCBoYXZlIHRvIHNlYXJjaCBhYm91dCBzZXJ2aWNlcyBv
-biBEZWJpYW4uIEZpbmQgb3V0IGhvdyB0bwo+IGdldCB0aGUgbGlzdCBvZiBzZXJ2aWNlcywgdGhl
-IHN0YXR1cyBvZiBhIHNlcnZpY2UsIGhvdyB0byBjaGFuZ2UgaWYgYQo+IHNlcnZpY2Ugc2hvdWxk
-IGJlIHN0YXJ0ZWQgYXQgYm9vdCwgZXRjLiBJJ20gc29ycnkgSSBjYW4ndCBoZWxwIGhlcmUgYnV0
-Cj4gaXQncyByZWFsbHkgZGlzdHJpYnV0aW9uLXNwZWNpZmljIGFuZCBsYXN0IHRpbWUgSSB1c2Vk
-IERlYmlhbiB3YXMgaW4KPiAyMDAxLiBJIGRpZG4ndCBrbm93IG11Y2ggYWJvdXQgaXQgYW5kIEkn
-dmUgZm9yZ290dGVuIGV2ZXJ5dGhpbmcKPiBtZWFud2hpbGUuCk5vIHByb2JsZW0uClF1ZXN0aW9u
-IHlvdSBhc2sgb3BlbiBteSBleWVzLgoKPiAKPiA+ID4gKiBDaGVjayBpZiB0aGUgZmFuY29udHJv
-bCBkYWVtb24gaXMgcnVubmluZzoKPiA+ID4gICAjIHBzIC1lZiB8IGdyZXAgZmFuY29udHJvbAo+
-ID4gICBmcmVkZXJpY0BYNC05NTU6fiQgcHMgLWVmIHwgZ3JlcCBmYW5jb250cm9sCj4gPiAgIGZy
-ZWRlcmljICA0MzU1ICA0MzEyICAwIDEwOjU2IHB0cy8xICAgIDAwOjAwOjAwIGdyZXAgZmFuY29u
-dHJvbAo+ID4gCj4gPiAhISEgU28gaXQncyBtZWFuIHRoYXQgZmFuY29udHJvbCBydW4gPz8/Cj4g
-Cj4gTm8uIFdoYXQgeW91J3JlIHNlZWluZyBhYm92ZSBpZiB5b3Vyc2VsZiBzZWFyY2hpbmcgZm9y
-IGEgImZhbmNvbnRyb2wiCj4gcHJvY2Vzcy4gSWYgZmFuY29udHJvbCB3YXMgcnVubmluZywgeW91
-J2Qgc2VlIGFub3RoZXIgbGluZS4KPiAKPiA+IGJ1dCBmYW4gYXJlIGZ1bGwgc3BlZWQuCj4gPiBJ
-IHJ1biBhIHRlcm1pbmFsIHdpdGggOgo+ID4gcm9vdEBYNC05NTU6L2hvbWUvZnJlZGVyaWMjIC9l
-dGMvaW5pdC5kL2ZhbmNvbnRyb2wgc3RhcnQKPiA+IFsgb2sgXSBTdGFydGluZyBmYW4gc3BlZWQg
-cmVndWxhdG9yOiBmYW5jb250cm9sLgo+ID4gCj4gPiB0aGVuIGZhbiBzcGVlZCBzbG93IGRvd24g
-IQo+IAo+IGZhbmNvbnRyb2wgZGVmaW5pdGVseSBzdGlsbCB3b3Jrcywgd2hhdCdzIG5vdCB3b3Jr
-aW5nIGlzIHRoZSBhdXRvbWF0aWMKPiBzdGFydCBvZiB0aGUgc2VydmljZSBhdCBib290IHRpbWUu
-CkFzIEkgd3JvdGUsIEkgc2F3IGhvdyB0byBjaGVjayBzZXJ2aWNlLgpDb21tYW5kIGxpbmUsIGFu
-ZCB0aGVyZSBpcyBhIEdVSSBmb3Igc2VydmljZXMuCkZhbmNvbnRyb2wgd2FzICJkaXNhYmxlIiAh
-Ckkgc3dpdGNoIGl0IGVuYWJsZSBhbmQgLi4uIGZpeGVkLgpTbywgSSBhbSBzbyBjb25mdXNlZCB0
-byBib3JlIGV2ZXJ5b25lLgoKSXQgaXMgYSBjYXNlIEkgd2lsbCByZW1lbWJlciwgYXMgbXkgYm9z
-cyBzYWlkIDogV2hlbiBpdCdzIHdvcmssIERPTidUClRPVUNIIEZSRUQgIQo6KSkKClJlZ2FyZHMg
-YW5kIHRoYW5rcwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+All,
+
+my apologies if I bother you with simple noob questions in this mail.
+On the other hand, if so they should be easy to answer :-)
+
+My mainboard is a Gigabyte GA-Z68MX-UD2H-B3 which has a iTE IT8728 and
+core i5 2500T (sandy bridge).
+
+Unfortunately this board is not (yet :-)) on the list yet:
+
+http://lm-sensors.org/wiki/Configurations/Gigabyte
+
+So I'm trying to understand and optimize the output of sensors using a
+file in /etc/sensors.d/
+
+My questions:
+1. coretemp outputs 5 temperatures. The last 4 are the cores, but what
+is the value of the first one? (my guess: the temperature of the
+highest core)
+
+2. coretemp temperatures have (according to sensors -u) a _max, _crit
+and _crit_alarm. How are these values determined? Does lm_sensors have
+a database of existing cpu's and their max temperature specifications?
+
+3. (follow-up on Q2) what is the difference between _max and _crit?
+What happens when each of them is reached? What is the role of
+_crit_alarm and how will the alarm be noticed?
+
+4. (follow-up on Q3) how can I change the values for _max and _crit? I
+tried 'set temp1_max 60' but that doesn't work. (sensors -s complains)
+
+5. what is the difference between fan1_alarm and fan1_beep?
+
+6. (follow-up on Q5) how do I set fan1_alarm? set fan1_alarm 1 doesn't
+work. (sensors -s complains)
+
+7. it8728 reports 3 different temps. When CPU is at full load, one of
+them increases, but the value is much lower than the one reported by
+coretemp (about 10 degrees lower). sensors outputs that it is Intel
+PECI. According to the explanation on Wikipedia
+(http://en.wikipedia.org/wiki/Platform_Environment_Control_Interface)
+the temperature should be negative and increase towards 0 when cpu
+temperature rises. Why does sensors show different values?
+
+8. it8728 shows another two temps. Likely one case temp and the other
+one the south bridge? How can I find out?
+
+9. (from FAQ) "Do you have a database of sensors.conf entries for
+specific boards?
+No. Good idea though. If you would like to set one up on your website
+send us mail and we will set up a link to it."
+Why hasn't this been setup yet? Some sort of a database is at the
+wiki, but doesn't contain many boards. Is any help still appreciated?
+Is it just a table of manufacturer, type, sensors.conf file? (and
+maybe some user registrations and comments by registered users?)
+
+Thanks in advance for your help!
+
+Martin
+
+P.S. if answers can be found somewhere.. please let me know where to
+find the documentation!
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
