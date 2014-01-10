@@ -1,40 +1,47 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 25 Jan 2014 02:00:15 +0000
-Subject: Re: [lm-sensors] [GIT PULL] Thermal management updates for v3.14-rc1
-Message-Id: <CA+55aFyPGdJEP3fpZxVqQNp_BtJ3vqqq_0xst_3H8Pf9QV627Q@mail.gmail.com>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Fri, 10 Jan 2014 21:44:46 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (sht15) add include guard
+Message-Id: <1389390286-6287-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1390534568.12771.58.camel@rzhang1-mobl4>
-In-Reply-To: <1390534568.12771.58.camel@rzhang1-mobl4>
+References: <1389390286-6287-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1389390286-6287-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Zhang Rui <rui.zhang@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-devicetree <devicetree@vger.kernel.org>, linux-lmsensor <lm-sensors@lm-sensors.org>
+To: lm-sensors@lm-sensors.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, kernel@savoirfairelinux.com
 
-On Thu, Jan 23, 2014 at 7:36 PM, Zhang Rui <rui.zhang@intel.com> wrote:
->
-> Please pull from the git repository at
->
->    git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git next
->
-> to receive Thermal management updates for v3.14-rc1
+Add include guard to include/linux/platform_data/sht15.h to prevent
+multiple inclusion.
 
-This annoys me _enormously_:
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ include/linux/platform_data/sht15.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-  CONFIG_ACPI_INT3403_THERMAL:
+diff --git a/include/linux/platform_data/sht15.h b/include/linux/platform_data/sht15.h
+index 33e0fd2..12289c1 100644
+--- a/include/linux/platform_data/sht15.h
++++ b/include/linux/platform_data/sht15.h
+@@ -12,6 +12,9 @@
+  * For further information, see the Documentation/hwmon/sht15 file.
+  */
+ 
++#ifndef _PDATA_SHT15_H
++#define _PDATA_SHT15_H
++
+ /**
+  * struct sht15_platform_data - sht15 connectivity info
+  * @gpio_data:		no. of gpio to which bidirectional data line is
+@@ -31,3 +34,5 @@ struct sht15_platform_data {
+ 	bool no_otp_reload;
+ 	bool low_resolution;
+ };
++
++#endif /* _PDATA_SHT15_H */
+-- 
+1.8.5.2
 
-  This driver uses ACPI INT3403 device objects. If present, it will
-  register each INT3403 thermal sensor as a thermal zone.
-
-This is the "help" text for the new ACPI thermal driver.
-
-WTF?
-
-Really, whoever wrote that "help" text wasn't thinking of helping
-users. What the f*ck is an INT3403 device object? Is is common? Where?
-Is it a standard? Is it something normal people should expect?
-
-              Linus
 
 _______________________________________________
 lm-sensors mailing list
