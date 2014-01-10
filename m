@@ -1,54 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 14 Jan 2014 21:52:51 +0000
-Subject: Re: [lm-sensors] Call for lm-sensors 3.3.5
-Message-Id: <20140114225251.5a1f7dbf@endymion.delvare>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Fri, 10 Jan 2014 15:10:23 +0000
+Subject: [lm-sensors] [PATCH-next] drivers/hwmon: remove new __cpuinit usage from coretemp.c
+Message-Id: <1389366623-26552-1-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140114165101.4958fc13@endymion.delvare>
-In-Reply-To: <20140114165101.4958fc13@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Fenghua Yu <fenghua.yu@intel.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>
 
-On Tue, 14 Jan 2014 11:00:16 -0800, Phil Pokorny wrote:
-> On Tue, Jan 14, 2014 at 10:49 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Tue, 14 Jan 2014 10:39:41 -0800, Phil Pokorny wrote:
-> >> On Tue, Jan 14, 2014 at 8:17 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> >> New PCI ID:  141d  aka  PCI_DEVICE_ID_AMD_15H_M30H_NB_F3 for A10-7850K
-> >> and others in Kaveri family for k10temp driver.
-> >>
-> >> I suppose I should send a new e-mail with just the patch and description...
-> >
-> > Ideally two: one for the kernel and one for sensors-detect.
-> >
-> > But if you can't / don't want to deal with sensors-detect, just say so
-> > and I'll take care of it based on the kernel patch.
-> 
-> It's been a while since I messed with the lm-sensors code.  I'm not
-> sure of the right command to generate the patch you want.  This is the
-> "svn diff" output...
-> 
-> Index: prog/detect/sensors-detect
-> =================================> --- prog/detect/sensors-detect  (revision 6208)
-> +++ prog/detect/sensors-detect  (working copy)
-> @@ -2408,7 +2408,7 @@
->         }, {
->                 name => "AMD Family 15h thermal sensors",
->                 driver => "k10temp",
-> -               detect => sub { amd_pci_detect('1603', '1403') },
-> +               detect => sub { amd_pci_detect('1603', '1403', '141d') },
->         }, {
->                 name => "AMD Family 15h power sensors",
->                 driver => "fam15h_power",
-> 
+Commit da9e8c7a7b99b245c464ff45c7bde38a4b510019 ("hwmon: (coretemp)
+Use PCI host bridge ID to identify CPU if necessary") added a new
+instance of the __cpuinit macro usage.
 
-Committed, thanks.
+We removed this a couple versions ago; we now want to remove
+the compat no-op stubs.  Introducing new users is not what
+we want to see at this point in time, as it will break once
+the stubs are gone.
 
-New time please try to get your e-mail client configuration fixed to
-not convert tabs to spaces...
+Cc: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
 
+[Patch based on today's linux-next tree, so if hwmon next content
+ gets rebased, then the above commit ID will be invalidated; if it
+ _does_ get rebased, then feel free to squash this fix into the orig.]
+
+ drivers/hwmon/coretemp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 6e0579e80538..f44549f7c445 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -197,7 +197,7 @@ struct tjmax_pci {
+ 	int tjmax;
+ };
+ 
+-static const struct tjmax_pci tjmax_pci_table[] __cpuinitconst = {
++static const struct tjmax_pci tjmax_pci_table[] = {
+ 	{ 0x0708, 110000 },	/* CE41x0 (Sodaville ) */
+ 	{ 0x0c72, 102000 },	/* Atom S1240 (Centerton) */
+ 	{ 0x0c73, 95000 },	/* Atom S1220 (Centerton) */
 -- 
-Jean Delvare
+1.8.5.2
+
 
 _______________________________________________
 lm-sensors mailing list
