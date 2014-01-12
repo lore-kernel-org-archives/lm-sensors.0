@@ -1,143 +1,177 @@
-From: Mathias Gerber <mathias_g@tuxedo.ath.cx>
-Date: Mon, 13 Jan 2014 20:49:13 +0000
-Subject: [lm-sensors] Configuration for Gigabyte Z77-D3H
-Message-Id: <52D45149.20804@tuxedo.ath.cx>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------020704060602000807020706"
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Date: Sun, 12 Jan 2014 14:31:06 +0000
+Subject: Re: [lm-sensors] [PATCHv5 05/20] cpufreq: cpufreq-cpu0: add dt node parsing for cooling device prope
+Message-Id: <744357E9AAD1214791ACBA4B0B909263011C9A19@SHSMSX101.ccr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------020704060602000807020706
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Hi Folks
-
-Finally I could demystify most of the sensor values for this mainboard.
-My configuration file is attached to this email.
-
-Not clear is the temp1 reading. Should be PCH temp AFAIK.
-But here I read most of the time 32=B0C or sometimes 33=B0C.
-- --=20
-kind regards
- mathias
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iEYEARECAAYFAlLUUUMACgkQnfTEjDUZ2fME0wCcCFL+MOQtiNi4Yhj+BRlwPvYQ
-X28AoLi9YyXl+bqqr0EfBasJ96A+GMc+
-=3DFrNz
------END PGP SIGNATURE-----
-
---------------020704060602000807020706
-Content-Type: text/plain; charset="utf-8"; name="ga-z77-d3h.conf"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment;
- filename="ga-z77-d3h.conf"
-
-chip "acpitz-virtual-0"
-    ignore temp1 # stays always at 27.8°C
-    ignore temp2 # dito
-
-chip "it8728-*"
-
-    label in0 "0: CPU Vtt"
-    set in0_min 1.02    # I'm liberal with these, 2-3% tops
-    set in0_max 1.08    # after that, cpu gets very unstable
-
-    label in1 "1: +3.3V"
-    set in1_min 3.3 * 0.95    # Some boards including GA-H67MA-UD2H
-    set in1_max 3.3 * 1.05    # don't have 3.3V voltage reading
-    compute in1 1.649*@,@/1.649 # multipliers provided by Martin Malik author of hwinfo
-
-    label in2 "2: +12V"
-    set in2_min 12 * 0.95
-    set in2_max 12 * 1.05
-    compute  in2  @ * (72/12), @ / (72/12) #mg,15.05.13
-
-    label in3 "3: +5V"
-    set in3_min 5 * 0.95
-    set in3_max 5 * 1.05
-    compute in3 2.5*@,@/2.5
-
-    label in4 "4: Vaxg"	# Voltage used by the video controller embedded inside the CPU
-    set in4_min 0.4
-    set in4_max 1.4
-
-    label in5 "5: Vcore"
-    set in5_min 0.825 * 0.95
-    set in5_max 1.425 * 1.05
-
-    label in6 "6: Vdram"
-    set in6_min 1.5 * 0.95    # adjust these, 1.35 for LVDDR3
-    set in6_max 1.5 * 1.05    # 1.5V is recommended, 1.65 tops
-     
-    label in7 "7: 3VSB"
-    set in7_min 3.00 * 0.95
-    set in7_max 3.00 * 1.05
-
-    label in8 "8: Vbat"
-    set in8_min  3.0 * 0.90
-    set in8_max  3.0 * 1.10
-
-### fan
-
-    label fan1 "CPU fan"
-    set fan1_min 700
-
-    ignore fan2 # comment if connected
-    label fan2 "Sys1 fan"
-    set fan2_min 0
-
-    label fan3 "Sys2 fan"
-    set fan3_min 200 
-
-    label fan4 "Sys3 fan"
-    set fan4_min 200 
-
-    ignore fan5 # comment if connected
-    label fan5 "Sys4 fan"
-    set fan5_min 0 
-
-### temperatures
-
-    label temp1 "PCH temp??" # shows always 33°C
-    set temp1_min 10
-    set temp1_max 60
-
-    ignore temp2
-    label temp2 "MB temp??" # shows always 25°C
-    set temp2_min 0
-    set temp2_max 60
-
-    label temp3 "CPU temp"
-    set temp3_min 10
-    set temp3_max 85
-
-    ignore intrusion0 # activate if in use
-
---------------020704060602000807020706
-Content-Type: application/octet-stream;
- name="ga-z77-d3h.conf.sig"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="ga-z77-d3h.conf.sig"
-
-iEYEABECAAYFAlLUUUkACgkQnfTEjDUZ2fPIDQCfc3fr0xkO7J/tuCOEzOU/JU7+vHoAoLuq
-oJINoLmGPCEmNLBfyggvwSx0
---------------020704060602000807020706
-Content-Type: text/plain; charset="us-ascii"
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+ <1384285582-16933-6-git-send-email-eduardo.valentin@ti.com>
+In-Reply-To: <1384285582-16933-6-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Eduardo Valentin <eduardo.valentin@ti.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>
+Cc: "wni@nvidia.com" <wni@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "R, Durgadoss" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+
+
+
+> -----Original Message-----
+> From: Eduardo Valentin [mailto:eduardo.valentin@ti.com]
+> Sent: Wednesday, November 13, 2013 3:46 AM
+> To: swarren@wwwdotorg.org; pawel.moll@arm.com; mark.rutland@arm.com;
+> ian.campbell@citrix.com; rob.herring@calxeda.com; linux@roeck-us.net;
+> Zhang, Rui
+> Cc: wni@nvidia.com; grant.likely@linaro.org; R, Durgadoss; linux-
+> pm@vger.kernel.org; devicetree@vger.kernel.org; lm-sensors@lm-
+> sensors.org; linux-kernel@vger.kernel.org; Eduardo Valentin; Rafael J.
+> Wysocki; Viresh Kumar; cpufreq@vger.kernel.org; devicetree-
+> discuss@lists.ozlabs.org
+> Subject: [PATCHv5 05/20] cpufreq: cpufreq-cpu0: add dt node parsing for
+> cooling device properties
+> Importance: High
+> 
+> This patch changes the cpufreq-cpu0 driver to consider if a cpu needs
+> cooling (with cpufreq). In case the cooling is needed, the cpu0 device
+> tree node needs to be properly configured with cooling device
+> properties.
+> 
+> In case these properties are present,, the driver will load a cpufreq
+> cooling device in the system. The cpufreq-cpu0 driver is not interested
+> in determining how the system should be using the cooling device. The
+> driver is responsible only of loading the cooling device.
+> 
+> Describing how the cooling device will be used can be accomplished by
+> setting up a thermal zone that references and is composed by the
+> cpufreq cooling device.
+> 
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: Viresh Kumar <viresh.kumar@linaro.org>
+> Cc: Grant Likely <grant.likely@linaro.org>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: cpufreq@vger.kernel.org
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt         |  7 +++++++
+>  drivers/cpufreq/Kconfig                                  |  2 +-
+>  drivers/cpufreq/cpufreq-cpu0.c                           | 16
+> ++++++++++++++++
+>  3 files changed, 24 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+> b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+> index 051f764..f055515 100644
+> --- a/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+> +++ b/Documentation/devicetree/bindings/cpufreq/cpufreq-cpu0.txt
+> @@ -15,6 +15,10 @@ Optional properties:
+>  - clock-latency: Specify the possible maximum transition latency for
+> clock,
+>    in unit of nanoseconds.
+>  - voltage-tolerance: Specify the CPU voltage tolerance in percentage.
+> +- #cooling-cells:
+> +- cooling-min-level:
+> +- cooling-max-level:
+> +     Please refer to
+> Documentation/devicetree/bindings/thermal/thermal.txt.
+> 
+>  Examples:
+> 
+> @@ -33,6 +37,9 @@ cpus {
+>  			198000  850000
+>  		>;
+>  		clock-latency = <61036>; /* two CLK32 periods */
+> +		#cooling-cells = <2>;
+> +		cooling-min-level = <0>;
+> +		cooling-max-level = <2>;
+>  	};
+> 
+>  	cpu@1 {
+> diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig index
+> 534fcb8..fc1e9a5 100644
+> --- a/drivers/cpufreq/Kconfig
+> +++ b/drivers/cpufreq/Kconfig
+> @@ -186,7 +186,7 @@ config CPU_FREQ_GOV_CONSERVATIVE
+> 
+>  config GENERIC_CPUFREQ_CPU0
+>  	tristate "Generic CPU0 cpufreq driver"
+> -	depends on HAVE_CLK && REGULATOR && PM_OPP && OF
+> +	depends on HAVE_CLK && REGULATOR && PM_OPP && OF && THERMAL &&
+> +CPU_THERMAL
+
+config: make ARCH=arm multi_v7_defconfig
+All warnings:
+warning: (ARM_HIGHBANK_CPUFREQ) selects GENERIC_CPUFREQ_CPU0 which 
+has unmet direct dependencies (ARCH_HAS_CPUFREQ && CPU_FREQ && 
+HAVE_CLK && REGULATOR && PM_OPP && OF && THERMAL && CPU_THERMAL)
+
+I think you need to select THERMAL and CPU_THERMAL instead, right?
+
+Thanks,
+rui
+>  	select CPU_FREQ_TABLE
+>  	help
+>  	  This adds a generic cpufreq driver for CPU0 frequency
+> management.
+> diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-
+> cpu0.c index c522a95..568aaf3 100644
+> --- a/drivers/cpufreq/cpufreq-cpu0.c
+> +++ b/drivers/cpufreq/cpufreq-cpu0.c
+> @@ -13,7 +13,9 @@
+> 
+>  #include <linux/clk.h>
+>  #include <linux/cpu.h>
+> +#include <linux/cpu_cooling.h>
+>  #include <linux/cpufreq.h>
+> +#include <linux/cpumask.h>
+>  #include <linux/err.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+> @@ -21,6 +23,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/slab.h>
+> +#include <linux/thermal.h>
+> 
+>  static unsigned int transition_latency;  static unsigned int
+> voltage_tolerance; /* in percentage */ @@ -29,6 +32,7 @@ static struct
+> device *cpu_dev;  static struct clk *cpu_clk;  static struct regulator
+> *cpu_reg;  static struct cpufreq_frequency_table *freq_table;
+> +static struct thermal_cooling_device *cdev;
+> 
+>  static int cpu0_verify_speed(struct cpufreq_policy *policy)  { @@ -
+> 260,6 +264,17 @@ static int cpu0_cpufreq_probe(struct platform_device
+> *pdev)
+>  		goto out_free_table;
+>  	}
+> 
+> +	/*
+> +	 * For now, just loading the cooling device;
+> +	 * thermal DT code takes care of matching them.
+> +	 */
+> +	if (of_find_property(np, "#cooling-cells", NULL)) {
+> +		cdev = of_cpufreq_cooling_register(np, cpu_present_mask);
+> +		if (IS_ERR(cdev))
+> +			pr_err("running cpufreq without cooling
+> device: %ld\n",
+> +			       PTR_ERR(cdev));
+> +	}
+> +
+>  	of_node_put(np);
+>  	return 0;
+> 
+> @@ -272,6 +287,7 @@ out_put_node:
+> 
+>  static int cpu0_cpufreq_remove(struct platform_device *pdev)  {
+> +	cpufreq_cooling_unregister(cdev);
+>  	cpufreq_unregister_driver(&cpu0_cpufreq_driver);
+>  	opp_free_cpufreq_table(cpu_dev, &freq_table);
+> 
+> --
+> 1.8.2.1.342.gfa7285d
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------020704060602000807020706--
