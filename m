@@ -1,198 +1,103 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Wed, 08 Jan 2014 04:16:07 +0000
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Date: Mon, 13 Jan 2014 15:37:13 +0000
 Subject: Re: [lm-sensors] [PATCHv9 02/20] thermal: introduce device tree parser
-Message-Id: <52CCD107.8030106@nvidia.com>
+Message-Id: <52D40829.9030708@ti.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1559293067462514723=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-	<1384285582-16933-3-git-send-email-eduardo.valentin@ti.com>
-	<52C299A8.4010108@nvidia.com>	<52CB6AE2.2090002@nvidia.com>
-	<52CBE237.7010309@ti.com>	<52CCC3CF.7000103@nvidia.com>
- <CAHqbYQvchi3QSgcitUtguFyOJtXhFt5OjcoiSDZnPg9ZyiN4cg@mail.gmail.com>
-In-Reply-To: <CAHqbYQvchi3QSgcitUtguFyOJtXhFt5OjcoiSDZnPg9ZyiN4cg@mail.gmail.com>
-MIME-Version: 1.0
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com> <1384285582-16933-3-git-send-email-eduardo.valentin@ti.com> <52C4D612.2090808@nvidia.com> <52C5A6CE.5060904@nvidia.com>
+In-Reply-To: <52C5A6CE.5060904@nvidia.com>
+To: Matthew Longnecker <mlongnecker@nvidia.com>
+Cc: Wei Ni <wni@nvidia.com>, Eduardo Valentin <eduardo.valentin@ti.com>, swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+
+--===============1559293067462514723==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="qRRl9BSqdcGVBinNxfeT4c6Olt32DcQed"
+
+--qRRl9BSqdcGVBinNxfeT4c6Olt32DcQed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 02-01-2014 13:50, Matthew Longnecker wrote:
+>=20
+>> I think the platform driver may set governor for the thermal zone,
+>> so how about to add a property named as "governor",
+>> and parse it to tzp->governor_name,
+>> something like:
+>>                  ret =3D of_property_read_string(child, "governor", &s=
+tr);
+>>                  if (ret =3D=3D 0)
+>>                          if (strlen(str) < THERMAL_NAME_LENGTH)
+>>                                  strcpy(tzp->governor_name, str);
+
+The above is not applicable to DT. The very first version of my proposed
+series did include some sort of governor treatment too, fetching such
+data from DT.
+
+>>
+>> Thanks.
+>> Wei.
+>=20
+> DT is supposed to describe the hardware, right? The governor isn't
+> hardware -- it's a software control policy. On the other hand, that
+> control policy must be tuned according to the behaviors of the platform=
+
+> hardware otherwise the system will be unstable.
+
+Yes, this is the correct understanding. We can describe hardware,
+including thermal constraints, as long as they do not include policy or
+OS specific implementation.
+
+>=20
+> Is it appropriate to be naming the governor in DT? If so, is it equally=
+
+> appropriate to describe any governor-specific parameters in DT (even
+> though they are pure software constructs)?
+
+No for both questions.
+
+However, for the parameters, as long as you can map the software
+parameter as a hardware descriptor, then we can discuss if that can be
+used as DT properties.
+
+>=20
+> -Matt
+>=20
+>=20
+
+
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--qRRl9BSqdcGVBinNxfeT4c6Olt32DcQed
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlLUCCkACgkQCXcVR3XQvP10KwEApcUxeBGNeMLMrEnU9a4Q/Bh9
+i02tQi67DtB9B15nfcQA/3QfCydXrzf/etgKNFlnNOfq2Ryn38FxekhWUCqDIdXa
+=kpN1
+-----END PGP SIGNATURE-----
+
+--qRRl9BSqdcGVBinNxfeT4c6Olt32DcQed--
+
+
+--===============1559293067462514723==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Hu Yaohui <loki2441@gmail.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@roeck-us.net" <linux@roeck-us.net>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-
-On 01/08/2014 11:24 AM, Hu Yaohui wrote:
-> I am new here. How can I could not mail a new message to this mail list?
-> TIA
-
-I use Thunderbird, it's a pretty good mail client :)
-
-> 
-> 
-> On Tue, Jan 7, 2014 at 10:19 PM, Wei Ni <wni@nvidia.com
-> <mailto:wni@nvidia.com>> wrote:
-> 
->     On 01/07/2014 07:17 PM, Eduardo Valentin wrote:
->     > * PGP Signed by an unknown key
->     >
->     > On 06-01-2014 22:48, Wei Ni wrote:
->     >> Hi, Eduardo
->     >> Will you consider my comments :)
->     >
->     > By now Wei, it is better if you start a new thread, by sending a patch
->     > on top of it, as this thread has been already merged by Rui.
-> 
->     Ok, I will send it.
-> 
->     Thanks.
->     Wei.
->     >
->     >>
->     >> Thanks.
->     >> Wei.
->     >>
->     >> On 12/31/2013 06:17 PM, Wei Ni wrote:
->     >>> On 11/13/2013 03:46 AM, Eduardo Valentin wrote:
->     >>>> This patch introduces a device tree bindings for
->     >>>> describing the hardware thermal behavior and limits.
->     >>>> Also a parser to read and interpret the data and feed
->     >>>> it in the thermal framework is presented.
->     >>>>
->     >>>> This patch introduces a thermal data parser for device
->     >>>> tree. The parsed data is used to build thermal zones
->     >>>> and thermal binding parameters. The output data
->     >>>> can then be used to deploy thermal policies.
->     >>>>
->     >>>> This patch adds also documentation regarding this
->     >>>> API and how to define tree nodes to use
->     >>>> this infrastructure.
->     >>>>
->     >>>> Note that, in order to be able to have control
->     >>>> on the sensor registration on the DT thermal zone,
->     >>>> it was required to allow changing the thermal zone
->     >>>> .get_temp callback. For this reason, this patch
->     >>>> also removes the 'const' modifier from the .ops
->     >>>> field of thermal zone devices.
->     >>>>
->     >>>> ...
->     >>>> +
->     >>>> +static int of_thermal_get_trend(struct thermal_zone_device
->     *tz, int trip,
->     >>>> +                          enum thermal_trend *trend)
->     >>>> +{
->     >>>> +  struct __thermal_zone *data = tz->devdata;
->     >>>> +  long dev_trend;
->     >>>> +  int r;
->     >>>> +
->     >>>> +  if (!data->get_trend)
->     >>>> +          return -EINVAL;
->     >>>> +
->     >>>> +  r = data->get_trend(data->sensor_data, &dev_trend);
->     >>> I think the ->get_trend should be defined as:
->     >>> .get_trend(*dev, int, *long)
->     >>> so that the "trip" can be passed into it, otherwise the "trip"
->     can't be
->     >>> used.
->     >>> And the dev_trend should be returned as THERMAL_TREND_XXX directly.
->     >>> because the THERM_TREND_xx is more than three states.
->     >>>
->     >>> The code may be something like:
->     >>> r = data->get_trend(data->sensor_data, trip, &dev_trend);
->     >>> if (r)
->     >>>     return r;
->     >>> *trend = dev_trend;
->     >>> return 0;
->     >>>> +  if (r)
->     >>>> +          return r;
->     >>>> +
->     >>>> +  /* TODO: These intervals might have some thresholds, but in
->     core code */
->     >>>> +  if (dev_trend > 0)
->     >>>> +          *trend = THERMAL_TREND_RAISING;
->     >>>> +  else if (dev_trend < 0)
->     >>>> +          *trend = THERMAL_TREND_DROPPING;
->     >>>> +  else
->     >>>> +          *trend = THERMAL_TREND_STABLE;
->     >>>> +
->     >>>> +  return 0;
->     >>>> +}
->     >>>> +
->     >>>> .....
->     >>>> +
->     >>>> +/***   sensor API   ***/
->     >>>> +
->     >>>> +static struct thermal_zone_device *
->     >>>> +thermal_zone_of_add_sensor(struct device_node *zone,
->     >>>> +                     struct device_node *sensor, void *data,
->     >>>> +                     int (*get_temp)(void *, long *),
->     >>>> +                     int (*get_trend)(void *, long *))
->     >>>> +{
->     >>>> +  struct thermal_zone_device *tzd;
->     >>>> +  struct __thermal_zone *tz;
->     >>>> +
->     >>>> +  tzd = thermal_zone_get_zone_by_name(zone->name);
->     >>> I think we could get the thermal zone by node,
->     >>> something like:
->     >>> thermal_zone_get_zone_by_node(zone);
->     >>> so that it can get unique zone.
->     >>>
->     >>> I think we can add a member "struct device_node *np" in the
->     >>> thermal_zone_device,
->     >>> and set it after you call thermal_zone_device_register successfully.
->     >>> Then add following codes:
->     >>> thermal_zone_get_zone_by_node(struct device_node *node)
->     >>> {
->     >>>         struct thermal_zone_device *pos = NULL, *ref >     ERR_PTR(-ENODEV);
->     >>>         bool found = false;
->     >>>
->     >>>         if (!node)
->     >>>                 return ERR_PTR(-EINVAL);
->     >>>
->     >>>         mutex_lock(&thermal_list_lock);
->     >>>         list_for_each_entry(pos, &thermal_tz_list, node)
->     >>>                 if (node = pos->np) {
->     >>>                         ref = pos;
->     >>>                         found = true;
->     >>>                         break;
->     >>>                 }
->     >>>         mutex_unlock(&thermal_list_lock);
->     >>>
->     >>>         return ref;
->     >>> }
->     >>>
->     >>> Thanks.
->     >>> Wei.
->     >>>> +  if (IS_ERR(tzd))
->     >>>> +          return ERR_PTR(-EPROBE_DEFER);
->     >>>> +
->     >>>> +  tz = tzd->devdata;
->     >>>> +
->     >>>> +  mutex_lock(&tzd->lock);
->     >>>> +  tz->get_temp = get_temp;
->     >>>> +  tz->get_trend = get_trend;
->     >>>> +  tz->sensor_data = data;
->     >>>> +
->     >>>> +  tzd->ops->get_temp = of_thermal_get_temp;
->     >>>> +  tzd->ops->get_trend = of_thermal_get_trend;
->     >>>> +  mutex_unlock(&tzd->lock);
->     >>>> +
->     >>>> +  return tzd;
->     >>>> +}
->     >>>> +
->     >>>>
->     >>>
->     >>
->     >>
->     >>
->     >
->     >
-> 
->     --
->     To unsubscribe from this list: send the line "unsubscribe
->     linux-kernel" in
->     the body of a message to majordomo@vger.kernel.org
->     <mailto:majordomo@vger.kernel.org>
->     More majordomo info at  http://vger.kernel.org/majordomo-info.html
->     Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1559293067462514723==--
