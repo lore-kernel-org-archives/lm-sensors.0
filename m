@@ -1,38 +1,31 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 06 Jan 2014 12:36:48 +0000
-Subject: [lm-sensors] [PATCHv2 4/7] arm: dts: add cooling properties on dra7 cpu node
-Message-Id: <1389011811-13004-5-git-send-email-eduardo.valentin@ti.com>
+From: Phil Pokorny <ppokorny@penguincomputing.com>
+Date: Tue, 14 Jan 2014 18:46:46 +0000
+Subject: Re: [lm-sensors] Test patch
+Message-Id: <CAAek22FMHR01907owU3Shzu1q96X_beWmg2XCjXxZqdOgQ82WA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rui.zhang@intel.com
-Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-RFJBNyBkZXZpY2VzIGNhbiByZWFjaCBoaWdoIHRlbXBlcmF0dXJlcyBhbmQgdGh1cwpuZWVkcyB0
-byBoYXZlIGNwdWZyZXEtY29vbGluZyBvbiBzeXN0ZW1zIHJ1bm5pbmcgb24gaXQuCgpUaGlzIHBh
-dGNoIGFkZHMgdGhlIHJlcXVpcmVkIGNvb2xpbmcgZGV2aWNlIHByb3BlcnRpZXMKc28gdGhhdCBj
-cHVmcmVxLWNwdTAgZHJpdmVyIGxvYWRzIHRoZSBjb29saW5nIGRldmljZS4KCkNjOiBCZW5vw650
-IENvdXNzb24gPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFpoYW5nIFJ1aSA8cnVpLnpoYW5n
-QGludGVsLmNvbT4KQ2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6
-IFBhd2VsIE1vbGwgPHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5y
-dXRsYW5kQGFybS5jb20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3Jn
-PgpDYzogSWFuIENhbXBiZWxsIDxpamMrZGV2aWNldHJlZUBoZWxsaW9uLm9yZy51az4KQ2M6IFJ1
-c3NlbGwgS2luZyA8bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGRldmljZXRyZWVAdmdlci5r
-ZXJuZWwub3JnCkNjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxp
-bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRp
-biA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5k
-dHNpIHwgNSArKysrKwogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdp
-dCBhL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcu
-ZHRzaQppbmRleCA4ZjIxMTU3Li4xMzk0NzJjIDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0
-cy9kcmE3LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpCkBAIC00Nyw2ICs0
-NywxMSBAQAogCQkJCTEwMDAwMDAJMTA2MDAwMAogCQkJCTExNzYwMDAJMTE2MDAwMAogCQkJCT47
-CisKKwkJCS8qIGNvb2xpbmcgcHJvcGVydGllcyAqLworCQkJI2Nvb2xpbmctY2VsbHMgPSA8Mj47
-IC8qIG1pbiBhbmQgbWF4ICovCisJCQkjY29vbGluZy1taW4tbGV2ZWwgPSA8MD47CisJCQkjY29v
-bGluZy1tYXgtbGV2ZWwgPSA8MT47CiAJCX07CiAJCWNwdUAxIHsKIAkJCWRldmljZV90eXBlID0g
-ImNwdSI7Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNv
-cnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlz
-dGluZm8vbG0tc2Vuc29ycw=
+Add new PCI ID to k10temp in support of new model "Kaveri" family.
+
+Signed-off-by: Philip Pokorny <ppokorny@penguincomputing.com>
+
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index d65f3fd..758774f 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -210,6 +210,7 @@ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
+        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
+        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
+        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_F3) },
++       { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F3) },
+        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F3) },
+        {}
+ };
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
