@@ -1,125 +1,44 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 20 Jan 2014 16:39:29 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.14-rc1
-Message-Id: <20140120163929.GA652@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0683091547961808259=="
+Date: Tue, 14 Jan 2014 21:24:52 +0000
+Subject: Re: [lm-sensors] k10temp Kaveri support (was: Re: Test patch)
+Message-Id: <20140114212452.GA27681@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-
---===============0683091547961808259==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
-Content-Disposition: inline
-
-
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon updates for Linux 3.14-rc1 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+On Tue, Jan 14, 2014 at 10:46:46AM -0800, Phil Pokorny wrote:
+> Add new PCI ID to k10temp in support of new model "Kaveri" family.
+> 
+> Signed-off-by: Philip Pokorny <ppokorny@penguincomputing.com>
+> 
+Odd headline ;-). I fixed that as well as the patch format (spaces instead of
+tabs below) and applied it to hwmon-next.
 
 Thanks,
 Guenter
-------
 
-The following changes since commit 3f9aec7610b39521c7c69d754de7265f6994c194:
-
-  hwmon: (coretemp) Fix truncated name of alarm attributes (2014-01-14 09:47:52 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to d303b1b5fbb688282bbf72a534b9dfed7af9fe4f:
-
-  hwmon: (k10temp) Add support for Kaveri CPUs (2014-01-14 21:36:54 -0800)
-
-----------------------------------------------------------------
-Add support for Kaveri CPUs to k10temp driver. Add support for S12x0 to
-coretemp driver.
-Cleanup and minor fixes in several drivers. Notable are 'Do not return -EAGAIN
-for low temperatures' to coretemp and 'Re-enable logical device mapping for
-NCT6791 during resume' to nct6775. Both will be sent to -stable, but only
-after some time in mainline.
-
-----------------------------------------------------------------
-Anthony Olech (1):
-      hwmon: (da9052) Fix adc to voltage calculation
-
-Guenter Roeck (5):
-      hwmon: (coretemp) Use PCI host bridge ID to identify CPU if necessary
-      hwmon: (coretemp) Add PCI device ID for CE41x0 CPUs
-      hwmon: (coretemp) Refine TjMax detection
-      hwmon: (coretemp) Do not return -EAGAIN for low temperatures
-      hwmon: (nct6775) Re-enable logical device mapping for NCT6791 during resume
-
-Jingoo Han (1):
-      hwmon: remove DEFINE_PCI_DEVICE_TABLE macro
-
-Phil Pokorny (1):
-      hwmon: (k10temp) Add support for Kaveri CPUs
-
-Sachin Kamat (1):
-      hwmon: (s3c) Trivial cleanup in hwmon-s3c.h
-
-Vivien Didelot (2):
-      hwmon: (max197) add include guard
-      hwmon: (sht15) add include guard
-
- drivers/hwmon/coretemp.c                |   58 ++++++++++++++++++++++---------
- drivers/hwmon/da9052-hwmon.c            |    4 +--
- drivers/hwmon/fam15h_power.c            |    2 +-
- drivers/hwmon/k10temp.c                 |    3 +-
- drivers/hwmon/k8temp.c                  |    2 +-
- drivers/hwmon/nct6775.c                 |   38 ++++++++++++++------
- drivers/hwmon/sis5595.c                 |    2 +-
- drivers/hwmon/via686a.c                 |    2 +-
- drivers/hwmon/vt8231.c                  |    2 +-
- include/linux/platform_data/hwmon-s3c.h |   10 +++---
- include/linux/platform_data/max197.h    |    5 +++
- include/linux/platform_data/sht15.h     |    5 +++
- 12 files changed, 92 insertions(+), 41 deletions(-)
-
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS3VFBAAoJEMsfJm/On5mBxpoQAKd9ELrCA7pkAnJHzBamDpjc
-EpVQAyI0zOD+LcXwNwBZcgY7aaUYQKmRyGXsGcr8kMV4w96xUBEKL5tKMYJ/GItk
-5bxViSTqDYIXtLhhrk3TLkElMTO8v4aiDefWNMhbQPevao/peIxKmK8RyDncyJII
-JfqKfLJzTjkTFA3GtkUTn+hvw+MAqLhJUxChscDWogCE5lcwgBL2+Lc3fYBXtKLz
-7ECvTeZ90wE+7d/wIAv/1vKwSkD5Q6M6hBJFeTtpGy/q29AotxB5xkZRPofcG16k
-MpXXmimNUVXkJVx0bpL88/H3bPKcU3yTl2CoZtdPQ2Vg47OJK/g60ObTONS0ffzt
-eMAVfa+yKMrH7AOhYd2xvg+QOrlHSCQJ3T3rJCd9eRqubd3KzPgszC+0ct105Rmr
-jaHdJeq/BfOIM8GOxuOFNWyqa/UTFAaDqwAQ2D+IF+b9VLb34Tm+cf75bzDJt49U
-BrbGosPv3yY33sSerwcl6u3Be+4CEhhMoCh55bO2dS0IJyFcI14/8uI3aV+kLlbH
-if703gqy3rr7wJVmE33inMdw4F/HdN+c8mWn5ByrkkzvguXMW+bLSlWFdgQ9vNO3
-vXoaR8v0O+CByYqEzPU1vhLRRO6CjJmuiRRtjfTOc1CaPZ/jimZ8QSY5M6GE1vYp
-+/hPtrJQSc6b8KB/UPko
-=WWgo
------END PGP SIGNATURE-----
-
---u3/rZRmxL6MmkK24--
-
-
---===============0683091547961808259==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+> index d65f3fd..758774f 100644
+> --- a/drivers/hwmon/k10temp.c
+> +++ b/drivers/hwmon/k10temp.c
+> @@ -210,6 +210,7 @@ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
+>         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
+>         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
+>         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_F3) },
+> +       { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F3) },
+>         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F3) },
+>         {}
+>  };
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> 
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0683091547961808259==--
