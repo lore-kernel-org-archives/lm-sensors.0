@@ -1,7 +1,7 @@
-From: Phil Pokorny <ppokorny@penguincomputing.com>
-Date: Tue, 14 Jan 2014 16:07:51 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 14 Jan 2014 16:17:34 +0000
 Subject: Re: [lm-sensors] Call for lm-sensors 3.3.5
-Message-Id: <CAAek22FNZZ_C_Uh+vB4ut_9Ok7NS_3iuvvcf10qMybo4G7nGCw@mail.gmail.com>
+Message-Id: <20140114171734.6d565044@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140114165101.4958fc13@endymion.delvare>
 In-Reply-To: <20140114165101.4958fc13@endymion.delvare>
@@ -10,39 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-AMD announced Kaveri boxed proc availability today.
-http://finance.yahoo.com/news/amd-revolutionizes-compute-ultrahd-entertainment-130000053.html
+Hi Phil,
 
-K10temp needs a new PCI table entry for this proc.  I've tested and it
-gives readings that change as expected. PCI ID is already in mainline
-PCI-ids.h
+On Tue, 14 Jan 2014 08:07:51 -0800, Phil Pokorny wrote:
+> AMD announced Kaveri boxed proc availability today.
+> http://finance.yahoo.com/news/amd-revolutionizes-compute-ultrahd-entertainment-130000053.html
+> 
+> K10temp needs a new PCI table entry for this proc.  I've tested and it
+> gives readings that change as expected. PCI ID is already in mainline
+> PCI-ids.h
+> 
+> If I post patch today could it make this release?
+> 
+> Or did I misunderstand and you are talking about userspace?
 
-If I post patch today could it make this release?
+I was talking about user-space, yes. But sensors-detect would need to
+be taught about the new PCI ID too.
 
-Or did I misunderstand and you are talking about userspace?
+Maybe we already have it:
+http://www.lm-sensors.org/changeset/6191
 
-Phil P.
-
-On Tuesday, January 14, 2014, Jean Delvare wrote:
-
-> I was thinking maybe it would be the right time to release lm-sensors
-> 3.3.5, 8 months after the previous release?
->
-> --
-> Jean Delvare
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org <javascript:;>
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
-
+Or is it yet another PCI ID?
 
 -- 
-Philip Pokorny, RHCE
-Chief Technical Officer
-PENGUIN COMPUTING, Inc
-www.penguincomputing.com
+Jean Delvare
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
