@@ -1,31 +1,91 @@
-From: Phil Pokorny <ppokorny@penguincomputing.com>
-Date: Tue, 14 Jan 2014 18:46:46 +0000
-Subject: Re: [lm-sensors] Test patch
-Message-Id: <CAAek22FMHR01907owU3Shzu1q96X_beWmg2XCjXxZqdOgQ82WA@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 15 Jan 2014 14:33:54 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fix for 3.13
+Message-Id: <20140115143354.GA25243@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3940408039190688857=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============3940408039190688857==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Disposition: inline
+
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull the following hwmon fix for Linux 3.13 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 319e2e3f63c348a9b66db4667efa73178e18b17d:
+
+  Linux 3.13-rc4 (2013-12-15 12:31:33 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 3f9aec7610b39521c7c69d754de7265f6994c194:
+
+  hwmon: (coretemp) Fix truncated name of alarm attributes (2014-01-14 09:47:52 -0800)
+
+----------------------------------------------------------------
+hwmon fixes for 3.13 final
+
+Fix attribute length problem in coretemp driver
+
+----------------------------------------------------------------
+Jean Delvare (1):
+      hwmon: (coretemp) Fix truncated name of alarm attributes
+
+ drivers/hwmon/coretemp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS1pxSAAoJEMsfJm/On5mBaGYP/iya6E+ta/LnkgeheVgTJYpn
+cwPTtmZAoMMxf2smeNi+WRyYZ0kGrr6hiwCxmWwdXPHglnf+nGF56RxEHP/L508H
+JpOOSMoDrn/hbx3y/mroy+RHMBohkA51Bnq5FTzrcIo1GnqtbU4Sf7S+L4L+amKQ
+TdO7iKvK43gtLnPMVAAwioc5+v2lMpp/AXnnLEu2uaSHlk+JF9vs2PcYJ0TLSJOk
+wFLoOdDx8jXIfFHkf8MasSG9a3Es3TnHS4KXFiXO3kkWj4quNyEOwcR7wEYRcngJ
+G6MhqPb42hEr1f5aMOJuILmkZz8sN8NS5p/N992RKlTELb/GzfnUGcYomo8fLR+h
+UKfrNIWmGSC/ruZGIG3XLYluvIUcUAM8cXxCr0dUPrkCmt1lxOOtZGxlS03n7u5/
+qUcU7bkhQdNrs3CvYolWB4JptaUdxlrzufENyZ6cdRsmElOSRsKNkUk+LvToALpu
+h9RH9fKHOHyTcegf9mw1ATeGmL0XTkyrbrfR1berNCrom8r12LrgYldmxLAZLugd
+ezhIxTVQA8bHlAxtO+dxzRn/a5MVjnoffN8kfhfh8HL0AHTNc3hhWEfpK73epBXw
+XHTIANzGzW0hWshfDt8DL+soeJv5FUijDKCOJz9lw47WFQeqBpp40Cpmvp4tp+bM
+BcplgqUi7mHTcBuNPgrQ
+=uXvs
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
+
+
+--===============3940408039190688857==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Add new PCI ID to k10temp in support of new model "Kaveri" family.
-
-Signed-off-by: Philip Pokorny <ppokorny@penguincomputing.com>
-
-diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
-index d65f3fd..758774f 100644
---- a/drivers/hwmon/k10temp.c
-+++ b/drivers/hwmon/k10temp.c
-@@ -210,6 +210,7 @@ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
-        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
-        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
-        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_F3) },
-+       { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F3) },
-        { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F3) },
-        {}
- };
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3940408039190688857==--
