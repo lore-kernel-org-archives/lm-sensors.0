@@ -1,94 +1,99 @@
-From: Martin Herrman <martin.herrman@gmail.com>
-Date: Sat, 18 Jan 2014 10:06:52 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 18 Jan 2014 12:38:10 +0000
 Subject: Re: [lm-sensors] Some questions from first user
-Message-Id: <CADR1r6j+UnjEhfsxwy=66OxhhaS+vFJRMFyP1Oe4cN1dy_4V7A@mail.gmail.com>
+Message-Id: <20140118133810.4ff79fe4@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADR1r6jbaekgXZTJQ7n+5MJW13miQdtbGG=KimEqTT8t2BDKLg@mail.gmail.com>
 In-Reply-To: <CADR1r6jbaekgXZTJQ7n+5MJW13miQdtbGG=KimEqTT8t2BDKLg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-2014/1/16 Jean Delvare <khali@linux-fr.org>:
+Hi Martin,
 
-Hi Jean,
+On Sat, 18 Jan 2014 11:06:52 +0100, Martin Herrman wrote:
+> 2014/1/16 Jean Delvare <khali@linux-fr.org>:
+> >> compute temp3 @+10,@+10
+> >
+> > Preferred way of doing this when the hardware supports it (and the
+> > IT8728F does) is:
+> >
+> >     set temp3_offset 10
+> >
+> > That being said I am not 100% positive that this works when the
+> > temperature sensor type is PECI. You'll have to try it out and see.
+>=20
+> I have did some testing, but I'm not sure yet what to report. I don't
+> have a clear picture with repeatable results yet.
+>=20
+> Offset values are by default not 0,
 
->> compute temp3 @+10,@+10
->
-> Preferred way of doing this when the hardware supports it (and the
-> IT8728F does) is:
->
->     set temp3_offset 10
->
-> That being said I am not 100% positive that this works when the
-> temperature sensor type is PECI. You'll have to try it out and see.
+It is possible that your BIOS does the right thing and presets the
+offsets as appropriate.
 
-I have did some testing, but I'm not sure yet what to report. I don't
-have a clear picture with repeatable results yet.
+> does lm_sensors init script reset
+> offset values to default when removed from sensors.conf?,
 
-Offset values are by default not 0, does lm_sensors init script reset
-offset values to default when removed from sensors.conf?, should I
-compile sensor drivers as modules? (currently they are in the kernel,
-so my init script fails when it tries to reload the modules),
-sometimes I get negative values for _input when I switch from compute
-to offset statement, why does compute +10 add 20 to reported values?
+The lm_sensors init script will typically run "sensors -s" when
+starting the service. When stopping the service, it shouldn't change any
+setting. "sensors -s" applies all relevant "set" statements in your
+sensors.conf configuration files, taking offsets and compute statements
+into account.
 
-Actually, I think my most important question is: how does the compute
-statement work?
+> should I
+> compile sensor drivers as modules? (currently they are in the kernel,
+> so my init script fails when it tries to reload the modules),
 
->> (Note: I wonder if this is influenced by my BIOS settings, which
->> allows me to change the temperature for CPU warning.)
->
-> It should indeed be. It's easy enough to try.
+The init script (and sensors-detect until very recently) assumes that
+every driver is a module, so this isn't surprising. Some work is still
+needed to ensure a smooth user experience with monolithic kernels. I'm
+fixing things slowly in this area, but this isn't a priority.
 
-Answer after some testing: bios configuration defines the temp3_max value.
+> sometimes I get negative values for _input when I switch from compute
+> to offset statement, why does compute +10 add 20 to reported values?
 
-> It is possible that the board actually has two board sensors, even if
-> the BIOS doesn't report both. As long as the values make sense and move
-> in a realistic way, there is no reason to discard them.
+It shouldn't. This might be an unexpected effect of conflicting set
+statements, or offset and compute formula being applied to the same
+temperature input, or a bug somewhere. I can't really say without more
+details from you: complete configuration section from your chip
+from /etc/sensors3.conf and any relevant configuration file
+under /etc/sensors.d, output of "sensors", output of "sensors
+-c /dev/null", output of "sensors -u".
 
-I have put high load on both CPU and GPU, which automatically
-increases case temp. Both temp1 and temp2 increase equally. So I
-assume you are right, the board has 2 sensors but the bios only
-reports 1.
+> Actually, I think my most important question is: how does the compute
+> statement work?
 
->> I currently believe that my last two questions are:
->>
->> 10. How are temp1_min and temp1_max determined for the it8728 reportes
->> temperatures?
->
-> They are arbitrary limits that can be set by the BIOS or the user. Min
-> isn't so useful unless you live in Alaska or leave you system outside
-> in winter. Max is more useful but only if some action is triggered by
-> the alarm flag raising, either in the hardware or by software polling
-> for the alarm flag.
+Originally the driver gets the raw temperature value reported by the
+sensor. Then it applies the offset and presents the result to
+user-space (through a sysfs attribute.) Libsensors gets that value and
+applies the first half of the compute formula for this channel, and
+presents the result to the user.
 
-As expected, thanks!
+The second half of the compute formula should always be the inverse
+function of the first half, and is applied by libsensors to the
+matching set statements.
 
->> 11. What is temp1_type and temp1_offset?
->
-> The sensor type (thermistor, thermal diode or digital aka PECI) and an
-> offset that can be added by the hardware automatically, respectively.
->
-> You normally don't have to change the sensor type as it should be set
-> right by the BIOS. The type OTOH gives you a hint on what is what:
-> board sensors are typically thermistors while CPU sensors are typically
-> thermal diodes or PECI.
->
-> Setting the offset attribute is equivalent to a simple compute formula,
-> as stated above, and is more efficient as it is done by the hardware.
-> It is also more convenient if you start playing with temperature-based
-> fan speed control.
+Let's take an example. You have a temperature sensor (temp1) which
+reports a raw value of 50=B0C. If temp1_offset is defined as +5=B0C, the
+driver will report temp1_input as 55=B0C.
 
-Thanks, this helps!
+If you happen to have a compute formula for temp1 such as:
 
-So I only have to figure out how to get the values right for temp3 and
-the interaction between offset and compute values :-)
+    compute temp1 @+10, @-10
 
-Regards,
+then "sensors" will display a temp1 input value of 65=B0C. The compute
+formula applies to the limits as well, so if for example the driver
+reported the min limit as 10=B0C and the max limit as 60=B0C, "sensors"
+will show 20=B0C and 70=B0C as the limits instead.
 
-Martin
+In practice you typically use the offset attribute _instead of_ the
+compute formula (assuming you only have to apply an offset), because it
+is more efficient.
+
+--=20
+Jean Delvare
+http://jdelvare.nerim.net/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
