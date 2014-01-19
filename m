@@ -1,104 +1,87 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 26 Jan 2014 20:15:11 +0000
-Subject: Re: [lm-sensors] [PATCH v2] sensors-detect: Add detection of TI ADC128D818
-Message-Id: <20140126211511.77a7cecd@endymion.delvare>
+From: =?UTF-8?q?Ville=20Skytt=C3=A4?= <ville.skytta@iki.fi>
+Date: Sun, 19 Jan 2014 14:36:52 +0000
+Subject: [lm-sensors] [PATCH] Spelling fixes
+Message-Id: <1390142212-3914-1-git-send-email-ville.skytta@iki.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DDE1CFF.1020906@appeartv.com>
-In-Reply-To: <4DDE1CFF.1020906@appeartv.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 26 Jan 2014 11:02:44 -0800, Guenter Roeck wrote:
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Use separate function to detect ADC128D818.
->     Fix register addresses
->     Check additional registers
->     Fix typo in lm80 detection (ok, I am lazy ;-)
-> 
->  CHANGES                    |    3 +++
->  prog/detect/sensors-detect |   33 ++++++++++++++++++++++++++++++++-
->  2 files changed, 35 insertions(+), 1 deletion(-)
-> 
-> diff --git a/CHANGES b/CHANGES
-> index e1347a6..970dd67 100644
-> --- a/CHANGES
-> +++ b/CHANGES
-> @@ -1,6 +1,9 @@
->  lm-sensors CHANGES file
->  -----------------------
->  
-> +SVN HEAD
-> +  sensors-detect: Add detection of ADC128D818
-> +
->  3.3.5 "Happy Birthday Beddy" (2014-01-22)
->    libsensors: Improve documentation of two functions
->                Increase MAX_SENSORS_PER_TYPE to 33
-> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> index a2093f3..cfab2df 100755
-> --- a/prog/detect/sensors-detect
-> +++ b/prog/detect/sensors-detect
-> @@ -547,6 +547,11 @@ use vars qw(@i2c_adapter_names);
->  		i2c_addrs => [0x28..0x2f],
->  		i2c_detect => sub { lm80_detect(@_, 1); },
->  	}, {
-> +		name => "TI / National Semiconductor ADC128D818",
-> +		driver => "adc128d818",
-> +		i2c_addrs => [0x1d, 0x1e, 0x1f, 0x2d, 0x2e, 0x2f],
-> +		i2c_detect => sub { adc128d818_detect(@_); },
-> +	}, {
->  		name => "National Semiconductor LM85",
->  		driver => "lm85",
->  		i2c_addrs => [0x2c..0x2e],
-> @@ -4437,7 +4442,7 @@ sub lm92_detect
->  # Registers used:
->  #   0x00: Configuration register
->  #   0x02: Interrupt state register
-> -#   0x07: Converstion rate register (LM96080 only)
-> +#   0x07: Conversion rate register (LM96080 only)
->  #   0x2a-0x3d: Limits registers (LM80 only)
->  #   0x3e: Manufacturer's ID register (LM96080 only)
->  #   0x3f: Stepping/die revision ID register (LM96080 only)
-> @@ -4502,6 +4507,32 @@ sub lm80_detect
->  }
->  
->  # Registers used:
-> +#   0x00: Configuration register
-> +#   0x07: Conversion rate register
-> +#   0x09: Oneshot register
-> +#   0x0a: Shutdown register
-> +#   0x0b: Advanced Configuration register
-> +#   0x0c: Busy Status register
-> +#   0x3e: Manufacturer's ID register
-> +#   0x3f: Stepping/die revision ID register
-> +sub adc128d818_detect
-> +{
-> +	my ($file, $addr) = @_;
-> +
-> +	return if i2c_smbus_read_byte_data($file, 0x3e) != 0x01;
-> +	return if i2c_smbus_read_byte_data($file, 0x3f) != 0x09;
-> +
-> +	return if (i2c_smbus_read_byte_data($file, 0x00) & 0xf4) != 0;
-> +	return if (i2c_smbus_read_byte_data($file, 0x07) & 0xfe) != 0;
-> +	return if (i2c_smbus_read_byte_data($file, 0x09) & 0xfe) != 0;
-> +	return if (i2c_smbus_read_byte_data($file, 0x0a) & 0xfe) != 0;
-> +	return if (i2c_smbus_read_byte_data($file, 0x0b) & 0xf8) != 0;
-> +	return if (i2c_smbus_read_byte_data($file, 0x0c) & 0xfc) != 0;
-> +
-> +	return 7;
-> +}
-> +
-> +# Registers used:
->  #   0x02: Status 1
->  #   0x03: Configuration
->  #   0x04: Company ID of LM84
+---
+ etc/sensors.conf.eg             | 6 +++---
+ prog/sensors/chips.c            | 2 +-
+ prog/tellerstats/gather.sh      | 2 +-
+ prog/tellerstats/tellerstats.sh | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-Looks good to me, please commit.
-
+diff --git a/etc/sensors.conf.eg b/etc/sensors.conf.eg
+index 542e2ea..d8fc9fc 100644
+--- a/etc/sensors.conf.eg
++++ b/etc/sensors.conf.eg
+@@ -1980,9 +1980,9 @@ chip "f71805f-*" "f71872f-*"
+ 
+ 
+ # Abit Uguru sensor part configuration.
+-# The Abit Uguru is relativly straight forward to configure.
++# The Abit Uguru is relatively straight forward to configure.
+ # label statements:
+-# The voltage (in) temp and fan sensors are usualy in the same order as listed
++# The voltage (in) temp and fan sensors are usually in the same order as listed
+ # in the BIOS, but not always!
+ # compute statements:
+ # The temp and fan sensors don't need any compute statements. Most voltage
+@@ -1994,7 +1994,7 @@ chip "f71805f-*" "f71872f-*"
+ # mutiplier, 5 volt the 1.788 and 12 volt the 4.153.
+ # set statements:
+ # The Abit BIOS sets reasonable treshholds and allows changing them, thus
+-# set statements may be ommited. The abituguru kernel driver does support
++# set statements may be omitted. The abituguru kernel driver does support
+ # them if you want to add them.
+ #
+ # The configuration below is for the Kv8Pro and AV8 this is the default as this
+diff --git a/prog/sensors/chips.c b/prog/sensors/chips.c
+index 7112419..d0e556c 100644
+--- a/prog/sensors/chips.c
++++ b/prog/sensors/chips.c
+@@ -115,7 +115,7 @@ static int get_label_size(const sensors_chip_name *name)
+ 	int i;
+ 	const sensors_feature *iter;
+ 	char *label;
+-	unsigned int max_size = 11;	/* 11 as minumum label width */
++	unsigned int max_size = 11;	/* 11 as minimum label width */
+ 
+ 	i = 0;
+ 	while ((iter = sensors_get_features(name, &i))) {
+diff --git a/prog/tellerstats/gather.sh b/prog/tellerstats/gather.sh
+index 131837d..6f018ea 100755
+--- a/prog/tellerstats/gather.sh
++++ b/prog/tellerstats/gather.sh
+@@ -26,7 +26,7 @@
+ 
+ # generic tellerstats init BEGIN
+ 
+-# get config information from /etc/tellerstats.conf or whereever we are pointed
++# get config information from /etc/tellerstats.conf or wherever we are pointed
+ 
+ if [ -z "$TELLERSTATS_CONF" ]
+ then
+diff --git a/prog/tellerstats/tellerstats.sh b/prog/tellerstats/tellerstats.sh
+index 954a20c..21153f3 100755
+--- a/prog/tellerstats/tellerstats.sh
++++ b/prog/tellerstats/tellerstats.sh
+@@ -23,7 +23,7 @@
+ 
+ # generic tellerstats init BEGIN
+ 
+-# get config information from /etc/tellerstats.conf or whereever we are pointed
++# get config information from /etc/tellerstats.conf or wherever we are pointed
+ 
+ if [ -z "$TELLERSTATS_CONF" ]
+ then
 -- 
-Jean Delvare
+1.8.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
