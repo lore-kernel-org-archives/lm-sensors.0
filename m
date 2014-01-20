@@ -1,41 +1,20 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 06 Jan 2014 12:36:49 +0000
-Subject: [lm-sensors] [PATCHv2 5/7] arm: dts: dra7: add thermal data
-Message-Id: <1389011811-13004-6-git-send-email-eduardo.valentin@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 20 Jan 2014 18:38:43 +0000
+Subject: [lm-sensors] [PATCH 0/3] hwmon: (lm63) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1390243126-19519-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rui.zhang@intel.com
-Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBwYXRjaCBhZGRzIHRoZXJtYWwgZGF0YSBmb3IgRFJBNyBTb0NzLiBDcHVmcmVxIGNvb2xp
-bmcKd2lsbCBiZSBlbmFibGVkIGZvciBNUFUgZG9tYWluIHdoZW5ldmVyIGl0IGNyb3NzZXMgMTAw
-Qy4KR1BVLCBDT1JFLCBEU1BFVkUsIElWQSB3aWxsIGJlIGV4cG9zZWQgYW5kIHN5c3RlbSBzaGFs
-bApzaHV0ZG93biB3aGVuIHRoZXkgY3Jvc3MgMTI1Qy4KCkNjOiBCZW5vw650IENvdXNzb24gPGJj
-b3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFpoYW5nIFJ1aSA8cnVpLnpoYW5nQGludGVsLmNvbT4K
-Q2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1vbGwg
-PHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFybS5j
-b20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFuIENh
-bXBiZWxsIDxpamMrZGV2aWNldHJlZUBoZWxsaW9uLm9yZy51az4KQ2M6IFJ1c3NlbGwgS2luZyA8
-bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNj
-OiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2
-Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52
-YWxlbnRpbkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpIHwgOSArKysr
-KysrKysKIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNo
-L2FybS9ib290L2R0cy9kcmE3LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3LmR0c2kKaW5k
-ZXggMTM5NDcyYy4uNDc4NGMwYyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5k
-dHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaQpAQCAtNjgsNiArNjgsMTUgQEAK
-IAkJCSAgICAgPEdJQ19QUEkgMTAgKEdJQ19DUFVfTUFTS19TSU1QTEUoMikgfCBJUlFfVFlQRV9M
-RVZFTF9MT1cpPjsKIAl9OwogCisJdGhlcm1hbF96b25lczogdGhlcm1hbC16b25lcyB7CisJCS8q
-IFNvQyB0aGVybWFsIHpvbmVzICovCisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNp
-IgorCQkjaW5jbHVkZSAib21hcDUtZ3B1LXRoZXJtYWwuZHRzaSIKKwkJI2luY2x1ZGUgIm9tYXA1
-LWNvcmUtdGhlcm1hbC5kdHNpIgorCQkjaW5jbHVkZSAiZHJhNy1kc3BldmUtdGhlcm1hbC5kdHNp
-IgorCQkjaW5jbHVkZSAiZHJhNy1pdmEtdGhlcm1hbC5kdHNpIgorCX07CisKIAlnaWM6IGludGVy
-cnVwdC1jb250cm9sbGVyQDQ4MjExMDAwIHsKIAkJY29tcGF0aWJsZSA9ICJhcm0sY29ydGV4LWEx
-NS1naWMiOwogCQlpbnRlcnJ1cHQtY29udHJvbGxlcjsKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVk
-CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
-c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
-bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+The following patch series converts the lm63 driver to use
+devm_hwmon_device_register_with_groups. The change is split
+into three patches to simplify review.
+
+With this series applied, object file size is reduced by ~1k.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
