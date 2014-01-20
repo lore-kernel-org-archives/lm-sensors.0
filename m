@@ -1,44 +1,106 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 19 Jan 2014 17:01:13 +0000
+From: Martin Herrman <martin.herrman@gmail.com>
+Date: Mon, 20 Jan 2014 10:07:15 +0000
 Subject: Re: [lm-sensors] Some questions from first user
-Message-Id: <52DC04D9.9010202@roeck-us.net>
+Message-Id: <CADR1r6hAtKsgiO-+iuVxDuimreCHLYgFW91yrPBRkzDZ5bcYiA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="001a11c129ca684ddd04f0640e01"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADR1r6jbaekgXZTJQ7n+5MJW13miQdtbGG=KimEqTT8t2BDKLg@mail.gmail.com>
 In-Reply-To: <CADR1r6jbaekgXZTJQ7n+5MJW13miQdtbGG=KimEqTT8t2BDKLg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 01/19/2014 05:51 AM, Jean Delvare wrote:
-> Hi Martin,
->
-> On Sun, 19 Jan 2014 14:32:37 +0100, Martin Herrman wrote:
->> However, it doesn't reset values to the BIOS settings (I guess it
->> cannot retrieve the BIOS settings). So when removing a setting in
->> sensors.conf and using the init script, will not reset the removed
->> setting to BIOS value.
->
-> Indeed BIOS values aren't stored anywhere so the only way to go back to
-> them is to cold boot the machine.
->
->> (...)
->> I can explain negative values: BIOS sets offset to 72, so when set to
->> 10 it will decrease by 62 instead of adding 10 :-)
->
-> 72 is an unusually high offset. It might have to do with PECI sensor
-> type where values are reported relatively to a limit. Different
-> monitoring chips handle this case differently.
->
+--001a11c129ca684ddd04f0640e01
+Content-Type: text/plain; charset=ISO-8859-1
 
-Yes, that is usually what happens with PECI. The 'offset' is really
-the maximum temperature, since PECI delivers the difference to that
-temperature.
+2014/1/19 Jean Delvare <khali@linux-fr.org>:
 
-Guenter
+Hi Jean,
 
+> You can't, we have disabled user self-registration due to the high
+> amount of spam. Just send your file to the list and I'll add it to the
+> wiki myself.
+
+attached is my file, I hope it is good enough :-)
+
+Thanks,
+
+Martin
+
+--001a11c129ca684ddd04f0640e01
+Content-Type: application/octet-stream; 
+	name="gigabyte_ga-z68mx-ud2h-b3.conf"
+Content-Disposition: attachment; filename="gigabyte_ga-z68mx-ud2h-b3.conf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hqnkksty0
+
+IyBMTS1TZW5zb3JzIGNvbmZpZyBmaWxlIGZvciBHaWdhYnl0ZSBHQS1aMzhNWC1VRDJILUIzIG1h
+aW5ib2FyZCB3aXRoIAojIGFuIEludGVsIGk1IFNhbmR5IEJyaWRnZSBxdWFkIGNvcmUgQ1BVIGlu
+c3RhbGxlZC4KCiMgVGVzdGVkIHdpdGgga2VybmVsIDMuMTAueCBhbmQgbG0tc2Vuc29ycyAzLjMu
+eCBvbiBHZW50b28gTGludXguCgojIENyZWF0ZWQgYnkgTWFydGluIEhlcnJtYW4gPG1hcnRpbkBo
+ZXJybWFuLm5sPiB3aXRoIGhlbHAgZnJvbSBKZWFuIERlbHZhcmUKIyBmcm9tIHRoZSBsbS1zZW5z
+b3JzIG1haWxpbmdsaXN0LgoKIyBRdWVzdGlvbnMsIGNvbW1lbnRzIG9yIGFkZGl0aW9ucz8gUGxl
+YXNlIHNoYXJlIG9uIHRoZSBsbS1zZW5zb3JzIG1haWxpbmdsaXN0LgojIE1vcmUgaW5mbyBhdCBo
+dHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL3dpa2kvRmVlZGJhY2tBbmRTdXBwb3J0CgojIEhpbnQ6
+IFVzZSBzZW5zb3JzIC11IHRvIGxpc3QgYWxsIHZhcmlhYmxlcy4KCmNoaXAgImNvcmV0ZW1wLSoi
+CiMgY2hpcCBjb3JldGVtcCBtZWFzdXJlcyBjcHUgdGVtcGVyYXR1cmVzIGZyb20gaTUgQ1BVIHRl
+bXBlcmF0dXJlIHNlbnNvcgojIF9tYXgsIF9jcml0IGFuZCBfY3JpdF9hbGFybSBhcmUgcmVhZCBm
+cm9tIHRoZSBjcHUgaXRzZWxmCiMgd2hlbiB0ZW1wIGlzIGF0IF9tYXgsIGFsbCBjb29saW5nIG9w
+dGlvbnMgbXVzdCBiZSBhdCBmdWxsIHRocm90dGxlCiMgd2hlbiB0ZW1wIGlzIGF0IF9jcml0LCBj
+cHUgc3RhcnRzIHRvIGZhaWwKIyBfY3JpdF9hbGFybSBpcyBhdXRvbWF0aWNhbGx5IHNldCBieSBo
+YXJkd2FyZSB3aGVuIF9pbnB1dCBpcyBhdCBvciBhYm92ZSBfY3JpdAojIGxpYnNlbnNvcnMgY3Vy
+cmVudGx5IGRvZXNuJ3Qgc3VwcG9ydCB0aGUgdHJpZ2dlciBvZiBhIG5vdGlmaWNhdGlvbiBzeXN0
+ZW0KbGFiZWwgdGVtcDEgIkNQVSBQYWNrYWdlIHRlbXAiCmxhYmVsIHRlbXAyICJDb3JlIDAiCmxh
+YmVsIHRlbXAzICJDb3JlIDEiCmxhYmVsIHRlbXA0ICJDb3JlIDIiCmxhYmVsIHRlbXA1ICJDb3Jl
+IDMiCgojIElUODcyOEYgaXMgb24gdGhlIG1haW5ib2FyZCBhbmQgcHJvdmlkZXMgdm9sdGFnZXMg
+YW5kIGNwdS9jYXNlIGZhbiBzcGVlZApjaGlwICJpdDg3MjgtKiIKCiMgSSdtIG5vdCBpbnRlcmVz
+dGVkIGluIHZvbHRhZ2VzLCBzb3JyeS4KaWdub3JlIGluMAppZ25vcmUgaW4xCmlnbm9yZSBpbjIK
+aWdub3JlIGluMwppZ25vcmUgaW40Cmlnbm9yZSBpbjUKaWdub3JlIGluNgppZ25vcmUgaW43Cmln
+bm9yZSBpbjgKCiMgc2N5dGhlIGtvenV0aSBtaW4gPSA4MDAKIyBvdXRwdXQgb2Ygc2Vuc29ycyB3
+aWxsIHNob3cgQUxBUk0gKF9hbGFybSBpcyBzZXQgdG8gMSkgd2hlbiBhY3R1YWwgZmFuIAojIHNw
+ZWVkIChfaW5wdXQpIGlzIGJlbG93IHNldCBtaW5pbXVtIChfbWluKS4gSWYgX2JlZXAgaXMgc2V0
+IHRvIDEsIGFuZAojIHRoZSBtb3RoZXJib2FyZCBpcyB3aXJlZCBiZXR3ZWVuIHRoZSB0ZW1wZXJh
+dHVyZSBzZW5zb3IgYW5kIHRoZQojIFBDIHNwZWFrZXIsIHRoZSBQQyBzcGVha2VyIHdpbGwgc3Rh
+cnQgYmVlcGluZy4KIyBVbmZvcnR1bmF0ZWx5IEdpZ2FieXRlIEdBLVo2OE1YLVVEMkgtQjMgaXMg
+bm90IHByb3Blcmx5IHdpcmVkLgpsYWJlbCBmYW4xICJDUFUgZmFuIgpzZXQgZmFuMV9taW4gODAw
+IApzZXQgZmFuMV9iZWVwIDEKCiMgSSBkb24ndCBoYXZlIGEgY2FzZSBmYW4gaW5zdGFsbGVkIHZp
+YSBQV00KaWdub3JlIGZhbjIKI2xhYmVsIGZhbjIgIkNhc2UgZmFuIgojc2V0IGZhbjJfbWluIDEw
+MDAKI3NldCBmYW4yX2JlZXAgMQoKIyBNb3RoZXJib2FyZCB0ZW1wcwogCiMgTm90ZTogdGVtcFhf
+dHlwZSBpbmRpY2F0ZXMgdGhlIHR5cGUgb2Ygc2Vuc29yIGFuZCBpcyBzZXQgYnkgdGhlIEJJT1MK
+CiMgV2hlbiBjb21wYXJpbmcgdGVtcDEgYW5kIHRlbXAyIHdpdGggQklPUyB2YWx1ZSwgdGVtcDEg
+c2VlbXMgdG8gYmUgc2ltaWxhciB0byBCSU9TIHN5c3RlbSB0ZW1wZXJhdHVyZS4KIyB0ZW1wMiBp
+bmNyZWFzZXMgbGlrZSB0ZW1wMSBkb2VzLCBzbyBJIGFzc3VtZSB0aGF0IGl0IGlzIGFub3RoZXIg
+Y2FzZSB0ZW1wIGJ1dCBub3Qgc2hvd24gaW4gQklPUy4KbGFiZWwgdGVtcDEgIkNhc2UgdGVtcCAo
+c2hvd24gaW4gQklPUykiCmxhYmVsIHRlbXAyICJDYXNlIHRlbXAgKGhpZGRlbiBpbiBCSU9TKSIK
+CiMgVGhlIHJlcG9ydGVkIHZhbHVlcyBzZWVtIHRvIGJlIGNvcnJlY3QuIE5vIG5lZWQgdG8gYWRk
+IG9mZnNldCBvciBjb21wdXRlLiAKCiMgTGV0J3Mgc2V0IHNvbWUgcmVhbCB3b3JsZCB2YWx1ZXMg
+Zm9yIG1pbiBhbmQgbWF4CnNldCB0ZW1wMV9taW4gMjUKc2V0IHRlbXAxX21heCA1MApzZXQgdGVt
+cDJfbWluIDI1CnNldCB0ZW1wMl9tYXggNTAKCiMgTGV0J3MgYWxhcm0gd2hlbiB0ZW1wZXJhdHVy
+ZXMgYXJlIG91dHNpZGUgcmFuZ2UKc2V0IHRlbXAxX2JlZXAgMQpzZXQgdGVtcDJfYmVlcCAxCgoj
+IHRlbXAzIGluY3JlYXNlcyB3aGVuIGNwdSBoaWdoIGxvYWQsIHNvIGFzc3VtaW5nIHRoaXMgaXMg
+Q1BVIHRlbXBlcmF0dXJlLgpsYWJlbCB0ZW1wMyAiQ1BVIHRlbXAiCgojIE5vdGU6IFBFQ0kgdmFs
+dWUgaXMgbmVnYXRpdmUgdmFsdWUgcmVsYXRpdmUgdG8gX2NyaXQsIGJ1dCBkcml2ZXIgY2FsY3Vs
+YXRlcwojIHRvIHJlYWwgdmFsdWUuCgojIEFkZGluZyAxMCB0byBjb3JyZWN0IHdyb25nIEJJT1Mg
+dmFsdWVzLgojIENoYW5nZSBvZmZzZXQgaXMgbW9yZSBlZmZpY2llbnQgdGhhbiBjb21wdXRpbmcg
+bmV3IHZhbHVlLCBiZWNhdXNlIG9mZnNldCBpcyBkb25lIGluIGhhcmR3YXJlLgojIE5vdGU6IHVz
+aW5nIGNvbXB1dGUgYWxzbyBpbmNyZWFzZXMgbWluIGFuZCBtYXggdmFsdWVzLiBZb3Ugd2lsbCBu
+ZWVkIHRvIHNldCB0aGUgbWluIGFuZCBtYXggdmFsdWVzIGJlbG93LgojIE5vdGU6IG9mZnNldCBk
+ZWZhdWx0IHZhbHVlIGlzIDcyLCBzbyBhZGQgMTAgbWFrZXMgODIuCiNjb21wdXRlIHRlbXAzIEAr
+MTAsQC0xMApzZXQgdGVtcDNfb2Zmc2V0IDgyCgojIEluIEJJT1MgaXQgaXMgcG9zc2libGUgdG8g
+c2V0IENQVSB3YXJuaW5nIHRlbXBlcmF0dXJlLCBidXQgdGhpcyBkb2VzIG5vdCBpbmZsdWVuY2UK
+IyB0ZW1wM19pbnB1dC4gSG93ZXZlciwgaXQgZG9lcyBjaGFuZ2UgdGhlIHRlbXAzX21heC4gTXkg
+YmlvcyBzZXR0aW5nIGlzIGF0IDYwCiMgZGVncmVlcy4gQ29yZXRlbXAgZGVmaW5lcyBtYXhpbXVt
+IG9mIDc2LiBJIHdhbnQgYSB3YXJuaW5nIGF0IDYwLgojIF9taW4sIF9tYXgKc2V0IHRlbXAzX21p
+biAyNQojc2V0IHRlbXAzX21heCA2MAoKIyBMZXQncyBhbGFybSB3aGVuIHRlbXBlcmF0dXJlIGlz
+IG91dHNpZGUgcmFuZ2UKc2V0IHRlbXAzX2JlZXAgMQoKIyBpZ25vcmUgaW50cnVzaW9uIGRldGVj
+dGlvbiAoY2FzZSBvcGVuPykKaWdub3JlIGludHJ1c2lvbjAK
+--001a11c129ca684ddd04f0640e01
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--001a11c129ca684ddd04f0640e01--
