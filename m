@@ -1,241 +1,125 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 20 Jan 2014 18:47:51 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (lm95245) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1390243671-20086-1-git-send-email-linux@roeck-us.net>
+Date: Mon, 20 Jan 2014 16:39:29 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.14-rc1
+Message-Id: <20140120163929.GA652@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0683091547961808259=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============0683091547961808259==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
+Content-Disposition: inline
+
+
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.14-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 3f9aec7610b39521c7c69d754de7265f6994c194:
+
+  hwmon: (coretemp) Fix truncated name of alarm attributes (2014-01-14 09:47:52 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to d303b1b5fbb688282bbf72a534b9dfed7af9fe4f:
+
+  hwmon: (k10temp) Add support for Kaveri CPUs (2014-01-14 21:36:54 -0800)
+
+----------------------------------------------------------------
+Add support for Kaveri CPUs to k10temp driver. Add support for S12x0 to
+coretemp driver.
+Cleanup and minor fixes in several drivers. Notable are 'Do not return -EAGAIN
+for low temperatures' to coretemp and 'Re-enable logical device mapping for
+NCT6791 during resume' to nct6775. Both will be sent to -stable, but only
+after some time in mainline.
+
+----------------------------------------------------------------
+Anthony Olech (1):
+      hwmon: (da9052) Fix adc to voltage calculation
+
+Guenter Roeck (5):
+      hwmon: (coretemp) Use PCI host bridge ID to identify CPU if necessary
+      hwmon: (coretemp) Add PCI device ID for CE41x0 CPUs
+      hwmon: (coretemp) Refine TjMax detection
+      hwmon: (coretemp) Do not return -EAGAIN for low temperatures
+      hwmon: (nct6775) Re-enable logical device mapping for NCT6791 during resume
+
+Jingoo Han (1):
+      hwmon: remove DEFINE_PCI_DEVICE_TABLE macro
+
+Phil Pokorny (1):
+      hwmon: (k10temp) Add support for Kaveri CPUs
+
+Sachin Kamat (1):
+      hwmon: (s3c) Trivial cleanup in hwmon-s3c.h
+
+Vivien Didelot (2):
+      hwmon: (max197) add include guard
+      hwmon: (sht15) add include guard
+
+ drivers/hwmon/coretemp.c                |   58 ++++++++++++++++++++++---------
+ drivers/hwmon/da9052-hwmon.c            |    4 +--
+ drivers/hwmon/fam15h_power.c            |    2 +-
+ drivers/hwmon/k10temp.c                 |    3 +-
+ drivers/hwmon/k8temp.c                  |    2 +-
+ drivers/hwmon/nct6775.c                 |   38 ++++++++++++++------
+ drivers/hwmon/sis5595.c                 |    2 +-
+ drivers/hwmon/via686a.c                 |    2 +-
+ drivers/hwmon/vt8231.c                  |    2 +-
+ include/linux/platform_data/hwmon-s3c.h |   10 +++---
+ include/linux/platform_data/max197.h    |    5 +++
+ include/linux/platform_data/sht15.h     |    5 +++
+ 12 files changed, 92 insertions(+), 41 deletions(-)
+
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS3VFBAAoJEMsfJm/On5mBxpoQAKd9ELrCA7pkAnJHzBamDpjc
+EpVQAyI0zOD+LcXwNwBZcgY7aaUYQKmRyGXsGcr8kMV4w96xUBEKL5tKMYJ/GItk
+5bxViSTqDYIXtLhhrk3TLkElMTO8v4aiDefWNMhbQPevao/peIxKmK8RyDncyJII
+JfqKfLJzTjkTFA3GtkUTn+hvw+MAqLhJUxChscDWogCE5lcwgBL2+Lc3fYBXtKLz
+7ECvTeZ90wE+7d/wIAv/1vKwSkD5Q6M6hBJFeTtpGy/q29AotxB5xkZRPofcG16k
+MpXXmimNUVXkJVx0bpL88/H3bPKcU3yTl2CoZtdPQ2Vg47OJK/g60ObTONS0ffzt
+eMAVfa+yKMrH7AOhYd2xvg+QOrlHSCQJ3T3rJCd9eRqubd3KzPgszC+0ct105Rmr
+jaHdJeq/BfOIM8GOxuOFNWyqa/UTFAaDqwAQ2D+IF+b9VLb34Tm+cf75bzDJt49U
+BrbGosPv3yY33sSerwcl6u3Be+4CEhhMoCh55bO2dS0IJyFcI14/8uI3aV+kLlbH
+if703gqy3rr7wJVmE33inMdw4F/HdN+c8mWn5ByrkkzvguXMW+bLSlWFdgQ9vNO3
+vXoaR8v0O+CByYqEzPU1vhLRRO6CjJmuiRRtjfTOc1CaPZ/jimZ8QSY5M6GE1vYp
++/hPtrJQSc6b8KB/UPko
+=WWgo
+-----END PGP SIGNATURE-----
+
+--u3/rZRmxL6MmkK24--
+
+
+--===============0683091547961808259==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Simplify code, reduce code size, and attach hwmon attributes
-to hwmon device.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/lm95245.c |   87 +++++++++++++++--------------------------------
- 1 file changed, 28 insertions(+), 59 deletions(-)
-
-diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
-index a6c85f0..1fdd573 100644
---- a/drivers/hwmon/lm95245.c
-+++ b/drivers/hwmon/lm95245.c
-@@ -115,7 +115,7 @@ static const u8 lm95245_reg_address[] = {
- 
- /* Client data (each client gets its own) */
- struct lm95245_data {
--	struct device *hwmon_dev;
-+	struct i2c_client *client;
- 	struct mutex update_lock;
- 	unsigned long last_updated;	/* in jiffies */
- 	unsigned long interval;	/* in msecs */
-@@ -140,8 +140,8 @@ static int temp_from_reg_signed(u8 val_h, u8 val_l)
- 
- static struct lm95245_data *lm95245_update_device(struct device *dev)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm95245_data *data = i2c_get_clientdata(client);
-+	struct lm95245_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 
- 	mutex_lock(&data->update_lock);
- 
-@@ -249,8 +249,7 @@ static ssize_t show_limit(struct device *dev, struct device_attribute *attr,
- static ssize_t set_limit(struct device *dev, struct device_attribute *attr,
- 			const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm95245_data *data = i2c_get_clientdata(client);
-+	struct lm95245_data *data = dev_get_drvdata(dev);
- 	int index = to_sensor_dev_attr(attr)->index;
- 	unsigned long val;
- 
-@@ -265,7 +264,8 @@ static ssize_t set_limit(struct device *dev, struct device_attribute *attr,
- 
- 	data->valid = 0;
- 
--	i2c_smbus_write_byte_data(client, lm95245_reg_address[index], val);
-+	i2c_smbus_write_byte_data(data->client, lm95245_reg_address[index],
-+				  val);
- 
- 	mutex_unlock(&data->update_lock);
- 
-@@ -275,8 +275,7 @@ static ssize_t set_limit(struct device *dev, struct device_attribute *attr,
- static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
- 			const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm95245_data *data = i2c_get_clientdata(client);
-+	struct lm95245_data *data = dev_get_drvdata(dev);
- 	unsigned long val;
- 
- 	if (kstrtoul(buf, 10, &val) < 0)
-@@ -291,8 +290,8 @@ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
- 	data->valid = 0;
- 
- 	/* shared crit hysteresis */
--	i2c_smbus_write_byte_data(client, LM95245_REG_RW_COMMON_HYSTERESIS,
--		val);
-+	i2c_smbus_write_byte_data(data->client,
-+				  LM95245_REG_RW_COMMON_HYSTERESIS, val);
- 
- 	mutex_unlock(&data->update_lock);
- 
-@@ -302,8 +301,7 @@ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
- static ssize_t show_type(struct device *dev, struct device_attribute *attr,
- 			 char *buf)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm95245_data *data = i2c_get_clientdata(client);
-+	struct lm95245_data *data = dev_get_drvdata(dev);
- 
- 	return snprintf(buf, PAGE_SIZE - 1,
- 		data->config2 & CFG2_REMOTE_TT ? "1\n" : "2\n");
-@@ -312,8 +310,7 @@ static ssize_t show_type(struct device *dev, struct device_attribute *attr,
- static ssize_t set_type(struct device *dev, struct device_attribute *attr,
- 			const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm95245_data *data = i2c_get_clientdata(client);
-+	struct lm95245_data *data = dev_get_drvdata(dev);
- 	unsigned long val;
- 
- 	if (kstrtoul(buf, 10, &val) < 0)
-@@ -330,7 +327,7 @@ static ssize_t set_type(struct device *dev, struct device_attribute *attr,
- 
- 	data->valid = 0;
- 
--	i2c_smbus_write_byte_data(client, LM95245_REG_RW_CONFIG2,
-+	i2c_smbus_write_byte_data(data->client, LM95245_REG_RW_CONFIG2,
- 				  data->config2);
- 
- 	mutex_unlock(&data->update_lock);
-@@ -359,8 +356,7 @@ static ssize_t show_interval(struct device *dev, struct device_attribute *attr,
- static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
- 			    const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm95245_data *data = i2c_get_clientdata(client);
-+	struct lm95245_data *data = dev_get_drvdata(dev);
- 	unsigned long val;
- 
- 	if (kstrtoul(buf, 10, &val) < 0)
-@@ -368,7 +364,7 @@ static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
- 
- 	mutex_lock(&data->update_lock);
- 
--	data->interval = lm95245_set_conversion_rate(client, val);
-+	data->interval = lm95245_set_conversion_rate(data->client, val);
- 
- 	mutex_unlock(&data->update_lock);
- 
-@@ -398,7 +394,7 @@ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL,
- static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_interval,
- 		set_interval);
- 
--static struct attribute *lm95245_attributes[] = {
-+static struct attribute *lm95245_attrs[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
-@@ -412,10 +408,7 @@ static struct attribute *lm95245_attributes[] = {
- 	&dev_attr_update_interval.attr,
- 	NULL
- };
--
--static const struct attribute_group lm95245_group = {
--	.attrs = lm95245_attributes,
--};
-+ATTRIBUTE_GROUPS(lm95245);
- 
- /* Return 0 if detection is successful, -ENODEV otherwise */
- static int lm95245_detect(struct i2c_client *new_client,
-@@ -436,10 +429,9 @@ static int lm95245_detect(struct i2c_client *new_client,
- 	return 0;
- }
- 
--static void lm95245_init_client(struct i2c_client *client)
-+static void lm95245_init_client(struct i2c_client *client,
-+				struct lm95245_data *data)
- {
--	struct lm95245_data *data = i2c_get_clientdata(client);
--
- 	data->valid = 0;
- 	data->interval = lm95245_read_conversion_rate(client);
- 
-@@ -456,49 +448,27 @@ static void lm95245_init_client(struct i2c_client *client)
- 	}
- }
- 
--static int lm95245_probe(struct i2c_client *new_client,
-+static int lm95245_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
-+	struct device *dev = &client->dev;
- 	struct lm95245_data *data;
--	int err;
-+	struct device *hwmon_dev;
- 
--	data = devm_kzalloc(&new_client->dev, sizeof(struct lm95245_data),
--			    GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(struct lm95245_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	i2c_set_clientdata(new_client, data);
-+	data->client = client;
- 	mutex_init(&data->update_lock);
- 
- 	/* Initialize the LM95245 chip */
--	lm95245_init_client(new_client);
--
--	/* Register sysfs hooks */
--	err = sysfs_create_group(&new_client->dev.kobj, &lm95245_group);
--	if (err)
--		return err;
--
--	data->hwmon_dev = hwmon_device_register(&new_client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove_files;
--	}
-+	lm95245_init_client(client, data);
- 
--	return 0;
--
--exit_remove_files:
--	sysfs_remove_group(&new_client->dev.kobj, &lm95245_group);
--	return err;
--}
--
--static int lm95245_remove(struct i2c_client *client)
--{
--	struct lm95245_data *data = i2c_get_clientdata(client);
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm95245_group);
--
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-+							   data,
-+							   lm95245_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
- 
- /* Driver data (common to all clients) */
-@@ -514,7 +484,6 @@ static struct i2c_driver lm95245_driver = {
- 		.name	= DEVNAME,
- 	},
- 	.probe		= lm95245_probe,
--	.remove		= lm95245_remove,
- 	.id_table	= lm95245_id,
- 	.detect		= lm95245_detect,
- 	.address_list	= normal_i2c,
--- 
-1.7.9.7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0683091547961808259==--
