@@ -1,146 +1,241 @@
-From: Jaromir Capik <jcapik@redhat.com>
-Date: Fri, 24 Jan 2014 13:56:16 +0000
-Subject: [lm-sensors] [PATCH] systemd units rework
-Message-Id: <377005152.12649802.1390571776676.JavaMail.root@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_12649800_1420083459.1390571776674"
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 20 Jan 2014 18:47:51 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm95245) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1390243671-20086-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_12649800_1420083459.1390571776674
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Simplify code, reduce code size, and attach hwmon attributes
+to hwmon device.
 
-Hello guys.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm95245.c |   87 +++++++++++++++--------------------------------
+ 1 file changed, 28 insertions(+), 59 deletions(-)
 
-The attached patch fixes several things our users complained about.
+diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
+index a6c85f0..1fdd573 100644
+--- a/drivers/hwmon/lm95245.c
++++ b/drivers/hwmon/lm95245.c
+@@ -115,7 +115,7 @@ static const u8 lm95245_reg_address[] = {
+ 
+ /* Client data (each client gets its own) */
+ struct lm95245_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	struct mutex update_lock;
+ 	unsigned long last_updated;	/* in jiffies */
+ 	unsigned long interval;	/* in msecs */
+@@ -140,8 +140,8 @@ static int temp_from_reg_signed(u8 val_h, u8 val_l)
+ 
+ static struct lm95245_data *lm95245_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm95245_data *data = i2c_get_clientdata(client);
++	struct lm95245_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -249,8 +249,7 @@ static ssize_t show_limit(struct device *dev, struct device_attribute *attr,
+ static ssize_t set_limit(struct device *dev, struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm95245_data *data = i2c_get_clientdata(client);
++	struct lm95245_data *data = dev_get_drvdata(dev);
+ 	int index = to_sensor_dev_attr(attr)->index;
+ 	unsigned long val;
+ 
+@@ -265,7 +264,8 @@ static ssize_t set_limit(struct device *dev, struct device_attribute *attr,
+ 
+ 	data->valid = 0;
+ 
+-	i2c_smbus_write_byte_data(client, lm95245_reg_address[index], val);
++	i2c_smbus_write_byte_data(data->client, lm95245_reg_address[index],
++				  val);
+ 
+ 	mutex_unlock(&data->update_lock);
+ 
+@@ -275,8 +275,7 @@ static ssize_t set_limit(struct device *dev, struct device_attribute *attr,
+ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm95245_data *data = i2c_get_clientdata(client);
++	struct lm95245_data *data = dev_get_drvdata(dev);
+ 	unsigned long val;
+ 
+ 	if (kstrtoul(buf, 10, &val) < 0)
+@@ -291,8 +290,8 @@ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
+ 	data->valid = 0;
+ 
+ 	/* shared crit hysteresis */
+-	i2c_smbus_write_byte_data(client, LM95245_REG_RW_COMMON_HYSTERESIS,
+-		val);
++	i2c_smbus_write_byte_data(data->client,
++				  LM95245_REG_RW_COMMON_HYSTERESIS, val);
+ 
+ 	mutex_unlock(&data->update_lock);
+ 
+@@ -302,8 +301,7 @@ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
+ static ssize_t show_type(struct device *dev, struct device_attribute *attr,
+ 			 char *buf)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm95245_data *data = i2c_get_clientdata(client);
++	struct lm95245_data *data = dev_get_drvdata(dev);
+ 
+ 	return snprintf(buf, PAGE_SIZE - 1,
+ 		data->config2 & CFG2_REMOTE_TT ? "1\n" : "2\n");
+@@ -312,8 +310,7 @@ static ssize_t show_type(struct device *dev, struct device_attribute *attr,
+ static ssize_t set_type(struct device *dev, struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm95245_data *data = i2c_get_clientdata(client);
++	struct lm95245_data *data = dev_get_drvdata(dev);
+ 	unsigned long val;
+ 
+ 	if (kstrtoul(buf, 10, &val) < 0)
+@@ -330,7 +327,7 @@ static ssize_t set_type(struct device *dev, struct device_attribute *attr,
+ 
+ 	data->valid = 0;
+ 
+-	i2c_smbus_write_byte_data(client, LM95245_REG_RW_CONFIG2,
++	i2c_smbus_write_byte_data(data->client, LM95245_REG_RW_CONFIG2,
+ 				  data->config2);
+ 
+ 	mutex_unlock(&data->update_lock);
+@@ -359,8 +356,7 @@ static ssize_t show_interval(struct device *dev, struct device_attribute *attr,
+ static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
+ 			    const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm95245_data *data = i2c_get_clientdata(client);
++	struct lm95245_data *data = dev_get_drvdata(dev);
+ 	unsigned long val;
+ 
+ 	if (kstrtoul(buf, 10, &val) < 0)
+@@ -368,7 +364,7 @@ static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	data->interval = lm95245_set_conversion_rate(client, val);
++	data->interval = lm95245_set_conversion_rate(data->client, val);
+ 
+ 	mutex_unlock(&data->update_lock);
+ 
+@@ -398,7 +394,7 @@ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL,
+ static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_interval,
+ 		set_interval);
+ 
+-static struct attribute *lm95245_attributes[] = {
++static struct attribute *lm95245_attrs[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
+@@ -412,10 +408,7 @@ static struct attribute *lm95245_attributes[] = {
+ 	&dev_attr_update_interval.attr,
+ 	NULL
+ };
+-
+-static const struct attribute_group lm95245_group = {
+-	.attrs = lm95245_attributes,
+-};
++ATTRIBUTE_GROUPS(lm95245);
+ 
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int lm95245_detect(struct i2c_client *new_client,
+@@ -436,10 +429,9 @@ static int lm95245_detect(struct i2c_client *new_client,
+ 	return 0;
+ }
+ 
+-static void lm95245_init_client(struct i2c_client *client)
++static void lm95245_init_client(struct i2c_client *client,
++				struct lm95245_data *data)
+ {
+-	struct lm95245_data *data = i2c_get_clientdata(client);
+-
+ 	data->valid = 0;
+ 	data->interval = lm95245_read_conversion_rate(client);
+ 
+@@ -456,49 +448,27 @@ static void lm95245_init_client(struct i2c_client *client)
+ 	}
+ }
+ 
+-static int lm95245_probe(struct i2c_client *new_client,
++static int lm95245_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
++	struct device *dev = &client->dev;
+ 	struct lm95245_data *data;
+-	int err;
++	struct device *hwmon_dev;
+ 
+-	data = devm_kzalloc(&new_client->dev, sizeof(struct lm95245_data),
+-			    GFP_KERNEL);
++	data = devm_kzalloc(dev, sizeof(struct lm95245_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(new_client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Initialize the LM95245 chip */
+-	lm95245_init_client(new_client);
+-
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&new_client->dev.kobj, &lm95245_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
++	lm95245_init_client(client, data);
+ 
+-	return 0;
+-
+-exit_remove_files:
+-	sysfs_remove_group(&new_client->dev.kobj, &lm95245_group);
+-	return err;
+-}
+-
+-static int lm95245_remove(struct i2c_client *client)
+-{
+-	struct lm95245_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm95245_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data,
++							   lm95245_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ /* Driver data (common to all clients) */
+@@ -514,7 +484,6 @@ static struct i2c_driver lm95245_driver = {
+ 		.name	= DEVNAME,
+ 	},
+ 	.probe		= lm95245_probe,
+-	.remove		= lm95245_remove,
+ 	.id_table	= lm95245_id,
+ 	.detect		= lm95245_detect,
+ 	.address_list	= normal_i2c,
+-- 
+1.7.9.7
 
-The patch introduces 3 wrappers for the service files and example
-/etc/sysconfig/* configuration files
-
-The lm_sensors-modprobe*wrapper scriptlets change the way how
-the modprobe failures look like as the users had no idea that
-the failures are caused by missing configuration and that
-led to frequent bug reports. The wrapper checks whether the
-modprobe is called with any arguments and leaves a hint
-message when no modules are passed to the modprobe.
-
-Te sensord-service-wrapper enhances the sensord service so that
-it supports all relevant switches needed by the users which
-were previously omitted and thus unsupported.
-
-The service files now contain a placeholder for the target
-wrapper directory and distribution build scripts can do
-the substitution easily with two sed calls ...
-
-Example for RPM based distributions:
-sed -i "s|\@WRAPPER_DIR\@|%{_libexecdir}/%{name}|" sensord.service
-sed -i "s|\@WRAPPER_DIR\@|%{_libexecdir}/%{name}|" lm_sensors.service
-
-The patch is applicable on the latest trunk.
-Please, check it and apply if you find it worthy.
-
-Thank you.
-
-Regards,
-Jaromir.
-
---
-Jaromir Capik
-Red Hat Czech, s.r.o.
-Software Engineer / Secondary Arch
-
-Email: jcapik@redhat.com
-Web: www.cz.redhat.com
-Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
-IC: 27690016 
-
-------=_Part_12649800_1420083459.1390571776674
-Content-Type: text/x-patch; name=systemd-units-rework.patch
-Content-Disposition: attachment; filename=systemd-units-rework.patch
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IHByb2cvaW5pdC9sbV9zZW5zb3JzLW1vZHByb2JlLXItd3JhcHBlcgo9PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-Ci0tLSBwcm9nL2luaXQvbG1fc2Vuc29ycy1tb2Rwcm9iZS1yLXdyYXBwZXIJKHJldmlzaW9uIDAp
-CisrKyBwcm9nL2luaXQvbG1fc2Vuc29ycy1tb2Rwcm9iZS1yLXdyYXBwZXIJKHdvcmtpbmcgY29w
-eSkKQEAgLTAsMCArMSw4IEBACisjIS9iaW4vc2gKK2lmIFsgJCMgLW5lIDAgXTsgdGhlbgorICAv
-dXNyL3NiaW4vbW9kcHJvYmUgLWFiciAkQAorZWxzZQorICBlY2hvICJObyBzZW5zb3JzIHdpdGgg
-bG9hZGFibGUga2VybmVsIG1vZHVsZXMgY29uZmlndXJlZC4iCisgIGVjaG8gIlBsZWFzZSwgcnVu
-ICdzZW5zb3JzLWRldGVjdCcgYXMgcm9vdCBpbiBvcmRlciB0byBzZWFyY2ggZm9yIGF2YWlsYWJs
-ZSBzZW5zb3JzLiIKKyAgZXhpdCAxCitmaQpJbmRleDogcHJvZy9pbml0L2xtX3NlbnNvcnMtbW9k
-cHJvYmUtd3JhcHBlcgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBwcm9nL2luaXQvbG1fc2Vuc29ycy1tb2Rwcm9i
-ZS13cmFwcGVyCShyZXZpc2lvbiAwKQorKysgcHJvZy9pbml0L2xtX3NlbnNvcnMtbW9kcHJvYmUt
-d3JhcHBlcgkod29ya2luZyBjb3B5KQpAQCAtMCwwICsxLDggQEAKKyMhL2Jpbi9zaAoraWYgWyAk
-IyAtbmUgMCBdOyB0aGVuCisgIC91c3Ivc2Jpbi9tb2Rwcm9iZSAtYWIgJEAKK2Vsc2UKKyAgZWNo
-byAiTm8gc2Vuc29ycyB3aXRoIGxvYWRhYmxlIGtlcm5lbCBtb2R1bGVzIGNvbmZpZ3VyZWQuIgor
-ICBlY2hvICJQbGVhc2UsIHJ1biAnc2Vuc29ycy1kZXRlY3QnIGFzIHJvb3QgaW4gb3JkZXIgdG8g
-c2VhcmNoIGZvciBhdmFpbGFibGUgc2Vuc29ycy4iCisgIGV4aXQgMQorZmkKSW5kZXg6IHByb2cv
-aW5pdC9sbV9zZW5zb3JzLnNlcnZpY2UKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gcHJvZy9pbml0L2xtX3NlbnNv
-cnMuc2VydmljZQkocmV2aXNpb24gNjIxNCkKKysrIHByb2cvaW5pdC9sbV9zZW5zb3JzLnNlcnZp
-Y2UJKHdvcmtpbmcgY29weSkKQEAgLTEsMTMgKzEsMTMgQEAKIFtVbml0XQotRGVzY3JpcHRpb249
-SW5pdGlhbGl6ZSBoYXJkd2FyZSBtb25pdG9yaW5nIHNlbnNvcnMKK0Rlc2NyaXB0aW9uPUhhcmR3
-YXJlIE1vbml0b3JpbmcgU2Vuc29ycwogCiBbU2VydmljZV0KIEVudmlyb25tZW50RmlsZT0vZXRj
-L3N5c2NvbmZpZy9sbV9zZW5zb3JzCiBUeXBlPW9uZXNob3QKIFJlbWFpbkFmdGVyRXhpdD15ZXMK
-LUV4ZWNTdGFydD0tL3NiaW4vbW9kcHJvYmUgLXFhYiAkQlVTX01PRFVMRVMgJEhXTU9OX01PRFVM
-RVMKK0V4ZWNTdGFydD0tQFdSQVBQRVJfRElSQC9sbV9zZW5zb3JzLW1vZHByb2JlLXdyYXBwZXIg
-JEJVU19NT0RVTEVTICRIV01PTl9NT0RVTEVTCiBFeGVjU3RhcnQ9L3Vzci9iaW4vc2Vuc29ycyAt
-cwotRXhlY1N0b3A9LS9zYmluL21vZHByb2JlIC1xYWJyICRCVVNfTU9EVUxFUyAkSFdNT05fTU9E
-VUxFUworRXhlY1N0b3A9LUBXUkFQUEVSX0RJUkAvbG1fc2Vuc29ycy1tb2Rwcm9iZS1yLXdyYXBw
-ZXIgJEJVU19NT0RVTEVTICRIV01PTl9NT0RVTEVTCiAKIFtJbnN0YWxsXQogV2FudGVkQnk9bXVs
-dGktdXNlci50YXJnZXQKSW5kZXg6IHByb2cvaW5pdC9sbV9zZW5zb3JzLnN5c2NvbmZpZwo9PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09Ci0tLSBwcm9nL2luaXQvbG1fc2Vuc29ycy5zeXNjb25maWcJKHJldmlzaW9uIDApCisr
-KyBwcm9nL2luaXQvbG1fc2Vuc29ycy5zeXNjb25maWcJKHdvcmtpbmcgY29weSkKQEAgLTAsMCAr
-MSwyIEBACisjIC9ldGMvc3lzY29uZmlnL2xtX3NlbnNvcnMgLSBEZWZpbmVzIG1vZHVsZXMgbG9h
-ZGVkIGJ5IHRoZSBsbV9zZW5zb3JzIHNlcnZpY2UKKyMgUnVuICdzZW5zb3JzLWRldGVjdCcgdG8g
-Z2VuZXJhdGUgdGhpcyBjb25maWcgZmlsZQpJbmRleDogcHJvZy9pbml0L3NlbnNvcmQtc2Vydmlj
-ZS13cmFwcGVyCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT0KLS0tIHByb2cvaW5pdC9zZW5zb3JkLXNlcnZpY2Utd3JhcHBl
-cgkocmV2aXNpb24gMCkKKysrIHByb2cvaW5pdC9zZW5zb3JkLXNlcnZpY2Utd3JhcHBlcgkod29y
-a2luZyBjb3B5KQpAQCAtMCwwICsxLDEzIEBACisjIS9iaW4vc2gKKworLiAvZXRjL3N5c2NvbmZp
-Zy9zZW5zb3JkCisKK0FSR1M9IiIKK1sgIiRJTlRFUlZBTCIgPSAiIiBdIHx8IEFSR1M9YGVjaG8g
-IiRBUkdTIC1pICRJTlRFUlZBTCJgCitbICIkTE9HX0lOVEVSVkFMIiA9ICIiIF0gfHwgQVJHUz1g
-ZWNobyAiJEFSR1MgLWwgJExPR19JTlRFUlZBTCJgCitbICIkUlJEX0lOVEVSVkFMIiA9ICIiIF0g
-fHwgQVJHUz1gZWNobyAiJEFSR1MgLXQgJFJSRF9JTlRFUlZBTCJgCitbICIkUlJEX0xPR0ZJTEUi
-ID0gIiIgXSB8fCBBUkdTPWBlY2hvICIkQVJHUyAtciAkUlJEX0xPR0ZJTEUiYAorWyAiJFJSRF9O
-T19BVkciID0gIjEiIF0gJiYgQVJHUz1gZWNobyAiJEFSR1MgLVQiYAorWyAiJExPQURfQVZHIiA9
-ICIxIiBdICYmIEFSR1M9YGVjaG8gIiRBUkdTIC1hImAKKworL3Vzci9zYmluL3NlbnNvcmQgLWYg
-ZGFlbW9uICRBUkdTCkluZGV4OiBwcm9nL2luaXQvc2Vuc29yZC5zZXJ2aWNlCj09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0K
-LS0tIHByb2cvaW5pdC9zZW5zb3JkLnNlcnZpY2UJKHJldmlzaW9uIDYyMTQpCisrKyBwcm9nL2lu
-aXQvc2Vuc29yZC5zZXJ2aWNlCSh3b3JraW5nIGNvcHkpCkBAIC0xLDEyICsxLDEyIEBACiBbVW5p
-dF0KLURlc2NyaXB0aW9uPUxvZyBoYXJkd2FyZSBtb25pdG9yaW5nIGRhdGEKK0Rlc2NyaXB0aW9u
-PUhhcmR3YXJlIE1vbml0b3JpbmcgRGF0YSBMb2dnZXIKIEFmdGVyPWxtX3NlbnNvcnMuc2Vydmlj
-ZQogCiBbU2VydmljZV0KLUVudmlyb25tZW50RmlsZT0vZXRjL3N5c2NvbmZpZy9zZW5zb3JkCitF
-bnZpcm9ubWVudEZpbGU9LS9ldGMvc3lzY29uZmlnL3NlbnNvcmQKIFR5cGU9Zm9ya2luZwogUElE
-RmlsZT0vdmFyL3J1bi9zZW5zb3JkLnBpZAotRXhlY1N0YXJ0PS91c3Ivc2Jpbi9zZW5zb3JkIC1p
-ICRJTlRFUlZBTCAtbCAkTE9HX0lOVEVSVkFMIC1mIGRhZW1vbgorRXhlY1N0YXJ0PUBXUkFQUEVS
-X0RJUkAvc2Vuc29yZC1zZXJ2aWNlLXdyYXBwZXIKIAogW0luc3RhbGxdCiBXYW50ZWRCeT1tdWx0
-aS11c2VyLnRhcmdldApJbmRleDogcHJvZy9pbml0L3NlbnNvcmQuc3lzY29uZmlnCj09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0KLS0tIHByb2cvaW5pdC9zZW5zb3JkLnN5c2NvbmZpZwkocmV2aXNpb24gMCkKKysrIHByb2cv
-aW5pdC9zZW5zb3JkLnN5c2NvbmZpZwkod29ya2luZyBjb3B5KQpAQCAtMCwwICsxLDIxIEBACisj
-IGNvbmZpZ3VyYXRpb24gZm9yIGhhcndhcmUgc2Vuc29ycyBtb25pdG9yaW5nIGRhZW1vbgorIyB1
-c2Ugc3VmZml4ICJtIiBmb3IgbWludXRlcywgInMiIGZvciBzZWNvbmRzLCAiaCIgZm9yIGhvdXJz
-CisjIDAgdHVybnMgdGhlIGZhY2lsaXR5IG9mZgorCisjIGludGVydmFsIGJldHdlZW4gc2Nhbm5p
-bmcgYWxhcm1zCitJTlRFUlZBTD0xbQorCisjIGludGVydmFsIGJldHdlZW4gbG9nZ2luZworTE9H
-X0lOVEVSVkFMPTIwbQorCisjIGludGVydmFsIGJldHdlZW4gUlJEIGxvZ2dpbmcKKyMgUlJEX0lO
-VEVSVkFMPTFtCisKKyMgUlJEIGRiIGxvY2F0aW9uCisjIFJSRF9MT0dGSUxFPS92YXIvbG9nL3Nl
-bnNvcnMucnJkCisKKyMgU3dpdGNoIFJSRCBpbiBub24tYXZlcmFnZSBtb2RlIC4uLiAxIC0gZW5h
-YmxlZCwgMCAtIGRpc2FibGVkIChkZWZhdWx0KQorIyBSUkRfTk9fQVZHPTEKKworIyBJbmNsdWRl
-IGxvYWQgYXZlcmFnZSBpbiBSUkQgLi4uIDEgLSBlbmFibGVkLCAwIC0gZGlzYWJsZWQgKGRlZmF1
-bHQpCisjIExPQURfQVZHPTEK
-------=_Part_12649800_1420083459.1390571776674
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_12649800_1420083459.1390571776674--
