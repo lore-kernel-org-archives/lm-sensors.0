@@ -1,117 +1,92 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 06 Jan 2014 14:53:42 +0000
-Subject: Re: [lm-sensors] [PATCHv2 0/7] DRA7: DT thermal support
-Message-Id: <52CAC376.9090904@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1294101667708512775=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 20 Jan 2014 18:38:44 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm63) Create attributes for LM96163 in one call
+Message-Id: <1390243126-19519-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com> <1389019601.5853.17.camel@rzhang1-mobl4>
-In-Reply-To: <1389019601.5853.17.camel@rzhang1-mobl4>
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
---===============1294101667708512775==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="w6hnwxrXBm0kRrQdU5k1tdEDS4bAT4JMd"
-
---w6hnwxrXBm0kRrQdU5k1tdEDS4bAT4JMd
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 06-01-2014 10:46, Zhang Rui wrote:
-> On Mon, 2014-01-06 at 08:36 -0400, Eduardo Valentin wrote:
->> Hello all,
->>
->> Now that the basic thermal DT support is merged into Rui's tree,
->> I am resending this series, which introduces the DT node entries
->> for DRA7 thermal limits representation.
->>
->> The series adds two thermal zones, to represent IVA and DSPEVE,
->> respectively. It also adds the support to tmp102 and a corresponding
->> pcb thermal zone.
->>
->> There are only cosmetic changes from v1. A couple of spaces and tabula=
-tions
->> have been fixed, and minor changes in sentences present in commit log.=
-
->> One difference from V1 is the fact that now bandgap is introduced unde=
-r
->> OCP, which is also a minor diff.
->>
->> This patch series has been runtime tested on DRA7-evm.
->>
->> All best
->>
->> Eduardo Valentin (7):
->>   arm: dts: add dra7 DSPEVE thermal data
->>   arm: dts: add dra7 IVA thermal data
->>   arm: dts: dra7: add bandgap entry
->>   arm: dts: add cooling properties on dra7 cpu node
->>   arm: dts: dra7: add thermal data
->>   arm: dts: add tmp102 i2c sensor node on dra7-evm
->>   arm: dts: add thermal zones info on tmp102 for DRA7-EVM
->>
->>  arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 28 +++++++++++++++++++++=
-+++++++
->>  arch/arm/boot/dts/dra7-evm.dts             | 22 +++++++++++++++++++++=
-+
->>  arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 28 +++++++++++++++++++++=
-+++++++
->>  arch/arm/boot/dts/dra7.dtsi                | 26 +++++++++++++++++++++=
-+++++
->=20
-> I'm okay with this patch set. But as long as this patch set does not
-> change any code under drivers/thermal/, I prefer these patches to go to=
-
-> your thermal-soc tree first.
-
-No problem at all. I will be queuing them.
-
->=20
-> thanks,
-> rui
->>  4 files changed, 104 insertions(+)
->>  create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
->>  create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
->>
->=20
->=20
->=20
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---w6hnwxrXBm0kRrQdU5k1tdEDS4bAT4JMd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlLKw3YACgkQCXcVR3XQvP2/uAD/bZAlE/r1chLoSmSNEJwIKarW
-hrXPyIVW/uSA8EzXbpQA/Ahtvyl+C33hCCSRuCntJXbU9LXHluIoieQOAJv0Ty45
-=TlPi
------END PGP SIGNATURE-----
-
---w6hnwxrXBm0kRrQdU5k1tdEDS4bAT4JMd--
-
-
---===============1294101667708512775==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+There is no need to have both an attribute group plus an individual attribute
+for LM96163. Add the attribute to the group and create all attributes with one
+call.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm63.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index d0def50..438e612 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -915,7 +915,8 @@ static struct attribute *lm63_attributes[] = {
+ 	NULL
+ };
+ 
+-static struct attribute *lm63_attributes_extra_lut[] = {
++static struct attribute *lm63_attributes_lm96163[] = {
++	&dev_attr_temp2_type.attr,
+ 	&sensor_dev_attr_pwm1_auto_point9_pwm.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_point9_temp.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_point9_temp_hyst.dev_attr.attr,
+@@ -931,8 +932,8 @@ static struct attribute *lm63_attributes_extra_lut[] = {
+ 	NULL
+ };
+ 
+-static const struct attribute_group lm63_group_extra_lut = {
+-	.attrs = lm63_attributes_extra_lut,
++static const struct attribute_group lm63_group_lm96163 = {
++	.attrs = lm63_attributes_lm96163,
+ };
+ 
+ /*
+@@ -1133,12 +1134,8 @@ static int lm63_probe(struct i2c_client *client,
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->kind = lm96163) {
+-		err = device_create_file(&client->dev, &dev_attr_temp2_type);
+-		if (err)
+-			goto exit_remove_files;
+-
+ 		err = sysfs_create_group(&client->dev.kobj,
+-					 &lm63_group_extra_lut);
++					 &lm63_group_lm96163);
+ 		if (err)
+ 			goto exit_remove_files;
+ 	}
+@@ -1154,10 +1151,8 @@ static int lm63_probe(struct i2c_client *client,
+ exit_remove_files:
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group);
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+-	if (data->kind = lm96163) {
+-		device_remove_file(&client->dev, &dev_attr_temp2_type);
+-		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+-	}
++	if (data->kind = lm96163)
++		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
+ 	return err;
+ }
+ 
+@@ -1168,10 +1163,8 @@ static int lm63_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group);
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+-	if (data->kind = lm96163) {
+-		device_remove_file(&client->dev, &dev_attr_temp2_type);
+-		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+-	}
++	if (data->kind = lm96163)
++		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1294101667708512775==--
