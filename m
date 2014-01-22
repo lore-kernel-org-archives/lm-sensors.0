@@ -1,64 +1,186 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Jan 2014 08:16:24 +0000
-Subject: Re: [lm-sensors] wrong datas ?
-Message-Id: <20140110091624.71d7dedf@endymion.delvare>
+From: Ryan <ryan@desfo.org>
+Date: Wed, 22 Jan 2014 23:27:10 +0000
+Subject: [lm-sensors] sensors
+Message-Id: <52E053CE.3080403@desfo.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040301080005010608000506"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1388001150.7351.YahooMailBasic@web173205.mail.ir2.yahoo.com>
-In-Reply-To: <1388001150.7351.YahooMailBasic@web173205.mail.ir2.yahoo.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+References: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
+In-Reply-To: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
 To: lm-sensors@vger.kernel.org
 
-On Thu, 9 Jan 2014 18:56:30 +0000 (GMT), linuxcbon wrote:
->=20
-> Le Lundi 6 janvier 2014 14h03, Jean Delvare <khali@linux-fr.org> a =E9cri=
-t :
->=20
-> ...Most important here is the kernel version, and the board brand=20
-> and model.
-> ---> yahoo email does "top posting" and not "> quoting", it's bad to answ=
-er.
-> kernel is 3.9.11
-> board is gigabyte GA-MA78GM-UD2H
->=20
-> ...For example, try adding
-> the following to a new file under /etc/sensors.d:
-> ---> you mean /etc/sensors.conf ?
+This is a multi-part message in MIME format.
+--------------040301080005010608000506
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-No I really mean what I said: a new file under /etc/sensors.d, for
-example /etc/sensors.d/Gigabyte-MA78GM-UD2H.conf.
+hello,
 
-You _can_ edit /etc/sensors.conf directly, however your changes are
-likely to be lost on package update.
+I'm having an issue getting the correct output from sensors on my asus
+laptop.  I'm running xubuntu on it and I've attached the following files
+hoping it gives you all the information you may need.
 
-> chip "it8718-*"
-> =A0 =A0 compute=A0 in3=A0 @ * (6.8/10+1), @ / (6.8/10+1)
-> This should make the +5V line look reasonable. The exact scaling factor
-> depends on your board.
-> ---> it works, now shows +5.05 V
+grub                       - my /etc/default/grub
+modules_file.txt     - my /etc/modules
+sensors_output.txt - output from running 'sudo sensors'
+lshw_short.txt        - hardware information from lshw command
 
-Great.
+Please let me know if you need more information and thank you for your
+time.  I greatly appreciate any advise.
 
-> ...But first check if we do not already have a configuration file for your
-> board...
-> ---> do you know where to find it ?
+Ryan
 
-http://www.lm-sensors.org/wiki/Configurations
+--------------040301080005010608000506
+Content-Type: text/plain; charset=UTF-8;
+ name="grub"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="grub"
 
-But I did check and we have a number of configuration files for
-Gigabyte MA series boards but not yours. You may still find some
-inspiration in these files as these two boards use the same monitoring
-chip:
+# If you change this file, run 'update-grub' afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n 'Simple configuration'
 
-http://www.lm-sensors.org/wiki/Configurations/Gigabyte/MA785GM-US2H
-http://www.lm-sensors.org/wiki/Configurations/Gigabyte/MA770-DS3
+GRUB_DEFAULT=0
+# GRUB_HIDDEN_TIMEOUT=0
+GRUB_HIDDEN_TIMEOUT_QUIET=true
+GRUB_TIMEOUT=10
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT=" radeon.dpm=1 "
+GRUB_CMDLINE_LINUX=""
 
---=20
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
+
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command `vbeinfo'
+#GRUB_GFXMODE=640x480
+
+# Uncomment if you don't want GRUB to pass "root=UUID=xxx" parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY="true"
+
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE="480 440 1"
+
+--------------040301080005010608000506
+Content-Type: text/plain; charset=UTF-8;
+ name="modules_file.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="modules_file.txt"
+
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+
+lp
+rtc
+i2c-dev
+i2c-i801
+cpuid
+
+# Generated by sensors-detect on Wed Jan 22 17:12:33 2014
+# Chip drivers
+coretemp
+
+--------------040301080005010608000506
+Content-Type: text/plain; charset=UTF-8;
+ name="sensors_output.txt"
+Content-Disposition: attachment;
+ filename="sensors_output.txt"
+Content-Transfer-Encoding: quoted-printable
+
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +101.0=C2=B0C  (crit =3D +108.0=C2=B0C)
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:       +33.0=C2=B0C  (high =3D +95.0=C2=B0C, crit =3D +105.0=C2=B0=
+C)
+Core 2:       +27.0=C2=B0C  (high =3D +95.0=C2=B0C, crit =3D +105.0=C2=B0=
+C)
+
+radeon-pci-0100
+Adapter: PCI adapter
+temp1:       -128.0=C2=B0C  (crit =3D +120.0=C2=B0C, hyst =3D +90.0=C2=B0=
+C)
+
+
+--------------040301080005010608000506
+Content-Type: text/plain; charset=UTF-8;
+ name="lshw_short.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="lshw_short.txt"
+
+H/W path        Device      Class          Description
+======================================================
+                            system         B43J (0)
+/0                          bus            B43J
+/0/0                        memory         64KiB BIOS
+/0/4                        processor      Intel(R) Core(TM) i5 CPU       M 560  @ 2.67GHz
+/0/4/5                      memory         32KiB L1 cache
+/0/4/6                      memory         256KiB L2 cache
+/0/4/7                      memory         3MiB L3 cache
+/0/25                       memory         8GiB System Memory
+/0/25/0                     memory         4GiB SODIMM DDR3 Synchronous 1067 MHz (0.9 ns)
+/0/25/1                     memory         4GiB SODIMM DDR3 Synchronous 1067 MHz (0.9 ns)
+/0/100                      bridge         Core Processor DRAM Controller
+/0/100/1                    bridge         Core Processor PCI Express x16 Root Port
+/0/100/1/0                  generic        Illegal Vendor ID
+/0/100/1/0.1                multimedia     Cedar HDMI Audio [Radeon HD 5400/6300 Series]
+/0/100/2                    display        Core Processor Integrated Graphics Controller
+/0/100/16                   communication  5 Series/3400 Series Chipset HECI Controller
+/0/100/16.3                 communication  5 Series/3400 Series Chipset KT Controller
+/0/100/19       eth0        network        82577LM Gigabit Network Connection
+/0/100/1a                   bus            5 Series/3400 Series Chipset USB2 Enhanced Host Controller
+/0/100/1b                   multimedia     5 Series/3400 Series Chipset High Definition Audio
+/0/100/1c                   bridge         5 Series/3400 Series Chipset PCI Express Root Port 1
+/0/100/1c.1                 bridge         5 Series/3400 Series Chipset PCI Express Root Port 2
+/0/100/1c.1/0   wlan0       network        Centrino Advanced-N 6200
+/0/100/1c.2                 bridge         5 Series/3400 Series Chipset PCI Express Root Port 3
+/0/100/1d                   bus            5 Series/3400 Series Chipset USB2 Enhanced Host Controller
+/0/100/1e                   bridge         82801 Mobile PCI Bridge
+/0/100/1f                   bridge         Mobile 5 Series Chipset LPC Interface Controller
+/0/100/1f.2                 storage        5 Series/3400 Series Chipset 6 port SATA AHCI Controller
+/0/100/1f.3                 bus            5 Series/3400 Series Chipset SMBus Controller
+/0/100/1f.6                 generic        5 Series/3400 Series Chipset Thermal Subsystem
+/0/101                      bridge         Core Processor QuickPath Architecture Generic Non-core Registers
+/0/102                      bridge         Core Processor QuickPath Architecture System Address Decoder
+/0/103                      bridge         Core Processor QPI Link 0
+/0/104                      bridge         Core Processor QPI Physical 0
+/0/105                      bridge         Core Processor Reserved
+/0/106                      bridge         Core Processor Reserved
+/0/1            scsi0       storage        
+/0/1/0.0.0      /dev/sda    disk           320GB ST9320423AS
+/0/1/0.0.0/1    /dev/sda1   volume         184GiB EXT4 volume
+/0/1/0.0.0/2    /dev/sda2   volume         7987MiB Extended partition
+/0/1/0.0.0/2/5  /dev/sda5   volume         7987MiB Linux swap / Solaris partition
+/0/1/0.0.0/3    /dev/sda3   volume         105GiB EXT4 volume
+/0/2            scsi1       storage        
+/0/2/0.0.0      /dev/cdrom  disk           DVDRAM GT32N
+/1                          power          B43-44
+
+--------------040301080005010608000506
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------040301080005010608000506--
