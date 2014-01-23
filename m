@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 23 Jan 2014 04:59:30 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 23 Jan 2014 07:41:01 +0000
 Subject: Re: [lm-sensors] sensors
-Message-Id: <52E0A1B2.50602@roeck-us.net>
+Message-Id: <20140123084101.4428f692@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
 In-Reply-To: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
@@ -10,52 +10,39 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 01/22/2014 03:27 PM, Ryan wrote:
-> hello,
->
-> I'm having an issue getting the correct output from sensors on my asus
-> laptop.  I'm running xubuntu on it and I've attached the following files
-> hoping it gives you all the information you may need.
->
-> grub                       - my /etc/default/grub
-> modules_file.txt     - my /etc/modules
-> sensors_output.txt - output from running 'sudo sensors'
-> lshw_short.txt        - hardware information from lshw command
->
-> Please let me know if you need more information and thank you for your
-> time.  I greatly appreciate any advise.
->
+On Wed, 22 Jan 2014 20:59:30 -0800, Guenter Roeck wrote:
+> On 01/22/2014 03:27 PM, Ryan wrote:
+>  > radeon-pci-0100
+>  > Adapter: PCI adapter
+>  > temp1:       -128.0=B0C  (crit =3D +120.0=B0C, hyst =3D +90.0=B0C)
+>=20
+> This suggests that there is either no temperature sensor attached to
+> the graphics adapter (that is most likely), or that it is broken.
 
-Hi Ryan,
+First time I see this. I'd suggest that Ryan reports this to the radeon
+driver folks. I think all recent Radeon chips are supposed to have at
+least an internal thermal sensor. If I'm wrong then the ones which do
+not shouldn't instantiate a hwmon class device at all.
 
-please don't use attachments when posting. It makes it difficult to reply.
+There's another odd thing about this graphics chipset. From
+lshw_short.txt:
 
- > acpitz-virtual-0
- > Adapter: Virtual device
- > temp1:       +101.0=B0C  (crit =3D +108.0=B0C)
+/0/100/1/0                  generic        Illegal Vendor ID
+/0/100/1/0.1                multimedia     Cedar HDMI Audio [Radeon HD 5400=
+/6300 Series]
 
-This temperature is reported by ACPI, or in other words by the BIOS, and
-suggests that the system is running really hot (unlikely) or that the BIOS
-has a bug. Do you have the latest BIOS installed ?
+So the main PCI device has a wrong device ID. I'm curious how the
+radeon driver even manages to bind to it then. Does lspci look wrong
+too?
 
- > coretemp-isa-0000
- > Adapter: ISA adapter
- > Core 0:       +33.0=B0C  (high =3D +95.0=B0C, crit =3D +105.0=B0C)
- > Core 2:       +27.0=B0C  (high =3D +95.0=B0C, crit =3D +105.0=B0C)
+Could be defective hardware...
 
-This looks ok.
+You may also try removing radeon.dpm=3D1 from your boot command line and
+see if it makes any difference. Which reminds me I should really add it
+back on mine, I forgot to do so last time I reinstalled my system.
 
- > radeon-pci-0100
- > Adapter: PCI adapter
- > temp1:       -128.0=B0C  (crit =3D +120.0=B0C, hyst =3D +90.0=B0C)
-
-This suggests that there is either no temperature sensor attached to
-the graphics adapter (that is most likely), or that it is broken.
-
-Guenter
-
-
-
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
