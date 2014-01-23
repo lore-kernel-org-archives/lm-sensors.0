@@ -1,562 +1,63 @@
-From: Ryan <ryan@desfo.org>
-Date: Thu, 23 Jan 2014 00:37:53 +0000
-Subject: [lm-sensors] sensors
-Message-Id: <52E06461.90403@desfo.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------080603010900080205040301"
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 23 Jan 2014 04:59:30 +0000
+Subject: Re: [lm-sensors] sensors
+Message-Id: <52E0A1B2.50602@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
 In-Reply-To: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080603010900080205040301
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On 01/22/2014 03:27 PM, Ryan wrote:
+> hello,
+>
+> I'm having an issue getting the correct output from sensors on my asus
+> laptop.  I'm running xubuntu on it and I've attached the following files
+> hoping it gives you all the information you may need.
+>
+> grub                       - my /etc/default/grub
+> modules_file.txt     - my /etc/modules
+> sensors_output.txt - output from running 'sudo sensors'
+> lshw_short.txt        - hardware information from lshw command
+>
+> Please let me know if you need more information and thank you for your
+> time.  I greatly appreciate any advise.
+>
 
-Sorry, I should have added this file to my previous email.
+Hi Ryan,
 
-Ryan
+please don't use attachments when posting. It makes it difficult to reply.
 
---------------080603010900080205040301
-Content-Type: text/plain; charset=UTF-8;
- name="sensors3.conf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="sensors3.conf"
+ > acpitz-virtual-0
+ > Adapter: Virtual device
+ > temp1:       +101.0=B0C  (crit =3D +108.0=B0C)
 
-# libsensors configuration file
-# -----------------------------
-#
-# This default configuration file only includes statements which do not
-# differ from one mainboard to the next. Only label, compute and set
-# statements for internal voltage and temperature sensors are included.
-#
-# In general, local changes should not be added to this file, but rather
-# placed in custom configuration files located in /etc/sensors.d. This
-# approach makes further updates much easier.
-#
-# Such custom configuration files for specific mainboards can be found at
-# http://www.lm-sensors.org/wiki/Configurations
-#
-# It is recommended not to modify this file, but to drop your local
-# changes in /etc/sensors.d/. File with names that start with a dot
-# are ignored.
+This temperature is reported by ACPI, or in other words by the BIOS, and
+suggests that the system is running really hot (unlikely) or that the BIOS
+has a bug. Do you have the latest BIOS installed ?
 
-chip "lm78-*" "lm79-*" "lm80-*" "lm96080-*"
+ > coretemp-isa-0000
+ > Adapter: ISA adapter
+ > Core 0:       +33.0=B0C  (high =3D +95.0=B0C, crit =3D +105.0=B0C)
+ > Core 2:       +27.0=B0C  (high =3D +95.0=B0C, crit =3D +105.0=B0C)
 
-    label temp1 "M/B Temp"
+This looks ok.
 
+ > radeon-pci-0100
+ > Adapter: PCI adapter
+ > temp1:       -128.0=B0C  (crit =3D +120.0=B0C, hyst =3D +90.0=B0C)
 
-chip "w83792d-*"
+This suggests that there is either no temperature sensor attached to
+the graphics adapter (that is most likely), or that it is broken.
 
-    label in0 "VcoreA"
-    label in1 "VcoreB"
-    label in6 "+5V"
-    label in7 "5VSB"
-    label in8 "Vbat"
+Guenter
 
-    set in6_min  5.0 * 0.90
-    set in6_max  5.0 * 1.10
-    set in7_min  5.0 * 0.90
-    set in7_max  5.0 * 1.10
-    set in8_min  3.0 * 0.90
-    set in8_max  3.0 * 1.10
 
 
-chip "w83793-*"
-
-    label in0 "VcoreA"
-    label in1 "VcoreB"
-    label in7 "+5V"
-    label in8 "5VSB"
-    label in9 "Vbat"
-
-    set in7_min  5.0 * 0.90
-    set in7_max  5.0 * 1.10
-    set in8_min  5.0 * 0.90
-    set in8_max  5.0 * 1.10
-    set in9_min  3.0 * 0.90
-    set in9_max  3.0 * 1.10
-
-
-chip "w83795g-*" "w83795adg-*"
-
-    label in12 "+3.3V"
-    label in13 "3VSB"
-    label in14 "Vbat"
-
-    set in12_min  3.3 * 0.90
-    set in12_max  3.3 * 1.10
-    set in13_min  3.3 * 0.90
-    set in13_max  3.3 * 1.10
-    set in14_min  3.0 * 0.90
-    set in14_max  3.3 * 1.10
-
-
-chip "via686a-*"
-
-    label in0 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in4_min 12.0 * 0.90
-    set in4_max 12.0 * 1.10
-
-
-chip "adm1025-*" "ne1619-*"
-
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    label in5 "VCC"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in5_min  3.3 * 0.90
-    set in5_max  3.3 * 1.10
-# Depending on how your chip is hardwired, you may or may not have
-# +12V readings.
-#    set in4_min 12.0 * 0.90
-#    set in4_max 12.0 * 1.10
-
-    label temp1 "CPU Temp"
-    label temp2 "M/B Temp"
-
-
-chip "lm87-*" "adm1024-*"
-
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in4_min 12.0 * 0.90
-    set in4_max 12.0 * 1.10
-
-    label temp1 "M/B Temp"
-    label temp2 "CPU Temp"
-
-
-chip "it87-*" "it8712-*" "it8716-*" "it8718-*" "it8720-*"
-
-    label in8 "Vbat"
-
-
-chip "fscpos-*" "fscher-*"
-#FSC "Hermes"
-
-    label in0 "+12V"
-    label in1 "+5V"
-    label in2 "Vbat"
-
-    label temp1 "CPU Temp"
-    label temp2 "M/B Temp"
-    label temp3 "Aux Temp"
-
-
-chip "fscscy-*"
-#FSC "Scylla"
-
-    label in0 "+12V"
-    label in1 "+5V"
-    label in2 "+3.3V"
-
-    label temp1 "CPU0 Temp"
-    label temp2 "CPU1 Temp"
-    label temp3 "M/B Temp"
-    label temp4 "Aux Temp"
-
-
-chip "fschds-*"
-# Fujitsu Technology Solutions, "Hades"-Chip
-
-# Temperatures
-    label temp1 "CPU Temp"
-    label temp2 "Super I/O Temp"
-    label temp3 "System Temp"
-
-# Fans
-    label fan1 "PSU Fan"
-    label fan2 "CPU Fan"
-    label fan3 "System FAN2"
-    label fan4 "System FAN3"
-    label fan5 "System FAN4"
-
-# Voltages
-    label in0 "+12V"
-    label in1 "+5V"
-    label in2 "Vbat"
-
-chip "fscsyl-*"
-# Fujitsu Technology Solutions, "Syleus"-Chip
-
-# Temperatures
-    label temp1 "CPU Temp"
-    label temp4 "Super I/O Temp"
-    label temp5 "Northbridge Temp"
-
-# Fans
-    label fan1 "CPU Fan"
-    label fan2 "System FAN2"
-    label fan3 "System FAN3"
-    label fan4 "System FAN4"
-    label fan7 "PSU Fan"
-
-# Voltages
-    label in0 "+12V"
-    label in1 "+5V"
-    label in2 "Vbat"
-    label in3 "+3.3V"
-    label in5 "+3.3V-Aux"
-
-chip "vt1211-*"
-
-    label in5 "+3.3V"
-
-    label temp2 "SIO Temp"
-
-
-chip "vt8231-*"
-
-    label in5 "+3.3V"
-
-
-chip "smsc47m192-*"
-
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    label in5 "VCC"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in4_min 12.0 * 0.90
-    set in4_max 12.0 * 1.10
-    set in5_min  3.3 * 0.90
-    set in5_max  3.3 * 1.10
-
-    label temp1 "SIO Temp"
-
-
-chip "lm85-*" "lm85b-*" "lm85c-*" "adm1027-*" "adt7463-*" "adt7468-*" \
-     "emc6d100-*" "emc6d102-*" "emc6d103-*" "emc6d103s-*" 
-
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-# Depending on how your chip is hardwired, you may or may not have
-# +12V readings.
-#    set in4_min 12.0 * 0.90
-#    set in4_max 12.0 * 1.10
-
-    label temp2 "M/B Temp"
-
-
-chip "emc6w201-*"
-
-    label in2 "+3.3V"
-    label in3 "+5V"
-
-    label temp6 "M/B Temp"
-
-
-chip "pc87365-*" "pc87366-*"
-
-# Voltage inputs
-
-    label in7 "3VSB"
-    label in8 "VDD"
-    label in9 "Vbat"
-    label in10 "AVDD"
-
-    compute in7   @*2, @/2
-    compute in8   @*2, @/2
-    compute in10  @*2, @/2
-
-# These are the operating conditions as recommended by National
-# Semiconductor
-    set in7_min   3.0
-    set in7_max   3.6
-    set in8_min   3.0
-    set in8_max   3.6
-    set in10_min  3.0
-    set in10_max  3.6
-# Depending on the hardware setup, the battery voltage may or may not
-# be monitored.
-#    set in9_min   2.4
-#    set in9_max   3.6
-
-    label temp3 "SIO Temp"
-
-    set temp3_min    0
-    set temp3_max   70
-    set temp3_crit  85
-
-
-chip "adm1030-*" "adm1031-*"
-
-    label temp1 "M/B Temp"
-
-
-chip "w83627thf-*"
-
-    label in3 "+5V"
-    label in7 "5VSB"
-    label in8 "Vbat"
-
-    # Internal resistors
-    compute in3  @ * (1 + 34/51), @ / (1 + 34/51)
-    compute in7  @ * (1 + 34/51), @ / (1 + 34/51)
-
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in7_min  5.0 * 0.90
-    set in7_max  5.0 * 1.10
-# The battery voltage may or may not be monitored.
-#    set in8_min  3.0 * 0.90
-#    set in8_max  3.0 * 1.10
-
-
-chip "w83627ehf-*" "w83627dhg-*" "w83667hg-*" "nct6775-*" "nct6776-*"
-
-    label in0 "Vcore"
-    label in2 "AVCC"
-    label in3 "+3.3V"
-    label in7 "3VSB"
-    label in8 "Vbat"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  3.3 * 0.90
-    set in3_max  3.3 * 1.10
-    set in7_min  3.3 * 0.90
-    set in7_max  3.3 * 1.10
-    set in8_min  3.0 * 0.90
-    set in8_max  3.3 * 1.10
-
-
-chip "w83627uhg-*"
-
-    label in2 "AVCC"
-    label in3 "+5V"
-    label in7 "5VSB"
-    label in8 "Vbat"
-
-    set in2_min  5.0 * 0.90
-    set in2_max  5.0 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in7_min  5.0 * 0.90
-    set in7_max  5.0 * 1.10
-    set in8_min  3.0 * 0.90
-    set in8_max  3.3 * 1.10
-
-
-chip "f71805f-*"
-
-    label in0 "+3.3V"
-
-    set in0_min  3.3 * 0.90
-    set in0_max  3.3 * 1.10
-
-
-chip "f71872f-*"
-
-    label in0 "+3.3V"
-    label in9 "Vbat"
-    label in10 "3VSB"
-
-    set in0_min   3.3 * 0.90
-    set in0_max   3.3 * 1.10
-    set in9_min   3.0 * 0.90
-    set in9_max   3.0 * 1.10
-    set in10_min  3.3 * 0.90
-    set in10_max  3.3 * 1.10
-
-
-chip "k8temp-*"
-
-    label temp1 "Core0 Temp"
-    label temp2 "Core0 Temp"
-    label temp3 "Core1 Temp"
-    label temp4 "Core1 Temp"
-
-
-chip "dme1737-*"
-
-    label in0 "5VSB"
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    label in5 "3VSB"
-    label in6 "Vbat"
-
-    label temp2 "SIO Temp"
-
-    set in0_min  5.0 * 0.90
-    set in0_max  5.0 * 1.10
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in4_min 12.0 * 0.90
-    set in4_max 12.0 * 1.10
-    set in5_min  3.3 * 0.90
-    set in5_max  3.3 * 1.10
-    set in6_min  3.0 * 0.90
-    set in6_max  3.0 * 1.10
-
-
-chip "sch311x-*"
-
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    label in5 "3VSB"
-    label in6 "Vbat"
-
-    label temp2 "SIO Temp"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-    set in4_min 12.0 * 0.90
-    set in4_max 12.0 * 1.10
-    set in5_min  3.3 * 0.90
-    set in5_max  3.3 * 1.10
-    set in6_min  3.0 * 0.90
-    set in6_max  3.0 * 1.10
-
-
-chip "sch5027-*"
-
-    label in0 "5VSB"
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in5 "3VSB"
-    label in6 "Vbat"
-
-    label temp2 "SIO Temp"
-
-    set in0_min  5.0 * 0.90
-    set in0_max  5.0 * 1.10
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in5_min  3.3 * 0.90
-    set in5_max  3.3 * 1.10
-    set in6_min  3.0 * 0.90
-    set in6_max  3.0 * 1.10
-
-
-chip "sch5127-*"
-
-    label in2 "+3.3V"
-    label in5 "3VSB"
-    label in6 "Vbat"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in5_min  3.3 * 0.90
-    set in5_max  3.3 * 1.10
-    set in6_min  3.0 * 0.90
-    set in6_max  3.0 * 1.10
-
-
-chip "f71808e-*" "f71808a-*" "f71862fg-*" "f71869-*" "f71869a-*" "f71882fg-*" \
-     "f71889fg-*" "f71889ed-*" "f71889a-*"
-
-    label in0 "+3.3V"
-    label in7 "3VSB"
-    label in8 "Vbat"
-
-    compute in0  @*2, @/2
-    compute in7  @*2, @/2
-    compute in8  @*2, @/2
-
-
-chip "f71858fg-*" "f8000-*"
-
-    label in0 "+3.3V"
-    label in1 "3VSB"
-    label in2 "Vbat"
-
-    compute in0  @*2, @/2
-    compute in1  @*2, @/2
-    compute in2  @*2, @/2
-
-
-chip "f81865f-*"
-
-    label in0 "+3.3V"
-    label in5 "3VSB"
-    label in6 "Vbat"
-
-    compute in0  @*2, @/2
-    compute in5  @*2, @/2
-    compute in6  @*2, @/2
-
-
-chip "adt7473-*" "adt7475-*"
-
-    label in2 "+3.3V"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-
-    label temp2 "Board Temp"
-
-
-chip "adt7476-*" "adt7490-*"
-
-    label in1 "Vcore"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-
-    set in2_min  3.3 * 0.90
-    set in2_max  3.3 * 1.10
-    set in3_min  5.0 * 0.90
-    set in3_max  5.0 * 1.10
-# Depending on how your ADT7476 is hardwired, you may or may not have
-# +12V readings.
-#    set in4_min 12.0 * 0.90
-#    set in4_max 12.0 * 1.10
-
-    label temp2 "M/B Temp"
-
---------------080603010900080205040301
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------080603010900080205040301--
