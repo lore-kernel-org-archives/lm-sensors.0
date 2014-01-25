@@ -1,139 +1,104 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 27 Jan 2014 18:51:27 +0000
-Subject: Re: [lm-sensors] Asus H87-PRO /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
-Message-Id: <20140127185127.GB28910@roeck-us.net>
+Date: Sat, 25 Jan 2014 17:54:51 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of TI ADC128D818
+Message-Id: <1390672491-27069-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CALiX4iZMuV2446GaK9qyS8Cfa=q1RV0w8-UUXYnOFXfROkBoaw@mail.gmail.com>
-In-Reply-To: <CALiX4iZMuV2446GaK9qyS8Cfa=q1RV0w8-UUXYnOFXfROkBoaw@mail.gmail.com>
+References: <20110217195640.GA20934@ericsson.com>
+In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 26, 2014 at 04:58:06PM +0100, Mathias Gerber wrote:
-> Hi Guenter
-> 
-> On 24.01.2014 15:40, Guenter Roeck wrote:
-> > One interesting experiment might be to check what happens if you
-> > set pwm2_auto_point1_pwm to a value between 1 and 4. If that
-> > results in the fan running at full speed, we have some indication
-> > that either the fan or the board hardware is causing this
-> > behavior.
-> Same result. If the calculated pwm value (pwm2) is smaller than 5, the
-> fan spins up to maximum rpm.
-> 
-> Today I disassembled my other pc (on which I'm able to completely stop
-> the fan by reducing the pwm value) with the same model of CPU fan
-> (Arctic Freezer 13) and hooked it up to the ASUS H87-PRO. The fan
-> looks a little bit different than the other, but the values are almost
-> the same.
-> 
-> Arctic Cooling Freezer 13 (Old Model)
-> -------------------------------------
-> 
-> pwm2	rpm
-> 1	2064
-> 2	2064
-> 3	2064
-> 4	2064
-> 5	393
-> 6	272
-> 7	398
-> 8	187
-> 9	196
-> 10	423
-> 11	493
-> 20	486
-> 30	630
-> 40	730
-> 50	912
-> 60	1060
-> 70	633
-> 90	859
-> 128	1251
-> 255	2261
-> 
-> Almost the same result with the original fan
-> 
-> Arctic Cooling Freezer 13 (New Model)
-> -------------------------------------
-> 
-> pwm2	rpm
-> 1	2257
-> 2	2253
-> 3	2261
-> 4	2180
-> 5	551
-> 6	451
-> 7	407
-> 8	370
-> 9	366
-> 10	370
-> 11	392
-> 12	411
-> 13	433
-> 60	1203
-> 70	1355
-> 90	1580
-> 128	1836
-> 255	2260
-> 
-> Then I took the boxed Intel fan and hooked it to the ASUS Board.
-> 
-> Intel Boxed Cooler
-> ------------------
-> 
-> pwm2	rpm
-> 1	976
-> 2	974
-> 3	972
-> 4	976
-> 5	978
-> 6	972
-> 7	975
-> 8	973
-> 9	973
-> 58	976
-> 59	1005
-> 60	1018
-> 61	1021
-> 70	1072
-> 90	1184
-> 128	1393
-> 255	1953
-> 
-> And now the interesting part ;-) Connected the original fan to
-> CHA_FAN2 (controlled by pwm3)
-> 
-> Arctic Cooling Freezer 13 (New Model)
-> -------------------------------------
-> 
-> pwm3	rpm
-> 1	0
-> 2	0
-> 3	0
-> 4	0
-> 5	0
-> 6	0
-> 50	0
-> 55	430
-> 60	512
-> 70	633
-> 90	859
-> 128	1251
-> 255	2261
-> 
-> On this pwm3 output I'm able to let the fan spin down until it stops
-> (around pwm 50-55)
-> 
-> So it seems that the CPU fan output is somehow special - but I guess
-> only ASUS knows how exactly and why.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    |    3 +++
+ prog/detect/sensors-detect |   26 +++++++++++++++++++++-----
+ 2 files changed, 24 insertions(+), 5 deletions(-)
 
-Odd results. Guess there is nothing we can do about it.
+diff --git a/CHANGES b/CHANGES
+index e1347a6..970dd67 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -1,6 +1,9 @@
+ lm-sensors CHANGES file
+ -----------------------
+ 
++SVN HEAD
++  sensors-detect: Add detection of ADC128D818
++
+ 3.3.5 "Happy Birthday Beddy" (2014-01-22)
+   libsensors: Improve documentation of two functions
+               Increase MAX_SENSORS_PER_TYPE to 33
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index a2093f3..2136b76 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -547,6 +547,11 @@ use vars qw(@i2c_adapter_names);
+ 		i2c_addrs => [0x28..0x2f],
+ 		i2c_detect => sub { lm80_detect(@_, 1); },
+ 	}, {
++		name => "TI / National Semiconductor ADC128D818",
++		driver => "adc128d818",
++		i2c_addrs => [0x1d, 0x1e, 0x1f, 0x2d, 0x2e, 0x2f, 0x35, 0x36, 0x37],
++		i2c_detect => sub { lm80_detect(@_, 2); },
++	}, {
+ 		name => "National Semiconductor LM85",
+ 		driver => "lm85",
+ 		i2c_addrs => [0x2c..0x2e],
+@@ -4436,11 +4441,13 @@ sub lm92_detect
+ # Chip to detect: 0 = LM80, 1 = LM96080
+ # Registers used:
+ #   0x00: Configuration register
+-#   0x02: Interrupt state register
+-#   0x07: Converstion rate register (LM96080 only)
++#   0x02: Interrupt state register (LM80, LM96080 only)
++#   0x07: Converstion rate register (LM96080, ADC128D818 only)
++#   0x08: Oneshot register (ADC128D818 only)
++#   0x09: Shutdown register (ADC128D818 only)
+ #   0x2a-0x3d: Limits registers (LM80 only)
+-#   0x3e: Manufacturer's ID register (LM96080 only)
+-#   0x3f: Stepping/die revision ID register (LM96080 only)
++#   0x3e: Manufacturer's ID register (LM96080, ADC128D818 only)
++#   0x3f: Stepping/die revision ID register (LM96080, ADC128D818 only)
+ # The LM80 is easily misdetected since it doesn't provide identification
+ # registers. So we have to use some tricks:
+ #   - 6-bit addressing, so limits readings modulo 0x40 should be unchanged
+@@ -4458,9 +4465,9 @@ sub lm80_detect
+ 	my ($i, $reg);
+ 
+ 	return if (i2c_smbus_read_byte_data($file, 0x00) & 0x80) != 0;
+-	return if (i2c_smbus_read_byte_data($file, 0x02) & 0xc0) != 0;
+ 
+ 	if ($chip = 0) {
++		return if (i2c_smbus_read_byte_data($file, 0x02) & 0xc0) != 0;
+ 		for ($i = 0x2a; $i <= 0x3d; $i++) {
+ 			$reg = i2c_smbus_read_byte_data($file, $i);
+ 			return if i2c_smbus_read_byte_data($file, $i+0x40) != $reg;
+@@ -4493,11 +4500,20 @@ sub lm80_detect
+ 		return unless $confidence > 0;
+ 		return $confidence;
+ 	} elsif ($chip = 1) {
++		return if (i2c_smbus_read_byte_data($file, 0x02) & 0xc0) != 0;
+ 		return if (i2c_smbus_read_byte_data($file, 0x07) & 0xfe) != 0;
+ 		return if i2c_smbus_read_byte_data($file, 0x3e) != 0x01;
+ 		return if i2c_smbus_read_byte_data($file, 0x3f) != 0x08;
+ 
+ 		return 6;
++	} elsif ($chip = 2) {
++		return if (i2c_smbus_read_byte_data($file, 0x07) & 0xfe) != 0;
++		return if (i2c_smbus_read_byte_data($file, 0x08) & 0xfe) != 0;
++		return if (i2c_smbus_read_byte_data($file, 0x09) & 0xfe) != 0;
++		return if i2c_smbus_read_byte_data($file, 0x3e) != 0x01;
++		return if i2c_smbus_read_byte_data($file, 0x3f) != 0x09;
++
++		return 6;
+ 	}
+ }
+ 
+-- 
+1.7.9.7
 
-Thanks a lot for testing!
-
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
