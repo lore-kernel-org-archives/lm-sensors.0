@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 24 Jan 2014 14:40:24 +0000
+From: Mathias Gerber <mathias_g@tuxedo.ath.cx>
+Date: Sun, 26 Jan 2014 15:58:06 +0000
 Subject: Re: [lm-sensors] Asus H87-PRO /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
-Message-Id: <52E27B58.10107@roeck-us.net>
+Message-Id: <52E5308E.7020806@tuxedo.ath.cx>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CALiX4iZMuV2446GaK9qyS8Cfa=q1RV0w8-UUXYnOFXfROkBoaw@mail.gmail.com>
 In-Reply-To: <CALiX4iZMuV2446GaK9qyS8Cfa=q1RV0w8-UUXYnOFXfROkBoaw@mail.gmail.com>
@@ -10,60 +10,138 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 01/22/2014 11:25 PM, mathias_g@tuxedo.ath.cx wrote:
-> Hi Guenter
->
->> Can you send me the output of "grep . pwm2*" ? I'll see if I can
->> find anything in the datasheet that might explain this behavior.
-> Sure. Here is the output:
-> pwm2:27
-> pwm2_auto_point1_pwm:7
-> pwm2_auto_point1_temp:30000
-> pwm2_auto_point2_pwm:178
-> pwm2_auto_point2_temp:55000
-> pwm2_auto_point3_pwm:255
-> pwm2_auto_point3_temp:75000
-> pwm2_auto_point4_pwm:255
-> pwm2_auto_point4_temp:75000
-> pwm2_auto_point5_pwm:255
-> pwm2_auto_point5_temp:75000
-> pwm2_crit_temp_tolerance:2000
-> pwm2_enable:5
-> pwm2_floor:1
-> pwm2_mode:1
-> pwm2_start:1
-> pwm2_step_down_time:100
-> pwm2_step_up_time:100
-> pwm2_stop_time:6000
-> pwm2_target_temp:50000
-> pwm2_temp_sel:7
-> pwm2_temp_tolerance:0
-> pwm2_weight_duty_base:0
-> pwm2_weight_duty_step:0
-> pwm2_weight_temp_sel:1
-> pwm2_weight_temp_step:0
-> pwm2_weight_temp_step_base:0
-> pwm2_weight_temp_step_tol:0
->
-> BIOS profile set to "Quiet", values modified like mentioned in my previous
-> post.
->
-> Maybe Michael (with the same Mainboard) could try to reproduce this effect
-> on his hardware?
->
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Might be a good idea. For my part I have no idea why that happens. I don't find
-anything in the chip datasheet, nor in the code, nor in your configuration,
-that would explain this behavior :-(.
+Hi Guenter
 
-One interesting experiment might be to check what happens if you set
-pwm2_auto_point1_pwm to a value between 1 and 4. If that results in the fan
-running at full speed, we have some indication that either the fan or the
-board hardware is causing this behavior.
+On 24.01.2014 15:40, Guenter Roeck wrote:
+> One interesting experiment might be to check what happens if you
+> set pwm2_auto_point1_pwm to a value between 1 and 4. If that
+> results in the fan running at full speed, we have some indication
+> that either the fan or the board hardware is causing this
+> behavior.
+Same result. If the calculated pwm value (pwm2) is smaller than 5, the
+fan spins up to maximum rpm.
 
-Thanks,
-Guenter
+Today I disassembled my other pc (on which I'm able to completely stop
+the fan by reducing the pwm value) with the same model of CPU fan
+(Arctic Freezer 13) and hooked it up to the ASUS H87-PRO. The fan
+looks a little bit different than the other, but the values are almost
+the same.
 
+Arctic Cooling Freezer 13 (Old Model)
+- -------------------------------------
+
+pwm2	rpm
+1	2064
+2	2064
+3	2064
+4	2064
+5	393
+6	272
+7	398
+8	187
+9	196
+10	423
+11	493
+20	486
+30	630
+40	730
+50	912
+60	1060
+70	633
+90	859
+128	1251
+255	2261
+
+Almost the same result with the original fan
+
+Arctic Cooling Freezer 13 (New Model)
+- -------------------------------------
+
+pwm2	rpm
+1	2257
+2	2253
+3	2261
+4	2180
+5	551
+6	451
+7	407
+8	370
+9	366
+10	370
+11	392
+12	411
+13	433
+60	1203
+70	1355
+90	1580
+128	1836
+255	2260
+
+Then I took the boxed Intel fan and hooked it to the ASUS Board.
+
+Intel Boxed Cooler
+- ------------------
+
+pwm2	rpm
+1	976
+2	974
+3	972
+4	976
+5	978
+6	972
+7	975
+8	973
+9	973
+58	976
+59	1005
+60	1018
+61	1021
+70	1072
+90	1184
+128	1393
+255	1953
+
+And now the interesting part ;-) Connected the original fan to
+CHA_FAN2 (controlled by pwm3)
+
+Arctic Cooling Freezer 13 (New Model)
+- -------------------------------------
+
+pwm3	rpm
+1	0
+2	0
+3	0
+4	0
+5	0
+6	0
+50	0
+55	430
+60	512
+70	633
+90	859
+128	1251
+255	2261
+
+On this pwm3 output I'm able to let the fan spin down until it stops
+(around pwm 50-55)
+
+So it seems that the CPU fan output is somehow special - but I guess
+only ASUS knows how exactly and why.
+- -- 
+greetings
+ Mathias
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iEYEARECAAYFAlLlMI4ACgkQnfTEjDUZ2fOXxgCfeIyv7NXNZLm4gHc9a+bFEF/0
+cnkAnAvThiVg2teiDw5mXxelg+gfNeR9
++kY
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
