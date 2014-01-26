@@ -1,90 +1,44 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Sun, 26 Jan 2014 22:01:26 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 26 Jan 2014 22:02:16 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <20140126220126.GM11727@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1993822997525300252=="
+Message-Id: <52E585E8.4000100@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52E561D0.4040308@roeck-us.net>
- <20140126211357.6fa68909@endymion.delvare>
- <52E573B6.9040903@roeck-us.net>
- <20140126205216.GJ11727@sirena.org.uk>
- <52E5825D.9090104@roeck-us.net>
-In-Reply-To: <52E5825D.9090104@roeck-us.net>
-To: Guenter Roeck <linux@roeck-us.net>
+References: <52E561D0.4040308@roeck-us.net> <20140126211357.6fa68909@endymion.delvare> <52E573B6.9040903@roeck-us.net> <20140126214936.7736f530@endymion.delvare> <20140126212256.GK11727@sirena.org.uk> <52E580CE.8080100@roeck-us.net> <20140126215354.GL11727@sirena.org.uk>
+In-Reply-To: <20140126215354.GL11727@sirena.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Mark Brown <broonie@kernel.org>
 Cc: Jean Delvare <khali@linux-fr.org>, LM Sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
 
+On 01/26/2014 01:53 PM, Mark Brown wrote:
+> On Sun, Jan 26, 2014 at 01:40:30PM -0800, Guenter Roeck wrote:
+>> On 01/26/2014 01:22 PM, Mark Brown wrote:
+>
+>>> What is this platform and why does it have the regulator API enabled in
+>>> the first place?
+>
+>> It is a PC running Ubuntu. you'd have to ask the distro maintainers why they
+>> turn on regulators.
+>
+>> config-3.8.0-26-generic:CONFIG_REGULATOR=y
+>> config-3.8.0-35-generic:CONFIG_REGULATOR=y
+>> config-3.11.0-13-generic:CONFIG_REGULATOR=y
+>
+> Oh, magic.  Can you please file a bug with or otherwise talk to them
+> asking them to turn that off (or contribute code to make it work)?  Feel
+> free to add me as a CC when you do so.
+>
 
---===============1993822997525300252==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eUGqGfkt69yEwRle"
-Content-Disposition: inline
+That means they would have to stop supporting anything that _does_ need regulators,
+which doesn't make much sense to me.
 
+I think the bug is on your side, not theirs.
 
---eUGqGfkt69yEwRle
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Guenter
 
-On Sun, Jan 26, 2014 at 01:47:09PM -0800, Guenter Roeck wrote:
-
-Please fix your mailer to word wrap within 80 columns, I've reflowed for
-legibility.
-
-> You have a solution for that in dt configurations. I don't think you
-> have one for non-dt systems - you simply assume that all regulators
-> are there. For dt, you even have a constraint to tell the kernel if
-> regulator configurations are fully specified, and you automatically
-> return success if not and if a regulator does not exist.  So you know
-> that there is a problem. For non-DT configurations you simply assume
-> and expect that regulators are all declared. I don't think that is a
-> feasible approach for non-DT systems.
-
-To repeat the mechanism that's there for other platforms is to either
-flag that they've provided full constraints or provide the supply
-mappings.  This has always been the case, there's nothing new here - the
-only change there's been in this is that in v3.13 we refactored how
-systems using DT flag that they have full constraints.
-
-I agree that it's not going to work terribly well if neither of these
-things has been done, it never has done and that's why the API has stubs
-when it's disabled - they allow us to avoid a hard dependency on it in
-drivers so people only need to turn it on if they're actually using it.
-I'm very surprised to see anyone doing that to be honest, if you're not
-using it it's just going to waste cycles and RAM.
-
---eUGqGfkt69yEwRle
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS5YWzAAoJELSic+t+oim9OCEP/jvQujHqAnGkwS1uUkl8qMzN
-WMvnr8xicGWxEb6IN6SrfdgROA9xg3J/X1zQ4YBOwt1JnG8cj4CJnvXPwZkAk/T5
-5/e3b2cJQ/HqM6CO54wgYilw2xB1Oai0LusMkN0nkkpLG6JiYuqF6y6CqZMjIBxC
-A8gvQGHh2/agMf4UXKBgZRbryD6S7NMGoyHxzIGaW4SJJqHBRrH6LYl+FnHkN11+
-nQMqPD2ORSLKtls4XgKTGlFmcGeOJCNRIY50nqZgA8deHKCnlCQG/kpGxIFF8ehz
-yhrYXCksJPulm+B0zqHWS5K+SrdVfSRU8Z3tQaMDM2YGjLbEBNXBTxAGn0kWo6e4
-y1HvTdaPQmGAbGGVQ6P2BGdoo1SECEYGxp8x/x9Vfp6iPPZs5wgGbKV50mAHnwTy
-SVCP96UzX1AOMp1eT2JrvZ5SG0ynNFX7bZjYuOAI52RjyBlTQ3kKGGR0cYJQfDms
-7f5wOHp+gftN4ALzDRUhqRd9JNC3Dk8uF58kHeofq9RSpiL6gN9JgRCABEhS2F7B
-UFQy2h0NJ+hFtw6IdtDmoYOTEl4efqwO/wpj2eMeMdHZwY/LSOv3ZSj4XjowChoU
-p8F/ImYtUecP44pBYi8cO3+6WNxsBO3GLnTULftC+paTWo1Cqnuj9fqKX4ieG+z3
-bTb4Nq73DsKiDHhgn1iF
-=9khg
------END PGP SIGNATURE-----
-
---eUGqGfkt69yEwRle--
-
-
---===============1993822997525300252==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1993822997525300252==--
