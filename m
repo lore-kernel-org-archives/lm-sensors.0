@@ -1,67 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 26 Jan 2014 20:44:38 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 26 Jan 2014 20:49:36 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <52E573B6.9040903@roeck-us.net>
+Message-Id: <20140126214936.7736f530@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52E561D0.4040308@roeck-us.net> <20140126211357.6fa68909@endymion.delvare>
-In-Reply-To: <20140126211357.6fa68909@endymion.delvare>
+References: <52E561D0.4040308@roeck-us.net>
+	<20140126211357.6fa68909@endymion.delvare>
+	<52E573B6.9040903@roeck-us.net>
+In-Reply-To: <52E573B6.9040903@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
+To: Guenter Roeck <linux@roeck-us.net>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
 
-Hi Jean,
+On Sun, 26 Jan 2014 12:44:38 -0800, Guenter Roeck wrote:
+> On 01/26/2014 12:13 PM, Jean Delvare wrote:
+> The regulator code changed with 3.13; the dummy regulator no longer exists,
+> and the functionality it provided is supposed to be handled automatically.
+> But that only really works on devicetree based systems and otherwise returns
+> -EPROBE_DEFER as mentioned above.
+> 
+> Maybe there is some configuration option, or maybe something needs to be
+> configured from user space. I found neither.
 
-On 01/26/2014 12:13 PM, Jean Delvare wrote:
-> Hi Guenter,
->
-> Adding Wei Ni to Cc, as he provided the commit which causes problem.
->
-> On Sun, 26 Jan 2014 11:28:16 -0800, Guenter Roeck wrote:
->> Hi,
->>
->> the lm90 driver is no longer working on PCs with the 3.13 kernel ... or at least not without
->> special configuration.
->>
->> This is what I get if I try to instantiate a device on it (max6695):
->>
->> i2c 1-0018: Driver lm90 requests probe deferral
->> i2c i2c-1: new_device: Instantiated device max6695 at 0x18
->>
->> The regulator core always returns -EPROBE_DEFER if the platform does not support devicetree
->> and if the regulator it is looking for does not exist. Since the driver now requires a mandatory
->> regulator (commit 3e0f964f2ad - hwmon: (lm90) Add power control), and the regulator it requests
->> does not exist on a PC, the result is not really surprising. I thought the regulator core would
->> realize that it has to return a dummy regulator, but apparently that is not the case, or I don't
->> know how to configure it.
->>
->> Any idea what I might need to do to get it working ?
->
-> Me, I really don't know. I seem to remember I tested Wei's patch set on
-> an emulated ADM1032 chip and it was working fine. So maybe it depends
-> on the kernel configuration, or something changed on the regulator side
-> meanwhile.
->
+Neither would be acceptable to my eyes anyway. Things worked out of the
+box before, they should keep working out of the box.
 
-The regulator code changed with 3.13; the dummy regulator no longer exists,
-and the functionality it provided is supposed to be handled automatically.
-But that only really works on devicetree based systems and otherwise returns
--EPROBE_DEFER as mentioned above.
+> In the first case, we should create
+> a dependency for the LM90 driver; in the latter case, we would have to make sure
+> that it is well documented (I'd grumble on that, though - it would result in
+> never ending trouble for us, having to repeatedly explain how this is now
+> supposed to work).
+> 
+> Another possible fix would be to have the regulator core return -ENODEV
+> instead of -EPROBE_DEFER on non-dt systems. No idea if this would be acceptable
+> or even feasible.
 
-Maybe there is some configuration option, or maybe something needs to be
-configured from user space. I found neither. In the first case, we should create
-a dependency for the LM90 driver; in the latter case, we would have to make sure
-that it is well documented (I'd grumble on that, though - it would result in
-never ending trouble for us, having to repeatedly explain how this is now
-supposed to work).
+Well, either the regulator subsystem gets fixed (or provides a suitable
+API for drivers like lm90 and we update the lm90 driver to use it), or
+I'll just revert the problematic commit for now. This is a severe
+regression, we just can't leave things that way.
 
-Another possible fix would be to have the regulator core return -ENODEV
-instead of -EPROBE_DEFER on non-dt systems. No idea if this would be acceptable
-or even feasible.
-
-Guenter
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
