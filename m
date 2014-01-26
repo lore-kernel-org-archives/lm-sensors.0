@@ -1,53 +1,53 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 26 Jan 2014 21:47:09 +0000
+Date: Sun, 26 Jan 2014 21:50:40 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <52E5825D.9090104@roeck-us.net>
+Message-Id: <52E58330.90602@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52E561D0.4040308@roeck-us.net> <20140126211357.6fa68909@endymion.delvare> <52E573B6.9040903@roeck-us.net> <20140126205216.GJ11727@sirena.org.uk>
-In-Reply-To: <20140126205216.GJ11727@sirena.org.uk>
+References: <52E561D0.4040308@roeck-us.net>	<20140126211357.6fa68909@endymion.delvare>	<52E573B6.9040903@roeck-us.net> <20140126214936.7736f530@endymion.delvare>
+In-Reply-To: <20140126214936.7736f530@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>, LM Sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
 
-On 01/26/2014 12:52 PM, Mark Brown wrote:
-> On Sun, Jan 26, 2014 at 12:44:38PM -0800, Guenter Roeck wrote:
+On 01/26/2014 12:49 PM, Jean Delvare wrote:
+> On Sun, 26 Jan 2014 12:44:38 -0800, Guenter Roeck wrote:
 >> On 01/26/2014 12:13 PM, Jean Delvare wrote:
->
->>> Me, I really don't know. I seem to remember I tested Wei's patch set on
->>> an emulated ADM1032 chip and it was working fine. So maybe it depends
->>> on the kernel configuration, or something changed on the regulator side
->>> meanwhile.
->
 >> The regulator code changed with 3.13; the dummy regulator no longer exists,
 >> and the functionality it provided is supposed to be handled automatically.
 >> But that only really works on devicetree based systems and otherwise returns
 >> -EPROBE_DEFER as mentioned above.
+>>
+>> Maybe there is some configuration option, or maybe something needs to be
+>> configured from user space. I found neither.
 >
-> CONFIG_REGULATOR_DUMMY should never have been used in production, it was
-> a debug tool to help bringup but it broke things as often as it fixed
-> them particularly with init ordering which is why it generated a warning
-> when it was used.
+> Neither would be acceptable to my eyes anyway. Things worked out of the
+> box before, they should keep working out of the box.
 >
-> The dummy driver is still there, if you're doing bringup you can hack it
-> in still or if you genuniely used it then specify that full constraints
-> are provided like the changelog says (and as I've previously said).
->
+>> In the first case, we should create
+>> a dependency for the LM90 driver; in the latter case, we would have to make sure
+>> that it is well documented (I'd grumble on that, though - it would result in
+>> never ending trouble for us, having to repeatedly explain how this is now
+>> supposed to work).
+>>
 >> Another possible fix would be to have the regulator core return -ENODEV
 >> instead of -EPROBE_DEFER on non-dt systems. No idea if this would be acceptable
 >> or even feasible.
 >
-> No, this would introduce breakage due to init ordering.
+> Well, either the regulator subsystem gets fixed (or provides a suitable
+> API for drivers like lm90 and we update the lm90 driver to use it), or
+> I'll just revert the problematic commit for now. This is a severe
+> regression, we just can't leave things that way.
 >
 
-You have a solution for that in dt configurations. I don't think you have one for
-non-dt systems - you simply assume that all regulators are there. For dt, you even
-have a constraint to tell the kernel if regulator configurations are fully specified,
-and you automatically return success if not and if a regulator does not exist.
-So you know that there is a problem. For non-DT configurations you simply assume and
-expect that regulators are all declared. I don't think that is a feasible approach
-for non-DT systems.
+Maybe your configuration has CONFIG_REGULATORS disabled. Ubuntu has it enabled.
+I don't know about others.
+
+I agree, we may have to revert the patch. I don't think the regulator API works well
+enough in non-dt systems to be able to use it in such systems. Mark's expectation
+that regulator support must be disabled if regulators are not fully declared in non-dt
+systems doesn't seem very useful nor really feasible.
 
 Guenter
 
