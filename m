@@ -1,10 +1,11 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 27 Jan 2014 23:41:35 +0000
+From: Mark Brown <broonie@kernel.org>
+Date: Mon, 27 Jan 2014 23:58:15 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <20140127234135.GA18059@roeck-us.net>
+Message-Id: <20140127235815.GA8513@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6429907875627762388=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52E561D0.4040308@roeck-us.net>
- <20140126211357.6fa68909@endymion.delvare>
+References: <20140126211357.6fa68909@endymion.delvare>
  <52E573B6.9040903@roeck-us.net>
  <20140126214936.7736f530@endymion.delvare>
  <52E58330.90602@roeck-us.net>
@@ -13,63 +14,71 @@ References: <52E561D0.4040308@roeck-us.net>
  <52E6951C.60609@wwwdotorg.org>
  <20140127185031.GA28910@roeck-us.net>
  <20140127230447.7e8be3a4@endymion.delvare>
-In-Reply-To: <20140127230447.7e8be3a4@endymion.delvare>
-MIME-Version: 1.0
+ <20140127234135.GA18059@roeck-us.net>
+In-Reply-To: <20140127234135.GA18059@roeck-us.net>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>, Stephen Warren <swarren@wwwdotorg.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+
+
+--===============6429907875627762388==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Content-Disposition: inline
+
+
+--x+6KMIRAuhnl3hBn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 27, 2014 at 03:41:35PM -0800, Guenter Roeck wrote:
+
+> I'll test Mark's two patches on my system and let you know the results.
+> After looking some more into it, those _may_ actually fix the problem at least
+> for systems supporting ACPI. No promise, though, and I am not sure if that
+> would be sufficient (it may still not work on non-ACPI PCs). But then who
+
+They should fix ACPI systems, if they don't we need to fix them further
+- that case should just work, it was an oversight not to have a patch
+like the ACPI one in already.  I'm not sure how many non-ACPI PCs still
+exist, we're definitely talking about things over 10 years old (even
+before PCs became ACPI only they started to have ACPI present which
+should be sufficient).
+
+Jean, I'm doing a writeup but it's probably not going to be done today.
+
+--x+6KMIRAuhnl3hBn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS5vKUAAoJELSic+t+oim9wLcP/R8LJH3pVAXgEmoxfFtXZoyx
+ampqgioJBoky3jU48me3O9rHHRPAbWr2JW8GMBtfC+VmnHKGlBj/ogUtfPfs9dvq
+Mqp/SPe727ey2fsg+qgFPqhMPH1/Fd/mnSSbbkMLsrrDTJm4Kx3asgkuXZCQzXR7
+NWAFkDscNxOJRpPfMWqVwisgr/6Bx8u+eGxe+Wrghw1Qcjv9HzjvG3wMwfRjVWhc
+zzazcaGIJFW1nFc0qYAdLFTwxhuSV2lfBZBr3agBLeTtj193cKB1xdiN1TrxTBlP
+LoBhwzwEOKNTYo4HgS0xmgALaz4gFW6s2toJtHMrIEALrE4PIpY2Y6NgO42SwwOQ
+mG2dd5sauMuyYNdPSkP0B50PFLH9YeD94rh9jFDcGndpcOEoP51mpgmhjn7Vnpbi
+4xChHZj4vj2M/Rg+8dkThXjFykZNmj4qgulnkOukmDxPeMDghzrJqYNUPC8O88cX
+gEVZYiPptSTY82GQfOcJftLxUin6xGeH45gKbX4WUoz6x25WcUrGjeskY08AlXoh
+HrMSNezB5Zk+mxrpbSzGVUSsoqCVJR4tphlQfsRR738Gz40D9GFO9xrZO0Fpxr/S
+3sK4xsI+UYuNCiFXYsgkilKpqKBRBDG1lSwOu3VDtOdrH8J4qpjGhrBSGVhHAnnT
+/dr7fsbDK4eTZEIs/w4x
+=fPqD
+-----END PGP SIGNATURE-----
+
+--x+6KMIRAuhnl3hBn--
+
+
+--===============6429907875627762388==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
-
-On Mon, Jan 27, 2014 at 11:04:47PM +0100, Jean Delvare wrote:
-> On Mon, 27 Jan 2014 10:50:31 -0800, Guenter Roeck wrote:
-> > On Mon, Jan 27, 2014 at 10:19:24AM -0700, Stephen Warren wrote:
-> > > On 01/26/2014 04:51 PM, Mark Brown wrote:
-> > > > On Sun, Jan 26, 2014 at 02:04:06PM -0800, Guenter Roeck wrote:
-> > > > 
-> > > >> I think I have a better idea: Surround the regulator code, or at least
-> > > >> its error handling, in the lm90 driver with
-> > > > 
-> > > >> 	if (IS_ENABLED(CONFIG_OF)) {
-> > > >> 	}
-> > > > 
-> > > >> Would that be ok ? If yes I'll submit a patch. I'll do the same in
-> > > >> another driver I am working on.
-> > > > 
-> > > > That's not going to have the desired effect in cases where DT is built
-> > > > into the kernel but not in use on the current system (which is a
-> > > > configuration that gets used) ...
-> > > 
-> > > The solution to that particular aspect of the problem is the following:
-> > > 
-> > > if (of_have_populated_dt()) {
-> > > 	...
-> > > 
-> > 
-> > Turns out that won't help either after Mark's patches to ACPI and
-> > to the regulator core are applied. Right now I don't have a solution
-> > that would work for all systems.
-> > 
-> > I'll leave it up to Jean to decide how to proceed.
-> 
-> I have no idea, really. I have seen multiple patches flying around,
-> each seems to have its own merits, but I simply don't know which is
-> going in the direction. I don't know a thing about regulators, OF, DT
-> etc. so I am really not the right person to make a decision about this.
-> 
-> All I can say is: either someone comes up with a patch set which
-> properly fixes the regression for all lm90 drivers users, or I will have
-> to revert commit 3e0f964f.
-> 
-I'll test Mark's two patches on my system and let you know the results.
-After looking some more into it, those _may_ actually fix the problem at least
-for systems supporting ACPI. No promise, though, and I am not sure if that
-would be sufficient (it may still not work on non-ACPI PCs). But then who
-am I to say ...  Mark keeps repeating that I don't know what I am talking about,
-after all, and maybe he has a point ;-).
-
-Guenter
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6429907875627762388==--
