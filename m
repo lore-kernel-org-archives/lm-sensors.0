@@ -1,67 +1,95 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 27 Jan 2014 10:10:41 +0000
+From: Mark Brown <broonie@kernel.org>
+Date: Mon, 27 Jan 2014 10:34:37 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <CAMuHMdXn=PC9+gZC05_yufLhPgYUy2FhcocRpY-Qatux=kftiA@mail.gmail.com>
+Message-Id: <20140127103437.GU11727@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0211095359302074380=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52E561D0.4040308@roeck-us.net>
-	<20140126211357.6fa68909@endymion.delvare>
-	<52E573B6.9040903@roeck-us.net>
-	<20140126214936.7736f530@endymion.delvare>
-	<20140126212256.GK11727@sirena.org.uk>
-	<20140126224425.724698cd@endymion.delvare>
-	<20140126231543.GN11727@sirena.org.uk>
-In-Reply-To: <20140126231543.GN11727@sirena.org.uk>
-MIME-Version: 1.0
+ <20140126211357.6fa68909@endymion.delvare>
+ <52E573B6.9040903@roeck-us.net>
+ <20140126214936.7736f530@endymion.delvare>
+ <52E58330.90602@roeck-us.net>
+ <52E58656.7000903@roeck-us.net>
+ <20140126235103.GP11727@sirena.org.uk>
+ <52E5DDA5.2010705@roeck-us.net>
+In-Reply-To: <52E5DDA5.2010705@roeck-us.net>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+
+
+--===============0211095359302074380==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="abhKGpAWOHR+b9c1"
+Content-Disposition: inline
+
+
+--abhKGpAWOHR+b9c1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sun, Jan 26, 2014 at 08:16:37PM -0800, Guenter Roeck wrote:
+> On 01/26/2014 03:51 PM, Mark Brown wrote:
+> >On Sun, Jan 26, 2014 at 02:04:06PM -0800, Guenter Roeck wrote:
+
+> >>I think I have a better idea: Surround the regulator code, or at least
+> >>its error handling, in the lm90 driver with
+
+> >>	if (IS_ENABLED(CONFIG_OF)) {
+> >>	}
+
+> >>Would that be ok ? If yes I'll submit a patch. I'll do the same in
+> >>another driver I am working on.
+
+> >That's not going to have the desired effect in cases where DT is built
+> >into the kernel but not in use on the current system (which is a
+> >configuration that gets used) and will remove error handling for non-DT
+> >systems that do have regulators set up.  There's not the relationship
+> >between this and DT that you seem think there is...
+
+> >Besides, if we're going to do a bodge like that we should do it in the
+> >core and not in individual callers.
+
+> Then it appears the only remedy at this time is to revert the patch.
+
+Why - that seems like a bit of a leap?  The first order problem with
+what you're doing there is that conditionalising this on DT being built
+into the kernel is the wrong conditional for several reasons, if you do
+want to use an approach like this that at least needs to be changed.
+
+--abhKGpAWOHR+b9c1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS5jY6AAoJELSic+t+oim9O3AP/RBJY/tbtJNpkSRbt3i1lagM
+KoZMgar7W/osn5+H/G5Er/LkteLolrRQBG4GVLC5HhAQpAvIf7TgxGpbbws60YoN
+tcGi7G6Vq9xzqQ+44jqbi/2WMPM+2Nto/uZ9PIEt/HzJiXpVK5MVm0ZXsP+XnWlG
+SStNtHwpSxav0HWV5JqRs4RdwqXlhwGuG3wO26MWfdy83OSCakvKacuogF6wQ+8o
+7XepaqQX/W/RHDWFNhGrv8Vamh5mYybyWF8Hk3CyUL/SOpzMAaS/UPqLRjiJvxMO
+n7TR549BG0Om7p7YqT6F2Bwi/OfTi0maladxJlusa1/Je4T4UQozcVIH6LFCR07w
+DjaEF/wZPZO2VZK2mLRQ45ZJt8PZ73rXwFqD/71ZTK1jDMSa0C3sOgNdF8ASBtmA
+ChHOwq0AyDXhZ3/9HAXvcDP1Ul9m4JLOAdW91oq87OmguBvkH7Ljt8YzXdzbRO9s
+Hd6Wns90d+BM/7RyTiWfAPgGV6+h5CAi+wc7GiRGR7x+uQiDdQ8yOC6HCJ3ye+aa
+/kjFinka7d7Yh+ustrkMQiAbPyqbXNuhYBZoDBw11epywG87+ixk/0dbBIEb5eqI
+qTPRWkHWGaf2Swu28t9QgSDhxKNoUUU856XTdr+dFj0IYhn9sjokoNeltCaoO5lr
+KXHo3ZcniWuXfGNQ5WZJ
+=eVlW
+-----END PGP SIGNATURE-----
+
+--abhKGpAWOHR+b9c1--
+
+
+--===============0211095359302074380==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, LM Sensors <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
-
-On Mon, Jan 27, 2014 at 12:15 AM, Mark Brown <broonie@kernel.org> wrote:
->> No, you don't get what I'm saying. For PC users, the lm90 did not
->
-> I understand perfectly well thank you very much.
->
->> request a regulator and things worked because the kernel isn't supposed
->> to take care about things like that on PC machines. Now that the lm90
->> driver does request a regulator, it fails on PC machines because no
->> regulator is declared.
->
-> If and only if the user has enabled the regulator API on a platform that
-> hasn't fully configured it; if the user has not enabled the regulator
-> API it'll stub itself out and they'll never see it.
->
->> Don't tell me that it is expected that things will fail if
->> CONFIG_REGULATOR is enabled on a system which doesn't need it. It
->> doesn't make any sense. If kernels would fail as soon as any enabled
->> option wasn't actually needed, no system would boot out there.
->
-> It's very easy to generate unbootable kernels by changing the kernel
-> config, I'd not immediately expect a randomly generated config to do
-> anything useful and things like FW_LOADER_USER_HELPER can be rather
-> miserable if you turn them on (that one produces enormous delays during
-> init which look awfully like hangs when you're watching your board
-> boot).
-
-This is not just a randomly generated config where you disable critical
-options. Just enabling a subsystem like the regulator subsystem shouldn't
-give you an unbootable kernel. It's even needed, think multi-platform
-kernels.
-Typically, I'd expect allmodconfig/allyesconfig kernels to actually boot
-(ignoring RAM size issues etc.).
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0211095359302074380==--
