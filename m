@@ -1,51 +1,78 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 27 Jan 2014 14:39:39 +0000
+From: Mark Brown <broonie@sirena.org.uk>
+Date: Mon, 27 Jan 2014 15:08:37 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (lm90) Fix driver to work on standard PCs with CONFIG_REGULATOR enab
-Message-Id: <52E66FAB.5000203@roeck-us.net>
+Message-Id: <20140127150837.GZ11727@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6435705042188690123=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1390777731-10277-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1390777731-10277-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 01/27/2014 12:14 AM, Jean Delvare wrote:
-> On Sun, 26 Jan 2014 20:21:00 -0800, Guenter Roeck wrote:
->> On 01/26/2014 03:08 PM, Guenter Roeck wrote:
->>> On Ubuntu systems with CONFIG_REGULATOR enabled, the lm90 driver fails to load
->>> with an error mesage such as
->>>
->>> i2c 1-0018: Driver lm90 requests probe deferral
->>>
->>> This is a result of commit 3e0f964f2ad (hwmon: (lm90) Add power control)
->>> which adds mandatory regulator support to the lm90 driver. On non-dt systems
->>> with CONFIG_REGULATOR enabled, this fails if regulators are not fully
->>> specified. This is the case on a standard PC system.
->>>
->> Mark appears to object to that idea, so maybe we should just just revert
->> 3e0f964f2ad until a more acceptable solution is found.
->
-> Well, I object as well, so I'm happy to not apply it. I hate seeing
-> IS_ENABLED() creep into driver code. Any issue like that should be
-> handled as a Kconfig dependency or with a better API.
->
+
+--===============6435705042188690123==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JqdxN8yMrvvaufxH"
+Content-Disposition: inline
 
 
+--JqdxN8yMrvvaufxH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Going back to the original problem, lm90 no longer works in any non-DT
-system which has CONFIG_REGULATORS enabled, such as any Ubuntu distribution.
+On Mon, Jan 27, 2014 at 06:39:39AM -0800, Guenter Roeck wrote:
 
-I agree that it would have been better if the regulator subsystem would deal
-with the issue, but that seems unlikely to happen. If anything, it will get
-worse with the assumption that regulators are fully declared in any ACPI
-based system (such a system for sure won't know about an USB-I2C adapter
-with an LM90 connected to it). So what do you want to do ?
+> Going back to the original problem, lm90 no longer works in any non-DT
+> system which has CONFIG_REGULATORS enabled, such as any Ubuntu distribution.
 
-Guenter
+*sigh*  To repeat yet again this is not associated with DT in the way
+that you seem to believe it is.
 
+> I agree that it would have been better if the regulator subsystem would deal
+> with the issue, but that seems unlikely to happen. If anything, it will get
+> worse with the assumption that regulators are fully declared in any ACPI
+> based system (such a system for sure won't know about an USB-I2C adapter
+> with an LM90 connected to it). So what do you want to do ?
+
+I don't think you understand what _has_full_constraints() does, the way
+that you're still going on about DT seems to suggest that this is the
+case.  A USB-I2C adaptor will work in exactly the same way as anything
+on the motherboard in an ACPI system unless it explicitly ensures that
+it registers any software controllable supplies which also works fine.
+
+--JqdxN8yMrvvaufxH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS5nZyAAoJELSic+t+oim9muEP/3d62MuxHLv6cdbO89VXsZyj
+rogIh+aKQIRFu68UM3zFJxaNQf6FsGijNdr+PIdDAB/AligClULL/MktrSCs8aBg
+UrN5fI8nHfLuIoWQq/A8EibozvhhJzcS4jvhvIixCj83ftX0gNP1+I3UmZ7Wns9g
+Xdk68XDMWzdumpu178A7ZYbYJ7N8NigOcRStOrQTKFPo/P7BQ/4zMSl9hQdI8T2E
+YO2lj4TQ3/6huYy/6m5fN2Ek3Rvu0QQ0YwvHa5JDUWLW5vChIwMfiBhZp36nIZvI
+bJgOapKc6uOpkbRHIH6r4MgvK077euS2rlnX0NRlc/tpWtvDnImxJiGbEox/YYoV
+OJ3Zxz9rC/0CqrSYf2WlmYT0pG/P07NZOyXyH10RiIzxCDSX7lbT+SpG5zTAAYpt
+yE0RIYcdPy631WP+HCWLAPOA1ViCad0wyAe6hDZg3WRpC8zKqkZgZCmCnmdQYNz7
+IqUldTnQJsNh9PNVlz5CdsSblI3fMLMwdEtQaG/JcuLEBScP9jW8VzrIWUh2Xevp
+tCGApwYOx5LKHoichGGN70bDcxllBWnKz8QDv64uroKxj5NiBeR6DSGdFNh4KaBq
+h/zu6Vj4l24ydjnCauMbmmBh0eaCZtBdxCZGnRDhttT4Cg0V6lWHdA80ep14T6Xp
+TutnhPNeVcNX+2vpKR/y
+=uFwl
+-----END PGP SIGNATURE-----
+
+--JqdxN8yMrvvaufxH--
+
+
+--===============6435705042188690123==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6435705042188690123==--
