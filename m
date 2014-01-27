@@ -1,88 +1,114 @@
 From: Mark Brown <broonie@kernel.org>
-Date: Mon, 27 Jan 2014 10:34:37 +0000
+Date: Mon, 27 Jan 2014 13:18:23 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <20140127103437.GU11727@sirena.org.uk>
+Message-Id: <20140127131823.GX11727@sirena.org.uk>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0211095359302074380=="
+Content-Type: multipart/mixed; boundary="===============4339118944941752559=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <52E561D0.4040308@roeck-us.net>
  <20140126211357.6fa68909@endymion.delvare>
  <52E573B6.9040903@roeck-us.net>
  <20140126214936.7736f530@endymion.delvare>
- <52E58330.90602@roeck-us.net>
- <52E58656.7000903@roeck-us.net>
- <20140126235103.GP11727@sirena.org.uk>
- <52E5DDA5.2010705@roeck-us.net>
-In-Reply-To: <52E5DDA5.2010705@roeck-us.net>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Jean Delvare <khali@linux-fr.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+ <20140126212256.GK11727@sirena.org.uk>
+ <20140126224425.724698cd@endymion.delvare>
+ <20140126231543.GN11727@sirena.org.uk>
+ <CAMuHMdXn=PC9+gZC05_yufLhPgYUy2FhcocRpY-Qatux=kftiA@mail.gmail.com>
+In-Reply-To: <CAMuHMdXn=PC9+gZC05_yufLhPgYUy2FhcocRpY-Qatux=kftiA@mail.gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, LM Sensors <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
 
 
---===============0211095359302074380==
+--===============4339118944941752559==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="abhKGpAWOHR+b9c1"
+	protocol="application/pgp-signature"; boundary="V3VOne4eOnSspFMY"
 Content-Disposition: inline
 
 
---abhKGpAWOHR+b9c1
+--V3VOne4eOnSspFMY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Jan 26, 2014 at 08:16:37PM -0800, Guenter Roeck wrote:
-> On 01/26/2014 03:51 PM, Mark Brown wrote:
-> >On Sun, Jan 26, 2014 at 02:04:06PM -0800, Guenter Roeck wrote:
+On Mon, Jan 27, 2014 at 11:10:41AM +0100, Geert Uytterhoeven wrote:
+> On Mon, Jan 27, 2014 at 12:15 AM, Mark Brown <broonie@kernel.org> wrote:
 
-> >>I think I have a better idea: Surround the regulator code, or at least
-> >>its error handling, in the lm90 driver with
+> > It's very easy to generate unbootable kernels by changing the kernel
+> > config, I'd not immediately expect a randomly generated config to do
+> > anything useful and things like FW_LOADER_USER_HELPER can be rather
+> > miserable if you turn them on (that one produces enormous delays during
+> > init which look awfully like hangs when you're watching your board
+> > boot).
 
-> >>	if (IS_ENABLED(CONFIG_OF)) {
-> >>	}
+> This is not just a randomly generated config where you disable critical
+> options. Just enabling a subsystem like the regulator subsystem shouldn't
+> give you an unbootable kernel. It's even needed, think multi-platform
+> kernels.
+> Typically, I'd expect allmodconfig/allyesconfig kernels to actually boot
+> (ignoring RAM size issues etc.).
 
-> >>Would that be ok ? If yes I'll submit a patch. I'll do the same in
-> >>another driver I am working on.
+So, not booting is probably not what's going to happen for most systems.
+You will in general at least get console output and mostly the realistic
+issues for boot failures are netboot in embedded systems.  I'm more than
+aware of the idea of multiplatform systems, this is one of the reasons
+why things like checking for DT being compiled in don't do the right
+thing.
 
-> >That's not going to have the desired effect in cases where DT is built
-> >into the kernel but not in use on the current system (which is a
-> >configuration that gets used) and will remove error handling for non-DT
-> >systems that do have regulators set up.  There's not the relationship
-> >between this and DT that you seem think there is...
+Don't get me wrong, I would prefer it if we had a way to transparently
+make this stuff just work and we are getting there - that's what's
+driving the recent changes with optional regulators for example - but
+just ignoring errors causes other problems.  For DT and (assuming the
+patch I sent last night gets applied) ACPI systems I think we're now
+pretty much there which should cover the majority of users.  I also
+think many architectures (especially older ones that don't see much
+active hardware development) could probably do the same thing.
 
-> >Besides, if we're going to do a bodge like that we should do it in the
-> >core and not in individual callers.
+The issues that remain are around platforms which may use regulators but
+need to have them come from board data in Linux.  Unfortunately the
+mechanism we have for that currently only registers the supply mappings
+when the regulator is registered which means it's difficult to tell if
+the mappings are going to appear later so the core is never terribly
+sure if it knows when everything is set up unless the platform tells it.
+Knowing that is the key bit of information that allows us to be more
+helpful now we've got regulator_get_optional().
 
-> Then it appears the only remedy at this time is to revert the patch.
+Fortunately outside of the ACPI/DT cases the platforms that are affected
+are generally embedded ones where the problems are going to be developer
+only and so it should be relatively easy to deal with them (for the most
+part just adding a regulator_has_full_constraints() call on the affected
+system if disabing the regulator API isn't desirable).  Realistically it
+is unlikely to be useful to enable on affected systems though.
 
-Why - that seems like a bit of a leap?  The first order problem with
-what you're doing there is that conditionalising this on DT being built
-into the kernel is the wrong conditional for several reasons, if you do
-want to use an approach like this that at least needs to be changed.
+The next step is to transition all the platforms in this class to a way
+of setting up mappings that could be done purely in machine init (which
+means they're in a similar position to DT and ACPI) but that's more work
+than could sensibly be done in a bugfix context which is what people are
+looking for here.
 
---abhKGpAWOHR+b9c1
+--V3VOne4eOnSspFMY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJS5jY6AAoJELSic+t+oim9O3AP/RBJY/tbtJNpkSRbt3i1lagM
-KoZMgar7W/osn5+H/G5Er/LkteLolrRQBG4GVLC5HhAQpAvIf7TgxGpbbws60YoN
-tcGi7G6Vq9xzqQ+44jqbi/2WMPM+2Nto/uZ9PIEt/HzJiXpVK5MVm0ZXsP+XnWlG
-SStNtHwpSxav0HWV5JqRs4RdwqXlhwGuG3wO26MWfdy83OSCakvKacuogF6wQ+8o
-7XepaqQX/W/RHDWFNhGrv8Vamh5mYybyWF8Hk3CyUL/SOpzMAaS/UPqLRjiJvxMO
-n7TR549BG0Om7p7YqT6F2Bwi/OfTi0maladxJlusa1/Je4T4UQozcVIH6LFCR07w
-DjaEF/wZPZO2VZK2mLRQ45ZJt8PZ73rXwFqD/71ZTK1jDMSa0C3sOgNdF8ASBtmA
-ChHOwq0AyDXhZ3/9HAXvcDP1Ul9m4JLOAdW91oq87OmguBvkH7Ljt8YzXdzbRO9s
-Hd6Wns90d+BM/7RyTiWfAPgGV6+h5CAi+wc7GiRGR7x+uQiDdQ8yOC6HCJ3ye+aa
-/kjFinka7d7Yh+ustrkMQiAbPyqbXNuhYBZoDBw11epywG87+ixk/0dbBIEb5eqI
-qTPRWkHWGaf2Swu28t9QgSDhxKNoUUU856XTdr+dFj0IYhn9sjokoNeltCaoO5lr
-KXHo3ZcniWuXfGNQ5WZJ
-=eVlW
+iQIcBAEBAgAGBQJS5lycAAoJELSic+t+oim95AYP/3KfdRHzyXVPkGIjBoBHizR9
+/7cQu3A7t5GG1XbY7yO7XOl/ZLUjAhgM0WDCPWkTrAFl92Wp2Z8Vzo7G/CNcGp0/
+U7r0RN0WBhLunelmTW/516UrRSoEOj0ar7Ztp6HpoNLWXaJFjKywhxKIm9W4Pi7M
+OQ315swdcBWBApS6i7glCqCjWo993udNMiOswdYO5o82p5GphjTDr+IHfjQN4e0o
+jFpA/OgABPdBKV2zd3i828/sXUhLR6KD6SZau43p7O2Igpk8rDuwrT00ZRhp3hqg
+kUFUqStgixZqwgs14cURZ4IOqFe1LaCVz4vtPghyWxiACyd6kDZlDwOw9biNc6Zv
+PaY7DeJBAaslPdnGPjBQMa7FrjvtLWCE7LIQNorIxJr/jOmrKPrE1btpemmOifkp
+nmCzjypAKrxhiXxoq/LDU9cEWxMuQUIc0lSIyhlcPP136ewfQWX5WVJwdHNjiVBq
+H2A4fD7ADRIXatTuY6U4vCTfunRVWehP3DI7bPck7w2LMdZtRKt5wAIcqEwykcRR
+rty04olSMngAVxpLH2IupCLEAdjPmM7PO2qKu9RfXsfeRXe3pJQhnR1OqmuirExw
+0IOx9yIhb7b4CYLsKdArvj7DQQgiKrX+7JUc+QdMx4NG7l4IfqJffXFcz++nSCbk
+/Bc5oyPP84GFALnqG0eJ
+=x0m3
 -----END PGP SIGNATURE-----
 
---abhKGpAWOHR+b9c1--
+--V3VOne4eOnSspFMY--
 
 
---===============0211095359302074380==
+--===============4339118944941752559==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -92,4 +118,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0211095359302074380==--
+--===============4339118944941752559==--
