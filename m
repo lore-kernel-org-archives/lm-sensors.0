@@ -1,42 +1,65 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 27 Jan 2014 04:16:37 +0000
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 27 Jan 2014 10:10:41 +0000
 Subject: Re: [lm-sensors] lm90 driver no longer working on PCs in 3.13
-Message-Id: <52E5DDA5.2010705@roeck-us.net>
+Message-Id: <CAMuHMdXn=PC9+gZC05_yufLhPgYUy2FhcocRpY-Qatux=kftiA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52E561D0.4040308@roeck-us.net> <20140126211357.6fa68909@endymion.delvare> <52E573B6.9040903@roeck-us.net> <20140126214936.7736f530@endymion.delvare> <52E58330.90602@roeck-us.net> <52E58656.7000903@roeck-us.net> <20140126235103.GP11727@sirena.org.uk>
-In-Reply-To: <20140126235103.GP11727@sirena.org.uk>
+References: <52E561D0.4040308@roeck-us.net>
+	<20140126211357.6fa68909@endymion.delvare>
+	<52E573B6.9040903@roeck-us.net>
+	<20140126214936.7736f530@endymion.delvare>
+	<20140126212256.GK11727@sirena.org.uk>
+	<20140126224425.724698cd@endymion.delvare>
+	<20140126231543.GN11727@sirena.org.uk>
+In-Reply-To: <20140126231543.GN11727@sirena.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Mark Brown <broonie@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, LM Sensors <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Wei Ni <wni@nvidia.com>
 
-On 01/26/2014 03:51 PM, Mark Brown wrote:
-> On Sun, Jan 26, 2014 at 02:04:06PM -0800, Guenter Roeck wrote:
+On Mon, Jan 27, 2014 at 12:15 AM, Mark Brown <broonie@kernel.org> wrote:
+>> No, you don't get what I'm saying. For PC users, the lm90 did not
 >
->> I think I have a better idea: Surround the regulator code, or at least
->> its error handling, in the lm90 driver with
+> I understand perfectly well thank you very much.
 >
->> 	if (IS_ENABLED(CONFIG_OF)) {
->> 	}
+>> request a regulator and things worked because the kernel isn't supposed
+>> to take care about things like that on PC machines. Now that the lm90
+>> driver does request a regulator, it fails on PC machines because no
+>> regulator is declared.
 >
->> Would that be ok ? If yes I'll submit a patch. I'll do the same in
->> another driver I am working on.
+> If and only if the user has enabled the regulator API on a platform that
+> hasn't fully configured it; if the user has not enabled the regulator
+> API it'll stub itself out and they'll never see it.
 >
-> That's not going to have the desired effect in cases where DT is built
-> into the kernel but not in use on the current system (which is a
-> configuration that gets used) and will remove error handling for non-DT
-> systems that do have regulators set up.  There's not the relationship
-> between this and DT that you seem think there is...
+>> Don't tell me that it is expected that things will fail if
+>> CONFIG_REGULATOR is enabled on a system which doesn't need it. It
+>> doesn't make any sense. If kernels would fail as soon as any enabled
+>> option wasn't actually needed, no system would boot out there.
 >
-> Besides, if we're going to do a bodge like that we should do it in the
-> core and not in individual callers.
->
+> It's very easy to generate unbootable kernels by changing the kernel
+> config, I'd not immediately expect a randomly generated config to do
+> anything useful and things like FW_LOADER_USER_HELPER can be rather
+> miserable if you turn them on (that one produces enormous delays during
+> init which look awfully like hangs when you're watching your board
+> boot).
 
-Then it appears the only remedy at this time is to revert the patch.
+This is not just a randomly generated config where you disable critical
+options. Just enabling a subsystem like the regulator subsystem shouldn't
+give you an unbootable kernel. It's even needed, think multi-platform
+kernels.
+Typically, I'd expect allmodconfig/allyesconfig kernels to actually boot
+(ignoring RAM size issues etc.).
 
-Guenter
+Gr{oetje,eeting}s,
 
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
 
 _______________________________________________
 lm-sensors mailing list
