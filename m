@@ -1,87 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 28 Jan 2014 10:49:06 +0000
+From: "Frederic @ GMX" <freederic@gmx.com>
+Date: Tue, 28 Jan 2014 11:51:44 +0000
 Subject: Re: [lm-sensors] FanControl can not auto"load"
-Message-Id: <20140128114906.76bf0913@endymion.delvare>
+Message-Id: <1390909904.5646.11.camel@X4-955>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1390846853.4041.38.camel@X4-955>
 In-Reply-To: <1390846853.4041.38.camel@X4-955>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Frederic,
-
-On Tue, 28 Jan 2014 11:20:44 +0100, Frederic @ GMX wrote:
-> Le mardi 28 janvier 2014 =E0 08:12 +0100, Jean Delvare a =E9crit :
-> > Why did you want to update in the first place? What problem were you
-> > trying to solve?
-> A stupid raison :(=20
-> 1 - I change my CPU Cooler from a Cooler Master Hyper TX3 to a Scythe
-> Mugen 3=20
-> 2 - I would like change my CPU to jump to a AMD FX series ... with a new =
-motherboard.
-> 3 - I want make a lm-sensors config to check/remember the links between
-> sensors componants, parameters and fans
-> So, as I beleived I can change this config and swith back with my
-> previous backed-up config ... it was a dream.
-> I forgot the manual install of the downloaded package was not the same
-> way of an "official debian package"
-
-Not that it really matters, but I don't quite understand how any of
-these required updating to the latest version of lm-sensors.
-
-Also note that every motherboard uses different monitoring chips,
-monitoring drivers, and input and output mappings. So there's not so
-much from your old configuration information you will be able to reuse
-on the new system, I'm afraid.
-
-> > > What I have to check/correct ?
-> >=20
-> > The way services are started at boot time is distribution specific. I
-> > am not familiar with Debian so I can't really help there.
-> I had some doubts about the services.=20
-> On the donwloaded installation where is set the service startup ?
-
-By default it doesn't install anything related to services. Some
-distributions want systemd service files, some want legacy init
-scripts, so we leave it on the packager / user.
-
-> May be there is always the link available and the re-install don't
-> update this informations ?
-> I have to question Google about service on debian distri.
-
-Yes, you'll have to search about services on Debian. Find out how to
-get the list of services, the status of a service, how to change if a
-service should be started at boot, etc. I'm sorry I can't help here but
-it's really distribution-specific and last time I used Debian was in
-2001. I didn't know much about it and I've forgotten everything
-meanwhile.
-
-> > * Check if the fancontrol daemon is running:
-> >   # ps -ef | grep fancontrol
->   frederic@X4-955:~$ ps -ef | grep fancontrol
->   frederic  4355  4312  0 10:56 pts/1    00:00:00 grep fancontrol
->=20
-> !!! So it's mean that fancontrol run ???
-
-No. What you're seeing above if yourself searching for a "fancontrol"
-process. If fancontrol was running, you'd see another line.
-
-> but fan are full speed.
-> I run a terminal with :
-> root@X4-955:/home/frederic# /etc/init.d/fancontrol start
-> [ ok ] Starting fan speed regulator: fancontrol.
->=20
-> then fan speed slow down !
-
-fancontrol definitely still works, what's not working is the automatic
-start of the service at boot time.
-
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSmVhbiwKCkxlIG1hcmRpIDI4IGphbnZpZXIgMjAxNCDDoCAxMTo0OSArMDEwMCwgSmVhbiBE
+ZWx2YXJlIGEgw6ljcml0IDoKPiBIaSBGcmVkZXJpYywKPiAKPiBPbiBUdWUsIDI4IEphbiAyMDE0
+IDExOjIwOjQ0ICswMTAwLCBGcmVkZXJpYyBAIEdNWCB3cm90ZToKPiA+IExlIG1hcmRpIDI4IGph
+bnZpZXIgMjAxNCDDoCAwODoxMiArMDEwMCwgSmVhbiBEZWx2YXJlIGEgw6ljcml0IDoKPiA+ID4g
+V2h5IGRpZCB5b3Ugd2FudCB0byB1cGRhdGUgaW4gdGhlIGZpcnN0IHBsYWNlPyBXaGF0IHByb2Js
+ZW0gd2VyZSB5b3UKPiA+ID4gdHJ5aW5nIHRvIHNvbHZlPwo+ID4gQSBzdHVwaWQgcmFpc29uIDoo
+IAo+ID4gMSAtIEkgY2hhbmdlIG15IENQVSBDb29sZXIgZnJvbSBhIENvb2xlciBNYXN0ZXIgSHlw
+ZXIgVFgzIHRvIGEgU2N5dGhlCj4gPiBNdWdlbiAzIAo+ID4gMiAtIEkgd291bGQgbGlrZSBjaGFu
+Z2UgbXkgQ1BVIHRvIGp1bXAgdG8gYSBBTUQgRlggc2VyaWVzIC4uLiB3aXRoIGEgbmV3IG1vdGhl
+cmJvYXJkLgo+ID4gMyAtIEkgd2FudCBtYWtlIGEgbG0tc2Vuc29ycyBjb25maWcgdG8gY2hlY2sv
+cmVtZW1iZXIgdGhlIGxpbmtzIGJldHdlZW4KPiA+IHNlbnNvcnMgY29tcG9uYW50cywgcGFyYW1l
+dGVycyBhbmQgZmFucwo+ID4gU28sIGFzIEkgYmVsZWl2ZWQgSSBjYW4gY2hhbmdlIHRoaXMgY29u
+ZmlnIGFuZCBzd2l0aCBiYWNrIHdpdGggbXkKPiA+IHByZXZpb3VzIGJhY2tlZC11cCBjb25maWcg
+Li4uIGl0IHdhcyBhIGRyZWFtLgo+ID4gSSBmb3Jnb3QgdGhlIG1hbnVhbCBpbnN0YWxsIG9mIHRo
+ZSBkb3dubG9hZGVkIHBhY2thZ2Ugd2FzIG5vdCB0aGUgc2FtZQo+ID4gd2F5IG9mIGFuICJvZmZp
+Y2lhbCBkZWJpYW4gcGFja2FnZSIKPiAKPiBOb3QgdGhhdCBpdCByZWFsbHkgbWF0dGVycywgYnV0
+IEkgZG9uJ3QgcXVpdGUgdW5kZXJzdGFuZCBob3cgYW55IG9mCj4gdGhlc2UgcmVxdWlyZWQgdXBk
+YXRpbmcgdG8gdGhlIGxhdGVzdCB2ZXJzaW9uIG9mIGxtLXNlbnNvcnMuCj4gCj4gQWxzbyBub3Rl
+IHRoYXQgZXZlcnkgbW90aGVyYm9hcmQgdXNlcyBkaWZmZXJlbnQgbW9uaXRvcmluZyBjaGlwcywK
+PiBtb25pdG9yaW5nIGRyaXZlcnMsIGFuZCBpbnB1dCBhbmQgb3V0cHV0IG1hcHBpbmdzLiBTbyB0
+aGVyZSdzIG5vdCBzbwo+IG11Y2ggZnJvbSB5b3VyIG9sZCBjb25maWd1cmF0aW9uIGluZm9ybWF0
+aW9uIHlvdSB3aWxsIGJlIGFibGUgdG8gcmV1c2UKPiBvbiB0aGUgbmV3IHN5c3RlbSwgSSdtIGFm
+cmFpZC4KTm8gISBEb24ndCBiZSBhZnJhaWQgOikKSSBkb24ndCB3YW50IHRvIGNvcHkgY29uZmln
+IGZpbGUgbGlrZSB0aGF0ICEKSXQgd2FzIGp1c3QgZm9yIGhhdmUgYSBzdGVwLCBhIGZpbGUgdG8g
+Y29tcGFyZSBmb3IgY2hlY2sgcG9pbnQgdG8KbW9kaWZ5LgoKPiA+ID4gPiBXaGF0IEkgaGF2ZSB0
+byBjaGVjay9jb3JyZWN0ID8KPiA+ID4gCj4gPiA+IFRoZSB3YXkgc2VydmljZXMgYXJlIHN0YXJ0
+ZWQgYXQgYm9vdCB0aW1lIGlzIGRpc3RyaWJ1dGlvbiBzcGVjaWZpYy4gSQo+ID4gPiBhbSBub3Qg
+ZmFtaWxpYXIgd2l0aCBEZWJpYW4gc28gSSBjYW4ndCByZWFsbHkgaGVscCB0aGVyZS4KPiA+IEkg
+aGFkIHNvbWUgZG91YnRzIGFib3V0IHRoZSBzZXJ2aWNlcy4gCj4gPiBPbiB0aGUgZG9ud2xvYWRl
+ZCBpbnN0YWxsYXRpb24gd2hlcmUgaXMgc2V0IHRoZSBzZXJ2aWNlIHN0YXJ0dXAgPwo+IAo+IEJ5
+IGRlZmF1bHQgaXQgZG9lc24ndCBpbnN0YWxsIGFueXRoaW5nIHJlbGF0ZWQgdG8gc2VydmljZXMu
+IFNvbWUKPiBkaXN0cmlidXRpb25zIHdhbnQgc3lzdGVtZCBzZXJ2aWNlIGZpbGVzLCBzb21lIHdh
+bnQgbGVnYWN5IGluaXQKPiBzY3JpcHRzLCBzbyB3ZSBsZWF2ZSBpdCBvbiB0aGUgcGFja2FnZXIg
+LyB1c2VyLgpSaWdodC4KCj4gPiBNYXkgYmUgdGhlcmUgaXMgYWx3YXlzIHRoZSBsaW5rIGF2YWls
+YWJsZSBhbmQgdGhlIHJlLWluc3RhbGwgZG9uJ3QKPiA+IHVwZGF0ZSB0aGlzIGluZm9ybWF0aW9u
+cyA/Cj4gPiBJIGhhdmUgdG8gcXVlc3Rpb24gR29vZ2xlIGFib3V0IHNlcnZpY2Ugb24gZGViaWFu
+IGRpc3RyaS4KPiAKPiBZZXMsIHlvdSdsbCBoYXZlIHRvIHNlYXJjaCBhYm91dCBzZXJ2aWNlcyBv
+biBEZWJpYW4uIEZpbmQgb3V0IGhvdyB0bwo+IGdldCB0aGUgbGlzdCBvZiBzZXJ2aWNlcywgdGhl
+IHN0YXR1cyBvZiBhIHNlcnZpY2UsIGhvdyB0byBjaGFuZ2UgaWYgYQo+IHNlcnZpY2Ugc2hvdWxk
+IGJlIHN0YXJ0ZWQgYXQgYm9vdCwgZXRjLiBJJ20gc29ycnkgSSBjYW4ndCBoZWxwIGhlcmUgYnV0
+Cj4gaXQncyByZWFsbHkgZGlzdHJpYnV0aW9uLXNwZWNpZmljIGFuZCBsYXN0IHRpbWUgSSB1c2Vk
+IERlYmlhbiB3YXMgaW4KPiAyMDAxLiBJIGRpZG4ndCBrbm93IG11Y2ggYWJvdXQgaXQgYW5kIEkn
+dmUgZm9yZ290dGVuIGV2ZXJ5dGhpbmcKPiBtZWFud2hpbGUuCk5vIHByb2JsZW0uClF1ZXN0aW9u
+IHlvdSBhc2sgb3BlbiBteSBleWVzLgoKPiAKPiA+ID4gKiBDaGVjayBpZiB0aGUgZmFuY29udHJv
+bCBkYWVtb24gaXMgcnVubmluZzoKPiA+ID4gICAjIHBzIC1lZiB8IGdyZXAgZmFuY29udHJvbAo+
+ID4gICBmcmVkZXJpY0BYNC05NTU6fiQgcHMgLWVmIHwgZ3JlcCBmYW5jb250cm9sCj4gPiAgIGZy
+ZWRlcmljICA0MzU1ICA0MzEyICAwIDEwOjU2IHB0cy8xICAgIDAwOjAwOjAwIGdyZXAgZmFuY29u
+dHJvbAo+ID4gCj4gPiAhISEgU28gaXQncyBtZWFuIHRoYXQgZmFuY29udHJvbCBydW4gPz8/Cj4g
+Cj4gTm8uIFdoYXQgeW91J3JlIHNlZWluZyBhYm92ZSBpZiB5b3Vyc2VsZiBzZWFyY2hpbmcgZm9y
+IGEgImZhbmNvbnRyb2wiCj4gcHJvY2Vzcy4gSWYgZmFuY29udHJvbCB3YXMgcnVubmluZywgeW91
+J2Qgc2VlIGFub3RoZXIgbGluZS4KPiAKPiA+IGJ1dCBmYW4gYXJlIGZ1bGwgc3BlZWQuCj4gPiBJ
+IHJ1biBhIHRlcm1pbmFsIHdpdGggOgo+ID4gcm9vdEBYNC05NTU6L2hvbWUvZnJlZGVyaWMjIC9l
+dGMvaW5pdC5kL2ZhbmNvbnRyb2wgc3RhcnQKPiA+IFsgb2sgXSBTdGFydGluZyBmYW4gc3BlZWQg
+cmVndWxhdG9yOiBmYW5jb250cm9sLgo+ID4gCj4gPiB0aGVuIGZhbiBzcGVlZCBzbG93IGRvd24g
+IQo+IAo+IGZhbmNvbnRyb2wgZGVmaW5pdGVseSBzdGlsbCB3b3Jrcywgd2hhdCdzIG5vdCB3b3Jr
+aW5nIGlzIHRoZSBhdXRvbWF0aWMKPiBzdGFydCBvZiB0aGUgc2VydmljZSBhdCBib290IHRpbWUu
+CkFzIEkgd3JvdGUsIEkgc2F3IGhvdyB0byBjaGVjayBzZXJ2aWNlLgpDb21tYW5kIGxpbmUsIGFu
+ZCB0aGVyZSBpcyBhIEdVSSBmb3Igc2VydmljZXMuCkZhbmNvbnRyb2wgd2FzICJkaXNhYmxlIiAh
+Ckkgc3dpdGNoIGl0IGVuYWJsZSBhbmQgLi4uIGZpeGVkLgpTbywgSSBhbSBzbyBjb25mdXNlZCB0
+byBib3JlIGV2ZXJ5b25lLgoKSXQgaXMgYSBjYXNlIEkgd2lsbCByZW1lbWJlciwgYXMgbXkgYm9z
+cyBzYWlkIDogV2hlbiBpdCdzIHdvcmssIERPTidUClRPVUNIIEZSRUQgIQo6KSkKClJlZ2FyZHMg
+YW5kIHRoYW5rcwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
