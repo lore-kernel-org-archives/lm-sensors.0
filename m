@@ -1,38 +1,117 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Mon, 06 Jan 2014 12:36:51 +0000
-Subject: [lm-sensors] [PATCHv2 7/7] arm: dts: add thermal zones info on tmp102 for DRA7-EVM
-Message-Id: <1389011811-13004-8-git-send-email-eduardo.valentin@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 29 Jan 2014 19:48:25 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.14
+Message-Id: <20140129204825.4d6de026@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
-In-Reply-To: <1389011811-13004-1-git-send-email-eduardo.valentin@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rui.zhang@intel.com
-Cc: linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-QWRkIHNpbXBsZSB0aGVybWFsIHpvbmUgb24gdG1wMTAyLgoKQ2M6IEJlbm/DrnQgQ291c3NvbiA8
-YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29t
-PgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tPgpDYzogUGF3ZWwgTW9s
-bCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJt
-LmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4g
-Q2FtcGJlbGwgPGlqYytkZXZpY2V0cmVlQGhlbGxpb24ub3JnLnVrPgpDYzogUnVzc2VsbCBLaW5n
-IDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcK
-Q2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVs
-QHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRv
-LnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9kcmE3LWV2bS5kdHMgfCAx
-NSArKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCAxNSBpbnNlcnRpb25zKCspCgpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvZHJhNy1ldm0uZHRzCmluZGV4IDM2ZTJjOWUuLjFlYTljM2QgMTAwNjQ0Ci0tLSBhL2FyY2gv
-YXJtL2Jvb3QvZHRzL2RyYTctZXZtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3LWV2
-bS5kdHMKQEAgLTk1LDYgKzk1LDIxIEBACiAJfTsKIH07CiAKKyZ0aGVybWFsX3pvbmVzIHsKKwlw
-Y2JfdGhlcm1hbDogcGNiX3RoZXJtYWwgeworCQlwb2xsaW5nLWRlbGF5LXBhc3NpdmUgPSA8MjUw
-PjsgLyogbWlsbGlzZWNvbmRzICovCisJCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxp
-c2Vjb25kcyAqLworCQl0aGVybWFsLXNlbnNvcnMgPSA8JnRtcDEwMj47CisJCXRyaXBzIHsKKwkJ
-CWNyaXRAODAwMDAgeworCQkJdGVtcGVyYXR1cmUgPSA8ODAwMDA+OworCQkJCWh5c3RlcmVzaXMg
-PSA8MTAwMD47CisJCQkJdHlwZSA9ICJjcml0aWNhbCI7CisJCQl9OworCQl9OworCX07Cit9Owor
-CiAmaTJjMSB7CiAJc3RhdHVzID0gIm9rYXkiOwogCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7
-Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
-c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
-bG0tc2Vuc29ycw=
+Hi Linus,
+
+Please pull hwmon subsystem updates for Linux 3.14 from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+This include it87 driver improvements, and a tree-wide change of my
+e-mail address.
+
+ CREDITS                                    |   4 +-
+ Documentation/hwmon/adm1025                |   2 +-
+ Documentation/hwmon/adm1031                |   2 +-
+ Documentation/hwmon/adm9240                |   2 +-
+ Documentation/hwmon/ds1621                 |   2 +-
+ Documentation/hwmon/emc6w201               |   2 +-
+ Documentation/hwmon/f71805f                |   2 +-
+ Documentation/hwmon/gl518sm                |   2 +-
+ Documentation/hwmon/it87                   |  29 +++++---
+ Documentation/hwmon/lm63                   |   2 +-
+ Documentation/hwmon/lm70                   |   2 +-
+ Documentation/hwmon/lm78                   |   2 +-
+ Documentation/hwmon/lm83                   |   2 +-
+ Documentation/hwmon/lm87                   |   2 +-
+ Documentation/hwmon/lm90                   |   2 +-
+ Documentation/hwmon/lm92                   |   2 +-
+ Documentation/hwmon/max1619                |   2 +-
+ Documentation/hwmon/pc87360                |   2 +-
+ Documentation/hwmon/pc87427                |   2 +-
+ Documentation/hwmon/pcf8591                |   2 +-
+ Documentation/hwmon/smsc47m1               |   2 +-
+ Documentation/hwmon/w83627ehf              |   2 +-
+ Documentation/hwmon/w83795                 |   2 +-
+ Documentation/hwmon/w83l785ts              |   2 +-
+ Documentation/i2c/busses/i2c-i801          |   2 +-
+ Documentation/i2c/busses/i2c-parport       |   2 +-
+ Documentation/i2c/busses/i2c-parport-light |   2 +-
+ Documentation/i2c/busses/i2c-taos-evm      |   2 +-
+ Documentation/i2c/busses/i2c-viapro        |   2 +-
+ Documentation/misc-devices/eeprom          |   2 +-
+ MAINTAINERS                                |  32 ++++-----
+ drivers/char/i8k.c                         |   2 +-
+ drivers/hwmon/Kconfig                      |   4 +-
+ drivers/hwmon/adm1025.c                    |   4 +-
+ drivers/hwmon/adm1029.c                    |   2 +-
+ drivers/hwmon/adm1031.c                    |   2 +-
+ drivers/hwmon/adt7475.c                    |   2 +-
+ drivers/hwmon/ds1621.c                     |   2 +-
+ drivers/hwmon/emc6w201.c                   |   4 +-
+ drivers/hwmon/f71805f.c                    |   2 +-
+ drivers/hwmon/gl518sm.c                    |   2 +-
+ drivers/hwmon/it87.c                       | 108 +++++++++++++++++++++++------
+ drivers/hwmon/lm63.c                       |   4 +-
+ drivers/hwmon/lm78.c                       |   4 +-
+ drivers/hwmon/lm83.c                       |   4 +-
+ drivers/hwmon/lm85.c                       |   2 +-
+ drivers/hwmon/lm87.c                       |   4 +-
+ drivers/hwmon/lm90.c                       |   4 +-
+ drivers/hwmon/lm92.c                       |   4 +-
+ drivers/hwmon/lm93.c                       |   2 +-
+ drivers/hwmon/max1619.c                    |   5 +-
+ drivers/hwmon/max6642.c                    |   2 +-
+ drivers/hwmon/nct6775.c                    |   2 +-
+ drivers/hwmon/pc87360.c                    |   4 +-
+ drivers/hwmon/pc87427.c                    |   4 +-
+ drivers/hwmon/pcf8591.c                    |   2 +-
+ drivers/hwmon/sis5595.c                    |   2 +-
+ drivers/hwmon/smsc47b397.c                 |   2 +-
+ drivers/hwmon/smsc47m1.c                   |   2 +-
+ drivers/hwmon/w83627ehf.c                  |   4 +-
+ drivers/hwmon/w83627hf.c                   |   2 +-
+ drivers/hwmon/w83781d.c                    |   2 +-
+ drivers/hwmon/w83795.c                     |   4 +-
+ drivers/hwmon/w83l785ts.c                  |   6 +-
+ drivers/i2c/algos/i2c-algo-bit.c           |   2 +-
+ drivers/i2c/busses/i2c-amd756-s4882.c      |   4 +-
+ drivers/i2c/busses/i2c-i801.c              |   5 +-
+ drivers/i2c/busses/i2c-nforce2-s4985.c     |   4 +-
+ drivers/i2c/busses/i2c-parport-light.c     |   4 +-
+ drivers/i2c/busses/i2c-parport.c           |   4 +-
+ drivers/i2c/busses/i2c-parport.h           |   2 +-
+ drivers/i2c/busses/i2c-taos-evm.c          |   4 +-
+ drivers/i2c/busses/i2c-viapro.c            |   4 +-
+ drivers/i2c/i2c-core.c                     |   2 +-
+ drivers/i2c/i2c-smbus.c                    |   4 +-
+ drivers/i2c/i2c-stub.c                     |   2 +-
+ drivers/i2c/muxes/i2c-mux-pca954x.c        |   2 +-
+ drivers/misc/eeprom/eeprom.c               |   2 +-
+ include/linux/i2c-smbus.h                  |   2 +-
+ 79 files changed, 225 insertions(+), 148 deletions(-)
+
+---------------
+
+Jean Delvare (2):
+      hwmon: (it87) Print proper names for the IT8771E and IT8772E
+      Update Jean Delvare's e-mail address
+
+Rudolf Marek (1):
+      hwmon: (it87) Add support for the ITE IT8603E
+
+Thanks,
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
