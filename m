@@ -1,90 +1,71 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 29 Jan 2014 16:42:24 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 29 Jan 2014 18:25:43 +0000
 Subject: Re: [lm-sensors] Reading SPD on Intel Patsburg on Supermicro X9SRG-F board
-Message-Id: <20140129174224.3852916d@endymion.delvare>
+Message-Id: <20140129182543.GA23511@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
 In-Reply-To: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alun,
-
-On Tue, 28 Jan 2014 20:57:00 -0800, Alun Evans wrote:
-> I=92m trying to get some sense out of this:
->=20
-> 00:1f.3 SMBus: Intel Corporation C600/X79 series chipset SMBus Host Contr=
-oller (rev 05)
->         Subsystem: Super Micro Computer Inc Device 0661
->         Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B- DisINTx-
->         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR- INTx-
->         Interrupt: pin C routed to IRQ 18
->         Region 0: Memory at fba20000 (64-bit, non-prefetchable) [size=3D2=
-56]
->         Region 4: I/O ports at 1180 [size=3D32]
->         Kernel driver in use: i801_smbus
->         Kernel modules: i2c-i801
->=20
-> $ sudo i2cdetect -l
-> i2c-0   smbus           SMBus I801 adapter at 1180              SMBus ada=
-pter
-> i2c-1   i2c             igb BB                                  I2C adapt=
-er
-> i2c-2   i2c             igb BB                                  I2C adapt=
-er
->=20
-> The following doesn=92t make sense to me:
->=20
-> $ sudo i2cdetect 0
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c-0.
-> I will probe address range 0x03-0x77.
-> Continue? [Y/n] Y
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- -- -- -- 08 -- -- -- -- -- -- --=20
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --=20
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- 2d -- --=20
-> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --=20
-> 40: -- -- -- -- 44 -- -- -- 48 -- -- -- -- -- -- --=20
-> 50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --=20
-> 60: -- -- -- -- -- -- -- -- 68 69 -- -- 6c -- -- --=20
-> 70: -- -- -- -- -- -- -- --                        =20
->=20
-> Since I have two RDIMMs on this board:
->=20
-> $ sudo ./ipmicfg-linux.x86_64 -nm cpumemtemp
-> CPU#0 =3D 35(c)
-> [CPU#0]CHANNEL#2, DIMM#0(P1_DIMMC1) =3D 24(c)
-> [CPU#0]CHANNEL#2, DIMM#1(P1_DIMMC2) =3D 24(c)
->=20
-> And snooping the bus on boot up with a total phase Aardvark, I see that t=
-he DIMMs are on addr 0x50, and 0x51, and if I dump 0x50, I just see 256 byt=
-es of 0xff, rather than the SPD eeprom data that I was expecting.
-
-This is a big board with many DDR3 slots. It is possible that
-Supermicro put them being an I2C multiplexer. That would explain why
-you don't "see" them, the multiplexer must enable the right branch
-before you can see the SPD EEPROMs.
-
-Please ask Supermicro about it. If the memory slots are behind an I2C
-multiplexer, ask them if the multiplexer is I2C-based or GPIO-based. If
-I2C-based, ask for the multiplexer type and address. If GPIO-based, ask
-for the chip name and pin numbers for the GPIOs. In both case, please
-ask which GPIO combinations map to which memory slots.
-
-I've done that before for the Asus Z8 series, so if you can get all the
-technical details from Supermicro, I should be able to add support for
-your board to the i2c-i801 drivers.
-
---=20
-Jean Delvare
-http://jdelvare.nerim.net/wishlist.html
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCBKYW4gMjksIDIwMTQgYXQgMDU6NDI6MjRQTSArMDEwMCwgSmVhbiBEZWx2YXJlIHdy
+b3RlOgo+IEhpIEFsdW4sCj4gCj4gT24gVHVlLCAyOCBKYW4gMjAxNCAyMDo1NzowMCAtMDgwMCwg
+QWx1biBFdmFucyB3cm90ZToKPiA+IEnigJltIHRyeWluZyB0byBnZXQgc29tZSBzZW5zZSBvdXQg
+b2YgdGhpczoKPiA+IAo+ID4gMDA6MWYuMyBTTUJ1czogSW50ZWwgQ29ycG9yYXRpb24gQzYwMC9Y
+Nzkgc2VyaWVzIGNoaXBzZXQgU01CdXMgSG9zdCBDb250cm9sbGVyIChyZXYgMDUpCj4gPiAgICAg
+ICAgIFN1YnN5c3RlbTogU3VwZXIgTWljcm8gQ29tcHV0ZXIgSW5jIERldmljZSAwNjYxCj4gPiAg
+ICAgICAgIENvbnRyb2w6IEkvTysgTWVtKyBCdXNNYXN0ZXItIFNwZWNDeWNsZS0gTWVtV0lOVi0g
+VkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkItIERpc0lOVHgtCj4gPiAg
+ICAgICAgIFN0YXR1czogQ2FwLSA2Nk1Iei0gVURGLSBGYXN0QjJCKyBQYXJFcnItIERFVlNFTD1t
+ZWRpdW0gPlRBYm9ydC0gPFRBYm9ydC0gPE1BYm9ydC0gPlNFUlItIDxQRVJSLSBJTlR4LQo+ID4g
+ICAgICAgICBJbnRlcnJ1cHQ6IHBpbiBDIHJvdXRlZCB0byBJUlEgMTgKPiA+ICAgICAgICAgUmVn
+aW9uIDA6IE1lbW9yeSBhdCBmYmEyMDAwMCAoNjQtYml0LCBub24tcHJlZmV0Y2hhYmxlKSBbc2l6
+ZT0yNTZdCj4gPiAgICAgICAgIFJlZ2lvbiA0OiBJL08gcG9ydHMgYXQgMTE4MCBbc2l6ZT0zMl0K
+PiA+ICAgICAgICAgS2VybmVsIGRyaXZlciBpbiB1c2U6IGk4MDFfc21idXMKPiA+ICAgICAgICAg
+S2VybmVsIG1vZHVsZXM6IGkyYy1pODAxCj4gPiAKPiA+ICQgc3VkbyBpMmNkZXRlY3QgLWwKPiA+
+IGkyYy0wICAgc21idXMgICAgICAgICAgIFNNQnVzIEk4MDEgYWRhcHRlciBhdCAxMTgwICAgICAg
+ICAgICAgICBTTUJ1cyBhZGFwdGVyCj4gPiBpMmMtMSAgIGkyYyAgICAgICAgICAgICBpZ2IgQkIg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSTJDIGFkYXB0ZXIKPiA+IGkyYy0yICAg
+aTJjICAgICAgICAgICAgIGlnYiBCQiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBJ
+MkMgYWRhcHRlcgo+ID4gCj4gPiBUaGUgZm9sbG93aW5nIGRvZXNu4oCZdCBtYWtlIHNlbnNlIHRv
+IG1lOgo+ID4gCj4gPiAkIHN1ZG8gaTJjZGV0ZWN0IDAKPiA+IFdBUk5JTkchIFRoaXMgcHJvZ3Jh
+bSBjYW4gY29uZnVzZSB5b3VyIEkyQyBidXMsIGNhdXNlIGRhdGEgbG9zcyBhbmQgd29yc2UhCj4g
+PiBJIHdpbGwgcHJvYmUgZmlsZSAvZGV2L2kyYy0wLgo+ID4gSSB3aWxsIHByb2JlIGFkZHJlc3Mg
+cmFuZ2UgMHgwMy0weDc3Lgo+ID4gQ29udGludWU/IFtZL25dIFkKPiA+ICAgICAgMCAgMSAgMiAg
+MyAgNCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAgZCAgZSAgZgo+ID4gMDA6ICAgICAgICAgIC0t
+IC0tIC0tIC0tIC0tIDA4IC0tIC0tIC0tIC0tIC0tIC0tIC0tIAo+ID4gMTA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIAo+ID4gMjA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIDJkIC0tIC0tIAo+ID4gMzA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIAo+ID4gNDA6IC0tIC0tIC0tIC0t
+IDQ0IC0tIC0tIC0tIDQ4IC0tIC0tIC0tIC0tIC0tIC0tIC0tIAo+ID4gNTA6IDUwIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIAo+ID4gNjA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIDY4IDY5IC0tIC0tIDZjIC0tIC0tIC0tIAo+ID4gNzA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tICAgICAgICAgICAgICAgICAgICAgICAgIAo+ID4gCj4gPiBTaW5jZSBJIGhh
+dmUgdHdvIFJESU1NcyBvbiB0aGlzIGJvYXJkOgo+ID4gCj4gPiAkIHN1ZG8gLi9pcG1pY2ZnLWxp
+bnV4Lng4Nl82NCAtbm0gY3B1bWVtdGVtcAo+ID4gQ1BVIzAgPSAzNShjKQo+ID4gW0NQVSMwXUNI
+QU5ORUwjMiwgRElNTSMwKFAxX0RJTU1DMSkgPSAyNChjKQo+ID4gW0NQVSMwXUNIQU5ORUwjMiwg
+RElNTSMxKFAxX0RJTU1DMikgPSAyNChjKQo+ID4gCj4gPiBBbmQgc25vb3BpbmcgdGhlIGJ1cyBv
+biBib290IHVwIHdpdGggYSB0b3RhbCBwaGFzZSBBYXJkdmFyaywgSSBzZWUgdGhhdCB0aGUgRElN
+TXMgYXJlIG9uIGFkZHIgMHg1MCwgYW5kIDB4NTEsIGFuZCBpZiBJIGR1bXAgMHg1MCwgSSBqdXN0
+IHNlZSAyNTYgYnl0ZXMgb2YgMHhmZiwgcmF0aGVyIHRoYW4gdGhlIFNQRCBlZXByb20gZGF0YSB0
+aGF0IEkgd2FzIGV4cGVjdGluZy4KPiAKPiBUaGlzIGlzIGEgYmlnIGJvYXJkIHdpdGggbWFueSBE
+RFIzIHNsb3RzLiBJdCBpcyBwb3NzaWJsZSB0aGF0Cj4gU3VwZXJtaWNybyBwdXQgdGhlbSBiZWlu
+ZyBhbiBJMkMgbXVsdGlwbGV4ZXIuIFRoYXQgd291bGQgZXhwbGFpbiB3aHkKPiB5b3UgZG9uJ3Qg
+InNlZSIgdGhlbSwgdGhlIG11bHRpcGxleGVyIG11c3QgZW5hYmxlIHRoZSByaWdodCBicmFuY2gK
+PiBiZWZvcmUgeW91IGNhbiBzZWUgdGhlIFNQRCBFRVBST01zLgo+IApBZ3JlZWQsIGVzcGVjaWFs
+bHkgc2luY2UgdGhlIFNQRCBvbiAweDUxIGRvZXMgbm90IHNob3cgdXAgYXQgYWxsLgoKPiBQbGVh
+c2UgYXNrIFN1cGVybWljcm8gYWJvdXQgaXQuIElmIHRoZSBtZW1vcnkgc2xvdHMgYXJlIGJlaGlu
+ZCBhbiBJMkMKPiBtdWx0aXBsZXhlciwgYXNrIHRoZW0gaWYgdGhlIG11bHRpcGxleGVyIGlzIEky
+Qy1iYXNlZCBvciBHUElPLWJhc2VkLiBJZgo+IEkyQy1iYXNlZCwgYXNrIGZvciB0aGUgbXVsdGlw
+bGV4ZXIgdHlwZSBhbmQgYWRkcmVzcy4gSWYgR1BJTy1iYXNlZCwgYXNrCj4gZm9yIHRoZSBjaGlw
+IG5hbWUgYW5kIHBpbiBudW1iZXJzIGZvciB0aGUgR1BJT3MuIEluIGJvdGggY2FzZSwgcGxlYXNl
+Cj4gYXNrIHdoaWNoIEdQSU8gY29tYmluYXRpb25zIG1hcCB0byB3aGljaCBtZW1vcnkgc2xvdHMu
+Cj4gCkkgd291bGQgc3VzcGVjdCBpdCBpcyBHUElPOyB0aGUgaTJjIG11eGVzIGFyZSB0eXBpY2Fs
+bHkgYXQgYWRkcmVzcyAweDd4CndoaWNoIGlzIGVtcHR5IGluIGFib3ZlIGkyY2RldGVjdCBsb2cu
+IFRoZSBEU0RUIG1pZ2h0IGdpdmUgYSBoaW50IGlmIHdlCmFyZSByZWFsbHkgbHVja3kuIE5vdCB0
+aGF0IEkgYW0gYW55IGdvb2QgaW4gZGVjb2RpbmcgRFNEVHMsIHRob3VnaCA7LSkuCgpHdWVudGVy
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5z
+b3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5s
+bS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
