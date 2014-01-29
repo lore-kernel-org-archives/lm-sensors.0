@@ -1,14 +1,16 @@
 From: Philip Guyton <phil.lxnet@gmail.com>
-Date: Wed, 29 Jan 2014 16:05:59 +0000
-Subject: [lm-sensors] configuration file for Asus Z87M-Plus motherboard attached
-Message-Id: <CADbbYFPspWipwkw4_hUfWuOsvXOpj-AUjpsgQfSt_kAFG+bYQA@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="047d7b86de82e57e5e04f11e1d7e"
+Date: Wed, 29 Jan 2014 16:29:59 +0000
+Subject: [lm-sensors] configuration file for Asus Z87M-Plus motherboard attached inline
+Message-Id: <CADbbYFMdSL9SKtRGisvXvHidAhFube6=7c+JVN0OtM4aN4y0Rw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CADbbYFPspWipwkw4_hUfWuOsvXOpj-AUjpsgQfSt_kAFG+bYQA@mail.gmail.com>
+In-Reply-To: <CADbbYFPspWipwkw4_hUfWuOsvXOpj-AUjpsgQfSt_kAFG+bYQA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---047d7b86de82e57e5e04f11e1d7e
-Content-Type: text/plain; charset=ISO-8859-1
+Sorry to spam but last attachment in bin mode!
 
 Could the following attached config file be added to the wiki, I would
 do it myself but don't have and don't know how to get a wiki account,
@@ -32,75 +34,109 @@ There are notes within the config file and I believe it to be fit for
 general use.
 
 Philip G
+In line contents of Asus-Z87M-Plus
 
---047d7b86de82e57e5e04f11e1d7e
-Content-Type: application/octet-stream; name=Asus-Z87M-PLUS
-Content-Disposition: attachment; filename=Asus-Z87M-PLUS
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hr0s4x5d0
+chip "nct6791-*"
+# nct6791d or compatible chip at 0x2e:0x290 Asus Z87M-PLUS bios 0903
+# non current kernels will require more recent nct6775 module from
+# https://github.com/groeck/nct6775
 
-Y2hpcCAibmN0Njc5MS0qIgojIG5jdDY3OTFkIG9yIGNvbXBhdGlibGUgY2hpcCBhdCAweDJlOjB4
-MjkwIEFzdXMgWjg3TS1QTFVTIGJpb3MgMDkwMwojIG5vbiBjdXJyZW50IGtlcm5lbHMgd2lsbCBy
-ZXF1aXJlIG1vcmUgcmVjZW50IG5jdDY3NzUgbW9kdWxlIGZyb20KIyBodHRwczovL2dpdGh1Yi5j
-b20vZ3JvZWNrL25jdDY3NzUKCiMgRmFucwogIGxhYmVsIGZhbjIgIkNQVSBGYW4iCiAgbGFiZWwg
-ZmFuMSAiU3lzdGVtIEZBTjEiCiAgbGFiZWwgZmFuMyAiU3lzdGVtIEZBTjIiCiMgb25seSAzIGZh
-biBoZWFkZXJzIG9uIEFzdXMgWjg3TS1QTFVTIHNvIGlnbm9yZSBmYW40LCBmYW41CiAgaWdub3Jl
-IGZhbjQKICBpZ25vcmUgZmFuNQoKIyBhZGQgc2NhbGUgdG8gaW4wIC8gVkNDSU4gKEhhc3dlbGwp
-IHRvIGNoYW5nZSBmcm9tIDAuODggcmF3ICogMiA9IDEuNzZWCiMgdGhlbiBhZ3JlZXMgd2l0aCBW
-Q0NJTiByZWFkaW5nIG9mIGJpb3Mgd2l0aCBpNDY3MEsKIyBhbHNvIGFncmVlZCB3aXRoIGJpb3Mg
-cmVhZGluZ3Mgd2l0aCBpNDU3MCBpZSAwLjg3MiByYXcgKiAyID0gMS43NDRWCiAgbGFiZWwgaW4w
-ICJWQ0NJTiIKICBjb21wdXRlIGluMCBAKjIsIEAvMgojIGFkanVzdCByYW5nZSwganVzdCBtYWRl
-IHRoZXNlIHVwIG9uIHVzdWFsIDUlIG9mIGk0NjcwSwogIHNldCBpbjBfbWluIDEuNzYqMC45NQog
-IHNldCBpbjBfbWF4IDEuNzYqMS4wNQoKIyBzZW5zb3JzIC11IGdpdmVzIDEuMDI0IHdoaWNoICo1
-IGlzIGV4YWN0bHkgd2hhdCBiaW9zIGdpdmVzIDVWIGFzCiAgbGFiZWwgaW4xICI1ViIKICBjb21w
-dXRlIGluMSBAKjUsIEAvNQojIGFkZCBhIDUlIHRvbGVyYW5jZSBhcyBwZXIgQVRYIHNwZWMKICBz
-ZXQgaW4xX21pbiA1KjAuOTUKICBzZXQgaW4xX21heCA1KjEuMDUKCiMgc2Vuc29yIC11IGdpdmVz
-IDMuMjgwIHdoaWNoIGlzIGV4YWN0bHkgd2hhdCBiaW9zIGdpdmVzIDMuM1YgbGluZQogIGxhYmVs
-IGluMiAiKzMuM1YiCiMgYWRkIGEgNSUgdG9sZXJhbmNlIGFzIHBlciBBVFggc3BlYwogIHNldCBp
-bjJfbWluIDMuMyowLjk1CiAgc2V0IGluMl9tYXggMy4zKjEuMDUKCiMgSSBoYXZlIHNlZW4gaW4z
-IGdpdmUgdGhlIGZvbGxvd2luZyByZWFkaW5ncyB2aWEgc2Vuc29yIC11CiMgMy4yODAgMy4yNjQK
-IyBkb24ndCBrbm93IHdoYXQgaXQgaXMuCiAgCiMgc2Vuc29ycyAtdSBnaXZlcyAxLjAxNiB3aGlj
-aCAqMTIgaXMgZXhhY3RseSB3aGF0IGJpb3MgZ2l2ZXMgMTJWIGFzCiAgbGFiZWwgaW40ICIxMlYi
-CiAgY29tcHV0ZSBpbjQgQCoxMiwgQC8xMgojIGFkZCBhIDUlIHRvbGVyYW5jZSBhcyBwZXIgQVRY
-IHNwZWMKICBzZXQgaW40X21pbiAxMiowLjk1CiAgc2V0IGluNF9tYXggMTIqMS4wNQoKIyBJIGhh
-dmUgc2VlbiBpbjYgZ2l2ZSB0aGUgZm9sbG93aW5nIHJlYWRpbmdzIHZpYSBzZW5zb3JzIC11CiMg
-MC44NDggMC44NTYgMC44NjQsIDAuODcyLCAwLjg4MCwgMC45MDQsIDAuOTEyIHNvIG1vc3RseSAw
-LjAwOCBpbnRlcnZhbAojIGhhdmVuJ3QgbWF0Y2hlZCBpdCB0byBhbnl0aGluZy4KCiMgQXNzdW1p
-bmcgaW43IGlzIDNWU0IgKFN0YW5kIEJ5KSBmcm9tIHZvbHRhZ2UgYXMgYSBsaXR0bGUgZnVydGhl
-ciBvZmYKIyBhbHNvIGZyb20gbmN0Njc3Ni0qIGVudHJ5IGluIC9ldGMvc2Vuc29yczMuY29uZgog
-IGxhYmVsIGluNyAiM1ZTQiIKIyBhZGQgYSA1JSB0b2xlcmFuY2UgYXMgcGVyIEFUWCBzcGVjCiAg
-c2V0IGluN19taW4gMy4zKjAuOTUKICBzZXQgaW43X21heCAzLjMqMS4wNQogIAojIEFzc3VtaW5n
-IGluOCBhcyBWYmF0IGZyb20gbmN0Njc3Ni0qIGVudHJ5IGluIC9ldGMvc2Vuc29yczMuY29uZgog
-IGxhYmVsIGluOCAiVmJhdCIKIyBhZGQgYSAxMCUgdG9sZXJhbmNlIGluIGJhdHRlcnkgdm9sdGFn
-ZQogIHNldCBpbjhfbWluIDMuMCowLjkwCiAgc2V0IGluOF9tYXggMy4zKjEuMTAKCiMgSGFzd2Vs
-bCBzcGVjcyBnaXZlIG1heCB0ZW1wIG9mIDcyQyAoY2FzZSkgNzdDIChjb3JlKQojIFRoaXMgbmVl
-ZCBjaGVja2luZy4KIyBwdXR0aW5nIG1vcmUgY29uc2VydmF0aXZlIG1heCB0ZW1wcyBvbiBDUFVU
-SU4gKHRlbXAyKQojIHVzaW5nIDcyIHRvIGJlIHNhZmUgYnV0IG1heSBiZSBqdXN0IHBsYWluIHdy
-b25nCiAgc2V0IHRlbXAyX21heCA3MgogIHNldCB0ZW1wMl9tYXhfaHlzdCA2NwogIAojIEkgaGF2
-ZSBzZWVuIGluOSBnaXZlIHRoZSBmb2xsb3dpbmcgcmVhZGluZ3MgdmlhIHNlbnNvciAtdQojIDEu
-MDA4CiMgaGF2ZW4ndCBtYXRjaGVkIGl0IHRvIGFueXRoaW5nLgogIAojIGluNSAmIDEwIGFsd2F5
-cyByZWFkcyArMC4xNVYgb24gMiBib2FyZHMsIGlnbm9yaW5nCiAgaWdub3JlIGluNQogIGlnbm9y
-ZSBpbjEwCiMgaW4xMSAmIDE0IGFsd2F5cyByZWFkcyArMC4xM1Ygb24gMiBib2FyZHMsIGlnbm9y
-aW5nCiAgaWdub3JlIGluMTEKICBpZ25vcmUgaW4xNAojIGluMTIgJiAxMyBhbHdheXMgcmVhZHMg
-KzAuMTMgb3IgKzAuMTJWIG9uIDIgYm9hcmRzLCBpZ25vcmluZwogIGlnbm9yZSBpbjEyCiAgaWdu
-b3JlIGluMTMKICAKIyBBc3N1bWluZyBub3QgY29ubmVjdGVkIHRvIGFueXRoaW5nIGFzIHZlcnkg
-aGlnaCB2YWx1ZXMgdGhhdCBkb24ndCBjaGFuZ2UKIyBEb24ndCBrbm93IHRob3VnaCEKICBpZ25v
-cmUgU1lTVElOCiAgaWdub3JlIEFVWFRJTjEKICBpZ25vcmUgQVVYVElOMgogIGlnbm9yZSBBVVhU
-SU4zCiMgTm90ZSBBVVhUSU4wIHJlYWRzIGFib3V0IDM0LCAzNC41IEMgb24gb25lIG1hY2hpbmUK
-IyBhbmQgMzQsIDM1LCBhbmQgMzYgQyBvbiBhbm90aGVyIG1hY2hpbmUKIyBidXQgYWZ0ZXIgZmly
-c3Qgc3VzcGVuZCByZXN1bWUgaXQgcmVhZHMgMTE1QyBvbiBvbmUgYm94IGFuZCAxMTlDIG9uIHRo
-ZSBvdGhlci4KICAKIyBhZHZpc2VkIGJ5IEd1ZW50ZXIgYXQgaHR0cHM6Ly9naXRodWIuY29tL2dy
-b2Vjay9uY3Q2Nzc1L2lzc3Vlcy8xMSB0byBpZ25vcmUgdGhlIGZvbGxvd2luZyAzCiAgaWdub3Jl
-IFBDSF9DSElQX0NQVV9NQVhfVEVNUAogIGlnbm9yZSBQQ0hfQ0hJUF9URU1QCiAgaWdub3JlIFBD
-SF9DUFVfVEVNUAoKCg==
---047d7b86de82e57e5e04f11e1d7e
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+# Fans
+  label fan2 "CPU Fan"
+  label fan1 "System FAN1"
+  label fan3 "System FAN2"
+# only 3 fan headers on Asus Z87M-PLUS so ignore fan4, fan5
+  ignore fan4
+  ignore fan5
+
+# add scale to in0 / VCCIN (Haswell) to change from 0.88 raw * 2 = 1.76V
+# then agrees with VCCIN reading of bios with i4670K
+# also agreed with bios readings with i4570 ie 0.872 raw * 2 = 1.744V
+  label in0 "VCCIN"
+  compute in0 @*2, @/2
+# adjust range, just made these up on usual 5% of i4670K
+  set in0_min 1.76*0.95
+  set in0_max 1.76*1.05
+
+# sensors -u gives 1.024 which *5 is exactly what bios gives 5V as
+  label in1 "5V"
+  compute in1 @*5, @/5
+# add a 5% tolerance as per ATX spec
+  set in1_min 5*0.95
+  set in1_max 5*1.05
+
+# sensor -u gives 3.280 which is exactly what bios gives 3.3V line
+  label in2 "+3.3V"
+# add a 5% tolerance as per ATX spec
+  set in2_min 3.3*0.95
+  set in2_max 3.3*1.05
+
+# I have seen in3 give the following readings via sensor -u
+# 3.280 3.264
+# don't know what it is.
+
+# sensors -u gives 1.016 which *12 is exactly what bios gives 12V as
+  label in4 "12V"
+  compute in4 @*12, @/12
+# add a 5% tolerance as per ATX spec
+  set in4_min 12*0.95
+  set in4_max 12*1.05
+
+# I have seen in6 give the following readings via sensors -u
+# 0.848 0.856 0.864, 0.872, 0.880, 0.904, 0.912 so mostly 0.008 interval
+# haven't matched it to anything.
+
+# Assuming in7 is 3VSB (Stand By) from voltage as a little further off
+# also from nct6776-* entry in /etc/sensors3.conf
+  label in7 "3VSB"
+# add a 5% tolerance as per ATX spec
+  set in7_min 3.3*0.95
+  set in7_max 3.3*1.05
+
+# Assuming in8 as Vbat from nct6776-* entry in /etc/sensors3.conf
+  label in8 "Vbat"
+# add a 10% tolerance in battery voltage
+  set in8_min 3.0*0.90
+  set in8_max 3.3*1.10
+
+# Haswell specs give max temp of 72C (case) 77C (core)
+# This need checking.
+# putting more conservative max temps on CPUTIN (temp2)
+# using 72 to be safe but may be just plain wrong
+  set temp2_max 72
+  set temp2_max_hyst 67
+
+# I have seen in9 give the following readings via sensor -u
+# 1.008
+# haven't matched it to anything.
+
+# in5 & 10 always reads +0.15V on 2 boards, ignoring
+  ignore in5
+  ignore in10
+# in11 & 14 always reads +0.13V on 2 boards, ignoring
+  ignore in11
+  ignore in14
+# in12 & 13 always reads +0.13 or +0.12V on 2 boards, ignoring
+  ignore in12
+  ignore in13
+
+# Assuming not connected to anything as very high values that don't change
+# Don't know though!
+  ignore SYSTIN
+  ignore AUXTIN1
+  ignore AUXTIN2
+  ignore AUXTIN3
+# Note AUXTIN0 reads about 34, 34.5 C on one machine
+# and 34, 35, and 36 C on another machine
+# but after first suspend resume it reads 115C on one box and 119C on the other.
+
+# advised by Guenter at https://github.com/groeck/nct6775/issues/11 to
+ignore the following 3
+  ignore PCH_CHIP_CPU_MAX_TEMP
+  ignore PCH_CHIP_TEMP
+  ignore PCH_CPU_TEMP
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---047d7b86de82e57e5e04f11e1d7e--
