@@ -1,67 +1,106 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 29 Jan 2014 16:32:25 +0000
-Subject: Re: [lm-sensors] [PATCH, RFC] libsensors: Avoid insane memory  allocations
-Message-Id: <20140129173225.3aca8bb9@endymion.delvare>
+From: Philip Guyton <phil.lxnet@gmail.com>
+Date: Wed, 29 Jan 2014 16:05:59 +0000
+Subject: [lm-sensors] configuration file for Asus Z87M-Plus motherboard attached
+Message-Id: <CADbbYFPspWipwkw4_hUfWuOsvXOpj-AUjpsgQfSt_kAFG+bYQA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="047d7b86de82e57e5e04f11e1d7e"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140129160035.4537ecc9@endymion.delvare>
-In-Reply-To: <20140129160035.4537ecc9@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 29 Jan 2014 08:16:35 -0800, Guenter Roeck wrote:
-> On Wed, Jan 29, 2014 at 04:00:35PM +0100, Jean Delvare wrote:
-> > While there is no longer a hard limit to the number of sensor of a
-> > given type per chip, I feel a little uncomfortable having no limit at
-> > all on the amount of memory we may try to allocate. Add an arbitrary
-> > safety limit so that a design error or a bug in a hwmon driver can't
-> > result into an insane memory allocation.
-> > ---
-> > Does anyone have an opinion on this? No limit at all makes me feel bad,
-> > but I don't like arbitrary limits either. So I'm really not sure what
-> > is the best option here.
-> > 
-> >  lib/sysfs.c |    7 ++++---
-> >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > --- lm-sensors.orig/lib/sysfs.c	2014-01-29 15:44:03.544339229 +0100
-> > +++ lm-sensors/lib/sysfs.c	2014-01-29 15:59:50.074019877 +0100
-> > @@ -1,7 +1,7 @@
-> >  /*
-> >      sysfs.c - Part of libsensors, a library for reading Linux sensor data
-> >      Copyright (c) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
-> > -    Copyright (C) 2007-2010 Jean Delvare <khali@linux-fr.org>
-> > +    Copyright (C) 2007-2014 Jean Delvare <khali@linux-fr.org>
-> >  
-> >      This library is free software; you can redistribute it and/or
-> >      modify it under the terms of the GNU Lesser General Public
-> > @@ -468,8 +468,9 @@ static int sensors_read_dynamic_chip(sen
-> >  			break;
-> >  		}
-> >  
-> > -		/* Skip invalid entries */
-> > -		if (nr < 0) {
-> > +		/* Skip invalid entries. The high limit is arbitrary, we just
-> > +		   don't want to allocate an insane amount of memory. */
-> > +		if (nr < 0 || nr >= 8192) {
-> 
-> Hi Jean,
-> 
-> makes sense, and good idea.
-> 
-> Does that mean the limit is 8191 sensors per type ? May be a bit high.
-> I'd be more restrictive and go with something like 1024.
+--047d7b86de82e57e5e04f11e1d7e
+Content-Type: text/plain; charset=ISO-8859-1
 
-Fine with me. I don't really expect anyone to go anywhere close to that
-so it should be OK. And if we ever spot really huge values, we can
-always raise the limit then.
+Could the following attached config file be added to the wiki, I would
+do it myself but don't have and don't know how to get a wiki account,
+guidance on this for future edits of this file would be appreciated.
 
-Thanks,
--- 
-Jean Delvare
+I have 2 machines with different cpus using this motherboard and have
+confirmed VCCIN (Haswell), +3.3V, 5V, and 12V on both to correspond
+exactly with the bios readings.  Fan readings also look good and all 3
+fan headers have been tested.  I have used stock 13.10 kubuntu
+(default lm-sensors 3.3.3) but with the nct6775 module from
+https://github.com/groeck/nct6775 to drive the nct6791d chip on this
+board.
+
+My thanks to all the lm-sensors and related teams.
+
+There are still some unknowns but the basics are up and running.  I
+have intentionally left the unknown / unlabelled values without min
+and max settings so they still show alarm state.
+
+There are notes within the config file and I believe it to be fit for
+general use.
+
+Philip G
+
+--047d7b86de82e57e5e04f11e1d7e
+Content-Type: application/octet-stream; name=Asus-Z87M-PLUS
+Content-Disposition: attachment; filename=Asus-Z87M-PLUS
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hr0s4x5d0
+
+Y2hpcCAibmN0Njc5MS0qIgojIG5jdDY3OTFkIG9yIGNvbXBhdGlibGUgY2hpcCBhdCAweDJlOjB4
+MjkwIEFzdXMgWjg3TS1QTFVTIGJpb3MgMDkwMwojIG5vbiBjdXJyZW50IGtlcm5lbHMgd2lsbCBy
+ZXF1aXJlIG1vcmUgcmVjZW50IG5jdDY3NzUgbW9kdWxlIGZyb20KIyBodHRwczovL2dpdGh1Yi5j
+b20vZ3JvZWNrL25jdDY3NzUKCiMgRmFucwogIGxhYmVsIGZhbjIgIkNQVSBGYW4iCiAgbGFiZWwg
+ZmFuMSAiU3lzdGVtIEZBTjEiCiAgbGFiZWwgZmFuMyAiU3lzdGVtIEZBTjIiCiMgb25seSAzIGZh
+biBoZWFkZXJzIG9uIEFzdXMgWjg3TS1QTFVTIHNvIGlnbm9yZSBmYW40LCBmYW41CiAgaWdub3Jl
+IGZhbjQKICBpZ25vcmUgZmFuNQoKIyBhZGQgc2NhbGUgdG8gaW4wIC8gVkNDSU4gKEhhc3dlbGwp
+IHRvIGNoYW5nZSBmcm9tIDAuODggcmF3ICogMiA9IDEuNzZWCiMgdGhlbiBhZ3JlZXMgd2l0aCBW
+Q0NJTiByZWFkaW5nIG9mIGJpb3Mgd2l0aCBpNDY3MEsKIyBhbHNvIGFncmVlZCB3aXRoIGJpb3Mg
+cmVhZGluZ3Mgd2l0aCBpNDU3MCBpZSAwLjg3MiByYXcgKiAyID0gMS43NDRWCiAgbGFiZWwgaW4w
+ICJWQ0NJTiIKICBjb21wdXRlIGluMCBAKjIsIEAvMgojIGFkanVzdCByYW5nZSwganVzdCBtYWRl
+IHRoZXNlIHVwIG9uIHVzdWFsIDUlIG9mIGk0NjcwSwogIHNldCBpbjBfbWluIDEuNzYqMC45NQog
+IHNldCBpbjBfbWF4IDEuNzYqMS4wNQoKIyBzZW5zb3JzIC11IGdpdmVzIDEuMDI0IHdoaWNoICo1
+IGlzIGV4YWN0bHkgd2hhdCBiaW9zIGdpdmVzIDVWIGFzCiAgbGFiZWwgaW4xICI1ViIKICBjb21w
+dXRlIGluMSBAKjUsIEAvNQojIGFkZCBhIDUlIHRvbGVyYW5jZSBhcyBwZXIgQVRYIHNwZWMKICBz
+ZXQgaW4xX21pbiA1KjAuOTUKICBzZXQgaW4xX21heCA1KjEuMDUKCiMgc2Vuc29yIC11IGdpdmVz
+IDMuMjgwIHdoaWNoIGlzIGV4YWN0bHkgd2hhdCBiaW9zIGdpdmVzIDMuM1YgbGluZQogIGxhYmVs
+IGluMiAiKzMuM1YiCiMgYWRkIGEgNSUgdG9sZXJhbmNlIGFzIHBlciBBVFggc3BlYwogIHNldCBp
+bjJfbWluIDMuMyowLjk1CiAgc2V0IGluMl9tYXggMy4zKjEuMDUKCiMgSSBoYXZlIHNlZW4gaW4z
+IGdpdmUgdGhlIGZvbGxvd2luZyByZWFkaW5ncyB2aWEgc2Vuc29yIC11CiMgMy4yODAgMy4yNjQK
+IyBkb24ndCBrbm93IHdoYXQgaXQgaXMuCiAgCiMgc2Vuc29ycyAtdSBnaXZlcyAxLjAxNiB3aGlj
+aCAqMTIgaXMgZXhhY3RseSB3aGF0IGJpb3MgZ2l2ZXMgMTJWIGFzCiAgbGFiZWwgaW40ICIxMlYi
+CiAgY29tcHV0ZSBpbjQgQCoxMiwgQC8xMgojIGFkZCBhIDUlIHRvbGVyYW5jZSBhcyBwZXIgQVRY
+IHNwZWMKICBzZXQgaW40X21pbiAxMiowLjk1CiAgc2V0IGluNF9tYXggMTIqMS4wNQoKIyBJIGhh
+dmUgc2VlbiBpbjYgZ2l2ZSB0aGUgZm9sbG93aW5nIHJlYWRpbmdzIHZpYSBzZW5zb3JzIC11CiMg
+MC44NDggMC44NTYgMC44NjQsIDAuODcyLCAwLjg4MCwgMC45MDQsIDAuOTEyIHNvIG1vc3RseSAw
+LjAwOCBpbnRlcnZhbAojIGhhdmVuJ3QgbWF0Y2hlZCBpdCB0byBhbnl0aGluZy4KCiMgQXNzdW1p
+bmcgaW43IGlzIDNWU0IgKFN0YW5kIEJ5KSBmcm9tIHZvbHRhZ2UgYXMgYSBsaXR0bGUgZnVydGhl
+ciBvZmYKIyBhbHNvIGZyb20gbmN0Njc3Ni0qIGVudHJ5IGluIC9ldGMvc2Vuc29yczMuY29uZgog
+IGxhYmVsIGluNyAiM1ZTQiIKIyBhZGQgYSA1JSB0b2xlcmFuY2UgYXMgcGVyIEFUWCBzcGVjCiAg
+c2V0IGluN19taW4gMy4zKjAuOTUKICBzZXQgaW43X21heCAzLjMqMS4wNQogIAojIEFzc3VtaW5n
+IGluOCBhcyBWYmF0IGZyb20gbmN0Njc3Ni0qIGVudHJ5IGluIC9ldGMvc2Vuc29yczMuY29uZgog
+IGxhYmVsIGluOCAiVmJhdCIKIyBhZGQgYSAxMCUgdG9sZXJhbmNlIGluIGJhdHRlcnkgdm9sdGFn
+ZQogIHNldCBpbjhfbWluIDMuMCowLjkwCiAgc2V0IGluOF9tYXggMy4zKjEuMTAKCiMgSGFzd2Vs
+bCBzcGVjcyBnaXZlIG1heCB0ZW1wIG9mIDcyQyAoY2FzZSkgNzdDIChjb3JlKQojIFRoaXMgbmVl
+ZCBjaGVja2luZy4KIyBwdXR0aW5nIG1vcmUgY29uc2VydmF0aXZlIG1heCB0ZW1wcyBvbiBDUFVU
+SU4gKHRlbXAyKQojIHVzaW5nIDcyIHRvIGJlIHNhZmUgYnV0IG1heSBiZSBqdXN0IHBsYWluIHdy
+b25nCiAgc2V0IHRlbXAyX21heCA3MgogIHNldCB0ZW1wMl9tYXhfaHlzdCA2NwogIAojIEkgaGF2
+ZSBzZWVuIGluOSBnaXZlIHRoZSBmb2xsb3dpbmcgcmVhZGluZ3MgdmlhIHNlbnNvciAtdQojIDEu
+MDA4CiMgaGF2ZW4ndCBtYXRjaGVkIGl0IHRvIGFueXRoaW5nLgogIAojIGluNSAmIDEwIGFsd2F5
+cyByZWFkcyArMC4xNVYgb24gMiBib2FyZHMsIGlnbm9yaW5nCiAgaWdub3JlIGluNQogIGlnbm9y
+ZSBpbjEwCiMgaW4xMSAmIDE0IGFsd2F5cyByZWFkcyArMC4xM1Ygb24gMiBib2FyZHMsIGlnbm9y
+aW5nCiAgaWdub3JlIGluMTEKICBpZ25vcmUgaW4xNAojIGluMTIgJiAxMyBhbHdheXMgcmVhZHMg
+KzAuMTMgb3IgKzAuMTJWIG9uIDIgYm9hcmRzLCBpZ25vcmluZwogIGlnbm9yZSBpbjEyCiAgaWdu
+b3JlIGluMTMKICAKIyBBc3N1bWluZyBub3QgY29ubmVjdGVkIHRvIGFueXRoaW5nIGFzIHZlcnkg
+aGlnaCB2YWx1ZXMgdGhhdCBkb24ndCBjaGFuZ2UKIyBEb24ndCBrbm93IHRob3VnaCEKICBpZ25v
+cmUgU1lTVElOCiAgaWdub3JlIEFVWFRJTjEKICBpZ25vcmUgQVVYVElOMgogIGlnbm9yZSBBVVhU
+SU4zCiMgTm90ZSBBVVhUSU4wIHJlYWRzIGFib3V0IDM0LCAzNC41IEMgb24gb25lIG1hY2hpbmUK
+IyBhbmQgMzQsIDM1LCBhbmQgMzYgQyBvbiBhbm90aGVyIG1hY2hpbmUKIyBidXQgYWZ0ZXIgZmly
+c3Qgc3VzcGVuZCByZXN1bWUgaXQgcmVhZHMgMTE1QyBvbiBvbmUgYm94IGFuZCAxMTlDIG9uIHRo
+ZSBvdGhlci4KICAKIyBhZHZpc2VkIGJ5IEd1ZW50ZXIgYXQgaHR0cHM6Ly9naXRodWIuY29tL2dy
+b2Vjay9uY3Q2Nzc1L2lzc3Vlcy8xMSB0byBpZ25vcmUgdGhlIGZvbGxvd2luZyAzCiAgaWdub3Jl
+IFBDSF9DSElQX0NQVV9NQVhfVEVNUAogIGlnbm9yZSBQQ0hfQ0hJUF9URU1QCiAgaWdub3JlIFBD
+SF9DUFVfVEVNUAoKCg==
+--047d7b86de82e57e5e04f11e1d7e
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--047d7b86de82e57e5e04f11e1d7e--
