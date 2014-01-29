@@ -1,90 +1,51 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 20 Jan 2014 18:38:44 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm63) Create attributes for LM96163 in one call
-Message-Id: <1390243126-19519-2-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 29 Jan 2014 15:00:35 +0000
+Subject: [lm-sensors] [PATCH, RFC] libsensors: Avoid insane memory allocations
+Message-Id: <20140129160035.4537ecc9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-There is no need to have both an attribute group plus an individual attribute
-for LM96163. Add the attribute to the group and create all attributes with one
-call.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+While there is no longer a hard limit to the number of sensor of a
+given type per chip, I feel a little uncomfortable having no limit at
+all on the amount of memory we may try to allocate. Add an arbitrary
+safety limit so that a design error or a bug in a hwmon driver can't
+result into an insane memory allocation.
 ---
- drivers/hwmon/lm63.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+Does anyone have an opinion on this? No limit at all makes me feel bad,
+but I don't like arbitrary limits either. So I'm really not sure what
+is the best option here.
 
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-index d0def50..438e612 100644
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -915,7 +915,8 @@ static struct attribute *lm63_attributes[] = {
- 	NULL
- };
- 
--static struct attribute *lm63_attributes_extra_lut[] = {
-+static struct attribute *lm63_attributes_lm96163[] = {
-+	&dev_attr_temp2_type.attr,
- 	&sensor_dev_attr_pwm1_auto_point9_pwm.dev_attr.attr,
- 	&sensor_dev_attr_pwm1_auto_point9_temp.dev_attr.attr,
- 	&sensor_dev_attr_pwm1_auto_point9_temp_hyst.dev_attr.attr,
-@@ -931,8 +932,8 @@ static struct attribute *lm63_attributes_extra_lut[] = {
- 	NULL
- };
- 
--static const struct attribute_group lm63_group_extra_lut = {
--	.attrs = lm63_attributes_extra_lut,
-+static const struct attribute_group lm63_group_lm96163 = {
-+	.attrs = lm63_attributes_lm96163,
- };
- 
+ lib/sysfs.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- lm-sensors.orig/lib/sysfs.c	2014-01-29 15:44:03.544339229 +0100
++++ lm-sensors/lib/sysfs.c	2014-01-29 15:59:50.074019877 +0100
+@@ -1,7 +1,7 @@
  /*
-@@ -1133,12 +1134,8 @@ static int lm63_probe(struct i2c_client *client,
- 			goto exit_remove_files;
- 	}
- 	if (data->kind = lm96163) {
--		err = device_create_file(&client->dev, &dev_attr_temp2_type);
--		if (err)
--			goto exit_remove_files;
--
- 		err = sysfs_create_group(&client->dev.kobj,
--					 &lm63_group_extra_lut);
-+					 &lm63_group_lm96163);
- 		if (err)
- 			goto exit_remove_files;
- 	}
-@@ -1154,10 +1151,8 @@ static int lm63_probe(struct i2c_client *client,
- exit_remove_files:
- 	sysfs_remove_group(&client->dev.kobj, &lm63_group);
- 	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
--	if (data->kind = lm96163) {
--		device_remove_file(&client->dev, &dev_attr_temp2_type);
--		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
--	}
-+	if (data->kind = lm96163)
-+		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
- 	return err;
- }
+     sysfs.c - Part of libsensors, a library for reading Linux sensor data
+     Copyright (c) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
+-    Copyright (C) 2007-2010 Jean Delvare <khali@linux-fr.org>
++    Copyright (C) 2007-2014 Jean Delvare <khali@linux-fr.org>
  
-@@ -1168,10 +1163,8 @@ static int lm63_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm63_group);
- 	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
--	if (data->kind = lm96163) {
--		device_remove_file(&client->dev, &dev_attr_temp2_type);
--		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
--	}
-+	if (data->kind = lm96163)
-+		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Lesser General Public
+@@ -468,8 +468,9 @@ static int sensors_read_dynamic_chip(sen
+ 			break;
+ 		}
  
- 	return 0;
- }
+-		/* Skip invalid entries */
+-		if (nr < 0) {
++		/* Skip invalid entries. The high limit is arbitrary, we just
++		   don't want to allocate an insane amount of memory. */
++		if (nr < 0 || nr >= 8192) {
+ #ifdef DEBUG
+ 			sensors_fatal_error(__func__,
+ 					    "Invalid channel number!");
 -- 
-1.7.9.7
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
