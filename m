@@ -1,93 +1,39 @@
-From: Alun Evans <alun@badgerous.net>
-Date: Thu, 30 Jan 2014 01:12:48 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 30 Jan 2014 01:30:14 +0000
 Subject: Re: [lm-sensors] Reading SPD on Intel Patsburg on Supermicro X9SRG-F board
-Message-Id: <F315E2E8-E1FC-4782-91B7-649A6D929CBB@badgerous.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0884675897660044782=="
+Message-Id: <20140130013014.GA8172@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
 In-Reply-To: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
---===============0884675897660044782==
-Content-Type: multipart/signed; boundary="Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6"; protocol="application/pgp-signature"; micalg=pgp-sha1
-
-
---Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=windows-1252
-
-
-On 29 Jan 2014, at 11:48, Alun Evans <alun@badgerous.net> wrote:
-
-> Thanks for the responses everyone, inline,
->=20
-> On 29 Jan 2014, at 10:25, Guenter Roeck <linux@roeck-us.net> wrote:
->=20
->> On Wed, Jan 29, 2014 at 05:42:24PM +0100, Jean Delvare wrote:
->>> Hi Alun,
->>> <snip>
->>=20
->>> Please ask Supermicro about it.
->=20
-> I have put a request in=85 We=92ll see if I get a response.
->=20
->>> If the memory slots are behind an I2C
->>> multiplexer, ask them if the multiplexer is I2C-based or GPIO-based. =
-If
->>> I2C-based, ask for the multiplexer type and address. If GPIO-based, =
-ask
->>> for the chip name and pin numbers for the GPIOs. In both case, =
-please
->>> ask which GPIO combinations map to which memory slots.
-
-I inlined the above hunk with my question, and the first response was:
-
-> Received feedback; The memory address does not use mux.  It is =
-hardware defined by Intel.
-
-So I went and clarified I was not talking about the DDR physical address =
-setup by the memory reference code, and I got:
-
-> Per our engineer; There is no hardware connecting to DIMM.
-
-I=92m not sure I=92ve found the right help here...
-
-
-A.
-
---=20
-Alun Evans
-
---Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iEYEARECAAYFAlLppxAACgkQDX2x+/Q7Ga1/1wCfXkzr9o+zD2k6IFVASC/ArH3u
-r1IAnjK22cz98VZR37qWqeVsxSUpmNdC
-=2CY4
------END PGP SIGNATURE-----
-
---Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6--
-
-
---===============0884675897660044782==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0884675897660044782==--
+T24gV2VkLCBKYW4gMjksIDIwMTQgYXQgMDU6MTI6NDhQTSAtMDgwMCwgQWx1biBFdmFucyB3cm90
+ZToKPiAKPiBPbiAyOSBKYW4gMjAxNCwgYXQgMTE6NDgsIEFsdW4gRXZhbnMgPGFsdW5AYmFkZ2Vy
+b3VzLm5ldD4gd3JvdGU6Cj4gCj4gPiBUaGFua3MgZm9yIHRoZSByZXNwb25zZXMgZXZlcnlvbmUs
+IGlubGluZSwKPiA+IAo+ID4gT24gMjkgSmFuIDIwMTQsIGF0IDEwOjI1LCBHdWVudGVyIFJvZWNr
+IDxsaW51eEByb2Vjay11cy5uZXQ+IHdyb3RlOgo+ID4gCj4gPj4gT24gV2VkLCBKYW4gMjksIDIw
+MTQgYXQgMDU6NDI6MjRQTSArMDEwMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+ID4+PiBIaSBBbHVu
+LAo+ID4+PiA8c25pcD4KPiA+PiAKPiA+Pj4gUGxlYXNlIGFzayBTdXBlcm1pY3JvIGFib3V0IGl0
+Lgo+ID4gCj4gPiBJIGhhdmUgcHV0IGEgcmVxdWVzdCBpbuKApiBXZeKAmWxsIHNlZSBpZiBJIGdl
+dCBhIHJlc3BvbnNlLgo+ID4gCj4gPj4+IElmIHRoZSBtZW1vcnkgc2xvdHMgYXJlIGJlaGluZCBh
+biBJMkMKPiA+Pj4gbXVsdGlwbGV4ZXIsIGFzayB0aGVtIGlmIHRoZSBtdWx0aXBsZXhlciBpcyBJ
+MkMtYmFzZWQgb3IgR1BJTy1iYXNlZC4gSWYKPiA+Pj4gSTJDLWJhc2VkLCBhc2sgZm9yIHRoZSBt
+dWx0aXBsZXhlciB0eXBlIGFuZCBhZGRyZXNzLiBJZiBHUElPLWJhc2VkLCBhc2sKPiA+Pj4gZm9y
+IHRoZSBjaGlwIG5hbWUgYW5kIHBpbiBudW1iZXJzIGZvciB0aGUgR1BJT3MuIEluIGJvdGggY2Fz
+ZSwgcGxlYXNlCj4gPj4+IGFzayB3aGljaCBHUElPIGNvbWJpbmF0aW9ucyBtYXAgdG8gd2hpY2gg
+bWVtb3J5IHNsb3RzLgo+IAo+IEkgaW5saW5lZCB0aGUgYWJvdmUgaHVuayB3aXRoIG15IHF1ZXN0
+aW9uLCBhbmQgdGhlIGZpcnN0IHJlc3BvbnNlIHdhczoKPiAKPiA+IFJlY2VpdmVkIGZlZWRiYWNr
+OyBUaGUgbWVtb3J5IGFkZHJlc3MgZG9lcyBub3QgdXNlIG11eC4gIEl0IGlzIGhhcmR3YXJlIGRl
+ZmluZWQgYnkgSW50ZWwuCj4gCj4gU28gSSB3ZW50IGFuZCBjbGFyaWZpZWQgSSB3YXMgbm90IHRh
+bGtpbmcgYWJvdXQgdGhlIEREUiBwaHlzaWNhbCBhZGRyZXNzIHNldHVwIGJ5IHRoZSBtZW1vcnkg
+cmVmZXJlbmNlIGNvZGUsIGFuZCBJIGdvdDoKPiAKPiA+IFBlciBvdXIgZW5naW5lZXI7IFRoZXJl
+IGlzIG5vIGhhcmR3YXJlIGNvbm5lY3RpbmcgdG8gRElNTS4KPiAKPiBJ4oCZbSBub3Qgc3VyZSBJ
+4oCZdmUgZm91bmQgdGhlIHJpZ2h0IGhlbHAgaGVyZS4uLgo+IApBY3R1YWxseSB5b3UgbWlnaHQg
+aGF2ZS4gT24gc29tZSBIVyB0aGUgRElNTXMgYXJlIGNvbm5jZXRlZCB0byBhIHNlcGFyYXRlClNN
+QnVzIGNoYW5uZWwgd2hpY2ggaXMgbm90IHZpc2libGUgdG8gU1cuCgpHdWVudGVyCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
+bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
