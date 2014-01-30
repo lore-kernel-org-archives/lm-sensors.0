@@ -1,45 +1,110 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 30 Jan 2014 01:42:51 +0000
+From: Alun Evans <alun@badgerous.net>
+Date: Thu, 30 Jan 2014 03:23:23 +0000
 Subject: Re: [lm-sensors] Reading SPD on Intel Patsburg on Supermicro X9SRG-F board
-Message-Id: <20140130014251.GA16250@roeck-us.net>
+Message-Id: <BD31E6F2-D971-4618-B18C-FEDD78678073@badgerous.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4509311166627802899=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
 In-Reply-To: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCBKYW4gMjksIDIwMTQgYXQgMDU6MzA6MTRQTSAtMDgwMCwgR3VlbnRlciBSb2VjayB3
-cm90ZToKPiBPbiBXZWQsIEphbiAyOSwgMjAxNCBhdCAwNToxMjo0OFBNIC0wODAwLCBBbHVuIEV2
-YW5zIHdyb3RlOgo+ID4gCj4gPiBPbiAyOSBKYW4gMjAxNCwgYXQgMTE6NDgsIEFsdW4gRXZhbnMg
-PGFsdW5AYmFkZ2Vyb3VzLm5ldD4gd3JvdGU6Cj4gPiAKPiA+ID4gVGhhbmtzIGZvciB0aGUgcmVz
-cG9uc2VzIGV2ZXJ5b25lLCBpbmxpbmUsCj4gPiA+IAo+ID4gPiBPbiAyOSBKYW4gMjAxNCwgYXQg
-MTA6MjUsIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4gd3JvdGU6Cj4gPiA+IAo+
-ID4gPj4gT24gV2VkLCBKYW4gMjksIDIwMTQgYXQgMDU6NDI6MjRQTSArMDEwMCwgSmVhbiBEZWx2
-YXJlIHdyb3RlOgo+ID4gPj4+IEhpIEFsdW4sCj4gPiA+Pj4gPHNuaXA+Cj4gPiA+PiAKPiA+ID4+
-PiBQbGVhc2UgYXNrIFN1cGVybWljcm8gYWJvdXQgaXQuCj4gPiA+IAo+ID4gPiBJIGhhdmUgcHV0
-IGEgcmVxdWVzdCBpbuKApiBXZeKAmWxsIHNlZSBpZiBJIGdldCBhIHJlc3BvbnNlLgo+ID4gPiAK
-PiA+ID4+PiBJZiB0aGUgbWVtb3J5IHNsb3RzIGFyZSBiZWhpbmQgYW4gSTJDCj4gPiA+Pj4gbXVs
-dGlwbGV4ZXIsIGFzayB0aGVtIGlmIHRoZSBtdWx0aXBsZXhlciBpcyBJMkMtYmFzZWQgb3IgR1BJ
-Ty1iYXNlZC4gSWYKPiA+ID4+PiBJMkMtYmFzZWQsIGFzayBmb3IgdGhlIG11bHRpcGxleGVyIHR5
-cGUgYW5kIGFkZHJlc3MuIElmIEdQSU8tYmFzZWQsIGFzawo+ID4gPj4+IGZvciB0aGUgY2hpcCBu
-YW1lIGFuZCBwaW4gbnVtYmVycyBmb3IgdGhlIEdQSU9zLiBJbiBib3RoIGNhc2UsIHBsZWFzZQo+
-ID4gPj4+IGFzayB3aGljaCBHUElPIGNvbWJpbmF0aW9ucyBtYXAgdG8gd2hpY2ggbWVtb3J5IHNs
-b3RzLgo+ID4gCj4gPiBJIGlubGluZWQgdGhlIGFib3ZlIGh1bmsgd2l0aCBteSBxdWVzdGlvbiwg
-YW5kIHRoZSBmaXJzdCByZXNwb25zZSB3YXM6Cj4gPiAKPiA+ID4gUmVjZWl2ZWQgZmVlZGJhY2s7
-IFRoZSBtZW1vcnkgYWRkcmVzcyBkb2VzIG5vdCB1c2UgbXV4LiAgSXQgaXMgaGFyZHdhcmUgZGVm
-aW5lZCBieSBJbnRlbC4KPiA+IAo+ID4gU28gSSB3ZW50IGFuZCBjbGFyaWZpZWQgSSB3YXMgbm90
-IHRhbGtpbmcgYWJvdXQgdGhlIEREUiBwaHlzaWNhbCBhZGRyZXNzIHNldHVwIGJ5IHRoZSBtZW1v
-cnkgcmVmZXJlbmNlIGNvZGUsIGFuZCBJIGdvdDoKPiA+IAo+ID4gPiBQZXIgb3VyIGVuZ2luZWVy
-OyBUaGVyZSBpcyBubyBoYXJkd2FyZSBjb25uZWN0aW5nIHRvIERJTU0uCj4gPiAKPiA+IEnigJlt
-IG5vdCBzdXJlIEnigJl2ZSBmb3VuZCB0aGUgcmlnaHQgaGVscCBoZXJlLi4uCj4gPiAKPiBBY3R1
-YWxseSB5b3UgbWlnaHQgaGF2ZS4gT24gc29tZSBIVyB0aGUgRElNTXMgYXJlIGNvbm5jZXRlZCB0
-byBhIHNlcGFyYXRlCj4gU01CdXMgY2hhbm5lbCB3aGljaCBpcyBub3QgdmlzaWJsZSB0byBTVy4K
-PiAKSSBoYWQgYSBxdWljayBnbGFuY2UgaW50byB0aGUgUGF0c2J1cmcgKGM2MDApIGRhdGFzaGVl
-dC4gVGhlIGNoaXAgaGFzCnVwIHRvIGZvdXIgU01CdXMgY2hhbm5lbHMsIGRlcGVuZGluZyBvbiBj
-aGlwIHZhcmlhbnQuIEFyZSB5b3Ugc3VyZQp0aGF0IHlvdSBhcmUgdGFsa2luZyB0byB0aGUgY29y
-cmVjdCBvbmUgPyBXaGF0IGRvIHlvdSBzZWUgd2l0aCBsc3BjaSA/CgpUaGFua3MsCkd1ZW50ZXIK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
-cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
-LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+
+--===============4509311166627802899==
+Content-Type: multipart/signed; boundary="Apple-Mail=_A286C5FA-D845-4E20-8A83-94D978A92181"; protocol="application/pgp-signature"; micalg=pgp-sha1
+
+
+--Apple-Mail=_A286C5FA-D845-4E20-8A83-94D978A92181
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=windows-1252
+
+
+On 29 Jan 2014, at 17:30, Guenter Roeck <linux@roeck-us.net> wrote:
+
+> On Wed, Jan 29, 2014 at 05:12:48PM -0800, Alun Evans wrote:
+>>=20
+>> On 29 Jan 2014, at 11:48, Alun Evans <alun@badgerous.net> wrote:
+>>=20
+>>> Thanks for the responses everyone, inline,
+>>>=20
+>>> On 29 Jan 2014, at 10:25, Guenter Roeck <linux@roeck-us.net> wrote:
+>>>=20
+>>>> On Wed, Jan 29, 2014 at 05:42:24PM +0100, Jean Delvare wrote:
+>>>>> Hi Alun,
+>>>>> <snip>
+>>>>=20
+>>>>> Please ask Supermicro about it.
+>>>=20
+>>> I have put a request in=85 We=92ll see if I get a response.
+>>>=20
+>>>>> If the memory slots are behind an I2C
+>>>>> multiplexer, ask them if the multiplexer is I2C-based or =
+GPIO-based. If
+>>>>> I2C-based, ask for the multiplexer type and address. If =
+GPIO-based, ask
+>>>>> for the chip name and pin numbers for the GPIOs. In both case, =
+please
+>>>>> ask which GPIO combinations map to which memory slots.
+>>=20
+>> I inlined the above hunk with my question, and the first response =
+was:
+>>=20
+>>> Received feedback; The memory address does not use mux.  It is =
+hardware defined by Intel.
+>>=20
+>> So I went and clarified I was not talking about the DDR physical =
+address setup by the memory reference code, and I got:
+>>=20
+>>> Per our engineer; There is no hardware connecting to DIMM.
+>>=20
+>> I=92m not sure I=92ve found the right help here...
+>>=20
+> Actually you might have. On some HW the DIMMs are connceted to a =
+separate
+> SMBus channel which is not visible to SW.
+
+hmm, that was my worry.
+
+Seemingly though IPMI is going via the BMC chip over an I2C bus to pull =
+the temperatures from the DIMMs.
+
+I wonder if I=92m meant to be going that way as well to get the access =
+to that I2C bus.
+
+
+A.
+
+--=20
+Alun Evans
+
+--Apple-Mail=_A286C5FA-D845-4E20-8A83-94D978A92181
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - http://gpgtools.org
+
+iEYEARECAAYFAlLpxasACgkQDX2x+/Q7Ga3w7wCeLFkcsWfLQgxAo0xoRBWAeguO
+3HMAoIaFpX7mXNtNm+VIYRNAJd4+kefj
+=8YVN
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_A286C5FA-D845-4E20-8A83-94D978A92181--
+
+
+--===============4509311166627802899==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4509311166627802899==--
