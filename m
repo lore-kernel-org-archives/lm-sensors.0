@@ -1,79 +1,67 @@
 From: Alun Evans <alun@badgerous.net>
-Date: Wed, 29 Jan 2014 22:21:12 +0000
+Date: Thu, 30 Jan 2014 01:12:48 +0000
 Subject: Re: [lm-sensors] Reading SPD on Intel Patsburg on Supermicro X9SRG-F board
-Message-Id: <DAF7D913-FC23-4981-B966-38AE05919AEB@badgerous.net>
+Message-Id: <F315E2E8-E1FC-4782-91B7-649A6D929CBB@badgerous.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8822590115273143280=="
+Content-Type: multipart/mixed; boundary="===============0884675897660044782=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
 In-Reply-To: <87E51E09-C340-4A00-9DF2-1673EDF47F45@badgerous.net>
 To: lm-sensors@vger.kernel.org
 
 
---===============8822590115273143280==
-Content-Type: multipart/signed; boundary="Apple-Mail=_C5811058-DE3B-4295-BB47-2D02FEA9F196"; protocol="application/pgp-signature"; micalg=pgp-sha1
+--===============0884675897660044782==
+Content-Type: multipart/signed; boundary="Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6"; protocol="application/pgp-signature"; micalg=pgp-sha1
 
 
---Apple-Mail=_C5811058-DE3B-4295-BB47-2D02FEA9F196
+--Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain;
 	charset=windows-1252
 
 
-On 29 Jan 2014, at 11:55, Jean Delvare <khali@linux-fr.org> wrote:
+On 29 Jan 2014, at 11:48, Alun Evans <alun@badgerous.net> wrote:
 
-> On Wed, 29 Jan 2014 11:48:47 -0800, Alun Evans wrote:
->>>> This is a big board with many DDR3 slots.
->>=20
->> Heh, this is a 8-DIMM board. We=92ve just ordered a 24-DIMM board, =
-with an eye to a 48-DIMM board.
+> Thanks for the responses everyone, inline,
 >=20
-> Right, 8 DIMMs would normally not require multiplexing. But vendors
-> like to reuse designs and your 8-DIMM board is probably a "small"
-> version of something bigger. My Asus Z8NA-D6 has only 6 DIMMs but it
-> has an I2C multiplexer anyway.
-
-Ah, that is likely with an SM board certainly.
-
+> On 29 Jan 2014, at 10:25, Guenter Roeck <linux@roeck-us.net> wrote:
 >=20
->>> (...)
->>> I would suspect it is GPIO; the i2c muxes are typically at address =
-0x7x
->>> which is empty in above i2cdetect log. The DSDT might give a hint if =
-we
->>> are really lucky. Not that I am any good in decoding DSDTs, though =
-;-).
+>> On Wed, Jan 29, 2014 at 05:42:24PM +0100, Jean Delvare wrote:
+>>> Hi Alun,
+>>> <snip>
 >>=20
->> I followed : https://01.org/linux-acpi/utilities
->>=20
->> And there is this hunk:
->>=20
->>    OperationRegion (GPIO, SystemIO, GPBS, 0x20)
->>    Field (GPIO, DWordAcc, NoLock, Preserve)
->>    {
->>        Offset (0x0C),=20
->>        GLVL,   32,=20
->>        Offset (0x18),=20
->>        GBLK,   32
->>    }
+>>> Please ask Supermicro about it.
 >=20
-> And can you tell us what GPBS is?
+> I have put a request in=85 We=92ll see if I get a response.
 >=20
+>>> If the memory slots are behind an I2C
+>>> multiplexer, ask them if the multiplexer is I2C-based or GPIO-based. =
+If
+>>> I2C-based, ask for the multiplexer type and address. If GPIO-based, =
+ask
+>>> for the chip name and pin numbers for the GPIOs. In both case, =
+please
+>>> ask which GPIO combinations map to which memory slots.
 
-Looks like it=92s GPIOBASE.
+I inlined the above hunk with my question, and the first response was:
 
-I=92ve never looked at ACPI/DSDT, so I=92ve not clue what I=92m doing =
-here.
+> Received feedback; The memory address does not use mux.  It is =
+hardware defined by Intel.
 
-I could send the entire del file, but I don=92t want to trouble anyone =
-unnecessarily.
+So I went and clarified I was not talking about the DDR physical address =
+setup by the memory reference code, and I got:
+
+> Per our engineer; There is no hardware connecting to DIMM.
+
+I=92m not sure I=92ve found the right help here...
+
 
 A.
 
 --=20
 Alun Evans
 
---Apple-Mail=_C5811058-DE3B-4295-BB47-2D02FEA9F196
+--Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
 	filename=signature.asc
@@ -84,15 +72,15 @@ Content-Description: Message signed with OpenPGP using GPGMail
 -----BEGIN PGP SIGNATURE-----
 Comment: GPGTools - http://gpgtools.org
 
-iEYEARECAAYFAlLpftgACgkQDX2x+/Q7Ga07BwCfdnbotoc29gZeYIxTOCNCjamg
-+jsAnjvg5ZAjKXkqQqNmC2wZPK2dYNyn
-=QIaT
+iEYEARECAAYFAlLppxAACgkQDX2x+/Q7Ga1/1wCfXkzr9o+zD2k6IFVASC/ArH3u
+r1IAnjK22cz98VZR37qWqeVsxSUpmNdC
+=2CY4
 -----END PGP SIGNATURE-----
 
---Apple-Mail=_C5811058-DE3B-4295-BB47-2D02FEA9F196--
+--Apple-Mail=_F87980B1-BBBF-4B0E-B7AE-AB0BCD6D6CD6--
 
 
---===============8822590115273143280==
+--===============0884675897660044782==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -102,4 +90,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8822590115273143280==--
+--===============0884675897660044782==--
