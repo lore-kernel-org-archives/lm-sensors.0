@@ -1,54 +1,88 @@
-From: =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>
-Date: Fri, 31 Jan 2014 17:17:29 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 31 Jan 2014 18:36:50 +0000
 Subject: Re: [lm-sensors] Bug(?) in PMBus core, Issue with UCD90120
-Message-Id: <e8dc293e-9d07-4787-bc82-02abe1387de0@CO1EHSMHS001.ehs.local>
+Message-Id: <20140131183650.GA29348@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2c6b4098-bf55-4b8a-a089-0a51f478fae9@VA3EHSMHS004.ehs.local>
 In-Reply-To: <2c6b4098-bf55-4b8a-a089-0a51f478fae9@VA3EHSMHS004.ehs.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgR3VlbnRlciwKCk9uIFRodSwgSmFuIDMwLCAyMDE0IGF0IDA4OjAxOjAyUE0gLTA4MDAsIEd1
-ZW50ZXIgUm9lY2sgd3JvdGU6Cj4gSGkgU8O2cmVuLAo+IAo+IE9uIFRodSwgSmFuIDMwLCAyMDE0
-IGF0IDA1OjEzOjQyUE0gLTA4MDAsIFPDtnJlbiBCcmlua21hbm4gd3JvdGU6Cj4gPiBIaSBHdWVu
-dGhlciwKPiA+IAo+ID4gSSByZWNlbnRseSBiZWNhbWUgYXdhcmUgb2Ygc29tZSB3ZWlyZCBiZWhh
-dmlvciB3aGVuIHVzaW5nIHRoZSBVQ0Q5MDAwCj4gPiBkcml2ZXIgZm9yIHZvbHRhZ2UgbW9uaXRv
-cmluZy4gV2UgdXNlIHRoYXQgZGV2aWNlIG9uIG91ciB6YzcwNiBaeW5xCj4gPiBwbGF0Zm9ybSB0
-byBnZW5lcmF0ZSA1IHZvbHRhZ2UgcmFpbHMuIE9ic2VydmluZyB0aGUgdm9sdGFnZXMgaW4gTGlu
-dXgKPiA+IHNob3dlZCBhIGNvcnJlY3QgdmFsdWUgZm9yIHJhaWwgMSBidXQgYSAyeCBlcnJvciBp
-biBpbiByYWlscyAyLTMgYW5kIGEKPiA+IDR4IGVycm9yIGluIHJhaWwgNS4gRGlnZ2luZyB0aHJv
-dWdoIHNwZWNzLCBkb2NzIGFuZCBzb3VyY2VzIEkgY291bGQKPiA+IHRyYWNrIHRoaXMgZG93biB0
-byB0aGlzOgo+ID4gIC0gVGhlIFBNQnVzIGNvcmUgYXNzdW1lcyBvbmUgVk9VVF9NT0RFIHJlZ2lz
-dGVyIHBlciBjaGlwCj4gPiAgLSBVQ0Q5MDEyMCBoYXMgVk9VVF9NT0RFIHJlZ2lzdGVycyBwZXIg
-cmFpbAo+ID4gCj4gPiBJbiBvdXIgc2V0dXAgd2UgaGF2ZSBhbiBleHBvbmVudCBvZiAtMTQgZm9y
-IHJhaWwgMSwgLTEzIGZvciByYWlscyAyLTQgYW5kCj4gPiAtMTQgZm9yIHJhaWwgNS4gVGhlIFBN
-QnVzIGNvcmUgb25seSByZWFkcyBhbmQgdXNlcyB0aGUgZmlyc3Qgb25lIGFuZAo+ID4gYXBwbGll
-cyBpdCB0byBhbGwgcmFpbHMuCj4gPiAKPiA+IEknbSBub3Qgc3VyZSB3aGV0aGVyIHRoZSBVQ0Qg
-ZGV2aWNlcyBkb24ndCBjb21wbHkgdG8gc3BlYyBvciB3aGV0aGVyCj4gPiB0aGlzIGlzIGEgYnVn
-IGluIHRoZSBQTUJ1cyBjb3JlLCBlaXRoZXIgd2F5LCB0aGUgcmVwb3J0ZWQgdmFsdWVzIGZyb20K
-PiA+IHRoZSBkcml2ZXIgYXJlIHByb25lIHRvIGJlIHdyb25nL3NjYWxlZCBieSBhbiB1bmtub3du
-IGZhY3Rvci4KPiA+IAo+IFRoZSBQTUJ1cyBzcGVjaWZpY2F0aW9uIGlzIHN1ZmZpY2llbnRseSB2
-YWd1ZSB0byBlbnN1cmUgdGhhdCBwcmV0dHkgbXVjaAo+IGFueSBpbnRlcnByZXRhdGlvbiBvZiBp
-dCBpcyBQTUJ1cyBjb21wbGlhbnQuCj4gCj4gPiBJcyB0aGlzIHNvbWVob3cga25vd24gYmVoYXZp
-b3IgZm9yIHdoaWNoIGEgd29ya2Fyb3VuZCBtaWdodCBiZQo+ID4gYXZhaWxhYmxlPyBPdGhlcndp
-c2UsIGlmIHlvdSBrbm93IGhvdyBhbiBhY2NlcHRhYmxlIHNvbHV0aW9uIG1pZ2h0IGxvb2sKPiA+
-IGxpa2UsIEkgbWlnaHQgZmluZCBzb21lIHRpbWUgYW5kIGdpdmUgaXQgYSBzaG90Lgo+ID4gCj4g
-SSB0aGluayB3ZSBtYXkgaGF2ZSB0byBleHBhbmQgdGhlIGRyaXZlciB0byBkZXRlY3QgYW5kIGNv
-bmZpZ3VyZSB0aGUgZXhwb25lbnQKPiBwZXIgcmFpbC9wYWdlLiBBdCBsZWFzdCBJIGNhbiBub3Qg
-dGhpbmsgb2YgYW5vdGhlciBzb2x1dGlvbiByaWdodCBub3cuCj4gCj4gQ2FuIHlvdSB0ZXN0IHRo
-ZSBwYXRjaCBiZWxvdyA/IENvbXBsZXRlbHkgdW50ZXN0ZWQsIGJ1dCBpdCBjb21waWxlcy4KPiBJ
-dCB3aWxsIGxpa2VseSBuZWVkIHNvbWUgcmVmaW5lbWVudCAoZm9yIGV4YW1wbGUsIG90aGVyIGNo
-aXBzIG1heSBub3QgZXZlbiAKPiBoYXZlIHRoZSBWT1VUX01PREUgY29tbWFuZCBvbiBub24temVy
-byBwYWdlcyksIGJ1dCBzaG91bGQgYmUgdXNlZnVsIGZvcgo+IHRlc3RpbmcuCgpUaGF0IHdhcyBm
-YXN0LCB0aGFua3MuIFRoZSBwYXRjaCB3b3Jrcy4gV2l0aCBpdCwgdGhlIGRyaXZlciByZXBvcnRz
-IHRoZQpjb3JyZWN0IHZvbHRhZ2VzLgoKSSBzdXNwZWN0IHRoYXQgdGhlIFVDRDkyMDAgd2VyZSBh
-ZmZlY3RlZCBhcyB3ZWxsLiBVbmZvcnR1bmF0ZWx5LCBpbiBvdXIKY29uZmlncyBmb3IgdGhvc2Ug
-dGhlIGV4cG9uZW50cyBhY3Jvc3MgYWxsIHJhaWxzIGFyZSB0aGUgc2FtZSwgc28gSQpkb24ndCBz
-ZWUgdGhpbmdzIGdvIHdyb25nLgoKWW91IGNhbiBhZGQgbXkKVGVzdGVkLWJ5OiBTw7ZyZW4gQnJp
-bmttYW5uIDxzb3Jlbi5icmlua21hbm5AeGlsaW54LmNvbT4KCkxldCBtZSBrbm93IGlmIHlvdSBu
-ZWVkIGEgZGlmZmVyZW50IHBhdGNoIHRvIGJlIHRlc3RlZC4KCglUaGFua3MsCglTw7ZyZW4KCgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
-cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
-c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Fri, Jan 31, 2014 at 09:17:29AM -0800, S=F6ren Brinkmann wrote:
+> Hi Guenter,
+>=20
+> On Thu, Jan 30, 2014 at 08:01:02PM -0800, Guenter Roeck wrote:
+> > Hi S=F6ren,
+> >=20
+> > On Thu, Jan 30, 2014 at 05:13:42PM -0800, S=F6ren Brinkmann wrote:
+> > > Hi Guenther,
+> > >=20
+> > > I recently became aware of some weird behavior when using the UCD9000
+> > > driver for voltage monitoring. We use that device on our zc706 Zynq
+> > > platform to generate 5 voltage rails. Observing the voltages in Linux
+> > > showed a correct value for rail 1 but a 2x error in in rails 2-3 and a
+> > > 4x error in rail 5. Digging through specs, docs and sources I could
+> > > track this down to this:
+> > >  - The PMBus core assumes one VOUT_MODE register per chip
+> > >  - UCD90120 has VOUT_MODE registers per rail
+> > >=20
+> > > In our setup we have an exponent of -14 for rail 1, -13 for rails 2-4=
+ and
+> > > -14 for rail 5. The PMBus core only reads and uses the first one and
+> > > applies it to all rails.
+> > >=20
+> > > I'm not sure whether the UCD devices don't comply to spec or whether
+> > > this is a bug in the PMBus core, either way, the reported values from
+> > > the driver are prone to be wrong/scaled by an unknown factor.
+> > >=20
+> > The PMBus specification is sufficiently vague to ensure that pretty much
+> > any interpretation of it is PMBus compliant.
+> >=20
+> > > Is this somehow known behavior for which a workaround might be
+> > > available? Otherwise, if you know how an acceptable solution might lo=
+ok
+> > > like, I might find some time and give it a shot.
+> > >=20
+> > I think we may have to expand the driver to detect and configure the ex=
+ponent
+> > per rail/page. At least I can not think of another solution right now.
+> >=20
+> > Can you test the patch below ? Completely untested, but it compiles.
+> > It will likely need some refinement (for example, other chips may not e=
+ven=20
+> > have the VOUT_MODE command on non-zero pages), but should be useful for
+> > testing.
+>=20
+> That was fast, thanks. The patch works. With it, the driver reports the
+> correct voltages.
+>=20
+> I suspect that the UCD9200 were affected as well. Unfortunately, in our
+> configs for those the exponents across all rails are the same, so I
+> don't see things go wrong.
+>=20
+I have eval boards for several ucd92xx chips, so I should be able to
+test that. I was not aware that the exponent is configurable and depends
+on the rail, so I completely neglected that.
+
+> You can add my
+> Tested-by: S=F6ren Brinkmann <soren.brinkmann@xilinx.com>
+>=20
+Thanks a lot for testing!
+
+> Let me know if you need a different patch to be tested.
+>=20
+I'll have to make sure that the new code doesn't break the driver for any o=
+ther
+chips using linear mode. I hope I can get that done over the weekend. I'll =
+let
+you know how it goes.
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
