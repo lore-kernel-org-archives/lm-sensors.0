@@ -1,115 +1,113 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 02 Feb 2014 21:59:28 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm80) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <52EEBFC0.5040004@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sun, 02 Feb 2014 18:02:09 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm63) Create attributes for LM96163 in one call
+Message-Id: <20140202190209.4f9b1886@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1391363141-7157-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1391363141-7157-1-git-send-email-linux@roeck-us.net>
+References: <1390243126-19519-2-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1390243126-19519-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 02/02/2014 01:00 PM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun,  2 Feb 2014 09:45:41 -0800, Guenter Roeck wrote:
->> Simplify code, reduce code size, and attach hwmon attributes to
->> hwmon device.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/lm80.c |   64 ++++++++++++++++----------------------------------
->>   1 file changed, 20 insertions(+), 44 deletions(-)
->>
->> diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
->> index eba89aa..914d7e5 100644
->> --- a/drivers/hwmon/lm80.c
->> +++ b/drivers/hwmon/lm80.c
->> (...)
->> @@ -541,14 +536,14 @@ static int lm80_detect(struct i2c_client *client, struct i2c_board_info *info)
->>   static int lm80_probe(struct i2c_client *client,
->>   		      const struct i2c_device_id *id)
->>   {
->> +	struct device *hwmon_dev;
->>   	struct lm80_data *data;
->> -	int err;
->>
->>   	data = devm_kzalloc(&client->dev, sizeof(struct lm80_data), GFP_KERNEL);
->>   	if (!data)
->>   		return -ENOMEM;
->>
->> -	i2c_set_clientdata(client, data);
->> +	data->client = client;
->>   	mutex_init(&data->update_lock);
->>
->>   	/* Initialize the LM80 chip */
->> @@ -558,30 +553,11 @@ static int lm80_probe(struct i2c_client *client,
->>   	data->fan_min[0] = lm80_read_value(client, LM80_REG_FAN_MIN(1));
->>   	data->fan_min[1] = lm80_read_value(client, LM80_REG_FAN_MIN(2));
->>
->> -	/* Register sysfs hooks */
->> -	err = sysfs_create_group(&client->dev.kobj, &lm80_group);
->> -	if (err)
->> -		return err;
->> -
->> -	data->hwmon_dev = hwmon_device_register(&client->dev);
->> -	if (IS_ERR(data->hwmon_dev)) {
->> -		err = PTR_ERR(data->hwmon_dev);
->> -		goto error_remove;
->> -	}
->> -
->> -	return 0;
->> -
->> -error_remove:
->> -	sysfs_remove_group(&client->dev.kobj, &lm80_group);
->> -	return err;
->> -}
->> -
->> -static int lm80_remove(struct i2c_client *client)
->> -{
->> -	struct lm80_data *data = i2c_get_clientdata(client);
->> -
->> -	hwmon_device_unregister(data->hwmon_dev);
->> -	sysfs_remove_group(&client->dev.kobj, &lm80_group);
->> +	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
->> +							   client->name, data,
->> +							   lm80_groups);
->> +	if (IS_ERR(hwmon_dev))
->> +		return PTR_ERR(hwmon_dev);
->>
->>   	return 0;
->
-> Why not return PTR_ERR_OR_ZERO?
->
->>   }
->> @@ -614,8 +590,8 @@ static void lm80_init_client(struct i2c_client *client)
->>
->>   static struct lm80_data *lm80_update_device(struct device *dev)
->>   {
->> -	struct i2c_client *client = to_i2c_client(dev);
->> -	struct lm80_data *data = i2c_get_clientdata(client);
->> +	struct lm80_data *data = dev_get_drvdata(dev);
->> +	struct i2c_client *client = data->client;
->>   	int i;
->>   	int rv;
->>   	int prev_rv;
->
-> You did not update the dev_dbg() call in this function as you just did
-> in adm1021_update_device(). I believe this should be done consistently
-> over all drivers. More generally, if we decide to use the hwmon device
-> for run-time messages then this should be done in all functions of all
-> (converted) hwmon drivers.
->
+Hi Guenter,
 
-Hi Jean,
+On Mon, 20 Jan 2014 10:38:44 -0800, Guenter Roeck wrote:
+> There is no need to have both an attribute group plus an individual attribute
+> for LM96163. Add the attribute to the group and create all attributes with one
+> call.
 
-Makes sense. I'll do that in the next revision (and look through other drivers
-to do the same there if needed).
+The idea of having groups (or single attributes) per extra feature
+rather than per chip was to be able to reuse them when adding support
+for a new chip implementing a subset of the extra features. It wasn't
+an overlook, it was implemented that way on purpose. You can argue that
+the extra complexity may never be needed, but nobody objected back
+then.
 
-Thanks,
-Guenter
+Now I do understand that single attributes don't fit well with the way
+you implemented devm_hwmon_device_register_with_groups(). You could
+still create a group for that attribute so that you can register it
+with that function. Then you only have another group to register, no
+big deal.
 
+Would that be OK for you?
+
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/lm63.c |   25 +++++++++----------------
+>  1 file changed, 9 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+> index d0def50..438e612 100644
+> --- a/drivers/hwmon/lm63.c
+> +++ b/drivers/hwmon/lm63.c
+> @@ -915,7 +915,8 @@ static struct attribute *lm63_attributes[] = {
+>  	NULL
+>  };
+>  
+> -static struct attribute *lm63_attributes_extra_lut[] = {
+> +static struct attribute *lm63_attributes_lm96163[] = {
+> +	&dev_attr_temp2_type.attr,
+>  	&sensor_dev_attr_pwm1_auto_point9_pwm.dev_attr.attr,
+>  	&sensor_dev_attr_pwm1_auto_point9_temp.dev_attr.attr,
+>  	&sensor_dev_attr_pwm1_auto_point9_temp_hyst.dev_attr.attr,
+> @@ -931,8 +932,8 @@ static struct attribute *lm63_attributes_extra_lut[] = {
+>  	NULL
+>  };
+>  
+> -static const struct attribute_group lm63_group_extra_lut = {
+> -	.attrs = lm63_attributes_extra_lut,
+> +static const struct attribute_group lm63_group_lm96163 = {
+> +	.attrs = lm63_attributes_lm96163,
+>  };
+>  
+>  /*
+> @@ -1133,12 +1134,8 @@ static int lm63_probe(struct i2c_client *client,
+>  			goto exit_remove_files;
+>  	}
+>  	if (data->kind = lm96163) {
+> -		err = device_create_file(&client->dev, &dev_attr_temp2_type);
+> -		if (err)
+> -			goto exit_remove_files;
+> -
+>  		err = sysfs_create_group(&client->dev.kobj,
+> -					 &lm63_group_extra_lut);
+> +					 &lm63_group_lm96163);
+>  		if (err)
+>  			goto exit_remove_files;
+>  	}
+> @@ -1154,10 +1151,8 @@ static int lm63_probe(struct i2c_client *client,
+>  exit_remove_files:
+>  	sysfs_remove_group(&client->dev.kobj, &lm63_group);
+>  	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+> -	if (data->kind = lm96163) {
+> -		device_remove_file(&client->dev, &dev_attr_temp2_type);
+> -		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+> -	}
+> +	if (data->kind = lm96163)
+> +		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
+>  	return err;
+>  }
+>  
+> @@ -1168,10 +1163,8 @@ static int lm63_remove(struct i2c_client *client)
+>  	hwmon_device_unregister(data->hwmon_dev);
+>  	sysfs_remove_group(&client->dev.kobj, &lm63_group);
+>  	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+> -	if (data->kind = lm96163) {
+> -		device_remove_file(&client->dev, &dev_attr_temp2_type);
+> -		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+> -	}
+> +	if (data->kind = lm96163)
+> +		sysfs_remove_group(&client->dev.kobj, &lm63_group_lm96163);
+>  
+>  	return 0;
+>  }
+
+
+-- 
+Jean Delvare
+Suse L3 Support
 
 _______________________________________________
 lm-sensors mailing list
