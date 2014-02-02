@@ -1,30 +1,66 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 03 Feb 2014 15:05:31 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/4] hwmon: (lm63) Introduce 'dev' variable to point to client->dev
-Message-Id: <20140203160531.423c168d@endymion.delvare>
+Date: Sun, 02 Feb 2014 20:42:08 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (lm63) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <20140202214208.4afd4151@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1391390510-19238-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1391390510-19238-3-git-send-email-linux@roeck-us.net>
+References: <1390243126-19519-4-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1390243126-19519-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-On Sun,  2 Feb 2014 17:21:48 -0800, Guenter Roeck wrote:
-> client->dev is used multiple times in several functions.
-> Introduce dev variable pointing to it to simplify the code.
+On Mon, 20 Jan 2014 10:38:46 -0800, Guenter Roeck wrote:
+> Simplify code, reduce code size, attach hwmon attributes to hwmon device.
 > 
 > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
->  drivers/hwmon/lm63.c |   32 ++++++++++++++++----------------
->  1 file changed, 16 insertions(+), 16 deletions(-)
+>  drivers/hwmon/lm63.c |  107 ++++++++++++++++++--------------------------------
+>  1 file changed, 39 insertions(+), 68 deletions(-)
+> 
+> diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+> index b56cb9f..c0bf82c 100644
+> --- a/drivers/hwmon/lm63.c
+> +++ b/drivers/hwmon/lm63.c
 > (...)
+> @@ -400,8 +400,7 @@ static ssize_t set_pwm1(struct device *dev, struct device_attribute *devattr,
+>  			const char *buf, size_t count)
+>  {
+>  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> -	struct i2c_client *client = to_i2c_client(dev);
+> -	struct lm63_data *data = i2c_get_clientdata(client);
+> +	struct lm63_data *data = dev_get_drvdata(dev);
 
-Retrospectively, this patch should have been last in the series, it
-would have been much smaller then. But I'm sure you have better things
-to do that respin this patch series again, so I have applied it as is.
+For consistency with other "set" functions, I'd prefer that you keep
+defining client here...
+
+>  	int nr = attr->index;
+>  	unsigned long val;
+>  	int err;
+> @@ -420,7 +419,7 @@ static ssize_t set_pwm1(struct device *dev, struct device_attribute *devattr,
+>  	mutex_lock(&data->update_lock);
+>  	data->pwm1[nr] = data->pwm_highres ? val :
+>  			(val * data->pwm1_freq * 2 + 127) / 255;
+> -	i2c_smbus_write_byte_data(client, reg, data->pwm1[nr]);
+> +	i2c_smbus_write_byte_data(data->client, reg, data->pwm1[nr]);
+
+... and leave this line unchanged. Same for a few other "set" functions
+later in this file.
+
+>  	mutex_unlock(&data->update_lock);
+>  	return count;
+>  }
+> (...)
+> @@ -462,7 +461,7 @@ static ssize_t set_pwm1_enable(struct device *dev,
+>  	else
+>  		data->config_fan &= ~0x20;
+>  	i2c_smbus_write_byte_data(client, LM63_REG_CONFIG_FAN,
+> -	data->config_fan);
+> +				  data->config_fan);
+
+Nice cleanup... unrelated to this patch though.
+
+Everything else looks good, and I love it :)
 
 -- 
 Jean Delvare
