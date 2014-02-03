@@ -1,32 +1,76 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 23 Feb 2014 16:48:19 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (max6639) Introduce local dev variable, and reduce noisiness
-Message-Id: <530A2653.8000503@roeck-us.net>
+Date: Mon, 03 Feb 2014 01:21:47 +0000
+Subject: [lm-sensors] [PATCH v2 1/4] hwmon: (lm63) Add additional sysfs group for temp2_type attribute
+Message-Id: <1391390510-19238-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1393031014-26259-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1393031014-26259-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 02/23/2014 08:16 AM, Jean Delvare wrote:
-> On Fri, 21 Feb 2014 17:03:33 -0800, Guenter Roeck wrote:
->> Introduce local variable 'dev' in probe function to make code easier
->> to read. Also drop dev_info message in probe to reduce noisiness
->> during boot.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/max6639.c |   12 +++++-------
->>   1 file changed, 5 insertions(+), 7 deletions(-)
->> (...)
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Thanks!
+With the new hwmon API, we can only add groups of attributes, not individual
+attributes. To prepare for the use of the new API, add an additional sensor
+group for the temp2_type attribute and register it with sysfs_create_group
+instead of device_create_file.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Do not merge temp2_type attribute with extra_lut group but create separate
+    group instead.
+
+ drivers/hwmon/lm63.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index b4ad598..7ff4fc7 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -915,6 +915,15 @@ static struct attribute *lm63_attributes[] = {
+ 	NULL
+ };
+ 
++static struct attribute *lm63_attributes_temp2_type[] = {
++	&dev_attr_temp2_type.attr,
++	NULL
++};
++
++static const struct attribute_group lm63_group_temp2_type = {
++	.attrs = lm63_attributes_temp2_type,
++};
++
+ static struct attribute *lm63_attributes_extra_lut[] = {
+ 	&sensor_dev_attr_pwm1_auto_point9_pwm.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_point9_temp.dev_attr.attr,
+@@ -1133,7 +1142,8 @@ static int lm63_probe(struct i2c_client *client,
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->kind = lm96163) {
+-		err = device_create_file(&client->dev, &dev_attr_temp2_type);
++		err = sysfs_create_group(&client->dev.kobj,
++					 &lm63_group_temp2_type);
+ 		if (err)
+ 			goto exit_remove_files;
+ 
+@@ -1155,7 +1165,7 @@ exit_remove_files:
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group);
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+ 	if (data->kind = lm96163) {
+-		device_remove_file(&client->dev, &dev_attr_temp2_type);
++		sysfs_remove_group(&client->dev.kobj, &lm63_group_temp2_type);
+ 		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+ 	}
+ 	return err;
+@@ -1169,7 +1179,7 @@ static int lm63_remove(struct i2c_client *client)
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group);
+ 	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+ 	if (data->kind = lm96163) {
+-		device_remove_file(&client->dev, &dev_attr_temp2_type);
++		sysfs_remove_group(&client->dev.kobj, &lm63_group_temp2_type);
+ 		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+ 	}
+ 
+-- 
+1.7.9.7
 
 
 _______________________________________________
