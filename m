@@ -1,103 +1,181 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 09 Feb 2014 09:32:49 +0000
-Subject: Re: [lm-sensors] Missing fan speed readout for ASUS M5A97 EVO R2.0 motherboard
-Message-Id: <20140209103249.27284d9b@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 03 Feb 2014 01:15:57 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (adm1021) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1391390157-19075-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAH2=CKyXKgmCdNLDoa0_qnDTerrCS+S=5v39hCMJ4m7eQgnbig@mail.gmail.com>
-In-Reply-To: <CAH2=CKyXKgmCdNLDoa0_qnDTerrCS+S=5v39hCMJ4m7eQgnbig@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rune,
+Simplify code, reduce code size, and attach hwmon attributes to
+hwmon device.
 
-On Fri, 7 Feb 2014 16:16:29 +0100, Rune Kj=E6r Svendsen wrote:
-> Hi Jean
->=20
-> Sorry about the formatting :) I've enabled plain text mode in Gmail
-> now (I hope that's sufficient).
->=20
-> I actually just updated the BIOS a couple of days ago, so everything
-> is up-to-date BIOS-wise.
->=20
-> Enabling fan5 gives the following values, unfortunately:
->=20
-> rune@rune-desktop:~$ cat /sys/class/hwmon/hwmon1/device/fan5_alarm
-> 1
-> rune@rune-desktop:~$ cat /sys/class/hwmon/hwmon1/device/fan5_input
-> 0
-> rune@rune-desktop:~$ cat /sys/class/hwmon/hwmon1/device/fan5_min
-> -1
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Use PTR_ERR_OR_ZERO in probe function
 
-OK, no luck :-(
+ drivers/hwmon/adm1021.c |   70 +++++++++++++++--------------------------------
+ 1 file changed, 22 insertions(+), 48 deletions(-)
 
-> Here's a register dump after setting the registers to enable fan5:
->=20
-> root@rune-desktop:~# isadump -y 0x295 0x296
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 19 40 b7 02 00 00 00 00 00 80 58 0f 27 3e 0d e5
-> 10: 0c 6a 09 77 c7 00 00 00 04 03 03 fa 3d c3 c3 c3
-> 20: e5 e7 72 86 39 cd 10 19 8a 2a 23 80 80 c3 ad ad
-> 30: af 65 69 da 32 ee 92 6d 87 be 4a 1a 6f 00 0a 57
-> 40: 6f f8 e7 68 63 85 5f 40 ad 6a d4 00 ff ff ff ff
-> 50: 2f 18 7f 7f 7f 40 00 00 90 00 38 12 60 00 00 00
-> 60: 80 00 7f 00 00 41 00 ff 7f 7f 7f 80 00 00 00 ff
-> 70: 80 00 7f 81 00 41 00 ff ff ff ff ff ff ff ff ff
-> 80: 00 00 ff ff 00 00 00 00 00 00 00 00 00 27 02 0f
-> 90: ff 00 00 00 ff 00 00 00 ff ff ff ff ff ff ff ff
-> a0: ee 0b 0b 0b 0b 0b 0b ff ff ff ff ff ff ff ff ff
-> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+index 29dd9f7..3eb4281 100644
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -79,9 +79,11 @@ enum chips {
+ 
+ /* Each client has this additional data */
+ struct adm1021_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	enum chips type;
+ 
++	const struct attribute_group *groups[3];
++
+ 	struct mutex update_lock;
+ 	char valid;		/* !=0 if following fields are valid */
+ 	char low_power;		/* !=0 if device in low power mode */
+@@ -101,7 +103,6 @@ static int adm1021_probe(struct i2c_client *client,
+ static int adm1021_detect(struct i2c_client *client,
+ 			  struct i2c_board_info *info);
+ static void adm1021_init_client(struct i2c_client *client);
+-static int adm1021_remove(struct i2c_client *client);
+ static struct adm1021_data *adm1021_update_device(struct device *dev);
+ 
+ /* (amalysh) read only mode, otherwise any limit's writing confuse BIOS */
+@@ -128,7 +129,6 @@ static struct i2c_driver adm1021_driver = {
+ 		.name	= "adm1021",
+ 	},
+ 	.probe		= adm1021_probe,
+-	.remove		= adm1021_remove,
+ 	.id_table	= adm1021_id,
+ 	.detect		= adm1021_detect,
+ 	.address_list	= normal_i2c,
+@@ -182,8 +182,8 @@ static ssize_t set_temp_max(struct device *dev,
+ 			    const char *buf, size_t count)
+ {
+ 	int index = to_sensor_dev_attr(devattr)->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1021_data *data = i2c_get_clientdata(client);
++	struct adm1021_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	long temp;
+ 	int err;
+ 
+@@ -207,8 +207,8 @@ static ssize_t set_temp_min(struct device *dev,
+ 			    const char *buf, size_t count)
+ {
+ 	int index = to_sensor_dev_attr(devattr)->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1021_data *data = i2c_get_clientdata(client);
++	struct adm1021_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	long temp;
+ 	int err;
+ 
+@@ -238,8 +238,8 @@ static ssize_t set_low_power(struct device *dev,
+ 			     struct device_attribute *devattr,
+ 			     const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1021_data *data = i2c_get_clientdata(client);
++	struct adm1021_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	char low_power;
+ 	unsigned long val;
+ 	int err;
+@@ -412,15 +412,15 @@ static int adm1021_detect(struct i2c_client *client,
+ static int adm1021_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
++	struct device *dev = &client->dev;
+ 	struct adm1021_data *data;
+-	int err;
++	struct device *hwmon_dev;
+ 
+-	data = devm_kzalloc(&client->dev, sizeof(struct adm1021_data),
+-			    GFP_KERNEL);
++	data = devm_kzalloc(dev, sizeof(struct adm1021_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	data->type = id->driver_data;
+ 	mutex_init(&data->update_lock);
+ 
+@@ -428,29 +428,14 @@ static int adm1021_probe(struct i2c_client *client,
+ 	if (data->type != lm84 && !read_only)
+ 		adm1021_init_client(client);
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&client->dev.kobj, &adm1021_group);
+-	if (err)
+-		return err;
+-
+-	if (data->type != lm84) {
+-		err = sysfs_create_group(&client->dev.kobj, &adm1021_min_group);
+-		if (err)
+-			goto error;
+-	}
++	data->groups[0] = &adm1021_group;
++	if (data->type != lm84)
++		data->groups[1] = &adm1021_min_group;
+ 
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
+-	}
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data, data->groups);
+ 
+-	return 0;
+-
+-error:
+-	sysfs_remove_group(&client->dev.kobj, &adm1021_min_group);
+-	sysfs_remove_group(&client->dev.kobj, &adm1021_group);
+-	return err;
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static void adm1021_init_client(struct i2c_client *client)
+@@ -462,21 +447,10 @@ static void adm1021_init_client(struct i2c_client *client)
+ 	i2c_smbus_write_byte_data(client, ADM1021_REG_CONV_RATE_W, 0x04);
+ }
+ 
+-static int adm1021_remove(struct i2c_client *client)
+-{
+-	struct adm1021_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &adm1021_min_group);
+-	sysfs_remove_group(&client->dev.kobj, &adm1021_group);
+-
+-	return 0;
+-}
+-
+ static struct adm1021_data *adm1021_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1021_data *data = i2c_get_clientdata(client);
++	struct adm1021_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -484,7 +458,7 @@ static struct adm1021_data *adm1021_update_device(struct device *dev)
+ 	    || !data->valid) {
+ 		int i;
+ 
+-		dev_dbg(&client->dev, "Starting adm1021 update\n");
++		dev_dbg(dev, "Starting adm1021 update\n");
+ 
+ 		for (i = 0; i < 2; i++) {
+ 			data->temp[i] = 1000 *
+-- 
+1.7.9.7
 
-So the setting was properly written to the register, but apparently the
-pin in question has no fan wired to it.
-
-If you are ready to take some risk and think getting the third case fan
-input is worth it, you can try enabling fan4. I say it is a bit more
-risky because it involves changing the pin configuration. As we don't
-know what this pin is actually used for and connected to, bad surprises
-could happen. If you don't feel like doing it, just don't.
-
-If you want to try enabling fan4, do the following:
-
-# rmmod it87
-# isaset -f 0x2e 0x87
-# isaset -f 0x2e 0x01
-# isaset -f 0x2e 0x55
-# isaset -f 0x2e 0x55
-# isaset 0x2e 0x2f 0x07 0x07
-# isaset 0x2e 0x2f 0x26 0xb8
-# isaset 0x2e 0x2f 0x02 0x02
-(At this point you may double-check that value of register 0x26 was
-properly changed, using "isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f
-0x07".)
-# isaset 0x295 0x296 0x0c 0x37 # modprobe it87
-
-You may or may not get the extra fan speed reading you were looking
-for. If you don't, then I suggest you restore the original chip
-configuration, by either cold booting the machine, or going through the
-following sequence:
-
-# rmmod it87
-# isaset 0x295 0x296 0x0c 0x07
-# isaset -f 0x2e 0x87
-# isaset -f 0x2e 0x01
-# isaset -f 0x2e 0x55
-# isaset -f 0x2e 0x55
-# isaset 0x2e 0x2f 0x07 0x07
-# isaset 0x2e 0x2f 0x26 0x98
-# isaset 0x2e 0x2f 0x02 0x02
-# modprobe it87
-
-Good luck :-)
-
---=20
-Jean Delvare
-http://jdelvare.nerim.net/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
