@@ -1,47 +1,111 @@
-From: Rob Herring <robherring2@gmail.com>
-Date: Thu, 13 Feb 2014 19:15:13 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] driver core & of: Mark of_nodes of added device as populated
-Message-Id: <CAL_JsqJQy7ob87=wPOLxn3X0fTrt2QhAEJ2nPTAmCMZqNZp+sw@mail.gmail.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Date: Wed, 05 Feb 2014 22:24:19 +0000
+Subject: [lm-sensors] [PATCH 43/51] hwmon, via-cputemp: Fix CPU hotplug callback registration
+Message-Id: <20140205221218.19080.8681.stgit@srivatsabhat.in.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392137610-27842-1-git-send-email-pawel.moll@arm.com>
-	<1392137610-27842-2-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1392137610-27842-2-git-send-email-pawel.moll@arm.com>
+References: <20140205220251.19080.92336.stgit@srivatsabhat.in.ibm.com>
+In-Reply-To: <20140205220251.19080.92336.stgit@srivatsabhat.in.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pawel Moll <pawel.moll@arm.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, lm-sensors@lm-sensors.org, "arm@kernel.org" <arm@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Turquette <mturquette@linaro.org>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+To: paulus@samba.org, oleg@redhat.com, rusty@rustcorp.com.au, peterz@infradead.org, tglx@linutronix.de, akpm@linux-foundation.org
+Cc: mingo@kernel.org, paulmck@linux.vnet.ibm.com, tj@kernel.org, walken@google.com, ego@linux.vnet.ibm.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 
-On Tue, Feb 11, 2014 at 10:53 AM, Pawel Moll <pawel.moll@arm.com> wrote:
-> In "Device Tree powered" systems, platform devices are usually
-> massively populated with of_platform_populate() call, executed
-> at some level of initcalls, either by generic architecture
-> or by platform-specific code.
->
-> There are situations though where certain devices must be
-> created (and bound with drivers) before all the others.
-> This presents small challenge in DT-driven systems, as
-> devices explicitly created in early code would be created
-> again by of_platform_populate().
->
-> This patch tries to solve that issue in a generic way,
-> adding a "populated" flag which is set in the device_node
-> structure when a device is being created in the core.
-> Later, of_platform_populate() skips such nodes (and
-> its children) in a similar way to the non-available ones.
->
-> Signed-off-by: Pawel Moll <pawel.moll@arm.com>
-> ---
->  drivers/base/core.c       |  4 ++++
->  drivers/of/device.c       | 16 ++++++++++++++++
->  drivers/of/platform.c     |  6 ++++--
->  include/linux/of.h        |  6 ++++++
->  include/linux/of_device.h | 11 +++++++++++
->  5 files changed, 41 insertions(+), 2 deletions(-)
+Subsystems that want to register CPU hotplug callbacks, as well as perform
+initialization for the CPUs that are already online, often do it as shown
+below:
 
-Go read Grant's and my comments from your last posting.
+	get_online_cpus();
 
-Rob
+	for_each_online_cpu(cpu)
+		init_cpu(cpu);
+
+	register_cpu_notifier(&foobar_cpu_notifier);
+
+	put_online_cpus();
+
+This is wrong, since it is prone to ABBA deadlocks involving the
+cpu_add_remove_lock and the cpu_hotplug.lock (when running concurrently
+with CPU hotplug operations).
+
+Instead, the correct and race-free way of performing the callback
+registration is:
+
+	cpu_maps_update_begin();
+
+	for_each_online_cpu(cpu)
+		init_cpu(cpu);
+
+	/* Note the use of the double underscored version of the API */
+	__register_cpu_notifier(&foobar_cpu_notifier);
+
+	cpu_maps_update_done();
+
+
+Fix the hwmon via-cputemp code by using this latter form of callback
+registration.
+
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+---
+
+ drivers/hwmon/via-cputemp.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
+index 38944e9..a5c9b2b 100644
+--- a/drivers/hwmon/via-cputemp.c
++++ b/drivers/hwmon/via-cputemp.c
+@@ -319,7 +319,7 @@ static int __init via_cputemp_init(void)
+ 	if (err)
+ 		goto exit;
+ 
+-	get_online_cpus();
++	cpu_maps_update_begin();
+ 	for_each_online_cpu(i) {
+ 		struct cpuinfo_x86 *c = &cpu_data(i);
+ 
+@@ -339,14 +339,14 @@ static int __init via_cputemp_init(void)
+ 
+ #ifndef CONFIG_HOTPLUG_CPU
+ 	if (list_empty(&pdev_list)) {
+-		put_online_cpus();
++		cpu_maps_update_done();
+ 		err = -ENODEV;
+ 		goto exit_driver_unreg;
+ 	}
+ #endif
+ 
+-	register_hotcpu_notifier(&via_cputemp_cpu_notifier);
+-	put_online_cpus();
++	__register_hotcpu_notifier(&via_cputemp_cpu_notifier);
++	cpu_maps_update_done();
+ 	return 0;
+ 
+ #ifndef CONFIG_HOTPLUG_CPU
+@@ -361,8 +361,8 @@ static void __exit via_cputemp_exit(void)
+ {
+ 	struct pdev_entry *p, *n;
+ 
+-	get_online_cpus();
+-	unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
++	cpu_maps_update_begin();
++	__unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
+ 	mutex_lock(&pdev_list_mutex);
+ 	list_for_each_entry_safe(p, n, &pdev_list, list) {
+ 		platform_device_unregister(p->pdev);
+@@ -370,7 +370,7 @@ static void __exit via_cputemp_exit(void)
+ 		kfree(p);
+ 	}
+ 	mutex_unlock(&pdev_list_mutex);
+-	put_online_cpus();
++	cpu_maps_update_done();
+ 	platform_driver_unregister(&via_cputemp_driver);
+ }
+ 
+
 
 _______________________________________________
 lm-sensors mailing list
