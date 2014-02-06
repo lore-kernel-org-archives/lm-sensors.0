@@ -1,60 +1,29 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 18 Feb 2014 04:07:59 +0000
-Subject: Re: [lm-sensors] sensors command now hangs [update 2]
-Message-Id: <5302DC9F.2010804@roeck-us.net>
+Date: Thu, 06 Feb 2014 14:07:20 +0000
+Subject: Re: [lm-sensors] randconfig build error with next-20140206, in drivers/hwmon/ltc2945.c
+Message-Id: <52F39718.9070205@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53027C66.60608@gmail.com>
-In-Reply-To: <53027C66.60608@gmail.com>
+References: <CA+r1ZhgB-DpgshX24HmzuqZPQr5wsueg4GYACy-669RmTL4xRA@mail.gmail.com>
+In-Reply-To: <CA+r1ZhgB-DpgshX24HmzuqZPQr5wsueg4GYACy-669RmTL4xRA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jim Davis <jim.epost@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next <linux-next@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, jdelvare@suse.de, lm-sensors@lm-sensors.org
 
-On 02/17/2014 04:43 PM, David Anderson wrote:
-> Not using Noveau driver at all here.
->          lsmod |grep nov
-> shows nothing.  I just thought it was interesting that someone
-> else had a hanging sensors command.
+On 02/06/2014 05:57 AM, Jim Davis wrote:
+> Building with the attached random configuration file,
 >
-Hi David,
-
-That grep wont help much, as it is nouveau (with an added u),
-not noveau.
-
-> On 02/17/2014 03:17 PM, Guenter Roeck wrote:
+> drivers/built-in.o: In function `ltc2945_set_value':
+> ltc2945.c:(.text+0x58b1ad): undefined reference to `__udivdi3'
+> ltc2945.c:(.text+0x58b1cc): undefined reference to `__udivdi3'
+> ltc2945.c:(.text+0x58b1dd): undefined reference to `__udivdi3'
+> ltc2945.c:(.text+0x58b1fb): undefined reference to `__udivdi3'
+> make: *** [vmlinux] Error 1
 >
->> I think I already asked this - in your original e-mail,
->> you mentioned that the sensors command 'now hangs', and that
->> only started happening some time ago. What did you change -
->> if anything - in your system before this started to happen ?
->
-> The only change I can think of
-> was to move from Ubuntu 13.04 to
-> Ubuntu 13.10.
->
-Right now I have no idea what may be different. 13.4 is the 3.8 kernel
-if I remember correctly, and 13.10 should be 3.11. I did a quick diff
-in the relevant drivers but did not see anything that might cause
-the problem.
 
-To find out what exactly is hanging, you might try something like
+I really love those auto-builders :-)
 
-cd /sys/class/hwmon
-for d in *
-do
-(echo $d:
-cd $d
-if [ ! -f name ]
-then
-cd device
-fi
-ls
-grep . *
-)
-done
-
-The last line of output should show the attribute causing the hang,
-or rather the one accessed before it.
+Should be fixed in the next version of -next.
 
 Guenter
 
