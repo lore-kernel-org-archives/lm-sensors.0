@@ -1,65 +1,33 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 06 Feb 2014 01:26:04 +0000
-Subject: Re: [lm-sensors] [PATCH 43/51] hwmon, via-cputemp: Fix CPU hotplug callback registration
-Message-Id: <20140206012604.GB3887@roeck-us.net>
+From: =?ISO-8859-1?Q?Rune_Kj=E6r_Svendsen?= <runesvend@gmail.com>
+Date: Thu, 06 Feb 2014 02:02:00 +0000
+Subject: [lm-sensors] Missing fan speed readout for ASUS M5A97 EVO R2.0 motherboard
+Message-Id: <CAH2=CKyXKgmCdNLDoa0_qnDTerrCS+S=5v39hCMJ4m7eQgnbig@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140205220251.19080.92336.stgit@srivatsabhat.in.ibm.com>
- <20140205221218.19080.8681.stgit@srivatsabhat.in.ibm.com>
- <20140206004431.GB1308@roeck-us.net>
-In-Reply-To: <20140206004431.GB1308@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: paulus@samba.org, oleg@redhat.com, rusty@rustcorp.com.au, peterz@infradead.org, tglx@linutronix.de, akpm@linux-foundation.org, mingo@kernel.org, paulmck@linux.vnet.ibm.com, tj@kernel.org, walken@google.com, ego@linux.vnet.ibm.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 05, 2014 at 04:44:31PM -0800, Guenter Roeck wrote:
-> On Thu, Feb 06, 2014 at 03:42:19AM +0530, Srivatsa S. Bhat wrote:
-> > Subsystems that want to register CPU hotplug callbacks, as well as perform
-> > initialization for the CPUs that are already online, often do it as shown
-> > below:
-> > 
-> > 	get_online_cpus();
-> > 
-> > 	for_each_online_cpu(cpu)
-> > 		init_cpu(cpu);
-> > 
-> > 	register_cpu_notifier(&foobar_cpu_notifier);
-> > 
-> > 	put_online_cpus();
-> > 
-> > This is wrong, since it is prone to ABBA deadlocks involving the
-> > cpu_add_remove_lock and the cpu_hotplug.lock (when running concurrently
-> > with CPU hotplug operations).
-> > 
-> > Instead, the correct and race-free way of performing the callback
-> > registration is:
-> > 
-> > 	cpu_maps_update_begin();
-> > 
-> > 	for_each_online_cpu(cpu)
-> > 		init_cpu(cpu);
-> > 
-> > 	/* Note the use of the double underscored version of the API */
-> > 	__register_cpu_notifier(&foobar_cpu_notifier);
-> > 
-> > 	cpu_maps_update_done();
-> > 
-> > 
-> > Fix the hwmon via-cputemp code by using this latter form of callback
-> > registration.
-> > 
-> > Cc: Jean Delvare <jdelvare@suse.de>
-> > Cc: Guenter Roeck <linux@roeck-us.net>
-> > Cc: lm-sensors@lm-sensors.org
-> > Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-> 
-> Applied.
-> 
-Same here ... 
+Dear list
 
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+I recently purchased an ASUS M5A97 EVO R2.0 motherboard, which has four fan
+connectors on it: CPU_FAN, CHA_FAN1, CHA_FAN2 and CHA_FAN3.
 
+I can only get the fan speeds of the first three of these fans, however,
+which appear as fan1, fan2 and fan3 in /sys/devices/platform/it87.656
+
+Is there any chance I might be able to get the speed of the last, CHA_FAN3,
+fan?
+
+I'm using fancontrol to control the fans, and this works wonderfully. The
+BIOS can't handle it, but it works perfectly with fancontrol - completely
+silent. The CPU is controlled by pwm1 and the chassis fans by pwm3, pwm2
+seems to do nothing.
+
+I'd really like to get a reading on the third fan. Any tips on where I can
+go from here? I'm willing to do some hacking to get it to work.
+
+Cheers! :)
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
