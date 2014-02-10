@@ -1,53 +1,68 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 10 Feb 2014 18:55:16 +0000
+From: Laszlo Papp <lpapp@kde.org>
+Date: Mon, 10 Feb 2014 18:59:55 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140210195516.07405462@endymion.delvare>
+Message-Id: <CAOMwXhMTK6h3MQdHHaEV+5=XbQSqXzj0mPt3MzK9X9jhj4jOhQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
 	<20140210160842.GB26997@lee--X1>
 	<20140210173811.04ba5964@endymion.delvare>
-	<20140210165853.GD26997@lee--X1>
-	<20140210184323.456e921c@endymion.delvare>
-	<CAOMwXhPdu=uNEcffKdmjKsD0q5SKiwDx_Hnv8BTbSsGzqa4SGQ@mail.gmail.com>
-In-Reply-To: <CAOMwXhPdu=uNEcffKdmjKsD0q5SKiwDx_Hnv8BTbSsGzqa4SGQ@mail.gmail.com>
+	<20140210105346.14592yef0najhyio@67.228.131.205>
+In-Reply-To: <20140210105346.14592yef0najhyio@67.228.131.205>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
+To: Guenter Roeck <linux@roeck-us.net>
 Cc: Jean Delvare <jdelvare@suse.de>, Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Mon, 10 Feb 2014 18:27:07 +0000, Laszlo Papp wrote:
-> On Mon, Feb 10, 2014 at 5:43 PM, Jean Delvare <jdelvare@suse.de> wrote:
-> > On Mon, 10 Feb 2014 16:58:53 +0000, Lee Jones wrote:
-> >> > > Might be worth taking the opportunity to swap out these magic numbers
-> >> > > now.
-> >> >
-> >> > There's nothing magic about them, they tell the driver how many fans
-> >> > each device supports. If you don't pass them as driver_data you'll have
-> >> > to derive them from the device name in the probe function.
-> >>
-> >> They're magic in that they're not easily identifiable. In the few
-> >> moments that I looked at the patch I assumed they were device
-> >> IDs. They should be clearly defined.
-> >
-> > They could have been device IDs, some drivers do that, and that would
-> > have been equally fine. driver_data can be anything. Best thing to do
-> > is to document it right above the device id array if you really find it
-> > confusing (I don't.) I don't know what else exactly you had in mind,
-> > but #defining FOUR_FANS as 4 and ONE_FAN as 1 and using that doesn't
-> > strike me as the best coding practice.
-> 
-> Err... no. 1/4 fan is not the only difference between max6650 and
-> max6651 ... (might be worth looking up the datasheet).
+On Mon, Feb 10, 2014 at 4:53 PM,  <linux@roeck-us.net> wrote:
+> Quoting Jean Delvare <jdelvare@suse.de>:
+>
+>>
+>> That being said, going with MFD in this case seems quite overkill to
+>> me. MFD makes a lot of sense when each function has its own resources.
+>> As this isn't the case here, a single driver registering both an hwmon
+>> interface and a pinctrl interface would seem sufficient to me. But I
+>> think Guenter already discussed this in the past so I'll let him
+>> continue and decide.
+>>
+>
+> That is what I had suggested as well (though we were talking gpio
+> at the time). Laszlo didn't want to do it this way for some reason.
+> Right now I don't really have an idea what to do.
 
-This is the only difference the driver cared about so far, so the code
-made sense. If the driver is extended to support features which differ
-between the MAX6650 and MAX6651 then it will make sense to revisit, of
-course.
+Right now I do not really have an idea what the concern here is.
 
--- 
-Jean Delvare
-Suse L3 Support
+I will quote you:
+
+"Please explain, for my education, what makes you believe that I would
+object to or reject to anyone submitting such a driver."
+
+and then the next one in the thread:
+
+"> > Works for me. Should I apply the gpio and mfd drivers separately or in
+> > one single patch?
+>
+> s/apply/send/
+>
+Separately."
+
+This happened about two months ago, and after two months of man work,
+several reviews from various people, while you have been *explicitly*
+included in the threads, are claiming that it is unacceptable? Do you
+see how much time waste that would be for everyone who have been
+involved.
+
+What I currently do not understand is the point for rejecting the
+contribution that does not have API drawback, etc, if you do not
+provide anything better. You are more than welcome to rewrite my work
+once the feature works, but I guess it is very likely that you would
+not do that.
+
+So, let me ask it: shall we continue the bike-shedding after months,
+or there is a definite decision from the maintainers? Disagreement is
+not a problem because people can move on if the maintainers actually
+make it clear what is acceptable and what not, but here that did not
+really happen. We are where we were months ago.
 
 _______________________________________________
 lm-sensors mailing list
