@@ -1,55 +1,92 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Mon, 10 Feb 2014 18:24:37 +0000
+From: Laszlo Papp <lpapp@kde.org>
+Date: Mon, 10 Feb 2014 18:27:07 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140210182437.GG26997@lee--X1>
+Message-Id: <CAOMwXhPdu=uNEcffKdmjKsD0q5SKiwDx_Hnv8BTbSsGzqa4SGQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
- <20140210160842.GB26997@lee--X1>
- <20140210173811.04ba5964@endymion.delvare>
- <20140210165853.GD26997@lee--X1>
- <20140210184323.456e921c@endymion.delvare>
- <20140210180159.GF26997@lee--X1>
- <20140210191508.1a37505f@endymion.delvare>
-In-Reply-To: <20140210191508.1a37505f@endymion.delvare>
+	<20140210160842.GB26997@lee--X1>
+	<20140210173811.04ba5964@endymion.delvare>
+	<20140210165853.GD26997@lee--X1>
+	<20140210184323.456e921c@endymion.delvare>
+In-Reply-To: <20140210184323.456e921c@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <jdelvare@suse.de>
-Cc: Laszlo Papp <lpapp@kde.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-PiA+ID4gPiA+ID4gTWlnaHQgYmUgd29ydGggdGFraW5nIHRoZSBvcHBvcnR1bml0eSB0byBzd2Fw
-IG91dCB0aGVzZSBtYWdpYyBudW1iZXJzCj4gPiA+ID4gPiA+IG5vdy4KPiA+ID4gPiA+IAo+ID4g
-PiA+ID4gVGhlcmUncyBub3RoaW5nIG1hZ2ljIGFib3V0IHRoZW0sIHRoZXkgdGVsbCB0aGUgZHJp
-dmVyIGhvdyBtYW55IGZhbnMKPiA+ID4gPiA+IGVhY2ggZGV2aWNlIHN1cHBvcnRzLiBJZiB5b3Ug
-ZG9uJ3QgcGFzcyB0aGVtIGFzIGRyaXZlcl9kYXRhIHlvdSdsbCBoYXZlCj4gPiA+ID4gPiB0byBk
-ZXJpdmUgdGhlbSBmcm9tIHRoZSBkZXZpY2UgbmFtZSBpbiB0aGUgcHJvYmUgZnVuY3Rpb24uCj4g
-PiA+ID4gCj4gPiA+ID4gVGhleSdyZSBtYWdpYyBpbiB0aGF0IHRoZXkncmUgbm90IGVhc2lseSBp
-ZGVudGlmaWFibGUuIEluIHRoZSBmZXcKPiA+ID4gPiBtb21lbnRzIHRoYXQgSSBsb29rZWQgYXQg
-dGhlIHBhdGNoIEkgYXNzdW1lZCB0aGV5IHdlcmUgZGV2aWNlCj4gPiA+ID4gSURzLiBUaGV5IHNo
-b3VsZCBiZSBjbGVhcmx5IGRlZmluZWQuCj4gPiA+IAo+ID4gPiBUaGV5IGNvdWxkIGhhdmUgYmVl
-biBkZXZpY2UgSURzLCBzb21lIGRyaXZlcnMgZG8gdGhhdCwgYW5kIHRoYXQgd291bGQKPiA+ID4g
-aGF2ZSBiZWVuIGVxdWFsbHkgZmluZS4gZHJpdmVyX2RhdGEgY2FuIGJlIGFueXRoaW5nLiBCZXN0
-IHRoaW5nIHRvIGRvCj4gPiA+IGlzIHRvIGRvY3VtZW50IGl0IHJpZ2h0IGFib3ZlIHRoZSBkZXZp
-Y2UgaWQgYXJyYXkgaWYgeW91IHJlYWxseSBmaW5kIGl0Cj4gPiA+IGNvbmZ1c2luZyAoSSBkb24n
-dC4pIEkgZG9uJ3Qga25vdyB3aGF0IGVsc2UgZXhhY3RseSB5b3UgaGFkIGluIG1pbmQsCj4gPiA+
-IGJ1dCAjZGVmaW5pbmcgRk9VUl9GQU5TIGFzIDQgYW5kIE9ORV9GQU4gYXMgMSBhbmQgdXNpbmcg
-dGhhdCBkb2Vzbid0Cj4gPiA+IHN0cmlrZSBtZSBhcyB0aGUgYmVzdCBjb2RpbmcgcHJhY3RpY2Uu
-Cj4gPiAKPiA+IE9uIHRoZSBjb250cmFyeS4gUGVyaGFwcyB0aGUgbm9tZW5jbGF0dXJlIGNhbiBi
-ZSB3b3JrZWQgb24gYSBsaXR0bGUsCj4gPiBidXQgaWYgSSBzYXcgdGhlIGFmb3JlbWVudGlvbmVk
-IGRlZmluZXMgSSB3b3VsZCBoYXZlIGtub3duIGluc3RhbnRseQo+ID4gd2hhdCB3YXMgYmVpbmcg
-ZGVmaW5lZCB3aXRob3V0IHNlYXJjaGluZyBmb3IgY28tbG9jYXRlZCBjb21tZW50cy4gVGh1cwo+
-ID4gZWxldmF0aW5nIHRoZSByZXF1aXJlbWVudCBmb3IgbWUgdG8gZXZlbiBtZW50aW9uIGl0LiBF
-dmVuIHdoZW4gd2UKPiA+IHVzZSB0aGUgLmRhdGEgZWxlbWVudCBmb3IgdmVyeSBzaW1wbGUgaW5m
-b3JtYXRpb24gc3VjaCBhcyBkZXZpY2UgSURzCj4gPiB3ZSBkbyBzbyB3aXRoIGEgI2RlZmluZS4K
-PiAKPiBSaWdodCwgeW91IGhhdmUgYSBwb2ludCBoZXJlLgo+IAo+IEkgc3VwcG9zZSBpdCB3YXMg
-ZGVlbWVkIHVubmVlZGVkIGZvciBhIH43NTAgbGluZXMgZHJpdmVyIG5vYm9keSByZWFsbHkKPiBj
-YXJlZCBhYm91dC4gQnV0IGlmIHRoZSBkcml2ZXIgaXMgYmVjb21pbmcgbW9yZSBjb21wbGV4IGFu
-ZCBwb3B1bGFyCj4gdGhlbiBpbmRlZWQgaXQgbWFrZXMgc2Vuc2UgdG8gY2xlYW4gaXQgdXAgYSBs
-aXR0bGUuIFN0YXJ0aW5nIHdpdGgKPiByZW9yZGVyaW5nIGZ1bmN0aW9ucyB0byBraWxsIGZvcndh
-cmQgZGVjbGFyYXRpb25zIF5eCgpBbm90aGVyIHdvcnRod2hpbGUgZW5kZWF2b3VyLiA6KQoKLS0g
-CkxlZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxp
-bmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGlu
-YXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
-QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xtLXNlbnNvcnM
+On Mon, Feb 10, 2014 at 5:43 PM, Jean Delvare <jdelvare@suse.de> wrote:
+> Hi Lee,
+>
+> On Mon, 10 Feb 2014 16:58:53 +0000, Lee Jones wrote:
+>> > > >  static const struct i2c_device_id max6650_id[] = {
+>> > > > -       { "max6650", 1 },
+>> > > > -       { "max6651", 4 },
+>> > > > +       { "max6650-hwmon", 1 },
+>> > > > +       { "max6651-hwmon", 4 },
+>> >
+>> > No, this is not acceptable, sorry. This will change the name of the
+>> > hwmon device as seen from user-space, breaking any configuration file
+>> > referring to it. Additionally, dashes are explicitly forbidden in hwmon
+>> > device names. And lastly this will break any explicit instantiation of
+>> > theses devices (which is the only way, as the driver doesn't support
+>> > device auto-detection), be it in the kernel itself or from user-space.
+>> >
+>> > The change doesn't make sense anyway. If you move to the MFD framework,
+>> > the core driver will be an I2C driver binding to the I2C device, and it
+>> > will spawn the logical devices, presumably in the form of platform
+>> > devices. That's what the current max6650 driver would have to bind to.
+>> > Just renaming the device won't work, you also need to change the type.
+>> >
+>> > If you want to turn this into an MFD driver, I believe you must first
+>> > convert the hwmon part to register using
+>> > devm_hwmon_device_register_with_groups(). This will dissociate the i2c
+>> > device name from the hwmon device name and create a clean name-space
+>> > for each function. Guenter, maybe you had a plan to do so already
+>> > anyway?
+>> >
+>> > That being said, going with MFD in this case seems quite overkill to
+>> > me. MFD makes a lot of sense when each function has its own resources.
+>> > As this isn't the case here, a single driver registering both an hwmon
+>> > interface and a pinctrl interface would seem sufficient to me. But I
+>> > think Guenter already discussed this in the past so I'll let him
+>> > continue and decide.
+>>
+>> I'll get you guys decide if you want to go the MFD route or not.
+>>
+>> Either is okay with me, but if you do decide in favour, a name change
+>> with the device type appended would be preferred. Else the core device
+>> would have the same name as all of its children which would be quite
+>> unworkable.
+>
+> No problem with that. The main (I2C) device should be named max6650 (or
+> max6651), the subdevices can be named whatever you want, as long as the
+> hwmon (class) device's name attribute is also "max6650" (or "max6651".)
+> As stated above, this is required to preserve compatibility with
+> existing users.
+>
+>> > > Might be worth taking the opportunity to swap out these magic numbers
+>> > > now.
+>> >
+>> > There's nothing magic about them, they tell the driver how many fans
+>> > each device supports. If you don't pass them as driver_data you'll have
+>> > to derive them from the device name in the probe function.
+>>
+>> They're magic in that they're not easily identifiable. In the few
+>> moments that I looked at the patch I assumed they were device
+>> IDs. They should be clearly defined.
+>
+> They could have been device IDs, some drivers do that, and that would
+> have been equally fine. driver_data can be anything. Best thing to do
+> is to document it right above the device id array if you really find it
+> confusing (I don't.) I don't know what else exactly you had in mind,
+> but #defining FOUR_FANS as 4 and ONE_FAN as 1 and using that doesn't
+> strike me as the best coding practice.
+
+Err... no. 1/4 fan is not the only difference between max6650 and
+max6651 ... (might be worth looking up the datasheet).
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
