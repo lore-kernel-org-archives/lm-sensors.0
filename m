@@ -1,65 +1,94 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Mon, 10 Feb 2014 16:58:53 +0000
+From: Laszlo Papp <lpapp@kde.org>
+Date: Mon, 10 Feb 2014 17:06:46 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140210165853.GD26997@lee--X1>
+Message-Id: <CAOMwXhNr27fwwhr=Fb996b1DtSb0R6xiasMY2PsbTwVNe2qgOQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
- <20140210160842.GB26997@lee--X1>
- <20140210173811.04ba5964@endymion.delvare>
+	<20140210160842.GB26997@lee--X1>
+	<20140210173811.04ba5964@endymion.delvare>
 In-Reply-To: <20140210173811.04ba5964@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <jdelvare@suse.de>
-Cc: Laszlo Papp <lpapp@kde.org>, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-PiA+ID4gIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX2RldmljZV9pZCBtYXg2NjUwX2lkW10gPSB7
-Cj4gPiA+IC0JeyAibWF4NjY1MCIsIDEgfSwKPiA+ID4gLQl7ICJtYXg2NjUxIiwgNCB9LAo+ID4g
-PiArCXsgIm1heDY2NTAtaHdtb24iLCAxIH0sCj4gPiA+ICsJeyAibWF4NjY1MS1od21vbiIsIDQg
-fSwKPiAKPiBObywgdGhpcyBpcyBub3QgYWNjZXB0YWJsZSwgc29ycnkuIFRoaXMgd2lsbCBjaGFu
-Z2UgdGhlIG5hbWUgb2YgdGhlCj4gaHdtb24gZGV2aWNlIGFzIHNlZW4gZnJvbSB1c2VyLXNwYWNl
-LCBicmVha2luZyBhbnkgY29uZmlndXJhdGlvbiBmaWxlCj4gcmVmZXJyaW5nIHRvIGl0LiBBZGRp
-dGlvbmFsbHksIGRhc2hlcyBhcmUgZXhwbGljaXRseSBmb3JiaWRkZW4gaW4gaHdtb24KPiBkZXZp
-Y2UgbmFtZXMuIEFuZCBsYXN0bHkgdGhpcyB3aWxsIGJyZWFrIGFueSBleHBsaWNpdCBpbnN0YW50
-aWF0aW9uIG9mCj4gdGhlc2VzIGRldmljZXMgKHdoaWNoIGlzIHRoZSBvbmx5IHdheSwgYXMgdGhl
-IGRyaXZlciBkb2Vzbid0IHN1cHBvcnQKPiBkZXZpY2UgYXV0by1kZXRlY3Rpb24pLCBiZSBpdCBp
-biB0aGUga2VybmVsIGl0c2VsZiBvciBmcm9tIHVzZXItc3BhY2UuCj4gCj4gVGhlIGNoYW5nZSBk
-b2Vzbid0IG1ha2Ugc2Vuc2UgYW55d2F5LiBJZiB5b3UgbW92ZSB0byB0aGUgTUZEIGZyYW1ld29y
-aywKPiB0aGUgY29yZSBkcml2ZXIgd2lsbCBiZSBhbiBJMkMgZHJpdmVyIGJpbmRpbmcgdG8gdGhl
-IEkyQyBkZXZpY2UsIGFuZCBpdAo+IHdpbGwgc3Bhd24gdGhlIGxvZ2ljYWwgZGV2aWNlcywgcHJl
-c3VtYWJseSBpbiB0aGUgZm9ybSBvZiBwbGF0Zm9ybQo+IGRldmljZXMuIFRoYXQncyB3aGF0IHRo
-ZSBjdXJyZW50IG1heDY2NTAgZHJpdmVyIHdvdWxkIGhhdmUgdG8gYmluZCB0by4KPiBKdXN0IHJl
-bmFtaW5nIHRoZSBkZXZpY2Ugd29uJ3Qgd29yaywgeW91IGFsc28gbmVlZCB0byBjaGFuZ2UgdGhl
-IHR5cGUuCj4gCj4gSWYgeW91IHdhbnQgdG8gdHVybiB0aGlzIGludG8gYW4gTUZEIGRyaXZlciwg
-SSBiZWxpZXZlIHlvdSBtdXN0IGZpcnN0Cj4gY29udmVydCB0aGUgaHdtb24gcGFydCB0byByZWdp
-c3RlciB1c2luZwo+IGRldm1faHdtb25fZGV2aWNlX3JlZ2lzdGVyX3dpdGhfZ3JvdXBzKCkuIFRo
-aXMgd2lsbCBkaXNzb2NpYXRlIHRoZSBpMmMKPiBkZXZpY2UgbmFtZSBmcm9tIHRoZSBod21vbiBk
-ZXZpY2UgbmFtZSBhbmQgY3JlYXRlIGEgY2xlYW4gbmFtZS1zcGFjZQo+IGZvciBlYWNoIGZ1bmN0
-aW9uLiBHdWVudGVyLCBtYXliZSB5b3UgaGFkIGEgcGxhbiB0byBkbyBzbyBhbHJlYWR5Cj4gYW55
-d2F5Pwo+IAo+IFRoYXQgYmVpbmcgc2FpZCwgZ29pbmcgd2l0aCBNRkQgaW4gdGhpcyBjYXNlIHNl
-ZW1zIHF1aXRlIG92ZXJraWxsIHRvCj4gbWUuIE1GRCBtYWtlcyBhIGxvdCBvZiBzZW5zZSB3aGVu
-IGVhY2ggZnVuY3Rpb24gaGFzIGl0cyBvd24gcmVzb3VyY2VzLgo+IEFzIHRoaXMgaXNuJ3QgdGhl
-IGNhc2UgaGVyZSwgYSBzaW5nbGUgZHJpdmVyIHJlZ2lzdGVyaW5nIGJvdGggYW4gaHdtb24KPiBp
-bnRlcmZhY2UgYW5kIGEgcGluY3RybCBpbnRlcmZhY2Ugd291bGQgc2VlbSBzdWZmaWNpZW50IHRv
-IG1lLiBCdXQgSQo+IHRoaW5rIEd1ZW50ZXIgYWxyZWFkeSBkaXNjdXNzZWQgdGhpcyBpbiB0aGUg
-cGFzdCBzbyBJJ2xsIGxldCBoaW0KPiBjb250aW51ZSBhbmQgZGVjaWRlLgoKSSdsbCBnZXQgeW91
-IGd1eXMgZGVjaWRlIGlmIHlvdSB3YW50IHRvIGdvIHRoZSBNRkQgcm91dGUgb3Igbm90LgoKRWl0
-aGVyIGlzIG9rYXkgd2l0aCBtZSwgYnV0IGlmIHlvdSBkbyBkZWNpZGUgaW4gZmF2b3VyLCBhIG5h
-bWUgY2hhbmdlCndpdGggdGhlIGRldmljZSB0eXBlIGFwcGVuZGVkIHdvdWxkIGJlIHByZWZlcnJl
-ZC4gRWxzZSB0aGUgY29yZSBkZXZpY2UKd291bGQgaGF2ZSB0aGUgc2FtZSBuYW1lIGFzIGFsbCBv
-ZiBpdHMgY2hpbGRyZW4gd2hpY2ggd291bGQgYmUgcXVpdGUKdW53b3JrYWJsZS4KCj4gPiBNaWdo
-dCBiZSB3b3J0aCB0YWtpbmcgdGhlIG9wcG9ydHVuaXR5IHRvIHN3YXAgb3V0IHRoZXNlIG1hZ2lj
-IG51bWJlcnMKPiA+IG5vdy4KPiAKPiBUaGVyZSdzIG5vdGhpbmcgbWFnaWMgYWJvdXQgdGhlbSwg
-dGhleSB0ZWxsIHRoZSBkcml2ZXIgaG93IG1hbnkgZmFucwo+IGVhY2ggZGV2aWNlIHN1cHBvcnRz
-LiBJZiB5b3UgZG9uJ3QgcGFzcyB0aGVtIGFzIGRyaXZlcl9kYXRhIHlvdSdsbCBoYXZlCj4gdG8g
-ZGVyaXZlIHRoZW0gZnJvbSB0aGUgZGV2aWNlIG5hbWUgaW4gdGhlIHByb2JlIGZ1bmN0aW9uLgoK
-VGhleSdyZSBtYWdpYyBpbiB0aGF0IHRoZXkncmUgbm90IGVhc2lseSBpZGVudGlmaWFibGUuIElu
-IHRoZSBmZXcKbW9tZW50cyB0aGF0IEkgbG9va2VkIGF0IHRoZSBwYXRjaCBJIGFzc3VtZWQgdGhl
-eSB3ZXJlIGRldmljZQpJRHMuIFRoZXkgc2hvdWxkIGJlIGNsZWFybHkgZGVmaW5lZC4KCj4gPiA+
-ICAJeyB9Cj4gPiA+ICB9Owo+ID4gPiAgTU9EVUxFX0RFVklDRV9UQUJMRShpMmMsIG1heDY2NTBf
-aWQpOwoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVh
-bSBMZWFkCkxpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpG
-b2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrote:
+> Hi Lee, Laszlo,
+>
+> On Mon, 10 Feb 2014 16:08:42 +0000, Lee Jones wrote:
+>> > In the preparation of creating an mfd driver and then refactor this one into a
+>> > platform driver in order to add some pinctrl functionality to the chip, it is
+>> > necessary to start the series with this change so that the mfd driver can refer
+>> > to the proper name in the subsequent change without making changes in more than
+>> > one driver later.
+>> >
+>> > This was a request from Lee Jones, the MFD subsystem maintainer.
+>> >
+>> > Signed-off-by: Laszlo Papp <lpapp@kde.org>
+>> > ---
+>> >  drivers/hwmon/max6650.c | 4 ++--
+>> >  1 file changed, 2 insertions(+), 2 deletions(-)
+>> >
+>> > diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
+>> > index 0cafc39..3c36edc 100644
+>> > --- a/drivers/hwmon/max6650.c
+>> > +++ b/drivers/hwmon/max6650.c
+>> > @@ -116,8 +116,8 @@ static struct max6650_data *max6650_update_device(struct device *dev);
+>> >   */
+>> >
+>> >  static const struct i2c_device_id max6650_id[] = {
+>> > -   { "max6650", 1 },
+>> > -   { "max6651", 4 },
+>> > +   { "max6650-hwmon", 1 },
+>> > +   { "max6651-hwmon", 4 },
+>
+> No, this is not acceptable, sorry. This will change the name of the
+> hwmon device as seen from user-space, breaking any configuration file
+> referring to it. Additionally, dashes are explicitly forbidden in hwmon
+> device names. And lastly this will break any explicit instantiation of
+> theses devices (which is the only way, as the driver doesn't support
+> device auto-detection), be it in the kernel itself or from user-space.
+>
+> The change doesn't make sense anyway. If you move to the MFD framework,
+> the core driver will be an I2C driver binding to the I2C device, and it
+> will spawn the logical devices, presumably in the form of platform
+> devices. That's what the current max6650 driver would have to bind to.
+> Just renaming the device won't work, you also need to change the type.
+
+Hmm, this paragraph seems to indicate that you have not seen my
+previous patch set. I tried to summarize in this commit message that
+the type in this subdriver would need to change, yes.
+
+I am fine with not renaming, but appending if such a thing is
+possible. What does not make sense to me is acquiring a "global"
+max665x name in a sub-device driver. The children have to be
+distinguished somehow!
+
+> If you want to turn this into an MFD driver, I believe you must first
+> convert the hwmon part to register using
+> devm_hwmon_device_register_with_groups(). This will dissociate the i2c
+> device name from the hwmon device name and create a clean name-space
+> for each function. Guenter, maybe you had a plan to do so already
+> anyway?
+>
+> That being said, going with MFD in this case seems quite overkill to
+> me. MFD makes a lot of sense when each function has its own resources.
+> As this isn't the case here, a single driver registering both an hwmon
+> interface and a pinctrl interface would seem sufficient to me. But I
+> think Guenter already discussed this in the past so I'll let him
+> continue and decide.
+
+Exactly. This had been overdiscussed. I took my personal preference
+without any technical drawback. I prefer clean separation just like
+several other mfd drivers are doing, really.
+
+Tell me this is unacceptable, and I will stop helping with getting the
+required functionality into the kernel. Frankly, I am getting tired of
+having worked on it for a few months now, and we are still at
+discussing personal preferences rather than getting features in ...
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
