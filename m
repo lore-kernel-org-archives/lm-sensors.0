@@ -1,38 +1,91 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Mon, 10 Feb 2014 16:08:42 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 10 Feb 2014 16:38:11 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140210160842.GB26997@lee--X1>
+Message-Id: <20140210173811.04ba5964@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
-In-Reply-To: <1392045953-26596-1-git-send-email-lpapp@kde.org>
+	<20140210160842.GB26997@lee--X1>
+In-Reply-To: <20140210160842.GB26997@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
-Cc: jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Laszlo Papp <lpapp@kde.org>, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-PiBJbiB0aGUgcHJlcGFyYXRpb24gb2YgY3JlYXRpbmcgYW4gbWZkIGRyaXZlciBhbmQgdGhlbiBy
-ZWZhY3RvciB0aGlzIG9uZSBpbnRvIGEKPiBwbGF0Zm9ybSBkcml2ZXIgaW4gb3JkZXIgdG8gYWRk
-IHNvbWUgcGluY3RybCBmdW5jdGlvbmFsaXR5IHRvIHRoZSBjaGlwLCBpdCBpcwo+IG5lY2Vzc2Fy
-eSB0byBzdGFydCB0aGUgc2VyaWVzIHdpdGggdGhpcyBjaGFuZ2Ugc28gdGhhdCB0aGUgbWZkIGRy
-aXZlciBjYW4gcmVmZXIKPiB0byB0aGUgcHJvcGVyIG5hbWUgaW4gdGhlIHN1YnNlcXVlbnQgY2hh
-bmdlIHdpdGhvdXQgbWFraW5nIGNoYW5nZXMgaW4gbW9yZSB0aGFuCj4gb25lIGRyaXZlciBsYXRl
-ci4KPiAKPiBUaGlzIHdhcyBhIHJlcXVlc3QgZnJvbSBMZWUgSm9uZXMsIHRoZSBNRkQgc3Vic3lz
-dGVtIG1haW50YWluZXIuCj4gCj4gU2lnbmVkLW9mZi1ieTogTGFzemxvIFBhcHAgPGxwYXBwQGtk
-ZS5vcmc+Cj4gLS0tCj4gIGRyaXZlcnMvaHdtb24vbWF4NjY1MC5jIHwgNCArKy0tCj4gIDEgZmls
-ZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvaHdtb24vbWF4NjY1MC5jIGIvZHJpdmVycy9od21vbi9tYXg2NjUwLmMKPiBp
-bmRleCAwY2FmYzM5Li4zYzM2ZWRjIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaHdtb24vbWF4NjY1
-MC5jCj4gKysrIGIvZHJpdmVycy9od21vbi9tYXg2NjUwLmMKPiBAQCAtMTE2LDggKzExNiw4IEBA
-IHN0YXRpYyBzdHJ1Y3QgbWF4NjY1MF9kYXRhICptYXg2NjUwX3VwZGF0ZV9kZXZpY2Uoc3RydWN0
-IGRldmljZSAqZGV2KTsKPiAgICovCj4gIAo+ICBzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19kZXZp
-Y2VfaWQgbWF4NjY1MF9pZFtdID0gewo+IC0JeyAibWF4NjY1MCIsIDEgfSwKPiAtCXsgIm1heDY2
-NTEiLCA0IH0sCj4gKwl7ICJtYXg2NjUwLWh3bW9uIiwgMSB9LAo+ICsJeyAibWF4NjY1MS1od21v
-biIsIDQgfSwKCk1pZ2h0IGJlIHdvcnRoIHRha2luZyB0aGUgb3Bwb3J0dW5pdHkgdG8gc3dhcCBv
-dXQgdGhlc2UgbWFnaWMgbnVtYmVycwpub3cuCgo+ICAJeyB9Cj4gIH07Cj4gIE1PRFVMRV9ERVZJ
-Q0VfVEFCTEUoaTJjLCBtYXg2NjUwX2lkKTsKCi0tIApMZWUgSm9uZXMKTGluYXJvIFNUTWljcm9l
-bGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApMaW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBz
-b2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBUd2l0dGVyIHwg
-QmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0t
-c2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlz
-dHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Hi Lee, Laszlo,
+
+On Mon, 10 Feb 2014 16:08:42 +0000, Lee Jones wrote:
+> > In the preparation of creating an mfd driver and then refactor this one into a
+> > platform driver in order to add some pinctrl functionality to the chip, it is
+> > necessary to start the series with this change so that the mfd driver can refer
+> > to the proper name in the subsequent change without making changes in more than
+> > one driver later.
+> > 
+> > This was a request from Lee Jones, the MFD subsystem maintainer.
+> > 
+> > Signed-off-by: Laszlo Papp <lpapp@kde.org>
+> > ---
+> >  drivers/hwmon/max6650.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
+> > index 0cafc39..3c36edc 100644
+> > --- a/drivers/hwmon/max6650.c
+> > +++ b/drivers/hwmon/max6650.c
+> > @@ -116,8 +116,8 @@ static struct max6650_data *max6650_update_device(struct device *dev);
+> >   */
+> >  
+> >  static const struct i2c_device_id max6650_id[] = {
+> > -	{ "max6650", 1 },
+> > -	{ "max6651", 4 },
+> > +	{ "max6650-hwmon", 1 },
+> > +	{ "max6651-hwmon", 4 },
+
+No, this is not acceptable, sorry. This will change the name of the
+hwmon device as seen from user-space, breaking any configuration file
+referring to it. Additionally, dashes are explicitly forbidden in hwmon
+device names. And lastly this will break any explicit instantiation of
+theses devices (which is the only way, as the driver doesn't support
+device auto-detection), be it in the kernel itself or from user-space.
+
+The change doesn't make sense anyway. If you move to the MFD framework,
+the core driver will be an I2C driver binding to the I2C device, and it
+will spawn the logical devices, presumably in the form of platform
+devices. That's what the current max6650 driver would have to bind to.
+Just renaming the device won't work, you also need to change the type.
+
+If you want to turn this into an MFD driver, I believe you must first
+convert the hwmon part to register using
+devm_hwmon_device_register_with_groups(). This will dissociate the i2c
+device name from the hwmon device name and create a clean name-space
+for each function. Guenter, maybe you had a plan to do so already
+anyway?
+
+That being said, going with MFD in this case seems quite overkill to
+me. MFD makes a lot of sense when each function has its own resources.
+As this isn't the case here, a single driver registering both an hwmon
+interface and a pinctrl interface would seem sufficient to me. But I
+think Guenter already discussed this in the past so I'll let him
+continue and decide.
+
+> Might be worth taking the opportunity to swap out these magic numbers
+> now.
+
+There's nothing magic about them, they tell the driver how many fans
+each device supports. If you don't pass them as driver_data you'll have
+to derive them from the device name in the probe function.
+
+> >  	{ }
+> >  };
+> >  MODULE_DEVICE_TABLE(i2c, max6650_id);
+> 
+
+
+-- 
+Jean Delvare
+Suse L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
