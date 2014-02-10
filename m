@@ -1,59 +1,55 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 10 Feb 2014 18:15:08 +0000
+From: Lee Jones <lee.jones@linaro.org>
+Date: Mon, 10 Feb 2014 18:24:37 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140210191508.1a37505f@endymion.delvare>
+Message-Id: <20140210182437.GG26997@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
-	<20140210160842.GB26997@lee--X1>
-	<20140210173811.04ba5964@endymion.delvare>
-	<20140210165853.GD26997@lee--X1>
-	<20140210184323.456e921c@endymion.delvare>
-	<20140210180159.GF26997@lee--X1>
-In-Reply-To: <20140210180159.GF26997@lee--X1>
+ <20140210160842.GB26997@lee--X1>
+ <20140210173811.04ba5964@endymion.delvare>
+ <20140210165853.GD26997@lee--X1>
+ <20140210184323.456e921c@endymion.delvare>
+ <20140210180159.GF26997@lee--X1>
+ <20140210191508.1a37505f@endymion.delvare>
+In-Reply-To: <20140210191508.1a37505f@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
+To: Jean Delvare <jdelvare@suse.de>
 Cc: Laszlo Papp <lpapp@kde.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Mon, 10 Feb 2014 18:01:59 +0000, Lee Jones wrote:
-> > > > > Might be worth taking the opportunity to swap out these magic numbers
-> > > > > now.
-> > > > 
-> > > > There's nothing magic about them, they tell the driver how many fans
-> > > > each device supports. If you don't pass them as driver_data you'll have
-> > > > to derive them from the device name in the probe function.
-> > > 
-> > > They're magic in that they're not easily identifiable. In the few
-> > > moments that I looked at the patch I assumed they were device
-> > > IDs. They should be clearly defined.
-> > 
-> > They could have been device IDs, some drivers do that, and that would
-> > have been equally fine. driver_data can be anything. Best thing to do
-> > is to document it right above the device id array if you really find it
-> > confusing (I don't.) I don't know what else exactly you had in mind,
-> > but #defining FOUR_FANS as 4 and ONE_FAN as 1 and using that doesn't
-> > strike me as the best coding practice.
-> 
-> On the contrary. Perhaps the nomenclature can be worked on a little,
-> but if I saw the aforementioned defines I would have known instantly
-> what was being defined without searching for co-located comments. Thus
-> elevating the requirement for me to even mention it. Even when we
-> use the .data element for very simple information such as device IDs
-> we do so with a #define.
-
-Right, you have a point here.
-
-I suppose it was deemed unneeded for a ~750 lines driver nobody really
-cared about. But if the driver is becoming more complex and popular
-then indeed it makes sense to clean it up a little. Starting with
-reordering functions to kill forward declarations ^^
-
--- 
-Jean Delvare
-Suse L3 Support
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+PiA+ID4gPiA+ID4gTWlnaHQgYmUgd29ydGggdGFraW5nIHRoZSBvcHBvcnR1bml0eSB0byBzd2Fw
+IG91dCB0aGVzZSBtYWdpYyBudW1iZXJzCj4gPiA+ID4gPiA+IG5vdy4KPiA+ID4gPiA+IAo+ID4g
+PiA+ID4gVGhlcmUncyBub3RoaW5nIG1hZ2ljIGFib3V0IHRoZW0sIHRoZXkgdGVsbCB0aGUgZHJp
+dmVyIGhvdyBtYW55IGZhbnMKPiA+ID4gPiA+IGVhY2ggZGV2aWNlIHN1cHBvcnRzLiBJZiB5b3Ug
+ZG9uJ3QgcGFzcyB0aGVtIGFzIGRyaXZlcl9kYXRhIHlvdSdsbCBoYXZlCj4gPiA+ID4gPiB0byBk
+ZXJpdmUgdGhlbSBmcm9tIHRoZSBkZXZpY2UgbmFtZSBpbiB0aGUgcHJvYmUgZnVuY3Rpb24uCj4g
+PiA+ID4gCj4gPiA+ID4gVGhleSdyZSBtYWdpYyBpbiB0aGF0IHRoZXkncmUgbm90IGVhc2lseSBp
+ZGVudGlmaWFibGUuIEluIHRoZSBmZXcKPiA+ID4gPiBtb21lbnRzIHRoYXQgSSBsb29rZWQgYXQg
+dGhlIHBhdGNoIEkgYXNzdW1lZCB0aGV5IHdlcmUgZGV2aWNlCj4gPiA+ID4gSURzLiBUaGV5IHNo
+b3VsZCBiZSBjbGVhcmx5IGRlZmluZWQuCj4gPiA+IAo+ID4gPiBUaGV5IGNvdWxkIGhhdmUgYmVl
+biBkZXZpY2UgSURzLCBzb21lIGRyaXZlcnMgZG8gdGhhdCwgYW5kIHRoYXQgd291bGQKPiA+ID4g
+aGF2ZSBiZWVuIGVxdWFsbHkgZmluZS4gZHJpdmVyX2RhdGEgY2FuIGJlIGFueXRoaW5nLiBCZXN0
+IHRoaW5nIHRvIGRvCj4gPiA+IGlzIHRvIGRvY3VtZW50IGl0IHJpZ2h0IGFib3ZlIHRoZSBkZXZp
+Y2UgaWQgYXJyYXkgaWYgeW91IHJlYWxseSBmaW5kIGl0Cj4gPiA+IGNvbmZ1c2luZyAoSSBkb24n
+dC4pIEkgZG9uJ3Qga25vdyB3aGF0IGVsc2UgZXhhY3RseSB5b3UgaGFkIGluIG1pbmQsCj4gPiA+
+IGJ1dCAjZGVmaW5pbmcgRk9VUl9GQU5TIGFzIDQgYW5kIE9ORV9GQU4gYXMgMSBhbmQgdXNpbmcg
+dGhhdCBkb2Vzbid0Cj4gPiA+IHN0cmlrZSBtZSBhcyB0aGUgYmVzdCBjb2RpbmcgcHJhY3RpY2Uu
+Cj4gPiAKPiA+IE9uIHRoZSBjb250cmFyeS4gUGVyaGFwcyB0aGUgbm9tZW5jbGF0dXJlIGNhbiBi
+ZSB3b3JrZWQgb24gYSBsaXR0bGUsCj4gPiBidXQgaWYgSSBzYXcgdGhlIGFmb3JlbWVudGlvbmVk
+IGRlZmluZXMgSSB3b3VsZCBoYXZlIGtub3duIGluc3RhbnRseQo+ID4gd2hhdCB3YXMgYmVpbmcg
+ZGVmaW5lZCB3aXRob3V0IHNlYXJjaGluZyBmb3IgY28tbG9jYXRlZCBjb21tZW50cy4gVGh1cwo+
+ID4gZWxldmF0aW5nIHRoZSByZXF1aXJlbWVudCBmb3IgbWUgdG8gZXZlbiBtZW50aW9uIGl0LiBF
+dmVuIHdoZW4gd2UKPiA+IHVzZSB0aGUgLmRhdGEgZWxlbWVudCBmb3IgdmVyeSBzaW1wbGUgaW5m
+b3JtYXRpb24gc3VjaCBhcyBkZXZpY2UgSURzCj4gPiB3ZSBkbyBzbyB3aXRoIGEgI2RlZmluZS4K
+PiAKPiBSaWdodCwgeW91IGhhdmUgYSBwb2ludCBoZXJlLgo+IAo+IEkgc3VwcG9zZSBpdCB3YXMg
+ZGVlbWVkIHVubmVlZGVkIGZvciBhIH43NTAgbGluZXMgZHJpdmVyIG5vYm9keSByZWFsbHkKPiBj
+YXJlZCBhYm91dC4gQnV0IGlmIHRoZSBkcml2ZXIgaXMgYmVjb21pbmcgbW9yZSBjb21wbGV4IGFu
+ZCBwb3B1bGFyCj4gdGhlbiBpbmRlZWQgaXQgbWFrZXMgc2Vuc2UgdG8gY2xlYW4gaXQgdXAgYSBs
+aXR0bGUuIFN0YXJ0aW5nIHdpdGgKPiByZW9yZGVyaW5nIGZ1bmN0aW9ucyB0byBraWxsIGZvcndh
+cmQgZGVjbGFyYXRpb25zIF5eCgpBbm90aGVyIHdvcnRod2hpbGUgZW5kZWF2b3VyLiA6KQoKLS0g
+CkxlZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxp
+bmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGlu
+YXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
+QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xtLXNlbnNvcnM
