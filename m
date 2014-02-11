@@ -1,33 +1,63 @@
-From: =?ISO-8859-2?Q?Rafa=B3_Cygnarowski?= <rafcyg@gmail.com>
-Date: Sun, 02 Feb 2014 00:22:39 +0000
-Subject: [lm-sensors] Asrock FM2A78M-ITX+
-Message-Id: <CAMmZ4kCgjzuRr9PMo0ChAF6McHnMDi+QgL9Big8Fwxgn903EBQ@mail.gmail.com>
+From: Laszlo Papp <lpapp@kde.org>
+Date: Tue, 11 Feb 2014 10:24:07 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (max6650) Dissociate the i2c device name from the hwmon device name
+Message-Id: <1392114247-23921-1-git-send-email-lpapp@kde.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de
+Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Laszlo Papp <lpapp@kde.org>
 
-SGkhCgpIZXJlJ3MgbXkgY29uZmlndXJhdGlvbiBmaWxlIGZvciBBc3JvY2sgRk0yQTc4TS1JVFgr
-LiBXb3VsZCBiZSBuaWNlIGlmCnNvbWVvbmUgY291bGQgcGxhY2UgaXQgaW4gd2lraS4KCkJlc3Qg
-cmVnYXJkcywKUmFmYcWCCgpjaGlwICJuY3Q2Nzc2LWlzYS0wMjkwIgoKICAgIGxhYmVsIGZhbjEg
-IkNoYXNzaXMgRkFOIgogICAgc2V0IGZhbjFfbWluIDUwMAoKICAgIGxhYmVsIGZhbjIgIiAgICBD
-UFUgRkFOIgogICAgc2V0IGZhbjJfbWluIDUwMAoKICAgIGlnbm9yZSBmYW4zCiAgICBpZ25vcmUg
-ZmFuNAogICAgaWdub3JlIGZhbjUKCiAgICBsYWJlbCB0ZW1wMSAiICAgTS9CIFRlbXAiCiAgICBz
-ZXQgdGVtcDFfbWF4IDYwCiAgICBzZXQgdGVtcDFfbWF4X2h5c3QgNTAKCiAgICBsYWJlbCB0ZW1w
-MiAiICAgQ1BVIFRlbXAiCiAgICBzZXQgdGVtcDJfbWF4IDgwCiAgICBzZXQgdGVtcDJfbWF4X2h5
-c3QgNzUKICAgIGlnbm9yZSB0ZW1wMwogICAgaWdub3JlIHRlbXA2CgogICAgbGFiZWwgaW4wICIg
-ICAgICBWQ29yZSIKICAgIGNvbXB1dGUgaW4wIEAqKDgvOCksICBALyg4LzgpCiAgICBzZXQgaW4w
-X21pbiAwCiAgICBzZXQgaW4wX21heCAxLjc0NAoKICAgIGxhYmVsIGluMSAiICAgICsxMi4wMFYi
-CiAgICBjb21wdXRlIGluMSBAKig1NTYvOCksICBALyg1NTYvOCkKICAgIHNldCBpbjFfbWluICAx
-Mi4wICogMC45NQogICAgc2V0IGluMV9tYXggIDEyLjAgKiAxLjA1CgogICAgaWdub3JlIGluMgoK
-ICAgIGxhYmVsIGluMyAiICAgICArMy4zMFYiCiAgICBjb21wdXRlIGluMyBAKig4LzgpLCAgQC8o
-OC84KQogICAgc2V0IGluM19taW4gIDMuMyAqIDAuOTUKICAgIHNldCBpbjNfbWF4ICAzLjMgKiAx
-LjA1CgogICAgaWdub3JlIGluNAoKICAgIGxhYmVsIGluNSAiICAgICArNS4wMFYiCiAgICBjb21w
-dXRlIGluNSBAKigyNC84KSwgIEAvKDI0LzgpCiAgICBzZXQgaW41X21pbiAgNS4wICogMC45NQog
-ICAgc2V0IGluNV9tYXggIDUuMCAqIDEuMDUKCiAgICBpZ25vcmUgaW42CiAgICBpZ25vcmUgaW43
-CiAgICBpZ25vcmUgaW44CiAgICBpZ25vcmUgY3B1MF92aWQKCiAgICBpZ25vcmUgaW50cnVzaW9u
-MAogICAgaWdub3JlIGludHJ1c2lvbjEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+This is a necessary step to revamp the existing design of the driver for the
+overall functionality the chip can provide. This will create a clean name-space
+for each function.
+
+Signed-off-by: Laszlo Papp <lpapp@kde.org>
+---
+ drivers/hwmon/max6650.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
+index 0cafc39..d4b1450 100644
+--- a/drivers/hwmon/max6650.c
++++ b/drivers/hwmon/max6650.c
+@@ -518,6 +518,7 @@ static struct attribute *max6650_attrs[] = {
+ 	&sensor_dev_attr_gpio2_alarm.dev_attr.attr,
+ 	NULL
+ };
++ATTRIBUTE_GROUPS(max6650);
+ 
+ static struct attribute_group max6650_attr_grp = {
+ 	.attrs = max6650_attrs,
+@@ -543,6 +544,7 @@ static int max6650_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct max6650_data *data;
++	struct device *hwmon_dev;
+ 	int err;
+ 
+ 	data = devm_kzalloc(&client->dev, sizeof(struct max6650_data),
+@@ -574,8 +576,12 @@ static int max6650_probe(struct i2c_client *client,
+ 	}
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (!IS_ERR(data->hwmon_dev))
+-		return 0;
++	if (!IS_ERR(data->hwmon_dev)) {
++		hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
++							client->name, data,
++							max6650_groups);
++		return PTR_ERR_OR_ZERO(hwmon_dev);
++	}
+ 
+ 	err = PTR_ERR(data->hwmon_dev);
+ 	dev_err(&client->dev, "error registering hwmon device.\n");
+-- 
+1.8.5.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
