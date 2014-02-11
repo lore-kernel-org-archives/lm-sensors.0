@@ -1,84 +1,206 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 18 Feb 2014 16:09:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Create optional attributes with sysfs_create_group
-Message-Id: <530385A8.7070903@roeck-us.net>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Tue, 11 Feb 2014 17:10:33 +0000
+Subject: [lm-sensors] [PATCH 09/12] hwmon: vexpress: Use devm helper for hwmon device registration
+Message-Id: <1392138636-29240-10-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392513973-25148-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1392513973-25148-1-git-send-email-linux@roeck-us.net>
+References: <1392138636-29240-1-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1392138636-29240-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Pawel Moll <pawel.moll@arm.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-On 02/18/2014 08:07 AM, Jean Delvare wrote:
-> On Tue, 18 Feb 2014 07:41:16 -0800, Guenter Roeck wrote:
->> On 02/18/2014 06:55 AM, Jean Delvare wrote:
->>> Hi Guenter,
->>>
->>> On Sat, 15 Feb 2014 17:26:33 -0800, Guenter Roeck wrote:
->>>> With the new hwmon API, all attributes have to be created as groups.
->>>> Use sysfs_create_group and sysfs_remove_group instead of device_create_file
->>>> and device_remove_file to prepare for the new API.
->>>>
->>>> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->>>> ---
->>>>    drivers/hwmon/lm90.c |   27 ++++++++++++++++++++++-----
->>>>    1 file changed, 22 insertions(+), 5 deletions(-)
->>>>
->>>> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
->>>> index 701e952..c3bb771 100644
->>>> --- a/drivers/hwmon/lm90.c
->>>> +++ b/drivers/hwmon/lm90.c
->>>> @@ -1057,6 +1057,15 @@ static const struct attribute_group lm90_group = {
->>>>    	.attrs = lm90_attributes,
->>>>    };
->>>>
->>>> +static struct attribute *lm90_temp2_offset_attrs[] = {
->>>
->>> Other groups in this driver use the _attributes suffix, please do the
->>> same for new groups for consistency.
->>>
->>>> +	&sensor_dev_attr_temp2_offset.dev_attr.attr,
->>>> +	NULL
->>>> +};
->>>> +
->>>> +static const struct attribute_group lm90_temp2_offset_group = {
->>>> +	.attrs = lm90_temp2_offset_attrs,
->>>> +};
->>>> +
->>>>    /*
->>>>     * Additional attributes for devices with emergency sensors
->>>>     */
->>>> @@ -1174,6 +1183,15 @@ static ssize_t set_pec(struct device *dev, struct device_attribute *dummy,
->>>>
->>>>    static DEVICE_ATTR(pec, S_IWUSR | S_IRUGO, show_pec, set_pec);
->>>>
->>>> +static struct attribute *lm90_pec_attrs[] = {
->>>> +	&dev_attr_pec.attr,
->>>> +	NULL
->>>> +};
->>>> +
->>>> +static const struct attribute_group lm90_pec_group = {
->>>> +	.attrs = lm90_pec_attrs,
->>>> +};
->>>
->>> I am worried about this. Later in this patch set you'll move the "pec"
->>> attribute from the i2c device to the hwmon class device. However this
->>> attribute is very SMBus-specific, and has nothing to do with hwmon. I
->>> don't think it makes sense to move this attribute, it should stay with
->>> the i2c device. Non-hwmon i2c device drivers could implement it too.
->>
->> It is specifically mentioned in Documentation/hwmon/lm90, though.
->> If I separate it to the i2c device, I'll have to come up with some text
->> explaining where to find the attribute. Is that ok ?
->
-> Well I don't even see the current wording as problematic, as it doesn't
-> say where to find the file and nobody complained. So you could leave
-> the text untouched, that would be equally fine with me. But if you want
+Use devm_hwmon_device_register_with_groups instead of
+the old-style manual attributes and hwmon device registration.
 
-Fine with me. I'll leave it as is.
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net> 
+Cc: lm-sensors@lm-sensors.org
+Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+---
+ drivers/hwmon/vexpress.c | 100 ++++++++++++-----------------------------------
+ 1 file changed, 26 insertions(+), 74 deletions(-)
 
-Guenter
+diff --git a/drivers/hwmon/vexpress.c b/drivers/hwmon/vexpress.c
+index d8a6113..7c3a973 100644
+--- a/drivers/hwmon/vexpress.c
++++ b/drivers/hwmon/vexpress.c
+@@ -29,15 +29,6 @@ struct vexpress_hwmon_data {
+ 	struct regmap *reg;
+ };
+ 
+-static ssize_t vexpress_hwmon_name_show(struct device *dev,
+-		struct device_attribute *dev_attr, char *buffer)
+-{
+-	const char *compatible = of_get_property(dev->of_node, "compatible",
+-			NULL);
+-
+-	return sprintf(buffer, "%s\n", compatible);
+-}
+-
+ static ssize_t vexpress_hwmon_label_show(struct device *dev,
+ 		struct device_attribute *dev_attr, char *buffer)
+ {
+@@ -84,77 +75,60 @@ static ssize_t vexpress_hwmon_u64_show(struct device *dev,
+ 			to_sensor_dev_attr(dev_attr)->index));
+ }
+ 
+-static DEVICE_ATTR(name, S_IRUGO, vexpress_hwmon_name_show, NULL);
+-
+-#define VEXPRESS_HWMON_ATTRS(_name, _label_attr, _input_attr)	\
+-struct attribute *vexpress_hwmon_attrs_##_name[] = {		\
+-	&dev_attr_name.attr,					\
+-	&dev_attr_##_label_attr.attr,				\
+-	&sensor_dev_attr_##_input_attr.dev_attr.attr,		\
+-	NULL							\
+-}
++#define VEXPRESS_HWMON_ATTR_GROUPS(_name, _label_attr, _input_attr)	\
++static struct attribute *vexpress_hwmon_##_name##_attrs[] = {		\
++	&dev_attr_##_label_attr.attr,					\
++	&sensor_dev_attr_##_input_attr.dev_attr.attr,			\
++	NULL								\
++};									\
++ATTRIBUTE_GROUPS(vexpress_hwmon_##_name)
+ 
+ #if !defined(CONFIG_REGULATOR_VEXPRESS)
+ static DEVICE_ATTR(in1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+-static VEXPRESS_HWMON_ATTRS(volt, in1_label, in1_input);
+-static struct attribute_group vexpress_hwmon_group_volt = {
+-	.attrs = vexpress_hwmon_attrs_volt,
+-};
++VEXPRESS_HWMON_ATTR_GROUPS(volt, in1_label, in1_input);
+ #endif
+ 
+ static DEVICE_ATTR(curr1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+-static VEXPRESS_HWMON_ATTRS(amp, curr1_label, curr1_input);
+-static struct attribute_group vexpress_hwmon_group_amp = {
+-	.attrs = vexpress_hwmon_attrs_amp,
+-};
++VEXPRESS_HWMON_ATTR_GROUPS(amp, curr1_label, curr1_input);
+ 
+ static DEVICE_ATTR(temp1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+-static VEXPRESS_HWMON_ATTRS(temp, temp1_label, temp1_input);
+-static struct attribute_group vexpress_hwmon_group_temp = {
+-	.attrs = vexpress_hwmon_attrs_temp,
+-};
++VEXPRESS_HWMON_ATTR_GROUPS(temp, temp1_label, temp1_input);
+ 
+ static DEVICE_ATTR(power1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1);
+-static VEXPRESS_HWMON_ATTRS(power, power1_label, power1_input);
+-static struct attribute_group vexpress_hwmon_group_power = {
+-	.attrs = vexpress_hwmon_attrs_power,
+-};
++VEXPRESS_HWMON_ATTR_GROUPS(power, power1_label, power1_input);
+ 
+ static DEVICE_ATTR(energy1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(energy1_input, S_IRUGO, vexpress_hwmon_u64_show,
+ 		NULL, 1);
+-static VEXPRESS_HWMON_ATTRS(energy, energy1_label, energy1_input);
+-static struct attribute_group vexpress_hwmon_group_energy = {
+-	.attrs = vexpress_hwmon_attrs_energy,
+-};
++VEXPRESS_HWMON_ATTR_GROUPS(energy, energy1_label, energy1_input);
+ 
+ static struct of_device_id vexpress_hwmon_of_match[] = {
+ #if !defined(CONFIG_REGULATOR_VEXPRESS)
+ 	{
+ 		.compatible = "arm,vexpress-volt",
+-		.data = &vexpress_hwmon_group_volt,
++		.data = vexpress_hwmon_volt_groups,
+ 	},
+ #endif
+ 	{
+ 		.compatible = "arm,vexpress-amp",
+-		.data = &vexpress_hwmon_group_amp,
++		.data = vexpress_hwmon_amp_groups,
+ 	}, {
+ 		.compatible = "arm,vexpress-temp",
+-		.data = &vexpress_hwmon_group_temp,
++		.data = vexpress_hwmon_temp_groups,
+ 	}, {
+ 		.compatible = "arm,vexpress-power",
+-		.data = &vexpress_hwmon_group_power,
++		.data = vexpress_hwmon_power_groups,
+ 	}, {
+ 		.compatible = "arm,vexpress-energy",
+-		.data = &vexpress_hwmon_group_energy,
++		.data = vexpress_hwmon_energy_groups,
+ 	},
+ 	{}
+ };
+@@ -162,9 +136,10 @@ MODULE_DEVICE_TABLE(of, vexpress_hwmon_of_match);
+ 
+ static int vexpress_hwmon_probe(struct platform_device *pdev)
+ {
+-	int err;
+ 	const struct of_device_id *match;
+ 	struct vexpress_hwmon_data *data;
++	const char *name;
++	const struct attribute_group **groups;
+ 
+ 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+@@ -176,42 +151,19 @@ static int vexpress_hwmon_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 
+ 	data->reg = devm_regmap_init_vexpress_config(&pdev->dev);
+-	if (!data->reg)
+-		return -ENODEV;
+-
+-	err = sysfs_create_group(&pdev->dev.kobj, match->data);
+-	if (err)
+-		goto error;
+-
+-	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
+-	}
+-
+-	return 0;
+-
+-error:
+-	sysfs_remove_group(&pdev->dev.kobj, match->data);
+-	return err;
+-}
+-
+-static int vexpress_hwmon_remove(struct platform_device *pdev)
+-{
+-	struct vexpress_hwmon_data *data = platform_get_drvdata(pdev);
+-	const struct of_device_id *match;
+-
+-	hwmon_device_unregister(data->hwmon_dev);
++	if (IS_ERR(data->reg))
++		return PTR_ERR(data->reg);
+ 
+-	match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
+-	sysfs_remove_group(&pdev->dev.kobj, match->data);
++	name = of_get_property(pdev->dev.of_node, "compatible", NULL);
++	groups = (const struct attribute_group **)match->data;
++	data->hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
++			name, data, groups);
+ 
+-	return 0;
++	return PTR_ERR_OR_ZERO(data->hwmon_dev);
+ }
+ 
+ static struct platform_driver vexpress_hwmon_driver = {
+ 	.probe = vexpress_hwmon_probe,
+-	.remove = vexpress_hwmon_remove,
+ 	.driver	= {
+ 		.name = DRVNAME,
+ 		.owner = THIS_MODULE,
+-- 
+1.8.3.2
 
 
 _______________________________________________
