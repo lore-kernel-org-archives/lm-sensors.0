@@ -1,7 +1,7 @@
 From: Laszlo Papp <lpapp@kde.org>
-Date: Tue, 11 Feb 2014 08:58:42 +0000
+Date: Tue, 11 Feb 2014 09:08:01 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <CAOMwXhPfmXDKcov_+HHDTCaieGDiMEi+6CV_OnYDM3c8+S+bfA@mail.gmail.com>
+Message-Id: <CAOMwXhM4eaoEcQeeRgoXxxGzXkwSoypFLMd2qPwckgayEqsu_g@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
 	<20140210160842.GB26997@lee--X1>
@@ -9,16 +9,22 @@ References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
 	<CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
 	<20140211085014.4ef32b56@endymion.delvare>
 	<CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
-	<20140211085053.GD32042@lee--X1>
-In-Reply-To: <20140211085053.GD32042@lee--X1>
+	<1392108545.4700.4.camel@chaos.site>
+In-Reply-To: <1392108545.4700.4.camel@chaos.site>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Tue, Feb 11, 2014 at 8:50 AM, Lee Jones <lee.jones@linaro.org> wrote:
->> >> On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrote:
+On Tue, Feb 11, 2014 at 8:49 AM, Jean Delvare <jdelvare@suse.de> wrote:
+> Le Tuesday 11 February 2014 =E0 08:28 +0000, Laszlo Papp a =E9crit :
+>> On Tue, Feb 11, 2014 at 7:50 AM, Jean Delvare <jdelvare@suse.de> wrote:
+>> > Hi Laszlo,
+>> >
+>> > On Tue, 11 Feb 2014 03:13:37 +0000, Laszlo Papp wrote:
+>> >> On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrot=
+e:
 >> >> > Additionally, dashes are explicitly forbidden in hwmon
 >> >> > device names.
 >> >>
@@ -31,7 +37,8 @@ On Tue, Feb 11, 2014 at 8:50 AM, Lee Jones <lee.jones@linaro.org> wrote:
 >> > *********************
 >> >
 >> > name            The chip name.
->> >                 This should be a short, lowercase string, not containing
+>> >                 This should be a short, lowercase string, not containi=
+ng
 >> >                 spaces nor dashes, representing the chip name. This is
 >> >                 the only mandatory attribute.
 >> >                 I2C devices get this attribute created automatically.
@@ -47,11 +54,21 @@ On Tue, Feb 11, 2014 at 8:50 AM, Lee Jones <lee.jones@linaro.org> wrote:
 >>
 >> I am proposing to change this "rule"...  Any objection?
 >
-> Prior to proposing such an invasive change which is highly likely to
-> come up against heavy opposition,
+> I'm giving up here, sorry. There's no point in me writing any more on
+> the topic as you are not listening to me. I do not have the impression
+> you are doing any effort to understand what I'm saying. Plus you keep
+> focusing on things that do not matter and problems for which a solution
+> has already been provided.
 
-It is possible that someone does not understand why you think it may
-be invasive, right? Could you please explain the reason for that?
+Does it mean the people cannot come up with ideas if they think
+something may be better than some provided way? Surely, software
+evolves over time and people are sometimes right, and sometimes wrong
+right?
+
+I can assure you that I do listen, please assume good faith with ideas
+thrown in. If you think it is that bad an idea, you could have
+explained why so, so that I and others can also understand it who do
+not yet, right?
 
 _______________________________________________
 lm-sensors mailing list
