@@ -1,26 +1,77 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 03 Feb 2014 01:21:46 +0000
-Subject: [lm-sensors] [PATCH v2 0/4] hwmon: (lm63) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1391390510-19238-1-git-send-email-linux@roeck-us.net>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Tue, 11 Feb 2014 16:53:27 +0000
+Subject: [lm-sensors] [PATCH 0/3] Versatile Express sysregs rework
+Message-Id: <1392137610-27842-1-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, arm@kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Turquette <mturquette@linaro.org>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Pawel Moll <pawel.moll@arm.com>
 
-The following patch series converts the lm63 driver to use
-devm_hwmon_device_register_with_groups. The change is split
-into three patches to simplify review.
+It's over 6 month since I promised Samuel to rework the
+not-really-MFD driver for Versatile Express sysregs. It's
+also a while since I sent the RFC for the series, but
+finally - it is here!
 
-With this series applied, object file size is reduced by ~1k.
+As suggested by Arnd back then, the VE configuration
+infrastructure is now exposing standard regmap interface
+instead of a custom one. As requested by Samuel, the sysreg
+driver mainly consists of MFD cells definition now.
 
-v2: Split introduction of 'dev = &client->dev;' and its use into
-    a separate patch.
-    Do not merge temp2_type into extra_lut group but create separate group
-    instead.
-    Associate log messages with hwmon device as much as possible.
-    Retain original code where possible to reduce scope of changes;
-    specifically do not drop local client variables.
+All this was possible thanks to the first patch, which
+tries to address in a simple way an issue discussed
+a number of times - a problem of early devices registration
+in a "DT-powered" system. It simply makes it possible
+to manually create devices for selected nodes at appropriate
+init levels and guarantees that such devices will not
+be created again during the massive of_platform_populate().
+
+I think it would make sense to merge the whole series
+through arm-soc tree so will appreciate opinions and/or
+acks from respective maintainers.
+
+Pawel Moll (3):
+  driver core & of: Mark of_nodes of added device as populated
+  mfd: vexpress: Convert custom func API to regmap
+  mfd: vexpress: Define the device as MFD cells
+
+ .../devicetree/bindings/arm/vexpress-sysreg.txt    |  79 ++-
+ Documentation/devicetree/bindings/arm/vexpress.txt |  15 +-
+ arch/arm/boot/dts/vexpress-v2m-rs1.dtsi            |  76 ++-
+ arch/arm/boot/dts/vexpress-v2m.dtsi                |  76 ++-
+ arch/arm/boot/dts/vexpress-v2p-ca15_a7.dts         |   5 +-
+ arch/arm/mach-vexpress/ct-ca9x4.c                  |  10 +-
+ arch/arm/mach-vexpress/v2m.c                       |  25 +-
+ arch/arm64/boot/dts/rtsm_ve-motherboard.dtsi       |   2 +-
+ drivers/base/core.c                                |   4 +
+ drivers/bus/Kconfig                                |   9 +
+ drivers/bus/Makefile                               |   2 +
+ drivers/bus/vexpress-config.c                      | 202 ++++++++
+ drivers/clk/versatile/clk-vexpress-osc.c           |  94 ++--
+ drivers/hwmon/vexpress.c                           |  15 +-
+ drivers/mfd/Kconfig                                |  15 +-
+ drivers/mfd/Makefile                               |   2 +-
+ drivers/mfd/vexpress-config.c                      | 288 -----------
+ drivers/mfd/vexpress-sysreg.c                      | 538 ++++++---------------
+ drivers/misc/Kconfig                               |   9 +
+ drivers/misc/Makefile                              |   1 +
+ drivers/misc/vexpress-syscfg.c                     | 320 ++++++++++++
+ drivers/of/device.c                                |  16 +
+ drivers/of/platform.c                              |   6 +-
+ drivers/power/reset/vexpress-poweroff.c            |  13 +-
+ drivers/regulator/vexpress.c                       |  50 +-
+ include/linux/of.h                                 |   6 +
+ include/linux/of_device.h                          |  11 +
+ include/linux/vexpress.h                           |  93 +---
+ 28 files changed, 1059 insertions(+), 923 deletions(-)
+ create mode 100644 drivers/bus/vexpress-config.c
+ delete mode 100644 drivers/mfd/vexpress-config.c
+ create mode 100644 drivers/misc/vexpress-syscfg.c
+
+-- 
+1.8.3.2
+
 
 _______________________________________________
 lm-sensors mailing list
