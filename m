@@ -1,39 +1,49 @@
 From: Laszlo Papp <lpapp@kde.org>
-Date: Tue, 11 Feb 2014 03:13:37 +0000
+Date: Tue, 11 Feb 2014 03:23:49 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
+Message-Id: <CAOMwXhNPgz04SHGAbPKpCnPPufO_ygQ3ukGF+ma7Foe=F=ZrEQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
 	<20140210160842.GB26997@lee--X1>
 	<20140210173811.04ba5964@endymion.delvare>
-In-Reply-To: <20140210173811.04ba5964@endymion.delvare>
+	<20140210105346.14592yef0najhyio@67.228.131.205>
+	<CAOMwXhMTK6h3MQdHHaEV+5=XbQSqXzj0mPt3MzK9X9jhj4jOhQ@mail.gmail.com>
+	<20140210231031.GA5857@roeck-us.net>
+In-Reply-To: <20140210231031.GA5857@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <jdelvare@suse.de>, Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrote:
-> Additionally, dashes are explicitly forbidden in hwmon
-> device names.
+On Mon, Feb 10, 2014 at 11:10 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> On Mon, Feb 10, 2014 at 06:59:55PM +0000, Laszlo Papp wrote:
+> I think I'll let Jean handle this one.
 
-Also, where is that documented?
+Guys, please be a bit more definite.
 
-I do not think you can make such a decision, and you will realize that
-once you begin to think a bit out of the box and look around. See how
-other children are managed for MFD devices. "driver-subsystem" is a
-pretty common a schema. I do not really see any point in forbidding
-dashes currently. Please do elaborate about the reasons, and the fact
-that why it is undocuemented.
+We should get over this long ping-pong game. It has been clearly
+stated that either way is fine, and there was no objection for months
+to either way either, and now the feature is just not moving forward.
+This is the first time I have this sorrow experience that I am having
+here in hwmon, unfortunately. A lot of effort spent, and nothing got
+done.
 
-Also, I currently do not understand what you are suggesting: just
-leave this technically unreasonable situation as is for compatibility
-reasons? There is no better support in place for appending further
-alternative names?
+As I said before, disagreeing is fine and natural. What is not fine is
+wasting people's time for months and not making it clear what the
+hwmon maintainers want, and months later after the work, the opposite
+is claimed than before.
 
-In any case, at the very least, I hope the lesson is learnt for the
-future from this past mistake. If a chip is MFD'ish, a subdevice
-driver should not ever be added with such an id.
+I am sorry if it sounds harsh, but currently this is how I see the
+situation. If the MFD solution gets rejected, I consider it a huge
+maintainer mistake since both of you were involved, and have never
+ever spoken up for months that this would not be acceptable. In fact,
+as quoted earlier in this thread, the opposite had been said.
+
+I would like to get over the hwmon situation as soon as possible, so
+please guys kindly advise what you would *really* like to see. I do
+not really mind who makes the decision, but rejecting months of work
+due to miscommunication is still better than continuing the same!
 
 _______________________________________________
 lm-sensors mailing list
