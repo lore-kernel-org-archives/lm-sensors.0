@@ -1,36 +1,22 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Tue, 11 Feb 2014 12:46:12 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Fix trivial typo for LTC4260
-Message-Id: <1392122772.1351.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 11 Feb 2014 20:25:38 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Fix trivial typo for LTC4260
+Message-Id: <20140211202538.GF11798@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1392122772.1351.1.camel@phoenix>
+In-Reply-To: <1392122772.1351.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue, Feb 11, 2014 at 08:46:12PM +0800, Axel Lin wrote:
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 5bbc55b..7ed3aa6 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -839,7 +839,7 @@ config SENSORS_LTC4260
- 	select REGMAP_I2C
- 	default n
- 	help
--	  If you say yes here you get support for Linear Technology LTC4261
-+	  If you say yes here you get support for Linear Technology LTC4260
- 	  Positive Voltage Hot Swap Controller I2C interface.
- 
- 	  This driver can also be built as a module. If so, the module will
--- 
-1.8.1.2
+Nice catch. Applied.
 
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
