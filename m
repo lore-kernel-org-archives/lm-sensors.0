@@ -1,50 +1,59 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Tue, 11 Feb 2014 08:50:53 +0000
+From: Laszlo Papp <lpapp@kde.org>
+Date: Tue, 11 Feb 2014 08:58:42 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140211085053.GD32042@lee--X1>
+Message-Id: <CAOMwXhPfmXDKcov_+HHDTCaieGDiMEi+6CV_OnYDM3c8+S+bfA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
- <20140210160842.GB26997@lee--X1>
- <20140210173811.04ba5964@endymion.delvare>
- <CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
- <20140211085014.4ef32b56@endymion.delvare>
- <CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
-In-Reply-To: <CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
+	<20140210160842.GB26997@lee--X1>
+	<20140210173811.04ba5964@endymion.delvare>
+	<CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
+	<20140211085014.4ef32b56@endymion.delvare>
+	<CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
+	<20140211085053.GD32042@lee--X1>
+In-Reply-To: <20140211085053.GD32042@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
+To: Lee Jones <lee.jones@linaro.org>
 Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-PiA+PiBPbiBNb24sIEZlYiAxMCwgMjAxNCBhdCA0OjM4IFBNLCBKZWFuIERlbHZhcmUgPGpkZWx2
-YXJlQHN1c2UuZGU+IHdyb3RlOgo+ID4+ID4gQWRkaXRpb25hbGx5LCBkYXNoZXMgYXJlIGV4cGxp
-Y2l0bHkgZm9yYmlkZGVuIGluIGh3bW9uCj4gPj4gPiBkZXZpY2UgbmFtZXMuCj4gPj4KPiA+PiBB
-bHNvLCB3aGVyZSBpcyB0aGF0IGRvY3VtZW50ZWQ/Cj4gPgo+ID4gSW4gRG9jdW1lbnRhdGlvbi9o
-d21vbi9zeXNmcy1pbnRlcmZhY2U6Cj4gPgo+ID4gKioqKioqKioqKioqKioqKioqKioqCj4gPiAq
-IEdsb2JhbCBhdHRyaWJ1dGVzICoKPiA+ICoqKioqKioqKioqKioqKioqKioqKgo+ID4KPiA+IG5h
-bWUgICAgICAgICAgICBUaGUgY2hpcCBuYW1lLgo+ID4gICAgICAgICAgICAgICAgIFRoaXMgc2hv
-dWxkIGJlIGEgc2hvcnQsIGxvd2VyY2FzZSBzdHJpbmcsIG5vdCBjb250YWluaW5nCj4gPiAgICAg
-ICAgICAgICAgICAgc3BhY2VzIG5vciBkYXNoZXMsIHJlcHJlc2VudGluZyB0aGUgY2hpcCBuYW1l
-LiBUaGlzIGlzCj4gPiAgICAgICAgICAgICAgICAgdGhlIG9ubHkgbWFuZGF0b3J5IGF0dHJpYnV0
-ZS4KPiA+ICAgICAgICAgICAgICAgICBJMkMgZGV2aWNlcyBnZXQgdGhpcyBhdHRyaWJ1dGUgY3Jl
-YXRlZCBhdXRvbWF0aWNhbGx5Lgo+ID4gICAgICAgICAgICAgICAgIFJPCj4gCj4gVGltZSB0byBy
-ZXZpc2l0IHRoaXMgZGVjaXNpb24uLi4uCj4gCj4gU28sIGJhc2VkIG9uIHRoZSBmYWN0IHRoYXQg
-Y2hpbGRyZW4gZGV2aWNlIG5hbWVzIHVzdWFsbHkgY29udGFpbgo+IGRhc2hlcywgSSBkbyBub3Qg
-dW5kZXJzdGFuZCB3aHkgaHdtb24gd291bGQgYmUgYW55IHNwZWNpYWwgaW4gdGhpcwo+IHJlZ2Fy
-ZC4gSXQgaXMgcG9zc2libGUgdGhhdCB0aGUgaHdtb24gZGV2ZWxvcGVycyBoYXZlIG5vdCBmYWNl
-ZCBtdWNoCj4gTUZEIHNpdHVhdGlvbiBiZWZvcmUsIGFuZCBzbywgdGhpcyB3YXMgbm90IGNvbnNp
-ZGVyZWQgdG8gYmUgaGFuZGxlZAo+IGxpa2UgaW4gb3RoZXIgc3Vic3lzdGVtcy4KPiAKPiBJIGFt
-IHByb3Bvc2luZyB0byBjaGFuZ2UgdGhpcyAicnVsZSIuLi4gIEFueSBvYmplY3Rpb24/CgpQcmlv
-ciB0byBwcm9wb3Npbmcgc3VjaCBhbiBpbnZhc2l2ZSBjaGFuZ2Ugd2hpY2ggaXMgaGlnaGx5IGxp
-a2VseSB0bwpjb21lIHVwIGFnYWluc3QgaGVhdnkgb3Bwb3NpdGlvbiwgd2h5IGRvbid0IHlvdSB0
-cnkgdG8gd29yayBfd2l0aF8gdGhlCmN1cnJlbnQgcnVsaW5nIGFuZCB0aGUgTWFpbnRhaW5lcnMg
-dG8gc2VlIHdoYXQgb3RoZXJzIGhhdmUgZG9uZSB0bwpzb2x2ZSB0aGUgcHJvYmxlbS4gIEkgaGln
-aGx5IGRvdWJ0IHlvdSBhcmUgdGhlIGZpcnN0L29ubHkgZGV2ZWxvcGVyIHdobwpoYXMgaGFkIHRo
-aXMgaXNzdWUuCgpEbzoKICBgZ2l0IGdyZXAgIlwtaHdtb24iYAoKLi4uIGFuZCBoYXZlIGEgZ29v
-ZCBsb29rIGFyb3VuZCBmb3IgYW4gYWNjZXB0ZWQgc29sdXRpb24uCgotLSAKTGVlIEpvbmVzCkxp
-bmFybyBTVE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDilIIg
-T3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vib29r
-IHwgVHdpdHRlciB8IEJsb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
-cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
-cw=
+On Tue, Feb 11, 2014 at 8:50 AM, Lee Jones <lee.jones@linaro.org> wrote:
+>> >> On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrote:
+>> >> > Additionally, dashes are explicitly forbidden in hwmon
+>> >> > device names.
+>> >>
+>> >> Also, where is that documented?
+>> >
+>> > In Documentation/hwmon/sysfs-interface:
+>> >
+>> > *********************
+>> > * Global attributes *
+>> > *********************
+>> >
+>> > name            The chip name.
+>> >                 This should be a short, lowercase string, not containing
+>> >                 spaces nor dashes, representing the chip name. This is
+>> >                 the only mandatory attribute.
+>> >                 I2C devices get this attribute created automatically.
+>> >                 RO
+>>
+>> Time to revisit this decision....
+>>
+>> So, based on the fact that children device names usually contain
+>> dashes, I do not understand why hwmon would be any special in this
+>> regard. It is possible that the hwmon developers have not faced much
+>> MFD situation before, and so, this was not considered to be handled
+>> like in other subsystems.
+>>
+>> I am proposing to change this "rule"...  Any objection?
+>
+> Prior to proposing such an invasive change which is highly likely to
+> come up against heavy opposition,
+
+It is possible that someone does not understand why you think it may
+be invasive, right? Could you please explain the reason for that?
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
