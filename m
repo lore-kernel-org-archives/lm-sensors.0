@@ -1,54 +1,50 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Tue, 11 Feb 2014 08:28:40 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 11 Feb 2014 08:49:05 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
+Message-Id: <1392108545.4700.4.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
-	<20140210160842.GB26997@lee--X1>
-	<20140210173811.04ba5964@endymion.delvare>
-	<CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
-	<20140211085014.4ef32b56@endymion.delvare>
-In-Reply-To: <20140211085014.4ef32b56@endymion.delvare>
+	 <20140210160842.GB26997@lee--X1> <20140210173811.04ba5964@endymion.delvare>
+	 <CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
+	 <20140211085014.4ef32b56@endymion.delvare>
+	 <CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
+In-Reply-To: <CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
+To: Laszlo Papp <lpapp@kde.org>
 Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Tue, Feb 11, 2014 at 7:50 AM, Jean Delvare <jdelvare@suse.de> wrote:
-> Hi Laszlo,
->
-> On Tue, 11 Feb 2014 03:13:37 +0000, Laszlo Papp wrote:
->> On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrote:
->> > Additionally, dashes are explicitly forbidden in hwmon
->> > device names.
->>
->> Also, where is that documented?
->
-> In Documentation/hwmon/sysfs-interface:
->
-> *********************
-> * Global attributes *
-> *********************
->
-> name            The chip name.
->                 This should be a short, lowercase string, not containing
->                 spaces nor dashes, representing the chip name. This is
->                 the only mandatory attribute.
->                 I2C devices get this attribute created automatically.
->                 RO
-
-Time to revisit this decision....
-
-So, based on the fact that children device names usually contain
-dashes, I do not understand why hwmon would be any special in this
-regard. It is possible that the hwmon developers have not faced much
-MFD situation before, and so, this was not considered to be handled
-like in other subsystems.
-
-I am proposing to change this "rule"...  Any objection?
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TGUgVHVlc2RheSAxMSBGZWJydWFyeSAyMDE0IMOgIDA4OjI4ICswMDAwLCBMYXN6bG8gUGFwcCBh
+IMOpY3JpdCA6Cj4gT24gVHVlLCBGZWIgMTEsIDIwMTQgYXQgNzo1MCBBTSwgSmVhbiBEZWx2YXJl
+IDxqZGVsdmFyZUBzdXNlLmRlPiB3cm90ZToKPiA+IEhpIExhc3psbywKPiA+Cj4gPiBPbiBUdWUs
+IDExIEZlYiAyMDE0IDAzOjEzOjM3ICswMDAwLCBMYXN6bG8gUGFwcCB3cm90ZToKPiA+PiBPbiBN
+b24sIEZlYiAxMCwgMjAxNCBhdCA0OjM4IFBNLCBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2Uu
+ZGU+IHdyb3RlOgo+ID4+ID4gQWRkaXRpb25hbGx5LCBkYXNoZXMgYXJlIGV4cGxpY2l0bHkgZm9y
+YmlkZGVuIGluIGh3bW9uCj4gPj4gPiBkZXZpY2UgbmFtZXMuCj4gPj4KPiA+PiBBbHNvLCB3aGVy
+ZSBpcyB0aGF0IGRvY3VtZW50ZWQ/Cj4gPgo+ID4gSW4gRG9jdW1lbnRhdGlvbi9od21vbi9zeXNm
+cy1pbnRlcmZhY2U6Cj4gPgo+ID4gKioqKioqKioqKioqKioqKioqKioqCj4gPiAqIEdsb2JhbCBh
+dHRyaWJ1dGVzICoKPiA+ICoqKioqKioqKioqKioqKioqKioqKgo+ID4KPiA+IG5hbWUgICAgICAg
+ICAgICBUaGUgY2hpcCBuYW1lLgo+ID4gICAgICAgICAgICAgICAgIFRoaXMgc2hvdWxkIGJlIGEg
+c2hvcnQsIGxvd2VyY2FzZSBzdHJpbmcsIG5vdCBjb250YWluaW5nCj4gPiAgICAgICAgICAgICAg
+ICAgc3BhY2VzIG5vciBkYXNoZXMsIHJlcHJlc2VudGluZyB0aGUgY2hpcCBuYW1lLiBUaGlzIGlz
+Cj4gPiAgICAgICAgICAgICAgICAgdGhlIG9ubHkgbWFuZGF0b3J5IGF0dHJpYnV0ZS4KPiA+ICAg
+ICAgICAgICAgICAgICBJMkMgZGV2aWNlcyBnZXQgdGhpcyBhdHRyaWJ1dGUgY3JlYXRlZCBhdXRv
+bWF0aWNhbGx5Lgo+ID4gICAgICAgICAgICAgICAgIFJPCj4gCj4gVGltZSB0byByZXZpc2l0IHRo
+aXMgZGVjaXNpb24uLi4uCj4gCj4gU28sIGJhc2VkIG9uIHRoZSBmYWN0IHRoYXQgY2hpbGRyZW4g
+ZGV2aWNlIG5hbWVzIHVzdWFsbHkgY29udGFpbgo+IGRhc2hlcywgSSBkbyBub3QgdW5kZXJzdGFu
+ZCB3aHkgaHdtb24gd291bGQgYmUgYW55IHNwZWNpYWwgaW4gdGhpcwo+IHJlZ2FyZC4gSXQgaXMg
+cG9zc2libGUgdGhhdCB0aGUgaHdtb24gZGV2ZWxvcGVycyBoYXZlIG5vdCBmYWNlZCBtdWNoCj4g
+TUZEIHNpdHVhdGlvbiBiZWZvcmUsIGFuZCBzbywgdGhpcyB3YXMgbm90IGNvbnNpZGVyZWQgdG8g
+YmUgaGFuZGxlZAo+IGxpa2UgaW4gb3RoZXIgc3Vic3lzdGVtcy4KPiAKPiBJIGFtIHByb3Bvc2lu
+ZyB0byBjaGFuZ2UgdGhpcyAicnVsZSIuLi4gIEFueSBvYmplY3Rpb24/CgpJJ20gZ2l2aW5nIHVw
+IGhlcmUsIHNvcnJ5LiBUaGVyZSdzIG5vIHBvaW50IGluIG1lIHdyaXRpbmcgYW55IG1vcmUgb24K
+dGhlIHRvcGljIGFzIHlvdSBhcmUgbm90IGxpc3RlbmluZyB0byBtZS4gSSBkbyBub3QgaGF2ZSB0
+aGUgaW1wcmVzc2lvbgp5b3UgYXJlIGRvaW5nIGFueSBlZmZvcnQgdG8gdW5kZXJzdGFuZCB3aGF0
+IEknbSBzYXlpbmcuIFBsdXMgeW91IGtlZXAKZm9jdXNpbmcgb24gdGhpbmdzIHRoYXQgZG8gbm90
+IG1hdHRlciBhbmQgcHJvYmxlbXMgZm9yIHdoaWNoIGEgc29sdXRpb24KaGFzIGFscmVhZHkgYmVl
+biBwcm92aWRlZC4gU28gd2hlcmV2ZXIgeW91J3JlIGdvaW5nLCB0aGlzIGlzIHdpdGhvdXQgbWUu
+CgotLSAKSmVhbiBEZWx2YXJlClN1c2UgTDMgU3VwcG9ydAoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycw=
