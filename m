@@ -1,55 +1,69 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Tue, 11 Feb 2014 09:57:17 +0000
+From: Laszlo Papp <lpapp@kde.org>
+Date: Tue, 11 Feb 2014 10:22:22 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (max6650) Rename the device ids to contain the hwmon suffix
-Message-Id: <20140211095717.GI32042@lee--X1>
+Message-Id: <CAOMwXhMzaymrV4qF+jR5rPo-ve_YV5-GpRSwVvGC83CCaUg0Yg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392045953-26596-1-git-send-email-lpapp@kde.org>
- <20140210160842.GB26997@lee--X1>
- <20140210173811.04ba5964@endymion.delvare>
- <CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
- <20140211085014.4ef32b56@endymion.delvare>
- <CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
- <1392108545.4700.4.camel@chaos.site>
- <CAOMwXhM4eaoEcQeeRgoXxxGzXkwSoypFLMd2qPwckgayEqsu_g@mail.gmail.com>
-In-Reply-To: <CAOMwXhM4eaoEcQeeRgoXxxGzXkwSoypFLMd2qPwckgayEqsu_g@mail.gmail.com>
+	<20140210160842.GB26997@lee--X1>
+	<20140210173811.04ba5964@endymion.delvare>
+	<CAOMwXhPTkrUUaUL-H_0fvZBO9_kt4jqKXs5BJYthDfu0_1c3xg@mail.gmail.com>
+	<20140211085014.4ef32b56@endymion.delvare>
+	<CAOMwXhMhKdp420+SPTih+C3fAgTmrpJgPnGBxsfPO3pEhESGTA@mail.gmail.com>
+	<20140211085053.GD32042@lee--X1>
+In-Reply-To: <20140211085053.GD32042@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
+To: Lee Jones <lee.jones@linaro.org>
 Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-PiA+PiBUaW1lIHRvIHJldmlzaXQgdGhpcyBkZWNpc2lvbi4uLi4KPiA+Pgo+ID4+IFNvLCBiYXNl
-ZCBvbiB0aGUgZmFjdCB0aGF0IGNoaWxkcmVuIGRldmljZSBuYW1lcyB1c3VhbGx5IGNvbnRhaW4K
-PiA+PiBkYXNoZXMsIEkgZG8gbm90IHVuZGVyc3RhbmQgd2h5IGh3bW9uIHdvdWxkIGJlIGFueSBz
-cGVjaWFsIGluIHRoaXMKPiA+PiByZWdhcmQuIEl0IGlzIHBvc3NpYmxlIHRoYXQgdGhlIGh3bW9u
-IGRldmVsb3BlcnMgaGF2ZSBub3QgZmFjZWQgbXVjaAo+ID4+IE1GRCBzaXR1YXRpb24gYmVmb3Jl
-LCBhbmQgc28sIHRoaXMgd2FzIG5vdCBjb25zaWRlcmVkIHRvIGJlIGhhbmRsZWQKPiA+PiBsaWtl
-IGluIG90aGVyIHN1YnN5c3RlbXMuCj4gPj4KPiA+PiBJIGFtIHByb3Bvc2luZyB0byBjaGFuZ2Ug
-dGhpcyAicnVsZSIuLi4gIEFueSBvYmplY3Rpb24/Cj4gPgo+ID4gSSdtIGdpdmluZyB1cCBoZXJl
-LCBzb3JyeS4gVGhlcmUncyBubyBwb2ludCBpbiBtZSB3cml0aW5nIGFueSBtb3JlIG9uCj4gPiB0
-aGUgdG9waWMgYXMgeW91IGFyZSBub3QgbGlzdGVuaW5nIHRvIG1lLiBJIGRvIG5vdCBoYXZlIHRo
-ZSBpbXByZXNzaW9uCj4gPiB5b3UgYXJlIGRvaW5nIGFueSBlZmZvcnQgdG8gdW5kZXJzdGFuZCB3
-aGF0IEknbSBzYXlpbmcuIFBsdXMgeW91IGtlZXAKPiA+IGZvY3VzaW5nIG9uIHRoaW5ncyB0aGF0
-IGRvIG5vdCBtYXR0ZXIgYW5kIHByb2JsZW1zIGZvciB3aGljaCBhIHNvbHV0aW9uCj4gPiBoYXMg
-YWxyZWFkeSBiZWVuIHByb3ZpZGVkLgo+IAo+IERvZXMgaXQgbWVhbiB0aGUgcGVvcGxlIGNhbm5v
-dCBjb21lIHVwIHdpdGggaWRlYXMgaWYgdGhleSB0aGluawo+IHNvbWV0aGluZyBtYXkgYmUgYmV0
-dGVyIHRoYW4gc29tZSBwcm92aWRlZCB3YXk/IFN1cmVseSwgc29mdHdhcmUKPiBldm9sdmVzIG92
-ZXIgdGltZSBhbmQgcGVvcGxlIGFyZSBzb21ldGltZXMgcmlnaHQsIGFuZCBzb21ldGltZXMgd3Jv
-bmcKPiByaWdodD8KPiAKPiBJIGNhbiBhc3N1cmUgeW91IHRoYXQgSSBkbyBsaXN0ZW4sIHBsZWFz
-ZSBhc3N1bWUgZ29vZCBmYWl0aCB3aXRoIGlkZWFzCj4gdGhyb3duIGluLiBJZiB5b3UgdGhpbmsg
-aXQgaXMgdGhhdCBiYWQgYW4gaWRlYSwgeW91IGNvdWxkIGhhdmUKPiBleHBsYWluZWQgd2h5IHNv
-LCBzbyB0aGF0IEkgYW5kIG90aGVycyBjYW4gYWxzbyB1bmRlcnN0YW5kIGl0IHdobyBkbwo+IG5v
-dCB5ZXQsIHJpZ2h0PwoKSW4gdGhlIHNtYWxsIGFtb3VudCBvZiB0aW1lIHlvdSd2ZSBiZWVuIHdv
-cmtpbmcgaW4gdGhlIGtlcm5lbCBJJ3ZlCnNlZW4gMy00IE1haW50YWluZXJzIGNvbXBsZXRlbHkg
-Z2l2ZSB1cCBvbiB5b3UgYW5kIDItMyBkcml2ZW4gY2xvc2UgdG8KdGhlIGVuZCBvZiB0aGVpciB0
-ZXRoZXIgKG15c2VsZiBpbmNsdWRlZCkuCgpSYW50aW5nIGFuZCBkZW1hbmRpbmcgd2lsbCBub3Qg
-d29yayB3ZWxsIGZvciB5b3UgaGVyZS4gUGxlYXNlLCBmb3IKeW91ciBvd24gc2FrZSwgbGVhcm4g
-c29tZSBkaXBsb21hY3kgYW5kIGJlIGNvdXJ0ZW91cyB0byBvdGhlcnMgb24gdGhlCmxpc3QuIElm
-IHBlb3BsZSBhcmUgcmVwbHlpbmcgaXQgbWVhbnMgdGhleSdyZSB0cnlpbmcgdG8gaGVscC4gSnVt
-cGluZwpkb3duIHRoZWlyIHRocm9hdHMgaXMgbm90IGNvbmR1Y2l2ZSB0byB5b3VyIHN1Y2Nlc3Mg
-YW5kIHdpbGwgbm90CnJlc3VsdCBpbiBhIHdpbi4gIAoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1RN
-aWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFyby5vcmcg4pSCIE9wZW4gc291
-cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0
-ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Tue, Feb 11, 2014 at 8:50 AM, Lee Jones <lee.jones@linaro.org> wrote:
+>> >> On Mon, Feb 10, 2014 at 4:38 PM, Jean Delvare <jdelvare@suse.de> wrote:
+>> >> > Additionally, dashes are explicitly forbidden in hwmon
+>> >> > device names.
+>> >>
+>> >> Also, where is that documented?
+>> >
+>> > In Documentation/hwmon/sysfs-interface:
+>> >
+>> > *********************
+>> > * Global attributes *
+>> > *********************
+>> >
+>> > name            The chip name.
+>> >                 This should be a short, lowercase string, not containing
+>> >                 spaces nor dashes, representing the chip name. This is
+>> >                 the only mandatory attribute.
+>> >                 I2C devices get this attribute created automatically.
+>> >                 RO
+>>
+>> Time to revisit this decision....
+>>
+>> So, based on the fact that children device names usually contain
+>> dashes, I do not understand why hwmon would be any special in this
+>> regard. It is possible that the hwmon developers have not faced much
+>> MFD situation before, and so, this was not considered to be handled
+>> like in other subsystems.
+>>
+>> I am proposing to change this "rule"...  Any objection?
+>
+> Prior to proposing such an invasive change which is highly likely to
+> come up against heavy opposition, why don't you try to work _with_ the
+> current ruling and the Maintainers to see what others have done to
+> solve the problem.  I highly doubt you are the first/only developer who
+> has had this issue.
+>
+> Do:
+>   `git grep "\-hwmon"`
+>
+> ... and have a good look around for an accepted solution.
+
+Well, this did not bring up relevant results, at least for my
+understanding, but I will send a new patch with the
+devm_hwmon_device_register_
+with_groups() stuff based on my little understanding without further help.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
