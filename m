@@ -1,74 +1,39 @@
-From: Pawel Moll <pawel.moll@arm.com>
-Date: Tue, 11 Feb 2014 17:10:24 +0000
-Subject: [lm-sensors] [PATCH 00/12] Versatile Express updates
-Message-Id: <1392138636-29240-1-git-send-email-pawel.moll@arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 11 Feb 2014 19:28:55 +0000
+Subject: Re: [lm-sensors] [PATCH 00/12] Versatile Express updates
+Message-Id: <2782419.lfJiZZjaFg@wuerfel>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1392138636-29240-1-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1392138636-29240-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Pawel Moll <pawel.moll@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Mike Turquette <mturquette@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Pawel Moll <pawel.moll@arm.com>, arm@kernel.org, linux-kernel@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>, Lee Jones <lee.jones@linaro.org>, Mike Turquette <mturquette@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>, Thomas Gleixner <tglx@linutronix.de>, David Woodhouse <dwmw2@infradead.org>, Jean Delvare <jdelvare@suse.de>, Samuel Ortiz <sameo@linux.intel.com>
 
-This series is a set of updates following the infrastructure
-rework and depends on it. It will be finally posted once
-the main series is merged. For the time being I would really
-appreciate feedback and/or (n)acks...
+On Tuesday 11 February 2014 17:10:24 Pawel Moll wrote:
+> This series is a set of updates following the infrastructure
+> rework and depends on it. It will be finally posted once
+> the main series is merged. For the time being I would really
+> appreciate feedback and/or (n)acks...
+> 
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Jean Delvare <jdelvare@suse.de>
-Cc: Guenter Roeck <linux@roeck-us.net> 
-Cc: lm-sensors@lm-sensors.org
+I haven't read the patches yet, but on a general level, do
+you think this code can be (or should) be shared with
+mach-versatile and mach-realview?
 
-Pawel Moll (11):
-  misc: vexpress-syscfg: Add udelay-based delay
-  power/reset: vexpress: Use udelay instead of timers
-  clk: versatile: Split config options for sp810 and vexpress_osc
-  clocksource: Sched clock source for Versatile Express
-  GPIO: gpio-generic: Add label to platform data
-  mfd: vexpress-sysreg: Add labels to gpio banks
-  mfd: syscon: Consider platform data a regmap config name
-  mfd: vexpress-sysreg: Add syscon labels as platform data
-  hwmon: vexpress: Use devm helper for hwmon device registration
-  ARM: vexpress: Simplify SMP operations for DT-powered system
-  ARM: vexpress: move HBI check to sysreg driver
+One of the things on my (mid-term) to-do list is to completely
+convert those two platforms over to being entirely DT based
+and having no board specific code so we can actually delete
+the directories along with mach-vexpress. The sysreg part
+seems to be almost identical, and I wonder if you have an
+overview of what the difference is, if any.
 
-Sudeep KarkadaNagesha (1):
-  ARM: vexpress: remove redundant vexpress_dt_cpus_num to get cpu count
+If we are going to share that code, we might want to give it
+a different name, as vexpress is just the latest platform
+in that line.
 
- arch/arm/mach-vexpress/core.h           |   3 +-
- arch/arm/mach-vexpress/platsmp.c        | 187 +++++++-------------------------
- arch/arm/mach-vexpress/v2m.c            |  57 +---------
- drivers/clk/Kconfig                     |   9 +-
- drivers/clk/versatile/Kconfig           |  26 +++++
- drivers/clk/versatile/Makefile          |   5 +-
- drivers/clocksource/Kconfig             |   9 ++
- drivers/clocksource/Makefile            |   1 +
- drivers/clocksource/vexpress.c          |  40 +++++++
- drivers/gpio/gpio-generic.c             |   2 +
- drivers/hwmon/vexpress.c                | 100 +++++------------
- drivers/mfd/syscon.c                    |   1 +
- drivers/mfd/vexpress-sysreg.c           |  45 ++++----
- drivers/misc/vexpress-syscfg.c          |  40 ++++++-
- drivers/power/reset/vexpress-poweroff.c |  10 +-
- include/linux/basic_mmio_gpio.h         |   1 +
- include/linux/vexpress.h                |   1 -
- 17 files changed, 216 insertions(+), 321 deletions(-)
- create mode 100644 drivers/clk/versatile/Kconfig
- create mode 100644 drivers/clocksource/vexpress.c
-
--- 
-1.8.3.2
-
+	Arnd
 
 _______________________________________________
 lm-sensors mailing list
