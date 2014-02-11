@@ -1,465 +1,167 @@
-From: "Dominik Egert" <dominik.egert@gmx.de>
-Date: Fri, 28 Feb 2014 10:18:46 +0000
-Subject: Re: [lm-sensors] sensors.conf for Gigabyte B75-D3V
-Message-Id: <001801cf346e$77f781f0$67e685d0$@gmx.de>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Tue, 11 Feb 2014 16:53:28 +0000
+Subject: [lm-sensors] [PATCH 1/3] driver core & of: Mark of_nodes of added device as populated
+Message-Id: <1392137610-27842-2-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <005901cf33ae$ccc48130$664d8390$@gmx.de>
-In-Reply-To: <005901cf33ae$ccc48130$664d8390$@gmx.de>
+References: <1392137610-27842-1-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1392137610-27842-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, arm@kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Turquette <mturquette@linaro.org>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Pawel Moll <pawel.moll@arm.com>
 
-> On Thu, Feb 27, 2014 at 08:55:47PM +0100, Jean Delvare wrote:
-> > Hi Guenter,
-> >=20
-> > On Thu, 27 Feb 2014 09:52:42 -0800, Guenter Roeck wrote:
-> > > On Thu, Feb 27, 2014 at 06:20:54PM +0100, Jean Delvare wrote:
-> > > > First time I see this. I don't know which driver does this but this
-> > > > looks pretty wrong, "pkg" is way too generic as a device name. This
-> > > > should be fixed quickly.
-> > >
-> > > Not sure, but it might come in through
-drivers/thermal/x86_pkg_temp_thermal.c.
-> > > It registers thermal zones named pkg-temp-<processor id>.
-> >=20
-> > A name with a dash, that's bad. What about catching (and rejecting)
-> > these in hwmon_device_register_with_groups?
-> >=20
-> They are calling hwmon_device_register(), so we don't see the name
-> and it would not help. The entire hwmon initialization sequence
-> from thermal is kind of upside down (hwmon device registration
-> and attribute handline is pretty much independent of each other),
-> so changing to the new API would be all but impossible.
->=20
-> Anyway, I think it is a good idea to add a validation to the new API.
-> I'll implement it and submit a patch when I find a few minutes.
->=20
-> Of course even that won't help much to prevent hyper-generic names
-> like the above from being introduced. pkg ? what pkg ?
+In "Device Tree powered" systems, platform devices are usually
+massively populated with of_platform_populate() call, executed
+at some level of initcalls, either by generic architecture
+or by platform-specific code.
 
+There are situations though where certain devices must be
+created (and bound with drivers) before all the others.
+This presents small challenge in DT-driven systems, as
+devices explicitly created in early code would be created
+again by of_platform_populate().
 
-Hi everyone,
+This patch tries to solve that issue in a generic way,
+adding a "populated" flag which is set in the device_node
+structure when a device is being created in the core.
+Later, of_platform_populate() skips such nodes (and
+its children) in a similar way to the non-available ones.
 
-Maybe this helps your development process.
+Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+---
+ drivers/base/core.c       |  4 ++++
+ drivers/of/device.c       | 16 ++++++++++++++++
+ drivers/of/platform.c     |  6 ++++--
+ include/linux/of.h        |  6 ++++++
+ include/linux/of_device.h | 11 +++++++++++
+ 5 files changed, 41 insertions(+), 2 deletions(-)
 
-Sorry for the malformed configuration file. - I am really having trouble
-with the configuration, as it seems.=20
-After checking back to the machine running this configuration, I noticed it
-was beeping. - Unstoppable beeping every time I set the min/max values by
-calling sensors -s
-
-Could you give me a hint on what I am doing wrong, please.
-(BTW: I recognized the in0_min and in0_max are not taken into account.)
-Sensors -v: sensors version 3.3.2 with libsensors version 3.3.2 (on Debian,
-from package)
-
-Sorry for this long mail.
-
-The config:
-######################
-# libsensors configuration file
-# -----------------------------
-#
-#  For the Gigabyte B75-D3V Rev: 1.2
-#
-#
-#
-
-
-##############################################
-chip "it8728-isa-0a30"
-
-########
-# Fans
-label fan1 "CPU-Fan"
-set fan1_min 1000
-
-label fan2 "System Fan 1"
-set fan2_min 450
-
-ignore fan3 #"System Fan 2"
-set fan3_min 450
-
-label fan4 "System Fan 3"
-set fan4_min 450
-
-ignore fan5 #"Chassis Fan"
-
-################
-# Temperatures
-label temp1 "CPU Chip Temperature"
-set temp1_min 10
-set temp1_max 60
-set temp1_offset 55
-
-ignore temp2 #"Unknown"
-
-label temp3 "System Temperature"
-set temp3_min 10
-set temp3_max 55
-set temp3_offset 50
-
-############
-# Voltages
-label in0 "Vtt"
-set in0_min 1.020
-set in0_max 1.080
-
-label in1 "+3.3V"
-set in1_min 3.135
-set in1_max 3.465
-compute in1 1.635*@,@/1.635
-
-label in2 "+12V"
-set in2_min 11.400
-set in2_max 12.600
-compute in2 6.0*@,@/6.0
-
-label in3 "+5V"
-set in3_min 4.750
-set in3_max 5.250
-compute in3 2.5*@,@/2.5
-
-label in4 "Vaxg IGD"
-set in4_min 0.800
-set in4_max 1.000
-
-label in5 "CPU Vcore"
-set in5_min 0.750
-set in5_max 1.150
-
-label in6 "Dram Voltage"
-set in6_min 1.450
-set in6_max 1.550
-
-label in7 "3.3 VSB"
-set in7_min 3.150
-set in7_max 3.450
-
-label in8 "Vbat"
-set in0_min 2.700
-set in0_max 3.300
-
-# Other sensor readings
-label intrusion0 "Chassis Open"
-set intrusion0_alarm 0
-
-
-##############################################
-chip "coretemp-*"
-
-label temp1 "CPU Chip Temperature"
-label temp2 "CPU Core 1 Temperature"
-label temp3 "CPU Core 2 Temperature"
-
-
-##############################################
-chip "pkg-*"
-
-label temp1 "ACPI Thermal CPU"
-
-
-##############################################
-chip "acpitz-virtual-0"
-
-label temp1 "ACPI Thermal Zone 0 Temp1"
-label temp2 "ACPI Thermal Zone 0 Temp2"
-######################
-
-
-The Output of sensors, sensors -u, sensors -s, sensors -u
-After sensors -s the beeping starts. - But why?
-######################
-coretemp-isa-0000
-Adapter: ISA adapter
-CPU Chip Temperature:    +38.0=B0C  (high =3D +85.0=B0C, crit =3D +105.0=B0=
-C)
-CPU Core 1 Temperature:  +38.0=B0C  (high =3D +85.0=B0C, crit =3D +105.0=B0=
-C)
-CPU Core 2 Temperature:  +36.0=B0C  (high =3D +85.0=B0C, crit =3D +105.0=B0=
-C)
-
-it8728-isa-0a30
-Adapter: ISA adapter
-Vtt:                   +1.07 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-+3.3V:                 +3.36 V  (min =3D  +0.00 V, max =3D  +5.00 V)
-+12V:                 +11.95 V  (min =3D  +0.00 V, max =3D +18.36 V)
-+5V:                   +5.07 V  (min =3D  +0.00 V, max =3D  +7.65 V)
-Vaxg IGD:              +0.88 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-CPU Vcore:             +0.89 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-Dram Voltage:          +1.54 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-3.3 VSB:               +3.36 V  (min =3D  +0.00 V, max =3D  +6.12 V)
-Vbat:                  +3.19 V
-CPU-Fan:              2122 RPM  (min =3D    0 RPM)
-System Fan 1:         1201 RPM  (min =3D    0 RPM)
-System Fan 3:         1203 RPM  (min =3D    0 RPM)
-CPU Chip Temperature:  +25.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C=
-)  sensor =3D
-thermistor
-System Temperature:    +29.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C=
-)  sensor =3D
-Intel PECI
-Chassis Open:         OK
-
-acpitz-virtual-0
-Adapter: Virtual device
-ACPI Thermal Zone 0 Temp1:  +27.8=B0C  (crit =3D +106.0=B0C)
-ACPI Thermal Zone 0 Temp2:  +29.8=B0C  (crit =3D +106.0=B0C)
-
-pkg-temp-0-virtual-0
-Adapter: Virtual device
-temp1:        +37.0=B0C
-######################
-
-######################
-coretemp-isa-0000
-Adapter: ISA adapter
-CPU Chip Temperature:
-  temp1_input: 37.000
-  temp1_max: 85.000
-  temp1_crit: 105.000
-  temp1_crit_alarm: 0.000
-CPU Core 1 Temperature:
-  temp2_input: 37.000
-  temp2_max: 85.000
-  temp2_crit: 105.000
-  temp2_crit_alarm: 0.000
-CPU Core 2 Temperature:
-  temp3_input: 37.000
-  temp3_max: 85.000
-  temp3_crit: 105.000
-  temp3_crit_alarm: 0.000
-
-it8728-isa-0a30
-Adapter: ISA adapter
-Vtt:
-  in0_input: 1.068
-  in0_min: 0.000
-  in0_max: 3.060
-  in0_alarm: 0.000
-  in0_beep: 0.000
-+3.3V:
-  in1_input: 3.355
-  in1_min: 0.000
-  in1_max: 5.003
-  in1_alarm: 0.000
-  in1_beep: 0.000
-+12V:
-  in2_input: 11.952
-  in2_min: 0.000
-  in2_max: 18.360
-  in2_alarm: 0.000
-  in2_beep: 0.000
-+5V:
-  in3_input: 5.070
-  in3_min: 0.000
-  in3_max: 7.650
-  in3_alarm: 0.000
-  in3_beep: 0.000
-Vaxg IGD:
-  in4_input: 0.876
-  in4_min: 0.000
-  in4_max: 3.060
-  in4_alarm: 0.000
-  in4_beep: 0.000
-CPU Vcore:
-  in5_input: 0.888
-  in5_min: 0.000
-  in5_max: 3.060
-  in5_alarm: 0.000
-  in5_beep: 0.000
-Dram Voltage:
-  in6_input: 1.536
-  in6_min: 0.000
-  in6_max: 3.060
-  in6_alarm: 0.000
-  in6_beep: 0.000
-3.3 VSB:
-  in7_input: 3.360
-  in7_min: 0.000
-  in7_max: 6.120
-  in7_alarm: 0.000
-  in7_beep: 0.000
-Vbat:
-  in8_input: 3.192
-CPU-Fan:
-  fan1_input: 2122.000
-  fan1_min: 0.000
-  fan1_alarm: 0.000
-  fan1_beep: 1.000
-System Fan 1:
-  fan2_input: 1196.000
-  fan2_min: 0.000
-  fan2_alarm: 0.000
-  fan2_beep: 1.000
-System Fan 3:
-  fan4_input: 1201.000
-  fan4_min: 0.000
-  fan4_alarm: 0.000
-  fan4_beep: 1.000
-CPU Chip Temperature:
-  temp1_input: 25.000
-  temp1_max: 127.000
-  temp1_min: 127.000
-  temp1_alarm: 0.000
-  temp1_type: 4.000
-  temp1_offset: 0.000
-  temp1_beep: 1.000
-System Temperature:
-  temp3_input: 29.000
-  temp3_max: 127.000
-  temp3_min: 127.000
-  temp3_alarm: 0.000
-  temp3_type: 6.000
-  temp3_offset: 97.000
-  temp3_beep: 1.000
-Chassis Open:
-  intrusion0_alarm: 0.000
-
-acpitz-virtual-0
-Adapter: Virtual device
-ACPI Thermal Zone 0 Temp1:
-  temp1_input: 27.800
-  temp1_crit: 106.000
-ACPI Thermal Zone 0 Temp2:
-  temp2_input: 29.800
-  temp2_crit: 106.000
-
-pkg-temp-0-virtual-0
-Adapter: Virtual device
-temp1:
-  temp1_input: 37.000
-######################
-
-Here comes sensors -s (No output, but beeping starts....)
-
-######################
-coretemp-isa-0000
-Adapter: ISA adapter
-CPU Chip Temperature:
-  temp1_input: 38.000
-  temp1_max: 85.000
-  temp1_crit: 105.000
-  temp1_crit_alarm: 0.000
-CPU Core 1 Temperature:
-  temp2_input: 38.000
-  temp2_max: 85.000
-  temp2_crit: 105.000
-  temp2_crit_alarm: 0.000
-CPU Core 2 Temperature:
-  temp3_input: 36.000
-  temp3_max: 85.000
-  temp3_crit: 105.000
-  temp3_crit_alarm: 0.000
-
-it8728-isa-0a30
-Adapter: ISA adapter
-Vtt:
-  in0_input: 1.068
-  in0_min: 2.700
-  in0_max: 3.060
-  in0_alarm: 0.000
-  in0_beep: 0.000
-+3.3V:
-  in1_input: 3.355
-  in1_min: 3.139
-  in1_max: 3.473
-  in1_alarm: 0.000
-  in1_beep: 0.000
-+12V:
-  in2_input: 11.952
-  in2_min: 11.376
-  in2_max: 12.600
-  in2_alarm: 0.000
-  in2_beep: 0.000
-+5V:
-  in3_input: 5.070
-  in3_min: 4.740
-  in3_max: 5.250
-  in3_alarm: 0.000
-  in3_beep: 0.000
-Vaxg IGD:
-  in4_input: 0.876
-  in4_min: 0.804
-  in4_max: 0.996
-  in4_alarm: 0.000
-  in4_beep: 0.000
-CPU Vcore:
-  in5_input: 0.888
-  in5_min: 0.756
-  in5_max: 1.152
-  in5_alarm: 0.000
-  in5_beep: 0.000
-Dram Voltage:
-  in6_input: 1.536
-  in6_min: 1.452
-  in6_max: 1.548
-  in6_alarm: 0.000
-  in6_beep: 0.000
-3.3 VSB:
-  in7_input: 3.360
-  in7_min: 3.144
-  in7_max: 3.456
-  in7_alarm: 0.000
-  in7_beep: 0.000
-Vbat:
-  in8_input: 3.192
-CPU-Fan:
-  fan1_input: 2122.000
-  fan1_min: 1000.000
-  fan1_alarm: 0.000
-  fan1_beep: 1.000
-System Fan 1:
-  fan2_input: 1207.000
-  fan2_min: 450.000
-  fan2_alarm: 0.000
-  fan2_beep: 1.000
-System Fan 3:
-  fan4_input: 1203.000
-  fan4_min: 450.000
-  fan4_alarm: 0.000
-  fan4_beep: 1.000
-CPU Chip Temperature:
-  temp1_input: 25.000
-  temp1_max: 60.000
-  temp1_min: 10.000
-  temp1_alarm: 0.000
-  temp1_type: 4.000
-  temp1_offset: 55.000
-  temp1_beep: 0.000
-System Temperature:
-  temp3_input: -18.000
-  temp3_max: 55.000
-  temp3_min: 10.000
-  temp3_alarm: 0.000
-  temp3_type: 6.000
-  temp3_offset: 50.000
-  temp3_beep: 0.000
-Chassis Open:
-  intrusion0_alarm: 0.000
-
-acpitz-virtual-0
-Adapter: Virtual device
-ACPI Thermal Zone 0 Temp1:
-  temp1_input: 27.800
-  temp1_crit: 106.000
-ACPI Thermal Zone 0 Temp2:
-  temp2_input: 29.800
-  temp2_crit: 106.000
-
-pkg-temp-0-virtual-0
-Adapter: Virtual device
-temp1:
-  temp1_input: 37.000
-######################
-
-Originally I just wanted to share this config for other users, but it seems
-quite hard to get it running correctly.
-
-Greetings
-Dominik
-
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 2b56717..588c9a6 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1088,6 +1088,8 @@ int device_add(struct device *dev)
+ 				class_intf->add_dev(dev, class_intf);
+ 		mutex_unlock(&dev->class->p->mutex);
+ 	}
++
++	of_device_populate(dev);
+ done:
+ 	put_device(dev);
+ 	return error;
+@@ -1190,6 +1192,8 @@ void device_del(struct device *dev)
+ 	struct device *parent = dev->parent;
+ 	struct class_interface *class_intf;
+ 
++	of_device_depopulate(dev);
++
+ 	/* Notify clients of device removal.  This call must come
+ 	 * before dpm_sysfs_remove().
+ 	 */
+diff --git a/drivers/of/device.c b/drivers/of/device.c
+index dafb973..3b31144 100644
+--- a/drivers/of/device.c
++++ b/drivers/of/device.c
+@@ -190,3 +190,19 @@ int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
+ 
+ 	return 0;
+ }
++
++void of_device_populate(struct device *dev)
++{
++	if ((!dev) || (!dev->of_node))
++		return;
++
++	of_node_set_flag(dev->of_node, OF_POPULATED);
++}
++
++void of_device_depopulate(struct device *dev)
++{
++	if ((!dev) || (!dev->of_node))
++		return;
++
++	of_node_clear_flag(dev->of_node, OF_POPULATED);
++}
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index 404d1da..ad43ee0 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -204,7 +204,8 @@ static struct platform_device *of_platform_device_create_pdata(
+ {
+ 	struct platform_device *dev;
+ 
+-	if (!of_device_is_available(np))
++	if (!of_device_is_available(np) ||
++			of_node_check_flag(np, OF_POPULATED))
+ 		return NULL;
+ 
+ 	dev = of_device_alloc(np, bus_id, parent);
+@@ -262,7 +263,8 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
+ 
+ 	pr_debug("Creating amba device %s\n", node->full_name);
+ 
+-	if (!of_device_is_available(node))
++	if (!of_device_is_available(node) ||
++			of_node_check_flag(node, OF_POPULATED))
+ 		return NULL;
+ 
+ 	dev = amba_device_alloc(NULL, 0, 0);
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 70c64ba..caf7b8a 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -114,6 +114,11 @@ static inline void of_node_set_flag(struct device_node *n, unsigned long flag)
+ 	set_bit(flag, &n->_flags);
+ }
+ 
++static inline void of_node_clear_flag(struct device_node *n, unsigned long flag)
++{
++	clear_bit(flag, &n->_flags);
++}
++
+ extern struct device_node *of_find_all_nodes(struct device_node *prev);
+ 
+ /*
+@@ -156,6 +161,7 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
+ /* flag descriptions */
+ #define OF_DYNAMIC	1 /* node and properties were allocated via kmalloc */
+ #define OF_DETACHED	2 /* node has been detached from the device tree */
++#define OF_POPULATED	3 /* device already created for the node */
+ 
+ #define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
+ #define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
+diff --git a/include/linux/of_device.h b/include/linux/of_device.h
+index 8d7dd67..513e598 100644
+--- a/include/linux/of_device.h
++++ b/include/linux/of_device.h
+@@ -44,6 +44,9 @@ static inline void of_device_node_put(struct device *dev)
+ 	of_node_put(dev->of_node);
+ }
+ 
++extern void of_device_populate(struct device *dev);
++extern void of_device_depopulate(struct device *dev);
++
+ static inline struct device_node *of_cpu_device_node_get(int cpu)
+ {
+ 	struct device *cpu_dev;
+@@ -84,6 +87,14 @@ static inline const struct of_device_id *of_match_device(
+ 	return NULL;
+ }
+ 
++static inline void of_device_populate(struct device *dev)
++{
++}
++
++static inline void of_device_depopulate(struct device *dev)
++{
++}
++
+ static inline struct device_node *of_cpu_device_node_get(int cpu)
+ {
+ 	return NULL;
+-- 
+1.8.3.2
 
 
 _______________________________________________
