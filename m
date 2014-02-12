@@ -1,45 +1,60 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 12 Feb 2014 11:54:44 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 12 Feb 2014 12:05:05 +0000
 Subject: Re: [lm-sensors] Kernel errors for dme1737
-Message-Id: <52FB6104.4020100@roeck-us.net>
+Message-Id: <20140212130505.6798c699@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADLDEKtzZeoOyyUGe7Rug8n-c0oZ_n8Cqd=HFpPZdZWgYmJARg@mail.gmail.com>
 In-Reply-To: <CADLDEKtzZeoOyyUGe7Rug8n-c0oZ_n8Cqd=HFpPZdZWgYmJARg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gMDIvMTIvMjAxNCAwMzowNyBBTSwgSsO8cmdlbiBGdWNoc2JlcmdlciB3cm90ZToKPiBpMmNk
-dW1wLnR4dAo+Cj4KPiAgICAgICAwICAxICAyICAzICA0ICA1ICA2ICA3ICA4ICA5ICBhICBiICBj
-ICBkICBlICBmICAgIDAxMjM0NTY3ODlhYmNkZWYKPiAwMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgICAgLi4uLi4uLi4uLi4uLi4uLgo+IDEwOiAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgICAuLi4uLi4uLi4u
-Li4uLi4uCj4gMjA6IDM2IDAwIGMwIDNhIGM0IDgwIDI3IDgwIGZmIGZmIGZmIGZmIGZmIGZmIGZm
-IGZmICAgIDYuPzo/Pyc/Li4uLi4uLi4KPiAzMDogZmYgZmYgZmYgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgNWMgOGEgICAgLi4uLi4uLi4uLi4uLi5cPwo+IDQwOiAwZiBkYiBjMCAy
-MCBhZCBkMyAwMCBmZiBhZCBkMyBhZCBkMyBhZCBkMyA4MSA3ZiAgICA/Pz8gPz8uLj8/Pz8/Pz8/
-Cj4gNTA6IDgxIDdmIDgxIDdmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIDYyIDYyIDYyIGNiICAg
-ID8/Pz8uLi4uLi4uLmJiYj8KPiA2MDogY2IgY2IgZTAgMDAgODAgODAgODAgODAgODAgODAgNjQg
-NjQgNjQgNDQgNDAgMDAgICAgPz8/Lj8/Pz8/P2RkZERALgo+IDcwOiBmZiBmZiBmZiAwOSAwOSAw
-OSAwOSAwOSAwOSAwMCAwMCAwMCA0MCAwMCBlYyAxMCAgICAuLi4/Pz8/Pz8uLi5ALj8/Cj4gODA6
-IDdlIGE0IDBlIDAwIGQzIDAwIDg3IDc0IGUwIDAwIDRkIDRkIDBiIDBiIDBkIDAwICAgIH4/Py4/
-Lj90Py5NTT8/Py4KPiA5MDogMDQgMDQgMDQgMDQgMGMgMGMgMGMgNWEgZjEgYzAgYWYgYWQgZDMg
-OWQgYzAgMDAgICAgPz8/Pz8/P1o/Pz8/Pz8/Lgo+IGEwOiAwMCAwMCAwYyAwMCAwMiBmZiBmZiAw
-YiAwYiBmZSBmZiBmZSBmZiBmZiBmZiBmZiAgICAuLj8uPy4uPz8/Lj8uLi4uCj4gYjA6IGZmIDAw
-IDAwIDAwIDAwIDAwIDI4IDI4IDBlIDBlIDBmIDBmIDAwIDAwIDAwIDAwICAgIC4uLi4uLigoPz8/
-Py4uLi4KPiBjMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgICAgLi4uLi4uLi4uLi4uLi4uLgo+IGQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAgICAuLi4uLi4uLi4uLi4uLi4uCj4gZTA6IDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4uLi4uLi4uLi4K
-PiBmMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgICAg
-Li4uLi4uLi4uLi4uLi4uLgoKVGhhdCBsb29rcyBub3JtYWwgZm9yIHRoZSBjaGlwIGFzIGZhciBh
-cyBJIGNhbiBzZWUsIGFuZCB0aGVyZSBhcmUKbm8gZXJyb3JzLgoKV29uZGVyIGlmIHRoZSBjaGlw
-IG1heSBoYXZlIHRpbWluZyByZXN0cmljdGlvbnMgYW5kIG5vdCByZXNwb25kCnRvIHF1ZXJpZXMg
-dW5kZXIgc29tZSBjaXJjdW1zdGFuY2VzIChlZyBpZiByZWdpc3RlcnMgYXJlIHJlYWQKdG9vIHF1
-aWNrbHkgYmFjay10by1iYWNrKS4gVW5mb3J0dW5hdGVseSBJIGRvbid0IHNlZW0gdG8gYmUgYWJs
-ZQp0byBmaW5kIGEgZGF0YXNoZWV0IGZvciBpdC4gRG9lcyBhbnlvbmUgaGF2ZSBvbmUsIGJ5IGFu
-eSBjaGFuY2UgPwoKVGhhbmtzLApHdWVudGVyCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
-bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
-by9sbS1zZW5zb3Jz
+On Wed, 12 Feb 2014 03:54:44 -0800, Guenter Roeck wrote:
+> On 02/12/2014 03:07 AM, J=FCrgen Fuchsberger wrote:
+> > i2cdump.txt
+> >
+> >
+> >       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+> > 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> > 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> > 20: 36 00 c0 3a c4 80 27 80 ff ff ff ff ff ff ff ff    6.?:??'?........
+> > 30: ff ff ff 00 00 00 00 00 00 00 00 00 00 00 5c 8a    ..............\?
+> > 40: 0f db c0 20 ad d3 00 ff ad d3 ad d3 ad d3 81 7f    ??? ??..????????
+> > 50: 81 7f 81 7f ff ff ff ff ff ff ff ff 62 62 62 cb    ????........bbb?
+> > 60: cb cb e0 00 80 80 80 80 80 80 64 64 64 44 40 00    ???.??????dddD@.
+> > 70: ff ff ff 09 09 09 09 09 09 00 00 00 40 00 ec 10    ...??????...@.??
+> > 80: 7e a4 0e 00 d3 00 87 74 e0 00 4d 4d 0b 0b 0d 00    ~??.?.?t?.MM???.
+> > 90: 04 04 04 04 0c 0c 0c 5a f1 c0 af ad d3 9d c0 00    ???????Z???????.
+> > a0: 00 00 0c 00 02 ff ff 0b 0b fe ff fe ff ff ff ff    ..?.?..???.?....
+> > b0: ff 00 00 00 00 00 28 28 0e 0e 0f 0f 00 00 00 00    ......((????....
+> > c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> > d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> > e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> > f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+>=20
+> That looks normal for the chip as far as I can see, and there are
+> no errors.
+
+The board supports IPMI. I would guess that the errors happen when the
+native driver and IPMI attempt to access the SMBus at the same time.
+
+As usual, my recommendation is to either use IPMI or native drivers but
+not mix.
+
+> Wonder if the chip may have timing restrictions and not respond
+> to queries under some circumstances (eg if registers are read
+> too quickly back-to-back). Unfortunately I don't seem to be able
+> to find a datasheet for it. Does anyone have one, by any chance ?
+
+I do have it, and Juerg does as well, but at least I am not allowed to
+share it. I'll be happy to answer any question though.
+
+--=20
+Jean Delvare
+Suse L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
