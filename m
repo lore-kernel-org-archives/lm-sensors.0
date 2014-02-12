@@ -1,52 +1,70 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 11 Feb 2014 20:57:46 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 12 Feb 2014 02:49:04 +0000
 Subject: Re: [lm-sensors] [PATCH 09/12] hwmon: vexpress: Use devm helper for hwmon device registration
-Message-Id: <201402112157.46774.arnd@arndb.de>
+Message-Id: <20140212024904.GA19352@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392138636-29240-1-git-send-email-pawel.moll@arm.com> <1392138636-29240-10-git-send-email-pawel.moll@arm.com>
+References: <1392138636-29240-10-git-send-email-pawel.moll@arm.com>
 In-Reply-To: <1392138636-29240-10-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Pawel Moll <pawel.moll@arm.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org
 
-On Tuesday 11 February 2014, Pawel Moll wrote:
-> -#define VEXPRESS_HWMON_ATTRS(_name, _label_attr, _input_attr)  \
-> -struct attribute *vexpress_hwmon_attrs_##_name[] = {           \
-> -       &dev_attr_name.attr,                                    \
-> -       &dev_attr_##_label_attr.attr,                           \
-> -       &sensor_dev_attr_##_input_attr.dev_attr.attr,           \
-> -       NULL                                                    \
-> -}
-> +#define VEXPRESS_HWMON_ATTR_GROUPS(_name, _label_attr, _input_attr)    \
-> +static struct attribute *vexpress_hwmon_##_name##_attrs[] = {          \
-> +       &dev_attr_##_label_attr.attr,                                   \
-> +       &sensor_dev_attr_##_input_attr.dev_attr.attr,                   \
-> +       NULL                                                            \
-> +};                                                                     \
-> +ATTRIBUTE_GROUPS(vexpress_hwmon_##_name)
+On Tue, Feb 11, 2014 at 05:10:33PM +0000, Pawel Moll wrote:
+> Use devm_hwmon_device_register_with_groups instead of
+> the old-style manual attributes and hwmon device registration.
+> 
+
+[ ... ]
+
+>  static int vexpress_hwmon_probe(struct platform_device *pdev)
+>  {
+> -	int err;
+>  	const struct of_device_id *match;
+>  	struct vexpress_hwmon_data *data;
+> +	const char *name;
+> +	const struct attribute_group **groups;
 >  
->  #if !defined(CONFIG_REGULATOR_VEXPRESS)
->  static DEVICE_ATTR(in1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
->  static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, vexpress_hwmon_u32_show,
->                 NULL, 1000);
-> -static VEXPRESS_HWMON_ATTRS(volt, in1_label, in1_input);
-> -static struct attribute_group vexpress_hwmon_group_volt = {
-> -       .attrs = vexpress_hwmon_attrs_volt,
-> -};
-> +VEXPRESS_HWMON_ATTR_GROUPS(volt, in1_label, in1_input);
+>  	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+>  	if (!data)
+> @@ -176,42 +151,19 @@ static int vexpress_hwmon_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  
 
-Maybe it would be a good time to get rid of the obfuscation here and just
-open-code the attribute groups rather than defining another macro.
+There is a leftover platform_set_drvdata() above which you can remove;
+attributes are now attached to the hwmon device and no longer
+to the platform device.
 
-I understand you want to save a few source lines, but it really helps
-readability if you can search for the attribute groups when they
-are referenced later. Just because the common driver model code uses
-macros with string concatenation doesn't mean it's a good idea to
-do the same in a device driver.
+>  
+> -	match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
+> -	sysfs_remove_group(&pdev->dev.kobj, match->data);
+> +	name = of_get_property(pdev->dev.of_node, "compatible", NULL);
 
-	Arnd
+Couple of problems, two of which escaped me earlier.
+
+First, can of_get_property ever return NULL ? I think not, just wondering.
+
+Second is a real problem. You have a '-' in the compatible property which is
+illegal for the 'name' attribute in hwmon devices. It messes up libsensors
+and thus every application using it. Not sure what a good fix (or name)
+would be; simplest might be to copy the name string and replace it with '_'.
+Sorry for not noticing this earlier; it might actually make sense to submit
+a separate patch to address this so we can apply it to the current kernel
+and if necessary patch it into earlier kernels.
+
+Third, I noticed that the 'label' attribute is always created but returns  
+-ENOENT if there is no label. A much better implementation would be to use
+.is_visible and not create the label attribute if its devicetree entry
+does not exist. I don't know how libsensors reacts to -ENOENT on a read,
+but no matter how it does react, it is pretty much undefined.
+Again, that should be handled in a separate patch.
+
+I agree with Arnd that it would be nice to get rid of the local macro,
+but I won't mandate that.
+
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
