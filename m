@@ -1,74 +1,65 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Thu, 13 Feb 2014 09:58:17 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 13 Feb 2014 10:15:30 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <20140213095817.GD32508@lee--X1>
+Message-Id: <20140213111530.2a2b4982@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
-In-Reply-To: <1392281438-31836-1-git-send-email-lpapp@kde.org>
+	<20140213095817.GD32508@lee--X1>
+In-Reply-To: <20140213095817.GD32508@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
-Cc: jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Laszlo Papp <lpapp@kde.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-PiBUaGUgTUZEIGRyaXZlciBoYXMgbm93IGJlZW4gYWRkZWQsIHNvIHRoaXMgZHJpdmVyIGlzIG5v
-dyBiZWluZyBhZG9wdGVkIHRvIGJlIGEKPiBzdWJkZXZpY2UgZHJpdmVyIG9uIHRvcCBvZiBpdC4g
-VGhpcyBtZWFucywgdGhlIGkyYyBkcml2ZXIgdXNhZ2UgaXMgYmVpbmcKPiBjb252ZXJ0ZWQgdG8g
-cGxhdGZvcm0gZHJpdmVyIHVzYWdlIGFsbCBhcm91bmQuCj4gCj4gU2lnbmVkLW9mZi1ieTogTGFz
-emxvIFBhcHAgPGxwYXBwQGtkZS5vcmc+Cj4gLS0tCj4gVGhpcyBwYXRjaCBoYXMgYmVlbiBjb21w
-aWxlIHRlc3RlZCBvbmx5IGFuZCB3aWxsIGJlIHRlc3RlZCB3aXRoIHJlYWwgaGFyZHdhcmUsCj4g
-YnV0IGVhcmx5IHJldmlld3MgdG8gY2F0Y2ggYW55IHRyaXZpYWwgaXNzdWVzIHdvdWxkIGJlIHdl
-bGNvbWUuCj4gIGRyaXZlcnMvaHdtb24vS2NvbmZpZyAgIHwgICAyICstCj4gIGRyaXZlcnMvaHdt
-b24vbWF4NjY1MC5jIHwgMTU1ICsrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQo+ICAyIGZpbGVzIGNoYW5nZWQsIDc5IGluc2VydGlvbnMoKyksIDc4IGRlbGV0
-aW9ucygtKQoKPHNuaXA+Cgo+ICAvKgo+ICAgKiBJbnNtb2QgcGFyYW1ldGVycwo+IEBAIC0xMDUs
-MjQgKzEwOCwyMyBAQCBtb2R1bGVfcGFyYW0oY2xvY2ssIGludCwgU19JUlVHTyk7Cj4gIAo+ICAj
-ZGVmaW5lIERJVl9GUk9NX1JFRyhyZWcpICgxIDw8IChyZWcgJiA3KSkKPiAgCj4gLXN0YXRpYyBp
-bnQgbWF4NjY1MF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LAo+IC0JCQkgY29uc3Qg
-c3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKTsKPiAtc3RhdGljIGludCBtYXg2NjUwX2luaXRfY2xp
-ZW50KHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpOwo+IC1zdGF0aWMgaW50IG1heDY2NTBfcmVt
-b3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpOwo+ICtzdGF0aWMgaW50IG1heDY2NTBfcHJv
-YmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldik7Cj4gK3N0YXRpYyBpbnQgbWF4NjY1MF9p
-bml0X2NsaWVudChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KTsKPiArc3RhdGljIGludCBt
-YXg2NjUwX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KTsKPiAgc3RhdGljIHN0
-cnVjdCBtYXg2NjUwX2RhdGEgKm1heDY2NTBfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2aWNlICpk
-ZXYpOwoKSXQgd291bGQgYmUgZ29vZCB0byByZW1vdmUgdGhlc2UgZm9yd2FyZCBkZWNsYXJhdGlv
-bnMgaW4gdGhlIGZ1dHVyZS4KCklmIG5vIG9uZSB2b2x1bnRlZXJzIEknbGwgaGFwcGlseSBkbyBp
-dC4KCj4gIC8qCj4gICAqIERyaXZlciBkYXRhIChjb21tb24gdG8gYWxsIGNsaWVudHMpCj4gICAq
-Lwo+ICAKPiAtc3RhdGljIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkIG1heDY2NTBfaWRbXSA9
-IHsKPiArc3RhdGljIGNvbnN0IHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2VfaWQgbWF4NjY1MF9pZFtd
-ID0gewo+ICAJeyAibWF4NjY1MCIsIDEgfSwKPiAgCXsgIm1heDY2NTEiLCA0IH0sCj4gIAl7IH0K
-PiAgfTsKPiAtTU9EVUxFX0RFVklDRV9UQUJMRShpMmMsIG1heDY2NTBfaWQpOwo+ICtNT0RVTEVf
-REVWSUNFX1RBQkxFKHBsYXRmb3JtLCBtYXg2NjUwX2lkKTsKCkkgdGhvdWdodCB5b3Ugd2VyZSBn
-b2luZyB0byBkbyB0aGUgbWF0Y2hpbmcgaW4gdGhlIE1GRCBkcml2ZXI/CgpJZiBub3QsIHdoYXQn
-cyB0aGUgcG9pbnQgaW4gdGhlIGV4cG9ydGVkICd0eXBlJyBhdHRyaWJ1dGU/Cgo+IC1zdGF0aWMg
-c3RydWN0IGkyY19kcml2ZXIgbWF4NjY1MF9kcml2ZXIgPSB7Cj4gK3N0YXRpYyBzdHJ1Y3QgcGxh
-dGZvcm1fZHJpdmVyIG1heDY2NTBfZHJpdmVyID0gewo+ICAJLmRyaXZlciA9IHsKPiAgCQkubmFt
-ZQk9ICJtYXg2NjUwIiwKClRoaXMgc2hvdWxkIGJlIGNoYW5nZWQgYXMgaXQgbm93IHN1cHBvcnRz
-IG1heDY2NXswLDF9IHJpZ2h0PwoKPHNuaXA+Cgo+IC0JaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0
-YShjbGllbnQsIE1BWDY2NTBfUkVHX1NQRUVELCBkYXRhLT5zcGVlZCk7Cj4gKwlyZWdtYXBfd3Jp
-dGUoZGF0YS0+aW9kZXYtPm1hcCwgTUFYNjY1MF9SRUdfU1BFRUQsIGRhdGEtPnNwZWVkKTsKCkVu
-c3VyZSBhbGwgb2YgdGhlIHJlZ21hcCBzdHVmZiBpcyBmdWxseSB0ZXN0ZWQuCgo8c25pcD4KCj4g
-QEAgLTQ4NCwxMCArNDgyLDEyIEBAIHN0YXRpYyB1bW9kZV90IG1heDY2NTBfYXR0cnNfdmlzaWJs
-ZShzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3RydWN0IGF0dHJpYnV0ZSAqYSwKPiAgCQkJCSAgICBp
-bnQgbikKPiAgewo+ICAJc3RydWN0IGRldmljZSAqZGV2ID0gY29udGFpbmVyX29mKGtvYmosIHN0
-cnVjdCBkZXZpY2UsIGtvYmopOwo+IC0Jc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRvX2ky
-Y19jbGllbnQoZGV2KTsKPiAtCXU4IGFsYXJtX2VuID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRh
-KGNsaWVudCwgTUFYNjY1MF9SRUdfQUxBUk1fRU4pOwo+ICsJc3RydWN0IG1heDY2NTBfZGF0YSAq
-ZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+ICsJaW50IGFsYXJtX2VuOwo+ICAJc3RydWN0
-IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0dHI7Cj4gIAo+ICsJcmVnbWFwX3JlYWQoZGF0YS0+aW9k
-ZXYtPm1hcCwgTUFYNjY1MF9SRUdfQUxBUk1fRU4sICZhbGFybV9lbik7Cj4gKwoKV2hlcmUgaXMg
-dGhpcyB0aGVuIHVzZWQ/Cgo+IC1zdGF0aWMgaW50IG1heDY2NTBfcHJvYmUoc3RydWN0IGkyY19j
-bGllbnQgKmNsaWVudCwKPiAtCQkJIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkICppZCkKPiAr
-c3RhdGljIGludCBtYXg2NjUwX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4g
-IHsKPiArCXN0cnVjdCBtYXg2NjV4X2RldiAqbWF4NjY1eCA9IGRldl9nZXRfZHJ2ZGF0YShwZGV2
-LT5kZXYucGFyZW50KTsKPiAgCXN0cnVjdCBtYXg2NjUwX2RhdGEgKmRhdGE7Cj4gKwljb25zdCBz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlX2lkICppZCA9IHBsYXRmb3JtX2dldF9kZXZpY2VfaWQocGRl
-dik7CgpXaGF0J3MgdGhlIHBvaW50IGluICd0eXBlJyBpbiB0aGUgZ2xvYmFsIGNvbnRhaW5lcj8K
-Ckl0J3MgbG9va2luZyBhcyB0aG91Z2ggeW91J3JlIG5vdCBnb2luZyB0byBuZWVkIGl0IHRvIGJl
-IGdsb2JhbCBhZnRlcgphbGwsIHJpZ2h0PwoKPHNuaXA+CgotLSAKTGVlIEpvbmVzCkxpbmFybyBT
-VE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDilIIgT3BlbiBz
-b3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdp
-dHRlciB8IEJsb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Thu, 13 Feb 2014 09:58:17 +0000, Lee Jones wrote:
+> > The MFD driver has now been added, so this driver is now being adopted to be a
+> > subdevice driver on top of it. This means, the i2c driver usage is being
+> > converted to platform driver usage all around.
+> > 
+> > Signed-off-by: Laszlo Papp <lpapp@kde.org>
+> > ---
+> > This patch has been compile tested only and will be tested with real hardware,
+> > but early reviews to catch any trivial issues would be welcome.
+> >  drivers/hwmon/Kconfig   |   2 +-
+> >  drivers/hwmon/max6650.c | 155 ++++++++++++++++++++++++------------------------
+> >  2 files changed, 79 insertions(+), 78 deletions(-)
+> 
+> <snip>
+> 
+> >  /*
+> >   * Insmod parameters
+> > @@ -105,24 +108,23 @@ module_param(clock, int, S_IRUGO);
+> >  
+> >  #define DIV_FROM_REG(reg) (1 << (reg & 7))
+> >  
+> > -static int max6650_probe(struct i2c_client *client,
+> > -			 const struct i2c_device_id *id);
+> > -static int max6650_init_client(struct i2c_client *client);
+> > -static int max6650_remove(struct i2c_client *client);
+> > +static int max6650_probe(struct platform_device *pdev);
+> > +static int max6650_init_client(struct platform_device *pdev);
+> > +static int max6650_remove(struct platform_device *pdev);
+> >  static struct max6650_data *max6650_update_device(struct device *dev);
+> 
+> It would be good to remove these forward declarations in the future.
+> 
+> If no one volunteers I'll happily do it.
+
+Guenter just did:
+
+http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041224.html
+
+Any change to the max6650 driver should go on top of his patch series
+to avoid conflicts:
+
+http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041223.html
+
+-- 
+Jean Delvare
+Suse L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
