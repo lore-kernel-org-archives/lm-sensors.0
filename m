@@ -1,63 +1,47 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Thu, 13 Feb 2014 11:33:13 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 13 Feb 2014 11:58:12 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <20140213113313.GL32508@lee--X1>
+Message-Id: <20140213125812.7ce5d0c9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
- <20140213095817.GD32508@lee--X1>
- <20140213111530.2a2b4982@endymion.delvare>
- <CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
- <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
-In-Reply-To: <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
+	<20140213095817.GD32508@lee--X1>
+	<20140213111530.2a2b4982@endymion.delvare>
+	<20140213111607.GK32508@lee--X1>
+In-Reply-To: <20140213111607.GK32508@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
-Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Laszlo Papp <lpapp@kde.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-PiA+Pj4gPiAtc3RhdGljIGludCBtYXg2NjUwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
-bnQsCj4gPj4+ID4gLSAgICAgICAgICAgICAgICAgICAgY29uc3Qgc3RydWN0IGkyY19kZXZpY2Vf
-aWQgKmlkKTsKPiA+Pj4gPiAtc3RhdGljIGludCBtYXg2NjUwX2luaXRfY2xpZW50KHN0cnVjdCBp
-MmNfY2xpZW50ICpjbGllbnQpOwo+ID4+PiA+IC1zdGF0aWMgaW50IG1heDY2NTBfcmVtb3ZlKHN0
-cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpOwo+ID4+PiA+ICtzdGF0aWMgaW50IG1heDY2NTBfcHJv
-YmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldik7Cj4gPj4+ID4gK3N0YXRpYyBpbnQgbWF4
-NjY1MF9pbml0X2NsaWVudChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KTsKPiA+Pj4gPiAr
-c3RhdGljIGludCBtYXg2NjUwX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KTsK
-PiA+Pj4gPiAgc3RhdGljIHN0cnVjdCBtYXg2NjUwX2RhdGEgKm1heDY2NTBfdXBkYXRlX2Rldmlj
-ZShzdHJ1Y3QgZGV2aWNlICpkZXYpOwo+ID4+Pgo+ID4+PiBJdCB3b3VsZCBiZSBnb29kIHRvIHJl
-bW92ZSB0aGVzZSBmb3J3YXJkIGRlY2xhcmF0aW9ucyBpbiB0aGUgZnV0dXJlLgo+ID4+Pgo+ID4+
-PiBJZiBubyBvbmUgdm9sdW50ZWVycyBJJ2xsIGhhcHBpbHkgZG8gaXQuCj4gPj4KPiA+PiBHdWVu
-dGVyIGp1c3QgZGlkOgo+ID4+Cj4gPj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVy
-bWFpbC9sbS1zZW5zb3JzLzIwMTQtRmVicnVhcnkvMDQxMjI0Lmh0bWwKPiA+Pgo+ID4+IEFueSBj
-aGFuZ2UgdG8gdGhlIG1heDY2NTAgZHJpdmVyIHNob3VsZCBnbyBvbiB0b3Agb2YgaGlzIHBhdGNo
-IHNlcmllcwo+ID4+IHRvIGF2b2lkIGNvbmZsaWN0czoKPiA+Pgo+ID4+IGh0dHA6Ly9saXN0cy5s
-bS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy8yMDE0LUZlYnJ1YXJ5LzA0MTIyMy5o
-dG1sCj4gPgo+IEFzIGZhciBhcyBJIGNhbiBzZWUsIHRoYXQgcGF0Y2ggc2V0IHdhcyBub3QgZXZl
-biB0ZXN0ZWQsIHNvIGhvdyBjYW4gaXQKPiBnbyBpbj8gSSB3YXMgdG9sZCB0aGF0IGFueSBwYXRj
-aCBzaG91bGQgYmUgX3J1bnRpbWVfIHRlc3RlZCwgdG9vLgo+IEZ3aXcsIEkgZG8gbm90IGhhdmUg
-dGltZSB0byB0ZXN0IHRob3NlIHBlcnNvbmFsbHksIGhlIHdvdWxkIG5lZWQgdG8KPiBmaW5kIHNv
-bWVvbmUgZWxzZSBpZiB0aGF0IHJlcXVpcmVtZW50IHJlYWxseSBob2xkcyB0cnVlLgo+Cj4gSSB3
-b3VsZCBub3QgcmVhbGx5IGxpa2UgdG8gZml4IGJ1Z3MgYXBwZWFyaW5nIGluIHRoYXQgY29kZSB0
-byBnZXQgbXkKPiBmZWF0dXJlcyBpbi4KPiAKPiBBbHNvLCBzaW5jZSBteSBjaGFuZ2UgaGFzIGJl
-ZW4gYXJvdW5kIGZvciAyLTMgbW9udGhzIG5vdywgSSB3b3VsZAo+IHJlYWxseSBwcmVmZXIgbm90
-IHRvIGJlIGZvcmNlZCB0byByZXdyaXRlIGl0IGFnYWluIGZyb20gc2NyYXRjaC4KPiBTdXJlbHks
-IHlvdSBjYW4gd2FpdCB3aXRoIHRob3NlLCBtb3JlIG9yIGxlc3MsIGNvc21ldGljIG5vbi1ydW50
-aW1lCj4gdGVzdGVkIGNoYW5nZXM/Cj4gCj4gVGhpcyB3b3VsZCBpbXBvc2UgbWUgYSBsb3Qgb2Yg
-YWRkaXRpb25hbCB3b3JrIGFnYWluLCBhbmQgSSBwZXJzb25hbGx5Cj4gZG8gbm90IHNlZSB0aGUg
-YmVuZWZpdCBvZiBpdC4gSW4gbXkgYm9vayBhdCBsZWFzdCwgZmVhdHVyZSBpcyBvdmVyCj4gaW50
-ZXJuYWwgcG9saXNoaW5nLgoKUmlnaHQsIEkndmUgaGFkIGVub3VnaC4gSSdtIHJlbW92aW5nIHlv
-dXIgcGF0Y2ggZnJvbSB0aGUgTUZEIHRyZWUuCgpJJ3ZlIGFza2VkIHRvbyBtYW55IHBlb3BsZSB0
-byBnaXZlIHlvdSBhIHNlY29uZCBjaGFuY2UgYW5kIGFza2VkIHlvdQpwcml2YXRlbHkgdG8gYmVo
-YXZlIHlvdXJzZWxmIGFuZCB0cmVhdCBvdGhlcnMgd2l0aCByZXNwZWN0LiBTbyBmYXIgSQpoYXZl
-bid0IHNlZW4gYW4gb3VuY2Ugb2Ygc2VsZiBjb250cm9sIG9yIGRlcG9tYWN5IGZyb20geW91LgoK
-VGhpcyBpcyBob3cgaXQncyBnb2luZyB0byB3b3JrIGZyb20gbm93IG9uOgoKIC0gWW91IHN1Ym1p
-dCBhIHBhdGNoCiAtIEl0IGdldHMgcmV2aWV3ZWQgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-PC0tLS1cCiAtIFlvdSBmaXggdXAgdGhlIHJldmlldyBjb21tZW50cyBhcyByZXF1ZXN0ZWQgLS0t
-LS0vCiAtIE5vbi1jb21wbGlhbmNlIG9yIGFyZ3VtZW50cyB3aXRoIHRoZSBfZXhwZXJ0c18gcmVz
-dWx0cyBpbjoKICAgIGAkSU5URVJFU1QgPiAvZGV2L251bGwgfHwgXAogICAgICBncmVwICJGcm9t
-OiBMYXN6aW8gUGFwcCIgfi8ubWFpbCB8IHhhcmdzIHJtIC1yZmAKCi0tIApMZWUgSm9uZXMKTGlu
-YXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApMaW5hcm8ub3JnIOKUgiBP
-cGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sg
-fCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9y
-ZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Hi Lee,
+
+On Thu, 13 Feb 2014 11:16:07 +0000, Lee Jones wrote:
+> On Thu, 13 Feb 2014, Jean Delvare wrote:
+> > Guenter just did:
+> > 
+> > http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041224.html
+> 
+> Nice, FWIW:
+>   Acked-by: Lee Jones <lee.jones@linaro.org>  
+> 
+> > Any change to the max6650 driver should go on top of his patch series
+> > to avoid conflicts:
+> > 
+> > http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041223.html
+> 
+> Do you have a tree Laszlo can rebase on top of?
+
+Now that the patches have my Reviewed-by and your Acked-by, I believe
+Guenter will add them shortly to:
+
+http://git.kernel.org/cgit/linux/kernel/git/groeck/linux-staging.git/log/?h=hwmon-staging
+
+-- 
+Jean Delvare
+Suse L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
