@@ -1,134 +1,86 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Thu, 13 Feb 2014 10:55:55 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 13 Feb 2014 11:07:32 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <CAOMwXhNVuDhSZ7WAKMN7_uZ6EK4rcVN-zbJP-+KO7cpiyPuL0g@mail.gmail.com>
+Message-Id: <1392289652.29672.26.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
-	<20140213095817.GD32508@lee--X1>
-In-Reply-To: <20140213095817.GD32508@lee--X1>
+	 <20140213095817.GD32508@lee--X1> <20140213111530.2a2b4982@endymion.delvare>
+	 <CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
+	 <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
+In-Reply-To: <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
+To: Laszlo Papp <lpapp@kde.org>
+Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-On Thu, Feb 13, 2014 at 9:58 AM, Lee Jones <lee.jones@linaro.org> wrote:
->> The MFD driver has now been added, so this driver is now being adopted to be a
->> subdevice driver on top of it. This means, the i2c driver usage is being
->> converted to platform driver usage all around.
->>
->> Signed-off-by: Laszlo Papp <lpapp@kde.org>
->> ---
->> This patch has been compile tested only and will be tested with real hardware,
->> but early reviews to catch any trivial issues would be welcome.
->>  drivers/hwmon/Kconfig   |   2 +-
->>  drivers/hwmon/max6650.c | 155 ++++++++++++++++++++++++------------------------
->>  2 files changed, 79 insertions(+), 78 deletions(-)
->
-> <snip>
->
->>  /*
->>   * Insmod parameters
->> @@ -105,24 +108,23 @@ module_param(clock, int, S_IRUGO);
->>
->>  #define DIV_FROM_REG(reg) (1 << (reg & 7))
->>
->> -static int max6650_probe(struct i2c_client *client,
->> -                      const struct i2c_device_id *id);
->> -static int max6650_init_client(struct i2c_client *client);
->> -static int max6650_remove(struct i2c_client *client);
->> +static int max6650_probe(struct platform_device *pdev);
->> +static int max6650_init_client(struct platform_device *pdev);
->> +static int max6650_remove(struct platform_device *pdev);
->>  static struct max6650_data *max6650_update_device(struct device *dev);
->
-> It would be good to remove these forward declarations in the future.
->
-> If no one volunteers I'll happily do it.
-
-I personally do not see any problem with the code either way, hence I
-would not personally touch what works. :)
-
-But if it is a strong opinionated style restriction in the codebase,
-then yeah, someone could do it, except me.
-
->>  /*
->>   * Driver data (common to all clients)
->>   */
->>
->> -static const struct i2c_device_id max6650_id[] = {
->> +static const struct platform_device_id max6650_id[] = {
->>       { "max6650", 1 },
->>       { "max6651", 4 },
->>       { }
->>  };
->> -MODULE_DEVICE_TABLE(i2c, max6650_id);
->> +MODULE_DEVICE_TABLE(platform, max6650_id);
->
-> I thought you were going to do the matching in the MFD driver?
->
-> If not, what's the point in the exported 'type' attribute?
-
-I am yet to understand the concept here. You were objecting to those,
-so I removed this in MFD. I could add it to that back in this patch as
-proposed.
-
->> -static struct i2c_driver max6650_driver = {
->> +static struct platform_driver max6650_driver = {
->>       .driver = {
->>               .name   = "max6650",
->
-> This should be changed as it now supports max665{0,1} right?
-
-This is a strange historical driver. It has always supported both, yet
-it was named max6650 weirdly enough as you note.
-
-> <snip>
->
->> -     i2c_smbus_write_byte_data(client, MAX6650_REG_SPEED, data->speed);
->> +     regmap_write(data->iodev->map, MAX6650_REG_SPEED, data->speed);
->
-> Ensure all of the regmap stuff is fully tested.
-
-Yes, sure.
-
-> <snip>
->
->> @@ -484,10 +482,12 @@ static umode_t max6650_attrs_visible(struct kobject *kobj, struct attribute *a,
->>                                   int n)
->>  {
->>       struct device *dev = container_of(kobj, struct device, kobj);
->> -     struct i2c_client *client = to_i2c_client(dev);
->> -     u8 alarm_en = i2c_smbus_read_byte_data(client, MAX6650_REG_ALARM_EN);
->> +     struct max6650_data *data = dev_get_drvdata(dev);
->> +     int alarm_en;
->>       struct device_attribute *devattr;
->>
->> +     regmap_read(data->iodev->map, MAX6650_REG_ALARM_EN, &alarm_en);
->> +
->
-> Where is this then used?
-
-Nowhere, so it was a sub-optimal situation in the old code. It is just
-a direct platform device port of it whatever it was. Perhaps it is the
-right time to clean it a bit, I agree.
-
->> -static int max6650_probe(struct i2c_client *client,
->> -                      const struct i2c_device_id *id)
->> +static int max6650_probe(struct platform_device *pdev)
->>  {
->> +     struct max665x_dev *max665x = dev_get_drvdata(pdev->dev.parent);
->>       struct max6650_data *data;
->> +     const struct platform_device_id *id = platform_get_device_id(pdev);
->
-> What's the point in 'type' in the global container?
->
-> It's looking as though you're not going to need it to be global after
-> all, right?
-
-I would need it for the bit fiddling, too, I think.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgTGFzemxvLAoKTGUgVGh1cnNkYXkgMTMgRmVicnVhcnkgMjAxNCDDoCAxMDo0NiArMDAwMCwg
+TGFzemxvIFBhcHAgYSDDqWNyaXQgOgo+IE9uIFRodSwgRmViIDEzLCAyMDE0IGF0IDEwOjM4IEFN
+LCBMYXN6bG8gUGFwcCA8bHBhcHBAa2RlLm9yZz4gd3JvdGU6Cj4gPiBPbiBUaHUsIEZlYiAxMywg
+MjAxNCBhdCAxMDoxNSBBTSwgSmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBzdXNlLmRlPiB3cm90ZToK
+PiA+PiBBbnkgY2hhbmdlIHRvIHRoZSBtYXg2NjUwIGRyaXZlciBzaG91bGQgZ28gb24gdG9wIG9m
+IGhpcyBwYXRjaCBzZXJpZXMKPiA+PiB0byBhdm9pZCBjb25mbGljdHM6Cj4gPj4KPiA+PiBodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvMjAxNC1GZWJydWFy
+eS8wNDEyMjMuaHRtbAo+ID4KPiA+IEFzIGZhciBhcyBJIGNhbiBzZWUsIHRoYXQgcGF0Y2ggc2V0
+IHdhcyBub3QgZXZlbiB0ZXN0ZWQsIHNvIGhvdyBjYW4gaXQKPiA+IGdvIGluPyBJIHdhcyB0b2xk
+IHRoYXQgYW55IHBhdGNoIHNob3VsZCBiZSBfcnVudGltZV8gdGVzdGVkLCB0b28uCj4gPiBGd2l3
+LCBJIGRvIG5vdCBoYXZlIHRpbWUgdG8gdGVzdCB0aG9zZSBwZXJzb25hbGx5LCBoZSB3b3VsZCBu
+ZWVkIHRvCj4gPiBmaW5kIHNvbWVvbmUgZWxzZSBpZiB0aGF0IHJlcXVpcmVtZW50IHJlYWxseSBo
+b2xkcyB0cnVlLgoKSSBmaW5kIGl0IF92ZXJ5XyBmdW5ueSB0aGF0IHlvdSBkYXJlIHRvIGNvbXBs
+YWluIGhlcmUsIHdoZW4geW91IHNlbnQgYQp0b3RhbGx5IHVudGVzdGVkIHBhdGNoIG5vIGxhdGVy
+IHRoYW4gMiBkYXlzIGFnbzoKCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwv
+bG0tc2Vuc29ycy8yMDE0LUZlYnJ1YXJ5LzA0MTE4MC5odG1sCgpUaGVyZSdzIG5vIHdheSB0aGF0
+IHBhdGNoIGNhbiB3b3JrLgoKQW5kLCBhY3R1YWxseSwgR3VlbnRlcidzIHBhdGNoZXMgaGF2ZSBi
+ZWVuIHJldmlld2VkIGFuZCB0ZXN0ZWQgYnkKbXlzZWxmLCB0byBzb21lIGRlZ3JlZSAoSSBkb24n
+dCBoYXZlIGFjY2VzcyB0byBhIHBoeXNpY2FsIE1BWDY2NTAgb3IKTUFYNjY1MSBjaGlwIHNvIEkg
+dXNlZCBhbiBlbXVsYXRpb24sIHdoaWNoIEkgdGhpbmsgd2FzIGdvb2QgZW5vdWdoIGdpdmVuCnRo
+ZSBuYXR1cmUgb2YgdGhlIGNoYW5nZXMuKQoKPiA+IEkgd291bGQgbm90IHJlYWxseSBsaWtlIHRv
+IGZpeCBidWdzIGFwcGVhcmluZyBpbiB0aGF0IGNvZGUgdG8gZ2V0IG15Cj4gPiBmZWF0dXJlcyBp
+bi4KCkkgaGF2ZSBubyBpZGVhIHdoYXQgeW91IG1lYW4gaGVyZS4KCj4gQWxzbywgc2luY2UgbXkg
+Y2hhbmdlIGhhcyBiZWVuIGFyb3VuZCBmb3IgMi0zIG1vbnRocyBub3csIEkgd291bGQKPiByZWFs
+bHkgcHJlZmVyIG5vdCB0byBiZSBmb3JjZWQgdG8gcmV3cml0ZSBpdCBhZ2FpbiBmcm9tIHNjcmF0
+Y2guCgpJJ20gc3VyZSBHdW50ZXIgd291bGQgaGF2ZSBwcmVmZXJyZWQgaWYgeW91IGNvdWxkIHdy
+aXRlIHByb3BlciBwYXRjaGVzCnNvIGhlIHdvdWxkbid0IGhhdmUgdG8gZG8gaXQgaGltc2VsZi4K
+ClNlcmlvdXNseSwgbm9ib2R5IGhlcmUgY2FyZXMgYWJvdXQgeW91ciBwZXJzb25hbCBwcmVmZXJl
+bmNlcy4gWW91IHNhaWQKeW91IHdhbnQgc29tZSBzaWduaWZpY2FudCBjaGFuZ2VzIGRvbmUgdG8g
+dGhlIG1heDY2NTAgZHJpdmVyLCBpdCB0YWtlcwptYW55IHN0ZXBzIHRvIGdldCB0aGVyZSwgZWl0
+aGVyIHlvdSB0YWtlIHRoZW0sIG9yIHlvdSBjYW4gbGVhdmUgcmlnaHQKbm93LiBJZiB5b3UncmUg
+bm90IGdvaW5nIHRvIGxpc3RlbiB0byAoYW5kIHN1YnNlcXVlbnRseSBvYmV5KSBwZW9wbGUgd2hv
+CmhhdmUgYmVlbiB3b3JraW5nIG9uIHRoaXMgcHJvamVjdCBmb3IgeWVhcnMgYW5kIGFyZSB3ZWxs
+LWtub3duIGFuZApyZXNwZWN0ZWQgYnkgdGhlIHZhc3QgbWFqb3JpdHkgb2YgdGhlaXIgcGVlcnMs
+IHRoZW4gYnllIGJ5ZS4KCj4gU3VyZWx5LCB5b3UgY2FuIHdhaXQgd2l0aCB0aG9zZSwgbW9yZSBv
+ciBsZXNzLCBjb3NtZXRpYyBub24tcnVudGltZQo+IHRlc3RlZCBjaGFuZ2VzPwoKSSBzZWUgeW91
+IG9uY2UgYWdhaW4gZmFpbGVkIHRvIHJlYWQgKG9yIHVuZGVyc3RhbmQpIHNvbWV0aGluZyBJIHJl
+cGVhdGVkCm1hbnkgdGltZXMgYWxyZWFkeS4gT25lIG9mIHRoZXNlIGNoYW5nZXMgKHRoZSBvbmUg
+bW92aW5nIHRoZSBod21vbgphdHRyaWJ1dGVzIGZyb20gaTJjIGRldmljZSB0byBod21vbiBkZXZp
+Y2UpIGlzIF9tYW5kYXRvcnlfIHRvIGdldCB5b3VyCm93biBjaGFuZ2VzIGFjY2VwdGVkLiBHdWVu
+dGVyIGRpZCB5b3UgYW4gaW1tZW5zZSBmYXZvciBieSB3cml0aW5nIHRoZXNlCnBhdGNoZXMsIHNv
+IGlmIGFueXRoaW5nIHlvdSBzaG91bGQgYmUgdmVyeSBncmF0ZWZ1bCB0byBoaW0uCgo+IFRoaXMg
+d291bGQgaW1wb3NlIG1lIGEgbG90IG9mIGFkZGl0aW9uYWwgd29yayBhZ2FpbiwgYW5kIEkgcGVy
+c29uYWxseQo+IGRvIG5vdCBzZWUgdGhlIGJlbmVmaXQgb2YgaXQuIEluIG15IGJvb2sgYXQgbGVh
+c3QsIGZlYXR1cmUgaXMgb3Zlcgo+IGludGVybmFsIHBvbGlzaGluZy4KCkNoYW5nZSBib29rcyB0
+aGVuLCB5b3VycyBpcyBqdXN0IHdyb25nLiBCdWcgZml4ZXMgY29tZSBmaXJzdCwgdGhlbgpjbGVh
+bnVwcywgdGhlbiBmZWF0dXJlcy4gQWRkaW5nIGZlYXR1cmVzIG9uIHRvcCBvZiB1Z2x5IGNvZGUg
+aXMgYSBwYWluCmZvciBldmVyeW9uZS4gUGx1cyBjbGVhbmluZyB1cCB0aGUgY29kZSBoZWxwcyB5
+b3UgdG8gdW5kZXJzdGFuZCBpdCwgc28KSSdkIHNheSB0aGlzIGlzIHRpbWUgd2VsbCBpbnZlc3Rl
+ZC4gWW91IHNob3VsZCB0cnksIHRoYXQgd291bGQgY2VydGFpbmx5CmhlbHAgeW91IGF2b2lkIHNv
+bWUgbWlzdGFrZXMgeW91IGRpZCBpbiB0aGUgcGFzdC4KCkkgd291bGQgbGlrZSB0byBhZGQgYSBt
+b3JlIGdlbmVyYWwgY29tbWVudCBvbiB0aGUgd2F5IHlvdSBiZWhhdmUgd2l0aAp0aGUgY29tbXVu
+aXR5IGFuZCB0aGF0IGhhcyBiZWVuIGJvdGhlcmluZyBtZSBmb3IgZGF5cy4gWW91IGFwcGFyZW50
+bHkKYWN0IGZpcnN0IGFuZCB0aGluayBzZWNvbmQuIEkgY2FuIG5vIGxvbmdlciBjb3VudCB0aGUg
+bnVtYmVyIG9mIHRpbWVzCnlvdSByZXBsaWVkIHRvIGEgcG9zdCBvbmx5IHRvIHJlcGx5IHRvIHlv
+dXJzZWxmIGEgZmV3IG1pbnV0ZXMgbGF0ZXIuCkxhc3Qgb2NjdXJyZW5jZSBvZiB0aGlzIGlzIGlu
+IHRoaXMgdGhyZWFkOiBmaXJzdCByZXBseSBmcm9tIHlvdSBhdAoxMTozOCwgYW5kIHRoZW4gYW4g
+YWRkaXRpb24gYXQgMTE6NDYsIGkuZS4gOCBtaW51dGVzIGxhdGVyLiBBbmQgeW91IGRvCnRoYXQg
+YWxsIHRoZSB0aW1lLgoKQW5kIGl0IGhvbGRzIGZvciBwYXRjaGVzIHRvbywgZm9yIGV4YW1wbGUu
+Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy8yMDE0LUZl
+YnJ1YXJ5LzA0MTE3OS5odG1sCnBvc3RlZCBhdCAxMToyNCwgdGhlbgpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvMjAxNC1GZWJydWFyeS8wNDExODAuaHRt
+bAp2MiBvZiB0aGUgc2FtZSBwb3N0ZWQgYXQgMTE6MjguCgpTbyBwbGVhc2UgbGlzdGVuIHRvIHRo
+aXMgcGllY2Ugb2YgYWR2aWNlOiB0YWtlIHlvdXIgdGltZS4gVGhpbmsgbW9yZSwKYW5kIG9ubHkg
+YWN0IGFmdGVyIHlvdSBoYXZlIHRob3VnaHQgdGhvcm91Z2hseSBhYm91dCBldmVyeXRoaW5nLiBJ
+dCB3aWxsCnNhdmUgeW91IGEgbG90IG9mIHRyb3VibGUsIGFuZCB0aGUgY29tbXVuaXR5IGEgbG90
+IG9mIHRpbWUuCgpUaGFua3MsCi0tIApKZWFuIERlbHZhcmUKU3VzZSBMMyBTdXBwb3J0CgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
+YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
+c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
