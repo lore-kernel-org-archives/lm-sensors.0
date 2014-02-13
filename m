@@ -1,97 +1,101 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Thu, 13 Feb 2014 13:19:09 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 13 Feb 2014 16:16:47 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <CAOMwXhNdua==HtUGXYsciA4rOb-Z5Jd8zKudwMic8d6sgKb7jg@mail.gmail.com>
+Message-Id: <52FCEFEF.80707@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
-	<20140213095817.GD32508@lee--X1>
-	<20140213111530.2a2b4982@endymion.delvare>
-	<CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
-	<CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
-	<20140213113313.GL32508@lee--X1>
-	<CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
-	<20140213135731.139b23aa@endymion.delvare>
-In-Reply-To: <20140213135731.139b23aa@endymion.delvare>
+References: <1392281438-31836-1-git-send-email-lpapp@kde.org>	<20140213095817.GD32508@lee--X1>	<20140213111530.2a2b4982@endymion.delvare>	<CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>	<CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>	<20140213113313.GL32508@lee--X1> <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
+In-Reply-To: <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Laszlo Papp <lpapp@kde.org>, Lee Jones <lee.jones@linaro.org>
+Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Thu, Feb 13, 2014 at 12:57 PM, Jean Delvare <jdelvare@suse.de> wrote:
-> Hi Laszlo,
->
-> On Thu, 13 Feb 2014 12:27:28 +0000, Laszlo Papp wrote:
->> On Thu, Feb 13, 2014 at 11:33 AM, Lee Jones <lee.jones@linaro.org> wrote:
->> > Right, I've had enough. I'm removing your patch from the MFD tree.
->> >
->> > I've asked too many people to give you a second chance and asked you
->> > privately to behave yourself and treat others with respect. So far I
->> > haven't seen an ounce of self control or depomacy from you.
->> >
->> > This is how it's going to work from now on:
->> >
->> >  - You submit a patch
->> >  - It gets reviewed                            <----\
->> >  - You fix up the review comments as requested -----/
->> >  - Non-compliance or arguments with the _experts_ results in:
->> >     `$INTEREST > /dev/null || \
->> >       grep "From: Laszio Papp" ~/.mail | xargs rm -rf`
+On 02/13/2014 04:27 AM, Laszlo Papp wrote:
+> On Thu, Feb 13, 2014 at 11:33 AM, Lee Jones <lee.jones@linaro.org> wrote:
+>>>>>>> -static int max6650_probe(struct i2c_client *client,
+>>>>>>> -                    const struct i2c_device_id *id);
+>>>>>>> -static int max6650_init_client(struct i2c_client *client);
+>>>>>>> -static int max6650_remove(struct i2c_client *client);
+>>>>>>> +static int max6650_probe(struct platform_device *pdev);
+>>>>>>> +static int max6650_init_client(struct platform_device *pdev);
+>>>>>>> +static int max6650_remove(struct platform_device *pdev);
+>>>>>>>   static struct max6650_data *max6650_update_device(struct device *dev);
+>>>>>>
+>>>>>> It would be good to remove these forward declarations in the future.
+>>>>>>
+>>>>>> If no one volunteers I'll happily do it.
+>>>>>
+>>>>> Guenter just did:
+>>>>>
+>>>>> http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041224.html
+>>>>>
+>>>>> Any change to the max6650 driver should go on top of his patch series
+>>>>> to avoid conflicts:
+>>>>>
+>>>>> http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041223.html
+>>>>
+>>> As far as I can see, that patch set was not even tested, so how can it
+>>> go in? I was told that any patch should be _runtime_ tested, too.
+>>> Fwiw, I do not have time to test those personally, he would need to
+>>> find someone else if that requirement really holds true.
+>>>
+>>> I would not really like to fix bugs appearing in that code to get my
+>>> features in.
+>>>
+>>> Also, since my change has been around for 2-3 months now, I would
+>>> really prefer not to be forced to rewrite it again from scratch.
+>>> Surely, you can wait with those, more or less, cosmetic non-runtime
+>>> tested changes?
+>>>
+>>> This would impose me a lot of additional work again, and I personally
+>>> do not see the benefit of it. In my book at least, feature is over
+>>> internal polishing.
 >>
->> http://comments.gmane.org/gmane.linux.kernel/1645251
+>> Right, I've had enough. I'm removing your patch from the MFD tree.
 >>
->> Step 2 did not happen. I did not get any review for my change. I
->> literally submitted that within a couple of hours after the request.
+>> I've asked too many people to give you a second chance and asked you
+>> privately to behave yourself and treat others with respect. So far I
+>> haven't seen an ounce of self control or depomacy from you.
+>>
+>> This is how it's going to work from now on:
+>>
+>>   - You submit a patch
+>>   - It gets reviewed                            <----\
+>>   - You fix up the review comments as requested -----/
+>>   - Non-compliance or arguments with the _experts_ results in:
+>>      `$INTEREST > /dev/null || \
+>>        grep "From: Laszio Papp" ~/.mail | xargs rm -rf`
 >
-> Yes, twice even, and broken each time. And without a changelog on v2
-> (despite Documentation/SubmittingPatches explaining this is a good
-> practice - see section 15.)
+> http://comments.gmane.org/gmane.linux.kernel/1645251
 >
->> Could you please tell me what was wrong with that change, and why I
->> did not get any respect not to "xargs rm -rf" my work in that area? I
->> believe I was ignored instead of improving the change, and someone
->> else tried to address the same thing. There was no argument in that
->> thread. It was a technical change. I personally do not feel happy
->> about it.
+> Step 2 did not happen. I did not get any review for my change. I
+> literally submitted that within a couple of hours after the request.
 >
-> The change itself was so wrong that I don't even know where to start.
->
-> But the main problem really was you. You had pissed me (and I suspect,
-> everybody else) off so much that day that I really didn't want to deal
-> with your rants or code any longer. As you can imagine, I have more
-> than enough on my plate, so I just moved on to another task.
->
-> Then by the time I may have been willing to give you another chance and
-> review your code, Guenter wrote a more complete, better patch set. So I
-> thought I'd just review that one. And it was good, and it took me less
-> time to review and test it than to (attempt to) teach you how to behave.
->
-> Working with Guenter is a pleasure. Working with you is a pain, really.
-> And guess what, I get to choose who I'm working with.
->
-> If people no longer want to work with you, well, blame it on yourself.
 
-I think the question was more addressed to Guenter because he did not
-try to help me to get involved with that patch. I did not mean to say
-that I would have expected reviews within a week, but I would have
-hoped for being more inclusive, i.e. trying to tell me what I am
-doing, why, even if it is clearly broken. Please forgive me my
-technical shortcoming. I am sure this would improve over time, just
-like for anyone else here.
+If you had tested your patch on real or simulated hardware,
+you might have noticed a crash whenever you accessed any
+of the attributes. So you did not test your patch.
 
-Currently, I am not there mentally to submit the patch set requested
-by Lee because this situation is making me being afraid of a newbie
-and submitting patches with issues. An expert may just come and
-rewrite it, and then my effort is going again to "/dev/null". I guess
-I will need some time and break to get over this...
+Instead of trying to educate you how the conversion to the
+new API works, I decided to help you out a bit and do
+the conversion myself. I did some cleanup before, since
+that made the actual feature patch easier for me to implement,
+and I did some more cleanup afterwards just because I like
+cleaning up code.
 
-That being said, I hope I will come back with peace of mind after the break.
+I had hoped that you might find the time to test the result,
+but it appears that won't happen. I am gracious to Jean that
+he took the time to review the changes and even test the
+result in simulation, even though I know he is very busy.
+So I consider the changes to be good enough to be made
+available in my -staging tree, which I did by now.
+I'll move them over to -next once I have the chance to test
+on real hardware or after I get a Tested-by: from someone
+with real hardware.
 
-PS.: I have submitted a patch set in December by the way, and got no
-review from the hwmon maintainers for the hwmon parts. That patch is
-still valid, and review would still be very welcome. The current
-submission is pretty much just a direct port of it on top of the
-latest mfd and upstream changes.
+Guenter
+
 
 _______________________________________________
 lm-sensors mailing list
