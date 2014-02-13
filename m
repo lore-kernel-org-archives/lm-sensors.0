@@ -1,89 +1,50 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Thu, 13 Feb 2014 12:27:28 +0000
+From: Lee Jones <lee.jones@linaro.org>
+Date: Thu, 13 Feb 2014 12:40:02 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
+Message-Id: <20140213124002.GA3403@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
-	<20140213095817.GD32508@lee--X1>
-	<20140213111530.2a2b4982@endymion.delvare>
-	<CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
-	<CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
-	<20140213113313.GL32508@lee--X1>
-In-Reply-To: <20140213113313.GL32508@lee--X1>
+ <20140213095817.GD32508@lee--X1>
+ <20140213111530.2a2b4982@endymion.delvare>
+ <CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
+ <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
+ <20140213113313.GL32508@lee--X1>
+ <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
+In-Reply-To: <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
+To: Laszlo Papp <lpapp@kde.org>
 Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-On Thu, Feb 13, 2014 at 11:33 AM, Lee Jones <lee.jones@linaro.org> wrote:
->> >>> > -static int max6650_probe(struct i2c_client *client,
->> >>> > -                    const struct i2c_device_id *id);
->> >>> > -static int max6650_init_client(struct i2c_client *client);
->> >>> > -static int max6650_remove(struct i2c_client *client);
->> >>> > +static int max6650_probe(struct platform_device *pdev);
->> >>> > +static int max6650_init_client(struct platform_device *pdev);
->> >>> > +static int max6650_remove(struct platform_device *pdev);
->> >>> >  static struct max6650_data *max6650_update_device(struct device *dev);
->> >>>
->> >>> It would be good to remove these forward declarations in the future.
->> >>>
->> >>> If no one volunteers I'll happily do it.
->> >>
->> >> Guenter just did:
->> >>
->> >> http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041224.html
->> >>
->> >> Any change to the max6650 driver should go on top of his patch series
->> >> to avoid conflicts:
->> >>
->> >> http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041223.html
->> >
->> As far as I can see, that patch set was not even tested, so how can it
->> go in? I was told that any patch should be _runtime_ tested, too.
->> Fwiw, I do not have time to test those personally, he would need to
->> find someone else if that requirement really holds true.
->>
->> I would not really like to fix bugs appearing in that code to get my
->> features in.
->>
->> Also, since my change has been around for 2-3 months now, I would
->> really prefer not to be forced to rewrite it again from scratch.
->> Surely, you can wait with those, more or less, cosmetic non-runtime
->> tested changes?
->>
->> This would impose me a lot of additional work again, and I personally
->> do not see the benefit of it. In my book at least, feature is over
->> internal polishing.
->
-> Right, I've had enough. I'm removing your patch from the MFD tree.
->
-> I've asked too many people to give you a second chance and asked you
-> privately to behave yourself and treat others with respect. So far I
-> haven't seen an ounce of self control or depomacy from you.
->
-> This is how it's going to work from now on:
->
->  - You submit a patch
->  - It gets reviewed                            <----\
->  - You fix up the review comments as requested -----/
->  - Non-compliance or arguments with the _experts_ results in:
->     `$INTEREST > /dev/null || \
->       grep "From: Laszio Papp" ~/.mail | xargs rm -rf`
-
-http://comments.gmane.org/gmane.linux.kernel/1645251
-
-Step 2 did not happen. I did not get any review for my change. I
-literally submitted that within a couple of hours after the request.
-
-Could you please tell me what was wrong with that change, and why I
-did not get any respect not to "xargs rm -rf" my work in that area? I
-believe I was ignored instead of improving the change, and someone
-else tried to address the same thing. There was no argument in that
-thread. It was a technical change. I personally do not feel happy
-about it.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+PiBodHRwOi8vY29tbWVudHMuZ21hbmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC8xNjQ1MjUxCj4g
+Cj4gU3RlcCAyIGRpZCBub3QgaGFwcGVuLiBJIGRpZCBub3QgZ2V0IGFueSByZXZpZXcgZm9yIG15
+IGNoYW5nZS4gSQo+IGxpdGVyYWxseSBzdWJtaXR0ZWQgdGhhdCB3aXRoaW4gYSBjb3VwbGUgb2Yg
+aG91cnMgYWZ0ZXIgdGhlIHJlcXVlc3QuCj4gCj4gQ291bGQgeW91IHBsZWFzZSB0ZWxsIG1lIHdo
+YXQgd2FzIHdyb25nIHdpdGggdGhhdCBjaGFuZ2UsIGFuZCB3aHkgSQo+IGRpZCBub3QgZ2V0IGFu
+eSByZXNwZWN0IG5vdCB0byAieGFyZ3Mgcm0gLXJmIiBteSB3b3JrIGluIHRoYXQgYXJlYT8gSQo+
+IGJlbGlldmUgSSB3YXMgaWdub3JlZCBpbnN0ZWFkIG9mIGltcHJvdmluZyB0aGUgY2hhbmdlLCBh
+bmQgc29tZW9uZQo+IGVsc2UgdHJpZWQgdG8gYWRkcmVzcyB0aGUgc2FtZSB0aGluZy4gVGhlcmUg
+d2FzIG5vIGFyZ3VtZW50IGluIHRoYXQKPiB0aHJlYWQuIEl0IHdhcyBhIHRlY2huaWNhbCBjaGFu
+Z2UuIEkgcGVyc29uYWxseSBkbyBub3QgZmVlbCBoYXBweQo+IGFib3V0IGl0LgoKTGV0J3Mgc3Rh
+cnQgYWdhaW4uCgpSZWJhc2UgeW91ciB3b3JrIG9uIHRvcCBvZiB0aGUgSFdNT04gdHJlZSBvbiBr
+ZXJuZWwub3JnIGFuZCByZXN1Ym1pdAp0aGUgZW50aXJlIHNldC4gSWYgcmViYXNpbmcgdGFrZXMg
+eW91IG1vcmUgdGhhbiAyMCBtaW5zLCB5b3UncmUKcHJvYmFibHkgZG9pbmcgaXQgd3JvbmcuIEVu
+c3VyZSB5b3Ugc3VibWl0IHRoZSBlbnRpcmUgcGF0Y2hzZXQgd2l0aCBhCm5pY2UgY292ZXIgbGV0
+dGVyIGFuZCBhbGwgdGhlIHBhdGNoZXMgZGFuZ2xpbmcgKHNoYWxsb3cgdGhyZWFkZWQpIGZyb20K
+aXQuIElmIHlvdSBkb24ndCBrbm93IGhvdyB0byBkbyB0aGF0IGxvb2sgYXQgYGdpdCBzZW5kLWVt
+YWlsIC0taGVscGAKYW5kIHNlYXJjaCBmb3IgInRocmVhZCIsICJhbm5vdGF0ZSIgYW5kICJjb21w
+b3NlIi4gS2VlcCBzdWJtaXR0aW5nCnRoZW0gdG8geW91ciBvd24gKGFuZCBvbmx5IHlvdXIgb3du
+KSBlbWFpbCBhZGRyZXNzIHVudGlsIGl0IGxvb2tzCmNvcnJlY3QsIF90aGVuXyBzdWJtaXQgdG8g
+dGhlIE1McyBDQydpbmcgYWxsIG9mIHRoZSBtYWludGFpbmVycyBvbiBhbGwKb2YgdGhlIHBhdGNo
+ZXMuCgpTdWJtaXNzaW9uIHNob3VsZCBsb29rIGxpa2UgdGhpczoKCiAgW1BBVENIIDAveF0gUGF0
+Y2gtc2V0IHRpdGxlCiAgIFwtPltQQVRDSCAxL3hdIG1mZDogUGF0Y2ggdGl0bGUKICAgfC0+W1BB
+VENIIC4veF0gaHdtb246IFBhdGNoIHRpdGxlCiAgIHwtPltQQVRDSCB4L3hdIGdwaW8vcGluY3Ry
+bDogUGF0Y2ggdGl0bGUKCldlJ2xsIGdpdmUgeW91IGNvbnN0cnVjdGl2ZSByZXZpZXdzIGFuZCB5
+b3UnbGwgYXNrIHF1ZXN0aW9ucyAobm90CmFyZ3VtZW50cykgYW5kIHJlc3VibWl0LgoKLS0gCkxl
+ZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFy
+by5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJv
+OiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
