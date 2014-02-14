@@ -1,59 +1,66 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 23 Feb 2014 16:39:14 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (ltc4245) Remove devicetree conditionals
-Message-Id: <530A2432.7040902@roeck-us.net>
+From: Marek Belisko <marek@goldelico.com>
+Date: Fri, 14 Feb 2014 13:20:58 +0000
+Subject: [lm-sensors] [PATCH] hwmon: twl4030-madc-hwmon: Add device tree support.
+Message-Id: <1392384058-14240-1-git-send-email-marek@goldelico.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392516972-27576-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1392516972-27576-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, jdelvare@suse.de, linux@roeck-us.net, grant.likely@linaro.org
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 
-On 02/23/2014 03:25 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sat, 15 Feb 2014 18:16:12 -0800, Guenter Roeck wrote:
->> Devicetree functions are stubbed out if CONFIG_OF is undefined.
->> Therefore, conditional compilation is unnecessary and can be removed.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/ltc4245.c |    4 ----
->>   1 file changed, 4 deletions(-)
->>
->> diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
->> index 0a3eddb..f67e967 100644
->> --- a/drivers/hwmon/ltc4245.c
->> +++ b/drivers/hwmon/ltc4245.c
->> @@ -470,19 +470,15 @@ static void ltc4245_sysfs_add_groups(struct ltc4245_data *data)
->>   static bool ltc4245_use_extra_gpios(struct i2c_client *client)
->>   {
->>   	struct ltc4245_platform_data *pdata = dev_get_platdata(&client->dev);
->> -#ifdef CONFIG_OF
->>   	struct device_node *np = client->dev.of_node;
->> -#endif
->>
->>   	/* prefer platform data */
->>   	if (pdata)
->>   		return pdata->use_extra_gpios;
->>
->> -#ifdef CONFIG_OF
->>   	/* fallback on OF */
->>   	if (of_find_property(np, "ltc4245,use-extra-gpios", NULL))
->>   		return true;
->> -#endif
->>
->>   	return false;
->>   }
->
-> I am no OF expert but this looks good to me.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
+Signed-off-by: Marek Belisko <marek@goldelico.com>
+---
+ Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt |  9 +++++++++
+ drivers/hwmon/twl4030-madc-hwmon.c                             | 10 ++++++++++
+ 2 files changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt
 
-Thanks a lot!
-Guenter
+diff --git a/Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt b/Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt
+new file mode 100644
+index 0000000..e8016d1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt
+@@ -0,0 +1,9 @@
++TWL4030 MADC hwmon.
++
++Required properties:
++- compatible: "ti,twl4030-madc-hwmon"
++
++Example:
++madc-hwmon {
++	compatible = "ti,twl4030-madc-hwmon";
++};
+diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
+index 6c6d440..05fb572 100644
+--- a/drivers/hwmon/twl4030-madc-hwmon.c
++++ b/drivers/hwmon/twl4030-madc-hwmon.c
+@@ -96,6 +96,15 @@ static const struct attribute_group twl4030_madc_group = {
+ 	.attrs = twl4030_madc_attributes,
+ };
+ 
++#ifdef CONFIG_OF
++
++static const struct of_device_id of_twl4030_madc_hwmon_match[] = {
++	{ .compatible = "ti,twl4030-madc-hwmon", },
++	{},
++};
++
++#endif
++
+ static int twl4030_madc_hwmon_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+@@ -134,6 +143,7 @@ static struct platform_driver twl4030_madc_hwmon_driver = {
+ 	.driver = {
+ 		   .name = "twl4030_madc_hwmon",
+ 		   .owner = THIS_MODULE,
++		   .of_match_table = of_match_ptr(of_twl4030_madc_hwmon_match),
+ 		   },
+ };
+ 
+-- 
+1.8.3.2
 
 
 _______________________________________________
