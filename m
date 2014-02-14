@@ -1,80 +1,75 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Fri, 14 Feb 2014 09:20:49 +0000
+From: Lee Jones <lee.jones@linaro.org>
+Date: Fri, 14 Feb 2014 10:17:25 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <CAOMwXhNyF7L5mCnsL+nxcfYAJ9vjHmoSOenO8bkPikaNfJU86Q@mail.gmail.com>
+Message-Id: <20140214101725.GC9462@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
-	<20140213095817.GD32508@lee--X1>
-	<20140213111530.2a2b4982@endymion.delvare>
-	<CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
-	<CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
-	<20140213113313.GL32508@lee--X1>
-	<CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
-	<20140213124002.GA3403@lee--X1>
-	<CAOMwXhPwppZ6Ne4TjR9Ys+ttST2r85j1GsLdxfq67svZSuVHFg@mail.gmail.com>
-	<20140214090217.GD3403@lee--X1>
-In-Reply-To: <20140214090217.GD3403@lee--X1>
+References: <20140213095817.GD32508@lee--X1>
+ <20140213111530.2a2b4982@endymion.delvare>
+ <CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
+ <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
+ <20140213113313.GL32508@lee--X1>
+ <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
+ <20140213124002.GA3403@lee--X1>
+ <CAOMwXhPwppZ6Ne4TjR9Ys+ttST2r85j1GsLdxfq67svZSuVHFg@mail.gmail.com>
+ <20140214090217.GD3403@lee--X1>
+ <CAOMwXhNyF7L5mCnsL+nxcfYAJ9vjHmoSOenO8bkPikaNfJU86Q@mail.gmail.com>
+In-Reply-To: <CAOMwXhNyF7L5mCnsL+nxcfYAJ9vjHmoSOenO8bkPikaNfJU86Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
+To: Laszlo Papp <lpapp@kde.org>
 Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-On Fri, Feb 14, 2014 at 9:02 AM, Lee Jones <lee.jones@linaro.org> wrote:
->> >> http://comments.gmane.org/gmane.linux.kernel/1645251
->> >>
->> >> Step 2 did not happen. I did not get any review for my change. I
->> >> literally submitted that within a couple of hours after the request.
->> >>
->> >> Could you please tell me what was wrong with that change, and why I
->> >> did not get any respect not to "xargs rm -rf" my work in that area? I
->> >> believe I was ignored instead of improving the change, and someone
->> >> else tried to address the same thing. There was no argument in that
->> >> thread. It was a technical change. I personally do not feel happy
->> >> about it.
->> >
->> > Let's start again.
->> >
->> > Rebase your work on top of the HWMON tree on kernel.org and resubmit
->> > the entire set. If rebasing takes you more than 20 mins, you're
->> > probably doing it wrong.
->>
->> I tried, but I could not manage it within 20 minutes, so I guess I am
->> doing something wrong. Can you please provide some pointers how not to
->> do it wrong? Perhaps, I am not aware of some tricks.
->
-> One question, are you still working on this stuff or not? I'm confused
-> by the disparity in your messages. I'm going to guess that you're in
-> for now.
->
-> Do:
->   `git rebase -i <base> --onto <newbase>`
-> Where:
->   <base> is the SHA1 of the first patch below your changes in `git log`
->   <new_base> is Guenter's staging tree on kernel.org
->
-> Ensure you're rebasing all of your patches (and patches that aren't
-> yours) when your $EDITOR pops up. If they are wrong, delete all the
-> lines in the file and the rebase will be aborted. If they're correct
-> save and close your $EDITOR.
->
-> You'll receive conflicts. You can see the state of the conflicts using
-> `git status` Open the file, find the conflict markers and make a choice
-> from the HEAD section or the section from your patch. Sometimes
-> you'll need to manually merge the two, if there are changes from both
-> refs that you want to keep. Once you're happy `git commit -a` and `git
-> rebase --continue`. Each conflict should not take you long, but if it
-> does, keep at it, as it's good practice. After a time of doing it,
-> you'll be able to fix merge conflicts in no time at all.
-
-Right, that is what I have been following myself for a couple of
-years. Why it took me more time because I had to go through his
-changes and to understand all in details to make reasonably good
-decisions what to keep and what to drop at the conflicts.
-
-Thank you for your answer.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAxNCBGZWIgMjAxNCwgTGFzemxvIFBhcHAgd3JvdGU6Cgo+IE9uIEZyaSwgRmViIDE0
+LCAyMDE0IGF0IDk6MDIgQU0sIExlZSBKb25lcyA8bGVlLmpvbmVzQGxpbmFyby5vcmc+IHdyb3Rl
+Ogo+ID4+ID4+IGh0dHA6Ly9jb21tZW50cy5nbWFuZS5vcmcvZ21hbmUubGludXgua2VybmVsLzE2
+NDUyNTEKPiA+PiA+Pgo+ID4+ID4+IFN0ZXAgMiBkaWQgbm90IGhhcHBlbi4gSSBkaWQgbm90IGdl
+dCBhbnkgcmV2aWV3IGZvciBteSBjaGFuZ2UuIEkKPiA+PiA+PiBsaXRlcmFsbHkgc3VibWl0dGVk
+IHRoYXQgd2l0aGluIGEgY291cGxlIG9mIGhvdXJzIGFmdGVyIHRoZSByZXF1ZXN0Lgo+ID4+ID4+
+Cj4gPj4gPj4gQ291bGQgeW91IHBsZWFzZSB0ZWxsIG1lIHdoYXQgd2FzIHdyb25nIHdpdGggdGhh
+dCBjaGFuZ2UsIGFuZCB3aHkgSQo+ID4+ID4+IGRpZCBub3QgZ2V0IGFueSByZXNwZWN0IG5vdCB0
+byAieGFyZ3Mgcm0gLXJmIiBteSB3b3JrIGluIHRoYXQgYXJlYT8gSQo+ID4+ID4+IGJlbGlldmUg
+SSB3YXMgaWdub3JlZCBpbnN0ZWFkIG9mIGltcHJvdmluZyB0aGUgY2hhbmdlLCBhbmQgc29tZW9u
+ZQo+ID4+ID4+IGVsc2UgdHJpZWQgdG8gYWRkcmVzcyB0aGUgc2FtZSB0aGluZy4gVGhlcmUgd2Fz
+IG5vIGFyZ3VtZW50IGluIHRoYXQKPiA+PiA+PiB0aHJlYWQuIEl0IHdhcyBhIHRlY2huaWNhbCBj
+aGFuZ2UuIEkgcGVyc29uYWxseSBkbyBub3QgZmVlbCBoYXBweQo+ID4+ID4+IGFib3V0IGl0Lgo+
+ID4+ID4KPiA+PiA+IExldCdzIHN0YXJ0IGFnYWluLgo+ID4+ID4KPiA+PiA+IFJlYmFzZSB5b3Vy
+IHdvcmsgb24gdG9wIG9mIHRoZSBIV01PTiB0cmVlIG9uIGtlcm5lbC5vcmcgYW5kIHJlc3VibWl0
+Cj4gPj4gPiB0aGUgZW50aXJlIHNldC4gSWYgcmViYXNpbmcgdGFrZXMgeW91IG1vcmUgdGhhbiAy
+MCBtaW5zLCB5b3UncmUKPiA+PiA+IHByb2JhYmx5IGRvaW5nIGl0IHdyb25nLgo+ID4+Cj4gPj4g
+SSB0cmllZCwgYnV0IEkgY291bGQgbm90IG1hbmFnZSBpdCB3aXRoaW4gMjAgbWludXRlcywgc28g
+SSBndWVzcyBJIGFtCj4gPj4gZG9pbmcgc29tZXRoaW5nIHdyb25nLiBDYW4geW91IHBsZWFzZSBw
+cm92aWRlIHNvbWUgcG9pbnRlcnMgaG93IG5vdCB0bwo+ID4+IGRvIGl0IHdyb25nPyBQZXJoYXBz
+LCBJIGFtIG5vdCBhd2FyZSBvZiBzb21lIHRyaWNrcy4KPiA+Cj4gPiBPbmUgcXVlc3Rpb24sIGFy
+ZSB5b3Ugc3RpbGwgd29ya2luZyBvbiB0aGlzIHN0dWZmIG9yIG5vdD8gSSdtIGNvbmZ1c2VkCj4g
+PiBieSB0aGUgZGlzcGFyaXR5IGluIHlvdXIgbWVzc2FnZXMuIEknbSBnb2luZyB0byBndWVzcyB0
+aGF0IHlvdSdyZSBpbgo+ID4gZm9yIG5vdy4KPiA+Cj4gPiBEbzoKPiA+ICAgYGdpdCByZWJhc2Ug
+LWkgPGJhc2U+IC0tb250byA8bmV3YmFzZT5gCj4gPiBXaGVyZToKPiA+ICAgPGJhc2U+IGlzIHRo
+ZSBTSEExIG9mIHRoZSBmaXJzdCBwYXRjaCBiZWxvdyB5b3VyIGNoYW5nZXMgaW4gYGdpdCBsb2dg
+Cj4gPiAgIDxuZXdfYmFzZT4gaXMgR3VlbnRlcidzIHN0YWdpbmcgdHJlZSBvbiBrZXJuZWwub3Jn
+Cj4gPgo+ID4gRW5zdXJlIHlvdSdyZSByZWJhc2luZyBhbGwgb2YgeW91ciBwYXRjaGVzIChhbmQg
+cGF0Y2hlcyB0aGF0IGFyZW4ndAo+ID4geW91cnMpIHdoZW4geW91ciAkRURJVE9SIHBvcHMgdXAu
+IElmIHRoZXkgYXJlIHdyb25nLCBkZWxldGUgYWxsIHRoZQo+ID4gbGluZXMgaW4gdGhlIGZpbGUg
+YW5kIHRoZSByZWJhc2Ugd2lsbCBiZSBhYm9ydGVkLiBJZiB0aGV5J3JlIGNvcnJlY3QKPiA+IHNh
+dmUgYW5kIGNsb3NlIHlvdXIgJEVESVRPUi4KPiA+Cj4gPiBZb3UnbGwgcmVjZWl2ZSBjb25mbGlj
+dHMuIFlvdSBjYW4gc2VlIHRoZSBzdGF0ZSBvZiB0aGUgY29uZmxpY3RzIHVzaW5nCj4gPiBgZ2l0
+IHN0YXR1c2AgT3BlbiB0aGUgZmlsZSwgZmluZCB0aGUgY29uZmxpY3QgbWFya2VycyBhbmQgbWFr
+ZSBhIGNob2ljZQo+ID4gZnJvbSB0aGUgSEVBRCBzZWN0aW9uIG9yIHRoZSBzZWN0aW9uIGZyb20g
+eW91ciBwYXRjaC4gU29tZXRpbWVzCj4gPiB5b3UnbGwgbmVlZCB0byBtYW51YWxseSBtZXJnZSB0
+aGUgdHdvLCBpZiB0aGVyZSBhcmUgY2hhbmdlcyBmcm9tIGJvdGgKPiA+IHJlZnMgdGhhdCB5b3Ug
+d2FudCB0byBrZWVwLiBPbmNlIHlvdSdyZSBoYXBweSBgZ2l0IGNvbW1pdCAtYWAgYW5kIGBnaXQK
+PiA+IHJlYmFzZSAtLWNvbnRpbnVlYC4gRWFjaCBjb25mbGljdCBzaG91bGQgbm90IHRha2UgeW91
+IGxvbmcsIGJ1dCBpZiBpdAo+ID4gZG9lcywga2VlcCBhdCBpdCwgYXMgaXQncyBnb29kIHByYWN0
+aWNlLiBBZnRlciBhIHRpbWUgb2YgZG9pbmcgaXQsCj4gPiB5b3UnbGwgYmUgYWJsZSB0byBmaXgg
+bWVyZ2UgY29uZmxpY3RzIGluIG5vIHRpbWUgYXQgYWxsLgo+IAo+IFJpZ2h0LCB0aGF0IGlzIHdo
+YXQgSSBoYXZlIGJlZW4gZm9sbG93aW5nIG15c2VsZiBmb3IgYSBjb3VwbGUgb2YKPiB5ZWFycy4K
+Cj4gV2h5IGl0IHRvb2sgbWUgbW9yZSB0aW1lIGJlY2F1c2UgSSBoYWQgdG8gZ28gdGhyb3VnaCBo
+aXMKPiBjaGFuZ2VzIGFuZCB0byB1bmRlcnN0YW5kIGFsbCBpbiBkZXRhaWxzIHRvIG1ha2UgcmVh
+c29uYWJseSBnb29kCj4gZGVjaXNpb25zIHdoYXQgdG8ga2VlcCBhbmQgd2hhdCB0byBkcm9wIGF0
+IHRoZSBjb25mbGljdHMuCgpDb3JyZWN0LCB0aGF0J3Mgd2hhdCB3aWxsIGltcHJvdmUgd2l0aCB0
+aW1lLgoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVh
+bSBMZWFkCkxpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpG
+b2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
