@@ -1,47 +1,64 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Fri, 14 Feb 2014 07:03:28 +0000
+From: Lee Jones <lee.jones@linaro.org>
+Date: Fri, 14 Feb 2014 09:02:17 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <CAOMwXhPwppZ6Ne4TjR9Ys+ttST2r85j1GsLdxfq67svZSuVHFg@mail.gmail.com>
+Message-Id: <20140214090217.GD3403@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
-	<20140213095817.GD32508@lee--X1>
-	<20140213111530.2a2b4982@endymion.delvare>
-	<CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
-	<CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
-	<20140213113313.GL32508@lee--X1>
-	<CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
-	<20140213124002.GA3403@lee--X1>
-In-Reply-To: <20140213124002.GA3403@lee--X1>
+ <20140213095817.GD32508@lee--X1>
+ <20140213111530.2a2b4982@endymion.delvare>
+ <CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
+ <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
+ <20140213113313.GL32508@lee--X1>
+ <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
+ <20140213124002.GA3403@lee--X1>
+ <CAOMwXhPwppZ6Ne4TjR9Ys+ttST2r85j1GsLdxfq67svZSuVHFg@mail.gmail.com>
+In-Reply-To: <CAOMwXhPwppZ6Ne4TjR9Ys+ttST2r85j1GsLdxfq67svZSuVHFg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
+To: Laszlo Papp <lpapp@kde.org>
 Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-On Thu, Feb 13, 2014 at 12:40 PM, Lee Jones <lee.jones@linaro.org> wrote:
->> http://comments.gmane.org/gmane.linux.kernel/1645251
->>
->> Step 2 did not happen. I did not get any review for my change. I
->> literally submitted that within a couple of hours after the request.
->>
->> Could you please tell me what was wrong with that change, and why I
->> did not get any respect not to "xargs rm -rf" my work in that area? I
->> believe I was ignored instead of improving the change, and someone
->> else tried to address the same thing. There was no argument in that
->> thread. It was a technical change. I personally do not feel happy
->> about it.
->
-> Let's start again.
->
-> Rebase your work on top of the HWMON tree on kernel.org and resubmit
-> the entire set. If rebasing takes you more than 20 mins, you're
-> probably doing it wrong.
-
-I tried, but I could not manage it within 20 minutes, so I guess I am
-doing something wrong. Can you please provide some pointers how not to
-do it wrong? Perhaps, I am not aware of some tricks.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+PiA+PiBodHRwOi8vY29tbWVudHMuZ21hbmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC8xNjQ1MjUx
+Cj4gPj4KPiA+PiBTdGVwIDIgZGlkIG5vdCBoYXBwZW4uIEkgZGlkIG5vdCBnZXQgYW55IHJldmll
+dyBmb3IgbXkgY2hhbmdlLiBJCj4gPj4gbGl0ZXJhbGx5IHN1Ym1pdHRlZCB0aGF0IHdpdGhpbiBh
+IGNvdXBsZSBvZiBob3VycyBhZnRlciB0aGUgcmVxdWVzdC4KPiA+Pgo+ID4+IENvdWxkIHlvdSBw
+bGVhc2UgdGVsbCBtZSB3aGF0IHdhcyB3cm9uZyB3aXRoIHRoYXQgY2hhbmdlLCBhbmQgd2h5IEkK
+PiA+PiBkaWQgbm90IGdldCBhbnkgcmVzcGVjdCBub3QgdG8gInhhcmdzIHJtIC1yZiIgbXkgd29y
+ayBpbiB0aGF0IGFyZWE/IEkKPiA+PiBiZWxpZXZlIEkgd2FzIGlnbm9yZWQgaW5zdGVhZCBvZiBp
+bXByb3ZpbmcgdGhlIGNoYW5nZSwgYW5kIHNvbWVvbmUKPiA+PiBlbHNlIHRyaWVkIHRvIGFkZHJl
+c3MgdGhlIHNhbWUgdGhpbmcuIFRoZXJlIHdhcyBubyBhcmd1bWVudCBpbiB0aGF0Cj4gPj4gdGhy
+ZWFkLiBJdCB3YXMgYSB0ZWNobmljYWwgY2hhbmdlLiBJIHBlcnNvbmFsbHkgZG8gbm90IGZlZWwg
+aGFwcHkKPiA+PiBhYm91dCBpdC4KPiA+Cj4gPiBMZXQncyBzdGFydCBhZ2Fpbi4KPiA+Cj4gPiBS
+ZWJhc2UgeW91ciB3b3JrIG9uIHRvcCBvZiB0aGUgSFdNT04gdHJlZSBvbiBrZXJuZWwub3JnIGFu
+ZCByZXN1Ym1pdAo+ID4gdGhlIGVudGlyZSBzZXQuIElmIHJlYmFzaW5nIHRha2VzIHlvdSBtb3Jl
+IHRoYW4gMjAgbWlucywgeW91J3JlCj4gPiBwcm9iYWJseSBkb2luZyBpdCB3cm9uZy4KPiAKPiBJ
+IHRyaWVkLCBidXQgSSBjb3VsZCBub3QgbWFuYWdlIGl0IHdpdGhpbiAyMCBtaW51dGVzLCBzbyBJ
+IGd1ZXNzIEkgYW0KPiBkb2luZyBzb21ldGhpbmcgd3JvbmcuIENhbiB5b3UgcGxlYXNlIHByb3Zp
+ZGUgc29tZSBwb2ludGVycyBob3cgbm90IHRvCj4gZG8gaXQgd3Jvbmc/IFBlcmhhcHMsIEkgYW0g
+bm90IGF3YXJlIG9mIHNvbWUgdHJpY2tzLgoKT25lIHF1ZXN0aW9uLCBhcmUgeW91IHN0aWxsIHdv
+cmtpbmcgb24gdGhpcyBzdHVmZiBvciBub3Q/IEknbSBjb25mdXNlZApieSB0aGUgZGlzcGFyaXR5
+IGluIHlvdXIgbWVzc2FnZXMuIEknbSBnb2luZyB0byBndWVzcyB0aGF0IHlvdSdyZSBpbgpmb3Ig
+bm93LgoKRG86CiAgYGdpdCByZWJhc2UgLWkgPGJhc2U+IC0tb250byA8bmV3YmFzZT5gCldoZXJl
+OgogIDxiYXNlPiBpcyB0aGUgU0hBMSBvZiB0aGUgZmlyc3QgcGF0Y2ggYmVsb3cgeW91ciBjaGFu
+Z2VzIGluIGBnaXQgbG9nYAogIDxuZXdfYmFzZT4gaXMgR3VlbnRlcidzIHN0YWdpbmcgdHJlZSBv
+biBrZXJuZWwub3JnCgpFbnN1cmUgeW91J3JlIHJlYmFzaW5nIGFsbCBvZiB5b3VyIHBhdGNoZXMg
+KGFuZCBwYXRjaGVzIHRoYXQgYXJlbid0CnlvdXJzKSB3aGVuIHlvdXIgJEVESVRPUiBwb3BzIHVw
+LiBJZiB0aGV5IGFyZSB3cm9uZywgZGVsZXRlIGFsbCB0aGUKbGluZXMgaW4gdGhlIGZpbGUgYW5k
+IHRoZSByZWJhc2Ugd2lsbCBiZSBhYm9ydGVkLiBJZiB0aGV5J3JlIGNvcnJlY3QKc2F2ZSBhbmQg
+Y2xvc2UgeW91ciAkRURJVE9SLgoKWW91J2xsIHJlY2VpdmUgY29uZmxpY3RzLiBZb3UgY2FuIHNl
+ZSB0aGUgc3RhdGUgb2YgdGhlIGNvbmZsaWN0cyB1c2luZwpgZ2l0IHN0YXR1c2AgT3BlbiB0aGUg
+ZmlsZSwgZmluZCB0aGUgY29uZmxpY3QgbWFya2VycyBhbmQgbWFrZSBhIGNob2ljZQpmcm9tIHRo
+ZSBIRUFEIHNlY3Rpb24gb3IgdGhlIHNlY3Rpb24gZnJvbSB5b3VyIHBhdGNoLiBTb21ldGltZXMK
+eW91J2xsIG5lZWQgdG8gbWFudWFsbHkgbWVyZ2UgdGhlIHR3bywgaWYgdGhlcmUgYXJlIGNoYW5n
+ZXMgZnJvbSBib3RoCnJlZnMgdGhhdCB5b3Ugd2FudCB0byBrZWVwLiBPbmNlIHlvdSdyZSBoYXBw
+eSBgZ2l0IGNvbW1pdCAtYWAgYW5kIGBnaXQKcmViYXNlIC0tY29udGludWVgLiBFYWNoIGNvbmZs
+aWN0IHNob3VsZCBub3QgdGFrZSB5b3UgbG9uZywgYnV0IGlmIGl0CmRvZXMsIGtlZXAgYXQgaXQs
+IGFzIGl0J3MgZ29vZCBwcmFjdGljZS4gQWZ0ZXIgYSB0aW1lIG9mIGRvaW5nIGl0LAp5b3UnbGwg
+YmUgYWJsZSB0byBmaXggbWVyZ2UgY29uZmxpY3RzIGluIG5vIHRpbWUgYXQgYWxsLgoKLS0gCkxl
+ZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFy
+by5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJv
+OiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
