@@ -1,212 +1,81 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Fri, 14 Feb 2014 09:15:41 +0000
-Subject: [lm-sensors] [PATCH 1/2] mfd: MAX6650/6651 support
-Message-Id: <1392369342-11472-2-git-send-email-lpapp@kde.org>
+From: Lee Jones <lee.jones@linaro.org>
+Date: Fri, 14 Feb 2014 11:43:49 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] mfd: MAX6650/6651 support
+Message-Id: <20140214114349.GG9462@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392369342-11472-1-git-send-email-lpapp@kde.org>
-In-Reply-To: <1392369342-11472-1-git-send-email-lpapp@kde.org>
+ <1392369342-11472-2-git-send-email-lpapp@kde.org>
+In-Reply-To: <1392369342-11472-2-git-send-email-lpapp@kde.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jdelvare@suse.de, linux@roeck-us.net
-Cc: lm-sensors@lm-sensors.org, lee.jones@linaro.org, lpapp@kde.org, linux-kernel@vger.kernel.org
+To: Laszlo Papp <lpapp@kde.org>
+Cc: jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-MAX6650/MAX6651 chip is a multi-function device with I2C busses. The
-chip includes fan-speed regulators and monitors, GPIO, and alarm.
-
-This patch is an initial release of a MAX6650/6651 MFD driver that
-supports to enable the chip with its primary I2C bus that will connect
-the hwmon, and then the gpio devices for now.
-
-Signed-off-by: Laszlo Papp <lpapp@kde.org>
----
- drivers/mfd/Kconfig                 | 11 +++++
- drivers/mfd/Makefile                |  1 +
- drivers/mfd/max665x.c               | 94 +++++++++++++++++++++++++++++++++++++
- include/linux/mfd/max665x-private.h | 34 ++++++++++++++
- 4 files changed, 140 insertions(+)
- create mode 100644 drivers/mfd/max665x.c
- create mode 100644 include/linux/mfd/max665x-private.h
-
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 49bb445..a6c3152 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -368,6 +368,17 @@ config MFD_MAX8907
- 	  accessing the device; additional drivers must be enabled in order
- 	  to use the functionality of the device.
- 
-+config MFD_MAX665X
-+	bool "Maxim Semiconductor MAX6650/MAX6651 Support"
-+	depends on I2C
-+	select MFD_CORE
-+	select REGMAP_I2C
-+	help
-+	  Say yes here to add support for Maxim Semiconductor MAX6650/MAX6651. This
-+	  is a fan speed regulator and monitor IC. This driver provides common
-+	  support for accessing the device, additional drivers must be enabled in
-+	  order to use the functionality of the device.
-+
- config MFD_MAX8925
- 	bool "Maxim Semiconductor MAX8925 PMIC Support"
- 	depends on I2C=y
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 5aea5ef..63668c5 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -111,6 +111,7 @@ obj-$(CONFIG_MFD_DA9055)	+= da9055.o
- da9063-objs			:= da9063-core.o da9063-irq.o da9063-i2c.o
- obj-$(CONFIG_MFD_DA9063)	+= da9063.o
- 
-+obj-$(CONFIG_MFD_MAX665X)	+= max665x.o
- obj-$(CONFIG_MFD_MAX14577)	+= max14577.o
- obj-$(CONFIG_MFD_MAX77686)	+= max77686.o max77686-irq.o
- obj-$(CONFIG_MFD_MAX77693)	+= max77693.o max77693-irq.o
-diff --git a/drivers/mfd/max665x.c b/drivers/mfd/max665x.c
-new file mode 100644
-index 0000000..80672d7
---- /dev/null
-+++ b/drivers/mfd/max665x.c
-@@ -0,0 +1,94 @@
-+/*
-+ * Device access for MAX6650-MAX6651
-+ *
-+ * Copyright(c) 2013 Polatis Ltd.
-+ *
-+ * Author: Laszlo Papp <laszlo.papp@polatis.com>
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/mfd/core.h>
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+
-+#include <linux/mfd/max665x-private.h>
-+
-+static struct mfd_cell max665x_devs[] = {
-+	{ .name = "max6651-gpio", },
-+	{ .name = "max6650", }, /* hwmon driver */
-+	{},
-+};
-+
-+static const struct regmap_config max665x_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+};
-+
-+static int max665x_probe(struct i2c_client *i2c,
-+			    const struct i2c_device_id *id)
-+{
-+	struct max665x_dev *max665x;
-+	int ret;
-+
-+	max665x = devm_kzalloc(&i2c->dev, sizeof(*max665x), GFP_KERNEL);
-+	if (!max665x)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(i2c, max665x);
-+	max665x->dev = &i2c->dev;
-+	max665x->i2c = i2c;
-+	max665x->map = devm_regmap_init_i2c(i2c, &max665x_regmap_config);
-+	if (IS_ERR(max665x->map)) {
-+		ret = PTR_ERR(max665x->map);
-+		dev_err(max665x->dev, "Failed to allocate register map: %d\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	mutex_init(&max665x->iolock);
-+
-+	ret = mfd_add_devices(max665x->dev, -1, max665x_devs,
-+			ARRAY_SIZE(max665x_devs),
-+			NULL, 0, NULL);
-+
-+	if (ret < 0)
-+		dev_err(max665x->dev, "failed to register child devices\n");
-+
-+	return ret;
-+}
-+
-+static int max665x_remove(struct i2c_client *i2c)
-+{
-+	struct max665x_dev *max665x = i2c_get_clientdata(i2c);
-+
-+	mfd_remove_devices(max665x->dev);
-+
-+	return 0;
-+}
-+
-+static struct of_device_id max665x_dt_match[] = {
-+	{ .compatible = "maxim,max665x" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, max665x_dt_match);
-+
-+static struct i2c_driver max665x_driver = {
-+	.driver = {
-+		.name = "max665x",
-+		.owner = THIS_MODULE,
-+		.of_match_table = max665x_dt_match,
-+	},
-+	.probe = max665x_probe,
-+	.remove = max665x_remove,
-+};
-+
-+module_i2c_driver(max665x_driver);
-+
-+MODULE_AUTHOR("Laszlo Papp <laszlo.papp@polatis.com>");
-+MODULE_DESCRIPTION("MAX6650-MAX6651 MFD");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/mfd/max665x-private.h b/include/linux/mfd/max665x-private.h
-new file mode 100644
-index 0000000..293db4b
---- /dev/null
-+++ b/include/linux/mfd/max665x-private.h
-@@ -0,0 +1,34 @@
-+/*
-+ * max665x-private.h - Driver for the Maxim 6650/6651
-+ *
-+ * Copyright 2013 Polatis Ltd.
-+ *
-+ * Author: Laszlo Papp <laszlo.papp@polatis.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __LINUX_MFD_MAX665X_PRIVATE_H
-+#define __LINUX_MFD_MAX665X_PRIVATE_H
-+
-+#include <linux/i2c.h>
-+#include <linux/regmap.h>
-+
-+struct max665x_dev {
-+	struct device *dev;
-+	struct mutex iolock;
-+	struct i2c_client *i2c;
-+	struct regmap     *map;
-+	int type;
-+};
-+
-+#endif
--- 
-1.8.5.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+RnJvbSBbUEFUQ0ggMC8yXToKICBXaGF0J3MgdGhlIHJlc2FvbiBmb3Igbm90IHRlc3RpbmcgdGhp
+cyBvbiBoL3cgeWV0PwoKPiBNQVg2NjUwL01BWDY2NTEgY2hpcCBpcyBhIG11bHRpLWZ1bmN0aW9u
+IGRldmljZSB3aXRoIEkyQyBidXNzZXMuIFRoZQo+IGNoaXAgaW5jbHVkZXMgZmFuLXNwZWVkIHJl
+Z3VsYXRvcnMgYW5kIG1vbml0b3JzLCBHUElPLCBhbmQgYWxhcm0uCj4gCj4gVGhpcyBwYXRjaCBp
+cyBhbiBpbml0aWFsIHJlbGVhc2Ugb2YgYSBNQVg2NjUwLzY2NTEgTUZEIGRyaXZlciB0aGF0Cj4g
+c3VwcG9ydHMgdG8gZW5hYmxlIHRoZSBjaGlwIHdpdGggaXRzIHByaW1hcnkgSTJDIGJ1cyB0aGF0
+IHdpbGwgY29ubmVjdAo+IHRoZSBod21vbiwgYW5kIHRoZW4gdGhlIGdwaW8gZGV2aWNlcyBmb3Ig
+bm93Lgo+IAo+IFNpZ25lZC1vZmYtYnk6IExhc3psbyBQYXBwIDxscGFwcEBrZGUub3JnPgo+IC0t
+LQo+ICBkcml2ZXJzL21mZC9LY29uZmlnICAgICAgICAgICAgICAgICB8IDExICsrKysrCj4gIGRy
+aXZlcnMvbWZkL01ha2VmaWxlICAgICAgICAgICAgICAgIHwgIDEgKwo+ICBkcml2ZXJzL21mZC9t
+YXg2NjV4LmMgICAgICAgICAgICAgICB8IDk0ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysKPiAgaW5jbHVkZS9saW51eC9tZmQvbWF4NjY1eC1wcml2YXRlLmggfCAzNCArKysr
+KysrKysrKysrKwo+ICA0IGZpbGVzIGNoYW5nZWQsIDE0MCBpbnNlcnRpb25zKCspCj4gIGNyZWF0
+ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21mZC9tYXg2NjV4LmMKPiAgY3JlYXRlIG1vZGUgMTAwNjQ0
+IGluY2x1ZGUvbGludXgvbWZkL21heDY2NXgtcHJpdmF0ZS5oCgo8c25pcD4KCj4gKysrIGIvZHJp
+dmVycy9tZmQvbWF4NjY1eC5jCj4gQEAgLTAsMCArMSw5NCBAQAo+ICsvKgo+ICsgKiBEZXZpY2Ug
+YWNjZXNzIGZvciBNQVg2NjUwLU1BWDY2NTEKCk5pdDogUHJlZmVyICJmb3IgTWF4aW0gTUFYNjY1
+MCBhbmQgTUFYNjY1MSIgKyA8ZGV2aWNlIHR5cGU+Cgo8c25pcD4KCj4gKyNpbmNsdWRlIDxsaW51
+eC9kZXZpY2UuaD4KPiArI2luY2x1ZGUgPGxpbnV4L21mZC9jb3JlLmg+Cj4gKyNpbmNsdWRlIDxs
+aW51eC9tb2R1bGUuaD4KCkkgdGhvdWdodCB0aGlzIGRyaXZlciB3YXMgYm9vbCBpLmUuIFkgb3Ig
+Tiwgbm90IHRyaXN0YXRlPwoKPHNuaXA+Cgo+ICtzdGF0aWMgc3RydWN0IG1mZF9jZWxsIG1heDY2
+NXhfZGV2c1tdID0gewo+ICsJeyAubmFtZSA9ICJtYXg2NjUxLWdwaW8iLCB9LAo+ICsJeyAubmFt
+ZSA9ICJtYXg2NjUwIiwgfSwgLyogaHdtb24gZHJpdmVyICovCgpXZSByZWFsbHkgbmVlZCB0byBk
+byBzb21ldGhpbmcgYWJvdXQgdGhpcy4KCkd1ZW50ZXIsCiAgb25jZSB3ZSd2ZSBjb252ZXJ0ZWQg
+dGhlIGh3bW9uIHBhcnQgdG8gYSBwbGF0Zm9ybSBkZXZpY2UsIGNhbiB3ZQogIHRoZW4gc2FmZWx5
+IHJlbmFtZSBpdCB3aXRoICItaHdtb24iIGFwcGVuZGVkPwoKPiArCXt9LAo+ICt9Owo+ICsKPiAr
+c3RhdGljIGNvbnN0IHN0cnVjdCByZWdtYXBfY29uZmlnIG1heDY2NXhfcmVnbWFwX2NvbmZpZyA9
+IHsKPiArCS5yZWdfYml0cyA9IDgsCj4gKwkudmFsX2JpdHMgPSA4LAoKVGhpcyBsb29rcyBtb3Jl
+IHNhbmUsIGJ1dCBpdCByZWFsbHkgc2hvdWxkIGJlIHRlc3RlZC4KCj4gK3N0YXRpYyBpbnQgbWF4
+NjY1eF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqaTJjLAo+ICsJCQkgICAgY29uc3Qgc3RydWN0
+IGkyY19kZXZpY2VfaWQgKmlkKQo+ICt7Cj4gKwlzdHJ1Y3QgbWF4NjY1eF9kZXYgKm1heDY2NXg7
+Cj4gKwlpbnQgcmV0Owo+ICsKPiArCW1heDY2NXggPSBkZXZtX2t6YWxsb2MoJmkyYy0+ZGV2LCBz
+aXplb2YoKm1heDY2NXgpLCBHRlBfS0VSTkVMKTsKPiArCWlmICghbWF4NjY1eCkKPiArCQlyZXR1
+cm4gLUVOT01FTTsKPiArCj4gKwlpMmNfc2V0X2NsaWVudGRhdGEoaTJjLCBtYXg2NjV4KTsKPiAr
+CW1heDY2NXgtPmRldiA9ICZpMmMtPmRldjsKPiArCW1heDY2NXgtPmkyYyA9IGkyYzsKPiArCW1h
+eDY2NXgtPm1hcCA9IGRldm1fcmVnbWFwX2luaXRfaTJjKGkyYywgJm1heDY2NXhfcmVnbWFwX2Nv
+bmZpZyk7Cj4gKwlpZiAoSVNfRVJSKG1heDY2NXgtPm1hcCkpIHsKPiArCQlyZXQgPSBQVFJfRVJS
+KG1heDY2NXgtPm1hcCk7Cj4gKwkJZGV2X2VycihtYXg2NjV4LT5kZXYsICJGYWlsZWQgdG8gYWxs
+b2NhdGUgcmVnaXN0ZXIgbWFwOiAlZFxuIiwKPiArCQkJcmV0KTsKPiArCQlyZXR1cm4gcmV0Owo+
+ICsJfQo+ICsKPiArCW11dGV4X2luaXQoJm1heDY2NXgtPmlvbG9jayk7CgoqY291Z2gqCgo+ICsJ
+cmV0ID0gbWZkX2FkZF9kZXZpY2VzKG1heDY2NXgtPmRldiwgLTEsIG1heDY2NXhfZGV2cywKPiAr
+CQkJQVJSQVlfU0laRShtYXg2NjV4X2RldnMpLAo+ICsJCQlOVUxMLCAwLCBOVUxMKTsKPiArCj4g
+KwlpZiAocmV0IDwgMCkKCkp1c3QgJ2lmIChyZXQpJwoKPHNuaXA+Cgo+ICtzdGF0aWMgc3RydWN0
+IG9mX2RldmljZV9pZCBtYXg2NjV4X2R0X21hdGNoW10gPSB7Cj4gKwl7IC5jb21wYXRpYmxlID0g
+Im1heGltLG1heDY2NXgiIH0sCgogIAl7IC5jb21wYXRpYmxlID0gIm1heGltLG1heDY2NTAiIH0s
+CiAgCXsgLmNvbXBhdGlibGUgPSAibWF4aW0sbWF4NjY1MSIgfSwKCj4gKwl7fSwKPiArfTsKPiAr
+TU9EVUxFX0RFVklDRV9UQUJMRShvZiwgbWF4NjY1eF9kdF9tYXRjaCk7CgpNb2R1bGU/Cgo+ICtz
+dGF0aWMgc3RydWN0IGkyY19kcml2ZXIgbWF4NjY1eF9kcml2ZXIgPSB7Cj4gKwkuZHJpdmVyID0g
+ewo+ICsJCS5uYW1lID0gIm1heDY2NXgiLAo+ICsJCS5vd25lciA9IFRISVNfTU9EVUxFLAo+ICsJ
+CS5vZl9tYXRjaF90YWJsZSA9IG1heDY2NXhfZHRfbWF0Y2gsCgpvZl9tYXRjaF9wdHIoKQoKPiAr
+CX0sCj4gKwkucHJvYmUgPSBtYXg2NjV4X3Byb2JlLAo+ICsJLnJlbW92ZSA9IG1heDY2NXhfcmVt
+b3ZlLAo+ICt9Owo+ICsKPiArbW9kdWxlX2kyY19kcml2ZXIobWF4NjY1eF9kcml2ZXIpOwoKTW9k
+dWxlPwoKPiArTU9EVUxFX0FVVEhPUigiTGFzemxvIFBhcHAgPGxhc3psby5wYXBwQHBvbGF0aXMu
+Y29tPiIpOwo+ICtNT0RVTEVfREVTQ1JJUFRJT04oIk1BWDY2NTAtTUFYNjY1MSBNRkQiKTsKCnMv
+LS8gYW5kIC8KCj4gK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKCnYxIG9yIHYyPwoKPHNuaXA+Cgo+
+ICsjaWZuZGVmIF9fTElOVVhfTUZEX01BWDY2NVhfUFJJVkFURV9ICj4gKyNkZWZpbmUgX19MSU5V
+WF9NRkRfTUFYNjY1WF9QUklWQVRFX0gKPiArCj4gKyNpbmNsdWRlIDxsaW51eC9pMmMuaD4KPiAr
+I2luY2x1ZGUgPGxpbnV4L3JlZ21hcC5oPgo+ICsKPiArc3RydWN0IG1heDY2NXhfZGV2IHsKPiAr
+CXN0cnVjdCBkZXZpY2UgKmRldjsKPiArCXN0cnVjdCBtdXRleCBpb2xvY2s7CgoqQWggaGVtKgoK
+PiArCXN0cnVjdCBpMmNfY2xpZW50ICppMmM7Cj4gKwlzdHJ1Y3QgcmVnbWFwICAgICAqbWFwOwo+
+ICsJaW50IHR5cGU7CgpXaGF0J3MgdGhpcyB1c2VkIGZvcj8KCj4gK307Cgo+ICsjZW5kaWYKCi0t
+IApMZWUgSm9uZXMKTGluYXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApM
+aW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExp
+bmFybzogRmFjZWJvb2sgfCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
