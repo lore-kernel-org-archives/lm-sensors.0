@@ -1,129 +1,80 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Fri, 14 Feb 2014 09:13:43 +0000
+From: Laszlo Papp <lpapp@kde.org>
+Date: Fri, 14 Feb 2014 09:20:49 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (max6650) Convert to be a platform driver
-Message-Id: <20140214091343.GE3403@lee--X1>
+Message-Id: <CAOMwXhNyF7L5mCnsL+nxcfYAJ9vjHmoSOenO8bkPikaNfJU86Q@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392281438-31836-1-git-send-email-lpapp@kde.org>
- <20140213095817.GD32508@lee--X1>
- <20140213111530.2a2b4982@endymion.delvare>
- <CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
- <CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
- <20140213113313.GL32508@lee--X1>
- <CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
- <52FCEFEF.80707@roeck-us.net>
- <CAOMwXhPjHqAswA2MU22EuOWtN-86BQ9tCyKYjt1-SeLZGj6TQA@mail.gmail.com>
-In-Reply-To: <CAOMwXhPjHqAswA2MU22EuOWtN-86BQ9tCyKYjt1-SeLZGj6TQA@mail.gmail.com>
+	<20140213095817.GD32508@lee--X1>
+	<20140213111530.2a2b4982@endymion.delvare>
+	<CAOMwXhML8LvDCzmk1ZVT+7cARj9C3VtxERWBgOPM9vTc6qQXZQ@mail.gmail.com>
+	<CAOMwXhOv-as1W69wcSno49jEXsXWZZ7odnu8og-vgnDwRTJ4sA@mail.gmail.com>
+	<20140213113313.GL32508@lee--X1>
+	<CAOMwXhMNHqXnzR0YHF9rx710JbaL3YFn=3cLf_WdNkCx7hbZug@mail.gmail.com>
+	<20140213124002.GA3403@lee--X1>
+	<CAOMwXhPwppZ6Ne4TjR9Ys+ttST2r85j1GsLdxfq67svZSuVHFg@mail.gmail.com>
+	<20140214090217.GD3403@lee--X1>
+In-Reply-To: <20140214090217.GD3403@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Laszlo Papp <lpapp@kde.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Jean Delvare <jdelvare@suse.de>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-PiA+Pj4+Pj4+PiAtc3RhdGljIGludCBtYXg2NjUwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpj
-bGllbnQsCj4gPj4+Pj4+Pj4gLSAgICAgICAgICAgICAgICAgICAgY29uc3Qgc3RydWN0IGkyY19k
-ZXZpY2VfaWQgKmlkKTsKPiA+Pj4+Pj4+PiAtc3RhdGljIGludCBtYXg2NjUwX2luaXRfY2xpZW50
-KHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpOwo+ID4+Pj4+Pj4+IC1zdGF0aWMgaW50IG1heDY2
-NTBfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpOwo+ID4+Pj4+Pj4+ICtzdGF0aWMg
-aW50IG1heDY2NTBfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldik7Cj4gPj4+Pj4+
-Pj4gK3N0YXRpYyBpbnQgbWF4NjY1MF9pbml0X2NsaWVudChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
-ICpwZGV2KTsKPiA+Pj4+Pj4+PiArc3RhdGljIGludCBtYXg2NjUwX3JlbW92ZShzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpwZGV2KTsKPiA+Pj4+Pj4+PiAgIHN0YXRpYyBzdHJ1Y3QgbWF4NjY1MF9k
-YXRhICptYXg2NjUwX3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZQo+ID4+Pj4+Pj4+ICpkZXYp
-Owo+ID4+Pj4+Pj4KPiA+Pj4+Pj4+Cj4gPj4+Pj4+PiBJdCB3b3VsZCBiZSBnb29kIHRvIHJlbW92
-ZSB0aGVzZSBmb3J3YXJkIGRlY2xhcmF0aW9ucyBpbiB0aGUgZnV0dXJlLgo+ID4+Pj4+Pj4KPiA+
-Pj4+Pj4+IElmIG5vIG9uZSB2b2x1bnRlZXJzIEknbGwgaGFwcGlseSBkbyBpdC4KPiA+Pj4+Pj4K
-PiA+Pj4+Pj4KPiA+Pj4+Pj4gR3VlbnRlciBqdXN0IGRpZDoKPiA+Pj4+Pj4KPiA+Pj4+Pj4KPiA+
-Pj4+Pj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIw
-MTQtRmVicnVhcnkvMDQxMjI0Lmh0bWwKPiA+Pj4+Pj4KPiA+Pj4+Pj4gQW55IGNoYW5nZSB0byB0
-aGUgbWF4NjY1MCBkcml2ZXIgc2hvdWxkIGdvIG9uIHRvcCBvZiBoaXMgcGF0Y2ggc2VyaWVzCj4g
-Pj4+Pj4+IHRvIGF2b2lkIGNvbmZsaWN0czoKPiA+Pj4+Pj4KPiA+Pj4+Pj4KPiA+Pj4+Pj4gaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMTQtRmVicnVh
-cnkvMDQxMjIzLmh0bWwKPiA+Pj4+Pgo+ID4+Pj4+Cj4gPj4+PiBBcyBmYXIgYXMgSSBjYW4gc2Vl
-LCB0aGF0IHBhdGNoIHNldCB3YXMgbm90IGV2ZW4gdGVzdGVkLCBzbyBob3cgY2FuIGl0Cj4gPj4+
-PiBnbyBpbj8gSSB3YXMgdG9sZCB0aGF0IGFueSBwYXRjaCBzaG91bGQgYmUgX3J1bnRpbWVfIHRl
-c3RlZCwgdG9vLgo+ID4+Pj4gRndpdywgSSBkbyBub3QgaGF2ZSB0aW1lIHRvIHRlc3QgdGhvc2Ug
-cGVyc29uYWxseSwgaGUgd291bGQgbmVlZCB0bwo+ID4+Pj4gZmluZCBzb21lb25lIGVsc2UgaWYg
-dGhhdCByZXF1aXJlbWVudCByZWFsbHkgaG9sZHMgdHJ1ZS4KPiA+Pj4+Cj4gPj4+PiBJIHdvdWxk
-IG5vdCByZWFsbHkgbGlrZSB0byBmaXggYnVncyBhcHBlYXJpbmcgaW4gdGhhdCBjb2RlIHRvIGdl
-dCBteQo+ID4+Pj4gZmVhdHVyZXMgaW4uCj4gPj4+Pgo+ID4+Pj4gQWxzbywgc2luY2UgbXkgY2hh
-bmdlIGhhcyBiZWVuIGFyb3VuZCBmb3IgMi0zIG1vbnRocyBub3csIEkgd291bGQKPiA+Pj4+IHJl
-YWxseSBwcmVmZXIgbm90IHRvIGJlIGZvcmNlZCB0byByZXdyaXRlIGl0IGFnYWluIGZyb20gc2Ny
-YXRjaC4KPiA+Pj4+IFN1cmVseSwgeW91IGNhbiB3YWl0IHdpdGggdGhvc2UsIG1vcmUgb3IgbGVz
-cywgY29zbWV0aWMgbm9uLXJ1bnRpbWUKPiA+Pj4+IHRlc3RlZCBjaGFuZ2VzPwo+ID4+Pj4KPiA+
-Pj4+IFRoaXMgd291bGQgaW1wb3NlIG1lIGEgbG90IG9mIGFkZGl0aW9uYWwgd29yayBhZ2Fpbiwg
-YW5kIEkgcGVyc29uYWxseQo+ID4+Pj4gZG8gbm90IHNlZSB0aGUgYmVuZWZpdCBvZiBpdC4gSW4g
-bXkgYm9vayBhdCBsZWFzdCwgZmVhdHVyZSBpcyBvdmVyCj4gPj4+PiBpbnRlcm5hbCBwb2xpc2hp
-bmcuCj4gPj4+Cj4gPj4+Cj4gPj4+IFJpZ2h0LCBJJ3ZlIGhhZCBlbm91Z2guIEknbSByZW1vdmlu
-ZyB5b3VyIHBhdGNoIGZyb20gdGhlIE1GRCB0cmVlLgo+ID4+Pgo+ID4+PiBJJ3ZlIGFza2VkIHRv
-byBtYW55IHBlb3BsZSB0byBnaXZlIHlvdSBhIHNlY29uZCBjaGFuY2UgYW5kIGFza2VkIHlvdQo+
-ID4+PiBwcml2YXRlbHkgdG8gYmVoYXZlIHlvdXJzZWxmIGFuZCB0cmVhdCBvdGhlcnMgd2l0aCBy
-ZXNwZWN0LiBTbyBmYXIgSQo+ID4+PiBoYXZlbid0IHNlZW4gYW4gb3VuY2Ugb2Ygc2VsZiBjb250
-cm9sIG9yIGRlcG9tYWN5IGZyb20geW91Lgo+ID4+Pgo+ID4+PiBUaGlzIGlzIGhvdyBpdCdzIGdv
-aW5nIHRvIHdvcmsgZnJvbSBub3cgb246Cj4gPj4+Cj4gPj4+ICAgLSBZb3Ugc3VibWl0IGEgcGF0
-Y2gKPiA+Pj4gICAtIEl0IGdldHMgcmV2aWV3ZWQgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-PC0tLS1cCj4gPj4+ICAgLSBZb3UgZml4IHVwIHRoZSByZXZpZXcgY29tbWVudHMgYXMgcmVxdWVz
-dGVkIC0tLS0tLwo+ID4+PiAgIC0gTm9uLWNvbXBsaWFuY2Ugb3IgYXJndW1lbnRzIHdpdGggdGhl
-IF9leHBlcnRzXyByZXN1bHRzIGluOgo+ID4+PiAgICAgIGAkSU5URVJFU1QgPiAvZGV2L251bGwg
-fHwgXAo+ID4+PiAgICAgICAgZ3JlcCAiRnJvbTogTGFzemlvIFBhcHAiIH4vLm1haWwgfCB4YXJn
-cyBybSAtcmZgCj4gPj4KPiA+Pgo+ID4+IGh0dHA6Ly9jb21tZW50cy5nbWFuZS5vcmcvZ21hbmUu
-bGludXgua2VybmVsLzE2NDUyNTEKPiA+Pgo+ID4+IFN0ZXAgMiBkaWQgbm90IGhhcHBlbi4gSSBk
-aWQgbm90IGdldCBhbnkgcmV2aWV3IGZvciBteSBjaGFuZ2UuIEkKPiA+PiBsaXRlcmFsbHkgc3Vi
-bWl0dGVkIHRoYXQgd2l0aGluIGEgY291cGxlIG9mIGhvdXJzIGFmdGVyIHRoZSByZXF1ZXN0Lgo+
-ID4+Cj4gPgo+ID4gSWYgeW91IGhhZCB0ZXN0ZWQgeW91ciBwYXRjaCBvbiByZWFsIG9yIHNpbXVs
-YXRlZCBoYXJkd2FyZSwKPiA+IHlvdSBtaWdodCBoYXZlIG5vdGljZWQgYSBjcmFzaCB3aGVuZXZl
-ciB5b3UgYWNjZXNzZWQgYW55Cj4gPiBvZiB0aGUgYXR0cmlidXRlcy4gU28geW91IGRpZCBub3Qg
-dGVzdCB5b3VyIHBhdGNoLgo+ID4KPiA+IEluc3RlYWQgb2YgdHJ5aW5nIHRvIGVkdWNhdGUgeW91
-IGhvdyB0aGUgY29udmVyc2lvbiB0byB0aGUKPiA+IG5ldyBBUEkgd29ya3MsIEkgZGVjaWRlZCB0
-byBoZWxwIHlvdSBvdXQgYSBiaXQgYW5kIGRvCj4gPiB0aGUgY29udmVyc2lvbiBteXNlbGYuCj4g
-Cj4gSSBhbSBhZnJhaWQgdGhhdCB3aXRoIHRoaXMgYXR0aXR1ZGUgYW5kIGFwcHJvYWNoIHRvd2Fy
-ZHMgcG90ZW50aWFsIG5ldwo+IGNvbnRyaWJ1dG9ycywgeW91IHdpbGwgcHV0IG1vcmUgYW5kIG1v
-cmUgd29yayBvbiB5b3UgbWFraW5nIGl0IG1vcmUKPiBkaWZmaWN1bHQgdG8gZ2V0IHRoaW5ncyBk
-b25lIGF0IGxhcmdlLiAiRWR1Y2F0aW5nIiBuZXcgcGVvcGxlIGlzIGEgd2luCj4gaW4gdGhlIGxv
-bmcgcnVuLCBhbmQgdGhpcyBpcyBhIGdlbmVyYWwgcHJhY3RpY2Ugb3V0IHRoZXJlIGJlZm9yZQo+
-IGNsYWltaW5nIHRoYXQgSSBhbSBjcmF6eSAoZS5nLiBzb21lb25lIGV2ZW4gdG9sZCBtZSBpbiB0
-aGUga2VybmVsCj4gY2lyY2xlcyB0aGF0IGlzICJydWRlIikuCj4gCj4gSSBhbSBzdXJwcmlzZWQg
-dGhhdCBtZW50b3JpbmcgbmV3IHBlb3BsZSBpcyBjb25zaWRlcmVkIGJhZCBpZGVhIGluCj4gaGVy
-ZS4gU2luY2UgdGhlcmUgaXMgbm8gZ3VhcmFudGVlIHlvdSB3b3VsZCBub3QgZG8gaXQgbmV4dCB0
-aW1lIGlmIEkKPiB0cmllZCB0byBwdXQgZWZmb3J0IGludG8gY29udHJpYnV0aW5nLCBJIGZlZWwg
-bW9yZSBjb21mb3J0YWJsZSB0byBza2lwCj4gdGhpcyBwcm9qZWN0IGZvciBub3csIGFuZCB3b3Jr
-IHdoZXJlIEkga25vdyB0aGlzIGNhbm5vdCBoYXBwZW4uCj4gQ3VycmVudGx5LCBJIGRvIG5vdCBm
-ZWVsIGluY2x1c2l2ZSBpbiB0aGlzIHByb2plY3QgZHVlIHRvIHRoaXMKPiBhcHByb2FjaC4KPiAK
-PiBJIGRvIG5vdCBldmVuIGNsYWltIHRoYXQgeW91IHdvdWxkIGJlIHRoaXMgdG8gbWUgaW50ZW50
-aW9uYWxseSwgYnV0IGl0Cj4gaGFzIGhhcHBlbmVkIGVpdGhlciB3YXkuCgpJIGFncmVlIHRoYXQg
-aWYgR3VlbnRlciB3YXMgdG8gZ28gYWhlYWQgYW5kIGNvbnZlcnQgdGhpcyBkcml2ZXIgdG8gYW4K
-TUZEIG9uZSwgdGhlbiB0aGF0IHdvdWxkIGJlIHJ1ZGUgY29uZHVjdC4gSG93ZXZlciwgdGhlIHdv
-cmsgdW5kZXJ0YWtlbgpieSBoaW0gd2FzICdhZGQtb24nIHdvcmsgd2hpY2ggeW91IGNsZWFybHkg
-d2VyZW4ndCBjb21mb3J0YWJsZSB3aXRoLiBJCnRoaW5rIGhlIHdhcyBnZW51aW5lbHkgZG9pbmcg
-eW91IGEgZmF2b3VyIHJhdGhlciB0aGFuICdzdGVhbGluZyB5b3VyCnRodW5kZXInLiBIaXMgd29y
-ayBoYXMgcGF2ZWQgdGhlIHdheSBmb3IgeW91cnMgYW5kIHNob3VsZCBtYWtlIHlvdXIKd29yayBl
-YXNpZXIgaW4gdGhlIGxvbmcgcnVuLgoKTkI6IFJlYmFzaW5nIG9uIHRvcCBvZiBkaWZmZXJlbnQg
-SEVBRHMgYW5kIG90aGVyIHBlb3BsZSdzIHdvcmsgaXMganVzdAphIGZhY3Qgb2YgbGlmZSBpbiB0
-aGUga2VybmVsLiBJZiB5b3UgZmluZCBpdCBkaWZmaWN1bHQsIHN0aWNrCmFyb3VuZC4gWW91J2xs
-IGdldCBiZXR0ZXIgYXQgaXQgd2l0aCBwcmFjdGljZS4KCj4gPiBJIGRpZCBzb21lIGNsZWFudXAg
-YmVmb3JlLCBzaW5jZQo+ID4gdGhhdCBtYWRlIHRoZSBhY3R1YWwgZmVhdHVyZSBwYXRjaCBlYXNp
-ZXIgZm9yIG1lIHRvIGltcGxlbWVudCwKPiA+IGFuZCBJIGRpZCBzb21lIG1vcmUgY2xlYW51cCBh
-ZnRlcndhcmRzIGp1c3QgYmVjYXVzZSBJIGxpa2UKPiA+IGNsZWFuaW5nIHVwIGNvZGUuCj4gCj4g
-SU1PLCBpdCBpcyBub3Qgd29ydGggbWFraW5nIHRoZSBnaXQgaGlzdG9yeSBub2lzeSB3aXRoIG5l
-ZWRsZXNzCj4gcmUtYXJyYW5naW5nIGxpa2UgZm9yd2FyZCBoZWFkZXJzLCBidXQgdGhhdCBpcyBq
-dXN0IG15IG9waW5pb24uIFBsZWFzZQo+IGRvIG5vdCBzYXksIGl0IGlzIHJ1ZGUgYW5kIG5vdCBy
-ZXNwZWN0ZnVsLiBJIGRlZmluaXRlbHkgcmVzcGVjdCB5b3VyCj4gb3BpbmlvbiwgSSBqdXN0IGRv
-IG5vdCBhZ3JlZSB3aXRoIGl0LCBidXQgdGhhdCBpcyBmaW5lLCB5b3UgYXJlIGEKPiBtYWludGFp
-bmVyIHNvIHlvdSBnZXQgdG8gZGVjaWRlLCBJIGd1ZXNzLiBUaGF0IGJlaW5nIHNhaWQsIHBlcmhh
-cHMgSQo+IG1pc3NlZCBzb21ldGhpbmcgd2h5IHN1Y2ggcmUtYXJyYW5naW5nIG91dHdlaWdocyB0
-aGUgZ2l0IGhpc3RvcnkKPiBkaXNhZHZhbnRhZ2UuCgo9Oi1ECgpXZSBoYXZlIG5lYXJseSBoYWxm
-IGEgbWlsbGlvbiBjb21taXRzIGluIHRoZSBNYWlubGluZSBrZXJuZWwgc2luY2UKdjIuNi4xMi4g
-SSBkb24ndCB0aGluayBHaXQgaGlzdG9yeSBpcyBldmVuIGEgY29uc2lkZXJhdGlvbiBoZXJlLiBB
-bHNvLAp3ZSByZWFsbHkgZG9uJ3QgbGlrZSBmb3J3YXJkIGRlY2xhcmF0aW9ucyBpbiB0aGUga2Vy
-bmVsLiBHdWVudGVyJ3MKY2xlYW4tdXBzIHdoZXJlIGdvb2Qgb25lcy4gV2UgY2FuJ3Qgc3RvcCBj
-bGVhbmluZyB1cCBhbmQgZGV2ZWxvcGluZyBpbgp0aGUgZmVhciB0aGF0IHNvbWVvbmUgZWxzZSBp
-cyB3b3JraW5nIG9uIHRoYXQgc2FtZSBkcml2ZXIuIFdlIGhhdmUKbG90cyBvZiBwZW9wbGUgbWFr
-aW5nIGNoYW5nZXMgdG8gdGhlIHNhbWUgZmlsZXMgYWxsIG92ZXIgdGhlIGtlcm5lbC4KR2V0IGdv
-b2QgYXQgYGdpdCByZWJhc2VgaW5nIGFuZCB0aGVyZSBpcyBubyBpc3N1ZSwgaXQncyBqdXN0IGFu
-b3RoZXIKZGF5IGluIHRoZSBsaWZlIG9mIGEgS2VybmVsIERldmVsb3Blci4KCklmIHlvdSdkIHNw
-ZW5kIG1vcmUgdGltZSByZWJhc2luZyBhbmQgY29kaW5nIGFzIHlvdSBkbyB3cml0aW5nIGVtYWls
-cywKeW91J2QgaGF2ZSBoYWQgdGhpcyBkb25lIGJ5IG5vdy4gOikKCi0tIApMZWUgSm9uZXMKTGlu
-YXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApMaW5hcm8ub3JnIOKUgiBP
-cGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sg
-fCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9y
-ZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Fri, Feb 14, 2014 at 9:02 AM, Lee Jones <lee.jones@linaro.org> wrote:
+>> >> http://comments.gmane.org/gmane.linux.kernel/1645251
+>> >>
+>> >> Step 2 did not happen. I did not get any review for my change. I
+>> >> literally submitted that within a couple of hours after the request.
+>> >>
+>> >> Could you please tell me what was wrong with that change, and why I
+>> >> did not get any respect not to "xargs rm -rf" my work in that area? I
+>> >> believe I was ignored instead of improving the change, and someone
+>> >> else tried to address the same thing. There was no argument in that
+>> >> thread. It was a technical change. I personally do not feel happy
+>> >> about it.
+>> >
+>> > Let's start again.
+>> >
+>> > Rebase your work on top of the HWMON tree on kernel.org and resubmit
+>> > the entire set. If rebasing takes you more than 20 mins, you're
+>> > probably doing it wrong.
+>>
+>> I tried, but I could not manage it within 20 minutes, so I guess I am
+>> doing something wrong. Can you please provide some pointers how not to
+>> do it wrong? Perhaps, I am not aware of some tricks.
+>
+> One question, are you still working on this stuff or not? I'm confused
+> by the disparity in your messages. I'm going to guess that you're in
+> for now.
+>
+> Do:
+>   `git rebase -i <base> --onto <newbase>`
+> Where:
+>   <base> is the SHA1 of the first patch below your changes in `git log`
+>   <new_base> is Guenter's staging tree on kernel.org
+>
+> Ensure you're rebasing all of your patches (and patches that aren't
+> yours) when your $EDITOR pops up. If they are wrong, delete all the
+> lines in the file and the rebase will be aborted. If they're correct
+> save and close your $EDITOR.
+>
+> You'll receive conflicts. You can see the state of the conflicts using
+> `git status` Open the file, find the conflict markers and make a choice
+> from the HEAD section or the section from your patch. Sometimes
+> you'll need to manually merge the two, if there are changes from both
+> refs that you want to keep. Once you're happy `git commit -a` and `git
+> rebase --continue`. Each conflict should not take you long, but if it
+> does, keep at it, as it's good practice. After a time of doing it,
+> you'll be able to fix merge conflicts in no time at all.
+
+Right, that is what I have been following myself for a couple of
+years. Why it took me more time because I had to go through his
+changes and to understand all in details to make reasonably good
+decisions what to keep and what to drop at the conflicts.
+
+Thank you for your answer.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
