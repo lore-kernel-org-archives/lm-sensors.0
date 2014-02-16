@@ -1,65 +1,57 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 25 Feb 2014 01:10:24 +0000
-Subject: Re: [lm-sensors] BMR456/457
-Message-Id: <530BED80.9060106@roeck-us.net>
+Date: Sun, 16 Feb 2014 02:08:00 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (max1668) Don't hide return value from i2c_smbus_write_byte_data
+Message-Id: <1392516481-16548-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAFO4QpDpm2NbouBm6yhZ_eHUuAkFqOji5bqCQJOC+JNqWcfmXQ@mail.gmail.com>
-In-Reply-To: <CAFO4QpDpm2NbouBm6yhZ_eHUuAkFqOji5bqCQJOC+JNqWcfmXQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Leandro,
+i2c_smbus_write_byte_data returns a valid error code.
+Return it to the user instead of replacing it with -EIO.
 
-On 02/24/2014 02:14 PM, Leandro de Marco wrote:
-> Hi. First I would like to thank you  in advance for your attention.
->
-> The company I work for, is developing a HW that will use the ericson
-> BMR456 Bus converter.
->
-> Unfortunately, this chip is not listed on the lm-sensors list of
-> devices supported.
->
-> It is under my responsibility to make it work, and I was studying the
-> pmbus kernel drivers and comparing the existing modules, as well as
-> taking a look on their datasheet.
->
-> I am an experienced C programmer, but new to the device driver world.
-> I am having some doubts, and would like to ask for some help.
->
-> I noticed that the pmbus generic driver has support for the BMR453/454 chip.
->
-> Comparing these chips, I noticed that they seem to be very similar. At
-> first, I saw that the BMR456/457 uses the direct data format for some
-> PMBUS commands. Later I realized that such commands are not classified
-> on any of the sensor classes (like PSC_VOLTAGE_OUT, PSC_CURRENT_OUT,
-> etc) that are indexes in the direct, m, b and r fields of the
-> pmbus_driver_info struct.
->
-> Some of these PMBUS commands that uses the direct data format on the
-> chip aren't even listed at pmbus.h. Anyway, I won't need those
-> commands.
->
-Which commands do you refer to ? Are those proprietary (mfg specific)
-commands or just commands which are not used by the driver ?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/max1668.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-> With my limited pmbus knowledge I am starting to figure out that the
-> BMR456/457 can be operated with the generic pmbus driver.
->
-> As far as I understand, all I would need to do is add a bmr456 and
-> bmr457 to the pmbus_id struct of the pmbus.c source file.
->
-> Is this ok? Or am I missing something?
->
-
-The datasheets are a bit vague, but I think you are right - adding the
-chip names to the id structure in pmbus.c should be sufficient.
-
-You can give it a try by just instantiating the generic "pmbus" device.
-If that works, you are pretty much done.
-
-Guenter
+diff --git a/drivers/hwmon/max1668.c b/drivers/hwmon/max1668.c
+index 029b65e..bbbe340 100644
+--- a/drivers/hwmon/max1668.c
++++ b/drivers/hwmon/max1668.c
+@@ -216,10 +216,11 @@ static ssize_t set_temp_max(struct device *dev,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_max[index] = clamp_val(temp/1000, -128, 127);
+-	if (i2c_smbus_write_byte_data(client,
++	ret = i2c_smbus_write_byte_data(client,
+ 					MAX1668_REG_LIMH_WR(index),
+-					data->temp_max[index]))
+-		count = -EIO;
++					data->temp_max[index]);
++	if (ret < 0)
++		count = ret;
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+@@ -241,10 +242,11 @@ static ssize_t set_temp_min(struct device *dev,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_min[index] = clamp_val(temp/1000, -128, 127);
+-	if (i2c_smbus_write_byte_data(client,
++	ret = i2c_smbus_write_byte_data(client,
+ 					MAX1668_REG_LIML_WR(index),
+-					data->temp_min[index]))
+-		count = -EIO;
++					data->temp_min[index]);
++	if (ret < 0)
++		count = ret;
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+-- 
+1.7.9.7
 
 
 _______________________________________________
