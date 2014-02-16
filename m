@@ -1,45 +1,63 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 02 Feb 2014 18:15:11 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm63) Create attributes for LM96163 in one call
-Message-Id: <52EE8B2F.1030906@roeck-us.net>
+Date: Sun, 16 Feb 2014 02:16:10 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (ltc4245) Use device managed function to register hwmon device
+Message-Id: <1392516972-27576-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1390243126-19519-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1390243126-19519-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 02/02/2014 10:02 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Mon, 20 Jan 2014 10:38:44 -0800, Guenter Roeck wrote:
->> There is no need to have both an attribute group plus an individual attribute
->> for LM96163. Add the attribute to the group and create all attributes with one
->> call.
->
-> The idea of having groups (or single attributes) per extra feature
-> rather than per chip was to be able to reuse them when adding support
-> for a new chip implementing a subset of the extra features. It wasn't
-> an overlook, it was implemented that way on purpose. You can argue that
-> the extra complexity may never be needed, but nobody objected back
-> then.
->
-Or nobody cared ;-).
+This simplifies the code and reduces code size.
 
-> Now I do understand that single attributes don't fit well with the way
-> you implemented devm_hwmon_device_register_with_groups(). You could
-> still create a group for that attribute so that you can register it
-> with that function. Then you only have another group to register, no
-> big deal.
->
-> Would that be OK for you?
->
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ltc4245.c |   23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
-Sure, I can do that, no problem. As you said, no big deal.
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index d4172933..2c6da5d 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -512,24 +512,10 @@ static int ltc4245_probe(struct i2c_client *client,
+ 	/* Add sysfs hooks */
+ 	ltc4245_sysfs_add_groups(data);
+ 
+-	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
+-						      client->name, data,
+-						      data->groups);
+-	if (IS_ERR(hwmon_dev))
+-		return PTR_ERR(hwmon_dev);
+-
+-	i2c_set_clientdata(client, hwmon_dev);
+-
+-	return 0;
+-}
+-
+-static int ltc4245_remove(struct i2c_client *client)
+-{
+-	struct device *hwmon_dev = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(hwmon_dev);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
++							   client->name, data,
++							   data->groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct i2c_device_id ltc4245_id[] = {
+@@ -544,7 +530,6 @@ static struct i2c_driver ltc4245_driver = {
+ 		.name	= "ltc4245",
+ 	},
+ 	.probe		= ltc4245_probe,
+-	.remove		= ltc4245_remove,
+ 	.id_table	= ltc4245_id,
+ };
+ 
+-- 
+1.7.9.7
 
 
 _______________________________________________
