@@ -1,8 +1,10 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 16 Feb 2014 01:26:11 +0000
+Date: Sun, 16 Feb 2014 01:26:33 +0000
 Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Create optional attributes with sysfs_create_group
-Message-Id: <1392513973-25148-1-git-send-email-linux@roeck-us.net>
+Message-Id: <1392513995-30712-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1392513973-25148-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1392513973-25148-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
