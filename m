@@ -1,138 +1,611 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Tue, 25 Feb 2014 06:21:41 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: lm90: expose to thermal fw via DT nodes
-Message-Id: <1393309301-28337-3-git-send-email-wni@nvidia.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 16 Feb 2014 00:53:11 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Driver for TI ADC128D818
+Message-Id: <1392511991-17776-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1393309301-28337-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1393309301-28337-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org, linux@roeck-us.net
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Wei Ni <wni@nvidia.com>
+To: lm-sensors@vger.kernel.org
 
-This patch adds to lm90 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+ADC128D818 is a System Monitor with Temperature Sensor. It is similar to LM80
+and LM96080, but has 16 bit wide sensor registers and no fan speed monitoring.
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm90 DT node. Otherwise, the driver behavior
-will be the same.
-
-Signed-off-by: Wei Ni <wni@nvidia.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm90.c |   58 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ Documentation/hwmon/adc128d818 |   47 ++++
+ drivers/hwmon/Kconfig          |   10 +
+ drivers/hwmon/Makefile         |    1 +
+ drivers/hwmon/adc128d818.c     |  491 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 549 insertions(+)
+ create mode 100644 Documentation/hwmon/adc128d818
+ create mode 100644 drivers/hwmon/adc128d818.c
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index fb9e224..8f52269 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -96,6 +96,8 @@
- #include <linux/sysfs.h>
- #include <linux/interrupt.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/of.h>
-+#include <linux/thermal.h>
+diff --git a/Documentation/hwmon/adc128d818 b/Documentation/hwmon/adc128d818
+new file mode 100644
+index 0000000..39c9500
+--- /dev/null
++++ b/Documentation/hwmon/adc128d818
+@@ -0,0 +1,47 @@
++Kernel driver adc128d818
++============
++
++Supported chips:
++  * Texas Instruments ADC818D818
++    Prefix: 'adc818d818'
++    Addresses scanned: I2C 0x1d, 0x1e, 0x1f, 0x2d, 0x2e, 0x2f
++    Datasheet: Publicly available at the TI website
++               http://www.ti.com/
++
++Author: Guenter Roeck
++
++Description
++-----------
++
++This driver implements support for the Texas Instruments ADC128D818.
++It is described as 'ADC System Monitor with Temperature Sensor'.
++
++The ADC128D818 implements one temperature sensor and seven voltage sensors.
++
++Temperatures are measured in degrees Celsius. There is one set of limits.
++When the HOT Temperature Limit is crossed, this will cause an alarm that will
++be reasserted until the temperature drops below the HOT Hysteresis.
++Measurements are guaranteed between -55 and +125 degrees. The temperature
++measurement has a resolution of 0.5 degrees; the limits have a resolution
++of 1 degree.
++
++Voltage sensors (also known as IN sensors) report their values in volts.
++An alarm is triggered if the voltage has crossed a programmable minimum
++or maximum limit. Note that minimum in this case always means 'closest to
++zero'; this is important for negative voltage measurements. All voltage
++inputs can measure voltages between 0 and 2.55 volts, with a resolution
++of 0.625 mV.
++
++If an alarm triggers, it will remain triggered until the hardware register
++is read at least once. This means that the cause for the alarm may
++already have disappeared by the time the alarm is read. The driver
++caches the alarm status for each sensor until it is at least reported
++once, to ensure that alarms are reported to user space.
++
++The ADC128D818 only updates its values approximately once per second;
++reading it more often will do no harm, but will return 'old' values.
++
++In addition to the scanned address list, the chip can also be configured for
++addresses 0x35 to 0x37. Those addresses are not scanned. You have to instantiate
++the driver explicitly if the chip is configured for any of those addresses in
++your system.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 8087ed5..f288b60 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1277,6 +1277,16 @@ config SENSORS_SMM665
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called smm665.
  
- /*
-  * Addresses to scan
-@@ -119,6 +121,13 @@ static const unsigned short normal_i2c[] = {
- enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
- 	max6646, w83l771, max6696, sa56004, g781, tmp451 };
- 
-+enum sensor_id {
-+	LOCAL = 0,
-+	REMOTE,
-+	REMOTE2,
-+	SENSOR_ID_END,
++config SENSORS_ADC128D818
++	tristate "Texas Instruments ADC128D818"
++	depends on I2C
++	help
++	  If you say yes here you get support for the Texas Instruments
++	  ADC128D818 System Monitor with Temperature Sensor chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called adc128d818.
++
+ config SENSORS_ADS1015
+ 	tristate "Texas Instruments ADS1015"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 355200b..c48f987 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -25,6 +25,7 @@ obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
+ obj-$(CONFIG_SENSORS_AD7314)	+= ad7314.o
+ obj-$(CONFIG_SENSORS_AD7414)	+= ad7414.o
+ obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
++obj-$(CONFIG_SENSORS_ADC128D818) += adc128d818.o
+ obj-$(CONFIG_SENSORS_ADCXX)	+= adcxx.o
+ obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
+ obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
+diff --git a/drivers/hwmon/adc128d818.c b/drivers/hwmon/adc128d818.c
+new file mode 100644
+index 0000000..5ffd81f
+--- /dev/null
++++ b/drivers/hwmon/adc128d818.c
+@@ -0,0 +1,491 @@
++/*
++ * Driver for TI ADC128D818 System Monitor with Temperature Sensor
++ *
++ * Copyright (c) 2014 Guenter Roeck
++ *
++ * Derived from lm80.c
++ * Copyright (C) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
++ *			     and Philip Edelbrock <phil@netroedge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/regulator/consumer.h>
++#include <linux/mutex.h>
++
++/* Addresses to scan
++ * The chip also supports addresses 0x35..0x37. Don't scan those addresses
++ * since they are also used by some EEPROMs, which may result in false
++ * positives.
++ */
++static const unsigned short normal_i2c[] = {
++	0x1d, 0x1e, 0x1f, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
++
++/* registers */
++#define ADC128_REG_IN_MAX(nr)		(0x2a + (nr) * 2)
++#define ADC128_REG_IN_MIN(nr)		(0x2b + (nr) * 2)
++#define ADC128_REG_IN(nr)		(0x20 + (nr))
++
++#define ADC128_REG_TEMP			0x27
++#define ADC128_REG_TEMP_MAX		0x38
++#define ADC128_REG_TEMP_HYST		0x39
++
++#define ADC128_REG_CONFIG		0x00
++#define ADC128_REG_ALARM		0x01
++#define ADC128_REG_MASK			0x03
++#define ADC128_REG_CONV_RATE		0x07
++#define ADC128_REG_ONESHOT		0x09
++#define ADC128_REG_SHUTDOWN		0x0a
++#define ADC128_REG_CONFIG_ADV		0x0b
++#define ADC128_REG_BUSY_STATUS		0x0c
++
++#define ADC128_REG_MAN_ID		0x3e
++#define ADC128_REG_DEV_ID		0x3f
++
++struct adc128_data {
++	struct i2c_client *client;
++	struct regulator *regulator;
++	int vref;		/* Reference voltage in mV */
++	struct mutex update_lock;
++	bool valid;		/* true if following fields are valid */
++	unsigned long last_updated;	/* In jiffies */
++
++	u16 in[3][7];		/* Register value, normalized to 12 bit
++				 * 0: input voltage
++				 * 1: min limit
++				 * 2: max limit
++				 */
++	s16 temp[3];		/* Register value, normalized to 9 bit
++				 * 0: sensor 1: limit 2: hyst
++				 */
++	u8 alarms;		/* alarm register value */
 +};
 +
- /*
-  * The LM90 registers
-  */
-@@ -368,6 +377,7 @@ struct lm90_data {
- 	struct i2c_client *client;
- 	struct device *hwmon_dev;
- 	const struct attribute_group *groups[6];
-+	struct thermal_zone_device *tz[SENSOR_ID_END];
- 	struct mutex update_lock;
- 	struct regulator *regulator;
- 	char valid; /* zero until following fields are valid */
-@@ -880,6 +890,24 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
- 	return sprintf(buf, "%d\n", read_temp11(dev, attr->index));
- }
- 
-+static int lm90_read_local_temp(void *dev, long *temp)
++static struct adc128_data *adc128_update_device(struct device *dev)
 +{
-+	*temp = read_temp11(dev, LOCAL_TEMP);
++	struct adc128_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
++	struct adc128_data *ret = data;
++	int i, rv;
++
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
++		for (i = 0; i < 7; i++) {
++			rv = i2c_smbus_read_word_swapped(client,
++							 ADC128_REG_IN(i));
++			if (rv < 0)
++				goto abort;
++			data->in[0][i] = rv >> 4;
++
++			rv = i2c_smbus_read_byte_data(client,
++						      ADC128_REG_IN_MIN(i));
++			if (rv < 0)
++				goto abort;
++			data->in[1][i] = rv << 4;
++
++			rv = i2c_smbus_read_byte_data(client,
++						      ADC128_REG_IN_MAX(i));
++			if (rv < 0)
++				goto abort;
++			data->in[2][i] = rv << 4;
++		}
++
++		rv = i2c_smbus_read_word_swapped(client, ADC128_REG_TEMP);
++		if (rv < 0)
++			goto abort;
++		data->temp[0] = rv >> 7;
++
++		rv = i2c_smbus_read_byte_data(client, ADC128_REG_TEMP_MAX);
++		if (rv < 0)
++			goto abort;
++		data->temp[1] = rv << 1;
++
++		rv = i2c_smbus_read_byte_data(client, ADC128_REG_TEMP_HYST);
++		if (rv < 0)
++			goto abort;
++		data->temp[2] = rv << 1;
++
++		rv = i2c_smbus_read_byte_data(client, ADC128_REG_ALARM);
++		if (rv < 0)
++			goto abort;
++		data->alarms |= rv;
++
++		data->last_updated = jiffies;
++		data->valid = true;
++	}
++	goto done;
++
++abort:
++	ret = ERR_PTR(rv);
++	data->valid = false;
++done:
++	mutex_unlock(&data->update_lock);
++	return ret;
++}
++
++static ssize_t adc128_show_in(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct adc128_data *data = adc128_update_device(dev);
++	int index = to_sensor_dev_attr_2(attr)->index;
++	int nr = to_sensor_dev_attr_2(attr)->nr;
++	int val;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	val = DIV_ROUND_CLOSEST(data->in[index][nr] * data->vref, 4095);
++	return sprintf(buf, "%d\n", val);
++}
++
++static ssize_t adc128_set_in(struct device *dev, struct device_attribute *attr,
++			     const char *buf, size_t count)
++{
++	struct adc128_data *data = dev_get_drvdata(dev);
++	int index = to_sensor_dev_attr_2(attr)->index;
++	int nr = to_sensor_dev_attr_2(attr)->nr;
++	u8 reg, regval;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	mutex_lock(&data->update_lock);
++	/* 10 mV LSB on limit registers */
++	regval = clamp_val(DIV_ROUND_CLOSEST(val, 10), 0, 255);
++	data->in[index][nr] = regval << 4;
++	reg = index = 1 ? ADC128_REG_IN_MIN(nr) : ADC128_REG_IN_MAX(nr);
++	i2c_smbus_write_byte_data(data->client, reg, regval);
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static ssize_t adc128_show_temp(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct adc128_data *data = adc128_update_device(dev);
++	int index = to_sensor_dev_attr(attr)->index;
++	int temp;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	temp = (data->temp[index] << 7) >> 7;	/* sign extend */
++	return sprintf(buf, "%d\n", temp * 500);/* 0.5 degrees C resolution */
++}
++
++static ssize_t adc128_set_temp(struct device *dev,
++			       struct device_attribute *attr,
++			       const char *buf, size_t count)
++{
++	struct adc128_data *data = dev_get_drvdata(dev);
++	int index = to_sensor_dev_attr(attr)->index;
++	long val;
++	int err;
++	s8 regval;
++
++	err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	mutex_lock(&data->update_lock);
++	regval = clamp_val(DIV_ROUND_CLOSEST(val, 1000), -128, 127);
++	data->temp[index] = regval << 1;
++	i2c_smbus_write_byte_data(data->client,
++				  index = 1 ? ADC128_REG_TEMP_MAX
++					     : ADC128_REG_TEMP_HYST,
++				  regval);
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static ssize_t adc128_show_alarm(struct device *dev,
++				 struct device_attribute *attr, char *buf)
++{
++	struct adc128_data *data = adc128_update_device(dev);
++	int mask = 1 << to_sensor_dev_attr(attr)->index;
++	u8 alarms;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	/*
++	 * Clear an alarm after reporting it to user space. If it is still
++	 * active, the next update sequence will set the alarm bit again.
++	 */
++	alarms = data->alarms;
++	data->alarms &= ~mask;
++
++	return sprintf(buf, "%u\n", !!(alarms & mask));
++}
++
++static SENSOR_DEVICE_ATTR_2(in0_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 0, 0);
++static SENSOR_DEVICE_ATTR_2(in0_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 0, 1);
++static SENSOR_DEVICE_ATTR_2(in0_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 0, 2);
++
++static SENSOR_DEVICE_ATTR_2(in1_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 1, 0);
++static SENSOR_DEVICE_ATTR_2(in1_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 1, 1);
++static SENSOR_DEVICE_ATTR_2(in1_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 1, 2);
++
++static SENSOR_DEVICE_ATTR_2(in2_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 2, 0);
++static SENSOR_DEVICE_ATTR_2(in2_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 2, 1);
++static SENSOR_DEVICE_ATTR_2(in2_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 2, 2);
++
++static SENSOR_DEVICE_ATTR_2(in3_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 3, 0);
++static SENSOR_DEVICE_ATTR_2(in3_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 3, 1);
++static SENSOR_DEVICE_ATTR_2(in3_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 3, 2);
++
++static SENSOR_DEVICE_ATTR_2(in4_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 4, 0);
++static SENSOR_DEVICE_ATTR_2(in4_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 4, 1);
++static SENSOR_DEVICE_ATTR_2(in4_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 4, 2);
++
++static SENSOR_DEVICE_ATTR_2(in5_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 5, 0);
++static SENSOR_DEVICE_ATTR_2(in5_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 5, 1);
++static SENSOR_DEVICE_ATTR_2(in5_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 5, 2);
++
++static SENSOR_DEVICE_ATTR_2(in6_input, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 6, 0);
++static SENSOR_DEVICE_ATTR_2(in6_min, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 6, 1);
++static SENSOR_DEVICE_ATTR_2(in6_max, S_IWUSR | S_IRUGO,
++			    adc128_show_in, adc128_set_in, 6, 2);
++
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, adc128_show_temp, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
++			  adc128_show_temp, adc128_set_temp, 1);
++static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
++			  adc128_show_temp, adc128_set_temp, 2);
++
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, adc128_show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, adc128_show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, adc128_show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, adc128_show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, adc128_show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, adc128_show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, adc128_show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, adc128_show_alarm, NULL, 7);
++
++static struct attribute *adc128_attrs[] = {
++	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	NULL
++};
++ATTRIBUTE_GROUPS(adc128);
++
++static int adc128_detect(struct i2c_client *client, struct i2c_board_info *info)
++{
++	int man_id, dev_id;
++
++	if (!i2c_check_functionality(client->adapter,
++				     I2C_FUNC_SMBUS_BYTE_DATA |
++				     I2C_FUNC_SMBUS_WORD_DATA))
++		return -ENODEV;
++
++	man_id = i2c_smbus_read_byte_data(client, ADC128_REG_MAN_ID);
++	dev_id = i2c_smbus_read_byte_data(client, ADC128_REG_DEV_ID);
++	if (man_id != 0x01 || dev_id != 0x09)
++		return -ENODEV;
++
++	/* Check unused bits for confirmation */
++	if (i2c_smbus_read_byte_data(client, ADC128_REG_CONFIG) & 0xf4)
++		return -ENODEV;
++	if (i2c_smbus_read_byte_data(client, ADC128_REG_CONV_RATE) & 0xfe)
++		return -ENODEV;
++	if (i2c_smbus_read_byte_data(client, ADC128_REG_ONESHOT) & 0xfe)
++		return -ENODEV;
++	if (i2c_smbus_read_byte_data(client, ADC128_REG_SHUTDOWN) & 0xfe)
++		return -ENODEV;
++	if (i2c_smbus_read_byte_data(client, ADC128_REG_CONFIG_ADV) & 0xf8)
++		return -ENODEV;
++	if (i2c_smbus_read_byte_data(client, ADC128_REG_BUSY_STATUS) & 0xfc)
++		return -ENODEV;
++
++	strlcpy(info->type, "adc128d818", I2C_NAME_SIZE);
++
 +	return 0;
 +}
 +
-+static int lm90_read_remote_temp(void *dev, long *temp)
++static int adc128_init_client(struct adc128_data *data)
 +{
-+	*temp = read_temp11(dev, REMOTE_TEMP);
-+	return 0;
-+}
++	struct i2c_client *client = data->client;
++	int err;
 +
-+static int lm90_read_remote2_temp(void *dev, long *temp)
-+{
-+	*temp = read_temp11(dev, REMOTE2_TEMP);
-+	return 0;
-+}
++	/*
++	 * Reset chip to defaults.
++	 * This makes most other initializations unnecessary.
++	 */
++	err = i2c_smbus_write_byte_data(client, ADC128_REG_CONFIG, 0x80);
++	if (err)
++		return err;
 +
- static int write_temp11(struct device *dev, int nr, int index, long val)
- {
- 	struct {
-@@ -1659,6 +1687,33 @@ static int lm90_probe(struct i2c_client *client,
- 		}
- 	}
- 
-+	data->tz[LOCAL] = thermal_zone_of_sensor_register(&client->dev,
-+							LOCAL,
-+							&client->dev,
-+							lm90_read_local_temp,
-+							NULL);
-+	if (IS_ERR(data->tz[LOCAL]))
-+		data->tz[LOCAL] = NULL;
++	/* Start monitoring */
++	err = i2c_smbus_write_byte_data(client, ADC128_REG_CONFIG, 0x01);
++	if (err)
++		return err;
 +
-+	data->tz[REMOTE] = thermal_zone_of_sensor_register(&client->dev,
-+							REMOTE,
-+							&client->dev,
-+							lm90_read_remote_temp,
-+							NULL);
-+	if (IS_ERR(data->tz[REMOTE]))
-+		data->tz[REMOTE] = NULL;
-+
-+	if (data->flags & LM90_HAVE_TEMP3) {
-+		data->tz[REMOTE2] = thermal_zone_of_sensor_register(
-+							&client->dev,
-+							REMOTE2,
-+							&client->dev,
-+							lm90_read_remote2_temp,
-+							NULL);
-+		if (IS_ERR(data->tz[REMOTE2]))
-+			data->tz[REMOTE2] = NULL;
++	/* If external vref is selected, configure the chip to use it */
++	if (data->regulator) {
++		err = i2c_smbus_write_byte_data(client,
++						ADC128_REG_CONFIG_ADV, 0x01);
++		if (err)
++			return err;
 +	}
 +
- 	return 0;
- 
- exit_unregister:
-@@ -1674,8 +1729,11 @@ exit_restore:
- 
- static int lm90_remove(struct i2c_client *client)
- {
-+	int i;
- 	struct lm90_data *data = i2c_get_clientdata(client);
- 
-+	for (i = 0; i < SENSOR_ID_END; i++)
-+		thermal_zone_of_sensor_unregister(&client->dev, data->tz[i]);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	device_remove_file(&client->dev, &dev_attr_pec);
- 	lm90_restore_conf(client, data);
++	return 0;
++}
++
++static int adc128_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct regulator *regulator;
++	struct device *hwmon_dev;
++	struct adc128_data *data;
++	int err, vref;
++
++	data = devm_kzalloc(dev, sizeof(struct adc128_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	/* vref is optional. If specified, is used as chip reference voltage */
++	regulator = devm_regulator_get_optional(dev, "vref");
++	if (!IS_ERR(regulator)) {
++		data->regulator = regulator;
++		err = regulator_enable(regulator);
++		if (err < 0)
++			return err;
++		vref = regulator_get_voltage(regulator);
++		if (vref < 0) {
++			err = vref;
++			goto error;
++		}
++		data->vref = DIV_ROUND_CLOSEST(vref, 1000);
++	} else {
++		data->vref = 2560;	/* 2.56V, in mV */
++	}
++
++	data->client = client;
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* Initialize the chip */
++	err = adc128_init_client(data);
++	if (err < 0)
++		goto error;
++
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data, adc128_groups);
++	if (IS_ERR(hwmon_dev)) {
++		err = PTR_ERR(hwmon_dev);
++		goto error;
++	}
++
++	return 0;
++
++error:
++	if (data->regulator)
++		regulator_disable(data->regulator);
++	return err;
++}
++
++static int adc128_remove(struct i2c_client *client)
++{
++	struct adc128_data *data = i2c_get_clientdata(client);
++
++	if (data->regulator)
++		regulator_disable(data->regulator);
++
++	return 0;
++}
++
++static const struct i2c_device_id adc128_id[] = {
++	{ "adc128d818", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adc128_id);
++
++static struct i2c_driver adc128_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "adc128d818",
++	},
++	.probe		= adc128_probe,
++	.remove		= adc128_remove,
++	.id_table	= adc128_id,
++	.detect		= adc128_detect,
++	.address_list	= normal_i2c,
++};
++
++module_i2c_driver(adc128_driver);
++
++MODULE_AUTHOR("Guenter Roeck");
++MODULE_DESCRIPTION("Driver for ADC128D818");
++MODULE_LICENSE("GPL");
 -- 
-1.7.9.5
+1.7.9.7
 
 
 _______________________________________________
