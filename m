@@ -1,101 +1,54 @@
-From: =?ISO-8859-1?Q?J=FCrgen_Fuchsberger?= <juergen.fuchsberger@uni-graz.at>
-Date: Mon, 17 Feb 2014 14:49:43 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 17 Feb 2014 15:55:54 +0000
 Subject: Re: [lm-sensors] Kernel errors for dme1737
-Message-Id: <53022187.9010805@uni-graz.at>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3799048938143252186=="
+Message-Id: <20140217165554.5c55506e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADLDEKtzZeoOyyUGe7Rug8n-c0oZ_n8Cqd=HFpPZdZWgYmJARg@mail.gmail.com>
 In-Reply-To: <CADLDEKtzZeoOyyUGe7Rug8n-c0oZ_n8Cqd=HFpPZdZWgYmJARg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---===============3799048938143252186==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="DIrKGd8p0kJJcGd7JQdt9wJk7ii1XkUJG"
+Hallo J=FCrgen,
 
---DIrKGd8p0kJJcGd7JQdt9wJk7ii1XkUJG
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Mon, 17 Feb 2014 15:33:18 +0100, J=FCrgen Fuchsberger wrote:
+> On 02/13/2014 08:32 AM, Jean Delvare wrote:
+> > In your case, the native drivers are i2c-nforce2, dme1737 and lm85, and
+> > the native tool is "sensors". The IPMI driver would be ipmi-si if I
+> > remember correctly, and its tool is "ipmitool" or equivalent (there are
+> > several IPMI packages out there, I don't know which ones are available
+> > to you.) If you have a BMC card in the machine, that card would be
+> > accessing the monitoring chips over IPMI as well so it will happen even
+> > without any driver loaded.
+> >=20
+> > If you want to use IPMI (and if you have a BMC this is the only safe
+> > option), blacklist i2c-nforce2 and delete your lm_sensors configuration
+> > file (typically /etc/sysconfig/lm_sensors on a sysconfig-based system,
+> > might be different on your distributions, e.g. on Debian you'd just
+> > delete the relevant modules from /etc/modules.) Then load ipmi-si and
+> > use ipmitool or whatever IPMI tool you have installed.
+>=20
+> OK, where should I blacklist i2c-nforce2?
 
+Add the following statement to any .conf file under /etc/modprobe.d:
 
-On 02/17/2014 03:42 PM, Juerg Haefliger wrote:
->
+blacklist i2c-nforce2
+
 > impitool does not work:
 > wegc203094:/etc# ipmitool sensor
-> Could not open device at /dev/ipmi0 or /dev/ipmi/0 or /dev/ipmidev/0: N=
-o
+> Could not open device at /dev/ipmi0 or /dev/ipmi/0 or /dev/ipmidev/0: No
 > such file or directory
+> Get Device ID command failed
+> Unable to open SDR for reading
 
-Did you try to load the ipmi driver(s)? What do you get in the logs?
->
-Feb 17 11:05:51 wegc203094 kernel: [    8.828554] ipmi message handler
-version 39.2
-Feb 17 11:05:51 wegc203094 kernel: [    8.836419] IPMI System Interface
-driver.
-Feb 17 11:05:51 wegc203094 kernel: [    8.836494] ipmi_si: probing via
-SMBIOS
-Feb 17 11:05:51 wegc203094 kernel: [    8.836501] ipmi_si: SMBIOS: io
-0xca8 regsize 1 spacing 4 irq 0
-Feb 17 11:05:51 wegc203094 kernel: [    8.836507] ipmi_si: Adding
-SMBIOS-specified kcs state machine
-Feb 17 11:05:51 wegc203094 kernel: [    8.836517] ipmi_si: Trying
-SMBIOS-specified kcs state machine at i/o address 0xca8, slave address
-0x20, irq 0
-Feb 17 11:05:51 wegc203094 kernel: [    8.971823] ipmi_si ipmi_si.0:
-Found new BMC (man_id: 0x0019fd, prod_id: 0x0b74, dev_id: 0x20)
-Feb 17 11:05:51 wegc203094 kernel: [    8.971845] ipmi_si ipmi_si.0:
-IPMI kcs interface initialized
-
-
-> ...Juerg
->
->
-> > Get Device ID command failed
-> > Unable to open SDR for reading
-> >
-> > Best,
-> > Juergen
-> >
-> > >
-> >
+I can't help with that, sorry, I don't know much about IPMI.
 
 --=20
-| J=FCrgen Fuchsberger, M.Sc.
-| Wegener Center for Climate and Global Change
-| University of Graz
-| Brandhofgasse 5, A-8010 Graz, Austria
-| phone: +43-316-380-8438
-|   web: www.wegcenter.at/wegenernet
-|        www.wegenernet.org
-
-
-
---DIrKGd8p0kJJcGd7JQdt9wJk7ii1XkUJG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Icedove - http://www.enigmail.net/
-
-iF4EAREIAAYFAlMCIYcACgkQ4RNsce5/DgBfkQEAiuaN3WG9fdvu915RQFbbCCcI
-/Nu8kdkclXgX34g32PYBAItnEoHuFsksheVtcx+Tr3DB3QmZHT846FOw+RPOWL/s
-=TBN6
------END PGP SIGNATURE-----
-
---DIrKGd8p0kJJcGd7JQdt9wJk7ii1XkUJG--
-
-
---===============3799048938143252186==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jean Delvare
+Suse L3 Support
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3799048938143252186==--
