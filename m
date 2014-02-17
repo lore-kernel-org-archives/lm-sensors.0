@@ -1,42 +1,33 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Feb 2014 01:01:17 +0000
-Subject: [lm-sensors] [PATCH v2 2/4] hwmon: (lm90) Always use the dev variable in the probe function
-Message-Id: <1392771679-14666-2-git-send-email-linux@roeck-us.net>
+From: David Anderson <davea42@gmail.com>
+Date: Mon, 17 Feb 2014 17:34:02 +0000
+Subject: Re: [lm-sensors] sensors command now hangs [update]
+Message-Id: <5302480A.6020808@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: New patch. Separated out from other patches as it is logically
-    a different change.
+This started  in late 2013, a month or two
+after installing Nvidia GTX 760 (and new PSU)
+--- I reported system hang
+from sensors command  to lm-sensors on Jan 20, 2014.
 
- drivers/hwmon/lm90.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+I was avoiding the sensors command since Jan 20
+but something used it (me? I don't recall. ipmi?)
+(as reported in kern.log: blocked for more than 120 seconds.)
+and it was hanging and the system
+hung up totally last night, February 16.
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 733b42e..07ffd10 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -1536,12 +1536,11 @@ static int lm90_probe(struct i2c_client *client,
- 
- 	err = regulator_enable(regulator);
- 	if (err < 0) {
--		dev_err(&client->dev,
--			"Failed to enable regulator: %d\n", err);
-+		dev_err(dev, "Failed to enable regulator: %d\n", err);
- 		return err;
- 	}
- 
--	data = devm_kzalloc(&client->dev, sizeof(struct lm90_data), GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(struct lm90_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--- 
-1.7.9.7
+Found Guenter's January advice (impi conflicts with
+other hardware monitoring) and since I am not using ipmi
+I commented out ipmi-si from /etc/modules and rebooted
+today.   lsmod shows no ipmi now. synaptic does not show
+any ipmi stuff installed.
+
+Hopefully the hangs will no longer happen.
+Thanks. My fault for not finding Guenter's advice sooner.
+DavidA.
 
 
 _______________________________________________
