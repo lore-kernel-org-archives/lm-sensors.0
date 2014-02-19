@@ -1,116 +1,166 @@
-From: Sebastian Reichel <sre@ring0.de>
-Date: Sun, 16 Feb 2014 17:44:30 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: twl4030-madc-hwmon: Add device tree support.
-Message-Id: <20140216174430.GA26036@earth.universe>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5889450126949932690=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 19 Feb 2014 01:01:19 +0000
+Subject: [lm-sensors] [PATCH v2 4/4] hwmon: (lm90) Convert to use hwmon_device_register_with_groups
+Message-Id: <1392771679-14666-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392384058-14240-1-git-send-email-marek@goldelico.com>
- <20140214133101.GA17796@e106331-lin.cambridge.arm.com>
- <CAAfyv36Eo578K1LAdFJdKKjs800Gz2_kfJqvEcdD_U1qRCKY6w@mail.gmail.com>
- <5300E9DA.501@roeck-us.net>
-In-Reply-To: <5300E9DA.501@roeck-us.net>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Belisko Marek <marek.belisko@gmail.com>, Mark Rutland <mark.rutland@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "galak@codeaurora.org" <galak@codeaurora.org>, "rob@landley.net" <rob@landley.net>, "jdelvare@suse.de" <jdelvare@suse.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "hns@goldelico.com" <hns@goldelico.com>
-
-
---===============5889450126949932690==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
-Content-Disposition: inline
-
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Feb 16, 2014 at 08:39:54AM -0800, Guenter Roeck wrote:
-> On 02/14/2014 06:08 AM, Belisko Marek wrote:
-> >On Fri, Feb 14, 2014 at 2:31 PM, Mark Rutland <mark.rutland@arm.com> wro=
-te:
-> >>On Fri, Feb 14, 2014 at 01:20:58PM +0000, Marek Belisko wrote:
-> >>>Signed-off-by: Marek Belisko <marek@goldelico.com>
-> >>>---
-> >>>  Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt |  9 =
-+++++++++
-> >>>  drivers/hwmon/twl4030-madc-hwmon.c                             | 10 =
-++++++++++
-> >>>  2 files changed, 19 insertions(+)
-> >>>  create mode 100644 Documentation/devicetree/bindings/hwmon/twl4030-m=
-adc-hwmon.txt
-> >>>
-> >>>diff --git a/Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmo=
-n.txt b/Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt
-> >>>new file mode 100644
-> >>>index 0000000..e8016d1
-> >>>--- /dev/null
-> >>>+++ b/Documentation/devicetree/bindings/hwmon/twl4030-madc-hwmon.txt
-> >>>@@ -0,0 +1,9 @@
-> >>>+TWL4030 MADC hwmon.
-> >>>+
-> >>>+Required properties:
-> >>>+- compatible: "ti,twl4030-madc-hwmon"
-> >>>+
-> >>>+Example:
-> >>>+madc-hwmon {
-> >>>+     compatible =3D "ti,twl4030-madc-hwmon";
-> >>>+};
-> >>
-> >>Huh?
-> >>
-> >>What is this a binding for? From a look at the driver in mainline this
-> >>just calls into functions from the twl4030 madc driver (which doesn't
-> >>seem to have a binding).
-> >I post bindings for twl4030-madc [1]. Without probing this driver
-> >other things will not work (twl4030-madc-battery e.g.).
-> >Is there better way to handle this situation?
->=20
-> Since you are converting twl4030-madc to be an iio driver,
-> can't you simply use the iio_hwmon bridge and declare this driver
-> obsolete ?
-
-He didn't convert the driver, I did. That's why he included this
-change.
-
-I was thinking of using the iio_hwmon bridge and deprecating the
-madc-hwmon driver. I have not tested this, though (lack of time).
-
--- Sebastian
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTAPj+AAoJENju1/PIO/qaZ2gP/0HkoPV5LMsxd7qqkPwQ6Kh7
-k9eXjV1w7sGKQGAZtIS24sMYC/txeAbvv8ohQ77LKVFPqm8ybY3IoET7wNKj2NN7
-RGEXcLFbOQqgytvdIg5Y63Vm7pBXJxA18j3p5esV6B58Rzh6pxax4zdkcu56IyVU
-WIYhJE38fxATiZOGopE85T2YkK74fmekAz7VGQrcM9JbDco1jGs69GBCP9mv8bBm
-GYsH+nxxpcneMokW4Lb8uU3OIk3aoOVg6K39Y5dBnbc9kgdLqlW4yezt0UaKHL83
-6mg5j7tJGGDNWXi9FfgsVEjublNQb6c2xeavZYbaLiUZPFfew7eiEAbS7oueY8KR
-UZcVBEn36zNn4oZ3jsYHQ1rR2L6Id1IOizfs5QeQ0y5YutR8wUVP/brs38hbe5SR
-Au6LLTfZV/clGU6r6vk74gB47c1lwkxs7JRTVb/lyJQq2KkrKT3uWvoW+PoZSP9e
-HCFrUUCMOdhVp0IkJRb2knntpdv1SXBVGhY6gA93PLdMmf7hHEmkM8dArB6TTaa0
-1gqIHS9HGdMKu8W954/Jbj5Vv08WgH5/v7NBDCpUcsGrsfRXiQOo9NS8yzjj15RM
-ruaYLvfX7RU2BmM+truiA/Yqz+ymn+io72cYu83q8yur7A5RfFV6+6vaGyVmg0k8
-S+PwNBUzF3xyullLu2hJ
-=LdOI
------END PGP SIGNATURE-----
-
---X1bOJ3K7DJ5YkBrT--
-
-
---===============5889450126949932690==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Simplify code, reduce code size, and attach hwmon attributes to hwmon device.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: The 'pec' attribute is still attached to the i2c device.
+    Reversed parameter order for lm90_init_client()
+
+TBD: Should log messages be attached to the hwmon device ?
+     If so I'd probably submit a separate patch for it.
+
+I tested this with MAX6695. Given that the pec attribute is now handled
+differently, it might make sense to test this chip explicitly.
+Jean, do you have one available, at least in simulation ?
+
+ drivers/hwmon/lm90.c |   39 +++++++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 9ad7401..c9ff08d 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -365,6 +365,7 @@ enum lm90_temp11_reg_index {
+  */
+ 
+ struct lm90_data {
++	struct i2c_client *client;
+ 	struct device *hwmon_dev;
+ 	const struct attribute_group *groups[6];
+ 	struct mutex update_lock;
+@@ -514,8 +515,8 @@ static void lm90_set_convrate(struct i2c_client *client, struct lm90_data *data,
+ 
+ static struct lm90_data *lm90_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm90_data *data = i2c_get_clientdata(client);
++	struct lm90_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	unsigned long next_update;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -794,8 +795,8 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+ 	};
+ 
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm90_data *data = i2c_get_clientdata(client);
++	struct lm90_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int nr = attr->index;
+ 	long val;
+ 	int err;
+@@ -861,8 +862,8 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 	};
+ 
+ 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm90_data *data = i2c_get_clientdata(client);
++	struct lm90_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int nr = attr->nr;
+ 	int index = attr->index;
+ 	long val;
+@@ -923,8 +924,8 @@ static ssize_t show_temphyst(struct device *dev,
+ static ssize_t set_temphyst(struct device *dev, struct device_attribute *dummy,
+ 			    const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm90_data *data = i2c_get_clientdata(client);
++	struct lm90_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	long val;
+ 	int err;
+ 	int temp;
+@@ -977,8 +978,8 @@ static ssize_t set_update_interval(struct device *dev,
+ 				   struct device_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm90_data *data = i2c_get_clientdata(client);
++	struct lm90_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	unsigned long val;
+ 	int err;
+ 
+@@ -1412,10 +1413,9 @@ static void lm90_restore_conf(struct i2c_client *client, struct lm90_data *data)
+ 				  data->config_orig);
+ }
+ 
+-static void lm90_init_client(struct i2c_client *client)
++static void lm90_init_client(struct i2c_client *client, struct lm90_data *data)
+ {
+ 	u8 config, convrate;
+-	struct lm90_data *data = i2c_get_clientdata(client);
+ 
+ 	if (lm90_read_reg(client, LM90_REG_R_CONVRATE, &convrate) < 0) {
+ 		dev_warn(&client->dev, "Failed to read convrate register!\n");
+@@ -1530,6 +1530,7 @@ static int lm90_probe(struct i2c_client *client,
+ 	if (!data)
+ 		return -ENOMEM;
+ 
++	data->client = client;
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+@@ -1556,7 +1557,7 @@ static int lm90_probe(struct i2c_client *client,
+ 	data->max_convrate = lm90_params[data->kind].max_convrate;
+ 
+ 	/* Initialize the LM90 chip */
+-	lm90_init_client(client);
++	lm90_init_client(client, data);
+ 
+ 	/* Register sysfs hooks */
+ 	data->groups[groups++] = &lm90_group;
+@@ -1579,14 +1580,11 @@ static int lm90_probe(struct i2c_client *client,
+ 			goto exit_restore;
+ 	}
+ 
+-	err = sysfs_create_groups(&dev->kobj, data->groups);
+-	if (err)
+-		goto exit_remove_pec;
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
++	data->hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
++							    data, data->groups);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
++		goto exit_remove_pec;
+ 	}
+ 
+ 	if (client->irq) {
+@@ -1605,8 +1603,6 @@ static int lm90_probe(struct i2c_client *client,
+ 
+ exit_unregister:
+ 	hwmon_device_unregister(data->hwmon_dev);
+-exit_remove_files:
+-	sysfs_remove_groups(&dev->kobj, data->groups);
+ exit_remove_pec:
+ 	device_remove_file(dev, &dev_attr_pec);
+ exit_restore:
+@@ -1621,7 +1617,6 @@ static int lm90_remove(struct i2c_client *client)
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_groups(&client->dev.kobj, data->groups);
+ 	device_remove_file(&client->dev, &dev_attr_pec);
+ 	lm90_restore_conf(client, data);
+ 	regulator_disable(data->regulator);
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5889450126949932690==--
