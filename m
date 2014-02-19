@@ -1,126 +1,69 @@
-From: ianp <braveheart_leo@yahoo.com>
-Date: Wed, 19 Feb 2014 07:33:39 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 19 Feb 2014 08:53:17 +0000
 Subject: Re: [lm-sensors] W83627DHG-P sensor shows a single voltage monitor for +5V and +12V on in4?
-Message-Id: <1392795219.80291.YahooMailNeo@web160504.mail.bf1.yahoo.com>
+Message-Id: <20140219095317.5b96e7f2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
 In-Reply-To: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Wednesday, February 19, 2014 2:16 PM, Guenter Roeck <linux@roeck-us.ne=
-t> wrote:
+On Tue, 18 Feb 2014 20:11:40 -0800, Guenter Roeck wrote:
+> On 02/18/2014 07:18 PM, ianp wrote:
+> > I though about it too at first, that Voltage X corresponds to inX in lm-sensors. The problem is, if you look at the default configuration lm-sensors provide at /etc/sensors3.conf:
+> >
+> > chip "w83627ehf-*" "w83627dhg-*" "w83667hg-*" "nct6775-*" "nct6776-*"
+> >
+> >      label in0 "Vcore"
+> >      label in2 "AVCC"
+> >      label in3 "+3.3V"
+> >      label in7 "3VSB"
+> >      label in8 "Vbat"
+> >
+> >      set in2_min  3.3 * 0.90
+> >      set in2_max  3.3 * 1.10
+> >      set in3_min  3.3 * 0.90
+> >      set in3_max  3.3 * 1.10
+> >      set in7_min  3.3 * 0.90
+> >      set in7_max  3.3 * 1.10
+> >      set in8_min  3.0 * 0.90
+> >      set in8_max  3.0 * 1.10
+> >
+> > You can see that in3 is "+3.3V". Of course I tried modifying in3 in my configuration as follows:
 >
-> Actually, they do. Register values are 0xcf for both (bank 0,
-> registers 0x23 and 0x24).
->
+> That is just a generic description for settings which are
+> often seen for those SuperIO chips. That doesn't mean they
+> apply in any way to your board.
 
-Oh, you meant the raw dump physical value (0xCF). I was pertaining to the v=
-alues reported back by sensors, which was an incorrect understanding on my =
-part.
+No, this isn't correct. We stopped with this long ago. Today the file
+installed as /etc/sensors3.conf only contains statements which are
+always correct. The comment at the top of the file says exactly that:
 
->> +3.3V:
->>=A0=A0=A0=A0 in3_input: 3.296
->>=A0=A0=A0=A0 in3_min: 2.976
->>=A0=A0=A0=A0 in3_max: 3.632
->>=A0=A0=A0=A0 in3_alarm: 0.000
->
-> If we assume that hwmonitor is correct, this needs
-> to scale up 50%, which would make the value
-> 3.296 * 1.5 =3D 4.944V.
->
-> The raw value reported by the driver in the hwmonitor dump
-> is 0xcf =3D 207, which is multiplied by the driver with 16,
-> resulting in 3.312V as originally seen, or scaled to 4.968V,
-> which is exactly the value that was reported by hwmonitor.
->
-> So your compute statement would be something like
->
-> compute=A0 in3=A0 @*(15/10), @/(15/10)
->
->> in4:
->>=A0=A0=A0=A0 in4_input: 1.656
->>=A0=A0=A0=A0 in4_min: 1.632
->>=A0=A0=A0=A0 in4_max: 1.800
->>=A0=A0=A0=A0 in4_alarm: 0.000
->>=A0=A0=A0=A0 in5_input: 1.688
->>=A0=A0=A0=A0 in5_min: 0.088
->>=A0=A0=A0=A0 in5_max: 0.344
->>=A0=A0=A0=A0 in5_alarm: 1.000
->
-> The raw value reported by the driver is 0xcf =3D 207.
-> This is multiplied by the driver with 8, resulting
-> in a reported voltage of 1.656V. A scaling factor
-> of 7 (as you have) gets you to 11.592V, which
-> matches the voltage reported by hwmonitor quite closely.
->
-> compute in4 @*7, @/7
->
-> might be a bit simpler, though.
->
-> Hope this helps,
->
-> Guenter
->
+# This default configuration file only includes statements which do not
+# differ from one mainboard to the next. Only label, compute and set
+# statements for internal voltage and temperature sensors are included.
 
-You sir have been very helpful, and I must admit that this is both the case=
- of PEBKAC and PDL, but how could you blame me, an ordinary end user, for h=
-aving only so limited an undesrtanding and resource at my disposal? ;-)
+If you look at the W83627DHG-P datasheet, you'll see that in2, in3, in7
+and in8 monitor the chips's own power sources (AVCC, 3VCC, 3VSB and
+Vbat in this order.) The chip can monitor only 5 external voltages,
+with Vcore always being in0 and in1, in4, in5 and in6 being the generic
+inputs which can be used to monitor any other voltage.
 
-Committing your compute statements into my configuration:
+So there's no way +5V is in3, sorry. +5V and +12V can only be amongst
+in1, in4, in5 and in6. From there it's really only a matter of finding
+the right mapping and scaling factors. Please follow my guide here to
+get this right:
 
-$ sensors
-Vcore:=A0=A0=A0=A0=A0=A0=A0 +1.11 V=A0 (min =3D=A0 +1.07 V, max =3D=A0 +1.1=
-8 V)
-+3.3V:=A0=A0=A0=A0=A0=A0=A0=A0 +3.30 V=A0 (min =3D=A0 +2.98 V, max =3D=A0 +=
-3.63 V)
-+5V:=A0=A0=A0=A0=A0=A0=A0=A0=A0 +4.94 V=A0 (min =3D=A0 +2.98 V, max =3D=A0 =
-+3.62 V)=A0 ALARM
-+12V:=A0=A0=A0=A0=A0=A0=A0 +11.59 V=A0 (min =3D +11.42 V, max =3D +12.60 V)
-Vram:=A0=A0=A0=A0=A0=A0=A0=A0 +1.90 V=A0 (min =3D=A0 +1.80 V, max =3D=A0 +1=
-.90 V)
-3Vsb:=A0=A0=A0=A0=A0=A0=A0=A0 +3.50 V=A0 (min =3D=A0 +2.98 V, max =3D=A0 +3=
-.63 V)
-Vbat:=A0=A0=A0=A0=A0=A0=A0=A0 +3.34 V=A0 (min =3D=A0 +2.70 V, max =3D=A0 +3=
-.30 V)=A0 ALARM
-CHA Fan:=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D 128)
-CPU Fan:=A0=A0=A0=A0 2191 RPM=A0 (min =3D=A0 902 RPM, div =3D 8)
-PSU Fan:=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D 128)
-N/B Temp:=A0=A0=A0=A0 +43.0=B0C=A0 (high =3D +60.0=B0C, hyst =3D +55.0=B0C)=
-=A0 sensor =3D thermistor
-CPU Temp:=A0=A0=A0=A0 +40.0=B0C=A0 (high =3D +60.0=B0C, hyst =3D +55.0=B0C)=
-=A0 sensor =3D thermistor
-intrusion0:=A0 ALARM
+http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
 
-I will contribute my configuration into the http://lm-sensors.org/wiki/Conf=
-igurations page for this board so that others may benefit as well.
+Your chip's native voltage range is 2.04 V i.e. LSB = 8 mV.
 
-There are still some observations I'd like to ask you about:
-
-1. While +5V is now scaled from in3, if you will take notice the min and ma=
-x values do not reflect the ones I have set in my configuration:
-
-=A0=A0 set in3_min 5 * 0.95
-=A0=A0 set in3_max 5 * 1.05
-
-I do not believe that this is an expected behavior, so perhaps a bug then?
-
-2. I have relied upon http://www.lm-sensors.org/wiki/VoltageLabelsAndScalin=
-g for scaling +5V and +12V values. But the way you derived the scaling fact=
-ors from your explanation above, which I believe is much easier and faster =
-than the one in the wiki that works on samples, does not seem to be covered=
- there. How does one go about figuring out scaling factors like the way you=
- did?
-
-3. Regarding 3VSB, if this is the standby voltage, then shouldn't it be +5V=
-SB? I don't think PSUs provide +3VSB, only +5VSB. So does this mean that th=
-e value needs to be scaled as well?
-
-4. Same with VBAT, as I recall motherboard internal batteries are rated at =
-+3V CR2032 coin-cell batteries.
-
+-- 
+Jean Delvare
+Suse L3 Support
+http://jdelvare.nerim.net/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
