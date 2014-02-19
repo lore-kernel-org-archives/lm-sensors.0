@@ -1,66 +1,49 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 19 Feb 2014 21:15:11 +0000
+From: Mathias Gerber <mathias_g@tuxedo.ath.cx>
+Date: Wed, 19 Feb 2014 22:34:32 +0000
 Subject: Re: [lm-sensors] Sensors configuration for ASRock G41C-GS
-Message-Id: <20140219221511.544ab2ec@endymion.delvare>
+Message-Id: <53053178.3020406@tuxedo.ath.cx>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 In-Reply-To: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 19 Feb 2014 09:51:14 -0800 (PST), ianp wrote:
-> > On Thursday, February 20, 2014 1:01 AM, Jean Delvare <jdelvare@suse.de>=
- wrote:
->=20
-> >
-> >>  =A0=A0 ### Set in0 according to CPU nominal voltage.
-> >>  =A0=A0 ### Set min and max values according to preference.
-> >>=20
-> >>  =A0=A0 set in0_min 1.2 * 0.95
-> >>  =A0=A0 set in0_max 1.2 * 1.05
-> >=20
-> > What (family of) CPU is it? Typically modern CPUs have a range of
-> > supported voltages and the voltage changes dynamically depending on
-> > load. So you should use the lowest value to set in0_min and the highest
-> > value to set in0_max.
-> >=20
->=20
-> It's an Intel Core 2 Duo E8400 (family 6, model 23; CPUID 0x10676). You a=
-re correct about the CPU min and max voltages, which I have overlooked. Int=
-el's Ark provides just that: http://ark.intel.com/products/33910/Intel-Core=
-2-Duo-Processor-E8400-6M-Cache-3_00-GHz-1333-MHz-FSB?q=3De8400
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Same CPU in my wife's machine, still quite good.
+Hi Jean
 
->=20
-> set in0_min 0.850
-> set in0_max 1.362
+On 19.02.2014 18:01, Jean Delvare wrote:
+> Initial version of the file is in the wiki now: 
+> http://www.lm-sensors.org/wiki/Configurations/ASRock/G41C-GS
+In the past I posted configurations for two of my mainboards [1], [2]
+to the ml, but none of these got added to the wiki.
 
-Wiki updated.
+Did "you" just missed them or is there a reason why they were not
+added? :-(
 
-> >>  ### Temperatures
-> >>=20
-> >>  =A0=A0 ### Ignore temp3 until properly identified.
-> >>=20
-> >>  =A0=A0 label=A0 temp1=A0 "N/B Temp"
-> >>  =A0=A0 label=A0 temp2=A0 "CPU Temp"
-> >>  =A0=A0 ignore temp3
-> >=20
-> > I do not recommend ignoring unidentified temperatures, they are still
-> > useful as long as they are real (which seems to be the case here.)
->=20
-> hwmonitor labels it as AUXTIN. It's value resides between 45 C - 46 C, ev=
-en from a cold boot. I guess that value seems rational so I will leave it '=
-as is' per your recommendation.
+[1] >
+http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041142.html
 
-AUXTIN is the name of the input in the datasheet, that doesn't say much
-about where the sensor actually is on your motherboard.
+[2]
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2014-January/040909.html
 
---=20
-Jean Delvare
-Suse L3 Support
+Thank
+> 
+you
+- -- 
+kind regards
+ mathias
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iEYEARECAAYFAlMFMWQACgkQnfTEjDUZ2fOCfwCgnynwIeFr6fvAKNqhLo/uXorg
+500AmQEy+cbJQ8CJtWLyLvmOIdvFs6CP
+=Z5Mg
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
