@@ -1,40 +1,77 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Feb 2014 17:38:57 +0000
-Subject: Re: [lm-sensors] [PATCH v2 4/4] hwmon: (lm90) Convert to use hwmon_device_register_with_groups
-Message-Id: <20140219173857.GB30967@roeck-us.net>
+From: ianp <braveheart_leo@yahoo.com>
+Date: Wed, 19 Feb 2014 15:27:41 +0000
+Subject: [lm-sensors] Sensors configuration for ASRock G41C-GS
+Message-Id: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392771679-14666-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1392771679-14666-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 19, 2014 at 11:56:07AM +0100, Jean Delvare wrote:
-> On Wed, 19 Feb 2014 11:18:50 +0100, Jean Delvare wrote:
-> > Hi Guenter,
-> > 
-> > On Tue, 18 Feb 2014 17:01:19 -0800, Guenter Roeck wrote:
-> > > I tested this with MAX6695. Given that the pec attribute is now handled
-> > > differently, it might make sense to test this chip explicitly.
-> > > Jean, do you have one available, at least in simulation ?
-> > 
-> > Unfortunately simulation is done using i2c-stub which lacks support for
-> > PEC, so it doesn't help.
-> > 
-> > I do have a physical ADM1032 chip, however it is on a parallel-port
-> > evaluation board, and my workstation lacks such a port. I have one on
-> > another machine in my office, but it's running kernel 3.11 and the
-> > converted driver doesn't built there. So I'll have to build a new
-> > kernel on that old machine first.
-> 
-> ... or install the latest stable kernel which is already packaged, and
-> build the updated driver on top of it. I'm done with testing, and
-> everything is OK.
-> 
-Excellent. Thanks a lot!
+### Sensors configuration for ASRock G41C-GS motherboard
+### 2014-02-19, ianp <snailbox88-dev -at- yahoo -dot- com>
+### Thanks to Jean Delvare and Guenter Roeck
+### Comments are welcome.
 
-Guenter
+
+chip "w83627dhg-*"
+
+
+### Voltages
+
+=A0=A0 ignore in1=A0=A0=A0=A0=A0=A0=A0=A0=A0 # Ignored until
+=A0=A0 ignore in4=A0=A0=A0=A0=A0=A0=A0=A0=A0 # properly identified
+=A0=A0 label=A0 in5=A0 "+5V"
+=A0=A0 label=A0 in6=A0 "+12V"
+=A0=A0 ignore cpu0_vid=A0=A0=A0=A0 # Always at 0 in my case, so ignore it
+
+=A0=A0 ### Scale +5V and +12V.
+
+=A0=A0 compute=A0 in5=A0 @*3, @/3
+=A0=A0 compute=A0 in6=A0 @*(1+56/10), @/(1+56/10)
+
+=A0=A0 ### Set in0 according to CPU nominal voltage.
+=A0=A0 ### Set min and max values according to preference.
+
+=A0=A0 set in0_min 1.2 * 0.95
+=A0=A0 set in0_max 1.2 * 1.05
+=A0=A0 set in5_min=A0=A0 5 * 0.95
+=A0=A0 set in5_max=A0=A0 5 * 1.05
+=A0=A0 set in6_min=A0 12 * 0.95
+=A0=A0 set in6_max=A0 12 * 1.05
+
+### Temperatures
+
+=A0=A0 ### Ignore temp3 until properly identified.
+
+=A0=A0 label=A0 temp1=A0 "N/B Temp"
+=A0=A0 label=A0 temp2=A0 "CPU Temp"
+=A0=A0 ignore temp3
+
+=A0=A0 ### Set according to CPU and preference.
+
+=A0=A0 set temp1_max=A0=A0=A0=A0=A0 60
+=A0=A0 set temp1_max_hyst 55
+=A0=A0 set temp2_max=A0=A0=A0=A0=A0 60
+=A0=A0 set temp2_max_hyst 55
+
+### Fans
+
+=A0=A0 ### Ignore fan4 and fan5. There are
+=A0=A0 ### only 3 fan connectors on this board.
+
+=A0=A0 label=A0 fan1=A0 "CHA Fan"
+=A0=A0 label=A0 fan2=A0 "CPU Fan"
+=A0=A0 label=A0 fan3=A0 "PSU Fan"
+=A0=A0 ignore fan4
+=A0=A0 ignore fan5
+
+=A0=A0 ### Set according to preference.
+
+=A0=A0 set fan1_min 0
+=A0=A0 set fan2_min 900
+=A0=A0 set fan3_min 0
+
 
 _______________________________________________
 lm-sensors mailing list
