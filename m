@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Feb 2014 06:16:42 +0000
+From: ianp <braveheart_leo@yahoo.com>
+Date: Wed, 19 Feb 2014 07:33:39 +0000
 Subject: Re: [lm-sensors] W83627DHG-P sensor shows a single voltage monitor for +5V and +12V on in4?
-Message-Id: <53044C4A.2090906@roeck-us.net>
+Message-Id: <1392795219.80291.YahooMailNeo@web160504.mail.bf1.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
 In-Reply-To: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
@@ -10,145 +10,116 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 02/18/2014 09:38 PM, ianp wrote:
->> On Wednesday, February 19, 2014 12:21 PM, Guenter Roeck <linux@roeck-us.=
-net> wrote:
+> On Wednesday, February 19, 2014 2:16 PM, Guenter Roeck <linux@roeck-us.ne=
+t> wrote:
 >
->>
->> Theoretically yes, but I am quite sure that it is PBKC
->> (Problem Between Keyboard And Chair ;-).
->>
+> Actually, they do. Register values are 0xcf for both (bank 0,
+> registers 0x23 and 0x24).
 >
-> I do know about PEBKAC, and it would be unfortunate if that were to be th=
-e case.
+
+Oh, you meant the raw dump physical value (0xCF). I was pertaining to the v=
+alues reported back by sensors, which was an incorrect understanding on my =
+part.
+
+>> +3.3V:
+>>=A0=A0=A0=A0 in3_input: 3.296
+>>=A0=A0=A0=A0 in3_min: 2.976
+>>=A0=A0=A0=A0 in3_max: 3.632
+>>=A0=A0=A0=A0 in3_alarm: 0.000
 >
-> Also,
->   I am not using the fact, whether directly or indirectly stated, that
-> "both in3 and in4 happen to report the same physical value," because
-> they do not report the same physical value. Forgive me if I wasn't clear
->   with my words, because English is not my native language.
+> If we assume that hwmonitor is correct, this needs
+> to scale up 50%, which would make the value
+> 3.296 * 1.5 =3D 4.944V.
 >
-Actually, they do. Register values are 0xcf for both (bank 0,
-registers 0x23 and 0x24).
-
-> For
->   the record, what I have been stating since the start is that,
-> apparently, I can scale the +5V and +12V monitors _only_ in in4. And
-> they are not out of pure luck, because apart from researching the
-> correct formula to use for the compute statements and a number of
-> trial-and-error runs, the +5V and +12V values that I scaled from my
-> formula just doesn't _happen_ to be correct -- they are corroborated as
-> the same values that hwmonitor "sees" in Windows. I cannot scale +5V nor
->   +12V from all the other inputs the kernel module provides, only in in4.
+> The raw value reported by the driver in the hwmonitor dump
+> is 0xcf =3D 207, which is multiplied by the driver with 16,
+> resulting in 3.312V as originally seen, or scaled to 4.968V,
+> which is exactly the value that was reported by hwmonitor.
 >
-Not sure if I I can follow that logic; see below.
-
->> Try sensors -u for raw values. That should help us determine
->> the correct compute statements.
->>
->> As far as I can see from the driver, in3 has an automatic
->> built-in scaling factor of 2 for this chip, meaning it already
->> reports twice the voltage you would expect for other inputs,
->> and thus should not need scaling in the first place.
->> In other words, sensors -u should already report
->> the correct value for in3.
->>
->> Guenter
->>
+> So your compute statement would be something like
 >
-> I will defer to your understanding, because you know the code much better=
- than I could hopefully ever understand.
+> compute=A0 in3=A0 @*(15/10), @/(15/10)
 >
-> For
->   the sake of simplicity, I have disabled my custom configuration and
-> deferred to the default values provided by lm-sensors, and here are the
-> results:
+>> in4:
+>>=A0=A0=A0=A0 in4_input: 1.656
+>>=A0=A0=A0=A0 in4_min: 1.632
+>>=A0=A0=A0=A0 in4_max: 1.800
+>>=A0=A0=A0=A0 in4_alarm: 0.000
+>>=A0=A0=A0=A0 in5_input: 1.688
+>>=A0=A0=A0=A0 in5_min: 0.088
+>>=A0=A0=A0=A0 in5_max: 0.344
+>>=A0=A0=A0=A0 in5_alarm: 1.000
 >
-> $ sensors
-> w83627dhg-isa-0290
-> Adapter: ISA adapter
-> Vcore:        +1.11 V  (min =3D  +1.07 V, max =3D  +1.18 V)
-> in1:          +0.98 V  (min =3D  +0.91 V, max =3D  +1.44 V)
-> AVCC:         +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> +3.3V:        +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> in4:          +1.66 V  (min =3D  +1.63 V, max =3D  +1.80 V)
-> in5:          +1.69 V  (min =3D  +0.09 V, max =3D  +0.34 V)  ALARM
-> in6:          +1.90 V  (min =3D  +1.80 V, max =3D  +1.90 V)
-> 3VSB:         +3.50 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> Vbat:         +3.34 V  (min =3D  +2.70 V, max =3D  +3.30 V)  ALARM
-> fan1:           0 RPM  (min =3D    0 RPM, div =3D 128)
-> fan2:        1854 RPM  (min =3D  902 RPM, div =3D 8)
-> fan3:           0 RPM  (min =3D    0 RPM, div =3D 128)
-> fan4:           0 RPM  (min =3D 2109 RPM, div =3D 128)  ALARM
-> fan5:           0 RPM  (min =3D  811 RPM, div =3D 128)  ALARM
-> temp1:        +41.0=B0C  (high =3D +60.0=B0C, hyst =3D +55.0=B0C)  sensor=
- =3D thermistor
-> temp2:        +38.5=B0C  (high =3D +60.0=B0C, hyst =3D +55.0=B0C)  sensor=
- =3D thermistor
-> temp3:        +45.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor=
- =3D thermistor
-> cpu0_vid:    +0.000 V
-> intrusion0:  ALARM
+> The raw value reported by the driver is 0xcf =3D 207.
+> This is multiplied by the driver with 8, resulting
+> in a reported voltage of 1.656V. A scaling factor
+> of 7 (as you have) gets you to 11.592V, which
+> matches the voltage reported by hwmonitor quite closely.
 >
-> $ sensors -u
-> w83627dhg-isa-0290
-> Adapter: ISA adapter
-> Vcore:
->    in0_input: 1.112
->    in0_min: 1.072
->    in0_max: 1.184
->    in0_alarm: 0.000
-> in1:
->    in1_input: 0.992
->    in1_min: 0.912
->    in1_max: 1.440
->    in1_alarm: 0.000
-> AVCC:
->    in2_input: 3.296
->    in2_min: 2.976
->    in2_max: 3.632
->    in2_alarm: 0.000
-> +3.3V:
->    in3_input: 3.296
->    in3_min: 2.976
->    in3_max: 3.632
->    in3_alarm: 0.000
+> compute in4 @*7, @/7
+>
+> might be a bit simpler, though.
+>
+> Hope this helps,
+>
+> Guenter
+>
 
-If we assume that hwmonitor is correct, this needs
-to scale up 50%, which would make the value
-3.296 * 1.5 =3D 4.944V.
+You sir have been very helpful, and I must admit that this is both the case=
+ of PEBKAC and PDL, but how could you blame me, an ordinary end user, for h=
+aving only so limited an undesrtanding and resource at my disposal? ;-)
 
-The raw value reported by the driver in the hwmonitor dump
-is 0xcf =3D 207, which is multiplied by the driver with 16,
-resulting in 3.312V as originally seen, or scaled to 4.968V,
-which is exactly the value that was reported by hwmonitor.
+Committing your compute statements into my configuration:
 
-So your compute statement would be something like
+$ sensors
+Vcore:=A0=A0=A0=A0=A0=A0=A0 +1.11 V=A0 (min =3D=A0 +1.07 V, max =3D=A0 +1.1=
+8 V)
++3.3V:=A0=A0=A0=A0=A0=A0=A0=A0 +3.30 V=A0 (min =3D=A0 +2.98 V, max =3D=A0 +=
+3.63 V)
++5V:=A0=A0=A0=A0=A0=A0=A0=A0=A0 +4.94 V=A0 (min =3D=A0 +2.98 V, max =3D=A0 =
++3.62 V)=A0 ALARM
++12V:=A0=A0=A0=A0=A0=A0=A0 +11.59 V=A0 (min =3D +11.42 V, max =3D +12.60 V)
+Vram:=A0=A0=A0=A0=A0=A0=A0=A0 +1.90 V=A0 (min =3D=A0 +1.80 V, max =3D=A0 +1=
+.90 V)
+3Vsb:=A0=A0=A0=A0=A0=A0=A0=A0 +3.50 V=A0 (min =3D=A0 +2.98 V, max =3D=A0 +3=
+.63 V)
+Vbat:=A0=A0=A0=A0=A0=A0=A0=A0 +3.34 V=A0 (min =3D=A0 +2.70 V, max =3D=A0 +3=
+.30 V)=A0 ALARM
+CHA Fan:=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D 128)
+CPU Fan:=A0=A0=A0=A0 2191 RPM=A0 (min =3D=A0 902 RPM, div =3D 8)
+PSU Fan:=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D 128)
+N/B Temp:=A0=A0=A0=A0 +43.0=B0C=A0 (high =3D +60.0=B0C, hyst =3D +55.0=B0C)=
+=A0 sensor =3D thermistor
+CPU Temp:=A0=A0=A0=A0 +40.0=B0C=A0 (high =3D +60.0=B0C, hyst =3D +55.0=B0C)=
+=A0 sensor =3D thermistor
+intrusion0:=A0 ALARM
 
-compute  in3  @*(15/10), @/(15/10)
+I will contribute my configuration into the http://lm-sensors.org/wiki/Conf=
+igurations page for this board so that others may benefit as well.
 
-> in4:
->    in4_input: 1.656
->    in4_min: 1.632
->    in4_max: 1.800
->    in4_alarm: 0.000
->    in5_input: 1.688
->    in5_min: 0.088
->    in5_max: 0.344
->    in5_alarm: 1.000
+There are still some observations I'd like to ask you about:
 
-The raw value reported by the driver is 0xcf =3D 207.
-This is multiplied by the driver with 8, resulting
-in a reported voltage of 1.656V. A scaling factor
-of 7 (as you have) gets you to 11.592V, which
-matches the voltage reported by hwmonitor quite closely.
+1. While +5V is now scaled from in3, if you will take notice the min and ma=
+x values do not reflect the ones I have set in my configuration:
 
-compute in4 @*7, @/7
+=A0=A0 set in3_min 5 * 0.95
+=A0=A0 set in3_max 5 * 1.05
 
-might be a bit simpler, though.
+I do not believe that this is an expected behavior, so perhaps a bug then?
 
-Hope this helps,
-Guenter
+2. I have relied upon http://www.lm-sensors.org/wiki/VoltageLabelsAndScalin=
+g for scaling +5V and +12V values. But the way you derived the scaling fact=
+ors from your explanation above, which I believe is much easier and faster =
+than the one in the wiki that works on samples, does not seem to be covered=
+ there. How does one go about figuring out scaling factors like the way you=
+ did?
+
+3. Regarding 3VSB, if this is the standby voltage, then shouldn't it be +5V=
+SB? I don't think PSUs provide +3VSB, only +5VSB. So does this mean that th=
+e value needs to be scaled as well?
+
+4. Same with VBAT, as I recall motherboard internal batteries are rated at =
++3V CR2032 coin-cell batteries.
 
 
 _______________________________________________
