@@ -1,111 +1,69 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Date: Fri, 14 Feb 2014 08:11:26 +0000
-Subject: [lm-sensors] [PATCH v2 45/52] hwmon, via-cputemp: Fix CPU hotplug callback registration
-Message-Id: <20140214075925.22701.69267.stgit@srivatsabhat.in.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 19 Feb 2014 01:01:16 +0000
+Subject: [lm-sensors] [PATCH v2 1/4] hwmon: (lm90) Create most optional attributes with sysfs_create_group
+Message-Id: <1392771679-14666-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140214074750.22701.47330.stgit@srivatsabhat.in.ibm.com>
-In-Reply-To: <20140214074750.22701.47330.stgit@srivatsabhat.in.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: paulus@samba.org, oleg@redhat.com, mingo@kernel.org, rusty@rustcorp.com.au, peterz@infradead.org, tglx@linutronix.de, akpm@linux-foundation.org
-Cc: paulmck@linux.vnet.ibm.com, tj@kernel.org, walken@google.com, ego@linux.vnet.ibm.com, linux@arm.linux.org.uk, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+To: lm-sensors@vger.kernel.org
 
-Subsystems that want to register CPU hotplug callbacks, as well as perform
-initialization for the CPUs that are already online, often do it as shown
-below:
+With the new hwmon API, all attributes have to be created as groups.
+Use sysfs_create_group and sysfs_remove_group instead of device_create_file
+and device_remove_file to prepare for the new API.
 
-	get_online_cpus();
+Exception is the 'pec' attribute which will stay with the i2c device.
 
-	for_each_online_cpu(cpu)
-		init_cpu(cpu);
-
-	register_cpu_notifier(&foobar_cpu_notifier);
-
-	put_online_cpus();
-
-This is wrong, since it is prone to ABBA deadlocks involving the
-cpu_add_remove_lock and the cpu_hotplug.lock (when running concurrently
-with CPU hotplug operations).
-
-Instead, the correct and race-free way of performing the callback
-registration is:
-
-	cpu_notifier_register_begin();
-
-	for_each_online_cpu(cpu)
-		init_cpu(cpu);
-
-	/* Note the use of the double underscored version of the API */
-	__register_cpu_notifier(&foobar_cpu_notifier);
-
-	cpu_notifier_register_done();
-
-
-Fix the hwmon via-cputemp code by using this latter form of callback
-registration.
-
-Cc: Jean Delvare <jdelvare@suse.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: lm-sensors@lm-sensors.org
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
+v2: Do not touch 'pec' attribute
+    Name new attribute list 'lm90_temp2_offset_attributes' to match
+    other attribute list variable names.
 
- drivers/hwmon/via-cputemp.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/hwmon/lm90.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
-index 38944e9..8df43c5 100644
---- a/drivers/hwmon/via-cputemp.c
-+++ b/drivers/hwmon/via-cputemp.c
-@@ -319,7 +319,7 @@ static int __init via_cputemp_init(void)
- 	if (err)
- 		goto exit;
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 701e952..733b42e 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -1057,6 +1057,15 @@ static const struct attribute_group lm90_group = {
+ 	.attrs = lm90_attributes,
+ };
  
--	get_online_cpus();
-+	cpu_notifier_register_begin();
- 	for_each_online_cpu(i) {
- 		struct cpuinfo_x86 *c = &cpu_data(i);
- 
-@@ -339,14 +339,14 @@ static int __init via_cputemp_init(void)
- 
- #ifndef CONFIG_HOTPLUG_CPU
- 	if (list_empty(&pdev_list)) {
--		put_online_cpus();
-+		cpu_notifier_register_done();
- 		err = -ENODEV;
- 		goto exit_driver_unreg;
- 	}
- #endif
- 
--	register_hotcpu_notifier(&via_cputemp_cpu_notifier);
--	put_online_cpus();
-+	__register_hotcpu_notifier(&via_cputemp_cpu_notifier);
-+	cpu_notifier_register_done();
- 	return 0;
- 
- #ifndef CONFIG_HOTPLUG_CPU
-@@ -361,8 +361,8 @@ static void __exit via_cputemp_exit(void)
- {
- 	struct pdev_entry *p, *n;
- 
--	get_online_cpus();
--	unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
-+	cpu_notifier_register_begin();
-+	__unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
- 	mutex_lock(&pdev_list_mutex);
- 	list_for_each_entry_safe(p, n, &pdev_list, list) {
- 		platform_device_unregister(p->pdev);
-@@ -370,7 +370,7 @@ static void __exit via_cputemp_exit(void)
- 		kfree(p);
- 	}
- 	mutex_unlock(&pdev_list_mutex);
--	put_online_cpus();
-+	cpu_notifier_register_done();
- 	platform_driver_unregister(&via_cputemp_driver);
++static struct attribute *lm90_temp2_offset_attributes[] = {
++	&sensor_dev_attr_temp2_offset.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group lm90_temp2_offset_group = {
++	.attrs = lm90_temp2_offset_attributes,
++};
++
+ /*
+  * Additional attributes for devices with emergency sensors
+  */
+@@ -1404,7 +1413,7 @@ static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
+ 	if (data->flags & LM90_HAVE_EMERGENCY)
+ 		sysfs_remove_group(&dev->kobj, &lm90_emergency_group);
+ 	if (data->flags & LM90_HAVE_OFFSET)
+-		device_remove_file(dev, &sensor_dev_attr_temp2_offset.dev_attr);
++		sysfs_remove_group(&dev->kobj, &lm90_temp2_offset_group);
+ 	device_remove_file(dev, &dev_attr_pec);
+ 	sysfs_remove_group(&dev->kobj, &lm90_group);
  }
- 
+@@ -1574,8 +1583,7 @@ static int lm90_probe(struct i2c_client *client,
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->flags & LM90_HAVE_OFFSET) {
+-		err = device_create_file(dev,
+-					&sensor_dev_attr_temp2_offset.dev_attr);
++		err = sysfs_create_group(&dev->kobj, &lm90_temp2_offset_group);
+ 		if (err)
+ 			goto exit_remove_files;
+ 	}
+-- 
+1.7.9.7
 
 
 _______________________________________________
