@@ -1,7 +1,7 @@
-From: ianp <braveheart_leo@yahoo.com>
-Date: Wed, 19 Feb 2014 13:52:54 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 19 Feb 2014 14:14:17 +0000
 Subject: Re: [lm-sensors] W83627DHG-P sensor shows a single voltage monitor for +5V and +12V on in4?
-Message-Id: <1392817974.56473.YahooMailNeo@web160506.mail.bf1.yahoo.com>
+Message-Id: <20140219151417.627205a4@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
 In-Reply-To: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
@@ -10,42 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Wednesday, February 19, 2014 9:10 PM, Jean Delvare <jdelvare@suse.de> wrote:
-
->
-> It turns out that a very frequent pair of scaling resistors is 10 Ohm
-> and 56 Ohm, which leads to:
+On Wed, 19 Feb 2014 05:52:54 -0800 (PST), ianp wrote:
+> I'm almost ready with my configuration. Now here's my +5V scaling computation:
 > 
-> compute in6 @*(1+56/10), @/(1+56/10)
+> +5V BIOS samples: 5.040, 5.064, 5.136
+
+And I've found 5.088 on the web (G41M-GS but hopefully it's the same):
+http://www.3dnews.ru/582775/page-2.html
+
+> 5.064 - 5.040 = 0.024
+> 5.136 - 5.064 = 0.072
+
+5.088 - 5.064 = 0.024
+5.136 - 5.088 = 0.048
+(just to confirm your findings)
+
+> 5.136 / (24/8) = 1.712
 > 
-> This maps your raw reading (1.896) to exactly 12.513 which is one of
-> the values you saw in the BIOS, and also maps integer register values
-> to 12.091 and 12.460.
+> 1.712 is close enough to in5 (1.688). So my compute statement is:
+
+I'd even say that 5.064 / (24/8) = 1.688 is close enough to your in5 ;-)
+
+> compute in5 @*3, @/3
 > 
+> Apparently, the scaling factor I use above maps exactly with the BIOS values I have seen. So if everything checks out and you concur with my computation, then I can send in my configuration.
 
-Ah, I see. Thank you for that input. Now it maps exactly with the BIOS values that I have observed.
+Yes, I completely agree with your computations. Great job! Glad to see
+my guide working in practice :-)
 
-> You must have changed the wrong file, or the wrong section in the right
-> file. It should work.
->
-
-Yes, it works now.
-
-I'm almost ready with my configuration. Now here's my +5V scaling computation:
-
-+5V BIOS samples: 5.040, 5.064, 5.136
-
-5.064 - 5.040 = 0.024
-5.136 - 5.064 = 0.072
-
-5.136 / (24/8) = 1.712
-
-1.712 is close enough to in5 (1.688). So my compute statement is:
-
-compute in5 @*3, @/3
-
-Apparently, the scaling factor I use above maps exactly with the BIOS values I have seen. So if everything checks out and you concur with my computation, then I can send in my configuration.
-
+-- 
+Jean Delvare
+Suse L3 Support
+http://jdelvare.nerim.net/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
