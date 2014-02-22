@@ -1,49 +1,37 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 23 Feb 2014 16:48:59 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (max6639) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <530A267B.9070105@roeck-us.net>
+Date: Sat, 22 Feb 2014 17:30:11 +0000
+Subject: [lm-sensors] [PATCH v2 3/4] hwmon: (lm95245) Drop useless debug message
+Message-Id: <1393090212-24900-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1393031014-26259-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1393031014-26259-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 02/23/2014 08:21 AM, Jean Delvare wrote:
-> On Fri, 21 Feb 2014 17:03:34 -0800, Guenter Roeck wrote:
->> Simplify code, reduce code size, and attach sysfs attricutes to hwmon device.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/max6639.c |   81 +++++++++++++++--------------------------------
->>   1 file changed, 26 insertions(+), 55 deletions(-)
->>
->> diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
->> index 52646bb..e4852bb 100644
->> --- a/drivers/hwmon/max6639.c
->> +++ b/drivers/hwmon/max6639.c
->> (...)
->> @@ -424,9 +417,9 @@ static int rpm_range_to_reg(int range)
->>   	return 1; /* default: 4000 RPM */
->>   }
->>
->> -static int max6639_init_client(struct i2c_client *client)
->> +static int max6639_init_client(struct max6639_data *data,
->> +			       struct i2c_client *client)
->
-> As in a previous review, I'd suggest keeping client as the first
-> parameter of this function.
->
-You are right. I fixed it.
+It doesn't provide value to get a log message whenever the driver
+updates its cached data, so drop the message.
 
-> All other changes look good, nice cleanup.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Thanks a lot!
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Additional patch
 
-Guenter
+ drivers/hwmon/lm95245.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
+index b62a1f4..310e145 100644
+--- a/drivers/hwmon/lm95245.c
++++ b/drivers/hwmon/lm95245.c
+@@ -149,7 +149,6 @@ static struct lm95245_data *lm95245_update_device(struct device *dev)
+ 		+ msecs_to_jiffies(data->interval)) || !data->valid) {
+ 		int i;
+ 
+-		dev_dbg(dev, "Updating lm95245 data.\n");
+ 		for (i = 0; i < ARRAY_SIZE(lm95245_reg_address); i++)
+ 			data->regs[i]
+ 			  = i2c_smbus_read_byte_data(client,
+-- 
+1.7.9.7
 
 
 _______________________________________________
