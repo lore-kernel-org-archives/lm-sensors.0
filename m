@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 22 Feb 2014 15:52:30 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sat, 22 Feb 2014 16:54:41 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (lm95245) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <5308C7BE.2040907@roeck-us.net>
+Message-Id: <20140222175441.230fbcdc@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1391747559-7601-2-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1391747559-7601-2-git-send-email-linux@roeck-us.net>
@@ -10,79 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+On Sat, 22 Feb 2014 07:52:30 -0800, Guenter Roeck wrote:
+> On 02/22/2014 05:32 AM, Jean Delvare wrote:
+> > On Thu,  6 Feb 2014 20:32:39 -0800, Guenter Roeck wrote:
+> >> @@ -286,8 +286,8 @@ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
+> >>   			     const char *buf, size_t count)
+> >>   {
+> >>   	struct lm95245_data *data = lm95245_update_device(dev);
+> >> -	struct i2c_client *client = to_i2c_client(dev);
+> >>   	int index = to_sensor_dev_attr(attr)->index;
+> >> +	struct i2c_client *client = data->client;
+> >
+> > I'm curious why you're swapping these lines? I can't find a rationale
+> > for it, and it makes the patch (very slightly) larger.
+> 
+> Habit I picked up from one of the Intel maintainers ... long variable names
+> first. It makes the code look a bit nicer.
 
-On 02/22/2014 05:32 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Thu,  6 Feb 2014 20:32:39 -0800, Guenter Roeck wrote:
->> Simplify code, reduce code size, and attach hwmon attributes
->> to hwmon device.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/lm95245.c |   80 +++++++++++++++--------------------------------
->>   1 file changed, 26 insertions(+), 54 deletions(-)
->>
->> diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
->> index c58d431..482ce14 100644
->> --- a/drivers/hwmon/lm95245.c
->> +++ b/drivers/hwmon/lm95245.c
->> (...)
->> @@ -149,7 +149,7 @@ static struct lm95245_data *lm95245_update_device(struct device *dev)
->>   		+ msecs_to_jiffies(data->interval)) || !data->valid) {
->>   		int i;
->>
->> -		dev_dbg(&client->dev, "Updating lm95245 data.\n");
->> +		dev_dbg(dev, "Updating lm95245 data.\n");
->
-> Or just kill it, it's a mostly pointless debug message anyway.
->
+I agree with the idea in general, when writing the code, it indeed
+makes the code easier to read. However moving a declaration along later
+because it is now 4 characters shorter than it used to be... Seems a
+bit difficult to justify ;-)
 
-Good idea. I'll do that in a follow-up patch.
+No big deal anyway. I'm not doing the work so I don't really have my
+say!
 
->>   		for (i = 0; i < ARRAY_SIZE(lm95245_reg_address); i++)
->>   			data->regs[i]
->>   			  = i2c_smbus_read_byte_data(client,
->> (...)
->> @@ -286,8 +286,8 @@ static ssize_t set_crit_hyst(struct device *dev, struct device_attribute *attr,
->>   			     const char *buf, size_t count)
->>   {
->>   	struct lm95245_data *data = lm95245_update_device(dev);
->> -	struct i2c_client *client = to_i2c_client(dev);
->>   	int index = to_sensor_dev_attr(attr)->index;
->> +	struct i2c_client *client = data->client;
->
-> I'm curious why you're swapping these lines? I can't find a rationale
-> for it, and it makes the patch (very slightly) larger.
->
-
-Habit I picked up from one of the Intel maintainers ... long variable names
-first. It makes the code look a bit nicer.
-
->>   	unsigned long val;
->>   	long hyst;
->>
->> (...)
->> @@ -468,49 +463,27 @@ static void lm95245_init_client(struct i2c_client *client)
->>   	}
->>   }
->>
->> -static int lm95245_probe(struct i2c_client *new_client,
->> +static int lm95245_probe(struct i2c_client *client,
->>                           const struct i2c_device_id *id)
->
-> Halleluiah.
->
-> All the rest looks alright.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-
-Thanks!
-
-Guenter
-
+-- 
+Jean Delvare
+Suse L3 Support
 
 _______________________________________________
 lm-sensors mailing list
