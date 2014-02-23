@@ -1,57 +1,45 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Mon, 24 Feb 2014 08:07:55 +0000
-Subject: Re: [lm-sensors] [PATCH v5] hwmon: (lm90) split set&show temp as common codes
-Message-Id: <530AFDDB.3080300@nvidia.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 23 Feb 2014 16:41:25 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ltc4245) Drop debug messages
+Message-Id: <1393173685-23067-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1381215866-20608-1-git-send-email-wni@nvidia.com>
-	<20131011091741.59cdaf31@endymion.delvare>
- <20140222114735.38d36f4a@endymion.delvare>
-In-Reply-To: <20140222114735.38d36f4a-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 02/22/2014 06:47 PM, Jean Delvare wrote:
-> On Fri, 11 Oct 2013 09:17:41 +0200, Jean Delvare wrote:
->> On Tue, 8 Oct 2013 15:04:26 +0800, Wei Ni wrote:
->>> Split set&show temp codes as common functions, so we can use it
->>> directly when implement linux thermal framework.
->>> And handle error return value for the lm90_select_remote_channel
->>> and write_tempx, then set_temp8 and set_temp11 could return it
->>> to user-space.
->>>
->>> Signed-off-by: Wei Ni <wni@nvidia.com>
->>> ---
->>>  drivers/hwmon/lm90.c |  166 ++++++++++++++++++++++++++++++++++----------------
->>>  1 file changed, 113 insertions(+), 53 deletions(-)
->>> (...)
->>
->> Applied with minor edits, thanks.
-> 
-> Wei, what's the status? With Guenter's recent cleanup of the lm90
-> driver, this patch no longer applies. I never sent it upstream as it
-> makes no sense without users of the new functions defined by the patch.
-> Will this ever happen?
-> 
-> For now I am discarding this patch. If it still needed, please rebase
-> on top of the current lm90 patch set:
-> http://jdelvare.nerim.net/devel/linux-3/jdelvare-hwmon/
-> and resend.
+The debug messages in this driver have little if any value. Drop them.
 
-Hi, Jean
-Sorry for no updates on this patch.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Drop debug messages instead of attaching them to the hwmon device.
 
-I noticed that in lm75.c, it expose itself as thermal zone device and
-register on the thermal framework, so I will also implement it for
-lm90.c, base on this patch.
+ drivers/hwmon/ltc4245.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-Thanks.
-
-> 
-> Thanks,
-> 
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index 2c6da5d..aa36c23 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -95,7 +95,6 @@ static void ltc4245_update_gpios(struct device *dev)
+ 	 * readings as stale by setting them to -EAGAIN
+ 	 */
+ 	if (time_after(jiffies, data->last_updated + 5 * HZ)) {
+-		dev_dbg(&client->dev, "Marking GPIOs invalid\n");
+ 		for (i = 0; i < ARRAY_SIZE(data->gpios); i++)
+ 			data->gpios[i] = -EAGAIN;
+ 	}
+@@ -141,8 +140,6 @@ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+ 
+-		dev_dbg(&client->dev, "Starting ltc4245 update\n");
+-
+ 		/* Read control registers -- 0x00 to 0x07 */
+ 		for (i = 0; i < ARRAY_SIZE(data->cregs); i++) {
+ 			val = i2c_smbus_read_byte_data(client, i);
+-- 
+1.7.9.7
 
 
 _______________________________________________
