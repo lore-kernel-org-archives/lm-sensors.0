@@ -1,46 +1,43 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 20 Feb 2014 11:44:41 +0000
+From: ianp <braveheart_leo@yahoo.com>
+Date: Mon, 24 Feb 2014 22:13:58 +0000
 Subject: Re: [lm-sensors] Sensors configuration for ASRock G41C-GS
-Message-Id: <20140220124441.200c4b3b@endymion.delvare>
+Message-Id: <1393280038.6703.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 In-Reply-To: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Mathias,
+Hi Jean,
 
-On Wed, 19 Feb 2014 23:34:32 +0100, Mathias Gerber wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Hi Jean
-> 
-> On 19.02.2014 18:01, Jean Delvare wrote:
-> > Initial version of the file is in the wiki now: 
-> > http://www.lm-sensors.org/wiki/Configurations/ASRock/G41C-GS
-> In the past I posted configurations for two of my mainboards [1], [2]
-> to the ml, but none of these got added to the wiki.
-> 
-> Did "you" just missed them or is there a reason why they were not
-> added? :-(
-> 
-> [1] >
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2014-February/041142.html
-> 
-> [2]
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2014-January/040909.html
 
-No particular reason, I'm always busy and do as much as I possibly can
-in the little time I have.
+I wish to submit some corrections regarding this configuration.
 
-I'll try to process them today.
 
--- 
-Jean Delvare
-Suse L3 Support
+### Fans
+
+=A0=A0 ### Ignore fan4 and fan5. There are
+=A0=A0 ### only 3 fan connectors on this board.
+
+=A0=A0 label=A0 fan1=A0 "POW Fan"=A0=A0=A0=A0=A0=A0 # was incorrectly label=
+ed "CHA Fan"
+=A0=A0 label=A0 fan2=A0 "CPU Fan"
+=A0=A0 label=A0 fan3=A0 "CHA Fan"=A0=A0=A0=A0=A0=A0 # was incorrectly label=
+ed "PSU Fan"
+=A0=A0 ignore fan4
+=A0=A0 ignore fan5
+
+
+I was able to verify this after having acquired a fan that provided speed m=
+onitoring. I have changed "PSU Fan" to "POW Fan" so that it matches the lab=
+eling on the motherboard as well, which is POWER_FAN.
+
+Thanks,
+
+ianp
+
 
 _______________________________________________
 lm-sensors mailing list
