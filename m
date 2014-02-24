@@ -1,75 +1,54 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 23 Feb 2014 16:38:31 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (ltc4245) Use device managed function to register hwmon device
-Message-Id: <530A2407.40802@roeck-us.net>
+From: Leandro de Marco <leandromarco@gmail.com>
+Date: Mon, 24 Feb 2014 22:14:23 +0000
+Subject: [lm-sensors] BMR456/457
+Message-Id: <CAFO4QpDpm2NbouBm6yhZ_eHUuAkFqOji5bqCQJOC+JNqWcfmXQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392516972-27576-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1392516972-27576-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 02/23/2014 02:42 AM, Jean Delvare wrote:
-> On Sat, 15 Feb 2014 18:16:10 -0800, Guenter Roeck wrote:
->> This simplifies the code and reduces code size.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/ltc4245.c |   23 ++++-------------------
->>   1 file changed, 4 insertions(+), 19 deletions(-)
->>
->> diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
->> index d4172933..2c6da5d 100644
->> --- a/drivers/hwmon/ltc4245.c
->> +++ b/drivers/hwmon/ltc4245.c
->> @@ -512,24 +512,10 @@ static int ltc4245_probe(struct i2c_client *client,
->>   	/* Add sysfs hooks */
->>   	ltc4245_sysfs_add_groups(data);
->>
->> -	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
->> -						      client->name, data,
->> -						      data->groups);
->> -	if (IS_ERR(hwmon_dev))
->> -		return PTR_ERR(hwmon_dev);
->> -
->> -	i2c_set_clientdata(client, hwmon_dev);
->> -
->> -	return 0;
->> -}
->> -
->> -static int ltc4245_remove(struct i2c_client *client)
->> -{
->> -	struct device *hwmon_dev = i2c_get_clientdata(client);
->> -
->> -	hwmon_device_unregister(hwmon_dev);
->> -
->> -	return 0;
->> +	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
->> +							   client->name, data,
->> +							   data->groups);
->> +	return PTR_ERR_OR_ZERO(hwmon_dev);
->>   }
->>
->>   static const struct i2c_device_id ltc4245_id[] = {
->> @@ -544,7 +530,6 @@ static struct i2c_driver ltc4245_driver = {
->>   		.name	= "ltc4245",
->>   	},
->>   	.probe		= ltc4245_probe,
->> -	.remove		= ltc4245_remove,
->>   	.id_table	= ltc4245_id,
->>   };
->>
->
-> Nice.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
+Hi. First I would like to thank you  in advance for your attention.
 
-Thanks!
+The company I work for, is developing a HW that will use the ericson
+BMR456 Bus converter.
 
-Guenter
+Unfortunately, this chip is not listed on the lm-sensors list of
+devices supported.
 
+It is under my responsibility to make it work, and I was studying the
+pmbus kernel drivers and comparing the existing modules, as well as
+taking a look on their datasheet.
+
+I am an experienced C programmer, but new to the device driver world.
+I am having some doubts, and would like to ask for some help.
+
+I noticed that the pmbus generic driver has support for the BMR453/454 chip.
+
+Comparing these chips, I noticed that they seem to be very similar. At
+first, I saw that the BMR456/457 uses the direct data format for some
+PMBUS commands. Later I realized that such commands are not classified
+on any of the sensor classes (like PSC_VOLTAGE_OUT, PSC_CURRENT_OUT,
+etc) that are indexes in the direct, m, b and r fields of the
+pmbus_driver_info struct.
+
+Some of these PMBUS commands that uses the direct data format on the
+chip aren't even listed at pmbus.h. Anyway, I won't need those
+commands.
+
+With my limited pmbus knowledge I am starting to figure out that the
+BMR456/457 can be operated with the generic pmbus driver.
+
+As far as I understand, all I would need to do is add a bmr456 and
+bmr457 to the pmbus_id struct of the pmbus.c source file.
+
+Is this ok? Or am I missing something?
+
+Many thanks
+
+Leandro
+--------------------------------------------------------------------------
+My Mind is Not for Rent.
 
 _______________________________________________
 lm-sensors mailing list
