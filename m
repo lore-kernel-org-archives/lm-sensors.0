@@ -1,33 +1,36 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 13 Feb 2014 09:50:10 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (max6650) Rearrange code to no longer require forward declaratio
-Message-Id: <20140213105010.1ea1275f@endymion.delvare>
+From: Josu Lazkano <josu.lazkano@gmail.com>
+Date: Tue, 25 Feb 2014 21:18:14 +0000
+Subject: [lm-sensors] HP ProLiant MicroServer
+Message-Id: <CAL9G6WVNxpchDgqTkUS7ad-j0f-h20YCo0FtCrVL0ra8F-ttYw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392226866-25968-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1392226866-25968-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+Hello, I have a HP ProLiant MicroServer with Debian Wheezy (3.2 kernel).
 
-On Wed, 12 Feb 2014 09:41:03 -0800, Guenter Roeck wrote:
-> Cleanup only; no functional change.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/max6650.c |  228 ++++++++++++++++++++++-------------------------
->  1 file changed, 109 insertions(+), 119 deletions(-)
-> (...)
+I want to get some hardware information such processor temperature, fan spe=
+ed...
 
-Thanks for doing this.
+I execute "sensors-detect" and it load the "jc42" module, but I just
+have this information:
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+# sensors
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +32.5=B0C  (high =3D +70.0=B0C)
+                       (crit =3D +100.0=B0C, hyst =3D +95.0=B0C)
 
--- 
-Jean Delvare
-Suse L3 Support
+
+Is it possible to get more information? disk temperature? fan speed?
+
+Thanks for your help.
+
+Kind regards.
+
+--=20
+Josu Lazkano
 
 _______________________________________________
 lm-sensors mailing list
