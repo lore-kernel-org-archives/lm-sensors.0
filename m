@@ -1,47 +1,51 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 02 Mar 2014 15:04:14 +0000
-Subject: Re: [lm-sensors] PROBLEM: it87 not restoring temp?_offset after resume from suspend
-Message-Id: <20140302160414.0e7451d8@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 02 Mar 2014 20:15:19 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: Do not accept invalid name attributes
+Message-Id: <1393791319-2894-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CACcUPpZ6NRA8+8tjrqT9cfEYxsYkh9GjoqJpJQO0ruev=qT+fg@mail.gmail.com>
-In-Reply-To: <CACcUPpZ6NRA8+8tjrqT9cfEYxsYkh9GjoqJpJQO0ruev=qT+fg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Stefan,
+hwmon name attributes must not include '-', as specified in
+Documentation/hwmon/sysfs-interface. Also filter out spaces,
+tabs, wildcards, and newline characters.
 
-On Sat, 1 Mar 2014 20:44:47 +0100, Stefan Seidel wrote:
-> I'm running kernel 3.13.5 (on Arch Linux) and I noticed this problem:
->  - sensor temp1 is of type Intel PECI, so the temps are negative
->  - the firmware sets the temp1_offset to 80000 to make these values > 0 in
-> order to make the automatic fan control working
->  - when I suspend->resume the system, temp1_offset will be 0, meaning that
-> the fan will always stay at the lowest speed
-> This could possibly destroy some hardware, since even when running at very
-> high temperatures, the fan will not spin faster because the temp1 reading
-> remains negative (or at least only comes close to 0).
-> I've worked around this with a system on-resume script, but obviously the
-> driver should restore the previous temp?_offset values upon system resume
-> from S1/S3.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: In addition to '-', filter out zero length names as well as names
+    containing '*', ' ', '\t', and '\n'.
 
-No. "Obviously" the firmware should do it. They set it at boot, they
-are responsible for setting it at resume time too. Just try to not load
-the it87 driver at all, the problem is the same, right?
+ drivers/hwmon/hwmon.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-> The actual hardware is a Zotac ZBOX IQ01.
-
-Have you reported to the hardware vendor? Have you looked for a
-firmware update?
-
-We could save and restore the temperature offsets in the it87 driver,
-but that would only be working around the firmware bug. Automatic fan
-speed control is too critical to be left to the OS.
-
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+index e176a43..a26c385 100644
+--- a/drivers/hwmon/hwmon.c
++++ b/drivers/hwmon/hwmon.c
+@@ -22,6 +22,7 @@
+ #include <linux/gfp.h>
+ #include <linux/spinlock.h>
+ #include <linux/pci.h>
++#include <linux/string.h>
+ 
+ #define HWMON_ID_PREFIX "hwmon"
+ #define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
+@@ -99,6 +100,10 @@ hwmon_device_register_with_groups(struct device *dev, const char *name,
+ 	struct hwmon_device *hwdev;
+ 	int err, id;
+ 
++	/* Do not accept invalid characters in hwmon name attribute */
++	if (name && (!strlen(name) || strpbrk(name, "-* \t\n")))
++		return ERR_PTR(-EINVAL);
++
+ 	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
+ 	if (id < 0)
+ 		return ERR_PTR(id);
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
