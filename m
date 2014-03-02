@@ -1,40 +1,83 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Date: Fri, 07 Mar 2014 04:23:39 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/3] ARM: tegra: dalmore: add thermal zones for nct1008
-Message-Id: <531949CB.1000904@wwwdotorg.org>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sun, 02 Mar 2014 13:17:43 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Do not accept name attributes which include '-'
+Message-Id: <20140302141743.0fdf2de5@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1393932664-13319-1-git-send-email-wni@nvidia.com> <1393932664-13319-4-git-send-email-wni@nvidia.com> <5318B790.8090808@wwwdotorg.org> <531940C5.3040102@nvidia.com>
-In-Reply-To: <531940C5.3040102-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1393612837-20042-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1393612837-20042-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Eduardo Valentin <eduardo.valentin-l0cyMroinI0@public.gmane.org>, "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 03/06/2014 08:45 PM, Wei Ni wrote:
-> On 03/07/2014 01:59 AM, Stephen Warren wrote:
->> On 03/04/2014 04:31 AM, Wei Ni wrote:
->>> Add dt node to describe the thermal zone for the nct1008.
->>
->>> diff --git a/arch/arm/boot/dts/tegra114-dalmore.dts b/arch/arm/boot/dts/tegra114-dalmore.dts
->>
->>> +	thermal-zones {
->>> +		nct1008-local {
->>> +			polling-delay-passive = <2000>; /* milliseconds */
->>> +			polling-delay = <0>; /* milliseconds */
->>
->> A delay of 0 implies that software continually polls this zone, thus
->> consuming an entire CPU. Is this really what you want?
+Hi Guenter,
+
+On Fri, 28 Feb 2014 10:40:37 -0800, Guenter Roeck wrote:
+> hwmon name attributes must not include '-', as specified in
+> Documentation/hwmon/sysfs-interface. Validate the name attribute
+> and return an error if it is invalid.
 > 
-> No, if this delay is 0, the driver will not run polling queue, but just
-> cancel it.
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/hwmon.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+> index e176a43..6a84df4 100644
+> --- a/drivers/hwmon/hwmon.c
+> +++ b/drivers/hwmon/hwmon.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/gfp.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/pci.h>
+> +#include <linux/string.h>
+>  
+>  #define HWMON_ID_PREFIX "hwmon"
+>  #define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
+> @@ -99,6 +100,10 @@ hwmon_device_register_with_groups(struct device *dev, const char *name,
+>  	struct hwmon_device *hwdev;
+>  	int err, id;
+>  
+> +	/* Do not accept '-' in hwmon name attribute */
+> +	if (name && strchr(name, '-'))
+> +		return ERR_PTR(-EINVAL);
+> +
 
-The binding doesn't say this. The DT needs to be written to the binding
-as specified in the documentation, not to the behaviour of one
-particular OS's driver.
+I like it, thanks for doing that. Maybe we could check for spaces too?
+That would break libsensors as well, and I vaguely recalled that
+someone attempted that once already (caught during code review,
+thankfully.)
 
-Now, if the DT binding gets updated to explicitly document this, the DT
-content above would be fine.
+>  	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
+>  	if (id < 0)
+>  		return ERR_PTR(id);
+
+Also I think we want to discuss the x86_pkg_temp_thermal driver case
+with the guys responsible for it. The driver creates a thermal zone
+with type "pkg-temp-0" (and "pkg-temp-1" etc. if you have more than one
+CPU.) The thermal-to-hwmon bridge puts "pkg-temp-0" in the name
+attribute, which causes libsensors to have to deal with a device named
+"pkg-temp-0-virtual-0". Horrible.
+
+Changing "pkg-temp" to "pkg_temp" isn't enough. We also need to teach
+the thermal-to-hwmon bridge how to deal with multiple instances of the
+same thermal device. And we need to find a way to transmit the
+information to libsensors (presumably trough a new sysfs attribute?),
+and then implement the support in libsensors.
+
+In the specific case of x86_pkg_temp_thermal though, the sanest thing
+to do IMHO would be to _not_ have it exposed as a hwmon device at all.
+The temperature it reports is already reported by the coretemp driver,
+and I see no point in reporting it twice.
+
+I seem to recall there was a plan to have a flag to skip certain
+thermal zones in the thermal-to-hwmon bridge, was it ever implemented?
+We'd need exactly that.
+
+
+-- 
+Jean Delvare
+Suse L3 Support
 
 _______________________________________________
 lm-sensors mailing list
