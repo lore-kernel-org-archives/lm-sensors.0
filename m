@@ -1,89 +1,38 @@
-From: Robert Coulson <rob.coulson@gmail.com>
-Date: Fri, 07 Mar 2014 15:46:16 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (pmbus/ltc2978) Add new chip ID for LTC2974
-Message-Id: <CAEZKy8L9OmWZCkx4SdL1jUFj7khV0UagyFfcvn8DoSLegDiKYg@mail.gmail.com>
+From: Romanic Dean <romanicdean@gmail.com>
+Date: Sun, 02 Mar 2014 07:30:33 +0000
+Subject: [lm-sensors] LM73 chip access through userspace
+Message-Id: <CAAi8uRy6EmTDvKavChvx6_bUZvcoVD3Et=Tt5R66h6NkkHAcUA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1394083580-26077-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1394083580-26077-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 5, 2014 at 9:53 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+Hi all,
 
-> On 03/05/2014 09:37 PM, Robert Coulson wrote:
->
->> Thank you Guenter.
->>
->> Reviewed-by: Robert Coulson <rob.coulson@gmail.com <mailto:
->> rob.coulson@gmail.com>>
->>
->>  Thanks ... but don't top-post, please :-)
->
-> Guenter
->
+I am working with 3.8 version of kernel and its device tree driven kernel
+I wanted to read temperature from lm73 sensor.It should happen from user
+land application.
 
-Your welcome .. your right and I'll remember next time. (-:
+Now first of all have enabled the dts support for lm73 device by adding
+below in my dts file
 
-*** Rob.
+dtt@49 {
+    compatible = "lm73";
+    reg = <0x49>;
+    };
 
+and kernel driver compiled is lm73.o .
 
->
->
->> On Wed, Mar 5, 2014 at 9:26 PM, Guenter Roeck <linux@roeck-us.net<mailto:
->> linux@roeck-us.net>> wrote:
->>
->>     LTC2974 datasheet revision C lists the chip ID for LTC2974 as 0x0213.
->>
->>     Signed-off-by: Guenter Roeck <linux@roeck-us.net <mailto:
->> linux@roeck-us.net>>
->>
->>     ---
->>     v2: Mark old revision ID as _REV1.
->>
->>       drivers/hwmon/pmbus/ltc2978.c |    5 +++--
->>       1 file changed, 3 insertions(+), 2 deletions(-)
->>
->>     diff --git a/drivers/hwmon/pmbus/ltc2978.c
->> b/drivers/hwmon/pmbus/ltc2978.c
->>     index de3c152..629bfe0 100644
->>     --- a/drivers/hwmon/pmbus/ltc2978.c
->>     +++ b/drivers/hwmon/pmbus/ltc2978.c
->>     @@ -53,7 +53,8 @@ enum chips { ltc2974, ltc2977, ltc2978, ltc3880,
->> ltc3883 };
->>       /* LTC3883 only */
->>       #define LTC3883_MFR_IIN_PEAK           0xe1
->>
->>     -#define LTC2974_ID                     0x0212
->>     +#define LTC2974_ID_REV1                        0x0212
->>     +#define LTC2974_ID_REV2                        0x0213
->>       #define LTC2977_ID                     0x0130
->>       #define LTC2978_ID_REV1                        0x0121
->>       #define LTC2978_ID_REV2                        0x0122
->>     @@ -394,7 +395,7 @@ static int ltc2978_probe(struct i2c_client
->> *client,
->>              if (chip_id < 0)
->>                      return chip_id;
->>
->>     -       if (chip_id = LTC2974_ID) {
->>     +       if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2)
->> {
->>                      data->id = ltc2974;
->>              } else if (chip_id = LTC2977_ID) {
->>                      data->id = ltc2977;
->>     --
->>     1.7.9.7
->>
->>
->>     _______________________________________________
->>     lm-sensors mailing list
->>     lm-sensors@lm-sensors.org <mailto:lm-sensors@lm-sensors.org>
->>     http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>
->>
->>
->
+I could see in my boot logs that driver's probe method is called ,so now
+how DO I confirm that lm73 device is Probed OK and usable?
+
+Now if it initialized OK then what all expected entries I should see in
+/sys/bus/i2c/devices file system?
+
+How Do I read temperature from lm73 sensor using sysfs in userspace?
+
+Thanks
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
