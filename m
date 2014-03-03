@@ -1,85 +1,52 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 25 Mar 2014 15:20:58 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (it87) Add support for IT8623E
-Message-Id: <20140325162058.2d58e01e@endymion.delvare>
+From: Andreas Hollmann <hollmann@in.tum.de>
+Date: Mon, 03 Mar 2014 20:52:43 +0000
+Subject: [lm-sensors] Possibility to read temperature sensor on registered DDR3 DIMMs?
+Message-Id: <CAGz0_-1Y9Qos3qm8AAejhTxtZPeE9VH_ZCmscOY-R6QU-VkWDQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1354475868-10032-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1354475868-10032-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf, Martin,
+Hi,
 
-On Tue, 25 Mar 2014 15:59:23 +0100, Rudolf Marek wrote:
-> Hi all,
-> 
-> That was fast :) thank you all.
+I have a 4-socket system with 256 GB RAM (32 x 8 GB).
 
-Well, thank _you_ for the patch :)
+Socket 0 shows unstable behavior when running the stream
+benchmark. It runs well for some time and then the performance
+drops to 50 %. It seems like throttling of some component.
 
-> Martin, most likely you can try following 
-> sensors.conf config.
-> 
-> chip "it8603-*"
->      label temp1 "CPU Temp"
->      label temp2 "M/B Temp"
+The CPU temperatures are very low and therefore I consider
+it a problem with one of the 8 DIMM modules on Socket 0.
 
-I would add:
+Is there any way to read the temperature?
 
-     ignore temp3
+I checked the documentation on the DRAM [0] and it says
+that there is a thermal sensor on the DIMM.
 
-as this input doesn't seem to be connected.
+There is also some information on thermal sensor information
+in [1]. It says: Support for integrating RDIMM thermal sensor
+information into Intel SMI Status Frame.
 
-> 
->      label in0 "Vcore"
->      label in1 "in1"
+Best regards,
+Andreas Hollmann
 
-Not very useful ^^
+System information:
 
->      label in2 "+12V"
->      label in3 "+5V"
->      label fan1 "CPU Fan"
->      label fan2 "CHA Fan"
->      label fan3 "PWR Fan"
+4 x Intel(R) Xeon(R) CPU E7- 4870  @ 2.40GHz
+[0] 32 x 8 GB Samsung M393B1K70CH0-CH9
+[1] Intel 7500 Scalable Memory Buffer
+[2] Mainboard X8QB6-F
 
-There doesn't seem to be a fan3 on Martin's system, so he should omit
-that line.
 
-> 
->      compute in2  @ * (12/2), @ / (12/2)
->      compute in3  @ * (25/10), @ / (25/10)
-> 
-> Then in2 and in3 could be same on your board, because they are wired to in2/in3 
-> on it8603 to support the under/overvoltage protection.
 
-If that doesn't work, Martin could always comment out the compute
-statements and follow my guide at:
-http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
+[0] http://www.samsung.com/global/business/semiconductor/file/2011/product/2010/2/4/676543ds_ddr3_2gb_c-die_based_1_5v_rdimm_rev10.pdf
 
-I would also suggest adding the following set statements to get rid of
-most of the ALARMs:
+[1] http://www.intel.la/content/dam/doc/datasheet/7500-7510-7512-scalable-memory-buffer-datasheet.pdf
 
-   set in0_min   0.800  # Should be adjusted depending on CPU model
-   set in0_max   1.200  # Should be adjusted depending on CPU model
-   set in2_min  12 * 0.95
-   set in2_max  12 * 1.05
-   set in3_min   5 * 0.95
-   set in3_max   5 * 1.05
-   set in7_min 3.0 * 0.95
-   set in7_max 3.3 * 1.05
+[2] http://www.supermicro.com/products/motherboard/Xeon7000/7500/X8QB6.cfm?SAS=Y
 
-   set temp1_min  5
-   set temp1_max 60
-   set temp2_min  5
-   set temp2_max 60
-
-(Don't forget to run "sensors -s" afterward.)
-
--- 
-Jean Delvare
-http://jdelvare.nerim.net/wishlist.html
+http://www.intel.com/content/dam/doc/platform-memory/ddr3-rdimm-nehalem-ex-validation-results.pdf
 
 _______________________________________________
 lm-sensors mailing list
