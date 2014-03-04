@@ -1,116 +1,68 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 09 Mar 2014 10:50:31 +0000
-Subject: Re: [lm-sensors] Unsupported Mobo Driver
-Message-Id: <20140309115031.0f84afbc@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Tue, 04 Mar 2014 11:31:04 +0000
+Subject: [lm-sensors] [PATCH v2 3/3] ARM: tegra: dalmore: add thermal zones for nct1008
+Message-Id: <1393932664-13319-4-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAAPgPpwTJKhVA=p+pX_SrBKev4o=cjcEjV3=OS7jmRt-EY6txg@mail.gmail.com>
-In-Reply-To: <CAAPgPpwTJKhVA=p+pX_SrBKev4o=cjcEjV3=OS7jmRt-EY6txg@mail.gmail.com>
+References: <1393932664-13319-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1393932664-13319-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-Hi Howard,
+Add dt node to describe the thermal zone for the nct1008.
 
-Please keep the list in Cc, and don't top-post.
+Change-Id: I0256836e52d73ec282574e4fd91df52958936e35
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra114-dalmore.dts |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-On Fri, 7 Mar 2014 20:59:53 -0800, Howard Nguyen wrote:
-> Hi Jean, thanks for the quick reply!
->=20
-> *sensors (w/ -10 offsest):*
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +36.0=B0C  (crit =3D +94.0=B0C)
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Physical id 0:  +37.0=B0C  (high =3D +77.0=B0C, crit =3D +95.0=B0C)
-> Core 0:         +36.0=B0C  (high =3D +77.0=B0C, crit =3D +95.0=B0C)
-> Core 1:         +35.0=B0C  (high =3D +77.0=B0C, crit =3D +95.0=B0C)
->=20
-> *sensors -c /dev/null:*
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +47.0=B0C  (crit =3D +104.0=B0C)
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Physical id 0:  +47.0=B0C  (high =3D +87.0=B0C, crit =3D +105.0=B0C)
-> Core 0:         +46.0=B0C  (high =3D +87.0=B0C, crit =3D +105.0=B0C)
-> Core 1:         +45.0=B0C  (high =3D +87.0=B0C, crit =3D +105.0=B0C)
->=20
->=20
-> *custom config:*
->=20
-> chip "acpitz-virtual-0"
-> label temp1 "temp1"
->  compute temp1 @-10, @-10
->=20
-> chip "coretemp-isa-0000"
-> label temp1 "Physical id 0"
->  compute temp1 @-10, @-10
->=20
-> label temp2 "Core 0"
-> compute temp2 @-10, @-10
->=20
-> label temp3 "Core 1"
-> compute temp3 @-10, @-10
->=20
-> acpi -v (unaffected by offset):
-> Thermal 0: ok, 45.0 degrees C
->=20
-> *Other*
-> This is within 2 mins of boot up. Usually it boots and its in the 48-53 C
-> range. I used to run Windows and it was in the 38-42 range. After I wiped
-> Windows, I've had issues with the fan going off every 30-60 seconds.
-> I'm *assuming
-> *this is caused by bad temp readings.
+diff --git a/arch/arm/boot/dts/tegra114-dalmore.dts b/arch/arm/boot/dts/tegra114-dalmore.dts
+index 8de5437..453f5ea 100644
+--- a/arch/arm/boot/dts/tegra114-dalmore.dts
++++ b/arch/arm/boot/dts/tegra114-dalmore.dts
+@@ -780,12 +780,14 @@
+ 				<&gpio TEGRA_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+-		temperature-sensor@4c {
++		nct1008: temperature-sensor@4c {
+ 			compatible = "onnn,nct1008";
+ 			reg = <0x4c>;
+ 			vcc-supply = <&palmas_ldo6_reg>;
+ 			interrupt-parent = <&gpio>;
+ 			interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
++
++			#thermal-sensor-cells = <1>;
+ 		};
+ 	};
+ 
+@@ -1276,4 +1278,20 @@
+ 			 <&tegra_car TEGRA114_CLK_EXTERN1>;
+ 		clock-names = "pll_a", "pll_a_out0", "mclk";
+ 	};
++
++	thermal-zones {
++		nct1008-local {
++			polling-delay-passive = <2000>; /* milliseconds */
++			polling-delay = <0>; /* milliseconds */
++
++			thermal-sensors = <&nct1008 0>;
++		};
++
++		nct1008-remote {
++			polling-delay-passive = <1000>; /* milliseconds */
++			polling-delay = <0>; /* milliseconds */
++
++			thermal-sensors = <&nct1008 1>;
++		};
++	};
+ };
+-- 
+1.7.9.5
 
-Even if it was caused by bad temperature readings, adding offsets to
-your libsensors configuration file isn't going to help. The offset only
-changes what you see as a user. The ACPI subsystem only sees the
-original reading.
-
-> I already tried reading up on
-> fancontrol and pwmconfig but neither seem to work.
-
-It almost never works on laptops so I'm not surprised.
-
-> Again thanks the help. Sorry in advance if I'm doing something stupid /
-> being completely ignorant.
-
-I would guess that your laptop has issues with cpufreq, or cpuidle, or
-ACPI. The higher temperatures would be a symptom of improper power
-management.
-
-That being said, it is also possible that whatever Windows tool you
-were using for monitoring, was returning temperatures with an offset
-applied for whatever reason. In my experience it is more reliable to
-compare power consumption and autonomy on battery, because these are
-external measurements which do not lie. But if you no longer have
-Windows on that laptop, you no longer can do that, unfortunately.
-
-So, we can't actually help you on this list. You'll have to ask on
-linux-pm and/or linux-acpi. Things you can check first so that you can
-provide the information they'll inevitably ask for:
-
-1* Is cpufreq working? Check the CPU frequency in /proc/cpuinfo when
-idle, and the "Frequency stats" tab in powertop. The CPU should spend
-most time in lowest frequency when the laptop is idle. If that's not
-the case, report to linux-pm.
-
-2* Is cpuidle working? Check for cpuidle-related messages in the kernel
-log, and the "Idle stats" tab in powertop. The CPU should spend most
-time in the deepest C state when the laptop is idle. If that's not the
-case, report to linux-pm.
-
-If both items above look right, it's most probably an ACPI issue, so
-report to linux-acpi.
-
-Good luck,
---=20
-Jean Delvare
-SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
