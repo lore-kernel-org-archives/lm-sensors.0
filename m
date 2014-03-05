@@ -1,28 +1,44 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 09 Mar 2014 09:38:05 +0000
-Subject: Re: [lm-sensors] W83627DHG-P sensor shows a single voltage monitor for +5V and +12V on in4?
-Message-Id: <20140309103805.10ea3f7d@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 05 Mar 2014 21:20:11 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (pmbus/ltc2978) Add new chip ID for LTC2974
+Message-Id: <1394054411-18935-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
-In-Reply-To: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 19 Feb 2014 10:20:16 -0800 (PST), ianp wrote:
-> > On Thursday, February 20, 2014 12:35 AM, Jean Delvare <jdelvare@suse.de> wrote:
-> > Yeah, I had the same problem. Ironically, having a good, stable PSU
-> > makes the job harder. A crappy PSU oscillating between 5 different
-> > values in the BIOS would be much better ;-)
-> 
-> Almost twenty minutes into just staring at the monitor, I thought about replacing the PSU with a generic unit that I have lying around here just to get it moving. But then I had an idea that maybe I could introduce a tiny ripple if I open and close my optical drive's tray. And that did the trick and gave me a quick 5.040 reading. :-)
+LTC2974 datasheet revision C lists the chip ID for LTC2974 as 0x0213.
 
-This is a good trick, I've added it to the guide :) Thanks!
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/ltc2978.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index de3c152..7647c11 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -54,6 +54,7 @@ enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883 };
+ #define LTC3883_MFR_IIN_PEAK		0xe1
+ 
+ #define LTC2974_ID			0x0212
++#define LTC2974_ID_REV2			0x0213
+ #define LTC2977_ID			0x0130
+ #define LTC2978_ID_REV1			0x0121
+ #define LTC2978_ID_REV2			0x0122
+@@ -394,7 +395,7 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	if (chip_id < 0)
+ 		return chip_id;
+ 
+-	if (chip_id = LTC2974_ID) {
++	if (chip_id = LTC2974_ID || chip_id = LTC2974_ID_REV2) {
+ 		data->id = ltc2974;
+ 	} else if (chip_id = LTC2977_ID) {
+ 		data->id = ltc2977;
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
