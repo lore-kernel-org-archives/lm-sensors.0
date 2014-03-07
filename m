@@ -1,80 +1,60 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 02 Mar 2014 16:13:02 +0000
-Subject: Re: [lm-sensors] LM73 chip access through userspace
-Message-Id: <5313588E.9050203@roeck-us.net>
+Date: Fri, 07 Mar 2014 20:55:06 +0000
+Subject: Re: [lm-sensors] 3.13.?: Strange / dangerous fan policy...
+Message-Id: <20140307205506.GA6870@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAAi8uRy6EmTDvKavChvx6_bUZvcoVD3Et=Tt5R66h6NkkHAcUA@mail.gmail.com>
-In-Reply-To: <CAAi8uRy6EmTDvKavChvx6_bUZvcoVD3Et=Tt5R66h6NkkHAcUA@mail.gmail.com>
+References: <531A1EEE.9090101@netscape.net>
+In-Reply-To: <531A1EEE.9090101@netscape.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Manuel Krause <manuelkrause@netscape.net>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On 03/02/2014 07:50 AM, Romanic Dean wrote:
-> Ok fine Jean ,I understand the point you made dts file.
->
-> But I don't know about using the sensors to read temperature value.
->
-> Is it some registers needed to read from LM73 chip or simply the entries in
-> /sysfs/class/hwmon ?
->
+On Fri, Mar 07, 2014 at 08:33:02PM +0100, Manuel Krause wrote:
+> Please have a short look at the following BUG report + the comments
+> -- this message here is a kind of FWD-ing it:
+> https://bugs.archlinux.org/task/39005
+>=20
+> I came late to test kernel 3.13 with the .5 one, as it was the time
+> that the related -CK/BFS patch became available.
+>=20
+> I'm not using Archlinux, but openSUSE, and my problems are quite the
+> same. Especially these with smelling melting plastics.
+>=20
+> My own reports went to Con Kolivas' Blog first:
+> "I get weird temperatures and abrupt 100% fan actions with vanilla
+> 3.13.5 with this CK and most recent BFQ at my HP Notebook.
+> In gkrellm the highest T had been @74=B0C, so far (3.12.13), and is
+> now growing to 94=B0C. Then, the fan goes to 100% for 10~30secs
+> cooling it to approx. 82=B0C.
+> That is not good, if I compare 74 to 94 =B0C.
+> Have I missed a .CONFIG option for 3.13, especially?"
+>=20
+> I'd get the same without (Con's && BFQ's) patches.
+>=20
+> Machine:           HP Notebook with Core2Duo CPU (Penryn)
+> Distro:            openSUSE 13.1, 64bit, continuously updated
+> Desktop:           KDE 4.12.3
+> MESA & drm & Xorg: most recent ones from:
+> http://download.opensuse.org/repositories/home:/pontostroy:/X11/openSUSE_=
+13.1/x86_64/
+>=20
+> Current kernel:    3.13.6 vanilla from openSUSE repos, with
+>                    -ck1 and BFQ patches
+> Same behaviour:    without these patches
+>=20
+> Last good kernel:  3.12.13 vanilla + CK2 + BFQ
+>=20
 
-Jean already answered this question.
+Can you add more information about your fan control policy ?
+Do you rely on the hardware for automatic fan speed control,
+or do you run the fancontrol script ?
 
-> I am just looking to know the basic implementation of using "sensors" to
-> read temperature  .
->
+What is the output from the 'sensors' command ?
 
-You could download the 'sensors' source code and have a look,
-or you could install libsensors and run "man libsensors".
-
+Thanks,
 Guenter
-
->
-> On Sun, Mar 2, 2014 at 7:09 AM, Jean Delvare <jdelvare@suse.de> wrote:
->
->> On Sun, 2 Mar 2014 07:03:22 -0800, Romanic Dean wrote:
->>> Thanks Jean for your kind response.
->>>
->>> Yes I could see some entries under /sys/class/hwmon/hwmon0
->>>
->>> hwmon0 is probed well at boot time but I couldn't see hwmon1 is probed at
->>> boot time?
->>>
->>> Is it because of only one reg =<0x49> entry in dts file?
->>
->> Yes. Each hardware monitoring device is represented by a hwmon class
->> device in the kernel. If you have a single LM73 chip in the system, you
->> get hwmon0 and that's it. If you have several LM73 chips, you must
->> declare all of them in the device tree.
->>
->>> Also it would be great if you can point me out any example where  temp
->> from
->>> lm73 sensor is read by sysfs?
->>>
->>> I am sure some one has already worked on it.
->>
->> You are asking the wrong question. There's really nothing specific
->> about lm73. All hwmon drivers implement a standard sysfs interface, so
->> it doesn't matter if you have an LM73 or any other temperature sensor
->> chip.
->>
->> I already told you that you can use "sensors" to read the temperature
->> value, there's nothing more I can add, until you tell me why that isn't
->> suitable for your needs (or that it doesn't work, and you report enough
->> details about the failure so that we can help you figure it out.)
->>
->> --
->> Jean Delvare
->> SUSE L3 Support
->>
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
->
-
 
 _______________________________________________
 lm-sensors mailing list
