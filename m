@@ -1,62 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Date: Sat, 08 Mar 2014 12:36:58 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 08 Mar 2014 15:59:08 +0000
 Subject: Re: [lm-sensors] 3.13.?: Strange / dangerous fan policy...
-Message-Id: <1423969.TQuRFJ3izd@vostro.rjw.lan>
+Message-Id: <531B3E4C.2040105@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <531A1EEE.9090101@netscape.net> <20140307225230.GA31135@roeck-us.net> <20140308120831.328e0179@endymion.delvare>
+References: <531A1EEE.9090101@netscape.net>	<20140307205506.GA6870@roeck-us.net>	<531A426D.6080100@netscape.net>	<20140307225230.GA31135@roeck-us.net> <20140308120831.328e0179@endymion.delvare>
 In-Reply-To: <20140308120831.328e0179@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: Jean Delvare <jdelvare@suse.de>, Manuel Krause <manuelkrause@netscape.net>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-T24gU2F0dXJkYXksIE1hcmNoIDA4LCAyMDE0IDEyOjA4OjMxIFBNIEplYW4gRGVsdmFyZSB3cm90
-ZToKPiBPbiBGcmksIDcgTWFyIDIwMTQgMTQ6NTI6MzAgLTA4MDAsIEd1ZW50ZXIgUm9lY2sgd3Jv
-dGU6Cj4gPiBPbiBGcmksIE1hciAwNywgMjAxNCBhdCAxMTowNDoyOVBNICswMTAwLCBNYW51ZWwg
-S3JhdXNlIHdyb3RlOgo+ID4gPiBIaSwgYW5kIHRoYW5rcyBmb3IgdGhlIHF1aWNrIHJlc3BvbnNl
-IQo+ID4gPiBObyBzcGVjaWFsIGZhbmN5ICJmYW4gY29udHJvbCBwb2xpY3kiLiAnZmFuY29udHJv
-bCcgaXNuJ3QgdXAgb3IKPiA+ID4gcnVubmluZy4KPiA+ID4gVmFuaWxsYSBrZXJuZWxzIDMuMTEu
-KiBhbmQgMy4xMi4qIGhhZCBiZWVuIHdvcmtpbmcgb24gaGVyZSB3aXRob3V0Cj4gPiA+IGFueSBl
-eHRyYSB3b3JrLgo+ID4gPiAtLQo+ID4gPiAjIHNlbnNvcnMKPiA+ID4gYWNwaXR6LXZpcnR1YWwt
-MAo+ID4gPiBBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQo+ID4gPiB0ZW1wMTogICAgICAgICs3MS4w
-wrBDICAoY3JpdCA9ICsyNTYuMMKwQykKPiA+ID4gdGVtcDI6ICAgICAgICArNjkuMMKwQyAgKGNy
-aXQgPSArMTEwLjDCsEMpCj4gPiA+IHRlbXAzOiAgICAgICAgKzUyLjDCsEMgIChjcml0ID0gKzEw
-NS4wwrBDKQo+ID4gPiB0ZW1wNDogICAgICAgICsyNS4wwrBDICAoY3JpdCA9ICsxMTAuMMKwQykK
-PiA+ID4gdGVtcDU6ICAgICAgICArNTguMMKwQyAgKGNyaXQgPSArMTEwLjDCsEMpCj4gPiA+IAo+
-ID4gPiBjb3JldGVtcC1pc2EtMDAwMAo+ID4gPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+ID4gPiBD
-b3JlIDA6ICAgICAgICs2Mi4wwrBDICAoaGlnaCA9ICsxMDUuMMKwQywgY3JpdCA9ICsxMDUuMMKw
-QykKPiA+ID4gQ29yZSAxOiAgICAgICArNjAuMMKwQyAgKGhpZ2ggPSArMTA1LjDCsEMsIGNyaXQg
-PSArMTA1LjDCsEMpCj4gPiA+IC0tCj4gPiA+IE15IG5vdGVib29rIChIUC9Db21wYXEgNjczMGIp
-IGRvZXMgbm90IGhhdmUgYSBzZXBlcmF0ZSBmYW4gc2Vuc29yLgo+ID4gPiBUaGlzIGlzIHdpdGgg
-My4xMi4xMyB3aXRoIG15IG5vcm1hbCB3b3JrbG9hZC4KPiA+ID4gCj4gPiA+IFBsZWFzZSwgdHJ1
-c3QgbXkgYWJvdmUgbWVudGlvbm5lZCB2YWx1ZXMgb2YgOTQgwrBDIHZzLiA3NMKwQyBhcyBJCj4g
-PiA+IGRvbid0IGxpa2UgdG8gYm9vdCAzLjEzLjYgYW55bW9yZSwgdG8gYXZvaWQgaGFybSB0byB0
-aGUgbm90ZWJvb2sncwo+ID4gPiBjYXNpbmcuCj4gPiAKPiA+IFVuZGVyc3Rvb2QuIFVuZm9ydHVu
-YXRlbHksIHdlJ2xsIG5lZWQgdG8gZ2V0IGluZm9ybWF0aW9uCj4gPiBmcm9tIHRoZSBuZXcga2Vy
-bmVsIHRvIGJlIGFibGUgdG8gdHJhY2sgZG93biB0aGUgcHJvYmxlbS4KPiAKPiBJbmRlZWQuIE5v
-dCBvbmx5IHRoZSBydW4tdGltZSB0ZW1wZXJhdHVyZXMsIGJ1dCBhbHNvIHRoZSBoaWdoIGFuZCBj
-cml0Cj4gbGltaXRzLgo+IAo+ID4gPiBCdXQgSSdkIGRvIHRvIHRlc3QgYW55IGltcHJvdmVtZW50
-LXBhdGNoLgo+ID4gCj4gPiBTbyBmYXIgSSBoYXZlIG5vIGlkZWEgd2hhdCBpcyBnb2luZyBvbi4g
-SSBkb24ndCBzZWUgYW55dGhpbmcgaW4gdGhlCj4gPiBkcml2ZXJzIHByb3ZpZGluZyBhYm92ZSBk
-YXRhIHRoYXQgd291bGQgZXhwbGFpbiB0aGUgYmVoYXZpb3IsCj4gPiBidXQgSSBtaWdodCBiZSBt
-aXNzaW5nIHNvbWV0aGluZy4KPiAKPiBMb29rcyBsaWtlIGEgcmVncmVzc2lvbiBpbiB0aGUgYWNw
-aSBzdWJzeXN0ZW0gb3IgaW4gcG93ZXIgbWFuYWdlbWVudCwKPiBub3QgaHdtb24uIEh3bW9uIGlz
-IG1lcmVseSByZXBvcnRpbmcgdGhlIHRlbXBlcmF0dXJlcywgaXQncyBub3QKPiByZXNwb25zaWJs
-ZSBmb3IgdGhlIGFjdHVhbCB0ZW1wZXJhdHVyZXMuCj4gCj4gQSBiaXNlY3Rpb24gd291bGQgY2Vy
-dGFpbmx5IGhlbHAsIGJ1dCBvZiBjb3Vyc2UgdGhhdCB3b3VsZCByZXF1aXJlCj4gYm9vdGluZyB0
-byBhIGJhZCBrZXJuZWwgaGFsZiBvZiB0aGUgdGltZSwgd2hpY2ggSSB1bmRlcnN0YW5kIE1hbnVh
-bAo+IHdvdWxkbid0IGVuam95Lgo+IAo+IFRoZSBvbmx5IHR3byBjb21wb25lbnRzIHdoaWNoIEkg
-dGhpbmsgY2FuIHJlYWNoIHN1Y2ggaGlnaCB0ZW1wZXJhdHVyZXMKPiBpbiBhIGxhcHRvcCBhcmUg
-dGhlIENQVSBhbmQgdGhlIEdQVS4gSSBzdXBwb3NlIHRoYXQgdGhlICI5NCDCsEMgdnMuCj4gNzTC
-sEMiIHJlZmVycyB0byBhY3BpdHoncyB0ZW1wMT8gSWYgdGhlIHRoZSB0ZW1wZXJhdHVyZXMgcmVw
-b3J0ZWQgYnkKPiBjb3JldGVtcCByZW1haW4gdGhlIHNhbWUsIHRoZW4gSSBjYW4gb25seSBzdXBw
-b3NlIHRoYXQgdGVtcDEgaXMgdGhlIEdQVQo+IHRlbXBlcmF0dXJlLiBQbGVhc2UgdGVsbCB1cyB3
-aGljaCBHUFUgaXMgaW4gdGhpcyBsYXB0b3AsIGFuZCB3aGljaAo+IGRyaXZlciB5b3UncmUgdXNp
-bmcuCgpBbHNvIGl0IHdvdWxkIGJlIGdvb2QgdG8ga25vdyB3aGljaCBjcHVmcmVxIGFuZCBjcHVp
-ZGxlIGRyaXZlcnMgYXJlIGluIHVzZQphbmQgd2hldGhlciBvciBub3QgMy4xNC1yYzUgaGFzIHRo
-ZSBwcm9ibGVtLgoKLS0gCkkgc3BlYWsgb25seSBmb3IgbXlzZWxmLgpSYWZhZWwgSi4gV3lzb2Nr
-aSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On 03/08/2014 03:08 AM, Jean Delvare wrote:
+> On Fri, 7 Mar 2014 14:52:30 -0800, Guenter Roeck wrote:
+>> On Fri, Mar 07, 2014 at 11:04:29PM +0100, Manuel Krause wrote:
+>>> Hi, and thanks for the quick response!
+>>> No special fancy "fan control policy". 'fancontrol' isn't up or
+>>> running.
+>>> Vanilla kernels 3.11.* and 3.12.* had been working on here without
+>>> any extra work.
+>>> --
+>>> # sensors
+>>> acpitz-virtual-0
+>>> Adapter: Virtual device
+>>> temp1:        +71.0=B0C  (crit =3D +256.0=B0C)
+>>> temp2:        +69.0=B0C  (crit =3D +110.0=B0C)
+>>> temp3:        +52.0=B0C  (crit =3D +105.0=B0C)
+>>> temp4:        +25.0=B0C  (crit =3D +110.0=B0C)
+>>> temp5:        +58.0=B0C  (crit =3D +110.0=B0C)
+>>>
+>>> coretemp-isa-0000
+>>> Adapter: ISA adapter
+>>> Core 0:       +62.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
+>>> Core 1:       +60.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
+>>> --
+>>> My notebook (HP/Compaq 6730b) does not have a seperate fan sensor.
+>>> This is with 3.12.13 with my normal workload.
+>>>
+>>> Please, trust my above mentionned values of 94 =B0C vs. 74=B0C as I
+>>> don't like to boot 3.13.6 anymore, to avoid harm to the notebook's
+>>> casing.
+>>
+>> Understood. Unfortunately, we'll need to get information
+>> from the new kernel to be able to track down the problem.
+>
+> Indeed. Not only the run-time temperatures, but also the high and crit
+> limits.
+>
+>>> But I'd do to test any improvement-patch.
+>>
+>> So far I have no idea what is going on. I don't see anything in the
+>> drivers providing above data that would explain the behavior,
+>> but I might be missing something.
+>
+> Looks like a regression in the acpi subsystem or in power management,
+> not hwmon. Hwmon is merely reporting the temperatures, it's not
+> responsible for the actual temperatures.
+>
+
+I would agree. I don't think we have enough information to be sure,
+though. There might be some unintended interaction or interference.
+
+gpu is a good hint ... for example, look at commit b9ed919f1c8
+(drm/nouveau/drm/pm: remove everything except the hwmon interfaces
+to THERM). nouveau does export pwm and fan control information,
+so any change in that code may have unintended side effects.
+Similar, I don't know how ec39f64bba (drm/radeon/dpm: Convert to
+use devm_hwmon_register_with_groups) could have the observed impact,
+as it is purely passive, but I prefer to be rather safe than sorry.
+
+This problem has now been submitted into bugzilla as
+https://bugzilla.kernel.org/show_bug.cgi?id=3D71711.
+
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
