@@ -1,89 +1,30 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 14 Feb 2014 18:14:36 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.14-rc3
-Message-Id: <20140214181436.GA26946@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6392173945895041605=="
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sun, 09 Mar 2014 09:38:05 +0000
+Subject: Re: [lm-sensors] W83627DHG-P sensor shows a single voltage monitor for +5V and +12V on in4?
+Message-Id: <20140309103805.10ea3f7d@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============6392173945895041605==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Content-Disposition: inline
-
-
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.14-rc3 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit b28a960c42fcd9cfc987441fa6d1c1a471f0f9ed:
-
-  Linux 3.14-rc2 (2014-02-09 18:15:47 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to d3d89c468ceebbcf9423d1a3d66c5bf91f569570:
-
-  hwmon: (ntc_thermistor) Avoid math overflow (2014-02-13 19:43:52 -0800)
-
-----------------------------------------------------------------
-Fix arithmetic overflow in ntc_thermistor driver
-
-----------------------------------------------------------------
-Doug Anderson (1):
-      hwmon: (ntc_thermistor) Avoid math overflow
-
- drivers/hwmon/ntc_thermistor.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS/l0MAAoJEMsfJm/On5mBW9wQAKIZ386nR+TVNeuU2A+JL8Bh
-U3uBj4srikDXcv8JyHq06lfPLhQnP6bjNpV39tbPHqAlK3INoYU4zo45mOc9j0Aj
-wCfSQdIYqqm+lfaTX1OhDe1r8j0mc+EdC4919PoDYNWVjZJsL5Fwyk24RDDUnoaK
-NBlTYw7CFz8nx4WdB0w/qeVVxcK1s7bBi+pPqn+2ci670mlXE49Vh+xfVdp7ZBDP
-PsnK8/D3gpwCiN7N8dqwUzn06rj6xJl5a9QZUoY6QeqRM/LnjbZhzTNT2I0g2WFY
-7cxKIL6zcsSKcIEox019pwr83D4kmSmOU9P9HfJW0BwcXKkTz2Z4HFjLhN34gYt+
-+C5TGmSQ2u90tVwBLg4ljicTL8X4AyOJse7wCXLpzH+K46QRedElwUR5EK6xkJEI
-6yj7pu5B2OO1i/d4TcPJ11bCf/FZuSBFHSDvBXcwQk36uIoN0dwYKWAlCA6oBb/F
-kUj1tuvwmAD8SsxHUKlX+2j7CKGeivoXif3Skg2ZIXU5SP8hztoIbNmNeb98OWJA
-9Owe3Nd7KhZLXbGUnaU6map+Ny57G3o169k183jKb8p+fr6MkTKSpRzxP+R587E7
-Yuctu98UP4Qt344gQDqydKWQjMjN4I2MzSEmXC8Q8P82Zvz9JatjIZRsu5KeTta+
-P+2bbnge8FHJX7d5FjsP
-=nMjD
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
-
-
---===============6392173945895041605==
-Content-Type: text/plain; charset="us-ascii"
+References: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
+In-Reply-To: <1392773023.4498.YahooMailNeo@web160503.mail.bf1.yahoo.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+On Wed, 19 Feb 2014 10:20:16 -0800 (PST), ianp wrote:
+> > On Thursday, February 20, 2014 12:35 AM, Jean Delvare <jdelvare@suse.de> wrote:
+> > Yeah, I had the same problem. Ironically, having a good, stable PSU
+> > makes the job harder. A crappy PSU oscillating between 5 different
+> > values in the BIOS would be much better ;-)
+> 
+> Almost twenty minutes into just staring at the monitor, I thought about replacing the PSU with a generic unit that I have lying around here just to get it moving. But then I had an idea that maybe I could introduce a tiny ripple if I open and close my optical drive's tray. And that did the trick and gave me a quick 5.040 reading. :-)
+
+This is a good trick, I've added it to the guide :) Thanks!
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6392173945895041605==--
