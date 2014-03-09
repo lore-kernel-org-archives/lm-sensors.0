@@ -1,117 +1,48 @@
-From: Laszlo Papp <lpapp@kde.org>
-Date: Mon, 10 Mar 2014 18:00:17 +0000
-Subject: Re: [lm-sensors] Tachometer speed returned rather than absolute fan speed?
-Message-Id: <CAOMwXhMNC8wC54mepA-J=5X6kmUW1yo=pgDEASiAeLOiowEb-w@mail.gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sun, 09 Mar 2014 09:13:41 +0000
+Subject: Re: [lm-sensors] Sensors configuration for ASRock G41C-GS
+Message-Id: <20140309101341.6aa7e056@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAOMwXhOB=1HA57jwKCx3-hU8A_ypjrm0J3R9huO25xa4B_gw8w@mail.gmail.com>
-	<20140307163717.336873f5@endymion.delvare>
-	<CAOMwXhPpObWqd1vR3t+ifKd-_ZbnGTm1TNNUakmVAR3CB=pzTg@mail.gmail.com>
-	<20140307181718.GA1027@roeck-us.net>
-	<531BACD9.9050206@roeck-us.net>
-	<CAOMwXhNcoe4oWbijJ7s3o-E6k0FtfJSXZM2g=RC3S2FzvX_VdQ@mail.gmail.com>
-	<531C2097.5020004@roeck-us.net>
-	<CAOMwXhPMnvc29VB0ViDc494CunKfmkKV+fvdBGNXoaAW+D+C9A@mail.gmail.com>
-	<531DBD74.2090205@roeck-us.net>
-	<CAOMwXhMRtNaxtA7=cc7ur_Qf3iwZAHi=sk-Ujp=hggGA1O5u+Q@mail.gmail.com>
-	<20140310151146.GA26903@roeck-us.net>
-In-Reply-To: <20140310151146.GA26903@roeck-us.net>
+References: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
+In-Reply-To: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 10, 2014 at 3:11 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> On Mon, Mar 10, 2014 at 01:50:01PM +0000, Laszlo Papp wrote:
->> On Mon, Mar 10, 2014 at 1:26 PM, Guenter Roeck <linux@roeck-us.net> wrote:
->> > On 03/10/2014 02:59 AM, Laszlo Papp wrote:
->> >>>
->> >>> The reason is (most likely) that your fan input does not have a pull-up
->> >>> resistor. Per datasheet, the fan inputs need a 10kOhm pull-up resistor. I
->> >>> confirmed this with my test board - with the pull-up resistor, inputs read
->> >>> 0, Without pull-up, the reported value is 1, which translates to 30 RPM. You
->> >>> might also need the 10 uF capacitor on the FB pin.
->> >>
->> >>
->> >> We have both of them in place as per requirement for the chip as far
->> >> as I understand the datasheet. The circuit would not work properly
->> >> without it.
->> >>>
->> >>> sudo i2cdump -y -f 1 0x48
->> >>> No size specified (using byte-data access)
->> >>>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
->> >>> 00: 00 00 0a 0a ff ff 00 00 00 00 00 00 01 01 00 00    ..??........??..
->> >>> 10: 01 01 01 01 1f 1f 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >>> 20: 00 00 0a 0a ff ff 00 00 00 00 00 00 01 01 00 00    ..??........??..
->> >>
->> >>
->> >> /usr/sbin/i2cdump -y -f 1 0x48
->> >> No size specified (using byte-data access)
->> >>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
->> >> 00: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> 10: 09 09 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> 20: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> 30: 09 09 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> 40: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> 50: 08 08 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> 60: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> 70: 08 08 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> 80: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> 90: 08 08 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> a0: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> b0: 08 08 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> c0: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> d0: 08 08 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >> e0: 00 00 3a 3a fc fc b4 b4 00 00 00 00 01 01 01 01    ..::????....????
->> >> f0: 08 08 01 01 1c 1c 02 02 91 91 91 91 91 91 91 91    ????????????????
->> >>
->> >>> groeck@desktop:~$ sensors max6651-i2c-1-48
->> >>> max6651-i2c-1-48
->> >>> Adapter: i2c-diolan-u2c at bus 003 device 002
->> >>> fan1:          30 RPM  (div = 4)
->> >>> fan2:           0 RPM
->> >>> fan3:          30 RPM
->> >>> fan4:          30 RPM
->> >>
->> >>
->> >> sensors max6651-i2c-1-48
->> >> max6651-i2c-1-48
->> >> Adapter: DaVinci I2C adapter
->> >> fan1:          30 RPM  (div = 4)
->> >> fan2:          30 RPM
->> >> fan3:         420 RPM
->> >> fan4:          30 RPM
->> >>
->> >>> Only fan2 (TACH1 chip input) has the resistor installed.
->> >>
->> >>
->> >> We have it both on fan1 and fan4.
->> >>
->> >> If I use our scope for checking the tachometer, I see level zero on
->> >> the scope, but 1 when checking the open collector level, since that is
->> >> the purpose of the pull-up resistor.
->> >>
->> > With the pull-up installed, you should always see a high voltage on the
->> > scope or with a volt meter. The scope would not see or be able to know
->> > that the pin is OC if the pull-up resistor is there.
->> >
->> > If it is truly OC, it would be floating and might show low. If you can,
->> > I would suggest to manually add a 10k resistor against VCC to the open
->> > connector and see what happens.
->> >
->> > Another way to find out for sure might be to disconnect power and
->> > measure resistance between the tachometer pin and VCC.
->>
->> Perhaps I was not clear. So, we do have both the resistors and
->> capacitor as required. I double checked the schematics as well as the
->> pins coming from the fan and that was zero. The tacho0 input, however,
->> was 1.
->>
->
-> How can the pin coming from the fan be zero, and the tach0 input be 1
-> at the same time ? Those should be the same ?
+On Mon, 24 Feb 2014 14:13:58 -0800 (PST), ianp wrote:
+> Hi Jean,
+>=20
+>=20
+> I wish to submit some corrections regarding this configuration.
+>=20
+>=20
+> ### Fans
+>=20
+> =A0=A0 ### Ignore fan4 and fan5. There are
+> =A0=A0 ### only 3 fan connectors on this board.
+>=20
+> =A0=A0 label=A0 fan1=A0 "POW Fan"=A0=A0=A0=A0=A0=A0 # was incorrectly lab=
+eled "CHA Fan"
+> =A0=A0 label=A0 fan2=A0 "CPU Fan"
+> =A0=A0 label=A0 fan3=A0 "CHA Fan"=A0=A0=A0=A0=A0=A0 # was incorrectly lab=
+eled "PSU Fan"
+> =A0=A0 ignore fan4
+> =A0=A0 ignore fan5
+>=20
+>=20
+> I was able to verify this after having acquired a fan that provided speed=
+ monitoring. I have changed "PSU Fan" to "POW Fan" so that it matches the l=
+abeling on the motherboard as well, which is POWER_FAN.
 
-Nope, that is what the pull-up resistor is for. It will pull the level up to 1.
+Sorry for the delay. Your reply landed in my spam box, which for some
+reason was no longer subscribed so I didn't see it.
+
+I just updated the wiki with the change above, thanks.
+
+--=20
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
