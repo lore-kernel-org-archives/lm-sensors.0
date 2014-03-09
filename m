@@ -1,157 +1,103 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 09 Mar 2014 17:28:43 +0000
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Date: Sun, 09 Mar 2014 17:58:18 +0000
 Subject: Re: [lm-sensors] 3.13.?: Strange / dangerous fan policy...
-Message-Id: <531CA4CB.1070705@roeck-us.net>
+Message-Id: <2833205.f1U4jaAo8e@vostro.rjw.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <531A1EEE.9090101@netscape.net>	<20140307205506.GA6870@roeck-us.net>	<531A426D.6080100@netscape.net>	<20140307225230.GA31135@roeck-us.net> <20140308120831.328e0179@endymion.delvare> <531B3E4C.2040105@roeck-us.net> <531BB171.1060208@netscape.net>
+References: <531A1EEE.9090101@netscape.net> <531B3E4C.2040105@roeck-us.net> <531BB171.1060208@netscape.net>
 In-Reply-To: <531BB171.1060208@netscape.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Manuel Krause <manuelkrause@netscape.net>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Manuel Krause <manuelkrause@netscape.net>
+Cc: Guenter Roeck <linux@roeck-us.net>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, rui.zhang@intel.com
 
-On 03/08/2014 04:10 PM, Manuel Krause wrote:
-> On 2014-03-08 16:59, Guenter Roeck wrote:
->> On 03/08/2014 03:08 AM, Jean Delvare wrote:
->>> On Fri, 7 Mar 2014 14:52:30 -0800, Guenter Roeck wrote:
->>>> On Fri, Mar 07, 2014 at 11:04:29PM +0100, Manuel Krause wrote:
->>>>> Hi, and thanks for the quick response!
->>>>> No special fancy "fan control policy". 'fancontrol' isn't up or
->>>>> running.
->>>>> Vanilla kernels 3.11.* and 3.12.* had been working on here
->>>>> without
->>>>> any extra work.
->>>>> --
->>>>> # sensors
->>>>> acpitz-virtual-0
->>>>> Adapter: Virtual device
->>>>> temp1:        +71.0=B0C  (crit =3D +256.0=B0C)
->>>>> temp2:        +69.0=B0C  (crit =3D +110.0=B0C)
->>>>> temp3:        +52.0=B0C  (crit =3D +105.0=B0C)
->>>>> temp4:        +25.0=B0C  (crit =3D +110.0=B0C)
->>>>> temp5:        +58.0=B0C  (crit =3D +110.0=B0C)
->>>>>
->>>>> coretemp-isa-0000
->>>>> Adapter: ISA adapter
->>>>> Core 0:       +62.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->>>>> Core 1:       +60.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->>>>> --
->>>>> My notebook (HP/Compaq 6730b) does not have a seperate fan
->>>>> sensor.
->>>>> This is with 3.12.13 with my normal workload.
->>>>>
->>>>> Please, trust my above mentionned values of 94 =B0C vs. 74=B0C as I
->>>>> don't like to boot 3.13.6 anymore, to avoid harm to the
->>>>> notebook's
->>>>> casing.
->>>>
->>>> Understood. Unfortunately, we'll need to get information
->>>> from the new kernel to be able to track down the problem.
->>>
->>> Indeed. Not only the run-time temperatures, but also the high
->>> and crit
->>> limits.
->>>
->>>>> But I'd do to test any improvement-patch.
->>>>
->>>> So far I have no idea what is going on. I don't see anything
->>>> in the
->>>> drivers providing above data that would explain the behavior,
->>>> but I might be missing something.
->>>
->>> Looks like a regression in the acpi subsystem or in power
->>> management,
->>> not hwmon. Hwmon is merely reporting the temperatures, it's not
->>> responsible for the actual temperatures.
->>>
->>
->> I would agree. I don't think we have enough information to be sure,
->> though. There might be some unintended interaction or interference.
->>
->> gpu is a good hint ... for example, look at commit b9ed919f1c8
->> (drm/nouveau/drm/pm: remove everything except the hwmon interfaces
->> to THERM). nouveau does export pwm and fan control information,
->> so any change in that code may have unintended side effects.
->> Similar, I don't know how ec39f64bba (drm/radeon/dpm: Convert to
->> use devm_hwmon_register_with_groups) could have the observed impact,
->> as it is purely passive, but I prefer to be rather safe than sorry.
->>
->> This problem has now been submitted into bugzilla as
->> https://bugzilla.kernel.org/show_bug.cgi?id=3D71711.
->>
->> Guenter
->>
->
-> Sorry, for beeing late, had to search for/accumulate much info for you...
-> I hope, you like me to put it into one answer to you all CCing you.
->
-> My GFX is a GM45 Intel (mobile), shared memory, running the opensource Me=
-sa drivers/extensions.
-> kernel-module: i915
->
-> According to the output of 'cpupower': I have
-> CPUidle driver: acpi_idle
-> CPUidle governor: menu
->
-> CPUfreq:
->    driver: acpi-cpufreq
->    available cpufreq governors: ondemand, performance
-> -
-> And "ondemand" is running.
-> --
->
-> # sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +41.0=B0C  (crit =3D +256.0=B0C)
-> temp2:        +92.0=B0C  (crit =3D +110.0=B0C)
-> temp3:        +71.0=B0C  (crit =3D +105.0=B0C)
-> temp4:        +26.5=B0C  (crit =3D +110.0=B0C)
-> temp5:        +25.0=B0C  (crit =3D +110.0=B0C)
->
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:       +86.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-> Core 1:       +84.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->
-> FROM a critical "smelly" situation today, kernel-compilation, fan @100%.
-> --
->
-> Additional findings:
->
-> Identification from bootup ACPI initialisation vs. sensors:
-> temp1 =3D DTSZ
-> temp2 =3D CPUZ --> triggering Cooling in 3.12.13 if > 74=B0C
-> temp3 =3D SKNZ
-> temp4 =3D BATZ "Battery Zone" always calm ~ +6=B0C of ambient T
-> temp5 =3D FDTZ --- in 3.12.13 a representation of the cooling-fan (25 - 4=
-5 - 58 - max?)
-> Core 0 & Core 1 are the internal CPU T sensors.
->
-> With the 3.13.x (.5+) kernels the first gatherered cooling settings from =
-bootup do stay forever. Means, rebooting a hot system will get a FDTZ @45=
-=B0C+ and won't make any problems, as it does cool enough (even for kernel =
-compiling on here). If it gets 25=B0C @bootup the system goes into emergenc=
-y cooling somewhen. Same is with a suspend/resume.
->
-> Kernel 3.12.13 adjusts the cooling on it's own, but appropriately.
->
-
-Hi Manuel,
-
-thanks a lot for the additional information.
-
-I added this exchange to bugzilla (https://bugzilla.kernel.org/show_bug.cgi=
-?id=3D71711).
-This is pretty much all I can do at this point; I have no idea what
-is going on. Some change in ACPI would be my guess, but I did not see
-anything catching my eye when looking through the ACPI code.
-
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU3VuZGF5LCBNYXJjaCAwOSwgMjAxNCAwMToxMDoyNSBBTSBNYW51ZWwgS3JhdXNlIHdyb3Rl
+Ogo+IE9uIDIwMTQtMDMtMDggMTY6NTksIEd1ZW50ZXIgUm9lY2sgd3JvdGU6Cj4gPiBPbiAwMy8w
+OC8yMDE0IDAzOjA4IEFNLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4gPj4gT24gRnJpLCA3IE1hciAy
+MDE0IDE0OjUyOjMwIC0wODAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+ID4+PiBPbiBGcmksIE1h
+ciAwNywgMjAxNCBhdCAxMTowNDoyOVBNICswMTAwLCBNYW51ZWwgS3JhdXNlIHdyb3RlOgo+ID4+
+Pj4gSGksIGFuZCB0aGFua3MgZm9yIHRoZSBxdWljayByZXNwb25zZSEKPiA+Pj4+IE5vIHNwZWNp
+YWwgZmFuY3kgImZhbiBjb250cm9sIHBvbGljeSIuICdmYW5jb250cm9sJyBpc24ndCB1cCBvcgo+
+ID4+Pj4gcnVubmluZy4KPiA+Pj4+IFZhbmlsbGEga2VybmVscyAzLjExLiogYW5kIDMuMTIuKiBo
+YWQgYmVlbiB3b3JraW5nIG9uIGhlcmUKPiA+Pj4+IHdpdGhvdXQKPiA+Pj4+IGFueSBleHRyYSB3
+b3JrLgo+ID4+Pj4gLS0KPiA+Pj4+ICMgc2Vuc29ycwo+ID4+Pj4gYWNwaXR6LXZpcnR1YWwtMAo+
+ID4+Pj4gQWRhcHRlcjogVmlydHVhbCBkZXZpY2UKPiA+Pj4+IHRlbXAxOiAgICAgICAgKzcxLjDC
+sEMgIChjcml0ID0gKzI1Ni4wwrBDKQo+ID4+Pj4gdGVtcDI6ICAgICAgICArNjkuMMKwQyAgKGNy
+aXQgPSArMTEwLjDCsEMpCj4gPj4+PiB0ZW1wMzogICAgICAgICs1Mi4wwrBDICAoY3JpdCA9ICsx
+MDUuMMKwQykKPiA+Pj4+IHRlbXA0OiAgICAgICAgKzI1LjDCsEMgIChjcml0ID0gKzExMC4wwrBD
+KQo+ID4+Pj4gdGVtcDU6ICAgICAgICArNTguMMKwQyAgKGNyaXQgPSArMTEwLjDCsEMpCj4gPj4+
+Pgo+ID4+Pj4gY29yZXRlbXAtaXNhLTAwMDAKPiA+Pj4+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4g
+Pj4+PiBDb3JlIDA6ICAgICAgICs2Mi4wwrBDICAoaGlnaCA9ICsxMDUuMMKwQywgY3JpdCA9ICsx
+MDUuMMKwQykKPiA+Pj4+IENvcmUgMTogICAgICAgKzYwLjDCsEMgIChoaWdoID0gKzEwNS4wwrBD
+LCBjcml0ID0gKzEwNS4wwrBDKQo+ID4+Pj4gLS0KPiA+Pj4+IE15IG5vdGVib29rIChIUC9Db21w
+YXEgNjczMGIpIGRvZXMgbm90IGhhdmUgYSBzZXBlcmF0ZSBmYW4KPiA+Pj4+IHNlbnNvci4KPiA+
+Pj4+IFRoaXMgaXMgd2l0aCAzLjEyLjEzIHdpdGggbXkgbm9ybWFsIHdvcmtsb2FkLgo+ID4+Pj4K
+PiA+Pj4+IFBsZWFzZSwgdHJ1c3QgbXkgYWJvdmUgbWVudGlvbm5lZCB2YWx1ZXMgb2YgOTQgwrBD
+IHZzLiA3NMKwQyBhcyBJCj4gPj4+PiBkb24ndCBsaWtlIHRvIGJvb3QgMy4xMy42IGFueW1vcmUs
+IHRvIGF2b2lkIGhhcm0gdG8gdGhlCj4gPj4+PiBub3RlYm9vaydzCj4gPj4+PiBjYXNpbmcuCj4g
+Pj4+Cj4gPj4+IFVuZGVyc3Rvb2QuIFVuZm9ydHVuYXRlbHksIHdlJ2xsIG5lZWQgdG8gZ2V0IGlu
+Zm9ybWF0aW9uCj4gPj4+IGZyb20gdGhlIG5ldyBrZXJuZWwgdG8gYmUgYWJsZSB0byB0cmFjayBk
+b3duIHRoZSBwcm9ibGVtLgo+ID4+Cj4gPj4gSW5kZWVkLiBOb3Qgb25seSB0aGUgcnVuLXRpbWUg
+dGVtcGVyYXR1cmVzLCBidXQgYWxzbyB0aGUgaGlnaAo+ID4+IGFuZCBjcml0Cj4gPj4gbGltaXRz
+Lgo+ID4+Cj4gPj4+PiBCdXQgSSdkIGRvIHRvIHRlc3QgYW55IGltcHJvdmVtZW50LXBhdGNoLgo+
+ID4+Pgo+ID4+PiBTbyBmYXIgSSBoYXZlIG5vIGlkZWEgd2hhdCBpcyBnb2luZyBvbi4gSSBkb24n
+dCBzZWUgYW55dGhpbmcKPiA+Pj4gaW4gdGhlCj4gPj4+IGRyaXZlcnMgcHJvdmlkaW5nIGFib3Zl
+IGRhdGEgdGhhdCB3b3VsZCBleHBsYWluIHRoZSBiZWhhdmlvciwKPiA+Pj4gYnV0IEkgbWlnaHQg
+YmUgbWlzc2luZyBzb21ldGhpbmcuCj4gPj4KPiA+PiBMb29rcyBsaWtlIGEgcmVncmVzc2lvbiBp
+biB0aGUgYWNwaSBzdWJzeXN0ZW0gb3IgaW4gcG93ZXIKPiA+PiBtYW5hZ2VtZW50LAo+ID4+IG5v
+dCBod21vbi4gSHdtb24gaXMgbWVyZWx5IHJlcG9ydGluZyB0aGUgdGVtcGVyYXR1cmVzLCBpdCdz
+IG5vdAo+ID4+IHJlc3BvbnNpYmxlIGZvciB0aGUgYWN0dWFsIHRlbXBlcmF0dXJlcy4KPiA+Pgo+
+ID4KPiA+IEkgd291bGQgYWdyZWUuIEkgZG9uJ3QgdGhpbmsgd2UgaGF2ZSBlbm91Z2ggaW5mb3Jt
+YXRpb24gdG8gYmUgc3VyZSwKPiA+IHRob3VnaC4gVGhlcmUgbWlnaHQgYmUgc29tZSB1bmludGVu
+ZGVkIGludGVyYWN0aW9uIG9yIGludGVyZmVyZW5jZS4KPiA+Cj4gPiBncHUgaXMgYSBnb29kIGhp
+bnQgLi4uIGZvciBleGFtcGxlLCBsb29rIGF0IGNvbW1pdCBiOWVkOTE5ZjFjOAo+ID4gKGRybS9u
+b3V2ZWF1L2RybS9wbTogcmVtb3ZlIGV2ZXJ5dGhpbmcgZXhjZXB0IHRoZSBod21vbiBpbnRlcmZh
+Y2VzCj4gPiB0byBUSEVSTSkuIG5vdXZlYXUgZG9lcyBleHBvcnQgcHdtIGFuZCBmYW4gY29udHJv
+bCBpbmZvcm1hdGlvbiwKPiA+IHNvIGFueSBjaGFuZ2UgaW4gdGhhdCBjb2RlIG1heSBoYXZlIHVu
+aW50ZW5kZWQgc2lkZSBlZmZlY3RzLgo+ID4gU2ltaWxhciwgSSBkb24ndCBrbm93IGhvdyBlYzM5
+ZjY0YmJhIChkcm0vcmFkZW9uL2RwbTogQ29udmVydCB0bwo+ID4gdXNlIGRldm1faHdtb25fcmVn
+aXN0ZXJfd2l0aF9ncm91cHMpIGNvdWxkIGhhdmUgdGhlIG9ic2VydmVkIGltcGFjdCwKPiA+IGFz
+IGl0IGlzIHB1cmVseSBwYXNzaXZlLCBidXQgSSBwcmVmZXIgdG8gYmUgcmF0aGVyIHNhZmUgdGhh
+biBzb3JyeS4KPiA+Cj4gPiBUaGlzIHByb2JsZW0gaGFzIG5vdyBiZWVuIHN1Ym1pdHRlZCBpbnRv
+IGJ1Z3ppbGxhIGFzCj4gPiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
+P2lkPTcxNzExLgo+ID4KPiA+IEd1ZW50ZXIKPiA+Cj4gCj4gU29ycnksIGZvciBiZWVpbmcgbGF0
+ZSwgaGFkIHRvIHNlYXJjaCBmb3IvYWNjdW11bGF0ZSBtdWNoIGluZm8gCj4gZm9yIHlvdS4uLgo+
+IEkgaG9wZSwgeW91IGxpa2UgbWUgdG8gcHV0IGl0IGludG8gb25lIGFuc3dlciB0byB5b3UgYWxs
+IENDaW5nIHlvdS4KPiAKPiBNeSBHRlggaXMgYSBHTTQ1IEludGVsIChtb2JpbGUpLCBzaGFyZWQg
+bWVtb3J5LCBydW5uaW5nIHRoZSAKPiBvcGVuc291cmNlIE1lc2EgZHJpdmVycy9leHRlbnNpb25z
+Lgo+IGtlcm5lbC1tb2R1bGU6IGk5MTUKPiAKPiBBY2NvcmRpbmcgdG8gdGhlIG91dHB1dCBvZiAn
+Y3B1cG93ZXInOiBJIGhhdmUKPiBDUFVpZGxlIGRyaXZlcjogYWNwaV9pZGxlCj4gQ1BVaWRsZSBn
+b3Zlcm5vcjogbWVudQo+IAo+IENQVWZyZXE6Cj4gICAgZHJpdmVyOiBhY3BpLWNwdWZyZXEKPiAg
+ICBhdmFpbGFibGUgY3B1ZnJlcSBnb3Zlcm5vcnM6IG9uZGVtYW5kLCBwZXJmb3JtYW5jZQo+IC0K
+PiBBbmQgIm9uZGVtYW5kIiBpcyBydW5uaW5nLgo+IC0tCj4gCj4gIyBzZW5zb3JzCj4gYWNwaXR6
+LXZpcnR1YWwtMAo+IEFkYXB0ZXI6IFZpcnR1YWwgZGV2aWNlCj4gdGVtcDE6ICAgICAgICArNDEu
+MMKwQyAgKGNyaXQgPSArMjU2LjDCsEMpCj4gdGVtcDI6ICAgICAgICArOTIuMMKwQyAgKGNyaXQg
+PSArMTEwLjDCsEMpCj4gdGVtcDM6ICAgICAgICArNzEuMMKwQyAgKGNyaXQgPSArMTA1LjDCsEMp
+Cj4gdGVtcDQ6ICAgICAgICArMjYuNcKwQyAgKGNyaXQgPSArMTEwLjDCsEMpCj4gdGVtcDU6ICAg
+ICAgICArMjUuMMKwQyAgKGNyaXQgPSArMTEwLjDCsEMpCj4gCj4gY29yZXRlbXAtaXNhLTAwMDAK
+PiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IENvcmUgMDogICAgICAgKzg2LjDCsEMgIChoaWdoID0g
+KzEwNS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQo+IENvcmUgMTogICAgICAgKzg0LjDCsEMgICho
+aWdoID0gKzEwNS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQo+IAo+IEZST00gYSBjcml0aWNhbCAi
+c21lbGx5IiBzaXR1YXRpb24gdG9kYXksIGtlcm5lbC1jb21waWxhdGlvbiwgZmFuIAo+IEAxMDAl
+Lgo+IC0tCj4gCj4gQWRkaXRpb25hbCBmaW5kaW5nczoKPiAKPiBJZGVudGlmaWNhdGlvbiBmcm9t
+IGJvb3R1cCBBQ1BJIGluaXRpYWxpc2F0aW9uIHZzLiBzZW5zb3JzOgo+IHRlbXAxID0gRFRTWgo+
+IHRlbXAyID0gQ1BVWiAtLT4gdHJpZ2dlcmluZyBDb29saW5nIGluIDMuMTIuMTMgaWYgPiA3NMKw
+Qwo+IHRlbXAzID0gU0tOWgo+IHRlbXA0ID0gQkFUWiAiQmF0dGVyeSBab25lIiBhbHdheXMgY2Fs
+bSB+ICs2wrBDIG9mIGFtYmllbnQgVAo+IHRlbXA1ID0gRkRUWiAtLS0gaW4gMy4xMi4xMyBhIHJl
+cHJlc2VudGF0aW9uIG9mIHRoZSBjb29saW5nLWZhbiAKPiAoMjUgLSA0NSAtIDU4IC0gbWF4PykK
+PiBDb3JlIDAgJiBDb3JlIDEgYXJlIHRoZSBpbnRlcm5hbCBDUFUgVCBzZW5zb3JzLgo+IAo+IFdp
+dGggdGhlIDMuMTMueCAoLjUrKSBrZXJuZWxzIHRoZSBmaXJzdCBnYXRoZXJlcmVkIGNvb2xpbmcg
+Cj4gc2V0dGluZ3MgZnJvbSBib290dXAgZG8gc3RheSBmb3JldmVyLiBNZWFucywgcmVib290aW5n
+IGEgaG90IAo+IHN5c3RlbSB3aWxsIGdldCBhIEZEVFogQDQ1wrBDKyBhbmQgd29uJ3QgbWFrZSBh
+bnkgcHJvYmxlbXMsIGFzIGl0IAo+IGRvZXMgY29vbCBlbm91Z2ggKGV2ZW4gZm9yIGtlcm5lbCBj
+b21waWxpbmcgb24gaGVyZSkuIElmIGl0IGdldHMgCj4gMjXCsEMgQGJvb3R1cCB0aGUgc3lzdGVt
+IGdvZXMgaW50byBlbWVyZ2VuY3kgY29vbGluZyBzb21ld2hlbi4gCj4gU2FtZSBpcyB3aXRoIGEg
+c3VzcGVuZC9yZXN1bWUuCj4gCj4gS2VybmVsIDMuMTIuMTMgYWRqdXN0cyB0aGUgY29vbGluZyBv
+biBpdCdzIG93biwgYnV0IGFwcHJvcHJpYXRlbHkuCgpUaGlzIGFsbW9zdCBjZXJ0YWlubHkgaXMg
+YW4gQUNQSSByZWdyZXNzaW9uLCBidXQgSSdtIG5vdCBzdXJlIHdoZXRoZXIKdGhlcm1hbCBtYW5h
+Z2VtZW50IG9yIENQVSBwb3dlciBtYW5hZ2VtZW50IGlzIGJyb2tlbiBvbiB5b3VyIHN5c3RlbS4K
+CkNhbiB5b3UgY29tcGFyZSB0aGUgY29udGVudHMgb2YgL3N5cy9jbGFzcy90aGVybWFsLyBmcm9t
+IHdvcmtpbmcgYW5kCm5vdCB3b3JraW5nIGtlcm5lbHMsIHBsZWFzZT8KClJhZmFlbAoKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFp
+bGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNv
+cnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
