@@ -1,119 +1,110 @@
-From: "Opensource [Steve Twiss]" <stwiss.opensource@diasemi.com>
-Date: Sun, 23 Mar 2014 20:37:31 +0000
-Subject: [lm-sensors] [RFC V1 3/3] Documentation: hwmon: New information for DA9063
-Message-Id: <79211de889340ba3786f46021fac3a6f7be2132d.1395607051.git.stwiss.opensource@diasemi.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Date: Mon, 10 Mar 2014 20:53:11 +0000
+Subject: [lm-sensors] [PATCH v3 44/52] hwmon, coretemp: Fix CPU hotplug callback registration
+Message-Id: <20140310204111.10746.4119.stgit@srivatsabhat.in.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1395607051.git.stwiss.opensource@diasemi.com>
-In-Reply-To: <cover.1395607051.git.stwiss.opensource@diasemi.com>
+References: <20140310203312.10746.310.stgit@srivatsabhat.in.ibm.com>
+In-Reply-To: <20140310203312.10746.310.stgit@srivatsabhat.in.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, Rob Landley <rob@landley.net>
-Cc: David Dajun Chen <david.chen@diasemi.com>, LINUX-DOC <linux-doc@vger.kernel.org>, LINUX-KERNEL <linux-kernel@vger.kernel.org>, LM-SENSORS <lm-sensors@lm-sensors.org>, Lee Jones <lee.jones@linaro.org>, Mark Brown <broonie@linaro.org>, Philipp Zabel <p.zabel@pengutronix.de>, Samuel Ortiz <sameo@linux.intel.com>
+To: paulus@samba.org, oleg@redhat.com, mingo@kernel.org, rjw@rjwysocki.net, rusty@rustcorp.com.au, peterz@infradead.org, tglx@linutronix.de, akpm@linux-foundation.org
+Cc: paulmck@linux.vnet.ibm.com, tj@kernel.org, walken@google.com, ego@linux.vnet.ibm.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-pm@vger.kernel.org, linuxppc-dev@ozlabs.org, srivatsa.bhat@linux.vnet.ibm.com, Fenghua Yu <fenghua.yu@intel.com>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 
-From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+Subsystems that want to register CPU hotplug callbacks, as well as perform
+initialization for the CPUs that are already online, often do it as shown
+below:
 
-Addition of HWMON documentation for the DA9063 driver.
+	get_online_cpus();
 
-Signed-off-by: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+	for_each_online_cpu(cpu)
+		init_cpu(cpu);
+
+	register_cpu_notifier(&foobar_cpu_notifier);
+
+	put_online_cpus();
+
+This is wrong, since it is prone to ABBA deadlocks involving the
+cpu_add_remove_lock and the cpu_hotplug.lock (when running concurrently
+with CPU hotplug operations).
+
+Instead, the correct and race-free way of performing the callback
+registration is:
+
+	cpu_notifier_register_begin();
+
+	for_each_online_cpu(cpu)
+		init_cpu(cpu);
+
+	/* Note the use of the double underscored version of the API */
+	__register_cpu_notifier(&foobar_cpu_notifier);
+
+	cpu_notifier_register_done();
+
+
+Fix the hwmon coretemp code by using this latter form of callback
+registration.
+
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: lm-sensors@lm-sensors.org
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 ---
-Checks performed with linux-next/next-20140321/scripts/checkpatch.pl
- da9063                    total: 0 errors, 0 warnings, 67 lines checked
 
-This is the documentation that goes along with the DA9063 HWMON driver
-and the associated changes to the DA9063 mfd core and platform data.
+ drivers/hwmon/coretemp.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Dependencies:
-
-- The two other patches in this patch set:
-  These are the HWMON driver and the MFD core changes
-
-This patch applies against linux-next and next-20140321
-
-Regards,
-Steve Twiss, Dialog Semiconductor Ltd.
-
-
-
- Documentation/hwmon/da9063 |   67 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
- create mode 100644 Documentation/hwmon/da9063
-
-diff --git a/Documentation/hwmon/da9063 b/Documentation/hwmon/da9063
-new file mode 100644
-index 0000000..fa616bb
---- /dev/null
-+++ b/Documentation/hwmon/da9063
-@@ -0,0 +1,67 @@
-+
-+Kernel driver da9063-hwmon
-+=============
-+
-+Supported chips:
-+ * Dialog Semiconductor DA9063 PMIC
-+    Prefix: 'da9063'
-+    Datasheet:
-+	http://www.dialog-semiconductor.com/products/power-management/DA9063
-+
-+Authors: S Twiss <stwiss.opensource@diasemi.com>
-+
-+Description
-+-----------
-+
-+The DA9063 PMIC provides a general purpose ADC with 10 bits of resolution.
-+It uses track and hold circuitry with an analogue input multiplexer which
-+allows the conversion of up to 9 different inputs.
-+
-+ Channel  0: VSYS_RES	measurement of the system VDD (2.5 - 5.5V)
-+ Channel  1: ADCIN1_RES	high impedance input (0 - 2.5V)
-+ Channel  2: ADCIN2_RES	high impedance input (0 - 2.5V)
-+ Channel  3: ADCIN3_RES	high impedance input (0 - 2.5V)
-+ Channel  4: Tjunc	measurement of internal temperature sensor
-+ Channel  5: VBBAT	measurement of the backup battery voltage (0 - 5.0V)
-+ Channel  6: N/A	Reserved
-+ Channel  7: N/A	Reserved
-+ Channel  8: MON1_RES	group 1 internal regulators voltage (0 - 5.0V)
-+ Channel  9: MON2_RES	group 2 internal regulators voltage (0 - 5.0V)
-+ Channel 10: MON3_RES	group 3 internal regulators voltage (0 - 5.0V)
-+
-+The MUX selects from and isolates the 9 inputs and presents the channel to
-+be measured to the ADC input. When selected, an input amplifier on the VSYS
-+channel subtracts the VDDCORE reference voltage and scales the signal to the
-+correct value for the ADC.
-+
-+The analog ADC includes current sources at ADC_IN1, ADC_IN2 and ADC_IN3 to
-+support resistive measurements.
-+
-+Channels 1, 2 and 3 current source capability can be set through the ADC
-+thresholds ADC_CFG register and values for ADCIN1_CUR, ADCIN2_CUR and
-+ADCIN3_CUR. Settings for ADCIN1_CUR and ADCIN2_CUR are 1.0, 2.0, 10 and
-+40 micro Amps. The setting for ADCIN3_CUR is 10 micro Amps.
-+
-+Voltage Monitoring
-+------------------
-+
-+The manual measurement allows monitoring of the system voltage VSYS, the
-+auxiliary channels ADCIN1, ADCIN2 and ADCIN3, and a VBBAT measurement of
-+the backup battery voltage (0 - 5.0V). The manual measurements store 10
-+bits of ADC resolution.
-+
-+The manual ADC measurements attributes described above are supported by
-+the driver.
-+
-+The automatic ADC measurement is not supported by the driver.
-+
-+Temperature Monitoring
-+----------------------
-+
-+Channel 4 (Tjunc) will be used to measure the output of the internal
-+temperature sensor. The ADC measurement result and the T_OFFSET value can
-+be used by the host to calculate the internal junction temperature
-+
-+	Tjunc = -0.41 * (ADC - T_OFFSET - 812.5);
-+
-+The junction temperature attribute is supported by the driver.
--- 
-end-of-patch for RFC V1
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index bbb0b0d..746a6ad 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -849,20 +849,20 @@ static int __init coretemp_init(void)
+ 	if (err)
+ 		goto exit;
+ 
+-	get_online_cpus();
++	cpu_notifier_register_begin();
+ 	for_each_online_cpu(i)
+ 		get_core_online(i);
+ 
+ #ifndef CONFIG_HOTPLUG_CPU
+ 	if (list_empty(&pdev_list)) {
+-		put_online_cpus();
++		cpu_notifier_register_done();
+ 		err = -ENODEV;
+ 		goto exit_driver_unreg;
+ 	}
+ #endif
+ 
+-	register_hotcpu_notifier(&coretemp_cpu_notifier);
+-	put_online_cpus();
++	__register_hotcpu_notifier(&coretemp_cpu_notifier);
++	cpu_notifier_register_done();
+ 	return 0;
+ 
+ #ifndef CONFIG_HOTPLUG_CPU
+@@ -877,8 +877,8 @@ static void __exit coretemp_exit(void)
+ {
+ 	struct pdev_entry *p, *n;
+ 
+-	get_online_cpus();
+-	unregister_hotcpu_notifier(&coretemp_cpu_notifier);
++	cpu_notifier_register_begin();
++	__unregister_hotcpu_notifier(&coretemp_cpu_notifier);
+ 	mutex_lock(&pdev_list_mutex);
+ 	list_for_each_entry_safe(p, n, &pdev_list, list) {
+ 		platform_device_unregister(p->pdev);
+@@ -886,7 +886,7 @@ static void __exit coretemp_exit(void)
+ 		kfree(p);
+ 	}
+ 	mutex_unlock(&pdev_list_mutex);
+-	put_online_cpus();
++	cpu_notifier_register_done();
+ 	platform_driver_unregister(&coretemp_driver);
+ }
+ 
 
 
 _______________________________________________
