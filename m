@@ -1,49 +1,38 @@
-From: Sebastien Bourdelin <sebastien.bourdelin@savoirfairelinux.com>
-Date: Wed, 26 Mar 2014 20:11:04 +0000
-Subject: [lm-sensors] [PATCH] misc: (ds1682) replace obsolete simple_strtoull() with kstrtoull()
-Message-Id: <1395864664-16404-1-git-send-email-sebastien.bourdelin@savoirfairelinux.com>
+From: ast4ho@gmx-topmail.de
+Date: Thu, 13 Mar 2014 07:53:25 +0000
+Subject: [lm-sensors] ASUS P9D-X
+Message-Id: <trinity-9aac62be-bd0a-4a1f-b37b-a722ac4b7422-1394697205717@3capp-gmx-bs55>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: jerome.oufella@savoirfairelinux.com, linux-kernel@vger.kernel.org, Sebastien Bourdelin <sebastien.bourdelin@savoirfairelinux.com>
+To: lm-sensors@vger.kernel.org
 
-simple_strtoull() is obsolete, use the newer kstrtoull() instead.
-
-Signed-off-by: Sebastien Bourdelin <sebastien.bourdelin@savoirfairelinux.com>
----
- drivers/misc/ds1682.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/misc/ds1682.c b/drivers/misc/ds1682.c
-index 154b02e..155a150 100644
---- a/drivers/misc/ds1682.c
-+++ b/drivers/misc/ds1682.c
-@@ -86,7 +86,6 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
- {
- 	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
- 	struct i2c_client *client = to_i2c_client(dev);
--	char *endp;
- 	u64 val;
- 	__le32 val_le;
- 	int rc;
-@@ -94,8 +93,8 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
- 	dev_dbg(dev, "ds1682_store() called on %s\n", attr->attr.name);
- 
- 	/* Decode input */
--	val = simple_strtoull(buf, &endp, 0);
--	if (buf = endp) {
-+	rc = kstrtoull(buf, 0, &val);
-+	if (rc < 0) {
- 		dev_dbg(dev, "input string not a number\n");
- 		return -EINVAL;
- 	}
--- 
-1.9.1
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkhCsKgCkhlcmUgaXMgdGhlIGNvbmZpZyBmaWxlIEkgY291bGQgY3JlYXRlIGZvciBteSBBU1VT
+IFA5RC1YOgoKIyBjYXQgc2Vuc29ycy5kL3A5ZC14LmNvbmYKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KY2hpcCAibmN0Njc3OS0qIgojIG5jdDY3NzkgdmFsdWVzIGZvciBBc3VzIFA5RC1YCsKg
+CmxhYmVsIGluMCAiVmNvcmUiCsKgwqDCoCBzZXQgaW4wX21pbiAxLjQ1CsKgwqDCoCBzZXQgaW4w
+X21heCAxLjgwCgpsYWJlbCBpbjEgIisxMlYiCsKgwqDCoCBjb21wdXRlIGluMSBAICogMTIsIEAg
+LyAxMgrCoMKgwqAgc2V0IGluMV9taW7CoCAxMiAqIDAuOTUKwqDCoMKgIHNldCBpbjFfbWF4wqAg
+MTIgKiAxLjA1CgpsYWJlbCBpbjIgIkFWQ0MiCsKgwqDCoCBzZXQgaW4yX21pbsKgIDMuMyAqIDAu
+OTUKwqDCoMKgIHNldCBpbjJfbWF4wqAgMy4zICogMS4wNQoKbGFiZWwgaW4zICIrMy4zViIKwqDC
+oMKgIHNldCBpbjNfbWluwqAgMy4zICogMC45NQrCoMKgwqAgc2V0IGluM19tYXjCoCAzLjMgKiAx
+LjA1CgpsYWJlbCBpbjQgIis1ViIKwqDCoMKgIGNvbXB1dGUgaW40IEAgKiA1LCBAIC8gNQrCoMKg
+wqAgc2V0IGluNF9taW7CoCA1ICogMC45NQrCoMKgwqAgc2V0IGluNF9tYXjCoCA1ICogMS4wNQoK
+IyBhbHdheXMgcmVhZHMgKzIuMDRWLCBpZ25vcmluZwppZ25vcmUgaW41CgppZ25vcmUgaW42Cgps
+YWJlbCBpbjcgIjNWU0IiCsKgwqDCoCBzZXQgaW43X21pbsKgIDMuMyAqIDAuOTUKwqDCoMKgIHNl
+dCBpbjdfbWF4wqAgMy4zICogMS4wNQoKbGFiZWwgaW44ICJWYmF0IgrCoMKgwqAgc2V0IGluOF9t
+aW7CoCAzLjMgKiAwLjk1CsKgwqDCoCBzZXQgaW44X21heMKgIDMuMyAqIDEuMDUKCmlnbm9yZSBp
+bjkKCmlnbm9yZSBpbjEwCgppZ25vcmUgaW4xMQoKbGFiZWwgaW4xMiAiVkREUSIKwqDCoMKgIHNl
+dCBpbjEyX21pbsKgIDEuNSAqIDAuOTUKwqDCoMKgIHNldCBpbjEyX21heMKgIDEuNSAqIDEuMDUK
+Cmlnbm9yZSBpbjEzCgppZ25vcmUgaW4xNAoKbGFiZWwgdGVtcDEgIk1CIgrCoMKgwqAgc2V0IHRl
+bXAxX21heCA1MArCoMKgwqAgc2V0IHRlbXAxX21heF9oeXN0IDQwCgppZ25vcmUgdGVtcDIKCmxh
+YmVsIHRlbXAzICJNQidzIENQVSBzZW5zb3IiCgppZ25vcmUgdGVtcDQKCmlnbm9yZSB0ZW1wNQoK
+aWdub3JlIHRlbXA2CsKgCmxhYmVsIGZhbjEgIlJlYXIgRmFuIgoKbGFiZWwgZmFuMiAiQ1BVIEZh
+biIKwqDCoMKgIHNldCBmYW4yX21pbsKgIDUwMAoKbGFiZWwgZmFuMyAiRnJvbnQgRmFuIDEiCgps
+YWJlbCBmYW40ICJGcm9udCBGYW4gMiIKCmxhYmVsIGZhbjUgIkZyb250IEZhbiAzIgrCoAojIEln
+bm9yZSB0aGVzZSBmYW5zIGlmIG5vdCBwcmVzZW50CiNpZ25vcmUgZmFuMQojaWdub3JlIGZhbjMK
+I2lnbm9yZSBmYW40CiNpZ25vcmUgZmFuNQrCoAppZ25vcmUgaW50cnVzaW9uMAppZ25vcmUgaW50
+cnVzaW9uMQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
