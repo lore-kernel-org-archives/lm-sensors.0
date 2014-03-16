@@ -1,46 +1,24 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 09 Mar 2014 09:13:41 +0000
-Subject: Re: [lm-sensors] Sensors configuration for ASRock G41C-GS
-Message-Id: <20140309101341.6aa7e056@endymion.delvare>
+Date: Sun, 16 Mar 2014 11:09:45 +0000
+Subject: [lm-sensors] IT8620E/IT8623E vs. IT8603E
+Message-Id: <20140316120945.4dc8b28c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
-In-Reply-To: <1392823661.17478.YahooMailNeo@web160502.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 24 Feb 2014 14:13:58 -0800 (PST), ianp wrote:
-> Hi Jean,
->=20
->=20
-> I wish to submit some corrections regarding this configuration.
->=20
->=20
-> ### Fans
->=20
-> =A0=A0 ### Ignore fan4 and fan5. There are
-> =A0=A0 ### only 3 fan connectors on this board.
->=20
-> =A0=A0 label=A0 fan1=A0 "POW Fan"=A0=A0=A0=A0=A0=A0 # was incorrectly lab=
-eled "CHA Fan"
-> =A0=A0 label=A0 fan2=A0 "CPU Fan"
-> =A0=A0 label=A0 fan3=A0 "CHA Fan"=A0=A0=A0=A0=A0=A0 # was incorrectly lab=
-eled "PSU Fan"
-> =A0=A0 ignore fan4
-> =A0=A0 ignore fan5
->=20
->=20
-> I was able to verify this after having acquired a fan that provided speed=
- monitoring. I have changed "PSU Fan" to "POW Fan" so that it matches the l=
-abeling on the motherboard as well, which is POWER_FAN.
+Hi Rudolf,
 
-Sorry for the delay. Your reply landed in my spam box, which for some
-reason was no longer subscribed so I didn't see it.
+Recently you added support for the IT8603E chip to the it87 driver.
+Since then we had a number of requests to support the IT8620E and the
+IT8623E as well, for which we do not have a datasheet.
 
-I just updated the wiki with the change above, thanks.
+Do you happen to know if there is some degree of compatibility between
+these 3 chips?
 
---=20
+Thanks,
+-- 
 Jean Delvare
 SUSE L3 Support
 
