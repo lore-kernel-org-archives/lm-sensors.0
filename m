@@ -1,7 +1,7 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 18 Mar 2014 09:08:55 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Tue, 18 Mar 2014 09:29:43 +0000
 Subject: Re: [lm-sensors] IT8620E/IT8623E vs. IT8603E
-Message-Id: <1395133735.4285.30.camel@chaos.site>
+Message-Id: <53281207.3070205@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140316120945.4dc8b28c@endymion.delvare>
 In-Reply-To: <20140316120945.4dc8b28c@endymion.delvare>
@@ -10,15 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmLAoKTGUgVHVlc2RheSAxOCBNYXJjaCAyMDE0IMOgIDA5OjM5ICswMTAwLCBSdWRv
-bGYgTWFyZWsgYSDDqWNyaXQgOgo+IFRoZSBJVDg2MjNFIGlzIHNhbWUgYXNpIElUODYwM0UuCgpP
-SywgZ29vZCB0byBrbm93LiBEbyB5b3Uga25vdyBpZiBpdCBoYXMgdGhlIHNhbWUgSUQgKDB4ODYw
-MykgYXMgd2VsbCwgb3IKSUQgMHg4NjIzPyBXZSBjb3VsZCBhZGQgcHJvcGVyIHN1cHBvcnQgdG8g
-c2Vuc29ycy1kZXRlY3QgYW5kIHRoZSBpdDg3CmRyaXZlciBpZiB3ZSBrbm93IHRoYXQuCgo+ICBB
-c3VzIGhhcyBubyBpbmZvcm1hdGlvbiBhYm91dCBJVDg2MjBFLgoKT0ssIHRvbyBiYWQsIHRoYW5r
-cyBmb3IgYXNraW5nIGFueXdheS4KCj4gRG8geW91IGhhdmUgYW55IHRlc3RlcnMgZm9yIElUODYw
-M0U/CgpObywgSSBoYXZlIGEgdGVzdGVyIGZvciBJVDg2MjBFLgoKVGhhbmtzLAotLSAKSmVhbiBE
-ZWx2YXJlClNVU0UgTDMgU3VwcG9ydAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
-c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
-c2Vuc29ycw=
+Hi Jean
+
+According to 
+http://lists.lm-sensors.org/pipermail/lm-sensors/2013-August/039551.html
+
+Trying family `ITE'...                                      Yes
+Found unknown chip with ID 0x8623
+      (logical device 4 has address 0x290, could be sensors)
+
+It has the ID of it8623. Will you have a time to prepare the patch or should I?
+
+Thanks
+Rudolf
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
