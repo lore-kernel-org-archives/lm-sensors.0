@@ -1,7 +1,7 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Tue, 18 Mar 2014 08:39:02 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 18 Mar 2014 09:08:55 +0000
 Subject: Re: [lm-sensors] IT8620E/IT8623E vs. IT8603E
-Message-Id: <53280626.1040306@assembler.cz>
+Message-Id: <1395133735.4285.30.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140316120945.4dc8b28c@endymion.delvare>
 In-Reply-To: <20140316120945.4dc8b28c@endymion.delvare>
@@ -10,43 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-The IT8623E is same asi IT8603E. Asus has no information about IT8620E.
-
-Do you have any testers for IT8603E?
-
-Thanks
-Rudolf
-
-On 16.3.2014 12:58, Rudolf Marek wrote:
-> Hi Jean,
->
->  > Recently you added support for the IT8603E chip to the it87 driver.
->> Since then we had a number of requests to support the IT8620E and the
->> IT8623E as well, for which we do not have a datasheet.
->>
->> Do you happen to know if there is some degree of compatibility between
->> these 3 chips?
->
-> No idea, but I guess they are quite similar. Maybe we can check regs 58h and 5bh
-> in HWM block. It should be 90h and 12h.
->
-> I will try to contact the Asus and we will see.
->
-> Thanks
-> Rudolf
->
->>
->> Thanks,
->>
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgUnVkb2xmLAoKTGUgVHVlc2RheSAxOCBNYXJjaCAyMDE0IMOgIDA5OjM5ICswMTAwLCBSdWRv
+bGYgTWFyZWsgYSDDqWNyaXQgOgo+IFRoZSBJVDg2MjNFIGlzIHNhbWUgYXNpIElUODYwM0UuCgpP
+SywgZ29vZCB0byBrbm93LiBEbyB5b3Uga25vdyBpZiBpdCBoYXMgdGhlIHNhbWUgSUQgKDB4ODYw
+MykgYXMgd2VsbCwgb3IKSUQgMHg4NjIzPyBXZSBjb3VsZCBhZGQgcHJvcGVyIHN1cHBvcnQgdG8g
+c2Vuc29ycy1kZXRlY3QgYW5kIHRoZSBpdDg3CmRyaXZlciBpZiB3ZSBrbm93IHRoYXQuCgo+ICBB
+c3VzIGhhcyBubyBpbmZvcm1hdGlvbiBhYm91dCBJVDg2MjBFLgoKT0ssIHRvbyBiYWQsIHRoYW5r
+cyBmb3IgYXNraW5nIGFueXdheS4KCj4gRG8geW91IGhhdmUgYW55IHRlc3RlcnMgZm9yIElUODYw
+M0U/CgpObywgSSBoYXZlIGEgdGVzdGVyIGZvciBJVDg2MjBFLgoKVGhhbmtzLAotLSAKSmVhbiBE
+ZWx2YXJlClNVU0UgTDMgU3VwcG9ydAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
+c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
+c2Vuc29ycw=
