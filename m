@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Mar 2014 00:11:43 +0000
+Date: Wed, 19 Mar 2014 19:43:42 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus/ltc2978) Add support for LTM4676
-Message-Id: <20140319001143.GA4766@roeck-us.net>
+Message-Id: <20140319194342.GA6120@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1394851200-25605-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1394851200-25605-1-git-send-email-linux@roeck-us.net>
@@ -202,7 +202,8 @@ On Tue, Mar 18, 2014 at 07:27:09AM -0700, Robert Coulson wrote:
 > and value read is odd, but the comment helps. Did you inform the
 > manufacturer of the difference?
 > 
-Not yet, but good idea.
+Linear came back. This is an error in the datasheet. They said they'll ECN
+the datasheet immediately, so I might even remove the comment.
 
 Guenter
 
