@@ -1,66 +1,136 @@
-From: Robert Coulson <rob.coulson@gmail.com>
-Date: Thu, 06 Mar 2014 02:28:38 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus/ltc2978) Add new chip ID for LTC2974
-Message-Id: <CAEZKy8Lh+b-vBKtU2Np1JHcK=yz5Sq-vzA23fT0PHBTT1ahYFw@mail.gmail.com>
+From: "Opensource [Steve Twiss]" <stwiss.opensource@diasemi.com>
+Date: Sun, 23 Mar 2014 20:37:30 +0000
+Subject: [lm-sensors] [RFC V1 2/3] mfd: da9063: Add HWMON dependencies
+Message-Id: <31eb9829645b11a109e7699d5da888ab7d2a68c1.1395607051.git.stwiss.opensource@diasemi.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1394054411-18935-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1394054411-18935-1-git-send-email-linux@roeck-us.net>
+References: <cover.1395607051.git.stwiss.opensource@diasemi.com>
+In-Reply-To: <cover.1395607051.git.stwiss.opensource@diasemi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: David Dajun Chen <david.chen@diasemi.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, LINUX-DOC <linux-doc@vger.kernel.org>, LINUX-KERNEL <linux-kernel@vger.kernel.org>, LM-SENSORS <lm-sensors@lm-sensors.org>, Mark Brown <broonie@linaro.org>, Philipp Zabel <p.zabel@pengutronix.de>, Rob Landley <rob@landley.net>
 
-On Wed, Mar 5, 2014 at 1:20 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
 
-> LTC2974 datasheet revision C lists the chip ID for LTC2974 as 0x0213.
->
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/pmbus/ltc2978.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-> index de3c152..7647c11 100644
-> --- a/drivers/hwmon/pmbus/ltc2978.c
-> +++ b/drivers/hwmon/pmbus/ltc2978.c
-> @@ -54,6 +54,7 @@ enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883
-> };
->  #define LTC3883_MFR_IIN_PEAK           0xe1
->
->  #define LTC2974_ID                     0x0212
-> +#define LTC2974_ID_REV2                        0x0213
->
+Dependencies required for DA9063 HWMON support.
 
-Hello Guenter,
+Signed-off-by: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+---
+Checks performed with linux-next/next-20140321/scripts/checkpatch.pl
+ core.h                    total: 0 errors, 0 warnings, 100 lines checked
+ pdata.h                   total: 0 errors, 0 warnings, 129 lines checked
+ da9063-core.c             total: 0 errors, 0 warnings, 199 lines checked
 
-only a nit-pik; since the other devices in this file have REVx appended,
-should this device too?
+This patch includes the following changes:
 
-thanks,
+There are small changes to da9063-core.c to allow reading the temperature
+trimming offset value from the PMIC register list. This value is passed
+to HWMON and is used during its calculations of the PMIC's internal junction
+temperature.
 
-*** Rob.
+There are also changes to the platform data definitions so that values may
+be set for the current sources ADCIN[123]_CUR. These are provided so that
+they may be configured outside the driver.
 
- #define LTC2977_ID                     0x0130
->  #define LTC2978_ID_REV1                        0x0121
->  #define LTC2978_ID_REV2                        0x0122
-> @@ -394,7 +395,7 @@ static int ltc2978_probe(struct i2c_client *client,
->         if (chip_id < 0)
->                 return chip_id;
->
-> -       if (chip_id = LTC2974_ID) {
-> +       if (chip_id = LTC2974_ID || chip_id = LTC2974_ID_REV2) {
->                 data->id = ltc2974;
->         } else if (chip_id = LTC2977_ID) {
->                 data->id = ltc2977;
-> --
-> 1.7.9.7
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+This patch applies against linux-next and next-20140321
+
+Regards,
+Steve Twiss, Dialog Semiconductor Ltd.
+
+
+
+ drivers/mfd/da9063-core.c        |   13 ++++++++++++-
+ include/linux/mfd/da9063/core.h  |    3 +++
+ include/linux/mfd/da9063/pdata.h |   18 ++++++++++++++++++
+ 3 files changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/da9063-core.c b/drivers/mfd/da9063-core.c
+index e70ae31..24c1838 100644
+--- a/drivers/mfd/da9063-core.c
++++ b/drivers/mfd/da9063-core.c
+@@ -111,6 +111,7 @@ int da9063_device_init(struct da9063 *da9063, unsigned int irq)
+ {
+ 	struct da9063_pdata *pdata = da9063->dev->platform_data;
+ 	int model, variant_id, variant_code;
++	int t_offset = 0;
+ 	int ret;
+ 
+ 	if (pdata) {
+@@ -171,8 +172,18 @@ int da9063_device_init(struct da9063 *da9063, unsigned int irq)
+ 	ret = mfd_add_devices(da9063->dev, -1, da9063_devs,
+ 			      ARRAY_SIZE(da9063_devs), NULL, da9063->irq_base,
+ 			      NULL);
+-	if (ret)
++	if (ret) {
+ 		dev_err(da9063->dev, "Cannot add MFD cells\n");
++		return ret;
++	}
++
++	ret = regmap_read(da9063->regmap, DA9063_REG_T_OFFSET, &t_offset);
++	if (ret < 0)
++		dev_warn(da9063->dev,
++			 "Temperature trimming value cannot be read (defaulting to 0)\n");
++
++	/* pass this on to the hwmon driver */
++	da9063->t_offset = t_offset;
+ 
+ 	return ret;
+ }
+diff --git a/include/linux/mfd/da9063/core.h b/include/linux/mfd/da9063/core.h
+index 00a9aac..7327d37 100644
+--- a/include/linux/mfd/da9063/core.h
++++ b/include/linux/mfd/da9063/core.h
+@@ -86,6 +86,9 @@ struct da9063 {
+ 	int		chip_irq;
+ 	unsigned int	irq_base;
+ 	struct regmap_irq_chip_data *regmap_irq;
++
++	/* Trimming */
++	int		t_offset;
+ };
+ 
+ int da9063_device_init(struct da9063 *da9063, unsigned int irq);
+diff --git a/include/linux/mfd/da9063/pdata.h b/include/linux/mfd/da9063/pdata.h
+index 95c8742..576033e 100644
+--- a/include/linux/mfd/da9063/pdata.h
++++ b/include/linux/mfd/da9063/pdata.h
+@@ -62,6 +62,23 @@ struct da9063_regulators_pdata {
+ 	struct da9063_regulator_data	*regulator_data;
+ };
+ 
++/* HWMON platform data */
++#define DA9063_SET_ADCIN1_CUR_1UA	0x00
++#define DA9063_SET_ADCIN1_CUR_2UA	0x01
++#define DA9063_SET_ADCIN1_CUR_10UA	0x02
++#define DA9063_SET_ADCIN1_CUR_40UA	0x03
++#define DA9063_SET_ADCIN2_CUR_1UA	0x00
++#define DA9063_SET_ADCIN2_CUR_2UA	0x01
++#define DA9063_SET_ADCIN2_CUR_10UA	0x02
++#define DA9063_SET_ADCIN2_CUR_40UA	0x03
++#define DA9063_SET_ADCIN3_CUR_10UA	0x00
++
++struct da9063_hwmon_pdata {
++	unsigned char adcin1_cur;
++	unsigned char adcin2_cur;
++	unsigned char adcin3_cur;
++};
++
+ 
+ /*
+  * RGB LED configuration
+@@ -106,6 +123,7 @@ struct da9063_pdata {
+ 	unsigned			flags;
+ 	struct da9063_regulators_pdata	*regulators_pdata;
+ 	struct led_platform_data	*leds_pdata;
++	struct da9063_hwmon_pdata	*hwmon_pdata;
+ };
+ 
+ #endif	/* __MFD_DA9063_PDATA_H__ */
+-- 
+end-of-patch for RFC V1
+
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
