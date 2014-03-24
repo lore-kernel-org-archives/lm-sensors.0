@@ -1,31 +1,42 @@
-From: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Date: Wed, 12 Mar 2014 14:34:19 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon, k10temp: Add support for AMD F16 M30h processor
-Message-Id: <5320706B.2050405@amd.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 24 Mar 2014 04:15:16 +0000
+Subject: Re: [lm-sensors] [asus-nb-wmi] thermal device detected by asus-nb-wmi platform driver
+Message-Id: <532FB154.6020608@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1394573159-2317-1-git-send-email-Aravind.Gopalakrishnan@amd.com>	<531FCF3D.8020409@roeck-us.net> <20140312102511.77faa6ff@endymion.delvare>
-In-Reply-To: <20140312102511.77faa6ff@endymion.delvare>
+References: <532B8630.8030607@linux.intel.com>
+In-Reply-To: <532B8630.8030607@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: clemens@ladisch.de, rob@landley.net, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, andre@andrep.de
+To: "Lu, Baolu" <baolu.lu@linux.intel.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
 
-On 3/12/2014 4:25 AM, Jean Delvare wrote:
-> On Tue, 11 Mar 2014 20:06:37 -0700, Guenter Roeck wrote:
->>
->> Looks good. We'll have to see how we can apply this; probably after 3.15-rc1
->> comes out. I'll put it into my -staging branch for now and pull in the other
->> patch as well to make sure it compiles.
-> I've updated the wiki accordingly, as well as sensors-detect.
->
-
-Thanks!
-
--Aravind.
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMDMvMjAvMjAxNCAwNToyMiBQTSwgTHUsIEJhb2x1IHdyb3RlOgo+IEhpLAo+Cj4gSSBib290
+ZWQgVWJ1bnR1MTMuMTAgb250byBBU1VTIFQxMDAgVGFibGV0IGFuZCB1cGdyYWRlZCBpdCB3aXRo
+IHVwc3RyZWFtCj4ga2VybmVsICgzLjE0LjAtcmM3KykuIFRoZXJlIGlzIGEgdGhlcm1hbCBkZXZp
+Y2UgdW5kZXIKPiAvc3lzL2RldmljZXMvcGxhdGZvcm0vYXN1cy1uYi13bWkuCj4KPiByb290QHQx
+MDA6fi9saW51eCMgdHJlZSAvc3lzL2NsYXNzL2h3bW9uLwo+IC9zeXMvY2xhc3MvaHdtb24vCj4g
+4pSc4pSA4pSAIGh3bW9uMCAtPiAuLi8uLi9kZXZpY2VzL3BsYXRmb3JtL2NvcmV0ZW1wLjAvaHdt
+b24vaHdtb24wCj4g4pSU4pSA4pSAIGh3bW9uMSAtPiAuLi8uLi9kZXZpY2VzL3BsYXRmb3JtL2Fz
+dXMtbmItd21pL2h3bW9uL2h3bW9uMQo+Cj4gcm9vdEB0MTAwOi9zeXMvZGV2aWNlcy9wbGF0Zm9y
+bS9hc3VzLW5iLXdtaSMgbHMKPiBjcHVmdiBkcml2ZXIgaHdtb24gaW5wdXQgbW9kYWxpYXMgcG93
+ZXIgc3Vic3lzdGVtIHVldmVudAo+Cj4gcm9vdEB0MTAwOn4vbGludXgjIHNlbnNvcnMKPiBjb3Jl
+dGVtcC1pc2EtMDAwMAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gQ29yZSAwOiArMzguMMKwQyAo
+aGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4gQ29yZSAxOiArMzguMMKwQyAoaGln
+aCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4gQ29yZSAyOiArMzkuMMKwQyAoaGlnaCA9
+ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4gQ29yZSAzOiArMzguMMKwQyAoaGlnaCA9ICs5
+MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4KPiBhc3VzLWlzYS0wMDAwCj4gQWRhcHRlcjogSVNB
+IGFkYXB0ZXIKPiB0ZW1wMTogKzYyODAuMMKwQwo+CgpQcmV0dHkgaG90IDstKS4gTm90IHlvdXIg
+cHJvYmxlbSwgdGhvdWdoIC0gaXQgbG9va3MgbGlrZSB0aGUgdGVtcGVyYXR1cmUKaXMgcmVwb3J0
+ZWQgaW4gS2VsdmluIGFuZCB0aGUgY29kZSBjb252ZXJ0aW5nIGZyb20gS2VsdmluIHRvIGRlZ3Jl
+ZXMgQwp0dXJucyBvdXQgdG8gYmUgYnVnZ3kuCgo+IEkgZGlkbid0IGdldCBhbnkgaW5mb3JtYXRp
+b24gYWJvdXQgdGhlcm1hbCBpbnRlcmZhY2UgaW4KPiAiRG9jdW1lbnRhdGlvbi9BQkkvdGVzdGlu
+Zy9zeXNmcy1wbGF0Zm9ybS1hc3VzLXdtaSIuIElzIHRoaXMgYSB0aGVybWFsCj4gc2Vuc29yPyBJ
+ZiBpdCdzIHRoZSBmYWN0LCBob3cgY2FuIEkgY2hhbmdlIHRoZSBlbnZpcm9ubWVudCBzbyB0aGF0
+IHRoaXMKPiBzZW5zb3IgZ2l2ZXMgbWUgdmFyaWFibGUgZGF0YT8KPgoKSSBkb24ndCB0aGluayBJ
+IHVuZGVyc3RhbmQgeW91ciBxdWVzdGlvbi4gWWVzLCB0aGlzIGlzIGEgdGhlcm1hbCBzZW5zb3Iu
+CldoYXQgaXMgaXQgeW91IHdhbnQgdG8gZG8gKGluIGFkZGl0aW9uIHRvIGhhdmluZyBpdCByZXBv
+cnQgcmVhc29uYWJsZQp0ZW1wZXJhdHVyZXMpID8KCkd1ZW50ZXIKCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
