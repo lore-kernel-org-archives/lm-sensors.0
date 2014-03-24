@@ -1,92 +1,73 @@
-From: "Opensource [Steve Twiss]" <stwiss.opensource@diasemi.com>
-Date: Mon, 24 Mar 2014 08:28:12 +0000
-Subject: Re: [lm-sensors] [RFC V1 2/3] mfd: da9063: Add HWMON dependencies
-Message-Id: <6ED8E3B22081A4459DAC7699F3695FB7A2AFC34A@SW-EX-MBX01.diasemi.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Mon, 24 Mar 2014 22:21:26 +0000
+Subject: [lm-sensors] [PATCH 1/2]  hwmon: (it87) Fix 8603E define name
+Message-Id: <5330AFE6.9070801@assembler.cz>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------090808090307050009050605"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1395607051.git.stwiss.opensource@diasemi.com>
- <31eb9829645b11a109e7699d5da888ab7d2a68c1.1395607051.git.stwiss.opensource@diasemi.com>
- <20140324080259.GG8541@lee--X1>
-In-Reply-To: <20140324080259.GG8541@lee--X1>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, David Dajun Chen <david.chen@diasemi.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, LINUX-DOC <linux-doc@vger.kernel.org>, LINUX-KERNEL <linux-kernel@vger.kernel.org>, LM-SENSORS <lm-sensors@lm-sensors.org>, Mark Brown <broonie@linaro.org>, Philipp Zabel <p.zabel@pengutronix.de>, Rob Landley <rob@landley.net>
+To: lm-sensors@vger.kernel.org
 
-SGkgTGVlLA0KDQpPbiAyNCBNYXJjaCAyMDE0IDA4OjAzIExlZSBKb25lcyB3cm90ZToNCj5PbiBT
-dW4sIDIzIE1hciAyMDE0LCBPcGVuc291cmNlIFtTdGV2ZSBUd2lzc10gd3JvdGU6DQo+PiBGcm9t
-OiBPcGVuc291cmNlIFtTdGV2ZSBUd2lzc10gPHN0d2lzcy5vcGVuc291cmNlQGRpYXNlbWkuY29t
-Pg0KPj4NCj4+IERlcGVuZGVuY2llcyByZXF1aXJlZCBmb3IgREE5MDYzIEhXTU9OIHN1cHBvcnQu
-DQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogT3BlbnNvdXJjZSBbU3RldmUgVHdpc3NdIDxzdHdpc3Mu
-b3BlbnNvdXJjZUBkaWFzZW1pLmNvbT4NCj4+IC0tLQ0KPj4NCj4+ICBkcml2ZXJzL21mZC9kYTkw
-NjMtY29yZS5jICAgICAgICB8ICAgMTMgKysrKysrKysrKysrLQ0KPj4gIGluY2x1ZGUvbGludXgv
-bWZkL2RhOTA2My9jb3JlLmggIHwgICAgMyArKysNCj4+ICBpbmNsdWRlL2xpbnV4L21mZC9kYTkw
-NjMvcGRhdGEuaCB8ICAgMTggKysrKysrKysrKysrKysrKysrDQo+PiAgMyBmaWxlcyBjaGFuZ2Vk
-LCAzMyBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbWZkL2RhOTA2My1jb3JlLmMgYi9kcml2ZXJzL21mZC9kYTkwNjMtY29yZS5jDQo+PiBp
-bmRleCBlNzBhZTMxLi4yNGMxODM4IDEwMDY0NA0KPj4gLS0tIGEvZHJpdmVycy9tZmQvZGE5MDYz
-LWNvcmUuYw0KPj4gKysrIGIvZHJpdmVycy9tZmQvZGE5MDYzLWNvcmUuYw0KPj4gQEAgLTExMSw2
-ICsxMTEsNyBAQCBpbnQgZGE5MDYzX2RldmljZV9pbml0KHN0cnVjdCBkYTkwNjMgKmRhOTA2Mywg
-dW5zaWduZWQNCj5pbnQgaXJxKQ0KPj4gIHsNCj4+ICAJc3RydWN0IGRhOTA2M19wZGF0YSAqcGRh
-dGEgPSBkYTkwNjMtPmRldi0+cGxhdGZvcm1fZGF0YTsNCj4+ICAJaW50IG1vZGVsLCB2YXJpYW50
-X2lkLCB2YXJpYW50X2NvZGU7DQo+PiArCWludCB0X29mZnNldCA9IDA7DQo+PiAgCWludCByZXQ7
-DQo+Pg0KPj4gIAlpZiAocGRhdGEpIHsNCj4+IEBAIC0xNzEsOCArMTcyLDE4IEBAIGludCBkYTkw
-NjNfZGV2aWNlX2luaXQoc3RydWN0IGRhOTA2MyAqZGE5MDYzLCB1bnNpZ25lZA0KPmludCBpcnEp
-DQo+PiAgCXJldCA9IG1mZF9hZGRfZGV2aWNlcyhkYTkwNjMtPmRldiwgLTEsIGRhOTA2M19kZXZz
-LA0KPj4gIAkJCSAgICAgIEFSUkFZX1NJWkUoZGE5MDYzX2RldnMpLCBOVUxMLCBkYTkwNjMtPmly
-cV9iYXNlLA0KPj4gIAkJCSAgICAgIE5VTEwpOw0KPj4gLQlpZiAocmV0KQ0KPj4gKwlpZiAocmV0
-KSB7DQo+PiAgCQlkZXZfZXJyKGRhOTA2My0+ZGV2LCAiQ2Fubm90IGFkZCBNRkQgY2VsbHNcbiIp
-Ow0KPj4gKwkJcmV0dXJuIHJldDsNCj4+ICsJfQ0KPj4gKw0KPj4gKwlyZXQgPSByZWdtYXBfcmVh
-ZChkYTkwNjMtPnJlZ21hcCwgREE5MDYzX1JFR19UX09GRlNFVCwgJnRfb2Zmc2V0KTsNCj4+ICsJ
-aWYgKHJldCA8IDApDQo+PiArCQlkZXZfd2FybihkYTkwNjMtPmRldiwNCj4+ICsJCQkgIlRlbXBl
-cmF0dXJlIHRyaW1taW5nIHZhbHVlIGNhbm5vdCBiZSByZWFkIChkZWZhdWx0aW5nDQo+dG8gMClc
-biIpOw0KPj4gKw0KPj4gKwkvKiBwYXNzIHRoaXMgb24gdG8gdGhlIGh3bW9uIGRyaXZlciAqLw0K
-Pj4gKwlkYTkwNjMtPnRfb2Zmc2V0ID0gdF9vZmZzZXQ7DQo+DQo+V2hhdCdzIHRoZSBsb2dpYyBm
-b3IgdXNpbmcgYSBsb2NhbCB2YXJpYWJsZSBmb3IgdGhpcyBwcmlvciB0byBzZXR0aW5nDQo+dGhl
-IGF0dHJpYnV0ZSBpbiB0aGUgc2hhcmVkIGNvbnRhaW5lcj8NCj4NCg0KWWVwIC0tIHRoYXQncyBi
-YWQuIEknbGwgcmVtb3ZlIGl0Lg0KDQo+PiAgCXJldHVybiByZXQ7DQo+PiAgfQ0KPj4gZGlmZiAt
-LWdpdCBhL2luY2x1ZGUvbGludXgvbWZkL2RhOTA2My9jb3JlLmgNCj5iL2luY2x1ZGUvbGludXgv
-bWZkL2RhOTA2My9jb3JlLmgNCj4+IGluZGV4IDAwYTlhYWMuLjczMjdkMzcgMTAwNjQ0DQo+PiAt
-LS0gYS9pbmNsdWRlL2xpbnV4L21mZC9kYTkwNjMvY29yZS5oDQo+PiArKysgYi9pbmNsdWRlL2xp
-bnV4L21mZC9kYTkwNjMvY29yZS5oDQo+PiBAQCAtODYsNiArODYsOSBAQCBzdHJ1Y3QgZGE5MDYz
-IHsNCj4+ICAJaW50CQljaGlwX2lycTsNCj4+ICAJdW5zaWduZWQgaW50CWlycV9iYXNlOw0KPj4g
-IAlzdHJ1Y3QgcmVnbWFwX2lycV9jaGlwX2RhdGEgKnJlZ21hcF9pcnE7DQo+PiArDQo+PiArCS8q
-IFRyaW1taW5nICovDQo+PiArCWludAkJdF9vZmZzZXQ7DQo+PiAgfTsNCj4+DQo+PiAgaW50IGRh
-OTA2M19kZXZpY2VfaW5pdChzdHJ1Y3QgZGE5MDYzICpkYTkwNjMsIHVuc2lnbmVkIGludCBpcnEp
-Ow0KPj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWZkL2RhOTA2My9wZGF0YS5oDQo+Yi9p
-bmNsdWRlL2xpbnV4L21mZC9kYTkwNjMvcGRhdGEuaA0KPj4gaW5kZXggOTVjODc0Mi4uNTc2MDMz
-ZSAxMDA2NDQNCj4+IC0tLSBhL2luY2x1ZGUvbGludXgvbWZkL2RhOTA2My9wZGF0YS5oDQo+PiAr
-KysgYi9pbmNsdWRlL2xpbnV4L21mZC9kYTkwNjMvcGRhdGEuaA0KPj4gQEAgLTYyLDYgKzYyLDIz
-IEBAIHN0cnVjdCBkYTkwNjNfcmVndWxhdG9yc19wZGF0YSB7DQo+PiAgCXN0cnVjdCBkYTkwNjNf
-cmVndWxhdG9yX2RhdGEJKnJlZ3VsYXRvcl9kYXRhOw0KPj4gIH07DQo+Pg0KPj4gKy8qIEhXTU9O
-IHBsYXRmb3JtIGRhdGEgKi8NCj4+ICsjZGVmaW5lIERBOTA2M19TRVRfQURDSU4xX0NVUl8xVUEJ
-MHgwMA0KPj4gKyNkZWZpbmUgREE5MDYzX1NFVF9BRENJTjFfQ1VSXzJVQQkweDAxDQo+PiArI2Rl
-ZmluZSBEQTkwNjNfU0VUX0FEQ0lOMV9DVVJfMTBVQQkweDAyDQo+PiArI2RlZmluZSBEQTkwNjNf
-U0VUX0FEQ0lOMV9DVVJfNDBVQQkweDAzDQo+PiArI2RlZmluZSBEQTkwNjNfU0VUX0FEQ0lOMl9D
-VVJfMVVBCTB4MDANCj4+ICsjZGVmaW5lIERBOTA2M19TRVRfQURDSU4yX0NVUl8yVUEJMHgwMQ0K
-Pj4gKyNkZWZpbmUgREE5MDYzX1NFVF9BRENJTjJfQ1VSXzEwVUEJMHgwMg0KPj4gKyNkZWZpbmUg
-REE5MDYzX1NFVF9BRENJTjJfQ1VSXzQwVUEJMHgwMw0KPj4gKyNkZWZpbmUgREE5MDYzX1NFVF9B
-RENJTjNfQ1VSXzEwVUEJMHgwMA0KPg0KPldoeSBkaWZmZXJlbnRpYXRlPyBNb3JlIHN1Y2NpbmN0
-bHk6DQo+DQo+LyogSFdNT04gcGxhdGZvcm0gZGF0YSAqLw0KPiNkZWZpbmUgREE5MDYzX1NFVF9D
-VVJfMVVBCTB4MDANCj4jZGVmaW5lIERBOTA2M19TRVRfQ1VSXzJVQQkweDAxDQo+I2RlZmluZSBE
-QTkwNjNfU0VUX0NVUl8xMFVBCTB4MDINCj4jZGVmaW5lIERBOTA2M19TRVRfQ1VSXzQwVUEJMHgw
-Mw0KPg0KPg0KT2ggeWVoLi4uIHRoYXQgbWFrZXMgbXVjaCBtb3JlIHNlbnNlLg0KSSBzaG91bGQg
-aGF2ZSB0aG91Z2h0IG9mIHRoYXQgIDooDQpTb3JyeSB5b3UgaGFkIHRvIHJldmlldyB0aGF0IHBh
-cnQuDQoNCj4+ICtzdHJ1Y3QgZGE5MDYzX2h3bW9uX3BkYXRhIHsNCj4+ICsJdW5zaWduZWQgY2hh
-ciBhZGNpbjFfY3VyOw0KPj4gKwl1bnNpZ25lZCBjaGFyIGFkY2luMl9jdXI7DQo+PiArCXVuc2ln
-bmVkIGNoYXIgYWRjaW4zX2N1cjsNCj4+ICt9Ow0KPj4gKw0KPj4NCj4NCj5Ob3cgdGhlcmUgYXJl
-IHR3byBuZXcgbGluZXMgaGVyZS4NCj4NCldpbGwgZXJhc2UgdGhlbS4NCg0KPj4gIC8qDQo+PiAg
-ICogUkdCIExFRCBjb25maWd1cmF0aW9uDQo+PiBAQCAtMTA2LDYgKzEyMyw3IEBAIHN0cnVjdCBk
-YTkwNjNfcGRhdGEgew0KPj4gIAl1bnNpZ25lZAkJCWZsYWdzOw0KPj4gIAlzdHJ1Y3QgZGE5MDYz
-X3JlZ3VsYXRvcnNfcGRhdGEJKnJlZ3VsYXRvcnNfcGRhdGE7DQo+PiAgCXN0cnVjdCBsZWRfcGxh
-dGZvcm1fZGF0YQkqbGVkc19wZGF0YTsNCj4+ICsJc3RydWN0IGRhOTA2M19od21vbl9wZGF0YQkq
-aHdtb25fcGRhdGE7DQo+PiAgfTsNCj4NCj5Eb2VzIHRoaXMgZGV2aWNlIHN1cHBvcnQgRGV2aWNl
-IFRyZWU/DQo+DQpBaCwgd2VsbCBuby4gSSd2ZSBub3QgYWRkZWQgYW55IERUIHN0dWZmLg0KSXMg
-dGhhdCBhbiBlc3NlbnRpYWwgcmVxdWlyZW1lbnQgbm93Pw0KDQo+PiAgI2VuZGlmCS8qIF9fTUZE
-X0RBOTA2M19QREFUQV9IX18gKi8NCj4NCj4tLQ0KPkxlZSBKb25lcw0KPkxpbmFybyBTVE1pY3Jv
-ZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQNCj5MaW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJj
-ZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MNCj5Gb2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0
-ZXIgfCBCbG9nDQoNClRoYW5rcywNClN0ZXZlDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnM
+This is a multi-part message in MIME format.
+--------------090808090307050009050605
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi all,
+
+The attached patch fixes small typo in the define name for IT 8603E.
+
+Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+
+Thanks
+Rudolf
+
+--------------090808090307050009050605
+Content-Type: text/x-diff;
+ name="it8603-fixtypo.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="it8603-fixtypo.patch"
+
+Index: linux-3.14-rc7/drivers/hwmon/it87.c
+===================================================================
+--- linux-3.14-rc7.orig/drivers/hwmon/it87.c	2014-03-17 02:51:24.000000000 +0100
++++ linux-3.14-rc7/drivers/hwmon/it87.c	2014-03-24 23:01:36.750290538 +0100
+@@ -147,7 +147,7 @@
+ #define IT8772E_DEVID 0x8772
+ #define IT8782F_DEVID 0x8782
+ #define IT8783E_DEVID 0x8783
+-#define IT8306E_DEVID 0x8603
++#define IT8603E_DEVID 0x8603
+ #define IT87_ACT_REG  0x30
+ #define IT87_BASE_REG 0x60
+ 
+@@ -1431,7 +1431,7 @@
+ static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, show_label, NULL, 0);
+ static SENSOR_DEVICE_ATTR(in7_label, S_IRUGO, show_label, NULL, 1);
+ static SENSOR_DEVICE_ATTR(in8_label, S_IRUGO, show_label, NULL, 2);
+-/* special AVCC3 IT8306E in9 */
++/* special AVCC3 IT8603E in9 */
+ static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, show_label, NULL, 0);
+ 
+ static ssize_t show_name(struct device *dev, struct device_attribute
+@@ -1766,7 +1766,7 @@
+ 	case IT8783E_DEVID:
+ 		sio_data->type = it8783;
+ 		break;
+-	case IT8306E_DEVID:
++	case IT8603E_DEVID:
+ 		sio_data->type = it8603;
+ 		break;
+ 	case 0xffff:	/* No device at all */
+
+--------------090808090307050009050605
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------090808090307050009050605--
