@@ -1,137 +1,81 @@
-From: "Opensource [Steve Twiss]" <stwiss.opensource@diasemi.com>
-Date: Sun, 23 Mar 2014 20:37:30 +0000
-Subject: [lm-sensors] [RFC V1 2/3] mfd: da9063: Add HWMON dependencies
-Message-Id: <31eb9829645b11a109e7699d5da888ab7d2a68c1.1395607051.git.stwiss.opensource@diasemi.com>
+From: Lee Jones <lee.jones@linaro.org>
+Date: Mon, 24 Mar 2014 08:02:59 +0000
+Subject: Re: [lm-sensors] [RFC V1 2/3] mfd: da9063: Add HWMON dependencies
+Message-Id: <20140324080259.GG8541@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <cover.1395607051.git.stwiss.opensource@diasemi.com>
-In-Reply-To: <cover.1395607051.git.stwiss.opensource@diasemi.com>
+ <31eb9829645b11a109e7699d5da888ab7d2a68c1.1395607051.git.stwiss.opensource@diasemi.com>
+In-Reply-To: <31eb9829645b11a109e7699d5da888ab7d2a68c1.1395607051.git.stwiss.opensource@diasemi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: David Dajun Chen <david.chen@diasemi.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, LINUX-DOC <linux-doc@vger.kernel.org>, LINUX-KERNEL <linux-kernel@vger.kernel.org>, LM-SENSORS <lm-sensors@lm-sensors.org>, Mark Brown <broonie@linaro.org>, Philipp Zabel <p.zabel@pengutronix.de>, Rob Landley <rob@landley.net>
+To: "Opensource [Steve Twiss]" <stwiss.opensource@diasemi.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, David Dajun Chen <david.chen@diasemi.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, LINUX-DOC <linux-doc@vger.kernel.org>, LINUX-KERNEL <linux-kernel@vger.kernel.org>, LM-SENSORS <lm-sensors@lm-sensors.org>, Mark Brown <broonie@linaro.org>, Philipp Zabel <p.zabel@pengutronix.de>, Rob Landley <rob@landley.net>
 
-From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
-
-Dependencies required for DA9063 HWMON support.
-
-Signed-off-by: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
----
-Checks performed with linux-next/next-20140321/scripts/checkpatch.pl
- core.h                    total: 0 errors, 0 warnings, 100 lines checked
- pdata.h                   total: 0 errors, 0 warnings, 129 lines checked
- da9063-core.c             total: 0 errors, 0 warnings, 199 lines checked
-
-This patch includes the following changes:
-
-There are small changes to da9063-core.c to allow reading the temperature
-trimming offset value from the PMIC register list. This value is passed
-to HWMON and is used during its calculations of the PMIC's internal junction
-temperature.
-
-There are also changes to the platform data definitions so that values may
-be set for the current sources ADCIN[123]_CUR. These are provided so that
-they may be configured outside the driver.
-
-This patch applies against linux-next and next-20140321
-
-Regards,
-Steve Twiss, Dialog Semiconductor Ltd.
-
-
-
- drivers/mfd/da9063-core.c        |   13 ++++++++++++-
- include/linux/mfd/da9063/core.h  |    3 +++
- include/linux/mfd/da9063/pdata.h |   18 ++++++++++++++++++
- 3 files changed, 33 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/mfd/da9063-core.c b/drivers/mfd/da9063-core.c
-index e70ae31..24c1838 100644
---- a/drivers/mfd/da9063-core.c
-+++ b/drivers/mfd/da9063-core.c
-@@ -111,6 +111,7 @@ int da9063_device_init(struct da9063 *da9063, unsigned int irq)
- {
- 	struct da9063_pdata *pdata = da9063->dev->platform_data;
- 	int model, variant_id, variant_code;
-+	int t_offset = 0;
- 	int ret;
- 
- 	if (pdata) {
-@@ -171,8 +172,18 @@ int da9063_device_init(struct da9063 *da9063, unsigned int irq)
- 	ret = mfd_add_devices(da9063->dev, -1, da9063_devs,
- 			      ARRAY_SIZE(da9063_devs), NULL, da9063->irq_base,
- 			      NULL);
--	if (ret)
-+	if (ret) {
- 		dev_err(da9063->dev, "Cannot add MFD cells\n");
-+		return ret;
-+	}
-+
-+	ret = regmap_read(da9063->regmap, DA9063_REG_T_OFFSET, &t_offset);
-+	if (ret < 0)
-+		dev_warn(da9063->dev,
-+			 "Temperature trimming value cannot be read (defaulting to 0)\n");
-+
-+	/* pass this on to the hwmon driver */
-+	da9063->t_offset = t_offset;
- 
- 	return ret;
- }
-diff --git a/include/linux/mfd/da9063/core.h b/include/linux/mfd/da9063/core.h
-index 00a9aac..7327d37 100644
---- a/include/linux/mfd/da9063/core.h
-+++ b/include/linux/mfd/da9063/core.h
-@@ -86,6 +86,9 @@ struct da9063 {
- 	int		chip_irq;
- 	unsigned int	irq_base;
- 	struct regmap_irq_chip_data *regmap_irq;
-+
-+	/* Trimming */
-+	int		t_offset;
- };
- 
- int da9063_device_init(struct da9063 *da9063, unsigned int irq);
-diff --git a/include/linux/mfd/da9063/pdata.h b/include/linux/mfd/da9063/pdata.h
-index 95c8742..576033e 100644
---- a/include/linux/mfd/da9063/pdata.h
-+++ b/include/linux/mfd/da9063/pdata.h
-@@ -62,6 +62,23 @@ struct da9063_regulators_pdata {
- 	struct da9063_regulator_data	*regulator_data;
- };
- 
-+/* HWMON platform data */
-+#define DA9063_SET_ADCIN1_CUR_1UA	0x00
-+#define DA9063_SET_ADCIN1_CUR_2UA	0x01
-+#define DA9063_SET_ADCIN1_CUR_10UA	0x02
-+#define DA9063_SET_ADCIN1_CUR_40UA	0x03
-+#define DA9063_SET_ADCIN2_CUR_1UA	0x00
-+#define DA9063_SET_ADCIN2_CUR_2UA	0x01
-+#define DA9063_SET_ADCIN2_CUR_10UA	0x02
-+#define DA9063_SET_ADCIN2_CUR_40UA	0x03
-+#define DA9063_SET_ADCIN3_CUR_10UA	0x00
-+
-+struct da9063_hwmon_pdata {
-+	unsigned char adcin1_cur;
-+	unsigned char adcin2_cur;
-+	unsigned char adcin3_cur;
-+};
-+
- 
- /*
-  * RGB LED configuration
-@@ -106,6 +123,7 @@ struct da9063_pdata {
- 	unsigned			flags;
- 	struct da9063_regulators_pdata	*regulators_pdata;
- 	struct led_platform_data	*leds_pdata;
-+	struct da9063_hwmon_pdata	*hwmon_pdata;
- };
- 
- #endif	/* __MFD_DA9063_PDATA_H__ */
--- 
-end-of-patch for RFC V1
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU3VuLCAyMyBNYXIgMjAxNCwgT3BlbnNvdXJjZSBbU3RldmUgVHdpc3NdIHdyb3RlOgoKPiBG
+cm9tOiBPcGVuc291cmNlIFtTdGV2ZSBUd2lzc10gPHN0d2lzcy5vcGVuc291cmNlQGRpYXNlbWku
+Y29tPgo+IAo+IERlcGVuZGVuY2llcyByZXF1aXJlZCBmb3IgREE5MDYzIEhXTU9OIHN1cHBvcnQu
+Cj4gCj4gU2lnbmVkLW9mZi1ieTogT3BlbnNvdXJjZSBbU3RldmUgVHdpc3NdIDxzdHdpc3Mub3Bl
+bnNvdXJjZUBkaWFzZW1pLmNvbT4KPiAtLS0KPiAKPiAgZHJpdmVycy9tZmQvZGE5MDYzLWNvcmUu
+YyAgICAgICAgfCAgIDEzICsrKysrKysrKysrKy0KPiAgaW5jbHVkZS9saW51eC9tZmQvZGE5MDYz
+L2NvcmUuaCAgfCAgICAzICsrKwo+ICBpbmNsdWRlL2xpbnV4L21mZC9kYTkwNjMvcGRhdGEuaCB8
+ICAgMTggKysrKysrKysrKysrKysrKysrCj4gIDMgZmlsZXMgY2hhbmdlZCwgMzMgaW5zZXJ0aW9u
+cygrKSwgMSBkZWxldGlvbigtKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21mZC9kYTkwNjMt
+Y29yZS5jIGIvZHJpdmVycy9tZmQvZGE5MDYzLWNvcmUuYwo+IGluZGV4IGU3MGFlMzEuLjI0YzE4
+MzggMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9tZmQvZGE5MDYzLWNvcmUuYwo+ICsrKyBiL2RyaXZl
+cnMvbWZkL2RhOTA2My1jb3JlLmMKPiBAQCAtMTExLDYgKzExMSw3IEBAIGludCBkYTkwNjNfZGV2
+aWNlX2luaXQoc3RydWN0IGRhOTA2MyAqZGE5MDYzLCB1bnNpZ25lZCBpbnQgaXJxKQo+ICB7Cj4g
+IAlzdHJ1Y3QgZGE5MDYzX3BkYXRhICpwZGF0YSA9IGRhOTA2My0+ZGV2LT5wbGF0Zm9ybV9kYXRh
+Owo+ICAJaW50IG1vZGVsLCB2YXJpYW50X2lkLCB2YXJpYW50X2NvZGU7Cj4gKwlpbnQgdF9vZmZz
+ZXQgPSAwOwo+ICAJaW50IHJldDsKPiAgCj4gIAlpZiAocGRhdGEpIHsKPiBAQCAtMTcxLDggKzE3
+MiwxOCBAQCBpbnQgZGE5MDYzX2RldmljZV9pbml0KHN0cnVjdCBkYTkwNjMgKmRhOTA2MywgdW5z
+aWduZWQgaW50IGlycSkKPiAgCXJldCA9IG1mZF9hZGRfZGV2aWNlcyhkYTkwNjMtPmRldiwgLTEs
+IGRhOTA2M19kZXZzLAo+ICAJCQkgICAgICBBUlJBWV9TSVpFKGRhOTA2M19kZXZzKSwgTlVMTCwg
+ZGE5MDYzLT5pcnFfYmFzZSwKPiAgCQkJICAgICAgTlVMTCk7Cj4gLQlpZiAocmV0KQo+ICsJaWYg
+KHJldCkgewo+ICAJCWRldl9lcnIoZGE5MDYzLT5kZXYsICJDYW5ub3QgYWRkIE1GRCBjZWxsc1xu
+Iik7Cj4gKwkJcmV0dXJuIHJldDsKPiArCX0KPiArCj4gKwlyZXQgPSByZWdtYXBfcmVhZChkYTkw
+NjMtPnJlZ21hcCwgREE5MDYzX1JFR19UX09GRlNFVCwgJnRfb2Zmc2V0KTsKPiArCWlmIChyZXQg
+PCAwKQo+ICsJCWRldl93YXJuKGRhOTA2My0+ZGV2LAo+ICsJCQkgIlRlbXBlcmF0dXJlIHRyaW1t
+aW5nIHZhbHVlIGNhbm5vdCBiZSByZWFkIChkZWZhdWx0aW5nIHRvIDApXG4iKTsKPiArCj4gKwkv
+KiBwYXNzIHRoaXMgb24gdG8gdGhlIGh3bW9uIGRyaXZlciAqLwo+ICsJZGE5MDYzLT50X29mZnNl
+dCA9IHRfb2Zmc2V0OwoKV2hhdCdzIHRoZSBsb2dpYyBmb3IgdXNpbmcgYSBsb2NhbCB2YXJpYWJs
+ZSBmb3IgdGhpcyBwcmlvciB0byBzZXR0aW5nCnRoZSBhdHRyaWJ1dGUgaW4gdGhlIHNoYXJlZCBj
+b250YWluZXI/Cgo+ICAJcmV0dXJuIHJldDsKPiAgfQo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xp
+bnV4L21mZC9kYTkwNjMvY29yZS5oIGIvaW5jbHVkZS9saW51eC9tZmQvZGE5MDYzL2NvcmUuaAo+
+IGluZGV4IDAwYTlhYWMuLjczMjdkMzcgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9saW51eC9tZmQv
+ZGE5MDYzL2NvcmUuaAo+ICsrKyBiL2luY2x1ZGUvbGludXgvbWZkL2RhOTA2My9jb3JlLmgKPiBA
+QCAtODYsNiArODYsOSBAQCBzdHJ1Y3QgZGE5MDYzIHsKPiAgCWludAkJY2hpcF9pcnE7Cj4gIAl1
+bnNpZ25lZCBpbnQJaXJxX2Jhc2U7Cj4gIAlzdHJ1Y3QgcmVnbWFwX2lycV9jaGlwX2RhdGEgKnJl
+Z21hcF9pcnE7Cj4gKwo+ICsJLyogVHJpbW1pbmcgKi8KPiArCWludAkJdF9vZmZzZXQ7Cj4gIH07
+Cj4gIAo+ICBpbnQgZGE5MDYzX2RldmljZV9pbml0KHN0cnVjdCBkYTkwNjMgKmRhOTA2MywgdW5z
+aWduZWQgaW50IGlycSk7Cj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWZkL2RhOTA2My9w
+ZGF0YS5oIGIvaW5jbHVkZS9saW51eC9tZmQvZGE5MDYzL3BkYXRhLmgKPiBpbmRleCA5NWM4NzQy
+Li41NzYwMzNlIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvbGludXgvbWZkL2RhOTA2My9wZGF0YS5o
+Cj4gKysrIGIvaW5jbHVkZS9saW51eC9tZmQvZGE5MDYzL3BkYXRhLmgKPiBAQCAtNjIsNiArNjIs
+MjMgQEAgc3RydWN0IGRhOTA2M19yZWd1bGF0b3JzX3BkYXRhIHsKPiAgCXN0cnVjdCBkYTkwNjNf
+cmVndWxhdG9yX2RhdGEJKnJlZ3VsYXRvcl9kYXRhOwo+ICB9Owo+ICAKPiArLyogSFdNT04gcGxh
+dGZvcm0gZGF0YSAqLwo+ICsjZGVmaW5lIERBOTA2M19TRVRfQURDSU4xX0NVUl8xVUEJMHgwMAo+
+ICsjZGVmaW5lIERBOTA2M19TRVRfQURDSU4xX0NVUl8yVUEJMHgwMQo+ICsjZGVmaW5lIERBOTA2
+M19TRVRfQURDSU4xX0NVUl8xMFVBCTB4MDIKPiArI2RlZmluZSBEQTkwNjNfU0VUX0FEQ0lOMV9D
+VVJfNDBVQQkweDAzCj4gKyNkZWZpbmUgREE5MDYzX1NFVF9BRENJTjJfQ1VSXzFVQQkweDAwCj4g
+KyNkZWZpbmUgREE5MDYzX1NFVF9BRENJTjJfQ1VSXzJVQQkweDAxCj4gKyNkZWZpbmUgREE5MDYz
+X1NFVF9BRENJTjJfQ1VSXzEwVUEJMHgwMgo+ICsjZGVmaW5lIERBOTA2M19TRVRfQURDSU4yX0NV
+Ul80MFVBCTB4MDMKPiArI2RlZmluZSBEQTkwNjNfU0VUX0FEQ0lOM19DVVJfMTBVQQkweDAwCgpX
+aHkgZGlmZmVyZW50aWF0ZT8gTW9yZSBzdWNjaW5jdGx5OgoKLyogSFdNT04gcGxhdGZvcm0gZGF0
+YSAqLwojZGVmaW5lIERBOTA2M19TRVRfQ1VSXzFVQQkweDAwCiNkZWZpbmUgREE5MDYzX1NFVF9D
+VVJfMlVBCTB4MDEKI2RlZmluZSBEQTkwNjNfU0VUX0NVUl8xMFVBCTB4MDIKI2RlZmluZSBEQTkw
+NjNfU0VUX0NVUl80MFVBCTB4MDMKCgo+ICtzdHJ1Y3QgZGE5MDYzX2h3bW9uX3BkYXRhIHsKPiAr
+CXVuc2lnbmVkIGNoYXIgYWRjaW4xX2N1cjsKPiArCXVuc2lnbmVkIGNoYXIgYWRjaW4yX2N1cjsK
+PiArCXVuc2lnbmVkIGNoYXIgYWRjaW4zX2N1cjsKPiArfTsKPiArCj4gIAoKTm93IHRoZXJlIGFy
+ZSB0d28gbmV3IGxpbmVzIGhlcmUuCgo+ICAvKgo+ICAgKiBSR0IgTEVEIGNvbmZpZ3VyYXRpb24K
+PiBAQCAtMTA2LDYgKzEyMyw3IEBAIHN0cnVjdCBkYTkwNjNfcGRhdGEgewo+ICAJdW5zaWduZWQJ
+CQlmbGFnczsKPiAgCXN0cnVjdCBkYTkwNjNfcmVndWxhdG9yc19wZGF0YQkqcmVndWxhdG9yc19w
+ZGF0YTsKPiAgCXN0cnVjdCBsZWRfcGxhdGZvcm1fZGF0YQkqbGVkc19wZGF0YTsKPiArCXN0cnVj
+dCBkYTkwNjNfaHdtb25fcGRhdGEJKmh3bW9uX3BkYXRhOwo+ICB9OwoKRG9lcyB0aGlzIGRldmlj
+ZSBzdXBwb3J0IERldmljZSBUcmVlPwoKPiAgI2VuZGlmCS8qIF9fTUZEX0RBOTA2M19QREFUQV9I
+X18gKi8KCi0tIApMZWUgSm9uZXMKTGluYXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRl
+YW0gTGVhZApMaW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MK
+Rm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
+bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
