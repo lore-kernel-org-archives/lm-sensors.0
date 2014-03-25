@@ -1,132 +1,59 @@
-From: Alex Shi <alex.shi@linaro.org>
-Date: Tue, 25 Mar 2014 10:49:20 +0000
-Subject: [lm-sensors] [PATCH 07/19] hwmon: lm75: expose to thermal fw via DT nodes
-Message-Id: <1395744572-20014-8-git-send-email-alex.shi@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 25 Mar 2014 13:32:04 +0000
+Subject: Re: [lm-sensors] [PATCH 07/19] hwmon: lm75: expose to thermal fw via DT nodes
+Message-Id: <53318554.7090507@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
-In-Reply-To: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
+References: <1395744572-20014-1-git-send-email-alex.shi@linaro.org> <1395744572-20014-8-git-send-email-alex.shi@linaro.org>
+In-Reply-To: <1395744572-20014-8-git-send-email-alex.shi@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mark.hambleton@broadcom.com, mark.brown@linaro.org, eduardo.valentin@ti.com, mporter@linaro.org, lsk-interest@linaro.org, linaro-kernel@linaro.org
-Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Alex Shi <alex.shi@linaro.org>
+To: Alex Shi <alex.shi@linaro.org>, mark.hambleton@broadcom.com, mark.brown@linaro.org, eduardo.valentin@ti.com, mporter@linaro.org, lsk-interest@linaro.org, linaro-kernel@linaro.org
+Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-From: Eduardo Valentin <eduardo.valentin@ti.com>
+On 03/25/2014 03:49 AM, Alex Shi wrote:
+> From: Eduardo Valentin <eduardo.valentin@ti.com>
+>
+> This patch adds to lm75 temperature sensor the possibility
+> to expose itself as thermal zone device, registered on the
+> thermal framework.
+>
+> The thermal zone is built only if a device tree node
+> describing a thermal zone for this sensor is present
+> inside the lm75 DT node. Otherwise, the driver behavior
+> will be the same.
+>
+> Note: This patch has also been reviewed by Jean D. He has
+> requested to perform a wider inspection of possible
+> users of thermal and hwmon interaction API. On the other
+> hand, the change on this patch is acceptable on first
+> step of overall code change.
+>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Cc: lm-sensors@lm-sensors.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Guenter Roeck <linux@roeck-us.net>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> (cherry picked from commit 22e731838b0e337fed5f16c67aa0b954028dfe93)
+>
+> Signed-off-by: Alex Shi <alex.shi@linaro.org>
 
-This patch adds to lm75 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+Not entirely sure why you are sending this patch to a public list.
+This patch as well as patch 8/19 have already been applied.
+Ok, it appears that you plan to apply it to some other branch.
+So what ?
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm75 DT node. Otherwise, the driver behavior
-will be the same.
+Can you clarify ?
 
-Note: This patch has also been reviewed by Jean D. He has
-requested to perform a wider inspection of possible
-users of thermal and hwmon interaction API. On the other
-hand, the change on this patch is acceptable on first
-step of overall code change.
+Reason for asking is that I don't want to get flooded with e-mail
+each time someone applies a patch to some arbitrary branch,
+and I end up being confused and looking through the code
+trying to figure out what is going on. Whatever it is, your branch
+isn't that special that you need to tell the rest of the world
+what you are doing.
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-(cherry picked from commit 22e731838b0e337fed5f16c67aa0b954028dfe93)
-
-Signed-off-by: Alex Shi <alex.shi@linaro.org>
----
- drivers/hwmon/lm75.c | 35 ++++++++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-index c03b490..1d3600a 100644
---- a/drivers/hwmon/lm75.c
-+++ b/drivers/hwmon/lm75.c
-@@ -27,6 +27,8 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/of.h>
-+#include <linux/thermal.h>
- #include "lm75.h"
- 
- 
-@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
- /* Each client has this additional data */
- struct lm75_data {
- 	struct device		*hwmon_dev;
-+	struct thermal_zone_device	*tz;
- 	struct mutex		update_lock;
- 	u8			orig_conf;
- 	u8			resolution;	/* In bits, between 9 and 12 */
-@@ -90,22 +93,36 @@ static struct lm75_data *lm75_update_device(struct device *dev);
- 
- /*-----------------------------------------------------------------------*/
- 
-+static inline long lm75_reg_to_mc(s16 temp, u8 resolution)
-+{
-+	return ((temp >> (16 - resolution)) * 1000) >> (resolution - 8);
-+}
-+
- /* sysfs attributes for hwmon */
- 
-+static int lm75_read_temp(void *dev, long *temp)
-+{
-+	struct lm75_data *data = lm75_update_device(dev);
-+
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	*temp = lm75_reg_to_mc(data->temp[0], data->resolution);
-+
-+	return 0;
-+}
-+
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct lm75_data *data = lm75_update_device(dev);
--	long temp;
- 
- 	if (IS_ERR(data))
- 		return PTR_ERR(data);
- 
--	temp = ((data->temp[attr->index] >> (16 - data->resolution)) * 1000)
--	       >> (data->resolution - 8);
--
--	return sprintf(buf, "%ld\n", temp);
-+	return sprintf(buf, "%ld\n", lm75_reg_to_mc(data->temp[attr->index],
-+						    data->resolution));
- }
- 
- static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-@@ -271,6 +288,13 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto exit_remove;
- 	}
- 
-+	data->tz = thermal_zone_of_sensor_register(&client->dev,
-+						   0,
-+						   &client->dev,
-+						   lm75_read_temp, NULL);
-+	if (IS_ERR(data->tz))
-+		data->tz = NULL;
-+
- 	dev_info(&client->dev, "%s: sensor '%s'\n",
- 		 dev_name(data->hwmon_dev), client->name);
- 
-@@ -285,6 +309,7 @@ static int lm75_remove(struct i2c_client *client)
- {
- 	struct lm75_data *data = i2c_get_clientdata(client);
- 
-+	thermal_zone_of_sensor_unregister(&client->dev, data->tz);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
- 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
--- 
-1.8.1.2
+Thanks,
+Guenter
 
 
 _______________________________________________
