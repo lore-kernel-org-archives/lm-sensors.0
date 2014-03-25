@@ -1,65 +1,135 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 24 Mar 2014 12:11:38 +0000
-Subject: Re: [lm-sensors] [asus-nb-wmi] thermal device detected by asus-nb-wmi platform driver
-Message-Id: <533020FA.1030600@roeck-us.net>
+From: Alex Shi <alex.shi@linaro.org>
+Date: Tue, 25 Mar 2014 10:49:20 +0000
+Subject: [lm-sensors] [PATCH 07/19] hwmon: lm75: expose to thermal fw via DT nodes
+Message-Id: <1395744572-20014-8-git-send-email-alex.shi@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <532B8630.8030607@linux.intel.com> <532FB154.6020608@roeck-us.net> <532FE50F.8090909@linux.intel.com>
-In-Reply-To: <532FE50F.8090909@linux.intel.com>
+References: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
+In-Reply-To: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Lu, Baolu" <baolu.lu@linux.intel.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+To: mark.hambleton@broadcom.com, mark.brown@linaro.org, eduardo.valentin@ti.com, mporter@linaro.org, lsk-interest@linaro.org, linaro-kernel@linaro.org
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Alex Shi <alex.shi@linaro.org>
 
-T24gMDMvMjQvMjAxNCAxMjo1NSBBTSwgTHUsIEJhb2x1IHdyb3RlOgo+Cj4gT24gMjAxNC8zLzI0
-IDEyOjE1LCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+PiBPbiAwMy8yMC8yMDE0IDA1OjIyIFBNLCBM
-dSwgQmFvbHUgd3JvdGU6Cj4+PiBIaSwKPj4+Cj4+PiBJIGJvb3RlZCBVYnVudHUxMy4xMCBvbnRv
-IEFTVVMgVDEwMCBUYWJsZXQgYW5kIHVwZ3JhZGVkIGl0IHdpdGggdXBzdHJlYW0KPj4+IGtlcm5l
-bCAoMy4xNC4wLXJjNyspLiBUaGVyZSBpcyBhIHRoZXJtYWwgZGV2aWNlIHVuZGVyCj4+PiAvc3lz
-L2RldmljZXMvcGxhdGZvcm0vYXN1cy1uYi13bWkuCj4+Pgo+Pj4gcm9vdEB0MTAwOn4vbGludXgj
-IHRyZWUgL3N5cy9jbGFzcy9od21vbi8KPj4+IC9zeXMvY2xhc3MvaHdtb24vCj4+PiDilJzilIDi
-lIAgaHdtb24wIC0+IC4uLy4uL2RldmljZXMvcGxhdGZvcm0vY29yZXRlbXAuMC9od21vbi9od21v
-bjAKPj4+IOKUlOKUgOKUgCBod21vbjEgLT4gLi4vLi4vZGV2aWNlcy9wbGF0Zm9ybS9hc3VzLW5i
-LXdtaS9od21vbi9od21vbjEKPj4+Cj4+PiByb290QHQxMDA6L3N5cy9kZXZpY2VzL3BsYXRmb3Jt
-L2FzdXMtbmItd21pIyBscwo+Pj4gY3B1ZnYgZHJpdmVyIGh3bW9uIGlucHV0IG1vZGFsaWFzIHBv
-d2VyIHN1YnN5c3RlbSB1ZXZlbnQKPj4+Cj4+PiByb290QHQxMDA6fi9saW51eCMgc2Vuc29ycwo+
-Pj4gY29yZXRlbXAtaXNhLTAwMDAKPj4+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4+PiBDb3JlIDA6
-ICszOC4wwrBDIChoaWdoID0gKzkwLjDCsEMsIGNyaXQgPSArOTAuMMKwQykKPj4+IENvcmUgMTog
-KzM4LjDCsEMgKGhpZ2ggPSArOTAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQo+Pj4gQ29yZSAyOiAr
-MzkuMMKwQyAoaGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4+PiBDb3JlIDM6ICsz
-OC4wwrBDIChoaWdoID0gKzkwLjDCsEMsIGNyaXQgPSArOTAuMMKwQykKPj4+Cj4+PiBhc3VzLWlz
-YS0wMDAwCj4+PiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+Pj4gdGVtcDE6ICs2MjgwLjDCsEMKPj4+
-Cj4+Cj4+IFByZXR0eSBob3QgOy0pLiBOb3QgeW91ciBwcm9ibGVtLCB0aG91Z2ggLSBpdCBsb29r
-cyBsaWtlIHRoZSB0ZW1wZXJhdHVyZQo+PiBpcyByZXBvcnRlZCBpbiBLZWx2aW4gYW5kIHRoZSBj
-b2RlIGNvbnZlcnRpbmcgZnJvbSBLZWx2aW4gdG8gZGVncmVlcyBDCj4+IHR1cm5zIG91dCB0byBi
-ZSBidWdneS4KPj4KPj4+IEkgZGlkbid0IGdldCBhbnkgaW5mb3JtYXRpb24gYWJvdXQgdGhlcm1h
-bCBpbnRlcmZhY2UgaW4KPj4+ICJEb2N1bWVudGF0aW9uL0FCSS90ZXN0aW5nL3N5c2ZzLXBsYXRm
-b3JtLWFzdXMtd21pIi4gSXMgdGhpcyBhIHRoZXJtYWwKPj4+IHNlbnNvcj8gSWYgaXQncyB0aGUg
-ZmFjdCwgaG93IGNhbiBJIGNoYW5nZSB0aGUgZW52aXJvbm1lbnQgc28gdGhhdCB0aGlzCj4+PiBz
-ZW5zb3IgZ2l2ZXMgbWUgdmFyaWFibGUgZGF0YT8KPj4+Cj4+Cj4+IEkgZG9uJ3QgdGhpbmsgSSB1
-bmRlcnN0YW5kIHlvdXIgcXVlc3Rpb24uIFllcywgdGhpcyBpcyBhIHRoZXJtYWwgc2Vuc29yLgo+
-PiBXaGF0IGlzIGl0IHlvdSB3YW50IHRvIGRvIChpbiBhZGRpdGlvbiB0byBoYXZpbmcgaXQgcmVw
-b3J0IHJlYXNvbmFibGUKPj4gdGVtcGVyYXR1cmVzKSA/Cj4+Cj4+IEd1ZW50ZXIKPgo+IFNvcnJ5
-IGZvciB0aGUgY29uZnVzaW5nIHF1ZXN0aW9uLiBJJ2QgbGlrZSB0byB2ZXJpZnkgd2hldGhlciB0
-aGlzIHNlbnNvciB3b3Jrcy4gV2hhdCBJIHdhbnQgdG8gZG8gaXMgdG8gbWFrZSBzb21lIGNoYW5n
-ZXMgc28gdGhhdCB0aGUgc2Vuc29yIGNvdWxkIGdpdmUgbWUgYSBkaWZmZXJlbnQgdGVtcGVyYXR1
-cmUgdmFsdWUgb3RoZXIgdGhhbiBhbHdheXMgKzYyODAuMMKwLiBJIGhhdmUgbm8gaWRlYSBhYm91
-dCB3aGF0IGtpbmQgb2YgY2hhbmdlcyBzaG91bGQgSSBtYWtlLgo+CgpEaWZmaWN1bHQgdG8gc2F5
-LCBzaW5jZSB3ZSBkb24ndCByZWFsbHkga25vdyB3aGF0IHRlbXBlcmF0dXJlIGlzIG1lYXN1cmVk
-LgpZb3UgY291bGQgdHJ5IGNoZWNraW5nIHRoZSBCSU9TIHRvIGZpbmQgb3V0IHdoaWNoIHRlbXBl
-cmF0dXJlcyBpbiBhZGRpdGlvbgp0byB0aGUgQ1BVIHRlbXBlcmF0dXJlIGFyZSBtZWFzdXJlZCBp
-biB5b3VyIHN5c3RlbS4KCkFzIG1lbnRpb25lZCBiZWZvcmUsIHRoZXJlIGlzIGEgYnVnIGluIHRo
-ZSBrZXJuZWwgd2hpY2ggbWFrZXMgaXQgaGFyZCB0byBkZXRlcm1pbmUKaWYgdGhlcmUgd2FzIGEg
-Y2hhbmdlIGluIHRoZSBmaXJzdCBwbGFjZS4gSSBzdWJtaXR0ZWQgYSBwYXRjaCB0byBhZGRyZXNz
-IHRoYXQuCgpodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2tlcm5lbC9tc2cxNzExNDAzLmh0
-bWwKCkV2ZW4gdGhlbiB3ZSBkb24ndCBrbm93IHlldCBpZiB0aGUgcmVwb3J0ZWQgdGVtcGVyYXR1
-cmUgaXMgcmVhbGlzdGljIGluIHRoZQpmaXJzdCBwbGFjZTsgdW5sZXNzIHRoZSBjb2RlIEkgZml4
-ZWQgd2l0aCB0aGUgcGF0Y2ggYWJvdmUgd2FzIGludHJvZHVjZWQKcmVjZW50bHkgdGhpcyBjYW4g
-bmV2ZXIgaGF2ZSByZXBvcnRlZCByZWFzb25hYmxlIHZhbHVlcyB0byBzdGFydCB3aXRoLgoKVHdv
-IG9wdGlvbnMgeW91IGhhdmUgaXMgdG8gcHV0IGxvYWQgb250byB0aGUgQ1BVLCBhbmQgdG8gcHV0
-IGxvYWQgb250bwp0aGUgZ3JhcGhpY3Mgc3Vic3lzdGVtLiBCb3RoIHNob3VsZCByZXN1bHQgaW4g
-dGVtcGVyYXR1cmUgY2hhbmdlcy4KQnV0IGVpdGhlciBjYXNlIHlvdSdsbCBoYXZlIHRvIGhhdmUg
-dGhlIHBhdGNoIGFib3ZlIGFwcGxpZWQuCgpHdWVudGVyCgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
-c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9sbS1zZW5zb3Jz
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+
+This patch adds to lm75 temperature sensor the possibility
+to expose itself as thermal zone device, registered on the
+thermal framework.
+
+The thermal zone is built only if a device tree node
+describing a thermal zone for this sensor is present
+inside the lm75 DT node. Otherwise, the driver behavior
+will be the same.
+
+Note: This patch has also been reviewed by Jean D. He has
+requested to perform a wider inspection of possible
+users of thermal and hwmon interaction API. On the other
+hand, the change on this patch is acceptable on first
+step of overall code change.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+(cherry picked from commit 22e731838b0e337fed5f16c67aa0b954028dfe93)
+
+Signed-off-by: Alex Shi <alex.shi@linaro.org>
+---
+ drivers/hwmon/lm75.c | 35 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index c03b490..1d3600a 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -27,6 +27,8 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
++#include <linux/thermal.h>
+ #include "lm75.h"
+ 
+ 
+@@ -70,6 +72,7 @@ static const u8 LM75_REG_TEMP[3] = {
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct device		*hwmon_dev;
++	struct thermal_zone_device	*tz;
+ 	struct mutex		update_lock;
+ 	u8			orig_conf;
+ 	u8			resolution;	/* In bits, between 9 and 12 */
+@@ -90,22 +93,36 @@ static struct lm75_data *lm75_update_device(struct device *dev);
+ 
+ /*-----------------------------------------------------------------------*/
+ 
++static inline long lm75_reg_to_mc(s16 temp, u8 resolution)
++{
++	return ((temp >> (16 - resolution)) * 1000) >> (resolution - 8);
++}
++
+ /* sysfs attributes for hwmon */
+ 
++static int lm75_read_temp(void *dev, long *temp)
++{
++	struct lm75_data *data = lm75_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	*temp = lm75_reg_to_mc(data->temp[0], data->resolution);
++
++	return 0;
++}
++
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm75_data *data = lm75_update_device(dev);
+-	long temp;
+ 
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
+ 
+-	temp = ((data->temp[attr->index] >> (16 - data->resolution)) * 1000)
+-	       >> (data->resolution - 8);
+-
+-	return sprintf(buf, "%ld\n", temp);
++	return sprintf(buf, "%ld\n", lm75_reg_to_mc(data->temp[attr->index],
++						    data->resolution));
+ }
+ 
+ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+@@ -271,6 +288,13 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto exit_remove;
+ 	}
+ 
++	data->tz = thermal_zone_of_sensor_register(&client->dev,
++						   0,
++						   &client->dev,
++						   lm75_read_temp, NULL);
++	if (IS_ERR(data->tz))
++		data->tz = NULL;
++
+ 	dev_info(&client->dev, "%s: sensor '%s'\n",
+ 		 dev_name(data->hwmon_dev), client->name);
+ 
+@@ -285,6 +309,7 @@ static int lm75_remove(struct i2c_client *client)
+ {
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+ 
++	thermal_zone_of_sensor_unregister(&client->dev, data->tz);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm75_group);
+ 	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
+-- 
+1.8.1.2
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
