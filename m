@@ -1,26 +1,47 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Mon, 24 Mar 2014 22:17:38 +0000
-Subject: Re: [lm-sensors] IT8620E/IT8623E vs. IT8603E
-Message-Id: <5330AF02.5010300@assembler.cz>
+From: Sebastien Bourdelin <sebastien.bourdelin@savoirfairelinux.com>
+Date: Wed, 26 Mar 2014 20:11:04 +0000
+Subject: [lm-sensors] [PATCH] misc: (ds1682) replace obsolete simple_strtoull() with kstrtoull()
+Message-Id: <1395864664-16404-1-git-send-email-sebastien.bourdelin@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140316120945.4dc8b28c@endymion.delvare>
-In-Reply-To: <20140316120945.4dc8b28c@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: jerome.oufella@savoirfairelinux.com, linux-kernel@vger.kernel.org, Sebastien Bourdelin <sebastien.bourdelin@savoirfairelinux.com>
 
-Hi all,
+simple_strtoull() is obsolete, use the newer kstrtoull() instead.
 
-I developed the patch and I need a test from the Martin. In fact I found small 
-typo (no code impact) which I will fix in the first patch, second patch just 
-adds documentation and it87 will treat the IT8623E as it would be IT8603E 
-similar way as we do for 8716/26 pair.
+Signed-off-by: Sebastien Bourdelin <sebastien.bourdelin@savoirfairelinux.com>
+---
+ drivers/misc/ds1682.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-I will start new thread with my patches.
+diff --git a/drivers/misc/ds1682.c b/drivers/misc/ds1682.c
+index 154b02e..155a150 100644
+--- a/drivers/misc/ds1682.c
++++ b/drivers/misc/ds1682.c
+@@ -86,7 +86,6 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+-	char *endp;
+ 	u64 val;
+ 	__le32 val_le;
+ 	int rc;
+@@ -94,8 +93,8 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
+ 	dev_dbg(dev, "ds1682_store() called on %s\n", attr->attr.name);
+ 
+ 	/* Decode input */
+-	val = simple_strtoull(buf, &endp, 0);
+-	if (buf = endp) {
++	rc = kstrtoull(buf, 0, &val);
++	if (rc < 0) {
+ 		dev_dbg(dev, "input string not a number\n");
+ 		return -EINVAL;
+ 	}
+-- 
+1.9.1
 
-Thanks
-Rudolf
 
 _______________________________________________
 lm-sensors mailing list
