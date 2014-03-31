@@ -1,457 +1,91 @@
 From: Manuel Krause <manuelkrause@netscape.net>
-Date: Tue, 11 Mar 2014 21:59:17 +0000
+Date: Mon, 31 Mar 2014 23:37:21 +0000
 Subject: Re: [lm-sensors] 3.13.?: Strange / dangerous fan policy...
-Message-Id: <531F8735.1010203@netscape.net>
+Message-Id: <5339FC31.3040601@netscape.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <531A1EEE.9090101@netscape.net> <531B3E4C.2040105@roeck-us.net> <531BB171.1060208@netscape.net> <2833205.f1U4jaAo8e@vostro.rjw.lan> <531D1A3A.4040500@netscape.net>
-In-Reply-To: <531D1A3A.4040500@netscape.net>
+References: <531A1EEE.9090101@netscape.net> <531B3E4C.2040105@roeck-us.net> <531BB171.1060208@netscape.net> <2833205.f1U4jaAo8e@vostro.rjw.lan> <531D1A3A.4040500@netscape.net> <531F8735.1010203@netscape.net> <532B4DC5.4010705@netscape.net>
+In-Reply-To: <532B4DC5.4010705@netscape.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, rui.zhang@intel.com
 Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org
 
-On 2014-03-10 02:49, Manuel Krause wrote:
-> On 2014-03-09 18:58, Rafael J. Wysocki wrote:
->> On Sunday, March 09, 2014 01:10:25 AM Manuel Krause wrote:
->>> On 2014-03-08 16:59, Guenter Roeck wrote:
->>>> On 03/08/2014 03:08 AM, Jean Delvare wrote:
->>>>> On Fri, 7 Mar 2014 14:52:30 -0800, Guenter Roeck wrote:
->>>>>> On Fri, Mar 07, 2014 at 11:04:29PM +0100, Manuel Krause wrote:
->>>>>>> Hi, and thanks for the quick response!
->>>>>>> No special fancy "fan control policy". 'fancontrol' isn't
->>>>>>> up or
->>>>>>> running.
->>>>>>> Vanilla kernels 3.11.* and 3.12.* had been working on here
->>>>>>> without
->>>>>>> any extra work.
->>>>>>> --
->>>>>>> # sensors
->>>>>>> acpitz-virtual-0
->>>>>>> Adapter: Virtual device
->>>>>>> temp1:        +71.0=B0C  (crit =3D +256.0=B0C)
->>>>>>> temp2:        +69.0=B0C  (crit =3D +110.0=B0C)
->>>>>>> temp3:        +52.0=B0C  (crit =3D +105.0=B0C)
->>>>>>> temp4:        +25.0=B0C  (crit =3D +110.0=B0C)
->>>>>>> temp5:        +58.0=B0C  (crit =3D +110.0=B0C)
->>>>>>>
->>>>>>> coretemp-isa-0000
->>>>>>> Adapter: ISA adapter
->>>>>>> Core 0:       +62.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->>>>>>> Core 1:       +60.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->>>>>>> --
->>>>>>> My notebook (HP/Compaq 6730b) does not have a seperate fan
->>>>>>> sensor.
->>>>>>> This is with 3.12.13 with my normal workload.
->>>>>>>
->>>>>>> Please, trust my above mentionned values of 94 =B0C vs. 74=B0C
->>>>>>> as I
->>>>>>> don't like to boot 3.13.6 anymore, to avoid harm to the
->>>>>>> notebook's
->>>>>>> casing.
->>>>>>
->>>>>> Understood. Unfortunately, we'll need to get information
->>>>>> from the new kernel to be able to track down the problem.
->>>>>
->>>>> Indeed. Not only the run-time temperatures, but also the high
->>>>> and crit
->>>>> limits.
->>>>>
->>>>>>> But I'd do to test any improvement-patch.
->>>>>>
->>>>>> So far I have no idea what is going on. I don't see anything
->>>>>> in the
->>>>>> drivers providing above data that would explain the behavior,
->>>>>> but I might be missing something.
->>>>>
->>>>> Looks like a regression in the acpi subsystem or in power
->>>>> management,
->>>>> not hwmon. Hwmon is merely reporting the temperatures, it's not
->>>>> responsible for the actual temperatures.
->>>>>
->>>>
->>>> I would agree. I don't think we have enough information to be
->>>> sure,
->>>> though. There might be some unintended interaction or
->>>> interference.
->>>>
->>>> gpu is a good hint ... for example, look at commit b9ed919f1c8
->>>> (drm/nouveau/drm/pm: remove everything except the hwmon
->>>> interfaces
->>>> to THERM). nouveau does export pwm and fan control information,
->>>> so any change in that code may have unintended side effects.
->>>> Similar, I don't know how ec39f64bba (drm/radeon/dpm: Convert to
->>>> use devm_hwmon_register_with_groups) could have the observed
->>>> impact,
->>>> as it is purely passive, but I prefer to be rather safe than
->>>> sorry.
->>>>
->>>> This problem has now been submitted into bugzilla as
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D71711.
->>>>
->>>> Guenter
->>>>
->>>
->>> Sorry, for beeing late, had to search for/accumulate much info
->>> for you...
->>> I hope, you like me to put it into one answer to you all CCing
->>> you.
->>>
->>> My GFX is a GM45 Intel (mobile), shared memory, running the
->>> opensource Mesa drivers/extensions.
->>> kernel-module: i915
->>>
->>> According to the output of 'cpupower': I have
->>> CPUidle driver: acpi_idle
->>> CPUidle governor: menu
->>>
->>> CPUfreq:
->>>     driver: acpi-cpufreq
->>>     available cpufreq governors: ondemand, performance
->>> -
->>> And "ondemand" is running.
->>> --
->>>
->>> # sensors
->>> acpitz-virtual-0
->>> Adapter: Virtual device
->>> temp1:        +41.0=B0C  (crit =3D +256.0=B0C)
->>> temp2:        +92.0=B0C  (crit =3D +110.0=B0C)
->>> temp3:        +71.0=B0C  (crit =3D +105.0=B0C)
->>> temp4:        +26.5=B0C  (crit =3D +110.0=B0C)
->>> temp5:        +25.0=B0C  (crit =3D +110.0=B0C)
->>>
->>> coretemp-isa-0000
->>> Adapter: ISA adapter
->>> Core 0:       +86.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->>> Core 1:       +84.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->>>
->>> FROM a critical "smelly" situation today, kernel-compilation, fan
->>> @100%.
->>> --
->>>
->>> Additional findings:
->>>
->>> Identification from bootup ACPI initialisation vs. sensors:
->>> temp1 =3D DTSZ
->>> temp2 =3D CPUZ --> triggering Cooling in 3.12.13 if > 74=B0C
->>> temp3 =3D SKNZ
->>> temp4 =3D BATZ "Battery Zone" always calm ~ +6=B0C of ambient T
->>> temp5 =3D FDTZ --- in 3.12.13 a representation of the cooling-fan
->>> (25 - 45 - 58 - max?)
->>> Core 0 & Core 1 are the internal CPU T sensors.
->>>
->>> With the 3.13.x (.5+) kernels the first gatherered cooling
->>> settings from bootup do stay forever. Means, rebooting a hot
->>> system will get a FDTZ @45=B0C+ and won't make any problems, as it
->>> does cool enough (even for kernel compiling on here). If it gets
->>> 25=B0C @bootup the system goes into emergency cooling somewhen.
->>> Same is with a suspend/resume.
->>>
->>> Kernel 3.12.13 adjusts the cooling on it's own, but
->>> appropriately.
->>
->> This almost certainly is an ACPI regression, but I'm not sure
->> whether
->> thermal management or CPU power management is broken on your
->> system.
->>
->> Can you compare the contents of /sys/class/thermal/ from
->> working and
->> not working kernels, please?
->>
->> Rafael
->>
+On 2014-03-20 21:21, Manuel Krause wrote:
+> On 2014-03-11 22:59, Manuel Krause wrote:
+>> On 2014-03-10 02:49, Manuel Krause wrote:
+>>> On 2014-03-09 18:58, Rafael J. Wysocki wrote:
+>>>> On Sunday, March 09, 2014 01:10:25 AM Manuel Krause wrote:
+>>>>> On 2014-03-08 16:59, Guenter Roeck wrote:
+>>>>>> On 03/08/2014 03:08 AM, Jean Delvare wrote:
+>>>>>>> On Fri, 7 Mar 2014 14:52:30 -0800, Guenter Roeck wrote:
+>>>>>>>> On Fri, Mar 07, 2014 at 11:04:29PM +0100, Manuel Krause
+>>>>>>>> wrote:
+> [SNIP]
 >
-> Hi again,
-> unfortunately you didn't specify how deeply I should dig into
-> /sys/class/thermal. So you get the lines from # BOF # to # EOF #
-> below. I hope they're readable without more comments.
+> Long time no reply from you... Have I overseen a unwritten
+> convention? Or were my charts that unusable for your analysis/work?
 >
-> The most remarkable changes, in my eyes, had happened within
-> "thermal_zone1".
+> Two days ago, I tried the 3.14.0-rc7-vanilla. And the problem
+> persists. "Strange / dangerous fan policy..."
 >
-> Best regards,
+> Since kernel 3.13.6 I've managed to 'fix' the potential
+> overheating problem by manually issuing a:
+> "echo 1 > /sys/class/thermal/cooling_device3/cur_state" *)
+> _before_ obviously critical temperatures occur. Remind: This
+> particular setting may only work for my system! ...and keeps
+> working for 3.14-rc.
+>
+> In the following I'd like to present you a modified output of my
+> /sys/class/thermal, that I've written a script for (for my
+> system), that shows the results in the way of
+> linux/Documentation/thermal/sysfs-api.txt, point 3:
+> {I've uploded the files to pastebin, to not swamp you and the
+> lists with so many lines of logs.}
+>
+> For the last good kernel -- 3.12.14 -- in-use:
+>   http://pastebin.com/HL1PNcda
+> For my first bad kernel revision 3.13 -- at critical temp:
+>   http://pastebin.com/98hgf1a9
+> For the last bad kernel -- 3.14.0-rc7 -- at critical temp:
+>   http://pastebin.com/MuTwTnjD
+> For the last bad kernel -- 3.14.0-rc7 -- after issuing the
+>   *) command:
+>   http://pastebin.com/2peda54z
+>
+> Please, have a look at them! And maybe, give me hints on how I
+> can help you to further debug this issue, as my manual method
+> works but it's annoying.
+>
+> And, PLEASE CC: ME, as I'm not on the lists. Or lead this
+> Email-thread to someone in charge.
+>
+> Thank you for your work && best regards,
 > Manuel Krause
 >
->
-> # BOF #
-> Following ones are all from /sys/class/thermal/ which are links
-> to -> ../../devices/virtual/thermal/
->
-> I've listed the directories in sections of cooling_devices and
-> thermal_zones separately for each bad/good kernel. For Emailing
-> purposes only. You can merge them into a spreadsheet for your
-> evaluation on your own. I've left out reporting some subdirs and
-> subdir's values that _really_ didn't seem to need attention.
->
-> Also, I've had collected the #sensors output for each readout,
-> having reproduced nearly the same workload, represented by the
-> "Fan speed" (thermal_zone4=3D=3DFDTZ).
->
-> And I've done my very best to not produce typos or c&p errors.
->
->
->   3.13.5 -- 20140309 -- 20:52 -- bad
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> dir             |-
->                   /type       /cur_state  /max_state
-> cooling_device0  Processor    0          10
-> cooling_device1  Processor    0          10
-> cooling_device2  Fan          0           1
-> cooling_device3  Fan          1           1
-> cooling_device4  Fan          0           1
-> cooling_device5  Fan          0           1
-> cooling_device6  Fan          0           1
-> cooling_device7  LCD          0          24
->
->   3.12.13 -- 20140310 -- 00:26 -- good
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> dir             |-
->                   /type       /cur_state  /max_state
-> cooling_device0  Processor    0          10
-> cooling_device1  Processor    0          10
-> cooling_device2  Fan          0           1
-> cooling_device3  Fan          1           1
-> cooling_device4  Fan          1           1
-> cooling_device5  Fan          1           1
-> cooling_device6  Fan          1           1
-> cooling_device7  LCD          0          24
->
->
->   3.13.5 -- 20140309 -- 20:52 -- bad
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> dir          |-
->                /passive /temp  |-     /cdev?_  /trip_   /trip_
->                                        trip_    point_   point_
->                                        point    ?_temp   ?_type
-> thermal_zone0  0        68000   ?=3D0    n.a.   256000   critical
-> thermal_zone1   n.a.    70000 |-
->                                  ?=3D0   6       110000   critical
->                                  ?=3D1   5       107000   passive
->                                  ?=3D2   4        90000   active
->                                  ?=3D3   3        75000   active
->                                  ?=3D4   2        55000   active
->                                  ?=3D5   1        45000   active
->                                  ?=3D6   1        30000   active
-> thermal_zone2   n.a.    54000 |-
->                                  ?=3D0   1       105000   critical
->                                  ?=3D1   1        95000   passive
-> thermal_zone3   n.a.    25800 |-
->                                  ?=3D0   1       110000   critical
->                                  ?=3D1   1        60000   passive
-> thermal_zone4  0        58000   ?=3D0    n.a.   110000   critical
->
->
->   3.12.13 -- 20140310 -- 00:26 -- good
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> dir          |-
->                /passive /temp  |-     /cdev?_  /trip_   /trip_
->                                        trip_    point_   point_
->                                        point    ?_temp   ?_type
-> thermal_zone0  0        50000   ?=3D0    n.a.   256000   critical
-> thermal_zone1   n.a.    70000 |-
->                                  ?=3D0   1       110000   critical
->                                  ?=3D1   1       107000   passive
->                                  ?=3D2   2        90000   active
->                                  ?=3D3   3        67000   active
->                                  ?=3D4   4        55000   active
->                                  ?=3D5   5        45000   active
->                                  ?=3D6   6        30000   active
-> thermal_zone2   n.a.    53000 |-
->                                  ?=3D0   1       105000   critical
->                                  ?=3D1   1        95000   passive
-> thermal_zone3   n.a.    25600 |-
->                                  ?=3D0   1       110000   critical
->                                  ?=3D1   1        60000   passive
-> thermal_zone4  0        58000   ?=3D0    n.a.   110000   critical
->
-> ---
-> Legend here:
->         /type  is always  acpitz
->         /mode             enabled
->         /policy           step_wise
->
->        - from kernel ACPI initialisation: thermal_zone0=3D=3DDTSZ,
->           thermal_zone1=3D=3DCPUZ, thermal_zone2=3D=3DSKNZ,
->           thermal_zone3=3D=3DBATZ, thermal_zone4=3D=3DFDTZ
->        - n.a. means      file or value is not available
-> ___
-> Legend in general:
->               /power/control          is always  auto
->               /power/runtime_status              unsupported
->               /uevent                            ''=3D=3Dempty
->
-> ----------------------------------------------------------------
->
->   3.13.5 -- 20140309 -- 20:52 -- bad
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-> # sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +68.0=B0C  (crit =3D +256.0=B0C)
-> temp2:        +70.0=B0C  (crit =3D +110.0=B0C)
-> temp3:        +54.0=B0C  (crit =3D +105.0=B0C)
-> temp4:        +25.8=B0C  (crit =3D +110.0=B0C)
-> temp5:        +58.0=B0C  (crit =3D +110.0=B0C)
->
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:       +66.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-> Core 1:       +63.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->
->
->   3.12.13 -- 20140310 -- 00:26 -- good
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> # sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +50.0=B0C  (crit =3D +256.0=B0C)
-> temp2:        +70.0=B0C  (crit =3D +110.0=B0C)
-> temp3:        +53.0=B0C  (crit =3D +105.0=B0C)
-> temp4:        +25.6=B0C  (crit =3D +110.0=B0C)
-> temp5:        +58.0=B0C  (crit =3D +110.0=B0C)
->
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:       +65.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-> Core 1:       +61.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
->
-> # EOF #
->
->
 
-Hi, and thank you for your attention ^^
+This is still BUG 71711
+https://bugzilla.kernel.org/show_bug.cgi?idq711
 
-at the bottom of this email you'd get the actual values for the=20
-new 3.12.14 kernel for two different levels of usage and ambient=20
-temperature.
-You'd read, in kernel 3.12.14 the /cdev?_trip_point enumeration=20
-has changed to the way of 3.13.? and also one /trip_point_?_temp=20
-did. But 3.12.14 is working as well as 3.12.13. (So my first=20
-eyecatcher didn't lead to useful things.)
-I'm not capaple of finding or understanding the related code,=20
-but, please, let me present an idea of what MAY be going on:
+3.12.15 works very well
+3.13.7 fails
+3.14.0-rc8 fails
 
-In 3.12.13+, on my system, the effective cooling fan speed seems=20
-to be an accumulation, maybe bitwise, of=20
-cooling_device[2-6]/cur_state, that each get activated (=3D1) by a=20
-certain other temperature value or level; each of the=20
-cooling_device[2-6]/cur_state stays @1 as long as their ref.=20
-temp. does not undershoot. For my system this ref. temp.  would=20
-most likely be triggered by temp2 =3D=3D thermal_zone1/temp [CPUZ].
+I've tried the tmon tool, now, too. Nice eyecandy and for monitoring!
 
-In 3.13.? there seems to get only one of=20
-cooling_device[2-6]/cur_state be set to 1, the others left and/or=20
-rewritten with 0. And the fan speed algorithm then accumulates=20
-only one 1 without seeing the [_LEVEL_] number of=20
-cooling_device[2-6]... or re-requesting the related trigger=20
-temperature.
+I've tried to revert all "thermal" related patches from 
+3.12.14->3.13.7 from 3.13.7. But they don't seem to matter. (Even 
+if I apply the vice-versa patch to 3.12.15.)
 
-I hope this leads you developers nearer to a conclusion on how to=20
-fix it,
-best regards, Manuel Krause
+So "thermal" is out?
 
-_____________________________
-3.12.14 -- 20140311 -- 19:07 -- changed, not broken -- normal use
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D
-/sys/class/thermal/*  which
-are links to -> ../../devices/virtual/thermal/*
+For the failing kernels: Not any reached trip point (active) 
+triggers ONE fan action!
 
-dir             |-
-                  /type       /cur_state  /max_state  Maybe
-                                                       trigger
-                                                       /PWM
-...
-cooling_device2  Fan          0           1          not yet
-                                                       observed
-cooling_device3  Fan          0           1          FDTZ=3D=3D58=B0C
-cooling_device4  Fan          1           1          FDTZ=3D=3D45=B0C
-cooling_device5  Fan          1           1          FDTZ=3D=3D34=B0C
-cooling_device6  Fan          1           1          FDTZ=3D=3D25=B0C
-...
+Next would be ACPI, to be investigated,
 
-dir          |-
-               /passive /temp  |-     /cdev?_  /trip_   /trip_
-                                       trip_    point_   point_
-                                       point    ?_temp   ?_type
-...
-thermal_zone1   n.a.    73000 |-=20
-(CPUZ)
-                                 ?=3D0   6       110000   critical
-                                 ?=3D1   5       107000   passive
-                                 ?=3D2   4        90000   active
-                                 ?=3D3   3        75000   active
-                                 ?=3D4   2        55000   active
-                                 ?=3D5   1        45000   active
-                                 ?=3D6   1        30000   active
-...
-thermal_zone4   n.a.    45000   ?=3D0    n.a.   110000   critical=20
-(FDTZ)
-...
-
-# sensors
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:        +46.0=B0C  (crit =3D +256.0=B0C)
-temp2:        +73.0=B0C  (crit =3D +110.0=B0C)
-temp3:        +57.0=B0C  (crit =3D +105.0=B0C)
-temp4:        +26.3=B0C  (crit =3D +110.0=B0C)
-temp5:        +45.0=B0C  (crit =3D +110.0=B0C)
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +68.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-Core 1:       +66.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-
-
-_____________________________
-3.12.14 -- 20140311 -- 21:09 -- changed, not broken -- idle state
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D
-
-dir             |-
-                  /type       /cur_state  /max_state  Maybe
-                                                       trigger
-                                                       /PWM
-...
-cooling_device2  Fan          0           1          not yet
-                                                       observed
-cooling_device3  Fan          0           1          FDTZ=3D=3D58=B0C
-cooling_device4  Fan          0           1          FDTZ=3D=3D45=B0C
-cooling_device5  Fan          0           1          FDTZ=3D=3D34=B0C
-cooling_device6  Fan          1           1          FDTZ=3D=3D25=B0C
-...
-
-dir          |-
-               /passive /temp
-thermal_zone1   n.a.    46000 ... (CPUZ)
-...
-thermal_zone4   n.a.    25000 ... (FDTZ)
-...
-
-# sensors
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:        +50.0=B0C  (crit =3D +256.0=B0C)
-temp2:        +46.0=B0C  (crit =3D +110.0=B0C)
-temp3:        +44.0=B0C  (crit =3D +105.0=B0C)
-temp4:        +25.7=B0C  (crit =3D +110.0=B0C)
-temp5:        +25.0=B0C  (crit =3D +110.0=B0C)
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +41.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-Core 1:       +41.0=B0C  (high =3D +105.0=B0C, crit =3D +105.0=B0C)
-_____________________________
-
+THX for this audience,
+Manuel Krause
 
 
 _______________________________________________
