@@ -1,109 +1,56 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 23 Apr 2014 23:43:04 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/4] hwmon: (lm92) Drop function macros
-Message-Id: <53585008.5030502@roeck-us.net>
+From: Pavel Machek <pavel@ucw.cz>
+Date: Tue, 08 Apr 2014 09:19:43 +0000
+Subject: Re: [lm-sensors] Tachometer speed returned rather than absolute fan speed?
+Message-Id: <20140408091943.GA14642@amd.pavel.ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140421034351.GA11607@roeck-us.net>
-In-Reply-To: <20140421034351.GA11607@roeck-us.net>
+References: <CAOMwXhPXPN+21N11cHBENvw0QZ1qPvo9GTbM9V2SwDmgBQZssw@mail.gmail.com>
+ <20140307162524.6abd34be@endymion.delvare>
+ <CAOMwXhOB=1HA57jwKCx3-hU8A_ypjrm0J3R9huO25xa4B_gw8w@mail.gmail.com>
+ <20140307163717.336873f5@endymion.delvare>
+ <CAOMwXhPpObWqd1vR3t+ifKd-_ZbnGTm1TNNUakmVAR3CB=pzTg@mail.gmail.com>
+ <20140307181718.GA1027@roeck-us.net>
+ <531BACD9.9050206@roeck-us.net>
+In-Reply-To: <531BACD9.9050206@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Laszlo Papp <lpapp@kde.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On 04/23/2014 09:30 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun, 20 Apr 2014 20:43:51 -0700, Guenter Roeck wrote:
->> Function macros obfuscate code and increase code size, so drop them.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->> v2: Drop comma after t_num_regs
->>      Declare register array as const and with explicit size
->>
->>   drivers/hwmon/lm92.c |  165 +++++++++++++++++++++++++-----------------=
---------
->>   1 file changed, 82 insertions(+), 83 deletions(-)
->> (...)
->> +static ssize_t set_temp(struct device *dev, struct device_attribute *de=
-vattr,
->> +			   const char *buf, size_t count)
->>   {
->> -	struct lm92_data *data =3D lm92_update_device(dev);
->> -	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp1_crit)
->> -		       - TEMP_FROM_REG(data->temp1_hyst));
->> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
->> +	struct i2c_client *client =3D to_i2c_client(dev);
->> +	struct lm92_data *data =3D i2c_get_clientdata(client);
->> +	int nr =3D attr->index;
->> +	long val;
->> +	int err =3D kstrtol(buf, 10, &val);
->
-> I would separate variable declaration from actual code here, that would
-> be easier to read and would be consistent with the code in
-> set_temp_hyst().
->
->> +	if (err)
->> +		return err;
->> +
->> +	mutex_lock(&data->update_lock);
->> +	data->temp[nr] =3D TEMP_TO_REG(val);
->> +	i2c_smbus_write_word_swapped(client, regs[nr], data->temp[nr]);
->> +	mutex_unlock(&data->update_lock);
->> +	return count;
->>   }
->
-> Other than this it looks good to me, although I can't test. Do you
-> happen to have a register dump from an LM92, MAX6635 or any compatible
-> chip?
->
+On Sat 2014-03-08 15:50:49, Guenter Roeck wrote:
+> On 03/07/2014 10:17 AM, Guenter Roeck wrote:
+> >On Fri, Mar 07, 2014 at 03:47:08PM +0000, Laszlo Papp wrote:
+> >>On Fri, Mar 7, 2014 at 3:37 PM, Jean Delvare <jdelvare@suse.de> wrote:
+> >>>>>I'm quite confused. While I admit that the term "tachometer speed" is
+> >>>>>awkward, the max6650 driver is reporting fan speeds in RPM as every
+> >>>>>other hwmon driver. So I really have no idea what you think is wrong.
+> >>>>>What did you think "tachometer speed" was, if not the fan speed? Does
+> >>>>>the max6650 driver not return correct fan speeds for you?
+> >>
+> >>That is some strange behavior. If I do "echo 1 > pwm1_enable; echo 0 >
+> >>pwm1; cat fan1_input", I still see 30 for the connected fan, whereas I
+> >>can see it stopped. Is this an expected behavior? I would expect zero
+> >>as a user.
+> >>
+> >I seem to recall that I had seen that as well, with no fan connected.
+> >Maybe the tachometer registers always read at least '1'. I would think
+> >it is wrong, but we'll have to understand the chip a bit better
+> >to be able to provide a fix. Unless you already have a fix ready,
+> >of course. I'll try to re-test tonight if I find the time.
+> >
+> 
+> The reason is (most likely) that your fan input does not have a pull-up
+> resistor. Per datasheet, the fan inputs need a 10kOhm pull-up resistor.
+> I confirmed this with my test board - with the pull-up resistor,
+> inputs read 0, Without pull-up, the reported value is 1, which
+> translates to 30 RPM.
 
-Here you are, for LM92:
-
-      0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
-00: 380c b800 0001 0028 0005 0020 0020 0180
-08: 380c b800 0001 0028 0005 0020 0020 0180
-10: 380c b800 0001 0028 0005 0020 0020 0180
-18: 380c b800 0001 0028 0005 0020 0020 0180
-20: 380c b800 0001 0028 0005 0020 0020 0180
-28: 380c b800 0001 0028 0005 0020 0020 0180
-30: 380c b800 0001 0028 0005 0020 0020 0180
-38: 380c b800 0001 0028 0005 0020 0020 0180
-40: 380c b800 0001 0028 0005 0020 0020 0180
-48: 380c b800 0001 0028 0005 0020 0020 0180
-50: 380c b800 0001 0028 0005 0020 0020 0180
-58: 380c b800 0001 0028 0005 0020 0020 0180
-60: 380c b800 0001 0028 0005 0020 0020 0180
-68: 380c b800 0001 0028 0005 0020 0020 0180
-70: 380c b800 0001 0028 0005 0020 0020 0180
-78: 380c b800 0001 0028 0005 0020 0020 0180
-80: 380c b800 0001 0028 0005 0020 0020 0180
-88: 380c b800 0001 0028 0005 0020 0020 0180
-90: 380c b800 0001 0028 0005 0020 0020 0180
-98: 380c b800 0001 0028 0005 0020 0020 0180
-a0: 380c b800 0001 0028 0005 0020 0020 0180
-a8: 380c b800 0001 0028 0005 0020 0020 0180
-b0: 380c b800 0001 0028 0005 0020 0020 0180
-b8: 380c b800 0001 0028 0005 0020 0020 0180
-c0: 380c b800 0001 0028 0005 0020 0020 0180
-c8: 380c b800 0001 0028 0005 0020 0020 0180
-d0: 380c b800 0001 0028 0005 0020 0020 0180
-d8: 380c b800 0001 0028 0005 0020 0020 0180
-e0: 380c b800 0001 0028 0005 0020 0020 0180
-e8: 380c b800 0001 0028 0005 0020 0020 0180
-f0: 380c b800 0001 0028 0005 0020 0020 0180
-f8: 380c b800 0001 0028 0005 0020 0020 0180
-
-Matching output from sensors command:
-
-lm92-i2c-9-48
-Adapter: i2c-diolan-u2c at bus 003 device 013
-temp1:        +24.1=B0C  (low  =3D +10.0=B0C)
-                        (high =3D +64.0=B0C, hyst =3D +62.0=B0C)
-                        (crit =3D +80.0=B0C, hyst =3D +78.0=B0C)
-
-Guenter
-
+While this is hardware problem, it might make sense for kernel to work
+around it -- return 0 in case 30 RPM observed.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
 _______________________________________________
 lm-sensors mailing list
