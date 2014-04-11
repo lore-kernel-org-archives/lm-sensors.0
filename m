@@ -1,84 +1,139 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 16 Apr 2014 08:51:22 +0000
-Subject: Re: [lm-sensors] Asus M5A88-M motherboard, "no pwm-capable sensor modules"
-Message-Id: <20140416105122.2e635667@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 11 Apr 2014 03:45:44 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm70) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1397187944-1662-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <534B5355.5090102@gmail.com>
-In-Reply-To: <534B5355.5090102@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Bernd,
+Use devm_hwmon_device_register_with_groups API to attach attributes
+to hwmon device, simplify code, and reduce code size.
 
-On Wed, 16 Apr 2014 12:44:54 +0900, Bernd Bausch wrote:
-> Thanks Jean. Is it OK to continue this conversation out in the open, i.e. on
-> the mailing list?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm70.c |   62 ++++++++++++--------------------------------------
+ 1 file changed, 14 insertions(+), 48 deletions(-)
 
-Yes it is! That way everything is archived for the benefit of other
-users.
-
-> Executive summary: you are right about my kernel being too old, and in
-> addition I have a driver conflict
-> (http://hansdegoede.livejournal.com/7932.html) that comes up with a 3.x
-> kernel. 
-> Since I want to stay with Centos and 2.6.32, is there anything I can do?
-> 
-> Details:
-> 
-> My kernel is 2.6.32, not quite the 2.6.37 you mention, but I do have k10temp
-> and it67 drivers:
-> 
-> /lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/it87.ko
-> /lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/k10temp.ko
-
-The question isn't if the drivers are present or not, but if they
-support your hardware or not. Both drivers are relatively old, but we
-add support for new hardware over time, so old versions of the drivers
-do not support the most recent hardware.
-
-> I downloaded the elrepo version of the two modules. Hard to say how they
-> differ from my installed version; find modinfo output for it87 further
-> below.
-> 
-> Also, the sensors output (also below) looks sensible, with the exception of
-> the 16.8 degrees value, which is less than the ambient temperature. It seems
-> that monitoring works and it's just fan control that doesn't. 
-
-See at the bottom of:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/hwmon/k10temp
-for an explanation of the 16.8 degrees.
-
-Unfortunately fan control is not available on your system beyond the
-options offered by the BIOS at boot time, see below.
-
-> Next, I tested this with a LiveCD that uses a 3.9 kernel (Debian-based
-> Kanotix, in case you wonder). By default, I am not able to modprobe it87
-> because the BIOS ACPI code and it87 access the same hardware device (see
-> http://hansdegoede.livejournal.com/7932.html). After booting with
-> acpi_enforce_resources=lax, I can insert the it87 module, and now pwmconfig
-> does detect a controllable fan. So, I could make it to work if I moved to a
-> newer kernel, but this is not an option for me, as I need to stay with
-> Centos/Redhat. Is there anything I can do, perhaps trying to port the newest
-> it87 driver to my kernel (would be a steep learning curve)?
-
-Using the it87 driver on your machine wouldn't be a good idea anyway.
-Your BIOS implements a virtual device named ATK0110, which abstracts
-the access to the hardware monitoring chip. We have a driver for this,
-asus_atk0110, which can only do monitoring and not fan control, mostly
-due to a lack of documentation. Forcing native access to the chip (i.e.
-acpi_enforce_resources=lax + it87 driver) can cause random problems so
-it is not recommended to do that.
-
-So your only safe option at this time is to set the cooling profile of
-your choice in the BIOS and let the chip regulate the fan speeds after
-that. If you are unhappy with the settings offered by the BIOS, the
-only thing you can do is complain to the board vendor.
-
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index 505a59e..97204dc 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -47,7 +47,7 @@
+ #define LM70_CHIP_LM74		3	/* NS LM74 */
+ 
+ struct lm70 {
+-	struct device *hwmon_dev;
++	struct spi_device *spi;
+ 	struct mutex lock;
+ 	unsigned int chip;
+ };
+@@ -56,11 +56,11 @@ struct lm70 {
+ static ssize_t lm70_sense_temp(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct spi_device *spi = to_spi_device(dev);
++	struct lm70 *p_lm70 = dev_get_drvdata(dev);
++	struct spi_device *spi = p_lm70->spi;
+ 	int status, val = 0;
+ 	u8 rxbuf[2];
+ 	s16 raw = 0;
+-	struct lm70 *p_lm70 = spi_get_drvdata(spi);
+ 
+ 	if (mutex_lock_interruptible(&p_lm70->lock))
+ 		return -ERESTARTSYS;
+@@ -121,21 +121,20 @@ out:
+ 
+ static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
+ 
+-static ssize_t lm70_show_name(struct device *dev, struct device_attribute
+-			      *devattr, char *buf)
+-{
+-	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
+-}
++static struct attribute *lm70_attrs[] = {
++	&dev_attr_temp1_input.attr,
++	NULL
++};
+ 
+-static DEVICE_ATTR(name, S_IRUGO, lm70_show_name, NULL);
++ATTRIBUTE_GROUPS(lm70);
+ 
+ /*----------------------------------------------------------------------*/
+ 
+ static int lm70_probe(struct spi_device *spi)
+ {
+ 	int chip = spi_get_device_id(spi)->driver_data;
++	struct device *hwmon_dev;
+ 	struct lm70 *p_lm70;
+-	int status;
+ 
+ 	/* signaling is SPI_MODE_0 */
+ 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+@@ -149,46 +148,14 @@ static int lm70_probe(struct spi_device *spi)
+ 
+ 	mutex_init(&p_lm70->lock);
+ 	p_lm70->chip = chip;
++	p_lm70->spi = spi;
+ 
+-	spi_set_drvdata(spi, p_lm70);
+-
+-	status = device_create_file(&spi->dev, &dev_attr_temp1_input);
+-	if (status)
+-		goto out_dev_create_temp_file_failed;
+-	status = device_create_file(&spi->dev, &dev_attr_name);
+-	if (status)
+-		goto out_dev_create_file_failed;
+-
+-	/* sysfs hook */
+-	p_lm70->hwmon_dev = hwmon_device_register(&spi->dev);
+-	if (IS_ERR(p_lm70->hwmon_dev)) {
+-		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
+-		status = PTR_ERR(p_lm70->hwmon_dev);
+-		goto out_dev_reg_failed;
+-	}
+-
+-	return 0;
+-
+-out_dev_reg_failed:
+-	device_remove_file(&spi->dev, &dev_attr_name);
+-out_dev_create_file_failed:
+-	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+-out_dev_create_temp_file_failed:
+-	return status;
++	hwmon_dev = devm_hwmon_device_register_with_groups(&spi->dev,
++							   spi->modalias,
++							   p_lm70, lm70_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+-static int lm70_remove(struct spi_device *spi)
+-{
+-	struct lm70 *p_lm70 = spi_get_drvdata(spi);
+-
+-	hwmon_device_unregister(p_lm70->hwmon_dev);
+-	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+-	device_remove_file(&spi->dev, &dev_attr_name);
+-
+-	return 0;
+-}
+-
+-
+ static const struct spi_device_id lm70_ids[] = {
+ 	{ "lm70",   LM70_CHIP_LM70 },
+ 	{ "tmp121", LM70_CHIP_TMP121 },
+@@ -205,7 +172,6 @@ static struct spi_driver lm70_driver = {
+ 	},
+ 	.id_table = lm70_ids,
+ 	.probe	= lm70_probe,
+-	.remove	= lm70_remove,
+ };
+ 
+ module_spi_driver(lm70_driver);
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
