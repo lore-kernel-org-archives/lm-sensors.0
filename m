@@ -1,64 +1,158 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 13 Apr 2014 15:38:36 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (lm77) Rearrange code to no longer require forward declarations
-Message-Id: <534AAF7C.9020208@roeck-us.net>
+Date: Sat, 12 Apr 2014 17:01:58 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: (lm77) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1397322118-4275-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1397322118-4275-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1397322118-4275-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/13/2014 03:07 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sat, 12 Apr 2014 10:01:55 -0700, Guenter Roeck wrote:
->> Forward declarations are easy to avoid and unnecessary.
->> Rearrange code to avoid it.
->>
->> No functional change.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/lm77.c |  173 +++++++++++++++++++++++---------------------------
->>   1 file changed, 81 insertions(+), 92 deletions(-)
->> (...)
->
-> Looks good, just one suggestion:
->
->> diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
->> index 502771c..9e60eea 100644
->> --- a/drivers/hwmon/lm77.c
->> +++ b/drivers/hwmon/lm77.c
->> (...)
->> @@ -266,6 +292,14 @@ static const struct attribute_group lm77_group = {
->>   	.attrs = lm77_attributes,
->>   };
->>
->> +static void lm77_init_client(struct i2c_client *client)
->> +{
->> +	/* Initialize the LM77 chip - turn off shutdown mode */
->> +	int conf = lm77_read_value(client, LM77_REG_CONF);
->> +	if (conf & 1)
->> +		lm77_write_value(client, LM77_REG_CONF, conf & 0xfe);
->> +}
->
-> IMHO this would rather go before lm77_probe() than lm77_detect().
-> Having _init before _detect is almost an invitation to initialize the
-> chip in the _detect function, which would be wrong.
->
-Ok, makes sense. I'll move it.
+Use devm_hwmon_device_register_with_groups API to attach attributes
+to hwmon device, simplify code, and reduce code size.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm77.c |   57 ++++++++++++++------------------------------------
+ 1 file changed, 16 insertions(+), 41 deletions(-)
 
->> +
->>   /* Return 0 if detection is successful, -ENODEV otherwise */
->>   static int lm77_detect(struct i2c_client *client, struct i2c_board_info *info)
->>   {
->
-> Acked-by: Jean Delvare <jdelvare@suse.de>
->
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+index b792898..a65adfa 100644
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -52,7 +52,7 @@ enum temp_index {
+ 
+ /* Each client has this additional data */
+ struct lm77_data {
+-	struct device		*hwmon_dev;
++	struct i2c_client	*client;
+ 	struct mutex		update_lock;
+ 	char			valid;
+ 	unsigned long		last_updated;	/* In jiffies */
+@@ -102,8 +102,8 @@ static int lm77_write_value(struct i2c_client *client, u8 reg, u16 value)
+ 
+ static struct lm77_data *lm77_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -162,8 +162,8 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
+ 			const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int reg, err;
+ 	long val;
+ 
+@@ -189,8 +189,8 @@ static ssize_t set_temp_hyst(struct device *dev,
+ 			     const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	unsigned long val;
+ 	int err;
+ 
+@@ -210,8 +210,8 @@ static ssize_t set_temp_hyst(struct device *dev,
+ static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
+ 			     const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int oldcrithyst;
+ 	unsigned long val;
+ 	int err;
+@@ -257,7 +257,7 @@ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 2);
+ static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
+ 
+-static struct attribute *lm77_attributes[] = {
++static struct attribute *lm77_attrs[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+@@ -270,10 +270,7 @@ static struct attribute *lm77_attributes[] = {
+ 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	NULL
+ };
+-
+-static const struct attribute_group lm77_group = {
+-	.attrs = lm77_attributes,
+-};
++ATTRIBUTE_GROUPS(lm77);
+ 
+ static void lm77_init_client(struct i2c_client *client)
+ {
+@@ -357,43 +354,22 @@ static int lm77_detect(struct i2c_client *client, struct i2c_board_info *info)
+ static int lm77_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	struct device *dev = &client->dev;
++	struct device *hwmon_dev;
+ 	struct lm77_data *data;
+-	int err;
+ 
+ 	data = devm_kzalloc(dev, sizeof(struct lm77_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Initialize the LM77 chip */
+ 	lm77_init_client(client);
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&dev->kobj, &lm77_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
+-
+-	return 0;
+-
+-exit_remove:
+-	sysfs_remove_group(&dev->kobj, &lm77_group);
+-	return err;
+-}
+-
+-static int lm77_remove(struct i2c_client *client)
+-{
+-	struct lm77_data *data = i2c_get_clientdata(client);
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm77_group);
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data, lm77_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct i2c_device_id lm77_id[] = {
+@@ -409,7 +385,6 @@ static struct i2c_driver lm77_driver = {
+ 		.name	= "lm77",
+ 	},
+ 	.probe		= lm77_probe,
+-	.remove		= lm77_remove,
+ 	.id_table	= lm77_id,
+ 	.detect		= lm77_detect,
+ 	.address_list	= normal_i2c,
+-- 
+1.7.9.7
 
 
 _______________________________________________
