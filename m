@@ -1,366 +1,180 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 20 Apr 2014 11:53:19 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/3] hwmon: (lm77) Drop function macros
-Message-Id: <20140420135319.1189908a@endymion.delvare>
+From: Bernd Bausch <berndbausch@gmail.com>
+Date: Mon, 14 Apr 2014 03:17:41 +0000
+Subject: [lm-sensors] Asus M5A88-M motherboard, "no pwm-capable sensor modules"
+Message-Id: <534B5355.5090102@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1397711134-10501-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1397711134-10501-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+I would like to run my PC as silently under Linux as I can under
+Windows. Unfortunately I am pretty ignorant about hardware monitoring
+and control.
 
-On Wed, 16 Apr 2014 22:05:33 -0700, Guenter Roeck wrote:
-> Function macros make the code harder to read and increase code size,
-> so drop them.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Fix subject line
->     End last entry of enum temp_index with comma.
->     Also add t_num_entries for number of entries,
->     Use 'static u8 temp_regs[]' array to index registers.
->     and include t_hyst in the enum (and in the temp array).
->     In the register update function, use loop to read
->     all registers.
->     Drop some comments with little or no value.
->     Unify set_temp and set_temp_crit.
-> 
->  drivers/hwmon/lm77.c |  192 +++++++++++++++++++++-----------------------------
->  1 file changed, 79 insertions(+), 113 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
-> index 4cd8a513..69f5873 100644
-> --- a/drivers/hwmon/lm77.c
-> +++ b/drivers/hwmon/lm77.c
-> @@ -43,17 +43,30 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
->  #define LM77_REG_TEMP_MIN	0x04
->  #define LM77_REG_TEMP_MAX	0x05
->  
-> +enum temp_index {
-> +	t_input = 0,
-> +	t_crit,
-> +	t_min,
-> +	t_max,
-> +	t_hyst,
-> +	t_num_temp,
+Asus provides a fan control utility that allows me to throttle the CPU
+fan (not the case fan unfortunately), but I have been unable to do the
+same using lm_sensors. pwmconfig reports that there are no pwm-capable
+sensors.
 
-Sorry if I become annoying with that, but you don't need the comma
-here, as nothing can be added after t_num_temp by definition.
+So I wonder, does pwmconfig tell the truth? If yes, how can the CPU
+fan be controlled (it obviously can)? What are my options apart from
+leaving things as they are?
 
-> +};
-> +
-> +static u8 temp_regs[] = {
+This is on Centos 6.5 with an unchanged kernel (2.6.32-431, 64 bit). I
+use the standard lm_sensors packages but the newest version of
+sensors-detect. I also tried the newest version of pwmconfig.
+sensors-detect and pwmconfig output below.
 
-You could use [t_num_temp] to guarantee that the size of this array
-matches the size of lm77_data.temp. The code in lm77_update_device
-assumes that this is the case. You could also declare this array const.
+Thanks for listening, and more thanks for replying :)
 
-> +	[t_input] = LM77_REG_TEMP,
-> +	[t_min] = LM77_REG_TEMP_MIN,
-> +	[t_max] = LM77_REG_TEMP_MAX,
-> +	[t_crit] = LM77_REG_TEMP_CRIT,
-> +	[t_hyst] = LM77_REG_TEMP_HYST,
-> +};
-> +
->  /* Each client has this additional data */
->  struct lm77_data {
->  	struct device		*hwmon_dev;
->  	struct mutex		update_lock;
->  	char			valid;
->  	unsigned long		last_updated;	/* In jiffies */
-> -	int			temp_input;	/* Temperatures */
-> -	int			temp_crit;
-> -	int			temp_min;
-> -	int			temp_max;
-> -	int			temp_hyst;
-> +	int			temp[t_num_temp];/* index using temp_index */
->  	u8			alarms;
->  };
->  
-> @@ -100,27 +113,18 @@ static struct lm77_data *lm77_update_device(struct device *dev)
->  {
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct lm77_data *data = i2c_get_clientdata(client);
-> +	int i;
->  
->  	mutex_lock(&data->update_lock);
->  
->  	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
->  	    || !data->valid) {
->  		dev_dbg(&client->dev, "Starting lm77 update\n");
-> -		data->temp_input > -			LM77_TEMP_FROM_REG(lm77_read_value(client,
-> -							   LM77_REG_TEMP));
-> -		data->temp_hyst > -			LM77_TEMP_FROM_REG(lm77_read_value(client,
-> -							   LM77_REG_TEMP_HYST));
-> -		data->temp_crit > -			LM77_TEMP_FROM_REG(lm77_read_value(client,
-> -							   LM77_REG_TEMP_CRIT));
-> -		data->temp_min > -			LM77_TEMP_FROM_REG(lm77_read_value(client,
-> -							   LM77_REG_TEMP_MIN));
-> -		data->temp_max > -			LM77_TEMP_FROM_REG(lm77_read_value(client,
-> -							   LM77_REG_TEMP_MAX));
-> +		for (i = 0; i < t_num_temp; i++) {
-> +			data->temp[i] > +			  LM77_TEMP_FROM_REG(lm77_read_value(client,
-> +							     temp_regs[i]));
-> +		}
->  		data->alarms >  			lm77_read_value(client, LM77_REG_TEMP) & 0x0007;
->  		data->last_updated = jiffies;
-> @@ -134,95 +138,64 @@ static struct lm77_data *lm77_update_device(struct device *dev)
->  
->  /* sysfs stuff */
->  
-> -/* read routines for temperature limits */
-> -#define show(value)	\
-> -static ssize_t show_##value(struct device *dev,			\
-> -			    struct device_attribute *attr,	\
-> -			    char *buf)				\
-> -{								\
-> -	struct lm77_data *data = lm77_update_device(dev);	\
-> -	return sprintf(buf, "%d\n", data->value);		\
-> -}
-> -
-> -show(temp_input);
-> -show(temp_crit);
-> -show(temp_min);
-> -show(temp_max);
-> -
-> -/* read routines for hysteresis values */
-> -static ssize_t show_temp_crit_hyst(struct device *dev,
-> -				   struct device_attribute *attr, char *buf)
-> +static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-> +			 char *buf)
->  {
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
->  	struct lm77_data *data = lm77_update_device(dev);
-> -	return sprintf(buf, "%d\n", data->temp_crit - data->temp_hyst);
-> -}
-> -static ssize_t show_temp_min_hyst(struct device *dev,
-> -				  struct device_attribute *attr, char *buf)
-> -{
-> -	struct lm77_data *data = lm77_update_device(dev);
-> -	return sprintf(buf, "%d\n", data->temp_min + data->temp_hyst);
+Bernd
 
-There was a "+" here...
+--------------------------------------------
 
-> +
-> +	return sprintf(buf, "%d\n", data->temp[attr->index]);
->  }
-> -static ssize_t show_temp_max_hyst(struct device *dev,
-> -				  struct device_attribute *attr, char *buf)
-> +
-> +static ssize_t show_temp_hyst(struct device *dev,
-> +			      struct device_attribute *devattr, char *buf)
->  {
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
->  	struct lm77_data *data = lm77_update_device(dev);
-> -	return sprintf(buf, "%d\n", data->temp_max - data->temp_hyst);
+sudo /tmp/sensors-detect
+Stopping lm_sensors:                                       [  OK  ]
+# sensors-detect revision 6243 (2014-03-20 11:23:35 +0100)
+# Board: ASUSTeK Computer INC. M5A88-M
 
-... and a "-" here. Your new code has...
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
-> -}
->  
-> -/* write routines */
-> -#define set(value, reg)	\
-> -static ssize_t set_##value(struct device *dev, struct device_attribute *attr, \
-> -			   const char *buf, size_t count)		\
-> -{									\
-> -	struct i2c_client *client = to_i2c_client(dev);			\
-> -	struct lm77_data *data = i2c_get_clientdata(client);		\
-> -	long val;							\
-> -	int err = kstrtol(buf, 10, &val);				\
-> -	if (err)							\
-> -		return err;						\
-> -									\
-> -	mutex_lock(&data->update_lock);					\
-> -	data->value = val;						\
-> -	lm77_write_value(client, reg, LM77_TEMP_TO_REG(data->value));	\
-> -	mutex_unlock(&data->update_lock);				\
-> -	return count;							\
-> +	return sprintf(buf, "%d\n",
-> +		       data->temp[attr->index] - data->temp[t_hyst]);
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           No
+AMD Family 11h thermal sensors...                           No
+AMD Family 12h and 14h thermal sensors...                   No
+AMD Family 15h thermal sensors...                           Success!
+    (driver `k10temp')
+AMD Family 16h thermal sensors...                           No
+AMD Family 15h power sensors...                             Success!
+    (driver `fam15h_power')
+AMD Family 16h power sensors...                             No
+Intel digital thermal sensor...                             No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
 
-... "-" for everyone. This breaks temp1_min_hyst!
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor/ITE'...               No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      Yes
+Found `ITE IT8721F/IT8758E Super IO Sensors'                Success!
+    (address 0x290, driver `it87')
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor/ITE'...               No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
 
-You did not notice (and neither did I during my first review), most
-probably because temp[1-*]_min_hyst is NOT part of the standard sysfs
-API. It's not listed in Documentation/hwmon/sysfs-interface and not
-supported by libsensors (and thus can't be supported by "sensors"
-either.)
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no):
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
 
-I think we should add this attribute to the standard sysfs API, it is
-already implemented by the adt7x10, lm77 and lm92 drivers. And while
-we're at it, we could also add temp[1-*]_lcrit_hyst for consistency,
-even though no driver appears to implement it yet.
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (yes/NO): yes
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
 
-I have patches ready, I'll post them later today for review.
-
->  }
->  
-> -set(temp_min, LM77_REG_TEMP_MIN);
-> -set(temp_max, LM77_REG_TEMP_MAX);
-> -
-> -/*
-> - * hysteresis is stored as a relative value on the chip, so it has to be
-> - * converted first
-> - */
-> -static ssize_t set_temp_crit_hyst(struct device *dev,
-> -				  struct device_attribute *attr,
-> -				  const char *buf, size_t count)
-> +static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
-> +			const char *buf, size_t count)
->  {
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct lm77_data *data = i2c_get_clientdata(client);
-> -	unsigned long val;
-> -	int err;
-> +	int nr = attr->index;
-> +	int err, oldhyst;
-> +	long val;
->  
-> -	err = kstrtoul(buf, 10, &val);
-> +	err = kstrtol(buf, 10, &val);
->  	if (err)
->  		return err;
->  
->  	mutex_lock(&data->update_lock);
-> -	data->temp_hyst = data->temp_crit - val;
-> -	lm77_write_value(client, LM77_REG_TEMP_HYST,
-> -			 LM77_TEMP_TO_REG(data->temp_hyst));
-> +	/* preserve hysteresis when setting T_crit */
-> +	if (nr = t_crit)
-> +		oldhyst = data->temp[nr] - data->temp[t_hyst];
-> +	data->temp[nr] = val;
-> +	lm77_write_value(client, temp_regs[nr], LM77_TEMP_TO_REG(val));
-> +	if (nr = t_crit) {
-
-You could save this comparison by writing the new hysteresis value
-first. I think this is acceptable as you can't write both values as the
-exact same time anyway, so no matter the order, the hysteresis value
-will be wrong/unexpected for a short period of time between the two
-writes.
-
-As a side note, I don't think it is such a good idea to preserve the
-(absolute) hysteresis value here. I understand we are following the
-principle of least surprise, and I may even be the one who requested
-that this "feature" is implemented. However, while it does make some
-sense for relative, non-shared hysteresis registers, for a shared
-relative hysteresis register, this code may actually cause more
-confusion than it helps, as it will unexpectedly change the hysteresis
-value of the the min and max limits.
-
-In the end the only way to get proper results in all cases is to set
-the critical limit first and only then the hysteresis limit. If you do
-it the other way around, there is no guarantee that the temporary
-hysteresis value can be stored in the chip [1]. So we might as well just
-document that (both in the driver's documentation and in
-sensors.conf(5)) and get rid of the extra code. I agree this change is
-beyond the scope of your patch set though.
-
-[1] This could be fixed by storing the desired hysteresis value in the
-driver, but I am not saying we should do it.
-
-> +		data->temp[t_hyst] = data->temp[nr] - oldhyst;
-> +		lm77_write_value(client, LM77_REG_TEMP_HYST,
-> +				 LM77_TEMP_TO_REG(data->temp[t_hyst]));
-> +	}
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
->  
-> -/* preserve hysteresis when setting T_crit */
-> -static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
-> +/*
-> + * hysteresis is stored as a relative value on the chip, so it has to be
-> + * converted first.
-> + */
-> +static ssize_t set_temp_hyst(struct device *dev,
-> +			     struct device_attribute *devattr,
->  			     const char *buf, size_t count)
->  {
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct lm77_data *data = i2c_get_clientdata(client);
-> -	int oldcrithyst;
->  	unsigned long val;
->  	int err;
->  
-> @@ -231,13 +204,9 @@ static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
->  		return err;
->  
->  	mutex_lock(&data->update_lock);
-> -	oldcrithyst = data->temp_crit - data->temp_hyst;
-> -	data->temp_crit = val;
-> -	data->temp_hyst = data->temp_crit - oldcrithyst;
-> -	lm77_write_value(client, LM77_REG_TEMP_CRIT,
-> -			 LM77_TEMP_TO_REG(data->temp_crit));
-> +	data->temp[t_hyst] = data->temp[t_crit] - val;
->  	lm77_write_value(client, LM77_REG_TEMP_HYST,
-> -			 LM77_TEMP_TO_REG(data->temp_hyst));
-> +			 LM77_TEMP_TO_REG(data->temp[t_hyst]));
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> @@ -250,34 +219,31 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
->  	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
->  }
->  
-> -static DEVICE_ATTR(temp1_input, S_IRUGO,
-> -		   show_temp_input, NULL);
-> -static DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO,
-> -		   show_temp_crit, set_temp_crit);
-> -static DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
-> -		   show_temp_min, set_temp_min);
-> -static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-> -		   show_temp_max, set_temp_max);
-> -
-> -static DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO,
-> -		   show_temp_crit_hyst, set_temp_crit_hyst);
-> -static DEVICE_ATTR(temp1_min_hyst, S_IRUGO,
-> -		   show_temp_min_hyst, NULL);
-> -static DEVICE_ATTR(temp1_max_hyst, S_IRUGO,
-> -		   show_temp_max_hyst, NULL);
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, t_input);
-> +static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp, set_temp,
-> +			  t_crit);
-> +static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp, set_temp,
-> +			  t_min);
-> +static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp,
-> +			  t_max);
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temp_hyst,
-> +			  set_temp_hyst, t_crit);
-> +static SENSOR_DEVICE_ATTR(temp1_min_hyst, S_IRUGO, show_temp_hyst, NULL, t_min);
-> +static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO, show_temp_hyst, NULL, t_max);
->  
->  static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 2);
->  static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
->  static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
->  
->  static struct attribute *lm77_attributes[] = {
-> -	&dev_attr_temp1_input.attr,
-> -	&dev_attr_temp1_crit.attr,
-> -	&dev_attr_temp1_min.attr,
-> -	&dev_attr_temp1_max.attr,
-> -	&dev_attr_temp1_crit_hyst.attr,
-> -	&dev_attr_temp1_min_hyst.attr,
-> -	&dev_attr_temp1_max_hyst.attr,
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_min.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_min_hyst.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
->  	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
->  	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
->  	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no):
+Using driver `i2c-piix4' for device 0000:00:14.0: ATI Technologies Inc
+SB600/SB700/SB800 SMBus
+Module i2c-dev loaded successfully.
 
 
--- 
-Jean Delvare
-SUSE L3 Support
+Next adapter: Radeon i2c bit bus 0x90 (i2c-0)
+Do you want to scan it? (yes/NO/selectively): yes
+
+Next adapter: Radeon i2c bit bus 0x91 (i2c-1)
+Do you want to scan it? (yes/NO/selectively): yes
+
+Next adapter: Radeon i2c bit bus 0x92 (i2c-2)
+Do you want to scan it? (yes/NO/selectively): yes
+yes
+
+Next adapter: Radeon i2c bit bus 0x93 (i2c-3)
+Do you want to scan it? (yes/NO/selectively):
+Next adapter: Radeon i2c bit bus 0x14 (i2c-4)
+Do you want to scan it? (yes/NO/selectively): yes
+
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `it87':
+  * ISA bus, address 0x290
+    Chip `ITE IT8721F/IT8758E Super IO Sensors' (confidence: 9)
+
+Driver `fam15h_power' (autoloaded):
+  * Chip `AMD Family 15h power sensors' (confidence: 9)
+
+Driver `k10temp' (autoloaded):
+  * Chip `AMD Family 15h thermal sensors' (confidence: 9)
+
+Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
+Starting lm_sensors: loading module it87                   [  OK  ]
+Unloading i2c-dev... OK
+
+[bbausch@athlon64 LNXSYSTM:00]$ sudo pwmconfig
+# pwmconfig revision 5630 (2009-01-29)
+This program will search your sensors for pulse width modulation (pwm)
+controls, and test each one to see if it controls a fan on
+your motherboard. Note that many motherboards do not have pwm
+circuitry installed, even if your sensor chip supports pwm.
+
+We will attempt to briefly stop each fan using the pwm controls.
+The program will attempt to restore each fan to full speed
+after testing. However, it is ** very important ** that you
+physically verify that the fans have been to full speed
+after the program has completed.
+
+/usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
+[bbausch@athlon64 LNXSYSTM:00]$
+/*
+ * downloading and compiling lm_sensors 3.3.5
+ */
+$ sudo prog/pwm/pwmconfig
+[sudo] password for bbausch:
+# pwmconfig revision 6166 (2013-05-01)
+This program will search your sensors for pulse width modulation (pwm)
+controls, and test each one to see if it controls a fan on
+your motherboard. Note that many motherboards do not have pwm
+circuitry installed, even if your sensor chip supports pwm.
+
+We will attempt to briefly stop each fan using the pwm controls.
+The program will attempt to restore each fan to full speed
+after testing. However, it is ** very important ** that you
+physically verify that the fans have been to full speed
+after the program has completed.
+
+prog/pwm/pwmconfig: There are no pwm-capable sensor modules installed
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
