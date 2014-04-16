@@ -1,188 +1,84 @@
-From: "Bernd Bausch" <berndbausch@gmail.com>
-Date: Wed, 16 Apr 2014 03:44:54 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 16 Apr 2014 08:51:22 +0000
 Subject: Re: [lm-sensors] Asus M5A88-M motherboard, "no pwm-capable sensor modules"
-Message-Id: <001c01cf5926$3c69a6e0$b53cf4a0$@gmail.com>
+Message-Id: <20140416105122.2e635667@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <534B5355.5090102@gmail.com>
 In-Reply-To: <534B5355.5090102@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
-Thanks Jean. Is it OK to continue this conversation out in the open, i.e. on
-the mailing list?
-
-Executive summary: you are right about my kernel being too old, and in
-addition I have a driver conflict
-(http://hansdegoede.livejournal.com/7932.html) that comes up with a 3.x
-kernel.=20
-Since I want to stay with Centos and 2.6.32, is there anything I can do?
-
-Details:
-
-My kernel is 2.6.32, not quite the 2.6.37 you mention, but I do have k10temp
-and it67 drivers:
-
-/lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/it87.ko
-/lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/k10temp.ko
-
-I downloaded the elrepo version of the two modules. Hard to say how they
-differ from my installed version; find modinfo output for it87 further
-below.
-
-Also, the sensors output (also below) looks sensible, with the exception of
-the 16.8 degrees value, which is less than the ambient temperature. It seems
-that monitoring works and it's just fan control that doesn't.=20
-
-Next, I tested this with a LiveCD that uses a 3.9 kernel (Debian-based
-Kanotix, in case you wonder). By default, I am not able to modprobe it87
-because the BIOS ACPI code and it87 access the same hardware device (see
-http://hansdegoede.livejournal.com/7932.html). After booting with
-acpi_enforce_resources=3Dlax, I can insert the it87 module, and now pwmconf=
-ig
-does detect a controllable fan. So, I could make it to work if I moved to a
-newer kernel, but this is not an option for me, as I need to stay with
-Centos/Redhat. Is there anything I can do, perhaps trying to port the newest
-it87 driver to my kernel (would be a steep learning curve)?
-
-Cheers,
-
-Bernd
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D  s=
-ensors output  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D
-$ sensors
-k10temp-pci-00c3
-Adapter: PCI adapter
-temp1:       +16.8=B0C  (high =3D +70.0=B0C, crit =3D +70.0=B0C)
-
-fam15h_power-pci-00c4
-Adapter: PCI adapter
-power1:     117.23 W
-
-atk0110-acpi-0
-Adapter: ACPI interface
-Vcore Voltage:     +0.95 V  (min =3D  +0.80 V, max =3D  +1.60 V)
-+3.3V Voltage:     +3.26 V  (min =3D  +2.97 V, max =3D  +3.63 V)
-+5V Voltage:       +4.96 V  (min =3D  +4.50 V, max =3D  +5.50 V)
-+12V Voltage:     +12.13 V  (min =3D +10.20 V, max =3D +13.80 V)
-CPU Fan Speed:    2002 RPM  (min =3D  600 RPM)
-Chassis Fan Speed:1506 RPM  (min =3D  600 RPM)
-CPU Temperature:   +33.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-MB Temperature:    +34.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D  m=
-odinfo output  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D
-
-$ modinfo it87.ko  # this is the one from elrepo
-filename:       it87.ko
-license:        GPL
-description:    IT8705F/IT871xF/IT872xF hardware monitoring driver
-author:         Chris Gauthron, Jean Delvare <khali@linux-fr.org>
-srcversion:     883CCDF9B8356FBE80D52EE
-depends:        hwmon-vid
-vermagic:       2.6.32-358.el6.x86_64 SMP mod_unload modversions
-parm:           force_id:Override the detected device ID (ushort)
-parm:           update_vbat:Update vbat if set else return powerup value
-(bool)
-parm:           fix_pwm_polarity:Force PWM polarity to active high
-(DANGEROUS) (bool)
-
-$ modinfo /lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/it87.ko
-filename:
-/lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/it87.ko
-license:        GPL
-description:    IT8705F/8712F/8716F/8718F/8720F/8726F, SiS950 driver
-author:         Chris Gauthron, Jean Delvare <khali@linux-fr.org>
-srcversion:     839FF779560750484F6FA04
-depends:        hwmon-vid
-vermagic:       2.6.32-431.el6.x86_64 SMP mod_unload modversions
-parm:           force_id:Override the detected device ID (ushort)
-parm:           update_vbat:Update vbat if set else return powerup value
-(bool)
-parm:           fix_pwm_polarity:Force PWM polarity to active high
-(DANGEROUS) (bool)
-
-
------Original Message-----
-From: Jean Delvare [mailto:jdelvare@suse.de]=20
-Sent: Monday, April 14, 2014 4:21 PM
-To: Bernd Bausch
-Cc: lm-sensors@lm-sensors.org; Phil Perry
-Subject: Re: [lm-sensors] Asus M5A88-M motherboard, "no pwm-capable sensor
-modules"
 
 Hi Bernd,
 
-On Mon, 14 Apr 2014 12:17:41 +0900, Bernd Bausch wrote:
-> I would like to run my PC as silently under Linux as I can under=20
-> Windows. Unfortunately I am pretty ignorant about hardware monitoring=20
-> and control.
->=20
-> Asus provides a fan control utility that allows me to throttle the CPU=20
-> fan (not the case fan unfortunately), but I have been unable to do the=20
-> same using lm_sensors. pwmconfig reports that there are no pwm-capable=20
-> sensors.
->=20
-> So I wonder, does pwmconfig tell the truth? If yes, how can the CPU=20
-> fan be controlled (it obviously can)? What are my options apart from=20
-> leaving things as they are?
+On Wed, 16 Apr 2014 12:44:54 +0900, Bernd Bausch wrote:
+> Thanks Jean. Is it OK to continue this conversation out in the open, i.e. on
+> the mailing list?
 
-What does "sensors" say? Before you go with fan control, you must ensure
-that hardware monitoring itself is properly setup.
+Yes it is! That way everything is archived for the benefit of other
+users.
 
-> This is on Centos 6.5 with an unchanged kernel (2.6.32-431, 64 bit). I=20
-> use the standard lm_sensors packages but the newest version of=20
-> sensors-detect. I also tried the newest version of pwmconfig.
-> sensors-detect and pwmconfig output below.
->=20
-> Thanks for listening, and more thanks for replying :)
->=20
-> Bernd
->=20
-> --------------------------------------------
->=20
-> sudo /tmp/sensors-detect
-> Stopping lm_sensors:                                       [  OK  ]
-> # sensors-detect revision 6243 (2014-03-20 11:23:35 +0100) # Board:=20
-> ASUSTeK Computer INC. M5A88-M
-> (...)
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
->=20
-> Driver `it87':
->   * ISA bus, address 0x290
->     Chip `ITE IT8721F/IT8758E Super IO Sensors' (confidence: 9)
+> Executive summary: you are right about my kernel being too old, and in
+> addition I have a driver conflict
+> (http://hansdegoede.livejournal.com/7932.html) that comes up with a 3.x
+> kernel. 
+> Since I want to stay with Centos and 2.6.32, is there anything I can do?
+> 
+> Details:
+> 
+> My kernel is 2.6.32, not quite the 2.6.37 you mention, but I do have k10temp
+> and it67 drivers:
+> 
+> /lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/it87.ko
+> /lib/modules/2.6.32-431.el6.x86_64/kernel/drivers/hwmon/k10temp.ko
 
-Support for this chip was added in kernel 2.6.37.
+The question isn't if the drivers are present or not, but if they
+support your hardware or not. Both drivers are relatively old, but we
+add support for new hardware over time, so old versions of the drivers
+do not support the most recent hardware.
 
-> Driver `fam15h_power' (autoloaded):
->   * Chip `AMD Family 15h power sensors' (confidence: 9)
->=20
-> Driver `k10temp' (autoloaded):
->   * Chip `AMD Family 15h thermal sensors' (confidence: 9)
+> I downloaded the elrepo version of the two modules. Hard to say how they
+> differ from my installed version; find modinfo output for it87 further
+> below.
+> 
+> Also, the sensors output (also below) looks sensible, with the exception of
+> the 16.8 degrees value, which is less than the ambient temperature. It seems
+> that monitoring works and it's just fan control that doesn't. 
 
-Support was added in kernel 3.0.
+See at the bottom of:
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/hwmon/k10temp
+for an explanation of the 16.8 degrees.
 
-I'm afraid your kernel is simply too old for your hardware, unless Centos
-backported support for newer hwmon devices.
+Unfortunately fan control is not available on your system beyond the
+options offered by the BIOS at boot time, see below.
 
-Actually for Centos you may be lucky and be able to use Phil Perry's kmods.
-Check out at:
-  http://elrepo.org/tiki/Packages#K
+> Next, I tested this with a LiveCD that uses a 3.9 kernel (Debian-based
+> Kanotix, in case you wonder). By default, I am not able to modprobe it87
+> because the BIOS ACPI code and it87 access the same hardware device (see
+> http://hansdegoede.livejournal.com/7932.html). After booting with
+> acpi_enforce_resources=lax, I can insert the it87 module, and now pwmconfig
+> does detect a controllable fan. So, I could make it to work if I moved to a
+> newer kernel, but this is not an option for me, as I need to stay with
+> Centos/Redhat. Is there anything I can do, perhaps trying to port the newest
+> it87 driver to my kernel (would be a steep learning curve)?
 
-I see kmod-k10temp and kmod-it87, which are what your board needs. Give it a
-try. I've added Phil in Cc, hopefully he can drive from here if things don't
-work out of the box.
+Using the it87 driver on your machine wouldn't be a good idea anyway.
+Your BIOS implements a virtual device named ATK0110, which abstracts
+the access to the hardware monitoring chip. We have a driver for this,
+asus_atk0110, which can only do monitoring and not fan control, mostly
+due to a lack of documentation. Forcing native access to the chip (i.e.
+acpi_enforce_resources=lax + it87 driver) can cause random problems so
+it is not recommended to do that.
 
-Thanks,
---
+So your only safe option at this time is to set the cooling profile of
+your choice in the BIOS and let the chip regulate the fan speeds after
+that. If you are unhappy with the settings offered by the BIOS, the
+only thing you can do is complain to the board vendor.
+
+-- 
 Jean Delvare
 SUSE L3 Support
-
 
 _______________________________________________
 lm-sensors mailing list
