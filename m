@@ -1,149 +1,69 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 20 Apr 2014 18:41:18 +0000
-Subject: [lm-sensors] [PATCH v3 2/3] hwmon: (lm77) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1398019279-31757-2-git-send-email-linux@roeck-us.net>
+Date: Wed, 16 Apr 2014 02:28:49 +0000
+Subject: [lm-sensors] [PATCH 1/6] hwmon: (lm80) Simplify TEMP_FROM_REG
+Message-Id: <1397615334-30317-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use devm_hwmon_device_register_with_groups API to attach attributes
-to hwmon device, simplify code, and reduce code size.
+TEMP_FROM_REG gets 12 bits of temperature data in the upper 12 bit
+of a signed 16 bit parameter, with the integer part (including sign)
+in the upper 8 bit and the remainder in bit 4..7. The lower 4 bit of
+the 16 bit data is always 0. We can use that information to convert
+the temperature directly into display data (1/1000th of degree C).
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+Note that the stored temperature data is not shifted right as the
+comment claimed, so remove that misleading comment.
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-v3: Rebase to new version of 1st patch
-v2: Rebase to new version of 1st patch
+ drivers/hwmon/lm80.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
- drivers/hwmon/lm77.c |   53 +++++++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
-index 8754c0d..20dfa6e 100644
---- a/drivers/hwmon/lm77.c
-+++ b/drivers/hwmon/lm77.c
-@@ -62,7 +62,7 @@ static const u8 temp_regs[] = {
+diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
+index bd0a1eb..8e9a0b1 100644
+--- a/drivers/hwmon/lm80.c
++++ b/drivers/hwmon/lm80.c
+@@ -86,18 +86,7 @@ static inline unsigned char FAN_TO_REG(unsigned rpm, unsigned div)
+ #define FAN_FROM_REG(val, div)	((val) = 0 ? -1 : \
+ 				(val) = 255 ? 0 : 1350000/((div) * (val)))
  
- /* Each client has this additional data */
- struct lm77_data {
--	struct device		*hwmon_dev;
-+	struct i2c_client	*client;
- 	struct mutex		update_lock;
- 	char			valid;
- 	unsigned long		last_updated;	/* In jiffies */
-@@ -111,8 +111,8 @@ static int lm77_write_value(struct i2c_client *client, u8 reg, u16 value)
- 
- static struct lm77_data *lm77_update_device(struct device *dev)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm77_data *data = i2c_get_clientdata(client);
-+	struct lm77_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	int i;
- 
- 	mutex_lock(&data->update_lock);
-@@ -165,8 +165,8 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
- 			const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm77_data *data = i2c_get_clientdata(client);
-+	struct lm77_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	int nr = attr->index;
- 	int err, oldhyst;
- 	long val;
-@@ -197,8 +197,8 @@ static ssize_t set_temp_hyst(struct device *dev,
- 			     struct device_attribute *devattr,
- 			     const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm77_data *data = i2c_get_clientdata(client);
-+	struct lm77_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	unsigned long val;
- 	int err;
- 
-@@ -239,7 +239,7 @@ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 2);
- static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
- 
--static struct attribute *lm77_attributes[] = {
-+static struct attribute *lm77_attrs[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
-@@ -252,10 +252,7 @@ static struct attribute *lm77_attributes[] = {
- 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
- 	NULL
- };
--
--static const struct attribute_group lm77_group = {
--	.attrs = lm77_attributes,
--};
-+ATTRIBUTE_GROUPS(lm77);
- 
- /* Return 0 if detection is successful, -ENODEV otherwise */
- static int lm77_detect(struct i2c_client *client, struct i2c_board_info *info)
-@@ -339,43 +336,22 @@ static void lm77_init_client(struct i2c_client *client)
- static int lm77_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	struct device *dev = &client->dev;
-+	struct device *hwmon_dev;
- 	struct lm77_data *data;
--	int err;
- 
- 	data = devm_kzalloc(dev, sizeof(struct lm77_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	i2c_set_clientdata(client, data);
-+	data->client = client;
- 	mutex_init(&data->update_lock);
- 
- 	/* Initialize the LM77 chip */
- 	lm77_init_client(client);
- 
--	/* Register sysfs hooks */
--	err = sysfs_create_group(&dev->kobj, &lm77_group);
--	if (err)
--		return err;
--
--	data->hwmon_dev = hwmon_device_register(dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove;
--	}
--
--	return 0;
--
--exit_remove:
--	sysfs_remove_group(&dev->kobj, &lm77_group);
--	return err;
--}
--
--static int lm77_remove(struct i2c_client *client)
+-static inline long TEMP_FROM_REG(u16 temp)
 -{
--	struct lm77_data *data = i2c_get_clientdata(client);
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm77_group);
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-+							   data, lm77_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
+-	long res;
+-
+-	temp >>= 4;
+-	if (temp < 0x0800)
+-		res = 625 * (long) temp;
+-	else
+-		res = ((long) temp - 0x01000) * 625;
+-
+-	return res / 10;
+-}
++#define TEMP_FROM_REG(temp) ((temp) * 125 / 32)
+ 
+ #define TEMP_LIMIT_FROM_REG(val)	(((val) > 0x80 ? \
+ 	(val) - 0x100 : (val)) * 1000)
+@@ -124,7 +113,7 @@ struct lm80_data {
+ 	u8 fan[2];		/* Register value */
+ 	u8 fan_min[2];		/* Register value */
+ 	u8 fan_div[2];		/* Register encoding, shifted right */
+-	u16 temp;		/* Register values, shifted right */
++	s16 temp;		/* Register values */
+ 	u8 temp_hot_max;	/* Register value */
+ 	u8 temp_hot_hyst;	/* Register value */
+ 	u8 temp_os_max;		/* Register value */
+@@ -309,7 +298,7 @@ static ssize_t show_temp_input1(struct device *dev,
+ 	struct lm80_data *data = lm80_update_device(dev);
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
+-	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp));
  }
  
- static const struct i2c_device_id lm77_id[] = {
-@@ -391,7 +367,6 @@ static struct i2c_driver lm77_driver = {
- 		.name	= "lm77",
- 	},
- 	.probe		= lm77_probe,
--	.remove		= lm77_remove,
- 	.id_table	= lm77_id,
- 	.detect		= lm77_detect,
- 	.address_list	= normal_i2c,
+ #define show_temp(suffix, value) \
 -- 
 1.7.9.7
 
