@@ -1,43 +1,60 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 19 Apr 2014 22:28:10 +0000
-Subject: [lm-sensors] [PATCH 2/5] hwmon: (max1619) Drop FSF address
-Message-Id: <1397946493-4455-2-git-send-email-linux@roeck-us.net>
+From: Damir Hodzic <damir.1105@gmail.com>
+Date: Wed, 16 Apr 2014 21:40:39 +0000
+Subject: [lm-sensors] sensors.conf for asus mobo p5gd1-vw
+Message-Id: <CA+chT+LbNpX+P3uCQL3b=MopxqCS=AqXs4YTMEU5o=W9Ayg9uw@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="047d7bd6b61a8c6e0904f72fc4d1"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The FSF address may chance over time, so drop it.
+--047d7bd6b61a8c6e0904f72fc4d1
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/max1619.c |    5 -----
- 1 file changed, 5 deletions(-)
+sensors.conf for asus mobo p5gd1-vw
 
-diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
-index 0927902..9a8d7ca 100644
---- a/drivers/hwmon/max1619.c
-+++ b/drivers/hwmon/max1619.c
-@@ -19,13 +19,8 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
--
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
 -- 
-1.7.9.7
+*Lijep pozdrav,*
 
+*Damir Hodzic* - damir.eu.org
+
+*gpg-key:* *96B0EF13*
+
+--047d7bd6b61a8c6e0904f72fc4d1
+Content-Type: application/octet-stream; name="sensors.conf"
+Content-Disposition: attachment; filename="sensors.conf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hu357jx30
+
+IyBUaGlzIGlzIGZvciBhbiBBc3VzIFA1R0QxLVZXCiMgQ29udHJpYnV0ZWQgZnJvbSBEYW1pciBI
+b2R6aWMgKGJvc25pYSAmIEhlcnplZ292aW5hKQoKY2hpcCAidzgzNjI3ZWhmLSoiCgogICAgbGFi
+ZWwgaW4wICJWQ29yZSIKICAgIGxhYmVsIGluMSAiKzEyViIKICAgIGxhYmVsIGluMyAiKzMuM1Yi
+CiAgICBsYWJlbCBpbjUgIis1ViIKICAgIGxhYmVsIGluNyAiVkJBVCIKCiAgICBpZ25vcmUgaW4y
+IAogICAgaWdub3JlIGluNCAKICAgIGlnbm9yZSBpbjYgCiAgICBpZ25vcmUgaW45CiAgICBpZ25v
+cmUgaW44IAoKIyBTZXQgYmVlcCdzIGZvciBhbGFybXMKIyAgICBzZXQgYmVlcF9lbmFibGUgMSAK
+CiMgKzEyViBpcyBpbjEgYW5kICs1ViBpcyBpbjUgYW5kICszLjNWIGlzIGluMwogICAgY29tcHV0
+ZSBpbjEgQCooMSsoNTYvMTApKSwgIEAvKDErKDU2LzEwKSkKICAgIGNvbXB1dGUgaW41IEAqKDEr
+KDIyLzEwKSksICBALygxKygyMi8xMCkpCiAgICAKICAgICMgMTAlIHRvbGVyYW5jZSBmb3IgMTJW
+CiAgICBzZXQgaW4xX21pbiAgIDEyLjAqMC45CiAgICBzZXQgaW4xX21heCAgIDEyLjAqMS4xCgog
+ICAgIyA1JSBmb3IgNVYKICAgIHNldCBpbjVfbWluICAgNS4wKjAuOTUKICAgIHNldCBpbjVfbWF4
+ICAgNS4wKjEuMDUKCiAgICAjIDUlIGZvciAzLjNWIAogICAgc2V0IGluM19taW4gICAzLjMqMC45
+NQogICAgc2V0IGluM19tYXggICAzLjMqMS4wNQoKICAgICMgMyUgZm9yIFZiYXQKICAgIHNldCBp
+bjdfbWluICAgMy4zKjAuOTcKICAgIHNldCBpbjdfbWF4ICAgMy4zKjEuMDMKCiMgRmFucwogICBs
+YWJlbCBmYW4xICAgICAgIkNhc2UgRmFuIgogICBsYWJlbCBmYW4yICAgICAgIkNQVSBGYW4iCiAg
+IGlnbm9yZSBmYW4zICAgICAgCiAgIGlnbm9yZSBmYW40IAogICBpZ25vcmUgZmFuNSAKCiAgIHNl
+dCBmYW4xX21pbiAgICAxMDAwCiAgIHNldCBmYW4yX21pbiAgICAxMDAwCiAgICAgICAgICAgICAg
+CgojIFRlbXBlcmF0dXJlcwogICBsYWJlbCB0ZW1wMSAgICAgIlN5cyBUZW1wIgogICBsYWJlbCB0
+ZW1wMiAgICAgIkNQVSBUZW1wIgogICBsYWJlbCB0ZW1wMwkgICAiQXV4IFRlbXAiCgogICBzZXQg
+dGVtcDFfbWF4ICAgICAgIDYwCiAgIHNldCB0ZW1wMV9tYXhfaHlzdCAgNTUKICAgc2V0IHRlbXAy
+X21heCAgICAgICA2OAogICBzZXQgdGVtcDJfbWF4X2h5c3QgIDYwCiAgIHNldCB0ZW1wM19tYXgg
+ICAgICAgNjAKICAgc2V0IHRlbXAzX21heF9oeXN0ICA1NQogICAgCg==
+--047d7bd6b61a8c6e0904f72fc4d1
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--047d7bd6b61a8c6e0904f72fc4d1--
