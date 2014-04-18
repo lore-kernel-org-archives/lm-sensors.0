@@ -1,27 +1,34 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 20 Apr 2014 14:41:18 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Document temp[1-*]_min_hyst sysfs attribute
-Message-Id: <5353DC8E.70200@roeck-us.net>
+Date: Fri, 18 Apr 2014 22:51:22 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (lm92) Drop unnecessary forward declaration
+Message-Id: <1397861485-31740-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140420144006.17c4f79e@endymion.delvare>
-In-Reply-To: <20140420144006.17c4f79e@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/20/2014 05:40 AM, Jean Delvare wrote:
-> The temp[1-*]_min_hyst sysfs attribute is already implemented by 3
-> hwmon drivers (adt7x10, lm77 and lm92) but was missing from the
-> standard interface.
->
-> Also add temp[1-*]_lcrit_hyst for consistency, even though no driver
-> implement that one for the time being.
->
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm92.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
+index b9022db..5ca8e14 100644
+--- a/drivers/hwmon/lm92.c
++++ b/drivers/hwmon/lm92.c
+@@ -93,9 +93,6 @@ static inline u8 ALARMS_FROM_REG(s16 reg)
+ 	return reg & 0x0007;
+ }
+ 
+-/* Driver data (common to all clients) */
+-static struct i2c_driver lm92_driver;
+-
+ /* Client data (each client gets its own) */
+ struct lm92_data {
+ 	struct device *hwmon_dev;
+-- 
+1.7.9.7
 
 
 _______________________________________________
