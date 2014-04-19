@@ -1,197 +1,233 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 20 Apr 2014 18:41:17 +0000
-Subject: [lm-sensors] =?utf-8?q?=5BPATCH_v3_1/3=5D_hwmon=3A_=28lm77=29_Dro?= =?utf-8?q?p_function_macros?=
-Message-Id: <1398019279-31757-1-git-send-email-linux@roeck-us.net>
+Date: Sat, 19 Apr 2014 22:28:11 +0000
+Subject: [lm-sensors] [PATCH 3/5] hwmon: (max1619) Rearrange code to avoid forward declarations
+Message-Id: <1397946493-4455-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RnVuY3Rpb24gbWFjcm9zIG1ha2UgdGhlIGNvZGUgaGFyZGVyIHRvIHJlYWQgYW5kIGluY3JlYXNl
-IGNvZGUgc2l6ZSwKc28gZHJvcCB0aGVtLgoKU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8
-bGludXhAcm9lY2stdXMubmV0PgotLS0KdjM6IE5vIGNvbW1hIGFmdGVyIHRfbnVtX2VudHJpZXMu
-CiAgICBNYWtlIHRlbXBfcmVncyBjb25zdCBhbmQgcHJvdmlkZSBhcnJheSBzaXplLgogICAgRml4
-IHNob3dfdGVtcF9oeXN0LCBzcGVjaWZpY2FsbHkgZGlzcGxheSBvZiBsb3cgbGltaXQgaHlzdGVy
-ZXNpcy4KICAgIFNpbXBsaWZ5IHNldF90ZW1wIGFuZCBoYW5kbGluZyBvZiBoeXN0ZXJlc2lzLgoK
-ICAgIE91dHB1dCB3aXRoIG5ldyBsaWJzZW5zb3JzOgoKICAgIGxtNzctaTJjLTktNDkKICAgIEFk
-YXB0ZXI6IGkyYy1kaW9sYW4tdTJjIGF0IGJ1cyAwMDMgZGV2aWNlIDAxMwogICAgdGVtcDE6ICAg
-ICAgICArMjIuNcKwQyAgKGxvdyAgPSArMTAuMMKwQywgaHlzdCA9ICsxMi4wwrBDKQogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAoaGlnaCA9ICs2NC4wwrBDLCBoeXN0ID0gKzYyLjDCsEMpCgkJ
-CSAgIChjcml0ID0gKzgwLjDCsEMsIGh5c3QgPSArNzguMMKwQykKCnYyOiBGaXggc3ViamVjdCBs
-aW5lCiAgICBFbmQgbGFzdCBlbnRyeSBvZiBlbnVtIHRlbXBfaW5kZXggd2l0aCBjb21tYS4KICAg
-IEFsc28gYWRkIHRfbnVtX2VudHJpZXMgZm9yIG51bWJlciBvZiBlbnRyaWVzLAogICAgVXNlICdz
-dGF0aWMgdTggdGVtcF9yZWdzW10nIGFycmF5IHRvIGluZGV4IHJlZ2lzdGVycy4KICAgIGFuZCBp
-bmNsdWRlIHRfaHlzdCBpbiB0aGUgZW51bSAoYW5kIGluIHRoZSB0ZW1wIGFycmF5KS4KICAgIElu
-IHRoZSByZWdpc3RlciB1cGRhdGUgZnVuY3Rpb24sIHVzZSBsb29wIHRvIHJlYWQKICAgIGFsbCBy
-ZWdpc3RlcnMuCiAgICBEcm9wIHNvbWUgY29tbWVudHMgd2l0aCBsaXR0bGUgb3Igbm8gdmFsdWUu
-CiAgICBVbmlmeSBzZXRfdGVtcCBhbmQgc2V0X3RlbXBfY3JpdC4KCiBkcml2ZXJzL2h3bW9uL2xt
-NzcuYyB8ICAxOTUgKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA4MiBpbnNlcnRpb25zKCspLCAxMTMgZGVsZXRpb25zKC0p
-CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9sbTc3LmMgYi9kcml2ZXJzL2h3bW9uL2xtNzcu
-YwppbmRleCA0Y2Q4YTUxMy4uODc1NGMwZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9sbTc3
-LmMKKysrIGIvZHJpdmVycy9od21vbi9sbTc3LmMKQEAgLTQzLDE3ICs0MywzMCBAQCBzdGF0aWMg
-Y29uc3QgdW5zaWduZWQgc2hvcnQgbm9ybWFsX2kyY1tdID0geyAweDQ4LCAweDQ5LCAweDRhLCAw
-eDRiLAogI2RlZmluZSBMTTc3X1JFR19URU1QX01JTgkweDA0CiAjZGVmaW5lIExNNzdfUkVHX1RF
-TVBfTUFYCTB4MDUKIAorZW51bSB0ZW1wX2luZGV4IHsKKwl0X2lucHV0ID0gMCwKKwl0X2NyaXQs
-CisJdF9taW4sCisJdF9tYXgsCisJdF9oeXN0LAorCXRfbnVtX3RlbXAKK307CisKK3N0YXRpYyBj
-b25zdCB1OCB0ZW1wX3JlZ3NbXSA9IHsKKwlbdF9pbnB1dF0gPSBMTTc3X1JFR19URU1QLAorCVt0
-X21pbl0gPSBMTTc3X1JFR19URU1QX01JTiwKKwlbdF9tYXhdID0gTE03N19SRUdfVEVNUF9NQVgs
-CisJW3RfY3JpdF0gPSBMTTc3X1JFR19URU1QX0NSSVQsCisJW3RfaHlzdF0gPSBMTTc3X1JFR19U
-RU1QX0hZU1QsCit9OworCiAvKiBFYWNoIGNsaWVudCBoYXMgdGhpcyBhZGRpdGlvbmFsIGRhdGEg
-Ki8KIHN0cnVjdCBsbTc3X2RhdGEgewogCXN0cnVjdCBkZXZpY2UJCSpod21vbl9kZXY7CiAJc3Ry
-dWN0IG11dGV4CQl1cGRhdGVfbG9jazsKIAljaGFyCQkJdmFsaWQ7CiAJdW5zaWduZWQgbG9uZwkJ
-bGFzdF91cGRhdGVkOwkvKiBJbiBqaWZmaWVzICovCi0JaW50CQkJdGVtcF9pbnB1dDsJLyogVGVt
-cGVyYXR1cmVzICovCi0JaW50CQkJdGVtcF9jcml0OwotCWludAkJCXRlbXBfbWluOwotCWludAkJ
-CXRlbXBfbWF4OwotCWludAkJCXRlbXBfaHlzdDsKKwlpbnQJCQl0ZW1wW3RfbnVtX3RlbXBdOy8q
-IGluZGV4IHVzaW5nIHRlbXBfaW5kZXggKi8KIAl1OAkJCWFsYXJtczsKIH07CiAKQEAgLTEwMCwy
-NyArMTEzLDE4IEBAIHN0YXRpYyBzdHJ1Y3QgbG03N19kYXRhICpsbTc3X3VwZGF0ZV9kZXZpY2Uo
-c3RydWN0IGRldmljZSAqZGV2KQogewogCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19p
-MmNfY2xpZW50KGRldik7CiAJc3RydWN0IGxtNzdfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50
-ZGF0YShjbGllbnQpOworCWludCBpOwogCiAJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2sp
-OwogCiAJaWYgKHRpbWVfYWZ0ZXIoamlmZmllcywgZGF0YS0+bGFzdF91cGRhdGVkICsgSFogKyBI
-WiAvIDIpCiAJICAgIHx8ICFkYXRhLT52YWxpZCkgewogCQlkZXZfZGJnKCZjbGllbnQtPmRldiwg
-IlN0YXJ0aW5nIGxtNzcgdXBkYXRlXG4iKTsKLQkJZGF0YS0+dGVtcF9pbnB1dCA9Ci0JCQlMTTc3
-X1RFTVBfRlJPTV9SRUcobG03N19yZWFkX3ZhbHVlKGNsaWVudCwKLQkJCQkJCQkgICBMTTc3X1JF
-R19URU1QKSk7Ci0JCWRhdGEtPnRlbXBfaHlzdCA9Ci0JCQlMTTc3X1RFTVBfRlJPTV9SRUcobG03
-N19yZWFkX3ZhbHVlKGNsaWVudCwKLQkJCQkJCQkgICBMTTc3X1JFR19URU1QX0hZU1QpKTsKLQkJ
-ZGF0YS0+dGVtcF9jcml0ID0KLQkJCUxNNzdfVEVNUF9GUk9NX1JFRyhsbTc3X3JlYWRfdmFsdWUo
-Y2xpZW50LAotCQkJCQkJCSAgIExNNzdfUkVHX1RFTVBfQ1JJVCkpOwotCQlkYXRhLT50ZW1wX21p
-biA9Ci0JCQlMTTc3X1RFTVBfRlJPTV9SRUcobG03N19yZWFkX3ZhbHVlKGNsaWVudCwKLQkJCQkJ
-CQkgICBMTTc3X1JFR19URU1QX01JTikpOwotCQlkYXRhLT50ZW1wX21heCA9Ci0JCQlMTTc3X1RF
-TVBfRlJPTV9SRUcobG03N19yZWFkX3ZhbHVlKGNsaWVudCwKLQkJCQkJCQkgICBMTTc3X1JFR19U
-RU1QX01BWCkpOworCQlmb3IgKGkgPSAwOyBpIDwgdF9udW1fdGVtcDsgaSsrKSB7CisJCQlkYXRh
-LT50ZW1wW2ldID0KKwkJCSAgTE03N19URU1QX0ZST01fUkVHKGxtNzdfcmVhZF92YWx1ZShjbGll
-bnQsCisJCQkJCQkJICAgICB0ZW1wX3JlZ3NbaV0pKTsKKwkJfQogCQlkYXRhLT5hbGFybXMgPQog
-CQkJbG03N19yZWFkX3ZhbHVlKGNsaWVudCwgTE03N19SRUdfVEVNUCkgJiAweDAwMDc7CiAJCWRh
-dGEtPmxhc3RfdXBkYXRlZCA9IGppZmZpZXM7CkBAIC0xMzQsOTUgKzEzOCw2NyBAQCBzdGF0aWMg
-c3RydWN0IGxtNzdfZGF0YSAqbG03N191cGRhdGVfZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldikK
-IAogLyogc3lzZnMgc3R1ZmYgKi8KIAotLyogcmVhZCByb3V0aW5lcyBmb3IgdGVtcGVyYXR1cmUg
-bGltaXRzICovCi0jZGVmaW5lIHNob3codmFsdWUpCVwKLXN0YXRpYyBzc2l6ZV90IHNob3dfIyN2
-YWx1ZShzdHJ1Y3QgZGV2aWNlICpkZXYsCQkJXAotCQkJICAgIHN0cnVjdCBkZXZpY2VfYXR0cmli
-dXRlICphdHRyLAlcCi0JCQkgICAgY2hhciAqYnVmKQkJCQlcCi17CQkJCQkJCQlcCi0Jc3RydWN0
-IGxtNzdfZGF0YSAqZGF0YSA9IGxtNzdfdXBkYXRlX2RldmljZShkZXYpOwlcCi0JcmV0dXJuIHNw
-cmludGYoYnVmLCAiJWRcbiIsIGRhdGEtPnZhbHVlKTsJCVwKLX0KLQotc2hvdyh0ZW1wX2lucHV0
-KTsKLXNob3codGVtcF9jcml0KTsKLXNob3codGVtcF9taW4pOwotc2hvdyh0ZW1wX21heCk7Ci0K
-LS8qIHJlYWQgcm91dGluZXMgZm9yIGh5c3RlcmVzaXMgdmFsdWVzICovCi1zdGF0aWMgc3NpemVf
-dCBzaG93X3RlbXBfY3JpdF9oeXN0KHN0cnVjdCBkZXZpY2UgKmRldiwKLQkJCQkgICBzdHJ1Y3Qg
-ZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQorc3RhdGljIHNzaXplX3Qgc2hvd190
-ZW1wKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0dHIs
-CisJCQkgY2hhciAqYnVmKQogeworCXN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0
-ciA9IHRvX3NlbnNvcl9kZXZfYXR0cihkZXZhdHRyKTsKIAlzdHJ1Y3QgbG03N19kYXRhICpkYXRh
-ID0gbG03N191cGRhdGVfZGV2aWNlKGRldik7Ci0JcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIs
-IGRhdGEtPnRlbXBfY3JpdCAtIGRhdGEtPnRlbXBfaHlzdCk7Ci19Ci1zdGF0aWMgc3NpemVfdCBz
-aG93X3RlbXBfbWluX2h5c3Qoc3RydWN0IGRldmljZSAqZGV2LAotCQkJCSAgc3RydWN0IGRldmlj
-ZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikKLXsKLQlzdHJ1Y3QgbG03N19kYXRhICpkYXRh
-ID0gbG03N191cGRhdGVfZGV2aWNlKGRldik7Ci0JcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIs
-IGRhdGEtPnRlbXBfbWluICsgZGF0YS0+dGVtcF9oeXN0KTsKKworCXJldHVybiBzcHJpbnRmKGJ1
-ZiwgIiVkXG4iLCBkYXRhLT50ZW1wW2F0dHItPmluZGV4XSk7CiB9Ci1zdGF0aWMgc3NpemVfdCBz
-aG93X3RlbXBfbWF4X2h5c3Qoc3RydWN0IGRldmljZSAqZGV2LAotCQkJCSAgc3RydWN0IGRldmlj
-ZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikKKworc3RhdGljIHNzaXplX3Qgc2hvd190ZW1w
-X2h5c3Qoc3RydWN0IGRldmljZSAqZGV2LAorCQkJICAgICAgc3RydWN0IGRldmljZV9hdHRyaWJ1
-dGUgKmRldmF0dHIsIGNoYXIgKmJ1ZikKIHsKKwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1
-dGUgKmF0dHIgPSB0b19zZW5zb3JfZGV2X2F0dHIoZGV2YXR0cik7CiAJc3RydWN0IGxtNzdfZGF0
-YSAqZGF0YSA9IGxtNzdfdXBkYXRlX2RldmljZShkZXYpOwotCXJldHVybiBzcHJpbnRmKGJ1Ziwg
-IiVkXG4iLCBkYXRhLT50ZW1wX21heCAtIGRhdGEtPnRlbXBfaHlzdCk7Ci19CisJaW50IG5yID0g
-YXR0ci0+aW5kZXg7CisJaW50IHRlbXA7CiAKLS8qIHdyaXRlIHJvdXRpbmVzICovCi0jZGVmaW5l
-IHNldCh2YWx1ZSwgcmVnKQlcCi1zdGF0aWMgc3NpemVfdCBzZXRfIyN2YWx1ZShzdHJ1Y3QgZGV2
-aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBcCi0JCQkgICBjb25zdCBj
-aGFyICpidWYsIHNpemVfdCBjb3VudCkJCVwKLXsJCQkJCQkJCQlcCi0Jc3RydWN0IGkyY19jbGll
-bnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsJCQlcCi0Jc3RydWN0IGxtNzdfZGF0YSAq
-ZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwkJXAotCWxvbmcgdmFsOwkJCQkJCQlc
-Ci0JaW50IGVyciA9IGtzdHJ0b2woYnVmLCAxMCwgJnZhbCk7CQkJCVwKLQlpZiAoZXJyKQkJCQkJ
-CQlcCi0JCXJldHVybiBlcnI7CQkJCQkJXAotCQkJCQkJCQkJXAotCW11dGV4X2xvY2soJmRhdGEt
-PnVwZGF0ZV9sb2NrKTsJCQkJCVwKLQlkYXRhLT52YWx1ZSA9IHZhbDsJCQkJCQlcCi0JbG03N193
-cml0ZV92YWx1ZShjbGllbnQsIHJlZywgTE03N19URU1QX1RPX1JFRyhkYXRhLT52YWx1ZSkpOwlc
-Ci0JbXV0ZXhfdW5sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CQkJCVwKLQlyZXR1cm4gY291bnQ7
-CQkJCQkJCVwKLX0KKwl0ZW1wID0gbnIgPT0gdF9taW4gPyBkYXRhLT50ZW1wW25yXSArIGRhdGEt
-PnRlbXBbdF9oeXN0XSA6CisJCQkgICAgIGRhdGEtPnRlbXBbbnJdIC0gZGF0YS0+dGVtcFt0X2h5
-c3RdOwogCi1zZXQodGVtcF9taW4sIExNNzdfUkVHX1RFTVBfTUlOKTsKLXNldCh0ZW1wX21heCwg
-TE03N19SRUdfVEVNUF9NQVgpOworCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLCB0ZW1wKTsK
-K30KIAotLyoKLSAqIGh5c3RlcmVzaXMgaXMgc3RvcmVkIGFzIGEgcmVsYXRpdmUgdmFsdWUgb24g
-dGhlIGNoaXAsIHNvIGl0IGhhcyB0byBiZQotICogY29udmVydGVkIGZpcnN0Ci0gKi8KLXN0YXRp
-YyBzc2l6ZV90IHNldF90ZW1wX2NyaXRfaHlzdChzdHJ1Y3QgZGV2aWNlICpkZXYsCi0JCQkJICBz
-dHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKLQkJCQkgIGNvbnN0IGNoYXIgKmJ1Ziwgc2l6
-ZV90IGNvdW50KQorc3RhdGljIHNzaXplX3Qgc2V0X3RlbXAoc3RydWN0IGRldmljZSAqZGV2LCBz
-dHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2YXR0ciwKKwkJCWNvbnN0IGNoYXIgKmJ1Ziwgc2l6
-ZV90IGNvdW50KQogeworCXN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciA9IHRv
-X3NlbnNvcl9kZXZfYXR0cihkZXZhdHRyKTsKIAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0g
-dG9faTJjX2NsaWVudChkZXYpOwogCXN0cnVjdCBsbTc3X2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2Ns
-aWVudGRhdGEoY2xpZW50KTsKLQl1bnNpZ25lZCBsb25nIHZhbDsKLQlpbnQgZXJyOworCWludCBu
-ciA9IGF0dHItPmluZGV4OworCWludCBlcnIsIG9sZGh5c3Q7CisJbG9uZyB2YWw7CiAKLQllcnIg
-PSBrc3RydG91bChidWYsIDEwLCAmdmFsKTsKKwllcnIgPSBrc3RydG9sKGJ1ZiwgMTAsICZ2YWwp
-OwogCWlmIChlcnIpCiAJCXJldHVybiBlcnI7CiAKIAltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVf
-bG9jayk7Ci0JZGF0YS0+dGVtcF9oeXN0ID0gZGF0YS0+dGVtcF9jcml0IC0gdmFsOwotCWxtNzdf
-d3JpdGVfdmFsdWUoY2xpZW50LCBMTTc3X1JFR19URU1QX0hZU1QsCi0JCQkgTE03N19URU1QX1RP
-X1JFRyhkYXRhLT50ZW1wX2h5c3QpKTsKKwlpZiAobnIgPT0gdF9jcml0KSB7CisJCS8qIHByZXNl
-cnZlIGh5c3RlcmVzaXMgd2hlbiBzZXR0aW5nIFRfY3JpdCAqLworCQlvbGRoeXN0ID0gZGF0YS0+
-dGVtcFtucl0gLSBkYXRhLT50ZW1wW3RfaHlzdF07CisJCWRhdGEtPnRlbXBbdF9oeXN0XSA9IGRh
-dGEtPnRlbXBbbnJdIC0gb2xkaHlzdDsKKwkJbG03N193cml0ZV92YWx1ZShjbGllbnQsIExNNzdf
-UkVHX1RFTVBfSFlTVCwKKwkJCQkgTE03N19URU1QX1RPX1JFRyhkYXRhLT50ZW1wW3RfaHlzdF0p
-KTsKKwl9CisJZGF0YS0+dGVtcFtucl0gPSB2YWw7CisJbG03N193cml0ZV92YWx1ZShjbGllbnQs
-IHRlbXBfcmVnc1tucl0sIExNNzdfVEVNUF9UT19SRUcodmFsKSk7CiAJbXV0ZXhfdW5sb2NrKCZk
-YXRhLT51cGRhdGVfbG9jayk7CiAJcmV0dXJuIGNvdW50OwogfQogCi0vKiBwcmVzZXJ2ZSBoeXN0
-ZXJlc2lzIHdoZW4gc2V0dGluZyBUX2NyaXQgKi8KLXN0YXRpYyBzc2l6ZV90IHNldF90ZW1wX2Ny
-aXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKy8q
-CisgKiBoeXN0ZXJlc2lzIGlzIHN0b3JlZCBhcyBhIHJlbGF0aXZlIHZhbHVlIG9uIHRoZSBjaGlw
-LCBzbyBpdCBoYXMgdG8gYmUKKyAqIGNvbnZlcnRlZCBmaXJzdC4KKyAqLworc3RhdGljIHNzaXpl
-X3Qgc2V0X3RlbXBfaHlzdChzdHJ1Y3QgZGV2aWNlICpkZXYsCisJCQkgICAgIHN0cnVjdCBkZXZp
-Y2VfYXR0cmlidXRlICpkZXZhdHRyLAogCQkJICAgICBjb25zdCBjaGFyICpidWYsIHNpemVfdCBj
-b3VudCkKIHsKIAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYp
-OwogCXN0cnVjdCBsbTc3X2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsK
-LQlpbnQgb2xkY3JpdGh5c3Q7CiAJdW5zaWduZWQgbG9uZyB2YWw7CiAJaW50IGVycjsKIApAQCAt
-MjMxLDEzICsyMDcsOSBAQCBzdGF0aWMgc3NpemVfdCBzZXRfdGVtcF9jcml0KHN0cnVjdCBkZXZp
-Y2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJCXJldHVybiBlcnI7CiAK
-IAltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7Ci0Jb2xkY3JpdGh5c3QgPSBkYXRhLT50
-ZW1wX2NyaXQgLSBkYXRhLT50ZW1wX2h5c3Q7Ci0JZGF0YS0+dGVtcF9jcml0ID0gdmFsOwotCWRh
-dGEtPnRlbXBfaHlzdCA9IGRhdGEtPnRlbXBfY3JpdCAtIG9sZGNyaXRoeXN0OwotCWxtNzdfd3Jp
-dGVfdmFsdWUoY2xpZW50LCBMTTc3X1JFR19URU1QX0NSSVQsCi0JCQkgTE03N19URU1QX1RPX1JF
-RyhkYXRhLT50ZW1wX2NyaXQpKTsKKwlkYXRhLT50ZW1wW3RfaHlzdF0gPSBkYXRhLT50ZW1wW3Rf
-Y3JpdF0gLSB2YWw7CiAJbG03N193cml0ZV92YWx1ZShjbGllbnQsIExNNzdfUkVHX1RFTVBfSFlT
-VCwKLQkJCSBMTTc3X1RFTVBfVE9fUkVHKGRhdGEtPnRlbXBfaHlzdCkpOworCQkJIExNNzdfVEVN
-UF9UT19SRUcoZGF0YS0+dGVtcFt0X2h5c3RdKSk7CiAJbXV0ZXhfdW5sb2NrKCZkYXRhLT51cGRh
-dGVfbG9jayk7CiAJcmV0dXJuIGNvdW50OwogfQpAQCAtMjUwLDM0ICsyMjIsMzEgQEAgc3RhdGlj
-IHNzaXplX3Qgc2hvd19hbGFybShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0
-cmlidXRlICphdHRyLAogCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiV1XG4iLCAoZGF0YS0+YWxhcm1z
-ID4+IGJpdG5yKSAmIDEpOwogfQogCi1zdGF0aWMgREVWSUNFX0FUVFIodGVtcDFfaW5wdXQsIFNf
-SVJVR08sCi0JCSAgIHNob3dfdGVtcF9pbnB1dCwgTlVMTCk7Ci1zdGF0aWMgREVWSUNFX0FUVFIo
-dGVtcDFfY3JpdCwgU19JV1VTUiB8IFNfSVJVR08sCi0JCSAgIHNob3dfdGVtcF9jcml0LCBzZXRf
-dGVtcF9jcml0KTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMV9taW4sIFNfSVdVU1IgfCBTX0lS
-VUdPLAotCQkgICBzaG93X3RlbXBfbWluLCBzZXRfdGVtcF9taW4pOwotc3RhdGljIERFVklDRV9B
-VFRSKHRlbXAxX21heCwgU19JV1VTUiB8IFNfSVJVR08sCi0JCSAgIHNob3dfdGVtcF9tYXgsIHNl
-dF90ZW1wX21heCk7Ci0KLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMV9jcml0X2h5c3QsIFNfSVdV
-U1IgfCBTX0lSVUdPLAotCQkgICBzaG93X3RlbXBfY3JpdF9oeXN0LCBzZXRfdGVtcF9jcml0X2h5
-c3QpOwotc3RhdGljIERFVklDRV9BVFRSKHRlbXAxX21pbl9oeXN0LCBTX0lSVUdPLAotCQkgICBz
-aG93X3RlbXBfbWluX2h5c3QsIE5VTEwpOwotc3RhdGljIERFVklDRV9BVFRSKHRlbXAxX21heF9o
-eXN0LCBTX0lSVUdPLAotCQkgICBzaG93X3RlbXBfbWF4X2h5c3QsIE5VTEwpOworc3RhdGljIFNF
-TlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9pbnB1dCwgU19JUlVHTywgc2hvd190ZW1wLCBOVUxMLCB0
-X2lucHV0KTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfY3JpdCwgU19JV1VTUiB8
-IFNfSVJVR08sIHNob3dfdGVtcCwgc2V0X3RlbXAsCisJCQkgIHRfY3JpdCk7CitzdGF0aWMgU0VO
-U09SX0RFVklDRV9BVFRSKHRlbXAxX21pbiwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfdGVtcCwg
-c2V0X3RlbXAsCisJCQkgIHRfbWluKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFf
-bWF4LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190ZW1wLCBzZXRfdGVtcCwKKwkJCSAgdF9tYXgp
-OworCitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAxX2NyaXRfaHlzdCwgU19JV1VTUiB8
-IFNfSVJVR08sIHNob3dfdGVtcF9oeXN0LAorCQkJICBzZXRfdGVtcF9oeXN0LCB0X2NyaXQpOwor
-c3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9taW5faHlzdCwgU19JUlVHTywgc2hvd190
-ZW1wX2h5c3QsIE5VTEwsIHRfbWluKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFf
-bWF4X2h5c3QsIFNfSVJVR08sIHNob3dfdGVtcF9oeXN0LCBOVUxMLCB0X21heCk7CiAKIHN0YXRp
-YyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfY3JpdF9hbGFybSwgU19JUlVHTywgc2hvd19hbGFy
-bSwgTlVMTCwgMik7CiBzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAxX21pbl9hbGFybSwg
-U19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMCk7CiBzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRS
-KHRlbXAxX21heF9hbGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMSk7CiAKIHN0YXRp
-YyBzdHJ1Y3QgYXR0cmlidXRlICpsbTc3X2F0dHJpYnV0ZXNbXSA9IHsKLQkmZGV2X2F0dHJfdGVt
-cDFfaW5wdXQuYXR0ciwKLQkmZGV2X2F0dHJfdGVtcDFfY3JpdC5hdHRyLAotCSZkZXZfYXR0cl90
-ZW1wMV9taW4uYXR0ciwKLQkmZGV2X2F0dHJfdGVtcDFfbWF4LmF0dHIsCi0JJmRldl9hdHRyX3Rl
-bXAxX2NyaXRfaHlzdC5hdHRyLAotCSZkZXZfYXR0cl90ZW1wMV9taW5faHlzdC5hdHRyLAotCSZk
-ZXZfYXR0cl90ZW1wMV9tYXhfaHlzdC5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfaW5w
-dXQuZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX2NyaXQuZGV2X2F0dHIu
-YXR0ciwKKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21pbi5kZXZfYXR0ci5hdHRyLAorCSZzZW5z
-b3JfZGV2X2F0dHJfdGVtcDFfbWF4LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl90
-ZW1wMV9jcml0X2h5c3QuZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21p
-bl9oeXN0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9tYXhfaHlzdC5k
-ZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfY3JpdF9hbGFybS5kZXZfYXR0
-ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfbWluX2FsYXJtLmRldl9hdHRyLmF0dHIs
-CiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9tYXhfYWxhcm0uZGV2X2F0dHIuYXR0ciwKLS0gCjEu
-Ny45LjcKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
-aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Forward declarations are unnecessary and easy to avoid, so rearrange
+code and drop them.
+
+No functional change.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/max1619.c |  158 +++++++++++++++++++++--------------------------
+ 1 file changed, 69 insertions(+), 89 deletions(-)
+
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+index 9a8d7ca..c8a7297 100644
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -72,40 +72,6 @@ static int temp_to_reg(int val)
+ }
+ 
+ /*
+- * Functions declaration
+- */
+-
+-static int max1619_probe(struct i2c_client *client,
+-			 const struct i2c_device_id *id);
+-static int max1619_detect(struct i2c_client *client,
+-			  struct i2c_board_info *info);
+-static void max1619_init_client(struct i2c_client *client);
+-static int max1619_remove(struct i2c_client *client);
+-static struct max1619_data *max1619_update_device(struct device *dev);
+-
+-/*
+- * Driver data (common to all clients)
+- */
+-
+-static const struct i2c_device_id max1619_id[] = {
+-	{ "max1619", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, max1619_id);
+-
+-static struct i2c_driver max1619_driver = {
+-	.class		= I2C_CLASS_HWMON,
+-	.driver = {
+-		.name	= "max1619",
+-	},
+-	.probe		= max1619_probe,
+-	.remove		= max1619_remove,
+-	.id_table	= max1619_id,
+-	.detect		= max1619_detect,
+-	.address_list	= normal_i2c,
+-};
+-
+-/*
+  * Client data (each client gets its own)
+  */
+ 
+@@ -123,6 +89,44 @@ struct max1619_data {
+ 	u8 alarms;
+ };
+ 
++static struct max1619_data *max1619_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct max1619_data *data = i2c_get_clientdata(client);
++	int config;
++
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
++		dev_dbg(&client->dev, "Updating max1619 data.\n");
++		data->temp_input1 = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_LOCAL_TEMP);
++		data->temp_input2 = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_REMOTE_TEMP);
++		data->temp_high2 = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_REMOTE_HIGH);
++		data->temp_low2 = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_REMOTE_LOW);
++		data->temp_crit2 = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_REMOTE_CRIT);
++		data->temp_hyst2 = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_TCRIT_HYST);
++		data->alarms = i2c_smbus_read_byte_data(client,
++					MAX1619_REG_R_STATUS);
++		/* If OVERT polarity is low, reverse alarm bit */
++		config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
++		if (!(config & 0x20))
++			data->alarms ^= 0x02;
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
+ /*
+  * Sysfs stuff
+  */
+@@ -216,10 +220,6 @@ static const struct attribute_group max1619_group = {
+ 	.attrs = max1619_attributes,
+ };
+ 
+-/*
+- * Real code
+- */
+-
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int max1619_detect(struct i2c_client *client,
+ 			  struct i2c_board_info *info)
+@@ -256,6 +256,21 @@ static int max1619_detect(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static void max1619_init_client(struct i2c_client *client)
++{
++	u8 config;
++
++	/*
++	 * Start the conversions.
++	 */
++	i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONVRATE,
++				  5); /* 2 Hz */
++	config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
++	if (config & 0x40)
++		i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONFIG,
++					  config & 0xBF); /* run */
++}
++
+ static int max1619_probe(struct i2c_client *new_client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -291,21 +306,6 @@ exit_remove_files:
+ 	return err;
+ }
+ 
+-static void max1619_init_client(struct i2c_client *client)
+-{
+-	u8 config;
+-
+-	/*
+-	 * Start the conversions.
+-	 */
+-	i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONVRATE,
+-				  5); /* 2 Hz */
+-	config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
+-	if (config & 0x40)
+-		i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONFIG,
+-					  config & 0xBF); /* run */
+-}
+-
+ static int max1619_remove(struct i2c_client *client)
+ {
+ 	struct max1619_data *data = i2c_get_clientdata(client);
+@@ -316,43 +316,23 @@ static int max1619_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-static struct max1619_data *max1619_update_device(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct max1619_data *data = i2c_get_clientdata(client);
+-	int config;
+-
+-	mutex_lock(&data->update_lock);
+-
+-	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
+-		dev_dbg(&client->dev, "Updating max1619 data.\n");
+-		data->temp_input1 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_LOCAL_TEMP);
+-		data->temp_input2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_TEMP);
+-		data->temp_high2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_HIGH);
+-		data->temp_low2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_LOW);
+-		data->temp_crit2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_CRIT);
+-		data->temp_hyst2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_TCRIT_HYST);
+-		data->alarms = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_STATUS);
+-		/* If OVERT polarity is low, reverse alarm bit */
+-		config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
+-		if (!(config & 0x20))
+-			data->alarms ^= 0x02;
+-
+-		data->last_updated = jiffies;
+-		data->valid = 1;
+-	}
+-
+-	mutex_unlock(&data->update_lock);
++static const struct i2c_device_id max1619_id[] = {
++	{ "max1619", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, max1619_id);
+ 
+-	return data;
+-}
++static struct i2c_driver max1619_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "max1619",
++	},
++	.probe		= max1619_probe,
++	.remove		= max1619_remove,
++	.id_table	= max1619_id,
++	.detect		= max1619_detect,
++	.address_list	= normal_i2c,
++};
+ 
+ module_i2c_driver(max1619_driver);
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
