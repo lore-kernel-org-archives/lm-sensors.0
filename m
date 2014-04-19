@@ -1,56 +1,218 @@
-From: Pavel Machek <pavel@ucw.cz>
-Date: Tue, 08 Apr 2014 09:19:43 +0000
-Subject: Re: [lm-sensors] Tachometer speed returned rather than absolute fan speed?
-Message-Id: <20140408091943.GA14642@amd.pavel.ucw.cz>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 19 Apr 2014 22:28:12 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: (max1619) Drop function macros
+Message-Id: <1397946493-4455-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAOMwXhPXPN+21N11cHBENvw0QZ1qPvo9GTbM9V2SwDmgBQZssw@mail.gmail.com>
- <20140307162524.6abd34be@endymion.delvare>
- <CAOMwXhOB=1HA57jwKCx3-hU8A_ypjrm0J3R9huO25xa4B_gw8w@mail.gmail.com>
- <20140307163717.336873f5@endymion.delvare>
- <CAOMwXhPpObWqd1vR3t+ifKd-_ZbnGTm1TNNUakmVAR3CB=pzTg@mail.gmail.com>
- <20140307181718.GA1027@roeck-us.net>
- <531BACD9.9050206@roeck-us.net>
-In-Reply-To: <531BACD9.9050206@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Laszlo Papp <lpapp@kde.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Sat 2014-03-08 15:50:49, Guenter Roeck wrote:
-> On 03/07/2014 10:17 AM, Guenter Roeck wrote:
-> >On Fri, Mar 07, 2014 at 03:47:08PM +0000, Laszlo Papp wrote:
-> >>On Fri, Mar 7, 2014 at 3:37 PM, Jean Delvare <jdelvare@suse.de> wrote:
-> >>>>>I'm quite confused. While I admit that the term "tachometer speed" is
-> >>>>>awkward, the max6650 driver is reporting fan speeds in RPM as every
-> >>>>>other hwmon driver. So I really have no idea what you think is wrong.
-> >>>>>What did you think "tachometer speed" was, if not the fan speed? Does
-> >>>>>the max6650 driver not return correct fan speeds for you?
-> >>
-> >>That is some strange behavior. If I do "echo 1 > pwm1_enable; echo 0 >
-> >>pwm1; cat fan1_input", I still see 30 for the connected fan, whereas I
-> >>can see it stopped. Is this an expected behavior? I would expect zero
-> >>as a user.
-> >>
-> >I seem to recall that I had seen that as well, with no fan connected.
-> >Maybe the tachometer registers always read at least '1'. I would think
-> >it is wrong, but we'll have to understand the chip a bit better
-> >to be able to provide a fix. Unless you already have a fix ready,
-> >of course. I'll try to re-test tonight if I find the time.
-> >
-> 
-> The reason is (most likely) that your fan input does not have a pull-up
-> resistor. Per datasheet, the fan inputs need a 10kOhm pull-up resistor.
-> I confirmed this with my test board - with the pull-up resistor,
-> inputs read 0, Without pull-up, the reported value is 1, which
-> translates to 30 RPM.
+Function macros make the code larger and difficult ro read.
+Drop them and reduce code size (on x86_64) by ~1800 bytes.
 
-While this is hardware problem, it might make sense for kernel to work
-around it -- return 0 in case 30 RPM observed.
-									Pavel
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/max1619.c |  141 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 73 insertions(+), 68 deletions(-)
+
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+index c8a7297..699c57d 100644
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -71,6 +71,16 @@ static int temp_to_reg(int val)
+ 	return (val < 0 ? val+0x100*1000 : val) / 1000;
+ }
+ 
++enum temp_index {
++	t_input1 = 0,
++	t_input2,
++	t_low2,
++	t_high2,
++	t_crit2,
++	t_hyst2,
++	t_num_regs,
++};
++
+ /*
+  * Client data (each client gets its own)
+  */
+@@ -82,35 +92,39 @@ struct max1619_data {
+ 	unsigned long last_updated; /* in jiffies */
+ 
+ 	/* registers values */
+-	u8 temp_input1; /* local */
+-	u8 temp_input2, temp_low2, temp_high2; /* remote */
+-	u8 temp_crit2;
+-	u8 temp_hyst2;
++	u8 temp[t_num_regs];	/* index with enum temp_index */
+ 	u8 alarms;
+ };
+ 
++static u8 regs_read[] = {
++	[t_input1] = MAX1619_REG_R_LOCAL_TEMP,
++	[t_input2] = MAX1619_REG_R_REMOTE_TEMP,
++	[t_low2] = MAX1619_REG_R_REMOTE_LOW,
++	[t_high2] = MAX1619_REG_R_REMOTE_HIGH,
++	[t_crit2] = MAX1619_REG_R_REMOTE_CRIT,
++	[t_hyst2] = MAX1619_REG_R_TCRIT_HYST,
++};
++
++static u8 regs_write[] = {
++	[t_low2] = MAX1619_REG_W_REMOTE_LOW,
++	[t_high2] = MAX1619_REG_W_REMOTE_HIGH,
++	[t_crit2] = MAX1619_REG_W_REMOTE_CRIT,
++	[t_hyst2] = MAX1619_REG_W_TCRIT_HYST,
++};
++
+ static struct max1619_data *max1619_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct max1619_data *data = i2c_get_clientdata(client);
+-	int config;
++	int config, i;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
+ 		dev_dbg(&client->dev, "Updating max1619 data.\n");
+-		data->temp_input1 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_LOCAL_TEMP);
+-		data->temp_input2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_TEMP);
+-		data->temp_high2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_HIGH);
+-		data->temp_low2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_LOW);
+-		data->temp_crit2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_CRIT);
+-		data->temp_hyst2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_TCRIT_HYST);
++		for (i = 0; i < t_num_regs; i++)
++			data->temp[i] = i2c_smbus_read_byte_data(client,
++					regs_read[i]);
+ 		data->alarms = i2c_smbus_read_byte_data(client,
+ 					MAX1619_REG_R_STATUS);
+ 		/* If OVERT polarity is low, reverse alarm bit */
+@@ -131,43 +145,33 @@ static struct max1619_data *max1619_update_device(struct device *dev)
+  * Sysfs stuff
+  */
+ 
+-#define show_temp(value) \
+-static ssize_t show_##value(struct device *dev, struct device_attribute *attr, \
+-			    char *buf) \
+-{ \
+-	struct max1619_data *data = max1619_update_device(dev); \
+-	return sprintf(buf, "%d\n", temp_from_reg(data->value)); \
+-}
+-show_temp(temp_input1);
+-show_temp(temp_input2);
+-show_temp(temp_low2);
+-show_temp(temp_high2);
+-show_temp(temp_crit2);
+-show_temp(temp_hyst2);
+-
+-#define set_temp2(value, reg) \
+-static ssize_t set_##value(struct device *dev, struct device_attribute *attr, \
+-			   const char *buf, \
+-	size_t count) \
+-{ \
+-	struct i2c_client *client = to_i2c_client(dev); \
+-	struct max1619_data *data = i2c_get_clientdata(client); \
+-	long val; \
+-	int err = kstrtol(buf, 10, &val); \
+-	if (err) \
+-		return err; \
+-\
+-	mutex_lock(&data->update_lock); \
+-	data->value = temp_to_reg(val); \
+-	i2c_smbus_write_byte_data(client, reg, data->value); \
+-	mutex_unlock(&data->update_lock); \
+-	return count; \
++static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
++			 char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct max1619_data *data = max1619_update_device(dev);
++
++	return sprintf(buf, "%d\n", temp_from_reg(data->temp[attr->index]));
+ }
+ 
+-set_temp2(temp_low2, MAX1619_REG_W_REMOTE_LOW);
+-set_temp2(temp_high2, MAX1619_REG_W_REMOTE_HIGH);
+-set_temp2(temp_crit2, MAX1619_REG_W_REMOTE_CRIT);
+-set_temp2(temp_hyst2, MAX1619_REG_W_TCRIT_HYST);
++static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
++			   const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct max1619_data *data = i2c_get_clientdata(client);
++	long val;
++	int err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
++
++	mutex_lock(&data->update_lock);
++	data->temp[attr->index] = temp_to_reg(val);
++	i2c_smbus_write_byte_data(client, regs_write[attr->index],
++				  data->temp[attr->index]);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
+ 
+ static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
+ 			   char *buf)
+@@ -184,16 +188,17 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+ }
+ 
+-static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+-static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+-static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_low2,
+-	set_temp_low2);
+-static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_high2,
+-	set_temp_high2);
+-static DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp_crit2,
+-	set_temp_crit2);
+-static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp_hyst2,
+-	set_temp_hyst2);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, t_input1);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, t_input2);
++static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp, set_temp,
++			  t_low2);
++static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp, set_temp,
++			  t_high2);
++static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp, set_temp,
++			  t_crit2);
++static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp,
++			  set_temp, t_hyst2);
++
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
+ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
+@@ -201,12 +206,12 @@ static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
+ static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
+ 
+ static struct attribute *max1619_attributes[] = {
+-	&dev_attr_temp1_input.attr,
+-	&dev_attr_temp2_input.attr,
+-	&dev_attr_temp2_min.attr,
+-	&dev_attr_temp2_max.attr,
+-	&dev_attr_temp2_crit.attr,
+-	&dev_attr_temp2_crit_hyst.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
+ 
+ 	&dev_attr_alarms.attr,
+ 	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
