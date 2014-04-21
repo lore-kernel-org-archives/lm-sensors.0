@@ -1,66 +1,153 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 02 Apr 2014 14:02:41 +0000
-Subject: Re: [lm-sensors] [Bug 71711] Strange / dangerous fan policy since Linux
-Message-Id: <533C1881.5020406@roeck-us.net>
+Date: Mon, 21 Apr 2014 01:28:12 +0000
+Subject: [lm-sensors] [PATCH v4 3/3] hwmon: (lm77) Convert to use devm_hwmon_device_register_with_groups
+Message-Id: <1398043692-10522-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMDQvMDIvMjAxNCAwMTozOSBBTSwgYnVnemlsbGEtZGFlbW9uQGJ1Z3ppbGxhLmtlcm5lbC5v
-cmcgd3JvdGU6Cj4gaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD03
-MTcxMQo+Cj4gLS0tIENvbW1lbnQgIzcgZnJvbSBSb21hbiBTcGlyZ2kgPHRoZS5hbnRAZ214Lm5l
-dD4gLS0tCj4gSSdtIG5vdCBzdXJlIGlmIHRoaXMgaXMgcmVsYXRlZCB0byB0aGlzIGJ1ZyBidXQg
-c2luY2UgS2VybmVsIDMuMTMgbXkgZmFuIHNwZWVkCj4gaXMgZmFyIHRvIGhpZ2ggYW5kIG5vaXN5
-IGFzIHNvb24gYXMgdGhlIHN5c3RlbSBpcyBib290aW5nIHVwIC4uLiBJJ20gdXNpbmcKPiBGZWRv
-cmEgMjAuIFdpdGggS2VybmVsIDMuMTIuWCBldmVyeXRoaW5nIHdhcyBmaW5lIGluc3RlYWQgYW5k
-IGZhbiBzcGVlZCB3YXMgb24KPiBhIGFjY2VwdGFibGUgbGV2ZWwgLi4uCj4KPiBbYW50QGZlZG9y
-YW50IH5dJCBzZW5zb3JzCj4gbm91dmVhdS1wY2ktMDEwMAo+IEFkYXB0ZXI6IFBDSSBhZGFwdGVy
-Cj4gZmFuMTogICAgICAgIDY2OTMgUlBNCj4gdGVtcDE6ICAgICAgICArNjkuMMKwQyAgKGhpZ2gg
-PSArOTUuMMKwQywgaHlzdCA9ICArMy4wwrBDKQo+ICAgICAgICAgICAgICAgICAgICAgICAgIChj
-cml0ID0gKzEwNS4wwrBDLCBoeXN0ID0gICs1LjDCsEMpCj4gICAgICAgICAgICAgICAgICAgICAg
-ICAgKGVtZXJnID0gKzEzNS4wwrBDLCBoeXN0ID0gICs1LjDCsEMpCj4KTG9va3MgbGlrZSBOb3V2
-ZWF1IGZhbiBjb250cm9sIGRvZXMgbm90IHdvcmsuIE5vIGlkZWEgd2hhdCBtYXkgYmUgY2F1c2lu
-ZyB0aGlzIC4uLgp3ZWxsLCBwb3NzaWJseS4gVGhlcmUgYXJlIHR3byBzdXNwaWNpb3VzIGNvbW1p
-dHMgYmV0d2VlbiAzLjEyIGFuZCAzLjEzLgpNYXliZSB0aGUgInJlbW92ZSBldmVyeXRoaW5nIiBj
-b21taXQgaGFzIHVuZGVzaXJhYmxlIHNpZGUgZWZmZWN0cy4KCmVlYzk5MDEgZHJtL25vdXZlYXUv
-aHdtb246IGZpeCBjb21waWxhdGlvbiB3aXRob3V0IENPTkZJR19IV01PTgpiOWVkOTE5IGRybS9u
-b3V2ZWF1L2RybS9wbTogcmVtb3ZlIGV2ZXJ5dGhpbmcgZXhjZXB0IHRoZSBod21vbiBpbnRlcmZh
-Y2VzIHRvIFRIRVJNCgpJIHdvdWxkIHN1Z2dlc3QgdG8gb3BlbiBhIHNlcGFyYXRlIGJ1ZyBhZ2Fp
-bnN0IHRoZSBOb3V2ZWF1IGNvbXBvbmVudC4KClsgU2lkZSBub3RlOiBUaGUgZGlzcGxheWVkIHZh
-bHVlcyBmb3IgaHlzdCBhcmUgd3JvbmcuIFRob3NlIHNob3VsZCBiZSBhYnNvbHV0ZQogICB0ZW1w
-ZXJhdHVyZXMsIG5vdCB0ZW1wZXJhdHVyZSBkaWZmZXJlbmNlcy4gQnV0IHRoYXQgaXMgeWV0IGFu
-b3RoZXIgYnVnLiBdCgo+IGNvcmV0ZW1wLWlzYS0wMDAwCj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIK
-PiBDb3JlIDA6ICAgICAgICs1Mi4wwrBDICAoaGlnaCA9ICs4My4wwrBDLCBjcml0ID0gKzk5LjDC
-sEMpCj4gQ29yZSAxOiAgICAgICArNTAuMMKwQyAgKGhpZ2ggPSArODMuMMKwQywgY3JpdCA9ICs5
-OS4wwrBDKQo+IENvcmUgMjogICAgICAgKzUyLjDCsEMgIChoaWdoID0gKzgzLjDCsEMsIGNyaXQg
-PSArOTkuMMKwQykKPiBDb3JlIDM6ICAgICAgICs1MC4wwrBDICAoaGlnaCA9ICs4My4wwrBDLCBj
-cml0ID0gKzk5LjDCsEMpCj4KPiBpdDg3MjAtaXNhLTBhMTAKPiBBZGFwdGVyOiBJU0EgYWRhcHRl
-cgo+IGluMDogICAgICAgICAgKzAuODYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzQuMDgg
-VikgIEFMQVJNCj4gaW4xOiAgICAgICAgICArMy4wNCBWICAobWluID0gICswLjAwIFYsIG1heCA9
-ICArNC4wOCBWKSAgQUxBUk0KPiBpbjI6ICAgICAgICAgICszLjMzIFYgIChtaW4gPSAgKzAuMDAg
-ViwgbWF4ID0gICs0LjA4IFYpICBBTEFSTQo+ICs1VjogICAgICAgICAgKzMuMDQgViAgKG1pbiA9
-ICArMC4wMCBWLCBtYXggPSAgKzQuMDggVikgIEFMQVJNCj4gaW40OiAgICAgICAgICArMi45NCBW
-ICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgQUxBUk0KPiBpbjU6ICAgICAgICAg
-ICsyLjE2IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICs0LjA4IFYpICBBTEFSTQo+IGluNjog
-ICAgICAgICAgKzIuMTYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzQuMDggVikgIEFMQVJN
-Cj4gNVZTQjogICAgICAgICArMi45NiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBW
-KSAgQUxBUk0KPiBWYmF0OiAgICAgICAgICsyLjk5IFYKPiBmYW4xOiAgICAgICAgIDgzOCBSUE0g
-IChtaW4gPSAgICAwIFJQTSkKPiBmYW4yOiAgICAgICAgIDk0OSBSUE0gIChtaW4gPSAgICAwIFJQ
-TSkKPiB0ZW1wMTogICAgICAgKzEyNy4wwrBDICAobG93ICA9ICAtMS4wwrBDLCBoaWdoID0gKzEy
-Ny4wwrBDKSAgQUxBUk0gIHNlbnNvciA9Cj4gdGhlcm1hbCBkaW9kZQo+IHRlbXAyOiAgICAgICAg
-KzIyLjDCsEMgIChsb3cgID0gIC0xLjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBBTEFSTSAgc2Vu
-c29yID0KPiB0aGVybWlzdG9yCj4gdGVtcDM6ICAgICAgICAtNDcuMMKwQyAgKGxvdyAgPSAgLTEu
-MMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIHNlbnNvciA9IEludGVsIFBFQ0kKPiBjcHUwX3ZpZDog
-ICAgKzAuMDAwIFYKPiBpbnRydXNpb24wOiAgQUxBUk0KPgoKU29tZXRoaW5nIGluIHlvdXIgc3lz
-dGVtIGNvbmZpZ3VyYXRpb24gaXMgd3JvbmcuIFVzdWFsbHkgdGhpcyBjb21lcyBmcm9tIHRoZSBC
-SU9TLApzbyB5b3UgeW91IG1pZ2h0IHdhbnQgdG8gY2hlY2sgaWYgdGhlcmUgaXMgYSBCSU9TIHVw
-Z3JhZGUgYXZhaWxhYmxlLiBJdCBsb29rcyBsaWtlCnRoZSBzeXN0ZW0gYmVsaWV2ZXMgdGhhdCB5
-b3VyIENQVSBpcyBmcmVlemluZyBhbmQgdGhlcmVmb3JlIHJ1bnMgdGhlIENQVSBmYW4gYXQKbWlu
-aW11bSBzcGVlZC4gVGhhdCBtYXkgYmUgb2sgd2l0aCB0aGUgY3VycmVudCBsb2FkLCBidXQgbWln
-aHQgYmUgYSBwcm9ibGVtCmlmIHRoZSBDUFVzIGdldCBidXN5IGFuZCBydW4gaG90LiBUaGF0IGlz
-IG5vdCByZWxhdGVkIHRvIHRoZSBub3V2ZWF1IHByb2JsZW0sCnRob3VnaC4KCkd1ZW50ZXIKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
-IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
-ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Use devm_hwmon_device_register_with_groups API to attach attributes
+to hwmon device, simplify code, and reduce code size.
+
+Reviewed-by: Jean Delvare <jdelvare@suse.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v4: No change to v3
+
+ drivers/hwmon/lm77.c |   53 +++++++++++++-------------------------------------
+ 1 file changed, 14 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+index ab1752a..5ceb443 100644
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -62,7 +62,7 @@ static const u8 temp_regs[t_num_temp] = {
+ 
+ /* Each client has this additional data */
+ struct lm77_data {
+-	struct device		*hwmon_dev;
++	struct i2c_client	*client;
+ 	struct mutex		update_lock;
+ 	char			valid;
+ 	unsigned long		last_updated;	/* In jiffies */
+@@ -111,8 +111,8 @@ static int lm77_write_value(struct i2c_client *client, u8 reg, u16 value)
+ 
+ static struct lm77_data *lm77_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int i;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -165,8 +165,8 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
+ 			const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int nr = attr->index;
+ 	long val;
+ 	int err;
+@@ -190,8 +190,8 @@ static ssize_t set_temp_hyst(struct device *dev,
+ 			     struct device_attribute *devattr,
+ 			     const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct lm77_data *data = i2c_get_clientdata(client);
++	struct lm77_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	unsigned long val;
+ 	int err;
+ 
+@@ -232,7 +232,7 @@ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 2);
+ static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
+ 
+-static struct attribute *lm77_attributes[] = {
++static struct attribute *lm77_attrs[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+@@ -245,10 +245,7 @@ static struct attribute *lm77_attributes[] = {
+ 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	NULL
+ };
+-
+-static const struct attribute_group lm77_group = {
+-	.attrs = lm77_attributes,
+-};
++ATTRIBUTE_GROUPS(lm77);
+ 
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int lm77_detect(struct i2c_client *client, struct i2c_board_info *info)
+@@ -332,43 +329,22 @@ static void lm77_init_client(struct i2c_client *client)
+ static int lm77_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	struct device *dev = &client->dev;
++	struct device *hwmon_dev;
+ 	struct lm77_data *data;
+-	int err;
+ 
+ 	data = devm_kzalloc(dev, sizeof(struct lm77_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Initialize the LM77 chip */
+ 	lm77_init_client(client);
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&dev->kobj, &lm77_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
+-
+-	return 0;
+-
+-exit_remove:
+-	sysfs_remove_group(&dev->kobj, &lm77_group);
+-	return err;
+-}
+-
+-static int lm77_remove(struct i2c_client *client)
+-{
+-	struct lm77_data *data = i2c_get_clientdata(client);
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm77_group);
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data, lm77_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct i2c_device_id lm77_id[] = {
+@@ -384,7 +360,6 @@ static struct i2c_driver lm77_driver = {
+ 		.name	= "lm77",
+ 	},
+ 	.probe		= lm77_probe,
+-	.remove		= lm77_remove,
+ 	.id_table	= lm77_id,
+ 	.detect		= lm77_detect,
+ 	.address_list	= normal_i2c,
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
