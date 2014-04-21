@@ -1,45 +1,44 @@
-From: "Opensource [Steve Twiss]" <stwiss.opensource@diasemi.com>
-Date: Sun, 23 Mar 2014 20:37:31 +0000
-Subject: [lm-sensors] [RFC V1 0/3] da9063: Addition of HWMON support for DA9063
-Message-Id: <cover.1395607051.git.stwiss.opensource@diasemi.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 21 Apr 2014 17:42:01 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ltc2945) Don't crash the kernel unnecessarily
+Message-Id: <1398102121-24822-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, Lee Jones <lee.jones@linaro.org>, Rob Landley <rob@landley.net>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: David Dajun Chen <david.chen@diasemi.com>, LINUX-DOC <linux-doc@vger.kernel.org>, LINUX-KERNEL <linux-kernel@vger.kernel.org>, LM-SENSORS <lm-sensors@lm-sensors.org>, Mark Brown <broonie@linaro.org>, Philipp Zabel <p.zabel@pengutronix.de>
+To: lm-sensors@vger.kernel.org
 
-From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+An implementation error should not crash the kernel if it is avoidable.
+Replace BUG() with WARN_ONCE().
 
-This patch series covers hardware monitoring support for the DA9063 PMIC.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ltc2945.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-There are three patches in this set:
- - Add a new HWMON driver component
- - Minor MFD core and platform data changes for HWMON
- - Documentation
-
-Thank you,
-Steve Twiss, Dialog Semiconductor Ltd.
-
-S Twiss (3):
-  hwmon: da9063: HWMON driver
-  mfd: da9063: Add HWMON dependencies
-  Documentation: hwmon: New information for DA9063
-
- Documentation/hwmon/da9063           |   67 +++++
- drivers/hwmon/Kconfig                |   10 +
- drivers/hwmon/Makefile               |    1 +
- drivers/hwmon/da9063-hwmon.c         |  456 ++++++++++++++++++++++++++++++++++
- drivers/mfd/da9063-core.c            |   13 +-
- include/linux/mfd/da9063/core.h      |    3 +
- include/linux/mfd/da9063/pdata.h     |   18 ++
- include/linux/mfd/da9063/registers.h |   34 +++
- 8 files changed, 601 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/hwmon/da9063
- create mode 100644 drivers/hwmon/da9063-hwmon.c
-
+diff --git a/drivers/hwmon/ltc2945.c b/drivers/hwmon/ltc2945.c
+index c104cc3..c9cddf5 100644
+--- a/drivers/hwmon/ltc2945.c
++++ b/drivers/hwmon/ltc2945.c
+@@ -1,4 +1,4 @@
+-/*
++    /*
+  * Driver for Linear Technology LTC2945 I2C Power Monitor
+  *
+  * Copyright (c) 2014 Guenter Roeck
+@@ -314,8 +314,8 @@ static ssize_t ltc2945_reset_history(struct device *dev,
+ 		reg = LTC2945_MAX_ADIN_H;
+ 		break;
+ 	default:
+-		BUG();
+-		break;
++		WARN_ONCE(1, "Bad register: 0x%x\n", reg);
++		return -EINVAL;
+ 	}
+ 	/* Reset maximum */
+ 	ret = regmap_bulk_write(regmap, reg, buf_max, num_regs);
 -- 
-end-of-patch for RFC V1
+1.7.9.7
 
 
 _______________________________________________
