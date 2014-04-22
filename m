@@ -1,42 +1,93 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 24 Apr 2014 13:15:39 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: vexpress: Use legal hwmon device names
-Message-Id: <53590E7B.2080001@roeck-us.net>
+Date: Tue, 22 Apr 2014 11:26:41 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: (lm77) Do not preserve hysteresis when updating critical temp limit
+Message-Id: <20140422112641.GA15567@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1398274025-13618-2-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1398274025-13618-2-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/24/2014 01:34 AM, Pawel Moll wrote:
-> On Wed, 2014-04-23 at 19:16 +0100, Guenter Roeck wrote:
->> On Wed, Apr 23, 2014 at 06:27:04PM +0100, Pawel Moll wrote:
->>> The driver used to directly us a DT 'compatible' property for
->>> the 'name' attribute of the hwmon devices. Unfortunately it
->>> contains '-' which is illegal in this context. It messes up
->>> libsensors and thus every application using it.
->>>
->>> Fixed by providing equivalent (and simpler) name strings.
->>>
->>> Reported-by: Guenter Roeck <linux@roeck-us.net>
->>> Signed-off-by: Pawel Moll <pawel.moll@arm.com>
->>
->> Hi Pawel,
->>
->> can you use hwmon_device_register_with_groups() to register
->> the hwmon device ?  This would take care of the name attribute.
->
-> I have a third patch doing exactly this (well, using devm_* version),
-> but it's not a fix, so I'll post it separately. The previous version of
-> it is here:
->
+Updating the hysteresis value when updating the critical temperature limit
+was following the rule of 'least surprise'. However, it had the undesirable
+side effect of changing the hysteresis for all other attributes, which
+defeats the purpose of least surprise. In addition, it could result in
+invalid hysteresis values if the resulting hysteresis was too large. In such
+cases the resulting hysteresis ended up changed anyway, which again defeats
+the purpose. So drop that code and document the new behavior.
 
-Ok, makes sense. Both patches applied and currently testing.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v3: Replace documentation with text suggested by Jean
+    Drop obsolete comment
+v2: Move this patch ahead of subsequent patches to simplify those
 
-Thanks,
-Guenter
+ Documentation/hwmon/lm77 |   20 ++++++++++++++++++--
+ drivers/hwmon/lm77.c     |    6 ------
+ 2 files changed, 18 insertions(+), 8 deletions(-)
+
+diff --git a/Documentation/hwmon/lm77 b/Documentation/hwmon/lm77
+index 57c3a46..bfc915f 100644
+--- a/Documentation/hwmon/lm77
++++ b/Documentation/hwmon/lm77
+@@ -18,5 +18,21 @@ sensor incorporates a band-gap type temperature sensor,
+ 10-bit ADC, and a digital comparator with user-programmable upper
+ and lower limit values.
+ 
+-Limits can be set through the Overtemperature Shutdown register and
+-Hysteresis register.
++The LM77 implements 3 limits: low (temp1_min), high (temp1_max) and
++critical (temp1_crit.) It also implements an hysteresis mechanism which
++applies to all 3 limits. The relative difference is stored in a single
++register on the chip, which means that the relative difference between
++the limit and its hysteresis is always the same for all 3 limits.
++
++This implementation detail implies the following:
++* When setting a limit, its hysteresis will automatically follow, the
++  difference staying unchanged. For example, if the old critical limit
++  was 80 degrees C, and the hysteresis was 75 degrees C, and you change
++  the critical limit to 90 degrees C, then the hysteresis will
++  automatically change to 85 degrees C.
++* All 3 hysteresis can't be set independently. We decided to make
++  temp1_crit_hyst writable, while temp1_min_hyst and temp1_max_hyst are
++  read-only. Setting temp1_crit_hyst writes the difference between
++  temp1_crit_hyst and temp1_crit into the chip, and the same relative
++  hysteresis applies automatically to the low and high limits.
++* The limits should be set before the hysteresis.
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+index 4cd8a513..85e5b33 100644
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -216,13 +216,11 @@ static ssize_t set_temp_crit_hyst(struct device *dev,
+ 	return count;
+ }
+ 
+-/* preserve hysteresis when setting T_crit */
+ static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
+ 			     const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm77_data *data = i2c_get_clientdata(client);
+-	int oldcrithyst;
+ 	unsigned long val;
+ 	int err;
+ 
+@@ -231,13 +229,9 @@ static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
+ 		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+-	oldcrithyst = data->temp_crit - data->temp_hyst;
+ 	data->temp_crit = val;
+-	data->temp_hyst = data->temp_crit - oldcrithyst;
+ 	lm77_write_value(client, LM77_REG_TEMP_CRIT,
+ 			 LM77_TEMP_TO_REG(data->temp_crit));
+-	lm77_write_value(client, LM77_REG_TEMP_HYST,
+-			 LM77_TEMP_TO_REG(data->temp_hyst));
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-- 
+1.7.9.7
 
 
 _______________________________________________
