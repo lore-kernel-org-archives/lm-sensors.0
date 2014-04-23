@@ -1,37 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 19 Apr 2014 22:27:43 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm83) Drop FSF address
-Message-Id: <1397946465-4396-1-git-send-email-linux@roeck-us.net>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Wed, 23 Apr 2014 17:27:03 +0000
+Subject: [lm-sensors] [PATCH 0/2] Versatile Express hwmon driver fixes
+Message-Id: <1398274025-13618-1-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The FSF address changes over time, so drop it.
+Greetings,
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/lm83.c |    4 ----
- 1 file changed, 4 deletions(-)
+Here comes a short series of fixes to the vexpress hwmon driver,
+as requested by Guenter. I'm not 100% sure whether it's worth
+copying stable with those, but they seem to be a good candidate
+for 3.15-rc3...
 
-diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
-index be02155..90cba32 100644
---- a/drivers/hwmon/lm83.c
-+++ b/drivers/hwmon/lm83.c
-@@ -25,10 +25,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
- #include <linux/module.h>
+Cheers!
+
+Pawel
+
+
+Pawel Moll (2):
+  hwmon: vexpress: Use legal hwmon device names
+  hwmon: vexpress: Avoid creating non-existing attributes
+
+ drivers/hwmon/vexpress.c | 83 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 71 insertions(+), 12 deletions(-)
+
 -- 
-1.7.9.7
+1.8.3.2
 
 
 _______________________________________________
