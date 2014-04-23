@@ -1,71 +1,104 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 04 Apr 2014 16:14:55 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.15
-Message-Id: <20140404181455.0352b329@endymion.delvare>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Wed, 23 Apr 2014 17:27:05 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: vexpress: Avoid creating non-existing attributes
+Message-Id: <1398274025-13618-3-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+The 'label' attribute was always created but returned -ENOENT
+if there is no label and such behaviour is undefined from
+libsensors' point of view.
 
-Please pull hwmon subsystem updates for Linux 3.15 from:
+Fixed by providing is_visible method in the attributes group,
+so the attribute is not created at all when unnecessary.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+---
+ drivers/hwmon/vexpress.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-This includes a number of driver conversions to
-devm_hwmon_device_register_with_groups, a few cleanups, and support for
-the ITE IT8623E.
-
- Documentation/hwmon/it87  |  10 +--
- drivers/hwmon/adm1021.c   |  70 +++++++--------------
- drivers/hwmon/asc7621.c   |   1 -
- drivers/hwmon/atxp1.c     |   2 -
- drivers/hwmon/f71805f.c   |   2 +-
- drivers/hwmon/it87.c      |   9 ++-
- drivers/hwmon/lm63.c      | 157 +++++++++++++++++++---------------------------
- drivers/hwmon/lm77.c      |   1 -
- drivers/hwmon/lm80.c      |  70 +++++++--------------
- drivers/hwmon/lm83.c      |   1 -
- drivers/hwmon/lm87.c      |   1 -
- drivers/hwmon/lm90.c      | 111 ++++++++++++++------------------
- drivers/hwmon/lm92.c      |   1 -
- drivers/hwmon/lm93.c      |   1 -
- drivers/hwmon/max1619.c   |   1 -
- drivers/hwmon/pc87360.c   |  12 ++--
- drivers/hwmon/w83792d.c   |   1 -
- drivers/hwmon/w83l785ts.c |   4 --
- 18 files changed, 173 insertions(+), 282 deletions(-)
-
----------------
-
-Guenter Roeck (10):
-      hwmon: (lm63) Add additional sysfs group for temp2_type attribute
-      hwmon: (lm63) Introduce 'dev' variable to point to client->dev
-      hwmon: (lm63) Create all sysfs groups in one call
-      hwmon: (lm63) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (adm1021) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (lm80) Convert to use devm_hwmon_device_register_with_groups
-      hwmon: (lm90) Create most optional attributes with sysfs_create_group
-      hwmon: (lm90) Always use the dev variable in the probe function
-      hwmon: (lm90) Create all sysfs groups in one call
-      hwmon: (lm90) Convert to use hwmon_device_register_with_groups
-
-Jean Delvare (4):
-      hwmon: (f71805f) Fix author's address
-      hwmon: (lm63) Avoid initializing the same field twice
-      hwmon: (pc87360) Avoid initializing the same field twice
-      hwmon: Avoid initializing the same field twice
-
-Rudolf Marek (2):
-      hwmon: (it87) Fix IT8603E define name
-      hwmon: (it87) Add support for IT8623E
-
-Thanks,
+diff --git a/drivers/hwmon/vexpress.c b/drivers/hwmon/vexpress.c
+index 7f96905..8242b75 100644
+--- a/drivers/hwmon/vexpress.c
++++ b/drivers/hwmon/vexpress.c
+@@ -43,9 +43,6 @@ static ssize_t vexpress_hwmon_label_show(struct device *dev,
+ {
+ 	const char *label = of_get_property(dev->of_node, "label", NULL);
+ 
+-	if (!label)
+-		return -ENOENT;
+-
+ 	return snprintf(buffer, PAGE_SIZE, "%s\n", label);
+ }
+ 
+@@ -84,6 +81,20 @@ static ssize_t vexpress_hwmon_u64_show(struct device *dev,
+ 			to_sensor_dev_attr(dev_attr)->index));
+ }
+ 
++static umode_t vexpress_hwmon_attr_is_visible(struct kobject *kobj,
++		struct attribute *attr, int index)
++{
++	struct device *dev = kobj_to_dev(kobj);
++	struct device_attribute *dev_attr = container_of(attr,
++				struct device_attribute, attr);
++
++	if (dev_attr->show = vexpress_hwmon_label_show &&
++			!of_get_property(dev->of_node, "label", NULL))
++		return 0;
++
++	return attr->mode;
++}
++
+ static DEVICE_ATTR(name, S_IRUGO, vexpress_hwmon_name_show, NULL);
+ 
+ #define VEXPRESS_HWMON_ATTRS(_name, _label_attr, _input_attr)	\
+@@ -105,6 +116,7 @@ static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+ static VEXPRESS_HWMON_ATTRS(volt, in1_label, in1_input);
+ static struct attribute_group vexpress_hwmon_group_volt = {
++	.is_visible = vexpress_hwmon_attr_is_visible,
+ 	.attrs = vexpress_hwmon_attrs_volt,
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_volt = {
+@@ -121,6 +133,7 @@ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+ static VEXPRESS_HWMON_ATTRS(amp, curr1_label, curr1_input);
+ static struct attribute_group vexpress_hwmon_group_amp = {
++	.is_visible = vexpress_hwmon_attr_is_visible,
+ 	.attrs = vexpress_hwmon_attrs_amp,
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_amp = {
+@@ -136,6 +149,7 @@ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+ static VEXPRESS_HWMON_ATTRS(temp, temp1_label, temp1_input);
+ static struct attribute_group vexpress_hwmon_group_temp = {
++	.is_visible = vexpress_hwmon_attr_is_visible,
+ 	.attrs = vexpress_hwmon_attrs_temp,
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_temp = {
+@@ -151,6 +165,7 @@ static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1);
+ static VEXPRESS_HWMON_ATTRS(power, power1_label, power1_input);
+ static struct attribute_group vexpress_hwmon_group_power = {
++	.is_visible = vexpress_hwmon_attr_is_visible,
+ 	.attrs = vexpress_hwmon_attrs_power,
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_power = {
+@@ -166,6 +181,7 @@ static SENSOR_DEVICE_ATTR(energy1_input, S_IRUGO, vexpress_hwmon_u64_show,
+ 		NULL, 1);
+ static VEXPRESS_HWMON_ATTRS(energy, energy1_label, energy1_input);
+ static struct attribute_group vexpress_hwmon_group_energy = {
++	.is_visible = vexpress_hwmon_attr_is_visible,
+ 	.attrs = vexpress_hwmon_attrs_energy,
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_energy = {
 -- 
-Jean Delvare
-SUSE L3 Support
+1.8.3.2
+
 
 _______________________________________________
 lm-sensors mailing list
