@@ -1,7 +1,7 @@
-From: Pawel Moll <pawel.moll@arm.com>
-Date: Thu, 24 Apr 2014 08:34:48 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 24 Apr 2014 13:15:39 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: vexpress: Use legal hwmon device names
-Message-Id: <1398328488.19419.2.camel@hornet>
+Message-Id: <53590E7B.2080001@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1398274025-13618-2-git-send-email-pawel.moll@arm.com>
 In-Reply-To: <1398274025-13618-2-git-send-email-pawel.moll@arm.com>
@@ -10,24 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyMDE0LTA0LTIzIGF0IDE5OjE2ICswMTAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
-IE9uIFdlZCwgQXByIDIzLCAyMDE0IGF0IDA2OjI3OjA0UE0gKzAxMDAsIFBhd2VsIE1vbGwgd3Jv
-dGU6Cj4gPiBUaGUgZHJpdmVyIHVzZWQgdG8gZGlyZWN0bHkgdXMgYSBEVCAnY29tcGF0aWJsZScg
-cHJvcGVydHkgZm9yCj4gPiB0aGUgJ25hbWUnIGF0dHJpYnV0ZSBvZiB0aGUgaHdtb24gZGV2aWNl
-cy4gVW5mb3J0dW5hdGVseSBpdAo+ID4gY29udGFpbnMgJy0nIHdoaWNoIGlzIGlsbGVnYWwgaW4g
-dGhpcyBjb250ZXh0LiBJdCBtZXNzZXMgdXAKPiA+IGxpYnNlbnNvcnMgYW5kIHRodXMgZXZlcnkg
-YXBwbGljYXRpb24gdXNpbmcgaXQuCj4gPiAKPiA+IEZpeGVkIGJ5IHByb3ZpZGluZyBlcXVpdmFs
-ZW50IChhbmQgc2ltcGxlcikgbmFtZSBzdHJpbmdzLgo+ID4gCj4gPiBSZXBvcnRlZC1ieTogR3Vl
-bnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+ID4gU2lnbmVkLW9mZi1ieTogUGF3ZWwg
-TW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgo+IAo+IEhpIFBhd2VsLAo+IAo+IGNhbiB5b3UgdXNl
-IGh3bW9uX2RldmljZV9yZWdpc3Rlcl93aXRoX2dyb3VwcygpIHRvIHJlZ2lzdGVyCj4gdGhlIGh3
-bW9uIGRldmljZSA/ICBUaGlzIHdvdWxkIHRha2UgY2FyZSBvZiB0aGUgbmFtZSBhdHRyaWJ1dGUu
-CgpJIGhhdmUgYSB0aGlyZCBwYXRjaCBkb2luZyBleGFjdGx5IHRoaXMgKHdlbGwsIHVzaW5nIGRl
-dm1fKiB2ZXJzaW9uKSwKYnV0IGl0J3Mgbm90IGEgZml4LCBzbyBJJ2xsIHBvc3QgaXQgc2VwYXJh
-dGVseS4gVGhlIHByZXZpb3VzIHZlcnNpb24gb2YKaXQgaXMgaGVyZToKCmh0dHA6Ly90aHJlYWQu
-Z21hbmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC8xNjQ1NTg2L2ZvY3VzPTE2NDU1NzUKCkxldCBt
-ZSBwb2ludCBvdXQgdGhhdCBpdCB3YXMgeW91IHdobyBhc2tlZCBtZSB0byBzcGxpdCB0aGUgbmFt
-ZSBhbmQgdGhlCmlzX3Zpc2libGUgY2hhbmdlcyBpbnRvIHNlcGFyYXRlIHBhdGNoZXMgOy0pCgpQ
-YXdlxYIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
-aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On 04/24/2014 01:34 AM, Pawel Moll wrote:
+> On Wed, 2014-04-23 at 19:16 +0100, Guenter Roeck wrote:
+>> On Wed, Apr 23, 2014 at 06:27:04PM +0100, Pawel Moll wrote:
+>>> The driver used to directly us a DT 'compatible' property for
+>>> the 'name' attribute of the hwmon devices. Unfortunately it
+>>> contains '-' which is illegal in this context. It messes up
+>>> libsensors and thus every application using it.
+>>>
+>>> Fixed by providing equivalent (and simpler) name strings.
+>>>
+>>> Reported-by: Guenter Roeck <linux@roeck-us.net>
+>>> Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+>>
+>> Hi Pawel,
+>>
+>> can you use hwmon_device_register_with_groups() to register
+>> the hwmon device ?  This would take care of the name attribute.
+>
+> I have a third patch doing exactly this (well, using devm_* version),
+> but it's not a fix, so I'll post it separately. The previous version of
+> it is here:
+>
+
+Ok, makes sense. Both patches applied and currently testing.
+
+Thanks,
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
