@@ -1,29 +1,31 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 23 Apr 2014 08:18:54 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm75) Convert to use hwmon_device_register_with_groups
-Message-Id: <20140423101854.08cd7cf6@endymion.delvare>
+From: "Naitik Amin" <Naitik.Amin@ametek.com>
+Date: Fri, 25 Apr 2014 18:49:20 +0000
+Subject: [lm-sensors] Question about eeprom
+Message-Id: <OFA9C1E753.B11E37C4-ON85257CC5.0066EAB8-85257CC5.00676535@LocalDomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1398124016-30079-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1398124016-30079-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 21 Apr 2014 16:46:56 -0700, Guenter Roeck wrote:
-> Simplify code and attach hwmon attributes to hwmon device.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/lm75.c |   51 ++++++++++++++++++++------------------------------
->  1 file changed, 20 insertions(+), 31 deletions(-)
-> (...)
+Hello All,
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+I am trying to read and write to 24LC256 from userspace. I have inserted a 
 
--- 
-Jean Delvare
-SUSE L3 Support
+module from 3.13, the name of the module is at24.ko (at24.c) This creates 
+a eeprom node at /sys/bus/i2c/devices/2-0054/eeprom
+
+Right now, I can do echo helloworld > /sys/bus/i2c/devices/2-0054/eeprom
+
+And it puts the helloworld starting from 0x00 in eeprom, is there are way 
+that i can put helloworld starting at address 0x10 ? And the read from 
+starting at address 0x10 ?
+
+Can someone pls comment. I am open to a different method too, my goal is 
+read and write to eeprom from the userspace.
+
+Thanks,
+
 
 _______________________________________________
 lm-sensors mailing list
