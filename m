@@ -1,46 +1,211 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 13 Apr 2014 10:11:06 +0000
-Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (lm77) Drop FSF mailing address
-Message-Id: <20140413121106.73800eea@endymion.delvare>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Mon, 28 Apr 2014 17:57:57 +0000
+Subject: [lm-sensors] [PATCH 10/10] hwmon: vexpress: Use devm helper for hwmon device registration
+Message-Id: <1398707877-22596-11-git-send-email-pawel.moll@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1397322118-4275-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1397322118-4275-2-git-send-email-linux@roeck-us.net>
+References: <1398707877-22596-1-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1398707877-22596-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, Pawel Moll <pawel.moll@arm.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-On Sat, 12 Apr 2014 10:01:56 -0700, Guenter Roeck wrote:
-> The FSF mailing address changes over time, so drop it.
-> 
-> No functional change.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/lm77.c |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
-> index 9e60eea..2e0918e 100644
-> --- a/drivers/hwmon/lm77.c
-> +++ b/drivers/hwmon/lm77.c
-> @@ -19,10 +19,6 @@
->   * but WITHOUT ANY WARRANTY; without even the implied warranty of
->   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->   * GNU General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->   */
->  
->  #include <linux/module.h>
+Use devm_hwmon_device_register_with_groups instead of
+the old-style manual attributes and hwmon device registration.
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+Also, unwind the attribute group macros for better code
+readability.
 
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+---
+ drivers/hwmon/vexpress.c | 91 ++++++++++++++++--------------------------------
+ 1 file changed, 30 insertions(+), 61 deletions(-)
+
+diff --git a/drivers/hwmon/vexpress.c b/drivers/hwmon/vexpress.c
+index d853332..ed6bf0e 100644
+--- a/drivers/hwmon/vexpress.c
++++ b/drivers/hwmon/vexpress.c
+@@ -27,17 +27,8 @@
+ struct vexpress_hwmon_data {
+ 	struct device *hwmon_dev;
+ 	struct regmap *reg;
+-	const char *name;
+ };
+ 
+-static ssize_t vexpress_hwmon_name_show(struct device *dev,
+-		struct device_attribute *dev_attr, char *buffer)
+-{
+-	struct vexpress_hwmon_data *data = dev_get_drvdata(dev);
+-
+-	return sprintf(buffer, "%s\n", data->name);
+-}
+-
+ static ssize_t vexpress_hwmon_label_show(struct device *dev,
+ 		struct device_attribute *dev_attr, char *buffer)
+ {
+@@ -95,16 +86,6 @@ static umode_t vexpress_hwmon_attr_is_visible(struct kobject *kobj,
+ 	return attr->mode;
+ }
+ 
+-static DEVICE_ATTR(name, S_IRUGO, vexpress_hwmon_name_show, NULL);
+-
+-#define VEXPRESS_HWMON_ATTRS(_name, _label_attr, _input_attr)	\
+-struct attribute *vexpress_hwmon_attrs_##_name[] = {		\
+-	&dev_attr_name.attr,					\
+-	&dev_attr_##_label_attr.attr,				\
+-	&sensor_dev_attr_##_input_attr.dev_attr.attr,		\
+-	NULL							\
+-}
+-
+ struct vexpress_hwmon_type {
+ 	const char *name;
+ 	const struct attribute_group **attr_groups;
+@@ -114,10 +95,13 @@ struct vexpress_hwmon_type {
+ static DEVICE_ATTR(in1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+-static VEXPRESS_HWMON_ATTRS(volt, in1_label, in1_input);
+ static struct attribute_group vexpress_hwmon_group_volt = {
+ 	.is_visible = vexpress_hwmon_attr_is_visible,
+-	.attrs = vexpress_hwmon_attrs_volt,
++	.attrs = (struct attribute *[]) {
++		&dev_attr_in1_label.attr,
++		&sensor_dev_attr_in1_input.dev_attr.attr,
++		NULL
++	},
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_volt = {
+ 	.name = "vexpress_volt",
+@@ -131,10 +115,13 @@ static struct vexpress_hwmon_type vexpress_hwmon_volt = {
+ static DEVICE_ATTR(curr1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+-static VEXPRESS_HWMON_ATTRS(amp, curr1_label, curr1_input);
+ static struct attribute_group vexpress_hwmon_group_amp = {
+ 	.is_visible = vexpress_hwmon_attr_is_visible,
+-	.attrs = vexpress_hwmon_attrs_amp,
++	.attrs = (struct attribute *[]) {
++		&dev_attr_curr1_label.attr,
++		&sensor_dev_attr_curr1_input.dev_attr.attr,
++		NULL
++	},
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_amp = {
+ 	.name = "vexpress_amp",
+@@ -147,10 +134,13 @@ static struct vexpress_hwmon_type vexpress_hwmon_amp = {
+ static DEVICE_ATTR(temp1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1000);
+-static VEXPRESS_HWMON_ATTRS(temp, temp1_label, temp1_input);
+ static struct attribute_group vexpress_hwmon_group_temp = {
+ 	.is_visible = vexpress_hwmon_attr_is_visible,
+-	.attrs = vexpress_hwmon_attrs_temp,
++	.attrs = (struct attribute *[]) {
++		&dev_attr_temp1_label.attr,
++		&sensor_dev_attr_temp1_input.dev_attr.attr,
++		NULL
++	},
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_temp = {
+ 	.name = "vexpress_temp",
+@@ -163,10 +153,13 @@ static struct vexpress_hwmon_type vexpress_hwmon_temp = {
+ static DEVICE_ATTR(power1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, vexpress_hwmon_u32_show,
+ 		NULL, 1);
+-static VEXPRESS_HWMON_ATTRS(power, power1_label, power1_input);
+ static struct attribute_group vexpress_hwmon_group_power = {
+ 	.is_visible = vexpress_hwmon_attr_is_visible,
+-	.attrs = vexpress_hwmon_attrs_power,
++	.attrs = (struct attribute *[]) {
++		&dev_attr_power1_label.attr,
++		&sensor_dev_attr_power1_input.dev_attr.attr,
++		NULL
++	},
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_power = {
+ 	.name = "vexpress_power",
+@@ -179,10 +172,13 @@ static struct vexpress_hwmon_type vexpress_hwmon_power = {
+ static DEVICE_ATTR(energy1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
+ static SENSOR_DEVICE_ATTR(energy1_input, S_IRUGO, vexpress_hwmon_u64_show,
+ 		NULL, 1);
+-static VEXPRESS_HWMON_ATTRS(energy, energy1_label, energy1_input);
+ static struct attribute_group vexpress_hwmon_group_energy = {
+ 	.is_visible = vexpress_hwmon_attr_is_visible,
+-	.attrs = vexpress_hwmon_attrs_energy,
++	.attrs = (struct attribute *[]) {
++		&dev_attr_energy1_label.attr,
++		&sensor_dev_attr_energy1_input.dev_attr.attr,
++		NULL
++	},
+ };
+ static struct vexpress_hwmon_type vexpress_hwmon_energy = {
+ 	.name = "vexpress_energy",
+@@ -218,7 +214,6 @@ MODULE_DEVICE_TABLE(of, vexpress_hwmon_of_match);
+ 
+ static int vexpress_hwmon_probe(struct platform_device *pdev)
+ {
+-	int err;
+ 	const struct of_device_id *match;
+ 	struct vexpress_hwmon_data *data;
+ 	const struct vexpress_hwmon_type *type;
+@@ -232,45 +227,19 @@ static int vexpress_hwmon_probe(struct platform_device *pdev)
+ 	if (!match)
+ 		return -ENODEV;
+ 	type = match->data;
+-	data->name = type->name;
+ 
+ 	data->reg = devm_regmap_init_vexpress_config(&pdev->dev);
+-	if (!data->reg)
+-		return -ENODEV;
+-
+-	err = sysfs_create_groups(&pdev->dev.kobj, type->attr_groups);
+-	if (err)
+-		goto error;
+-
+-	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
+-	}
++	if (IS_ERR(data->reg))
++		return PTR_ERR(data->reg);
+ 
+-	return 0;
+-
+-error:
+-	sysfs_remove_group(&pdev->dev.kobj, match->data);
+-	return err;
+-}
+-
+-static int vexpress_hwmon_remove(struct platform_device *pdev)
+-{
+-	struct vexpress_hwmon_data *data = platform_get_drvdata(pdev);
+-	const struct of_device_id *match;
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-
+-	match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
+-	sysfs_remove_group(&pdev->dev.kobj, match->data);
++	data->hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
++			type->name, data, type->attr_groups);
+ 
+-	return 0;
++	return PTR_ERR_OR_ZERO(data->hwmon_dev);
+ }
+ 
+ static struct platform_driver vexpress_hwmon_driver = {
+ 	.probe = vexpress_hwmon_probe,
+-	.remove = vexpress_hwmon_remove,
+ 	.driver	= {
+ 		.name = DRVNAME,
+ 		.owner = THIS_MODULE,
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
