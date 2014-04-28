@@ -1,39 +1,46 @@
 From: Pawel Moll <pawel.moll@arm.com>
-Date: Mon, 28 Apr 2014 17:40:54 +0000
+Date: Mon, 28 Apr 2014 17:50:51 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] driver core & of: Mark of_nodes of added device as populated
-Message-Id: <1398706854.20390.8.camel@hornet>
+Message-Id: <1398707451.20390.14.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1392137610-27842-1-git-send-email-pawel.moll@arm.com>
 	 <1392137610-27842-2-git-send-email-pawel.moll@arm.com>
-	 <52FA5EB4.7080008@codeaurora.org>
-In-Reply-To: <52FA5EB4.7080008@codeaurora.org>
+	 <CAL_JsqJQy7ob87=wPOLxn3X0fTrt2QhAEJ2nPTAmCMZqNZp+sw@mail.gmail.com>
+	 <1398706660.20390.5.camel@hornet>
+In-Reply-To: <1398706660.20390.5.camel@hornet>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mike Turquette <mturquette@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Jean Delvare <jdelvare@suse.de>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, lm-sensors@lm-sensors.org, arm@kernel.org, Guenter Roeck <linux@roeck-us.net>, Kumar Gala <galak@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Lee Jones <lee.jones@linaro.org>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, Jean Delvare <jdelvare@suse.de>, Kumar Gala <galak@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, lm-sensors@lm-sensors.org, Lee Jones <lee.jones@linaro.org>, David Woodhouse <dwmw2@infradead.org>, Guenter Roeck <linux@roeck-us.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 2014-02-11 at 12:32 -0500, Christopher Covington wrote:
-> Hi Pawel,
+On Mon, 2014-04-28 at 18:37 +0100, Pawel Moll wrote:
+> On Thu, 2014-02-13 at 13:15 -0600, Rob Herring wrote:
+> > On Tue, Feb 11, 2014 at 10:53 AM, Pawel Moll <pawel.moll@arm.com> wrote:
+> > > In "Device Tree powered" systems, platform devices are usually
+> > > massively populated with of_platform_populate() call, executed
+> > > at some level of initcalls, either by generic architecture
+> > > or by platform-specific code.
+> >
+> > Go read Grant's and my comments from your last posting.
 > 
-> On 02/11/2014 11:53 AM, Pawel Moll wrote:
-> > This patch tries to solve that issue in a generic way,
-> > adding a "populated" flag which is set in the device_node
-> > structure when a device is being created in the core.
-> > Later, of_platform_populate() skips such nodes (and
-> > its children) in a similar way to the non-available ones.
-> 
-> Will there never be a case where it is useful for a parent node to be created
-> early, but not necessarily the child nodes? Might only skipping nodes
-> explicitly marked as populated be a more universal solution?
+> Right, I can't explain why I missed those. Will do right now.
 
-That's a good point. I've assumed one would either use
-of_platform_device_create() on leaf nodes only (or
-of_platform_populate() on subtree), and kept this approach in the
-refreshed patch I'm about to post, but I'm happy to do what you
-suggested.
+Actually I can't seem to find it in my mail archive, but I remember you
+were saying that it shouldn't spoil into the driver base code. You're
+probably right, so the updated patch will be limited to of_platform_*
+API.
 
-Thanks!
+Grant was suggesting that I shouldn't be using the device model if I
+have to initialize some early stuff. The thing is that my stuff is not
+that early at all. The device model works for me perfectly, as long as I
+can initialize 3 crucial devices in a correct order (and *then* do mass
+population). And the init levels are perfect for this job. The only
+thing I need is a small refinement in the way DT-based devices are
+populated and this is exactly what I propose. Hope it makes more sense
+now.
+
+Cheers!
 
 Pawel
 
