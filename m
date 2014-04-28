@@ -1,47 +1,30 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 20 Apr 2014 20:07:25 +0000
-Subject: Re: [lm-sensors] [PATCH 3/6] hwmon: (lm80) Convert temperature display function macros into function
-Message-Id: <535428FD.7010103@roeck-us.net>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Mon, 28 Apr 2014 17:37:40 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] driver core & of: Mark of_nodes of added device as populated
+Message-Id: <1398706660.20390.5.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1397615334-30317-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1397615334-30317-3-git-send-email-linux@roeck-us.net>
+References: <1392137610-27842-1-git-send-email-pawel.moll@arm.com>
+	 <1392137610-27842-2-git-send-email-pawel.moll@arm.com>
+	 <CAL_JsqJQy7ob87=wPOLxn3X0fTrt2QhAEJ2nPTAmCMZqNZp+sw@mail.gmail.com>
+In-Reply-To: <CAL_JsqJQy7ob87=wPOLxn3X0fTrt2QhAEJ2nPTAmCMZqNZp+sw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mike Turquette <mturquette@linaro.org>, "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Guenter Roeck <linux@roeck-us.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Rob Herring <robh+dt@kernel.org>, Jean Delvare <jdelvare@suse.de>, Kumar Gala <galak@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Lee Jones <lee.jones@linaro.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>
 
-On 04/15/2014 07:28 PM, Guenter Roeck wrote:
-> Convert temperature display function macros into functions to reduce
-> code size and improve code readability.
+On Thu, 2014-02-13 at 13:15 -0600, Rob Herring wrote:
+> On Tue, Feb 11, 2014 at 10:53 AM, Pawel Moll <pawel.moll@arm.com> wrote:
+> > In "Device Tree powered" systems, platform devices are usually
+> > massively populated with of_platform_populate() call, executed
+> > at some level of initcalls, either by generic architecture
+> > or by platform-specific code.
 >
-> Code size reduction is about 2k on x86_64.
->
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->   drivers/hwmon/lm80.c |  134 ++++++++++++++++++++++----------------------------
->   1 file changed, 59 insertions(+), 75 deletions(-)
->
-> diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
-> index fe980d6..a9749fd 100644
-> --- a/drivers/hwmon/lm80.c
-> +++ b/drivers/hwmon/lm80.c
-> @@ -92,6 +92,23 @@ static inline unsigned char FAN_TO_REG(unsigned rpm, unsigned div)
->
->   #define DIV_FROM_REG(val)		(1 << (val))
->
-> +enum temp_index {
-> +	t_input = 0,
-> +	t_hot_max,
-> +	t_hot_hyst,
-> +	t_os_max,
-> +	t_os_hyst,
-> +	t_num_temp
-> +};
-> +
-> +static u8 temp_regs[] = {
+> Go read Grant's and my comments from your last posting.
 
-Note that I've made this array a const.
+Right, I can't explain why I missed those. Will do right now.
 
+Pawel
 
 
 _______________________________________________
