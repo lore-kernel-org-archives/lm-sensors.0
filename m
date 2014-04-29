@@ -1,150 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 17 Apr 2014 05:05:34 +0000
-Subject: [lm-sensors] [PATCH v2 3/3] hwmon: (lm77) Convert to use devm_hwmon_device_register_with_groups
-Message-Id: <1397711134-10501-3-git-send-email-linux@roeck-us.net>
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Tue, 29 Apr 2014 08:11:07 +0000
+Subject: [lm-sensors] [PATCH 5/8] hwmon: (max197) remove unnecessary OOM messages
+Message-Id: <001e01cf6382$92c58430$b8508c90$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use devm_hwmon_device_register_with_groups API to attach attributes
-to hwmon device, simplify code, and reduce code size.
+The site-specific OOM messages are unnecessary, because they
+duplicate the MM subsystem generic OOM message.
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 ---
-v2: Rebase to new version of 1st patch
+ drivers/hwmon/max197.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
- drivers/hwmon/lm77.c |   53 +++++++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
-index 69f5873..c6e8430 100644
---- a/drivers/hwmon/lm77.c
-+++ b/drivers/hwmon/lm77.c
-@@ -62,7 +62,7 @@ static u8 temp_regs[] = {
+diff --git a/drivers/hwmon/max197.c b/drivers/hwmon/max197.c
+index 96dccaf..82128ad 100644
+--- a/drivers/hwmon/max197.c
++++ b/drivers/hwmon/max197.c
+@@ -275,10 +275,8 @@ static int max197_probe(struct platform_device *pdev)
+ 	}
  
- /* Each client has this additional data */
- struct lm77_data {
--	struct device		*hwmon_dev;
-+	struct i2c_client	*client;
- 	struct mutex		update_lock;
- 	char			valid;
- 	unsigned long		last_updated;	/* In jiffies */
-@@ -111,8 +111,8 @@ static int lm77_write_value(struct i2c_client *client, u8 reg, u16 value)
- 
- static struct lm77_data *lm77_update_device(struct device *dev)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm77_data *data = i2c_get_clientdata(client);
-+	struct lm77_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	int i;
- 
- 	mutex_lock(&data->update_lock);
-@@ -161,8 +161,8 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
- 			const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm77_data *data = i2c_get_clientdata(client);
-+	struct lm77_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	int nr = attr->index;
- 	int err, oldhyst;
- 	long val;
-@@ -194,8 +194,8 @@ static ssize_t set_temp_hyst(struct device *dev,
- 			     struct device_attribute *devattr,
- 			     const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm77_data *data = i2c_get_clientdata(client);
-+	struct lm77_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
- 	unsigned long val;
- 	int err;
- 
-@@ -236,7 +236,7 @@ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 2);
- static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
- 
--static struct attribute *lm77_attributes[] = {
-+static struct attribute *lm77_attrs[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
-@@ -249,10 +249,7 @@ static struct attribute *lm77_attributes[] = {
- 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
- 	NULL
- };
--
--static const struct attribute_group lm77_group = {
--	.attrs = lm77_attributes,
--};
-+ATTRIBUTE_GROUPS(lm77);
- 
- /* Return 0 if detection is successful, -ENODEV otherwise */
- static int lm77_detect(struct i2c_client *client, struct i2c_board_info *info)
-@@ -336,43 +333,22 @@ static void lm77_init_client(struct i2c_client *client)
- static int lm77_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	struct device *dev = &client->dev;
-+	struct device *hwmon_dev;
- 	struct lm77_data *data;
--	int err;
- 
- 	data = devm_kzalloc(dev, sizeof(struct lm77_data), GFP_KERNEL);
- 	if (!data)
+ 	data = devm_kzalloc(&pdev->dev, sizeof(struct max197_data), GFP_KERNEL);
+-	if (!data) {
+-		dev_err(&pdev->dev, "devm_kzalloc failed\n");
++	if (!data)
  		return -ENOMEM;
- 
--	i2c_set_clientdata(client, data);
-+	data->client = client;
- 	mutex_init(&data->update_lock);
- 
- 	/* Initialize the LM77 chip */
- 	lm77_init_client(client);
- 
--	/* Register sysfs hooks */
--	err = sysfs_create_group(&dev->kobj, &lm77_group);
--	if (err)
--		return err;
--
--	data->hwmon_dev = hwmon_device_register(dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove;
 -	}
--
--	return 0;
--
--exit_remove:
--	sysfs_remove_group(&dev->kobj, &lm77_group);
--	return err;
--}
--
--static int lm77_remove(struct i2c_client *client)
--{
--	struct lm77_data *data = i2c_get_clientdata(client);
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm77_group);
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-+							   data, lm77_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
  
- static const struct i2c_device_id lm77_id[] = {
-@@ -388,7 +364,6 @@ static struct i2c_driver lm77_driver = {
- 		.name	= "lm77",
- 	},
- 	.probe		= lm77_probe,
--	.remove		= lm77_remove,
- 	.id_table	= lm77_id,
- 	.detect		= lm77_detect,
- 	.address_list	= normal_i2c,
+ 	data->pdata = pdata;
+ 	mutex_init(&data->lock);
 -- 
-1.7.9.7
+1.7.10.4
+
 
 
 _______________________________________________
