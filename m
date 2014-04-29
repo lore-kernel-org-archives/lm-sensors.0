@@ -1,7 +1,7 @@
 From: Jingoo Han <jg1.han@samsung.com>
-Date: Tue, 29 Apr 2014 08:09:19 +0000
-Subject: [lm-sensors] [PATCH 3/8] hwmon: (lm93) remove unnecessary OOM messages
-Message-Id: <001c01cf6382$5290bfb0$f7b23f10$%han@samsung.com>
+Date: Tue, 29 Apr 2014 08:13:50 +0000
+Subject: [lm-sensors] [PATCH 8/8] hwmon: (vt1211) remove unnecessary OOM messages
+Message-Id: <002101cf6382$f42ef490$dc8cddb0$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,25 +13,25 @@ duplicate the MM subsystem generic OOM message.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 ---
- drivers/hwmon/lm93.c |    4 +---
+ drivers/hwmon/vt1211.c |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/lm93.c b/drivers/hwmon/lm93.c
-index adf2316..6c2df57 100644
---- a/drivers/hwmon/lm93.c
-+++ b/drivers/hwmon/lm93.c
-@@ -2747,10 +2747,8 @@ static int lm93_probe(struct i2c_client *client,
- 	}
+diff --git a/drivers/hwmon/vt1211.c b/drivers/hwmon/vt1211.c
+index 6b2f1a4..344b22e 100644
+--- a/drivers/hwmon/vt1211.c
++++ b/drivers/hwmon/vt1211.c
+@@ -1152,10 +1152,8 @@ static int vt1211_probe(struct platform_device *pdev)
+ 	int i, err;
  
- 	data = devm_kzalloc(&client->dev, sizeof(struct lm93_data), GFP_KERNEL);
+ 	data = devm_kzalloc(dev, sizeof(struct vt1211_data), GFP_KERNEL);
 -	if (!data) {
--		dev_dbg(&client->dev, "out of memory!\n");
+-		dev_err(dev, "Out of memory\n");
 +	if (!data)
  		return -ENOMEM;
 -	}
- 	i2c_set_clientdata(client, data);
  
- 	/* housekeeping */
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(dev, res->start, resource_size(res),
 -- 
 1.7.10.4
 
