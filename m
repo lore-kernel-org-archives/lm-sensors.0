@@ -1,70 +1,90 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Tue, 29 Apr 2014 22:21:31 +0000
+From: Lee Jones <lee.jones@linaro.org>
+Date: Wed, 30 Apr 2014 13:58:55 +0000
 Subject: Re: [lm-sensors] [PATCH 02/10] mfd: vexpress: Convert custom func API to regmap
-Message-Id: <20140429222131.GO15125@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7382258600121488253=="
+Message-Id: <20140430135855.GO29462@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1398707877-22596-1-git-send-email-pawel.moll@arm.com>
  <1398707877-22596-3-git-send-email-pawel.moll@arm.com>
 In-Reply-To: <1398707877-22596-3-git-send-email-pawel.moll@arm.com>
-To: Pawel Moll <pawel.moll@arm.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Liam Girdwood <lgirdwood@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Mike Turquette <mturquette@linaro.org>
-
-
---===============7382258600121488253==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Vy1A5eXR7jld12ZH"
-Content-Disposition: inline
-
-
---Vy1A5eXR7jld12ZH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Apr 28, 2014 at 06:57:49PM +0100, Pawel Moll wrote:
-
-> Components of the Versatile Express platform (configuration
-> microcontrollers on motherboard and daughterboards in particular)
-> talk to each other over a custom configuration bus. They
-> provide miscellaneous functions (from clock generator control
-> to energy sensors) which are represented as platform devices
-
-Acked-by: Mark Brown <broonie@linaro.org>
-
---Vy1A5eXR7jld12ZH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTYCXkAAoJELSic+t+oim9meEQAJISu52vfboXBUHxI1ipL4jT
-tjCvzAx1VLcVlUgWjuxwdIMYhszOQwjvp8j5/KFJ3LmZ4G7b99PlZAhMUeaDkD0G
-IY15zj/yPelhUuMhLMwFCJrO4AXM3FltAhpxDf+RKsWPEpMzJ3rT4aR0/Fl/dXQ3
-QsNGSKUi3RknT+fXoYb0Kr2GDJxIgi9fty/aIsNG7nZA4OqB3tex9w/8uPf1rN6G
-g21ryh7YAp6o3r2146S9kiY0dYxByLRJ1pDHJYoRcOzh9YZwNIQFsQACCXhVzoP7
-WiA4h8e76AW327/Fe78X7AEHQ+jfdP9wcWC7OYfRySukwzsO8QpFX6gsrYU0p2Vj
-fpPDLiTtd6V0bSm2G8pMxrcAZq3YJKd4mN0lO4zaKitrdAvUD4AxbASt6ODFzMxp
-ejQk+mZdBO5/gl9uE6B8aK+RqDQ6hPICVWo7O4UMMkBITfLxG5XX8XUmKBoTS4sC
-SZ9cnxBJlwbCgavRpylR9qx0GLxzC6spfp8hmerJRvc84T1VBM3Ef61uvmC5naBV
-eTFs6lr1FD/uih11n29WCwDNmaF4N2Mw6R3ezuC7oW/DaadIk44p1yE0opr/3o5f
-w+IgUgz7bOfLFvKUefiA6LefigY3llgHG4zBXxCBgkraaFIFIn5mertQH5qeWvF2
-m9LFUk74mADNNTKUsNq1
-=kkiV
------END PGP SIGNATURE-----
-
---Vy1A5eXR7jld12ZH--
-
-
---===============7382258600121488253==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Pawel Moll <pawel.moll@arm.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Mike Turquette <mturquette@linaro.org>
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7382258600121488253==--
+PiBDb21wb25lbnRzIG9mIHRoZSBWZXJzYXRpbGUgRXhwcmVzcyBwbGF0Zm9ybSAoY29uZmlndXJh
+dGlvbgo+IG1pY3JvY29udHJvbGxlcnMgb24gbW90aGVyYm9hcmQgYW5kIGRhdWdodGVyYm9hcmRz
+IGluIHBhcnRpY3VsYXIpCj4gdGFsayB0byBlYWNoIG90aGVyIG92ZXIgYSBjdXN0b20gY29uZmln
+dXJhdGlvbiBidXMuIFRoZXkKPiBwcm92aWRlIG1pc2NlbGxhbmVvdXMgZnVuY3Rpb25zIChmcm9t
+IGNsb2NrIGdlbmVyYXRvciBjb250cm9sCj4gdG8gZW5lcmd5IHNlbnNvcnMpIHdoaWNoIGFyZSBy
+ZXByZXNlbnRlZCBhcyBwbGF0Zm9ybSBkZXZpY2VzCj4gKGFuZCBEZXZpY2UgVHJlZSBub2Rlcyku
+IFRoZSB0cmFuc2FjdGlvbnMgb24gdGhlIGJ1cyBjYW4KPiBiZSBnZW5lcmF0ZWQgYnkgZGlmZmVy
+ZW50ICJicmlkZ2VzIiBpbiB0aGUgc3lzdGVtLCBzb21lCj4gb2Ygd2hpY2ggYXJlIHVuaXZlcnNh
+bCBmb3IgdGhlIHdob2xlIHBsYXRmb3JtIChmb3IgdGhlIHByaWNlCj4gb2YgaGlnaCB0cmFuc2Zl
+ciBsYXRlbmNpZXMpLCBvdGhlcnMgcmVzdHJpY3RlZCB0byBhIHN1YnN5c3RlbQo+IChidXQgbXVj
+aCBmYXN0ZXIpLgo+IAo+IFVudGlsIG5vdyBkcml2ZXJzIGZvciBzdWNoIGZ1bmN0aW9ucyB3ZXJl
+IHVzaW5nIGN1c3RvbSAiZnVuYyIKPiBBUEksIHdoaWNoIGlzIGJlaW5nIHJlcGxhY2VkIGluIHRo
+aXMgcGF0Y2ggYnkgcmVnbWFwIGNhbGxzLgo+IFRoaXMgcmVxdWlyZWQ6Cj4gCj4gKiBhIHJld29y
+ayAoYW5kIG1vdmUgdG8gZHJpdmVycy9idXMgZGlyZWN0b3J5LCBhcyBzdWdnZXN0ZWQKPiAgIGJ5
+IFNhbXVlbCBhbmQgQXJuZCkgb2YgdGhlIGNvbmZpZyBidXMgY29yZSwgd2hpY2ggaXMgbXVjaAo+
+ICAgc2ltcGxlciBub3cgYW5kIHVzZXMgZGV2aWNlIG1vZGVsIGluZnJhc3RydWN0dXJlIChjbGFz
+cykKPiAgIHRvIGtlZXAgdHJhY2sgb2YgdGhlIGJyaWRnZXM7IG5vbi1EVCBjYXNlIChzb29uIHRv
+IGJlCj4gICByZXRpcmVkIGFueXdheSkgaXMgc2ltcGx5IGNvdmVyZWQgYnkgYSBzcGVjaWFsIGRl
+dmljZQo+ICAgcmVnaXN0cmF0aW9uIGZ1bmN0aW9uCj4gCj4gKiB0aGUgbmV3IGNvbmZpZy1idXMg
+ZHJpdmVyIGFsc28gdGFrZXMgb3ZlciBkZXZpY2UgcG9wdWxhdGlvbiwKPiAgIHNvIHRoZXJlIGlz
+IG5vIG5lZWQgZm9yIHNwZWNpYWwgbWF0Y2hpbmcgdGFibGUgZm9yCj4gICBvZl9wbGF0Zm9ybV9w
+b3B1bGF0ZSBub3IgInNpbXBsZS1idXMiIGhhY2sgaW4gdGhlIGFybTY0Cj4gICBtb2RlbCBkdHNp
+IGZpbGUgKHJlbGV2YW50IGJpbmRpbmdzIGRvY3VtZW50YXRpb24gaGFzCj4gICBiZWVuIHVwZGF0
+ZWQpOyB0aGlzIGFsbG93cyBhbGwgdGhlIHZleHByZXNzIGRldmljZXMKPiAgIGZpdCBpbnRvIG5v
+cm1hbCBkZXZpY2UgbW9kZWwsIG1ha2luZyBpdCBwb3NzaWJsZQo+ICAgdG8gcmVtb3ZlIHBsZW50
+eSBvZiBlYXJseSBpbml0cyBhbmQgb3RoZXIgaGFja3MgaW4KPiAgIHRoZSBuZWFyIGZ1dHVyZQo+
+IAo+ICogYWRhcHRhdGlvbiBvZiB0aGUgc3lzY2ZnIGJyaWRnZSBpbXBsZW1lbnRhdGlvbiBpbiB0
+aGUKPiAgIHN5c3JlZyBkcml2ZXIsIGFnYWluIG1ha2luZyBpdCBtdWNoIHNpbXBsZXI7IHRoZXJl
+IGlzCj4gICBhIHNwZWNpYWwgY2FzZSBvZiB0aGUgImVuZXJneSIgZnVuY3Rpb24gc3Bhbm5pbmcg
+dHdvCj4gICByZWdpc3RlcnMsIHdoZXJlIHRoZXkgc2hvdWxkIGJlIGJvdGggZGVmaW5lZCBpbiB0
+aGUgdHJlZQo+ICAgbm93LCBidXQgYmFja3dhcmQgY29tcGF0aWJpbGl0eSBpcyBtYWludGFpbmVk
+IGluIHRoZSBjb2RlCj4gCj4gKiBtb2RpZmljYXRpb24gb2YgdGhlIHJlbGV2YW50IGRyaXZlcnM6
+Cj4gCj4gICAqIGh3bW9uIC0ganVzdCBhIHN0cmFpZ2h0LWZvcndhcmQgQVBJIGNoYW5nZQo+ICAg
+KiBwb3dlci9yZXNldCBkcml2ZXIgLSBBUEkgY2hhbmdlCj4gICAqIHJlZ3VsYXRvciAtIEFQSSBj
+aGFuZ2UgcGx1cyBlcnJvciBoYW5kbGluZwo+ICAgICBzaW1wbGlmaWNhdGlvbgo+ICAgKiBvc2Mg
+Y2xvY2sgZHJpdmVyIC0gdGhpcyBvbmUgcmVxdWlyZWQgbGFyZ2VyIHJld29yawo+ICAgICBpbiBv
+cmRlciB0byB0dXJuIGluIGludG8gYSBzdGFuZGFyZCBwbGF0Zm9ybSBkcml2ZXIKPiAKPiBDYzog
+SmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBzdXNlLmRlPgo+IENjOiBHdWVudGVyIFJvZWNrIDxsaW51
+eEByb2Vjay11cy5uZXQ+Cj4gQ2M6IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiBDYzogTWFy
+ayBCcm93biA8YnJvb25pZUBrZXJuZWwub3JnPgo+IENjOiBMaWFtIEdpcmR3b29kIDxsZ2lyZHdv
+b2RAZ21haWwuY29tPgo+IENjOiBEYXZpZCBXb29kaG91c2UgPGR3bXcyQGluZnJhZGVhZC5vcmc+
+Cj4gQ2M6IERtaXRyeSBFcmVtaW4tU29sZW5pa292IDxkYmFyeXNoa292QGdtYWlsLmNvbT4KPiBD
+YzogTWlrZSBUdXJxdWV0dGUgPG10dXJxdWV0dGVAbGluYXJvLm9yZz4KPiBTaWduZWQtb2ZmLWJ5
+OiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+Cj4gLS0tCj4gIC4uLi9kZXZpY2V0cmVl
+L2JpbmRpbmdzL2FybS92ZXhwcmVzcy1zeXNyZWcudHh0ICAgIHwgIDQzICsrLQo+ICBEb2N1bWVu
+dGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvYXJtL3ZleHByZXNzLnR4dCB8ICAxNSArLQo+ICBh
+cmNoL2FybS9ib290L2R0cy92ZXhwcmVzcy12MnAtY2ExNV9hNy5kdHMgICAgICAgICB8ICAgNSAr
+LQo+ICBhcmNoL2FybS9tYWNoLXZleHByZXNzL2N0LWNhOXg0LmMgICAgICAgICAgICAgICAgICB8
+ICAxMCArLQo+ICBhcmNoL2FybS9tYWNoLXZleHByZXNzL3YybS5jICAgICAgICAgICAgICAgICAg
+ICAgICB8ICAxOCArLQo+ICBhcmNoL2FybTY0L2Jvb3QvZHRzL3J0c21fdmUtbW90aGVyYm9hcmQu
+ZHRzaSAgICAgICB8ICAgMiArLQo+ICBkcml2ZXJzL2J1cy9LY29uZmlnICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICB8ICAgOSArCj4gIGRyaXZlcnMvYnVzL01ha2VmaWxlICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIHwgICAyICsKPiAgZHJpdmVycy9idXMvdmV4cHJlc3MtY29u
+ZmlnLmMgICAgICAgICAgICAgICAgICAgICAgfCAyMDIgKysrKysrKysrKysKPiAgZHJpdmVycy9j
+bGsvdmVyc2F0aWxlL2Nsay12ZXhwcmVzcy1vc2MuYyAgICAgICAgICAgfCAgOTQgKysrLS0KPiAg
+ZHJpdmVycy9od21vbi92ZXhwcmVzcy5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMTUg
+Ky0KPiAgZHJpdmVycy9tZmQvTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+fCAgIDIgKy0KPiAgZHJpdmVycy9tZmQvdmV4cHJlc3MtY29uZmlnLmMgICAgICAgICAgICAgICAg
+ICAgICAgfCAyODcgLS0tLS0tLS0tLS0tLS0tCj4gIGRyaXZlcnMvbWZkL3ZleHByZXNzLXN5c3Jl
+Zy5jICAgICAgICAgICAgICAgICAgICAgIHwgMzk1ICsrKysrKysrKysrLS0tLS0tLS0tLQo+ICBk
+cml2ZXJzL3Bvd2VyL3Jlc2V0L3ZleHByZXNzLXBvd2Vyb2ZmLmMgICAgICAgICAgICB8ICAxNiAr
+LQo+ICBkcml2ZXJzL3JlZ3VsYXRvci92ZXhwcmVzcy5jICAgICAgICAgICAgICAgICAgICAgICB8
+ICA1MCArLS0KPiAgaW5jbHVkZS9saW51eC92ZXhwcmVzcy5oICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgfCAgNzkgKy0tLS0KPiAgMTcgZmlsZXMgY2hhbmdlZCwgNTY3IGluc2VydGlvbnMoKyks
+IDY3NyBkZWxldGlvbnMoLSkKPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvYnVzL3ZleHBy
+ZXNzLWNvbmZpZy5jCj4gIGRlbGV0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21mZC92ZXhwcmVzcy1j
+b25maWcuYwoKQmxpbWV5IQoKTUZEIGRpZmZzdGF0IGxvb2tzIGdyZWF0IGFuZCB0aGUgY2hhbmdl
+cyBsb29rIHNlbnNpYmxlOgogIEFja2VkLWJ5OiBMZWUgSm9uZXMgPGxlZS5qb25lc0BsaW5hcm8u
+b3JnPgoKSSBndWVzcyBzb21lb25lIHdpbGwgbmVlZCB0byBjcmVhdGUgYSBicmFuY2ggZm9yIHVz
+IGFsbCB0byBwdWxsIGZyb20uCkknbSBoYXBweSB0byBkbyBpdCBpZiBuZWVkcyBiZS4KCi0tIApM
+ZWUgSm9uZXMKTGluYXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApMaW5h
+cm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFy
+bzogRmFjZWJvb2sgfCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
+bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
+by9sbS1zZW5zb3Jz
