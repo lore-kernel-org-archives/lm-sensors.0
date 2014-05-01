@@ -1,27 +1,27 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 13 May 2014 02:04:10 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.15-rc6
-Message-Id: <20140513020410.GA27750@roeck-us.net>
+Date: Thu, 01 May 2014 11:20:03 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.15-rc4
+Message-Id: <20140501112003.GA23970@roeck-us.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1454130863671525578=="
+Content-Type: multipart/mixed; boundary="===============9018000276786373407=="
 List-Id: <lm-sensors.vger.kernel.org>
 To: torvalds@linux-foundation.org
 Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
 
---===============1454130863671525578==
+--===============9018000276786373407==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+	protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
 Content-Disposition: inline
 
 
---RnlQjJ0d97Da+TV1
+--dDRMvlgZJXvWKvBx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi Linus,
 
-Please pull hwmon fixes for Linux 3.15-rc6 from signed tag:
+Please pull hwmon fixes for Linux 3.15-rc4 from signed tag:
 
     git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
 
@@ -29,59 +29,54 @@ Thanks,
 Guenter
 ------
 
-The following changes since commit d6d211db37e75de2ddc3a4f979038c40df7cc79c:
+The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
 
-  Linux 3.15-rc5 (2014-05-09 13:10:52 -0700)
+  Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
 
 are available in the git repository at:
 
   git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
 
-for you to fetch changes up to 3a18e1398fc2dc9c32bbdc50664da3a77959a8d1:
+for you to fetch changes up to c0940e95f7a78be0525c8d31df0b1f71e149e57e:
 
-  hwmon: (emc1403) Support full range of known chip revision numbers (2014-05-12 08:37:06 -0700)
-
-----------------------------------------------------------------
-Fix resource leak as well as broken store function in emc1403 driver,
-and add support for additional chip revisions.
+  Revert "hwmon: (coretemp) Refine TjMax detection" (2014-05-01 04:07:52 -0700)
 
 ----------------------------------------------------------------
-Jean Delvare (1):
-      hwmon: (emc1403) Fix resource leak on module unload
+Fix Tjmax detection in coretemp driver
 
-Josef Gajdusek (2):
-      hwmon: (emc1403) fix inverted store_hyst()
-      hwmon: (emc1403) Support full range of known chip revision numbers
+----------------------------------------------------------------
+Guenter Roeck (1):
+      Revert "hwmon: (coretemp) Refine TjMax detection"
 
- drivers/hwmon/emc1403.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/hwmon/coretemp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---RnlQjJ0d97Da+TV1
+--dDRMvlgZJXvWKvBx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTcX2aAAoJEMsfJm/On5mBaz4P/iHHf4+kRWZxlsd2K4ASQJQD
-XXq9+twsgHnZVhhcupVFtsoQ2oi8McBcd9uOuIPuuzTdmS8TuQoYaxZWIDKF8XV1
-qIHnOne1MN9BGvv0zQ2D6wOMy7wYRPXN+LFY8ehd9E02qYThlwtR3XQBXPb52Q8Z
-c/3z2fT1/5HYfU47n3FCmv99ih/8liFnwXWrFb9W20ifymt7Yv+eG2Ns7+L7J+e0
-lABpirPZXXGLQia9TnraTkVOvPTA1y+aFlRIcqi5BY1zA+/IfbUingHR/7uMRnrf
-rySLKUIDT15Ky4eUH/3dalZf/ICB+XljRLZcFZRqcDCMnYDAJwJZDwoBgX2GncYB
-dAxYmktNDVDJpWo+Z71bGZjSrkLU3TSgp0MaR7XqxtpE5xOQ08T86Yu+Z4XFr7q1
-yAkB7dt+bqZRzgKN68mWEZ/3hcGBfcV5Zfbea42u/Bl9uT7cD2UClQ14XrGu9zck
-2OiJDwwjD+oo6iNsSFfD2DCve7VhlcRKB93t8K5ILHZ4OkDaPcs5FRr1pKGnYhb9
-GTJYFoMxht7dXAL7uZx1YCjRtKOvG7ZP7kvVY+XE57bf9u1hx4+xLGx/3ld1Mjm2
-fhL0A7UubOZHp2j5kxzMTGH5pF+hnNqjY4MpIqJSE2n7lLGJjy5baeCwzfrgSF7x
-r/g7ylcBZy+KA8oPsZQ/
-=q/QQ
+iQIcBAEBAgAGBQJTYi3jAAoJEMsfJm/On5mBJKUQAJVE3egaF9XFJldX7dDN1XSy
+k++r6EQFxncaTpaVUAx64fl7o7bDzZ0EYSji3QdsvBvG5ypKbcYHjJMsanIs6i4W
+s9H8sYIhICgC/fII5TO+NrDFjFCuEaB6MA5K/7mM+HuH/u3XjXVmyOg3FTRe0j0T
+nt1LpSQahpAgjssR/hmANLA4GbFP9vlCOjDYHWXVHlbayTcYOS2uHZZ5dKGtrDke
+NyahT95ONLqpjDeH/NK5380dHG6gITDQw5zir8oEchIZD7hANiRPLrGW8ZHcsb4x
+2c8mSlidjexoDqHJUwozBxdOzSO75zTiH0azek9hwLAFM3LnHDDeuSQN2Qi5wONs
+2ys8XHyLxfKEQZLic+JrP1I615qk5evBhQswp3HTthLPsrQM20U4ARaKktuFNxs9
+pN1vBPfK3D6Ka/vv4umFygFY+LOmk/eFeO5+eHnf8LR/qdUAEP264FGSf3JnUyPJ
+wfSwXjQubPJQC9s3f8ZWbYVnA2l227U6ykjTvx2ApgagaQEmb/9hNsSXu3Sotrb0
+jpsN2xStQ7ldsthtX48yeijqA768+KbbZAD1fAbwCXYS2Idlg5lQIfpR9XEwjiwB
+JVb/Ki8ko7ib0JeBGAooXQ4jgDg9cMJbg5inI/X0UhMvGlYF5YPbnU5Nq6Sh4E/b
+qjBF9HCBLYowjtu8LQdT
+=ruQG
 -----END PGP SIGNATURE-----
 
---RnlQjJ0d97Da+TV1--
+--dDRMvlgZJXvWKvBx--
 
 
---===============1454130863671525578==
+--===============9018000276786373407==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -91,4 +86,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1454130863671525578==--
+--===============9018000276786373407==--
