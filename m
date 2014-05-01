@@ -1,28 +1,23 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sat, 24 May 2014 15:17:19 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (nct6683) Fix probe unwind paths to properly unregister platform dev
-Message-Id: <CAFRkauB9fbMFXOgLiRvbcGMDKFqatowj1F91Qp9ivwnbuiaBDg@mail.gmail.com>
+From: Mike Turquette <mturquette@linaro.org>
+Date: Thu, 01 May 2014 18:58:40 +0000
+Subject: Re: [lm-sensors] [PATCH v2] mfd: vexpress: Convert custom func API to regmap
+Message-Id: <20140501185840.5739.2000@quantum>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1400898016.10421.1.camel@phoenix>
-In-Reply-To: <1400898016.10421.1.camel@phoenix>
+References: <1398707877-22596-3-git-send-email-pawel.moll@arm.com>
+ <1398873686-8618-1-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1398873686-8618-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Pawel Moll <pawel.moll@arm.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Mark Brown <broonie@kernel.org>, Guenter Roeck <linux@roeck-us.net>, David Woodhouse <dwmw2@infradead.org>, Jean Delvare <jdelvare@suse.de>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org, Pawel Moll <pawel.moll@arm.com>
 
-2014-05-24 23:08 GMT+08:00 Axel Lin <axel.lin@ingics.com>:
->> Hi Axel,
->>
->> Good catch. Note that nct6775 has the same problem, if you want to tackle
->> the problem there as well.
-> I think the nct6775 code is fine, it calls
-> platform_device_unregister() in probe error path.
-Ooops, sorry.
-it looks fine because I modified the code already in my local tree.
-will send a fix soon.
->
-> Regards,
-> Axel
+Quoting Pawel Moll (2014-04-30 09:01:26)
+> Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+> Acked-by: Mark Brown <broonie@linaro.org>
+> Acked-by: Lee Jones <lee.jones@linaro.org>
+
+Acked-by: Mike Turquette <mturquette@linaro.org>
 
 _______________________________________________
 lm-sensors mailing list
