@@ -1,23 +1,27 @@
-From: Mike Turquette <mturquette@linaro.org>
-Date: Thu, 01 May 2014 18:58:40 +0000
-Subject: Re: [lm-sensors] [PATCH v2] mfd: vexpress: Convert custom func API to regmap
-Message-Id: <20140501185840.5739.2000@quantum>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Date: Mon, 05 May 2014 17:13:11 +0000
+Subject: [lm-sensors] coretemp.0 folder contents changed
+Message-Id: <5367C6A7.5020008@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1398707877-22596-3-git-send-email-pawel.moll@arm.com>
- <1398873686-8618-1-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1398873686-8618-1-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pawel Moll <pawel.moll@arm.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Mark Brown <broonie@kernel.org>, Guenter Roeck <linux@roeck-us.net>, David Woodhouse <dwmw2@infradead.org>, Jean Delvare <jdelvare@suse.de>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org, Pawel Moll <pawel.moll@arm.com>
+To: Guenter Roeck <linux@roeck-us.net>, Linux Kernel <linux-kernel@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Quoting Pawel Moll (2014-04-30 09:01:26)
-> Signed-off-by: Pawel Moll <pawel.moll@arm.com>
-> Acked-by: Mark Brown <broonie@linaro.org>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
+Hi,
 
-Acked-by: Mike Turquette <mturquette@linaro.org>
+for kernel : 3.15.rc3 .
+
+Is there any change in the coretemp? Previously we used to see, tempx 
+data (like temp2_input, temp2_max etc.)
+/sys/devices/platform/coretemp.0/.
+
+Now We don't see them. Now we have to go 
+/sys/devices/platform/coretemp.0/hwmon/hwmon?/ to get these values.
+
+Thanks,
+Srinivas
+
 
 _______________________________________________
 lm-sensors mailing list
