@@ -1,49 +1,19 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 18 May 2014 10:17:24 +0000
-Subject: Re: [lm-sensors] [PATCH 6/9] hwmon: (emc1403) Relax hysteresis limit write checks
-Message-Id: <20140518121724.69b74063@endymion.delvare>
+From: Ash Wiren <ash@spooksoftware.com>
+Date: Tue, 06 May 2014 14:06:34 +0000
+Subject: [lm-sensors] IT8620E working with it87 driver
+Message-Id: <CAMqk1ZyC2w7JnJ7xyDPwCvXkHQjwkPmG_LhyC8_doavpeXHXyA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1399921311-9524-7-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1399921311-9524-7-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 12 May 2014 12:01:48 -0700, Guenter Roeck wrote:
-> Writing the hysteresis limit returned -ERANGE if the written hysteresis
-> was too high or too low. Relax error check and adjust the hysteresis
-> value to its valid range.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/emc1403.c | 7 +------
->  1 file changed, 1 insertion(+), 6 deletions(-)
-> 
-> diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
-> index 877144c..13cac04 100644
-> --- a/drivers/hwmon/emc1403.c
-> +++ b/drivers/hwmon/emc1403.c
-> @@ -147,12 +147,7 @@ static ssize_t store_hyst(struct device *dev,
->  		goto fail;
->  
->  	hyst = limit * 1000 - val;
-> -	hyst = DIV_ROUND_CLOSEST(hyst, 1000);
-> -	if (hyst < 0 || hyst > 255) {
-> -		retval = -ERANGE;
-> -		goto fail;
-> -	}
-> -
-> +	hyst = clamp_val(DIV_ROUND_CLOSEST(hyst, 1000), 0, 255);
->  	retval = regmap_write(regmap, 0x21, hyst);
->  	if (retval = 0)
->  		retval = count;
+> (2014-03-16) One request (Kertesz Laszlo). No datasheet. We had a report that the chip is somewhat compatible with the IT8728F for the hardware monitoring part. Be very careful with fan control as it wasn't tested. So you can try loading the it87 driver with force_id=0x8728 and see how it goes. If you do, please report!
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+Reporting this as working.
 
--- 
-Jean Delvare
-SUSE L3 Support
+Regards
+Ash Wiren
 
 _______________________________________________
 lm-sensors mailing list
