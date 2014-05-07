@@ -1,62 +1,38 @@
-From: atx@atx.name
-Date: Sun, 11 May 2014 11:27:38 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon: bugfix and support for emc1412 in emc1403.c
-Message-Id: <b9f6fe08e91b81bfd870105ab36a531c@rainloop.atalax.net>
+From: Jingoo Han <jg1.han@samsung.com>
+Date: Wed, 07 May 2014 08:29:02 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (iio_hwmon) Make of_device_id array const
+Message-Id: <020e01cf69ce$66c994a0$345cbde0$%han@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140511131228.019bdba5@endymion.delvare>
- <20140511103152.GA5631@dashie>
-In-Reply-To: <20140511131228.019bdba5@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
-Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-May 11 2014 1:12 PM, "Jean Delvare"  wrote: 
+Make of_device_id array const, because all OF functions
+handle it as const.
 
-> Hi Josef,
-> 
-> On Sun, 11 May 2014 12:31:52 +0200, Josef Gajdusek wrote:
-> 
-> 
->> Adds support for emc1412 to emc1403.c + minor bugfix
->> 
->> * Renamed generic thermal_* prefixed names to emc1403_*
->> 
->> 
->> Why? This adds a lot of noise to your patch and the benefit isn't
->> obvious. If you really want to do that, then it should be a separate
->> patch.
->> 
->> 
->>> * Fixed set_hyst being broken (i. e. writing 86000 set hysteresis to 84000)
->>> 
->> 
->> 
->> Bug fixes should be sent as separate patches, so that they can be
->> ported back to stable, long-term and distribution kernels.
->> 
->> 
->> * Added support for emc1412
->> 
->> Signed-off-by: Josef Gajdusek 
->> 
->> +MODULE_ALIAS("i2c:emc1403");
->> 
-> 
-> 
-> Why add an alias which is already present?
-> 
-> --
-> Jean Delvare
-> SUSE L3 Support
-> 
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/hwmon/iio_hwmon.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/iio_hwmon.c b/drivers/hwmon/iio_hwmon.c
+index 9fbb1b1..14c82da 100644
+--- a/drivers/hwmon/iio_hwmon.c
++++ b/drivers/hwmon/iio_hwmon.c
+@@ -163,7 +163,7 @@ static int iio_hwmon_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct of_device_id iio_hwmon_of_match[] = {
++static const struct of_device_id iio_hwmon_of_match[] = {
+ 	{ .compatible = "iio-hwmon", },
+ 	{ }
+ };
+-- 
+1.7.10.4
 
 
-Hello,
-thanks for your feedback. I am going to split and change the patches as you suggested and then resend within few hours.
-
-Josef Gajdusek <atx@atx.name>
 
 _______________________________________________
 lm-sensors mailing list
