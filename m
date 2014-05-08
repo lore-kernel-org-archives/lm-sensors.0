@@ -1,37 +1,34 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 18 May 2014 09:02:33 +0000
-Subject: Re: [lm-sensors] Dell Latitude E6440 & i8k
-Message-Id: <20140518110233.6e58b544@endymion.delvare>
+From: LABBE Corentin <clabbe.montjoie@gmail.com>
+Date: Thu, 08 May 2014 14:05:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: change my email
+Message-Id: <1399557932-24346-1-git-send-email-clabbe.montjoie@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140518101910.35059ee7@endymion.delvare>
-In-Reply-To: <20140518101910.35059ee7@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 18 May 2014 10:36:16 +0200, Pali Roh=E1r wrote:
-> On Sunday 18 May 2014 10:19:10 Jean Delvare wrote:
-> > If you download a BIOS update for your laptop from Dell, the
-> > SMM code is certainly somewhere in the binary blob which gets
-> > flashed to the EEPROM. But extracting that code from there
-> > would certainly be challenge.
->=20
-> Yes extracting it from bios flashing image was only idea which I=20
-> got and I doubt I can do it... (specially when dell bios is=20
-> compressed and image itself contains flashing program...)
->=20
-> What I now found is this table of SMM commands:
-> https://lkml.org/lkml/2008/12/18/44
->=20
-> So it looks like SMM data are in some NBSVC.MDM binary. Do you=20
-> know something more about it?
+Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
+---
+ drivers/hwmon/adm1029.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-No, I don't, sorry.
+diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
+index d19c790..b6961ca 100644
+--- a/drivers/hwmon/adm1029.c
++++ b/drivers/hwmon/adm1029.c
+@@ -1,7 +1,7 @@
+ /*
+  * adm1029.c - Part of lm_sensors, Linux kernel modules for hardware monitoring
+  *
+- * Copyright (C) 2006 Corentin LABBE <corentin.labbe@geomatys.fr>
++ * Copyright (C) 2006 Corentin LABBE <clabbe.montjoie@gmail.com>
+  *
+  * Based on LM83 Driver by Jean Delvare <jdelvare@suse.de>
+  *
+-- 
+1.8.5.5
 
---=20
-Jean Delvare
-SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
