@@ -1,262 +1,118 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 13 May 2014 00:09:28 +0000
-Subject: [lm-sensors] [PATCH v2 2/9] hwmon: (emc1403) Convert to use regmap
-Message-Id: <20140513000928.GA20903@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Fri, 09 May 2014 08:27:30 +0000
+Subject: [lm-sensors] [PATCH 1/3] libsensors: Store the kernel class device name of each hwmon device
+Message-Id: <20140509102730.03fe1658@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to regmap to be able to use its register caching mechanism.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+We will need this soon.
 ---
-v2: Fix show_bit() function
+ lib/data.h  |    3 +++
+ lib/init.c  |    1 +
+ lib/sysfs.c |   20 ++++++++++++++------
+ 3 files changed, 18 insertions(+), 6 deletions(-)
 
- drivers/hwmon/emc1403.c | 117 ++++++++++++++++++++++++++----------------------
- 1 file changed, 63 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
-index 0bb0bab..3c9a8a9 100644
---- a/drivers/hwmon/emc1403.c
-+++ b/drivers/hwmon/emc1403.c
-@@ -18,9 +18,6 @@
-  * with this program; if not, write to the Free Software Foundation, Inc.,
-  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- *
-- * TODO
-- *	-	cache alarm and critical limit registers
-  */
+--- lm-sensors.orig/lib/data.h	2014-05-09 07:50:24.515126418 +0200
++++ lm-sensors/lib/data.h	2014-05-09 09:09:20.391454565 +0200
+@@ -131,8 +131,11 @@ typedef struct sensors_bus {
+ } sensors_bus;
  
- #include <linux/module.h>
-@@ -32,7 +29,7 @@
- #include <linux/err.h>
- #include <linux/sysfs.h>
- #include <linux/mutex.h>
--#include <linux/jiffies.h>
-+#include <linux/regmap.h>
- 
- #define THERMAL_PID_REG		0xfd
- #define THERMAL_SMSC_ID_REG	0xfe
-@@ -41,15 +38,9 @@
- enum emc1403_chip { emc1402, emc1403, emc1404 };
- 
- struct thermal_data {
--	struct i2c_client *client;
--	const struct attribute_group *groups[4];
-+	struct regmap *regmap;
- 	struct mutex mutex;
--	/*
--	 * Cache the hyst value so we don't keep re-reading it. In theory
--	 * we could cache it forever as nobody else should be writing it.
--	 */
--	u8 cached_hyst;
--	unsigned long hyst_valid;
-+	const struct attribute_group *groups[4];
- };
- 
- static ssize_t show_temp(struct device *dev,
-@@ -57,12 +48,13 @@ static ssize_t show_temp(struct device *dev,
- {
- 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
- 	struct thermal_data *data = dev_get_drvdata(dev);
-+	unsigned int val;
- 	int retval;
- 
--	retval = i2c_smbus_read_byte_data(data->client, sda->index);
-+	retval = regmap_read(data->regmap, sda->index, &val);
- 	if (retval < 0)
- 		return retval;
--	return sprintf(buf, "%d000\n", retval);
-+	return sprintf(buf, "%d000\n", val);
+ /* Internal data about all features and subfeatures of a chip */
++/* Note: kernel_name would rather go into struct sensors_chip_name but doing
++   so would change the ABI */
+ typedef struct sensors_chip_features {
+ 	struct sensors_chip_name chip;
++	char *kernel_name;
+ 	struct sensors_feature *feature;
+ 	struct sensors_subfeature *subfeature;
+ 	int feature_count;
+--- lm-sensors.orig/lib/init.c	2014-05-09 07:50:24.515126418 +0200
++++ lm-sensors/lib/init.c	2014-05-09 07:54:00.035197170 +0200
+@@ -239,6 +239,7 @@ static void free_chip_features(sensors_c
+ 	for (i = 0; i < features->feature_count; i++)
+ 		free(features->feature[i].name);
+ 	free(features->feature);
++	free(features->kernel_name);
  }
  
- static ssize_t show_bit(struct device *dev,
-@@ -70,12 +62,13 @@ static ssize_t show_bit(struct device *dev,
+ static void free_label(sensors_label *label)
+--- lm-sensors.orig/lib/sysfs.c	2014-05-09 07:50:24.515126418 +0200
++++ lm-sensors/lib/sysfs.c	2014-05-09 07:54:00.035197170 +0200
+@@ -614,7 +614,8 @@ int sensors_init_sysfs(void)
+ /* returns: number of devices added (0 or 1) if successful, <0 otherwise */
+ static int sensors_read_one_sysfs_chip(const char *dev_path,
+ 				       const char *dev_name,
+-				       const char *hwmon_path)
++				       const char *hwmon_path,
++				       const char *classdev)
  {
- 	struct sensor_device_attribute_2 *sda = to_sensor_dev_attr_2(attr);
- 	struct thermal_data *data = dev_get_drvdata(dev);
-+	unsigned int val;
- 	int retval;
+ 	int domain, bus, slot, fn, vendor, product, id;
+ 	int err = -SENSORS_ERR_KERNEL;
+@@ -633,6 +634,12 @@ static int sensors_read_one_sysfs_chip(c
+ 	if (!entry.chip.path)
+ 		sensors_fatal_error(__func__, "Out of memory");
  
--	retval = i2c_smbus_read_byte_data(data->client, sda->nr);
-+	retval = regmap_read(data->regmap, sda->nr, &val);
- 	if (retval < 0)
- 		return retval;
--	return sprintf(buf, "%d\n", !!(retval & sda->index));
-+	return sprintf(buf, "%d\n", !!(val & sda->index));
- }
- 
- static ssize_t store_temp(struct device *dev,
-@@ -88,8 +81,8 @@ static ssize_t store_temp(struct device *dev,
- 
- 	if (kstrtoul(buf, 10, &val))
- 		return -EINVAL;
--	retval = i2c_smbus_write_byte_data(data->client, sda->index,
--					DIV_ROUND_CLOSEST(val, 1000));
-+	retval = regmap_write(data->regmap, sda->index,
-+			      DIV_ROUND_CLOSEST(val, 1000));
- 	if (retval < 0)
- 		return retval;
- 	return count;
-@@ -100,28 +93,17 @@ static ssize_t store_bit(struct device *dev,
- {
- 	struct sensor_device_attribute_2 *sda = to_sensor_dev_attr_2(attr);
- 	struct thermal_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = data->client;
- 	unsigned long val;
- 	int retval;
- 
- 	if (kstrtoul(buf, 10, &val))
- 		return -EINVAL;
- 
--	mutex_lock(&data->mutex);
--	retval = i2c_smbus_read_byte_data(client, sda->nr);
-+	retval = regmap_update_bits(data->regmap, sda->nr, sda->index,
-+				    val ? sda->index : 0);
- 	if (retval < 0)
--		goto fail;
--
--	retval &= ~sda->index;
--	if (val)
--		retval |= sda->index;
--
--	retval = i2c_smbus_write_byte_data(client, sda->index, retval);
--	if (retval = 0)
--		retval = count;
--fail:
--	mutex_unlock(&data->mutex);
--	return retval;
-+		return retval;
-+	return count;
- }
- 
- static ssize_t show_hyst(struct device *dev,
-@@ -129,22 +111,20 @@ static ssize_t show_hyst(struct device *dev,
- {
- 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
- 	struct thermal_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = data->client;
-+	struct regmap *regmap = data->regmap;
-+	unsigned int limit;
-+	unsigned int hyst;
- 	int retval;
--	int hyst;
- 
--	retval = i2c_smbus_read_byte_data(client, sda->index);
-+	retval = regmap_read(regmap, sda->index, &limit);
- 	if (retval < 0)
- 		return retval;
- 
--	if (time_after(jiffies, data->hyst_valid)) {
--		hyst = i2c_smbus_read_byte_data(client, 0x21);
--		if (hyst < 0)
--			return retval;
--		data->cached_hyst = hyst;
--		data->hyst_valid = jiffies + HZ;
--	}
--	return sprintf(buf, "%d000\n", retval - data->cached_hyst);
-+	retval = regmap_read(regmap, 0x21, &hyst);
-+	if (retval < 0)
-+		return retval;
-+
-+	return sprintf(buf, "%d000\n", limit - hyst);
- }
- 
- static ssize_t store_hyst(struct device *dev,
-@@ -152,7 +132,8 @@ static ssize_t store_hyst(struct device *dev,
- {
- 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
- 	struct thermal_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = data->client;
-+	struct regmap *regmap = data->regmap;
-+	unsigned int limit;
- 	int retval;
- 	int hyst;
- 	unsigned long val;
-@@ -161,23 +142,20 @@ static ssize_t store_hyst(struct device *dev,
- 		return -EINVAL;
- 
- 	mutex_lock(&data->mutex);
--	retval = i2c_smbus_read_byte_data(client, sda->index);
-+	retval = regmap_read(regmap, sda->index, &limit);
- 	if (retval < 0)
- 		goto fail;
- 
--	hyst = retval * 1000 - val;
-+	hyst = limit * 1000 - val;
- 	hyst = DIV_ROUND_CLOSEST(hyst, 1000);
- 	if (hyst < 0 || hyst > 255) {
- 		retval = -ERANGE;
- 		goto fail;
- 	}
- 
--	retval = i2c_smbus_write_byte_data(client, 0x21, hyst);
--	if (retval = 0) {
-+	retval = regmap_write(regmap, 0x21, hyst);
-+	if (retval = 0)
- 		retval = count;
--		data->cached_hyst = hyst;
--		data->hyst_valid = jiffies + HZ;
--	}
- fail:
- 	mutex_unlock(&data->mutex);
- 	return retval;
-@@ -356,6 +334,35 @@ static int emc1403_detect(struct i2c_client *client,
- 	return 0;
- }
- 
-+static bool emc1403_regmap_is_volatile(struct device *dev, unsigned int reg)
-+{
-+	switch (reg) {
-+	case 0x00:	/* internal diode high byte */
-+	case 0x01:	/* external diode 1 high byte */
-+	case 0x02:	/* status */
-+	case 0x10:	/* external diode 1 low byte */
-+	case 0x1b:	/* external diode fault */
-+	case 0x23:	/* external diode 2 high byte */
-+	case 0x24:	/* external diode 2 low byte */
-+	case 0x29:	/* internal diode low byte */
-+	case 0x2a:	/* externl diode 3 high byte */
-+	case 0x2b:	/* external diode 3 low byte */
-+	case 0x35:	/* high limit status */
-+	case 0x36:	/* low limit status */
-+	case 0x37:	/* therm limit status */
-+		return true;
-+	default:
-+		return false;
++	if (classdev) {
++		entry.kernel_name = strdup(classdev);
++		if (!entry.kernel_name)
++			sensors_fatal_error(__func__, "Out of memory");
 +	}
-+}
 +
-+static struct regmap_config emc1403_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.cache_type = REGCACHE_RBTREE,
-+	.volatile_reg = emc1403_regmap_is_volatile,
-+};
-+
- static int emc1403_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
+ 	if (dev_path = NULL) {
+ 		/* Virtual device */
+ 		entry.chip.bus.type = SENSORS_BUS_TYPE_VIRTUAL;
+@@ -735,6 +742,7 @@ done:
+ 	return 1;
+ 
+ exit_free:
++	free(entry.kernel_name);
+ 	free(entry.chip.prefix);
+ 	free(entry.chip.path);
+ 	return err;
+@@ -745,7 +753,7 @@ static int sensors_add_hwmon_device_comp
  {
-@@ -367,9 +374,11 @@ static int emc1403_probe(struct i2c_client *client,
- 	if (data = NULL)
- 		return -ENOMEM;
+ 	int err;
  
--	data->client = client;
-+	data->regmap = devm_regmap_init_i2c(client, &emc1403_regmap_config);
-+	if (IS_ERR(data->regmap))
-+		return PTR_ERR(data->regmap);
-+
- 	mutex_init(&data->mutex);
--	data->hyst_valid = jiffies - 1;		/* Expired */
+-	err = sensors_read_one_sysfs_chip(path, dev_name, path);
++	err = sensors_read_one_sysfs_chip(path, dev_name, path, NULL);
+ 	if (err < 0)
+ 		return err;
+ 	return 0;
+@@ -768,23 +776,23 @@ static int sensors_add_hwmon_device(cons
+ 	char linkpath[NAME_MAX];
+ 	char device[NAME_MAX], *device_p;
+ 	int dev_len, err;
+-	(void)classdev; /* hide warning */
  
- 	switch (id->driver_data) {
- 	case emc1404:
--- 
-1.9.1
+ 	snprintf(linkpath, NAME_MAX, "%s/device", path);
+ 	dev_len = readlink(linkpath, device, NAME_MAX - 1);
+ 	if (dev_len < 0) {
+ 		/* No device link? Treat as virtual */
+-		err = sensors_read_one_sysfs_chip(NULL, NULL, path);
++		err = sensors_read_one_sysfs_chip(NULL, NULL, path, classdev);
+ 	} else {
+ 		device[dev_len] = '\0';
+ 		device_p = strrchr(device, '/') + 1;
+ 
+ 		/* The attributes we want might be those of the hwmon class
+ 		   device, or those of the device itself. */
+-		err = sensors_read_one_sysfs_chip(linkpath, device_p, path);
++		err = sensors_read_one_sysfs_chip(linkpath, device_p, path,
++						  classdev);
+ 		if (err = 0)
+ 			err = sensors_read_one_sysfs_chip(linkpath, device_p,
+-							  linkpath);
++							  linkpath, classdev);
+ 	}
+ 	if (err < 0)
+ 		return err;
 
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
