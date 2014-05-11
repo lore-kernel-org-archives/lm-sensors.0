@@ -1,230 +1,209 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 19 Apr 2014 22:28:11 +0000
-Subject: [lm-sensors] [PATCH 3/5] hwmon: (max1619) Rearrange code to avoid forward declarations
-Message-Id: <1397946493-4455-3-git-send-email-linux@roeck-us.net>
+From: Josef Gajdusek <atx@atx.name>
+Date: Sun, 11 May 2014 13:00:23 +0000
+Subject: [lm-sensors] [PATCH] drivers/hwmon/emc1403.c: add support for emc1412
+Message-Id: <20140511130023.GA501@dashie>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de
+Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Forward declarations are unnecessary and easy to avoid, so rearrange
-code and drop them.
+Adds support for emc1412.
 
-No functional change.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/max1619.c |  158 +++++++++++++++++++++--------------------------
- 1 file changed, 69 insertions(+), 89 deletions(-)
-
-diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
-index 9a8d7ca..c8a7297 100644
---- a/drivers/hwmon/max1619.c
-+++ b/drivers/hwmon/max1619.c
-@@ -72,40 +72,6 @@ static int temp_to_reg(int val)
- }
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index 90ec117..47a98a7 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -40,7 +40,7 @@
  
- /*
-- * Functions declaration
-- */
--
--static int max1619_probe(struct i2c_client *client,
--			 const struct i2c_device_id *id);
--static int max1619_detect(struct i2c_client *client,
--			  struct i2c_board_info *info);
--static void max1619_init_client(struct i2c_client *client);
--static int max1619_remove(struct i2c_client *client);
--static struct max1619_data *max1619_update_device(struct device *dev);
--
--/*
-- * Driver data (common to all clients)
-- */
--
--static const struct i2c_device_id max1619_id[] = {
--	{ "max1619", 0 },
--	{ }
--};
--MODULE_DEVICE_TABLE(i2c, max1619_id);
--
--static struct i2c_driver max1619_driver = {
--	.class		= I2C_CLASS_HWMON,
--	.driver = {
--		.name	= "max1619",
--	},
--	.probe		= max1619_probe,
--	.remove		= max1619_remove,
--	.id_table	= max1619_id,
--	.detect		= max1619_detect,
--	.address_list	= normal_i2c,
--};
--
--/*
-  * Client data (each client gets its own)
-  */
+ struct thermal_data {
+ 	struct i2c_client *client;
+-	const struct attribute_group *groups[3];
++	const struct attribute_group *groups[2];
+ 	struct mutex mutex;
+ 	/*
+ 	 * Cache the hyst value so we don't keep re-reading it. In theory
+@@ -252,6 +252,28 @@ static SENSOR_DEVICE_ATTR(temp4_crit_hyst, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR_2(power_state, S_IRUGO | S_IWUSR,
+ 	show_bit, store_bit, 0x03, 0x40);
  
-@@ -123,6 +89,44 @@ struct max1619_data {
- 	u8 alarms;
++
++static struct attribute *emc1412_attrs[] = {
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
++
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
++
++	&sensor_dev_attr_power_state.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group emc1412_group = {
++		.attrs = emc1412_attrs,
++};
++
+ static struct attribute *emc1403_attrs[] = {
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+@@ -261,6 +283,7 @@ static struct attribute *emc1403_attrs[] = {
+ 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
++
+ 	&sensor_dev_attr_temp2_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_crit.dev_attr.attr,
+@@ -269,6 +292,7 @@ static struct attribute *emc1403_attrs[] = {
+ 	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
++
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_crit.dev_attr.attr,
+@@ -277,6 +301,7 @@ static struct attribute *emc1403_attrs[] = {
+ 	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_crit_hyst.dev_attr.attr,
++
+ 	&sensor_dev_attr_power_state.dev_attr.attr,
+ 	NULL
+ };
+@@ -286,6 +311,33 @@ static const struct attribute_group emc1403_group = {
  };
  
-+static struct max1619_data *max1619_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct max1619_data *data = i2c_get_clientdata(client);
-+	int config;
+ static struct attribute *emc1404_attrs[] = {
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
 +
-+	mutex_lock(&data->update_lock);
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
 +
-+	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
-+		dev_dbg(&client->dev, "Updating max1619 data.\n");
-+		data->temp_input1 = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_LOCAL_TEMP);
-+		data->temp_input2 = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_REMOTE_TEMP);
-+		data->temp_high2 = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_REMOTE_HIGH);
-+		data->temp_low2 = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_REMOTE_LOW);
-+		data->temp_crit2 = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_REMOTE_CRIT);
-+		data->temp_hyst2 = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_TCRIT_HYST);
-+		data->alarms = i2c_smbus_read_byte_data(client,
-+					MAX1619_REG_R_STATUS);
-+		/* If OVERT polarity is low, reverse alarm bit */
-+		config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
-+		if (!(config & 0x20))
-+			data->alarms ^= 0x02;
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit_hyst.dev_attr.attr,
 +
-+		data->last_updated = jiffies;
-+		data->valid = 1;
+ 	&sensor_dev_attr_temp4_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_crit.dev_attr.attr,
+@@ -294,6 +346,8 @@ static struct attribute *emc1404_attrs[] = {
+ 	&sensor_dev_attr_temp4_max_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_crit_hyst.dev_attr.attr,
++
++	&sensor_dev_attr_power_state.dev_attr.attr,
+ 	NULL
+ };
+ 
+@@ -301,11 +355,13 @@ static const struct attribute_group emc1404_group = {
+ 	.attrs = emc1404_attrs,
+ };
+ 
++
++
+ static int emc1403_detect(struct i2c_client *client,
+ 			struct i2c_board_info *info)
+ {
+ 	int id;
+-	/* Check if thermal chip is SMSC and EMC1403 or EMC1423 */
++	/* Check whether the chip is SMSC and get its type */
+ 
+ 	id = i2c_smbus_read_byte_data(client, THERMAL_SMSC_ID_REG);
+ 	if (id != 0x5d)
+@@ -313,6 +369,9 @@ static int emc1403_detect(struct i2c_client *client,
+ 
+ 	id = i2c_smbus_read_byte_data(client, THERMAL_PID_REG);
+ 	switch (id) {
++	case 0x20:
++		strlcpy(info->type, "emc1412", I2C_NAME_SIZE);
++		break;
+ 	case 0x21:
+ 		strlcpy(info->type, "emc1403", I2C_NAME_SIZE);
+ 		break;
+@@ -330,9 +389,9 @@ static int emc1403_detect(struct i2c_client *client,
+ 	}
+ 
+ 	id = i2c_smbus_read_byte_data(client, THERMAL_REVISION_REG);
+-	if (id != 0x01)
++	if (id != 0x01 && id != 0x04) {
+ 		return -ENODEV;
+-
 +	}
-+
-+	mutex_unlock(&data->update_lock);
-+
-+	return data;
-+}
-+
- /*
-  * Sysfs stuff
-  */
-@@ -216,10 +220,6 @@ static const struct attribute_group max1619_group = {
- 	.attrs = max1619_attributes,
+ 	return 0;
+ }
+ 
+@@ -351,9 +410,17 @@ static int emc1403_probe(struct i2c_client *client,
+ 	mutex_init(&data->mutex);
+ 	data->hyst_valid = jiffies - 1;		/* Expired */
+ 
+-	data->groups[0] = &emc1403_group;
+-	if (id->driver_data)
+-		data->groups[1] = &emc1404_group;
++	switch (id->driver_data) {
++	case 0:
++		data->groups[0] = &emc1412_group;
++		break;
++	case 1:
++		data->groups[0] = &emc1403_group;
++		break;
++	case 2:
++		data->groups[0] = &emc1404_group;
++		break;
++	}
+ 
+ 	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
+ 						      client->name, data,
+@@ -366,14 +433,19 @@ static int emc1403_probe(struct i2c_client *client,
+ }
+ 
+ static const unsigned short emc1403_address_list[] = {
+-	0x18, 0x29, 0x4c, 0x4d, I2C_CLIENT_END
++	/* emc1403/emc1404/emc1423/emc1424 */
++	0x4c, 0x4d, 0x18, 0x29,
++	/* emc1412 */
++	0x5c, 0x4c, 0x6c, 0x1c, 0x3c, I2C_CLIENT_END
  };
  
--/*
-- * Real code
-- */
--
- /* Return 0 if detection is successful, -ENODEV otherwise */
- static int max1619_detect(struct i2c_client *client,
- 			  struct i2c_board_info *info)
-@@ -256,6 +256,21 @@ static int max1619_detect(struct i2c_client *client,
- 	return 0;
- }
- 
-+static void max1619_init_client(struct i2c_client *client)
-+{
-+	u8 config;
-+
-+	/*
-+	 * Start the conversions.
-+	 */
-+	i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONVRATE,
-+				  5); /* 2 Hz */
-+	config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
-+	if (config & 0x40)
-+		i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONFIG,
-+					  config & 0xBF); /* run */
-+}
-+
- static int max1619_probe(struct i2c_client *new_client,
- 			 const struct i2c_device_id *id)
- {
-@@ -291,21 +306,6 @@ exit_remove_files:
- 	return err;
- }
- 
--static void max1619_init_client(struct i2c_client *client)
--{
--	u8 config;
--
--	/*
--	 * Start the conversions.
--	 */
--	i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONVRATE,
--				  5); /* 2 Hz */
--	config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
--	if (config & 0x40)
--		i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONFIG,
--					  config & 0xBF); /* run */
--}
--
- static int max1619_remove(struct i2c_client *client)
- {
- 	struct max1619_data *data = i2c_get_clientdata(client);
-@@ -316,43 +316,23 @@ static int max1619_remove(struct i2c_client *client)
- 	return 0;
- }
- 
--static struct max1619_data *max1619_update_device(struct device *dev)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct max1619_data *data = i2c_get_clientdata(client);
--	int config;
--
--	mutex_lock(&data->update_lock);
--
--	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
--		dev_dbg(&client->dev, "Updating max1619 data.\n");
--		data->temp_input1 = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_LOCAL_TEMP);
--		data->temp_input2 = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_REMOTE_TEMP);
--		data->temp_high2 = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_REMOTE_HIGH);
--		data->temp_low2 = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_REMOTE_LOW);
--		data->temp_crit2 = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_REMOTE_CRIT);
--		data->temp_hyst2 = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_TCRIT_HYST);
--		data->alarms = i2c_smbus_read_byte_data(client,
--					MAX1619_REG_R_STATUS);
--		/* If OVERT polarity is low, reverse alarm bit */
--		config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
--		if (!(config & 0x20))
--			data->alarms ^= 0x02;
--
--		data->last_updated = jiffies;
--		data->valid = 1;
--	}
--
--	mutex_unlock(&data->update_lock);
-+static const struct i2c_device_id max1619_id[] = {
-+	{ "max1619", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, max1619_id);
- 
--	return data;
--}
-+static struct i2c_driver max1619_driver = {
-+	.class		= I2C_CLASS_HWMON,
-+	.driver = {
-+		.name	= "max1619",
-+	},
-+	.probe		= max1619_probe,
-+	.remove		= max1619_remove,
-+	.id_table	= max1619_id,
-+	.detect		= max1619_detect,
-+	.address_list	= normal_i2c,
-+};
- 
- module_i2c_driver(max1619_driver);
- 
--- 
-1.7.9.7
++/* Last number in name indicates the amount of channels */
+ static const struct i2c_device_id emc1403_idtable[] = {
+-	{ "emc1403", 0 },
+-	{ "emc1404", 1 },
+-	{ "emc1423", 0 },
+-	{ "emc1424", 1 },
++	{ "emc1412", 0 },
++	{ "emc1403", 1 },
++	{ "emc1423", 1 },
++	{ "emc1404", 2 },
++	{ "emc1424", 2 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, emc1403_idtable);
 
 
 _______________________________________________
