@@ -1,38 +1,43 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 29 May 2014 11:18:00 +0000
-Subject: Re: [lm-sensors] info about  driver for chip EMC1402
-Message-Id: <20140529131800.141e5756@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 May 2014 19:01:48 +0000
+Subject: [lm-sensors] [PATCH 6/9] hwmon: (emc1403) Relax hysteresis limit write checks
+Message-Id: <1399921311-9524-7-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1401139433.59243.YahooMailNeo@web172006.mail.ir2.yahoo.com>
-In-Reply-To: <1401139433.59243.YahooMailNeo@web172006.mail.ir2.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 27 May 2014 22:13:17 +0100 (BST), Kenny Lake wrote:
-> Jean
-> I know that I have a EMC1402 chip because this is what the "sensors-detec=
-t" command report:
-> Driver `to-be-written':
-> =A0 * Bus `SMBus PIIX4 adapter at 0b00'
-> =A0=A0=A0 Busdriver `i2c_piix4', I2C address 0x4c
-> =A0=A0=A0 Chip `SMSC EMC1402' (confidence: 6)
+Writing the hysteresis limit returned -ERANGE if the written hysteresis
+was too high or too low. Relax error check and adjust the hysteresis
+value to its valid range.
 
-OK, fair enough, the latest version of the emc1403 driver may indeed
-work then. That being said:
- * It might not tell you more than the thermal ACPI driver is already
-   telling you.
- * If the ACPI temperature comes from the same chip, you may get
-   conflicting accesses to the chip by using two drivers for the same
-   device.
- * As Guenter said already, if thermal management is broken on your
-   laptop, this won't help you anyway. You need to report such problems
-   to linux-pm and/or linux-acpi.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/emc1403.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---=20
-Jean Delvare
-SUSE L3 Support
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index 877144c..13cac04 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -147,12 +147,7 @@ static ssize_t store_hyst(struct device *dev,
+ 		goto fail;
+ 
+ 	hyst = limit * 1000 - val;
+-	hyst = DIV_ROUND_CLOSEST(hyst, 1000);
+-	if (hyst < 0 || hyst > 255) {
+-		retval = -ERANGE;
+-		goto fail;
+-	}
+-
++	hyst = clamp_val(DIV_ROUND_CLOSEST(hyst, 1000), 0, 255);
+ 	retval = regmap_write(regmap, 0x21, hyst);
+ 	if (retval = 0)
+ 		retval = count;
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
