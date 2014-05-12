@@ -1,68 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 12 May 2014 16:14:15 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/emc1403.c: add support for emc14x2
-Message-Id: <20140512161415.GA16770@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 12 May 2014 16:48:06 +0000
+Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/emc1403.c: add support for emc1412
+Message-Id: <20140512184806.63ce37b0@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140512123409.GB16252@dashie>
-In-Reply-To: <20140512123409.GB16252@dashie>
+References: <20140511130023.GA501@dashie>
+	<536FFC55.2080009@roeck-us.net>
+	<20140512081051.29333503@endymion.delvare>
+	<20140512155931.GB29066@roeck-us.net>
+In-Reply-To: <20140512155931.GB29066@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Josef Gajdusek <atx@atx.name>
-Cc: jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Josef Gajdusek <atx@atx.name>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Josef,
+Hi Guenter,
 
-On Mon, May 12, 2014 at 02:34:09PM +0200, Josef Gajdusek wrote:
-> Adds support for emc1402/emc1412/emc1422 temperature monitoring chips.
-> This line of sensors does only have 2 channels (internal and external) in comparison to the emc14x3 (3 channels) and emc14x4 (4 channels) lines.
-> 
-> Signed-off-by: Josef Gajdusek <atx@atx.name>
+On Mon, 12 May 2014 08:59:31 -0700, Guenter Roeck wrote:
+> I only see the adt7462 driver scanning for 0x5c. Guess I'll accept the
+> address for now; I don't see a good reason not to.
 
-Applied, with a couple of minor adjustments.
+sensors-detect also scans it for the SMSC EMC1072, EMC1073 and EMC1074
+which we don't support yet. I have no objection to scanning it.
 
-> ---
+> Couple of other questions:
+> - would it make sense to relax store_hyst to not return ERANGE but use clamp_val
+>   instead ?
 
-[ ... ]
->  
->  static const unsigned short emc1403_address_list[] = {
-> -	0x18, 0x29, 0x4c, 0x4d, I2C_CLIENT_END
-> +	0x18, 0x29, 0x1c, 0x4c, 0x4d, 0x5c, I2C_CLIENT_END
+Yes, I had exactly the same thought when reading the code this morning.
 
-Changed to numerical order.
+> - Currently hyst can be stored for all crit attributes even though there is only
+>   one hyst register. Should we change this to only support writing it for
+>   temp1_crit_hyst ?
 
->  };
->  
-> +/* Last number in name indicates the amount of channels */
+Yes, that would align this driver with what other drivers do.
 
-I found that comment a bit confusing, so I changed it to
+> - I might convert the driver to use regmap if I find the time. Do you have any
+>   concerns with that ?
 
-/* Last digit of chip name indicates number of channels */
+I know nothing about regmap, so no objection, I simply don't care ;-)
 
->  static const struct i2c_device_id emc1403_idtable[] = {
-> -	{ "emc1403", 0 },
-> -	{ "emc1404", 1 },
-> -	{ "emc1423", 0 },
-> -	{ "emc1424", 1 },
-> +	{ "emc1402", emc1402 },
-> +	{ "emc1403", emc1403 },
-> +	{ "emc1404", emc1404 },
-> +	{ "emc1422", emc1402 },
-> +	{ "emc1423", emc1403 },
-> +	{ "emc1424", emc1404 },
-
-Wonder if we should list the emc141x chips here. Jean, any thoughts ?
-
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(i2c, emc1403_idtable);
-> 
-
-It would be nice to also have support for the alarms on EMC14x2,
-but that can be a separate patch.
-
-Thanks,
-Guenter
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
