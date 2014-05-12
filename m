@@ -1,80 +1,80 @@
-From: =?UTF-8?B?VGhvbWFzIFN0w6RibGVy?= <tstaebler@arcor.de>
-Date: Fri, 02 May 2014 16:31:50 +0000
-Subject: [lm-sensors] configuration file for MSI-7012 motherboard
-Message-Id: <5363C876.6040002@arcor.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------030304070704080209040809"
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 May 2014 19:01:46 +0000
+Subject: [lm-sensors] [PATCH 4/9] hwmon: (emc1403) Add support for alarm and diode fault status on EMC14x2
+Message-Id: <1399921311-9524-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030304070704080209040809
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: 8bit
+Alarm and fault status register on EMC1402, EMC1412, and EMC1422 is reported
+in a different register than with other chips. Add support for it.
 
-Hello,
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/emc1403.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-I have no wiki account, so I send the configuration file for a MSI-7012 
-motherboard with Winbond w83627thf and Northwood processor directly.
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index 8e82884..ee63d7b 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -299,6 +299,39 @@ static const struct attribute_group emc1404_group = {
+ 	.attrs = emc1404_attrs,
+ };
+ 
++/*
++ * EMC14x2 uses a different register and different bits to report alarm and
++ * fault status. For simplicity, provide a separate attribute group for this
++ * chip series.
++ * Since we can not re-use the same attribute names, create a separate attribute
++ * array.
++ */
++static struct sensor_device_attribute_2 emc1402_alarms[] = {
++	SENSOR_ATTR_2(temp1_min_alarm, S_IRUGO, show_bit, NULL, 0x02, 0x20),
++	SENSOR_ATTR_2(temp1_max_alarm, S_IRUGO, show_bit, NULL, 0x02, 0x40),
++	SENSOR_ATTR_2(temp1_crit_alarm, S_IRUGO, show_bit, NULL, 0x02, 0x01),
++
++	SENSOR_ATTR_2(temp2_fault, S_IRUGO, show_bit, NULL, 0x02, 0x04),
++	SENSOR_ATTR_2(temp2_min_alarm, S_IRUGO, show_bit, NULL, 0x02, 0x08),
++	SENSOR_ATTR_2(temp2_max_alarm, S_IRUGO, show_bit, NULL, 0x02, 0x10),
++	SENSOR_ATTR_2(temp2_crit_alarm, S_IRUGO, show_bit, NULL, 0x02, 0x02),
++};
++
++static struct attribute *emc1402_alarm_attrs[] = {
++	&emc1402_alarms[0].dev_attr.attr,
++	&emc1402_alarms[1].dev_attr.attr,
++	&emc1402_alarms[2].dev_attr.attr,
++	&emc1402_alarms[3].dev_attr.attr,
++	&emc1402_alarms[4].dev_attr.attr,
++	&emc1402_alarms[5].dev_attr.attr,
++	&emc1402_alarms[6].dev_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group emc1402_alarm_group = {
++	.attrs = emc1402_alarm_attrs,
++};
++
+ static int emc1403_detect(struct i2c_client *client,
+ 			struct i2c_board_info *info)
+ {
+@@ -395,6 +428,9 @@ static int emc1403_probe(struct i2c_client *client,
+ 		data->groups[0] = &emc1402_group;
+ 	}
+ 
++	if (id->driver_data = emc1402)
++		data->groups[1] = &emc1402_alarm_group;
++
+ 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
+ 							   client->name, data,
+ 							   data->groups);
+-- 
+1.9.1
 
-Best regards
-
-Thomas Stäbler
-
-
---------------030304070704080209040809
-Content-Type: text/plain; charset=UTF-8;
- name="msi-7012.conf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="msi-7012.conf"
-
-IyBsaWJzZW5zb3JzIChsbS1zZW5zb3JzKSBjb25maWd1cmF0aW9uIGZpbGUKIyAtLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIwojIEFkYXB0aW9uIGZvciBN
-U0ktNzAxMiBNb3RoZXJib2FyZAojCiMgV2luYm9uZCB3ODM2Mjd0aGYKIyBOb3J0aHdvb2Qg
-UHJvY2Vzc29yIChWY29yZSA9IDEuNTNWKQojCiMgMjAxNC0wNC0xNyBUaG9tYXMgU3RhZWJs
-ZXIKIwojIG1hcHBpbmcgKGZvciBpbmZvcm1hdGlvbikgaGFyZHdhcmUgLT4gU3lzZnMgYXR0
-cmlidXRlCiMgKHNlZSBhbHNvIEtlcm5lbCBEb2N1bWVudGF0aW9uIGluIERvY3VtZW50YXRp
-b24vaHdtb24vdzgzNjI3aGYpCiMKIyB3ODM2Mjd0aGYgICAgICAgICAgICAgICAgIHwgL3N5
-cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlcwojLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGJhbmsvcmVnIHwgTmFtZSAgICAgfCBQaW4g
-fAojLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMg
-WC8weDIwICAgfCBDUFVWQ09SRSB8IDEwMCB8IGluMCAKIyBYLzB4MjEgICB8IFZJTjAgICAg
-IHwgIDk5IHwgaW4xCiMgWC8weDIyICAgfCBWSU4xICAgICB8ICA5OCB8IGluMiAKIyBYLzB4
-MjMgICB8IEFWQ0MgICAgIHwgMTE0IHwgaW4zIAojIFgvMHgyNCAgIHwgVklOMiAgICAgfCAg
-OTcgfCBpbjQgCiMgNS8weDUwICAgfCA1VlNCICAgICB8ICA2MSB8IGluNyAKIyA1LzB4NTEg
-ICB8IFZCQVQgICAgIHwgIDc0IHwgaW44IAojCgpjaGlwICJ3ODM2Mjd0aGYtKiIKCiMgRmFu
-cwogICAgbGFiZWwgZmFuMSAiQ1BVIEZhbiIKICAgIHNldCBmYW4xX2RpdiA4CiAgICBzZXQg
-ZmFuMV9taW4gNjY0CgogICAgaWdub3JlIGZhbjIKICAgIGlnbm9yZSBmYW4zCgojIFRlbXBl
-cmF0dXJlcwogICAgbGFiZWwgdGVtcDEgIkNQVSBUZW1wLiIKICAgIHNldCB0ZW1wMV9tYXgg
-NTUKICAgIHNldCB0ZW1wMV9tYXhfaHlzdCA1MwoKICAgIGlnbm9yZSB0ZW1wMgogICAgaWdu
-b3JlIHRlbXAzCgojIFZvbHRhZ2VzCiAgICBsYWJlbCBpbjAgIlZjb3JlIgogICAgc2V0IGlu
-MF9taW4gMS41MyAqIDAuOTUKICAgIHNldCBpbjBfbWF4IDEuNTMgKiAxLjA1CgogICAgbGFi
-ZWwgaW4xICIrMy4zViIKICAgIHNldCBpbjFfbWluIDMuMzAgKiAwLjk1CiAgICBzZXQgaW4x
-X21heCAzLjMwICogMS4wNQoKICAgIGxhYmVsIGluMiAiKzEyViIKICAgICMgRXh0ZXJuYWwg
-cmVzaXN0b3JzIDI4a09obSwgMTBrT2htCiAgICBjb21wdXRlIGluMiAgQCAqICgxICsgMjgg
-LyAxMCksIEAgLyAoMSArIDI4IC8gMTApCiAgICBzZXQgaW4yX21pbiAxMi4wICogMC45MAog
-ICAgc2V0IGluMl9tYXggMTIuMCAqIDEuMTAKCiAgICBsYWJlbCBpbjMgIis1ViIKICAgICMg
-SW50ZXJuYWwgcmVzaXN0b3JzIDM0a09obSwgNTFrT2htCiAgICBjb21wdXRlIGluMyAgQCAq
-ICgxICsgMzQgLyA1MSksIEAgLyAoMSArIDM0IC8gNTEpCiAgICBzZXQgaW4zX21pbiAgNS4w
-ICogMC45NQogICAgc2V0IGluM19tYXggIDUuMCAqIDEuMDUKCiAgICBsYWJlbCBpbjQgIi0x
-MlYiCiAgICAjIEV4dGVybmFsIHJlc2lzdG9ycyAyMzJrT2htLCA1NmtPaG0KICAgIGNvbXB1
-dGUgaW40IChAKigxKzIzMi81NiktKDMuNioyMzIvNTYpKSwgKEArKDMuNioyMzIvNTYpKS8o
-MSsyMzIvNTYpCiAgICBzZXQgaW40X21pbiAgLTEyLjAgKiAxLjEwCiAgICBzZXQgaW40X21h
-eCAgLTEyLjAgKiAwLjkwCgogICAgaWdub3JlIGluNQogICAgaWdub3JlIGluNgoKICAgIGxh
-YmVsIGluNyAiNVZTQiIKICAgICMgSW50ZXJuYWwgcmVzaXN0b3JzIDM0a09obSwgNTFrT2ht
-CiAgICBjb21wdXRlIGluNyAgQCAqICgxICsgMzQgLyA1MSksIEAgLyAoMSArIDM0IC8gNTEp
-CiAgICBzZXQgaW43X21pbiA1ICogMC45NQogICAgc2V0IGluN19tYXggNSAqIDEuMDUKCiAg
-ICAjIFJUQy9DTU9TIGJhdHRlcnkKICAgIGxhYmVsIGluOCAiVmJhdCIKICAgIHNldCBpbjhf
-bWluIDMuMCAqIDAuODAKICAgIHNldCBpbjhfbWF4IDMuMCAqIDEuMjAKCg==
---------------030304070704080209040809
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------030304070704080209040809--
