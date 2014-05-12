@@ -1,150 +1,57 @@
-From: Josef Gajdusek <atx@atx.name>
-Date: Mon, 12 May 2014 12:34:09 +0000
-Subject: [lm-sensors] [PATCH] drivers/hwmon/emc1403.c: add support for emc14x2
-Message-Id: <20140512123409.GB16252@dashie>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 May 2014 15:59:31 +0000
+Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/emc1403.c: add support for emc1412
+Message-Id: <20140512155931.GB29066@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140511130023.GA501@dashie>
-In-Reply-To: <20140511130023.GA501@dashie>
+ <536FFC55.2080009@roeck-us.net>
+ <20140512081051.29333503@endymion.delvare>
+In-Reply-To: <20140512081051.29333503@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jdelvare@suse.de
-Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Josef Gajdusek <atx@atx.name>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Adds support for emc1402/emc1412/emc1422 temperature monitoring chips.
-This line of sensors does only have 2 channels (internal and external) in comparison to the emc14x3 (3 channels) and emc14x4 (4 channels) lines.
+On Mon, May 12, 2014 at 08:10:51AM +0200, Jean Delvare wrote:
+> Hi Guenter, Josef,
+> 
+> On Sun, 11 May 2014 15:40:21 -0700, Guenter Roeck wrote:
+> > On 05/11/2014 06:00 AM, Josef Gajdusek wrote:
+> > > @@ -366,14 +433,19 @@ static int emc1403_probe(struct i2c_client *client,
+> > >   }
+> > >
+> > >   static const unsigned short emc1403_address_list[] = {
+> > > -	0x18, 0x29, 0x4c, 0x4d, I2C_CLIENT_END
+> > > +	/* emc1403/emc1404/emc1423/emc1424 */
+> > > +	0x4c, 0x4d, 0x18, 0x29,
+> > > +	/* emc1412 */
+> > > +	0x5c, 0x4c, 0x6c, 0x1c, 0x3c, I2C_CLIENT_END
+> > 
+> > No duplication of addresses, and addresses are by convention in order.
+> > Jean, any addresses which should not be scanned ?
+> 
+> 0x3c and 0x6c should indeed not be scanned, sensors-detect does not
+> scan them as they aren't typically used by hwmon devices. 0x5c is
+> questionable (currently scanned, but used only by a limited number of
+> chips, we may drop it at some point.) 0x1c and 0x4c are OK to scan.
+> 
+Hi Jean,
 
-Signed-off-by: Josef Gajdusek <atx@atx.name>
----
-Hello,
-I modified the patches according to the feedback I received. I also added 1422 and changed the 1412 part to 1402 (They are practically identical and the rest of the driver uses 140x and 142x 
-pairs).
----
-diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
-index b2b6a52..8b3df53 100644
---- a/drivers/hwmon/emc1403.c
-+++ b/drivers/hwmon/emc1403.c
-@@ -38,9 +38,11 @@
- #define THERMAL_SMSC_ID_REG	0xfe
- #define THERMAL_REVISION_REG	0xff
- 
-+enum emc1403_chip { emc1402, emc1403, emc1404 };
-+
- struct thermal_data {
- 	struct i2c_client *client;
--	const struct attribute_group *groups[3];
-+	const struct attribute_group *groups[4];
- 	struct mutex mutex;
- 	/*
- 	 * Cache the hyst value so we don't keep re-reading it. In theory
-@@ -252,23 +254,36 @@ static SENSOR_DEVICE_ATTR(temp4_crit_hyst, S_IRUGO | S_IWUSR,
- static SENSOR_DEVICE_ATTR_2(power_state, S_IRUGO | S_IWUSR,
- 	show_bit, store_bit, 0x03, 0x40);
- 
--static struct attribute *emc1403_attrs[] = {
-+static struct attribute *emc1402_attrs[] = {
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
--	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
-+
- 	&sensor_dev_attr_temp2_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
-+
-+	&sensor_dev_attr_power_state.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group emc1402_group = {
-+		.attrs = emc1402_attrs,
-+};
-+
-+static struct attribute *emc1403_attrs[] = {
-+	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
-+
- 	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
-+
- 	&sensor_dev_attr_temp3_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_crit.dev_attr.attr,
-@@ -277,7 +292,6 @@ static struct attribute *emc1403_attrs[] = {
- 	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp3_crit_hyst.dev_attr.attr,
--	&sensor_dev_attr_power_state.dev_attr.attr,
- 	NULL
- };
- 
-@@ -313,9 +327,15 @@ static int emc1403_detect(struct i2c_client *client,
- 
- 	id = i2c_smbus_read_byte_data(client, THERMAL_PID_REG);
- 	switch (id) {
-+	case 0x20:
-+		strlcpy(info->type, "emc1402", I2C_NAME_SIZE);
-+		break;
- 	case 0x21:
- 		strlcpy(info->type, "emc1403", I2C_NAME_SIZE);
- 		break;
-+	case 0x22:
-+		strlcpy(info->type, "emc1422", I2C_NAME_SIZE);
-+		break;
- 	case 0x23:
- 		strlcpy(info->type, "emc1423", I2C_NAME_SIZE);
- 		break;
-@@ -351,9 +371,14 @@ static int emc1403_probe(struct i2c_client *client,
- 	mutex_init(&data->mutex);
- 	data->hyst_valid = jiffies - 1;		/* Expired */
- 
--	data->groups[0] = &emc1403_group;
--	if (id->driver_data)
--		data->groups[1] = &emc1404_group;
-+	switch (id->driver_data) {
-+	case emc1404:
-+		data->groups[2] = &emc1404_group;
-+	case emc1403:
-+		data->groups[1] = &emc1403_group;
-+	case emc1402:
-+		data->groups[0] = &emc1402_group;
-+	}
- 
- 	hwmon_dev = hwmon_device_register_with_groups(&client->dev,
- 						      client->name, data,
-@@ -366,14 +391,17 @@ static int emc1403_probe(struct i2c_client *client,
- }
- 
- static const unsigned short emc1403_address_list[] = {
--	0x18, 0x29, 0x4c, 0x4d, I2C_CLIENT_END
-+	0x18, 0x29, 0x1c, 0x4c, 0x4d, 0x5c, I2C_CLIENT_END
- };
- 
-+/* Last number in name indicates the amount of channels */
- static const struct i2c_device_id emc1403_idtable[] = {
--	{ "emc1403", 0 },
--	{ "emc1404", 1 },
--	{ "emc1423", 0 },
--	{ "emc1424", 1 },
-+	{ "emc1402", emc1402 },
-+	{ "emc1403", emc1403 },
-+	{ "emc1404", emc1404 },
-+	{ "emc1422", emc1402 },
-+	{ "emc1423", emc1403 },
-+	{ "emc1424", emc1404 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, emc1403_idtable);
+I only see the adt7462 driver scanning for 0x5c. Guess I'll accept the
+address for now; I don't see a good reason not to.
 
+Couple of other questions:
+- would it make sense to relax store_hyst to not return ERANGE but use clamp_val
+  instead ?
+- Currently hyst can be stored for all crit attributes even though there is only
+  one hyst register. Should we change this to only support writing it for
+  temp1_crit_hyst ?
+- I might convert the driver to use regmap if I find the time. Do you have any
+  concerns with that ?
+
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
