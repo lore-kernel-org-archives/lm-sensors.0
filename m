@@ -1,40 +1,76 @@
-From: Tony <jester402003@msn.com>
-Date: Wed, 07 May 2014 07:02:06 +0000
-Subject: Re: [lm-sensors] IT8620E working with it87 driver
-Message-Id: <BLU436-SMTP215D045EB33AFDCC352C3B8DF4E0@phx.gbl>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 May 2014 19:01:47 +0000
+Subject: [lm-sensors] [PATCH 5/9] hwmon: (emc1403) Make all hyst attributes except for temp1_crit_hyst read-o
+Message-Id: <1399921311-9524-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAMqk1ZyC2w7JnJ7xyDPwCvXkHQjwkPmG_LhyC8_doavpeXHXyA@mail.gmail.com>
-In-Reply-To: <CAMqk1ZyC2w7JnJ7xyDPwCvXkHQjwkPmG_LhyC8_doavpeXHXyA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ash
+All chips in this chip series only support a single hysteresis value. Having
+multiple writable hysteresis attributes is therefore confusing, since a single
+write affects all hysteresis temperatures. Make all but one (temp1_crit_hyst)
+read-only.
 
-Thank you for you suggestion have tried loading the mod and got error no
-file have download it87 driver for the web site and did make, make
-install and rebooted and did sensors-detect and got the same as before
-can someone tell me what i am doing wrong (I have use LM Sensor on HP
-and Dell Servers and for the most part it just worked)
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/emc1403 | 7 +++++--
+ drivers/hwmon/emc1403.c     | 9 +++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-Cheers
-Tony
-
-On Tue, 2014-05-06 at 22:06 +0800, Ash Wiren wrote:
-> > (2014-03-16) One request (Kertesz Laszlo). No datasheet. We had a report that the chip is somewhat compatible with the IT8728F for the hardware monitoring part. Be very careful with fan control as it wasn't tested. So you can try loading the it87 driver with force_id=0x8728 and see how it goes. If you do, please report!
-> 
-> Reporting this as working.
-> 
-> Regards
-> Ash Wiren
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-
+diff --git a/Documentation/hwmon/emc1403 b/Documentation/hwmon/emc1403
+index b109e35..a869b0e 100644
+--- a/Documentation/hwmon/emc1403
++++ b/Documentation/hwmon/emc1403
+@@ -51,6 +51,9 @@ This implementation detail implies the following:
+   was 80 degrees C, and the hysteresis was 75 degrees C, and you change
+   the critical limit to 90 degrees C, then the hysteresis will
+   automatically change to 85 degrees C.
+-* While hysteresis limits can be set for all critical limits, setting a single
+-  hysteresis value affects the hysteresis values for all limits on all sensors.
++* The hysteresis values can't be set independently. We decided to make
++  only temp1_crit_hyst writable, while all other hysteresis attributes
++  are read-only. Setting temp1_crit_hyst writes the difference between
++  temp1_crit_hyst and temp1_crit into the chip, and the same relative
++  hysteresis applies automatically to all other limits.
+ * The limits should be set before the hysteresis.
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index ee63d7b..877144c 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -195,8 +195,7 @@ static SENSOR_DEVICE_ATTR_2(temp2_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x02);
+ static SENSOR_DEVICE_ATTR_2(temp2_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x02);
+-static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO | S_IWUSR,
+-	show_hyst, store_hyst, 0x19);
++static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_hyst, NULL, 0x19);
+ 
+ static SENSOR_DEVICE_ATTR(temp3_min, S_IRUGO | S_IWUSR,
+ 	show_temp, store_temp, 0x16);
+@@ -212,8 +211,7 @@ static SENSOR_DEVICE_ATTR_2(temp3_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x04);
+ static SENSOR_DEVICE_ATTR_2(temp3_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x04);
+-static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO | S_IWUSR,
+-	show_hyst, store_hyst, 0x1A);
++static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_hyst, NULL, 0x1A);
+ 
+ static SENSOR_DEVICE_ATTR(temp4_min, S_IRUGO | S_IWUSR,
+ 	show_temp, store_temp, 0x2D);
+@@ -229,8 +227,7 @@ static SENSOR_DEVICE_ATTR_2(temp4_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x08);
+ static SENSOR_DEVICE_ATTR_2(temp4_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x08);
+-static SENSOR_DEVICE_ATTR(temp4_crit_hyst, S_IRUGO | S_IWUSR,
+-	show_hyst, store_hyst, 0x30);
++static SENSOR_DEVICE_ATTR(temp4_crit_hyst, S_IRUGO, show_hyst, NULL, 0x30);
+ 
+ static SENSOR_DEVICE_ATTR_2(power_state, S_IRUGO | S_IWUSR,
+ 	show_bit, store_bit, 0x03, 0x40);
+-- 
+1.9.1
 
 
 _______________________________________________
