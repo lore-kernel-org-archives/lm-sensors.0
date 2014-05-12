@@ -1,118 +1,125 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 09 May 2014 08:27:30 +0000
-Subject: [lm-sensors] [PATCH 1/3] libsensors: Store the kernel class device name of each hwmon device
-Message-Id: <20140509102730.03fe1658@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 May 2014 19:01:50 +0000
+Subject: [lm-sensors] [PATCH 8/9] hwmon: (emc1403) Add support for min_hyst attributes
+Message-Id: <1399921311-9524-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We will need this soon.
----
- lib/data.h  |    3 +++
- lib/init.c  |    1 +
- lib/sysfs.c |   20 ++++++++++++++------
- 3 files changed, 18 insertions(+), 6 deletions(-)
+The hysteresis value applies to all limits, so add support for
+tempX_min_hyst.
 
---- lm-sensors.orig/lib/data.h	2014-05-09 07:50:24.515126418 +0200
-+++ lm-sensors/lib/data.h	2014-05-09 09:09:20.391454565 +0200
-@@ -131,8 +131,11 @@ typedef struct sensors_bus {
- } sensors_bus;
- 
- /* Internal data about all features and subfeatures of a chip */
-+/* Note: kernel_name would rather go into struct sensors_chip_name but doing
-+   so would change the ABI */
- typedef struct sensors_chip_features {
- 	struct sensors_chip_name chip;
-+	char *kernel_name;
- 	struct sensors_feature *feature;
- 	struct sensors_subfeature *subfeature;
- 	int feature_count;
---- lm-sensors.orig/lib/init.c	2014-05-09 07:50:24.515126418 +0200
-+++ lm-sensors/lib/init.c	2014-05-09 07:54:00.035197170 +0200
-@@ -239,6 +239,7 @@ static void free_chip_features(sensors_c
- 	for (i = 0; i < features->feature_count; i++)
- 		free(features->feature[i].name);
- 	free(features->feature);
-+	free(features->kernel_name);
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/emc1403.c | 27 ++++++++++++++++++++++++---
+ 1 file changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index a9ebd68..9b1c45c 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -106,8 +106,9 @@ static ssize_t store_bit(struct device *dev,
+ 	return count;
  }
  
- static void free_label(sensors_label *label)
---- lm-sensors.orig/lib/sysfs.c	2014-05-09 07:50:24.515126418 +0200
-+++ lm-sensors/lib/sysfs.c	2014-05-09 07:54:00.035197170 +0200
-@@ -614,7 +614,8 @@ int sensors_init_sysfs(void)
- /* returns: number of devices added (0 or 1) if successful, <0 otherwise */
- static int sensors_read_one_sysfs_chip(const char *dev_path,
- 				       const char *dev_name,
--				       const char *hwmon_path)
-+				       const char *hwmon_path,
-+				       const char *classdev)
+-static ssize_t show_hyst(struct device *dev,
+-			struct device_attribute *attr, char *buf)
++static ssize_t show_hyst_common(struct device *dev,
++				struct device_attribute *attr, char *buf,
++				bool is_min)
  {
- 	int domain, bus, slot, fn, vendor, product, id;
- 	int err = -SENSORS_ERR_KERNEL;
-@@ -633,6 +634,12 @@ static int sensors_read_one_sysfs_chip(c
- 	if (!entry.chip.path)
- 		sensors_fatal_error(__func__, "Out of memory");
+ 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
+ 	struct thermal_data *data = dev_get_drvdata(dev);
+@@ -124,7 +125,19 @@ static ssize_t show_hyst(struct device *dev,
+ 	if (retval < 0)
+ 		return retval;
  
-+	if (classdev) {
-+		entry.kernel_name = strdup(classdev);
-+		if (!entry.kernel_name)
-+			sensors_fatal_error(__func__, "Out of memory");
-+	}
+-	return sprintf(buf, "%d000\n", limit - hyst);
++	return sprintf(buf, "%d000\n", is_min ? limit + hyst : limit - hyst);
++}
 +
- 	if (dev_path = NULL) {
- 		/* Virtual device */
- 		entry.chip.bus.type = SENSORS_BUS_TYPE_VIRTUAL;
-@@ -735,6 +742,7 @@ done:
- 	return 1;
++static ssize_t show_hyst(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return show_hyst_common(dev, attr, buf, false);
++}
++
++static ssize_t show_min_hyst(struct device *dev,
++			     struct device_attribute *attr, char *buf)
++{
++	return show_hyst_common(dev, attr, buf, true);
+ }
  
- exit_free:
-+	free(entry.kernel_name);
- 	free(entry.chip.prefix);
- 	free(entry.chip.path);
- 	return err;
-@@ -745,7 +753,7 @@ static int sensors_add_hwmon_device_comp
- {
- 	int err;
+ static ssize_t store_hyst(struct device *dev,
+@@ -173,6 +186,7 @@ static SENSOR_DEVICE_ATTR_2(temp1_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x01);
+ static SENSOR_DEVICE_ATTR_2(temp1_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x01);
++static SENSOR_DEVICE_ATTR(temp1_min_hyst, S_IRUGO, show_min_hyst, NULL, 0x06);
+ static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO, show_hyst, NULL, 0x05);
+ static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IRUGO | S_IWUSR,
+ 	show_hyst, store_hyst, 0x20);
+@@ -191,6 +205,7 @@ static SENSOR_DEVICE_ATTR_2(temp2_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x02);
+ static SENSOR_DEVICE_ATTR_2(temp2_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x02);
++static SENSOR_DEVICE_ATTR(temp2_min_hyst, S_IRUGO, show_min_hyst, NULL, 0x08);
+ static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO, show_hyst, NULL, 0x07);
+ static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_hyst, NULL, 0x19);
  
--	err = sensors_read_one_sysfs_chip(path, dev_name, path);
-+	err = sensors_read_one_sysfs_chip(path, dev_name, path, NULL);
- 	if (err < 0)
- 		return err;
- 	return 0;
-@@ -768,23 +776,23 @@ static int sensors_add_hwmon_device(cons
- 	char linkpath[NAME_MAX];
- 	char device[NAME_MAX], *device_p;
- 	int dev_len, err;
--	(void)classdev; /* hide warning */
+@@ -208,6 +223,7 @@ static SENSOR_DEVICE_ATTR_2(temp3_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x04);
+ static SENSOR_DEVICE_ATTR_2(temp3_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x04);
++static SENSOR_DEVICE_ATTR(temp3_min_hyst, S_IRUGO, show_min_hyst, NULL, 0x16);
+ static SENSOR_DEVICE_ATTR(temp3_max_hyst, S_IRUGO, show_hyst, NULL, 0x15);
+ static SENSOR_DEVICE_ATTR(temp3_crit_hyst, S_IRUGO, show_hyst, NULL, 0x1A);
  
- 	snprintf(linkpath, NAME_MAX, "%s/device", path);
- 	dev_len = readlink(linkpath, device, NAME_MAX - 1);
- 	if (dev_len < 0) {
- 		/* No device link? Treat as virtual */
--		err = sensors_read_one_sysfs_chip(NULL, NULL, path);
-+		err = sensors_read_one_sysfs_chip(NULL, NULL, path, classdev);
- 	} else {
- 		device[dev_len] = '\0';
- 		device_p = strrchr(device, '/') + 1;
+@@ -225,6 +241,7 @@ static SENSOR_DEVICE_ATTR_2(temp4_max_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x35, 0x08);
+ static SENSOR_DEVICE_ATTR_2(temp4_crit_alarm, S_IRUGO,
+ 	show_bit, NULL, 0x37, 0x08);
++static SENSOR_DEVICE_ATTR(temp4_min_hyst, S_IRUGO, show_min_hyst, NULL, 0x2D);
+ static SENSOR_DEVICE_ATTR(temp4_max_hyst, S_IRUGO, show_hyst, NULL, 0x2C);
+ static SENSOR_DEVICE_ATTR(temp4_crit_hyst, S_IRUGO, show_hyst, NULL, 0x30);
  
- 		/* The attributes we want might be those of the hwmon class
- 		   device, or those of the device itself. */
--		err = sensors_read_one_sysfs_chip(linkpath, device_p, path);
-+		err = sensors_read_one_sysfs_chip(linkpath, device_p, path,
-+						  classdev);
- 		if (err = 0)
- 			err = sensors_read_one_sysfs_chip(linkpath, device_p,
--							  linkpath);
-+							  linkpath, classdev);
- 	}
- 	if (err < 0)
- 		return err;
-
+@@ -236,6 +253,7 @@ static struct attribute *emc1402_attrs[] = {
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
+ 
+@@ -243,6 +261,7 @@ static struct attribute *emc1402_attrs[] = {
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_min_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
+ 
+@@ -272,6 +291,7 @@ static struct attribute *emc1403_attrs[] = {
+ 	&sensor_dev_attr_temp3_min_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_min_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_crit_hyst.dev_attr.attr,
+ 	NULL
+@@ -290,6 +310,7 @@ static struct attribute *emc1404_attrs[] = {
+ 	&sensor_dev_attr_temp4_min_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_max_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp4_min_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_crit_hyst.dev_attr.attr,
+ 	NULL
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
