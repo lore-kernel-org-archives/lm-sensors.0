@@ -1,38 +1,26 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 02 May 2014 06:04:07 +0000
-Subject: Re: [lm-sensors] how to get SPD in Sandy or Ivy bridge ?
-Message-Id: <20140502080407.0faf8015@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 May 2014 19:01:42 +0000
+Subject: [lm-sensors] [PATCH 0/9] hwmon: (emc1403) Various enhancements
+Message-Id: <1399921311-9524-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53631823.9050208@yandex.com>
-In-Reply-To: <53631823.9050208@yandex.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 02 May 2014 07:59:31 +0400, Black.S wrote:
-> Hello
-> 
-> For get SPD earle I used utility decode-dimms that use kernel module 
-> eeprom. But now it does not work, as I understand it because module 
-> eeprom in Sandy Bridge with integrated memory controller no longer 
-> communicates with EEPROM.
-> 
-> I was hoping that getting SPD will be support later but support is still 
-> not there.
-> 
-> May be this question is not for topic of this forum, but I do not know 
-> where to properly place the question.
+See individual patches for details.
 
-This is indeed off-topic here, as this has nothing to do with hardware
-monitoring.
+Patches apply on top of the previously submitted patches by Jean Delvare
+and Josef Gajdusek, which should be available in linux-next by tomorrow
+and are available in the hwmon-next branch of
+git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git.
 
-Try the linux-i2c discussion list instead:
-http://vger.kernel.org/vger-lists.html#linux-i2c
-
--- 
-Jean Delvare
-SUSE L3 Support
+Caveat: Compile tested only, not ready for integration.
+Especially min_hyst, max_hyst, and fault attributes need testing (not sure if I
+interpreted the datasheets correctly), but also alarm and fault attributes
+on EMC14x2. Plus of course the regmap conversion. I am sure I have a test board
+somewhere, but can't find it right now, so testing may take a bit.
+Josef, if you have time, would be great if you can give it a try.
 
 _______________________________________________
 lm-sensors mailing list
