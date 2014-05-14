@@ -1,245 +1,610 @@
-From: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
-Date: Wed, 14 May 2014 06:13:53 +0000
-Subject: [lm-sensors] [PATCH] powerpc/powernv: hwmon driver for power values, fan rpm and temperature
-Message-Id: <20140514055859.16148.35534.stgit@neelegup-tp-t420.in.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 14 May 2014 17:09:33 +0000
+Subject: Re: [lm-sensors] [PATCH] powerpc/powernv: hwmon driver for power values, fan rpm and temperature
+Message-Id: <20140514170933.GB18032@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20140514055859.16148.35534.stgit@neelegup-tp-t420.in.ibm.com>
+In-Reply-To: <20140514055859.16148.35534.stgit@neelegup-tp-t420.in.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@lists.ozlabs.org, linux@roeck-us.net, jdelvare@suse.de, lm-sensors@lm-sensors.org
-Cc: sbhat@linux.vnet.ibm.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
+Cc: lm-sensors@lm-sensors.org, sbhat@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, jdelvare@suse.de
 
-VGhpcyBwYXRjaCBhZGRzIGJhc2ljIGtlcm5lbCBlbmFibGVtZW50IGZvciByZWFkaW5nIHBvd2Vy
-IHZhbHVlcywgZmFuCnNwZWVkIHJwbSBhbmQgdGVtcGVyYXR1cmUgdmFsdWVzIG9uIHBvd2VybnYg
-cGxhdGZvcm1zIHdoaWNoIHdpbGwKYmUgZXhwb3J0ZWQgdG8gdXNlciBzcGFjZSB0aHJvdWdoIHN5
-c2ZzIGludGVyZmFjZS4KClRlc3QgcmVzdWx0czoKLS0tLS0tLS0tLS0tLQpbcm9vdEB0dWwxNjNw
-MSB+XSMgc2Vuc29ycwppYm1wb3dlcm52LWlzYS0wMDAwCkFkYXB0ZXI6IElTQSBhZGFwdGVyCmZh
-bjE6ICAgICAgICA1Mjk0IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAgICAgNDk0NSBS
-UE0gIChtaW4gPSAgICAwIFJQTSkKZmFuMzogICAgICAgIDU4MzEgUlBNICAobWluID0gICAgMCBS
-UE0pCmZhbjQ6ICAgICAgICA1MjEyIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW41OiAgICAgICAg
-ICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkKZmFuNjogICAgICAgICAgIDAgUlBNICAobWluID0g
-ICAgMCBSUE0pCmZhbjc6ICAgICAgICA3NDcyIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW44OiAg
-ICAgICAgNzkyMCBSUE0gIChtaW4gPSAgICAwIFJQTSkKdGVtcDE6ICAgICAgICArMzkuMMKwQyAg
-KGhpZ2ggPSAgKzAuMMKwQykKcG93ZXIxOiAgICAgIDE5Mi4wMCBXICAKCltyb290QHR1bDE2M3Ax
-IH5dIyAKW3Jvb3RAdHVsMTYzcDEgfl0jIGxzIC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9pYm1wb3dl
-cm52LjAvCmRyaXZlciAgICAgIGZhbjJfbWluICAgIGZhbjRfbWluICAgIGZhbjZfbWluICAgIGZh
-bjhfbWluICAgbW9kYWxpYXMgICAgICB1ZXZlbnQKZmFuMV9mYXVsdCAgZmFuM19mYXVsdCAgZmFu
-NV9mYXVsdCAgZmFuN19mYXVsdCAgaHdtb24gICAgICBuYW1lCmZhbjFfaW5wdXQgIGZhbjNfaW5w
-dXQgIGZhbjVfaW5wdXQgIGZhbjdfaW5wdXQgIGluMV9mYXVsdCAgcG93ZXIxX2lucHV0CmZhbjFf
-bWluICAgIGZhbjNfbWluICAgIGZhbjVfbWluICAgIGZhbjdfbWluICAgIGluMl9mYXVsdCAgc3Vi
-c3lzdGVtCmZhbjJfZmF1bHQgIGZhbjRfZmF1bHQgIGZhbjZfZmF1bHQgIGZhbjhfZmF1bHQgIGlu
-M19mYXVsdCAgdGVtcDFfaW5wdXQKZmFuMl9pbnB1dCAgZmFuNF9pbnB1dCAgZmFuNl9pbnB1dCAg
-ZmFuOF9pbnB1dCAgaW40X2ZhdWx0ICB0ZW1wMV9tYXgKW3Jvb3RAdHVsMTYzcDEgfl0jIApbcm9v
-dEB0dWwxNjNwMSB+XSMgbHMgL3N5cy9jbGFzcy9od21vbi9od21vbjAvZGV2aWNlLwpkcml2ZXIg
-ICAgICBmYW4yX21pbiAgICBmYW40X21pbiAgICBmYW42X21pbiAgICBmYW44X21pbiAgIG1vZGFs
-aWFzICAgICAgdWV2ZW50CmZhbjFfZmF1bHQgIGZhbjNfZmF1bHQgIGZhbjVfZmF1bHQgIGZhbjdf
-ZmF1bHQgIGh3bW9uICAgICAgbmFtZQpmYW4xX2lucHV0ICBmYW4zX2lucHV0ICBmYW41X2lucHV0
-ICBmYW43X2lucHV0ICBpbjFfZmF1bHQgIHBvd2VyMV9pbnB1dApmYW4xX21pbiAgICBmYW4zX21p
-biAgICBmYW41X21pbiAgICBmYW43X21pbiAgICBpbjJfZmF1bHQgIHN1YnN5c3RlbQpmYW4yX2Zh
-dWx0ICBmYW40X2ZhdWx0ICBmYW42X2ZhdWx0ICBmYW44X2ZhdWx0ICBpbjNfZmF1bHQgIHRlbXAx
-X2lucHV0CmZhbjJfaW5wdXQgIGZhbjRfaW5wdXQgIGZhbjZfaW5wdXQgIGZhbjhfaW5wdXQgIGlu
-NF9mYXVsdCAgdGVtcDFfbWF4Cltyb290QHR1bDE2M3AxIH5dIwoKU2lnbmVkLW9mZi1ieTogU2hp
-dmFwcmFzYWQgRyBCaGF0IDxzYmhhdEBsaW51eC52bmV0LmlibS5jb20+ClNpZ25lZC1vZmYtYnk6
-IE5lZWxlc2ggR3VwdGEgPG5lZWxlZ3VwQGxpbnV4LnZuZXQuaWJtLmNvbT4KLS0tCiBkcml2ZXJz
-L2h3bW9uL0tjb25maWcgICAgICB8ICAgIDggKwogZHJpdmVycy9od21vbi9NYWtlZmlsZSAgICAg
-fCAgICAxIAogZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgfCAgMzg2ICsrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAzIGZpbGVzIGNoYW5nZWQsIDM5NSBpbnNl
-cnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMK
-CmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL0tjb25maWcgYi9kcml2ZXJzL2h3bW9uL0tjb25m
-aWcKaW5kZXggYmMxOTZmNC4uM2UzMDhmYSAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9LY29u
-ZmlnCisrKyBiL2RyaXZlcnMvaHdtb24vS2NvbmZpZwpAQCAtNTU0LDYgKzU1NCwxNCBAQCBjb25m
-aWcgU0VOU09SU19JQk1QRVgKIAkgIFRoaXMgZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEg
-bW9kdWxlLiAgSWYgc28sIHRoZSBtb2R1bGUKIAkgIHdpbGwgYmUgY2FsbGVkIGlibXBleC4KIAor
-Y29uZmlnIFNFTlNPUlNfSUJNUE9XRVJOVgorCXRyaXN0YXRlICJJQk0gUE9XRVJOViBwbGF0Zm9y
-bSBzZW5zb3JzIgorCWRlcGVuZHMgb24gUFBDX1BPV0VSTlYKKwlkZWZhdWx0IHkKKwloZWxwCisJ
-ICBJZiB5b3Ugc2F5IHllcyBoZXJlIHlvdSBnZXQgc3VwcG9ydCBmb3IgdGhlIHRlbXBlcmF0dXJl
-L2Zhbi9wb3dlcgorCSAgc2Vuc29ycyBvbiB5b3VyIHBsYXRmb3JtLgorCiBjb25maWcgU0VOU09S
-U19JSU9fSFdNT04KIAl0cmlzdGF0ZSAiSHdtb24gZHJpdmVyIHRoYXQgdXNlcyBjaGFubmVscyBz
-cGVjaWZpZWQgdmlhIGlpbyBtYXBzIgogCWRlcGVuZHMgb24gSUlPCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL2h3bW9uL01ha2VmaWxlIGIvZHJpdmVycy9od21vbi9NYWtlZmlsZQppbmRleCBjNDhmOTg3
-Li4xOTljNDAxIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL01ha2VmaWxlCisrKyBiL2RyaXZl
-cnMvaHdtb24vTWFrZWZpbGUKQEAgLTcxLDYgKzcxLDcgQEAgb2JqLSQoQ09ORklHX1NFTlNPUlNf
-VUxUUkE0NSkJKz0gdWx0cmE0NV9lbnYubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfSTVLX0FNQikJ
-Kz0gaTVrX2FtYi5vCiBvYmotJChDT05GSUdfU0VOU09SU19JQk1BRU0pCSs9IGlibWFlbS5vCiBv
-YmotJChDT05GSUdfU0VOU09SU19JQk1QRVgpCSs9IGlibXBleC5vCitvYmotJChDT05GSUdfU0VO
-U09SU19JQk1QT1dFUk5WKSs9IGlibXBvd2VybnYubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfSUlP
-X0hXTU9OKSArPSBpaW9faHdtb24ubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfSU5BMjA5KQkrPSBp
-bmEyMDkubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfSU5BMlhYKQkrPSBpbmEyeHgubwpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2ZXJzL2h3bW9uL2libXBvd2Vy
-bnYuYwpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi5lNWNmZmNlCi0tLSAvZGV2
-L251bGwKKysrIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKQEAgLTAsMCArMSwzODYgQEAK
-Ky8qCisgKiBJQk0gUG93ZXJOViBwbGF0Zm9ybSBzZW5zb3JzIGZvciB0ZW1wZXJhdHVyZS9mYW4v
-cG93ZXIKKyAqIENvcHlyaWdodCAoQykgMjAxNCBJQk0KKyAqCisgKiBUaGlzIHByb2dyYW0gaXMg
-ZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorICog
-aXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBw
-dWJsaXNoZWQgYnkKKyAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJz
-aW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisgKiAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2
-ZXJzaW9uLgorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0
-aGF0IGl0IHdpbGwgYmUgdXNlZnVsLAorICogYnV0IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRo
-b3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKKyAqIE1FUkNIQU5UQUJJTElUWSBvciBG
-SVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKKyAqIEdOVSBHZW5lcmFs
-IFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCisgKgorICogWW91IHNob3VsZCBoYXZl
-IHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIGFs
-b25nIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBGcmVlIFNvZnR3YXJl
-CisgKiBGb3VuZGF0aW9uLCBJbmMuLCA1OSBUZW1wbGUgUGxhY2UsIFN1aXRlIDMzMCwgQm9zdG9u
-LCBNQSAgMDIxMTEtMTMwNyAgVVNBCisgKi8KKworI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KKyNp
-bmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KKyNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KKyNpbmNs
-dWRlIDxsaW51eC9od21vbi5oPgorI2luY2x1ZGUgPGxpbnV4L2h3bW9uLXN5c2ZzLmg+CisjaW5j
-bHVkZSA8bGludXgvb2YuaD4KKyNpbmNsdWRlIDxsaW51eC9zbGFiLmg+CisKKyNpbmNsdWRlIDxs
-aW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KKyNpbmNsdWRlIDxhc20vb3BhbC5oPgorI2luY2x1ZGUg
-PGxpbnV4L2Vyci5oPgorCisjZGVmaW5lIERSVk5BTUUJCSJpYm1wb3dlcm52IgorI2RlZmluZSBN
-QVhfQVRUUl9MRU4JMzIKKworLyogU2Vuc29yIHN1ZmZpeCBuYW1lIGZyb20gRFQgKi8KKyNkZWZp
-bmUgRFRfRkFVTFRfQVRUUl9TVUZGSVgJCSJmYXVsdGVkIgorI2RlZmluZSBEVF9EQVRBX0FUVFJf
-U1VGRklYCQkiZGF0YSIKKyNkZWZpbmUgRFRfVEhSRVNIT0xEX0FUVFJfU1VGRklYCSJ0aHJzIgor
-CisvKiBFbnVtZXJhdGVzIGFsbCB0aGUgc2Vuc29ycyBpbiB0aGUgUE9XRVJOViBwbGF0Zm9ybSBh
-bmQgYWxzbyBpbmRleCBpbnRvCisgKiAnc3RydWN0IHNlbnNvcl9uYW1lJworICovCitlbnVtIHNl
-bnNvcnMgeworCUZBTiwKKwlBTUJJRU5UX1RFTVAsCisJUE9XRVJTVVBQTFksCisJUE9XRVIsCisJ
-TUFYX1NFTlNPUl9UWVBFLAorfTsKKworc3RhdGljIHN0cnVjdCBzZW5zb3JfbmFtZSB7CisJY2hh
-ciAqbmFtZTsKKwljaGFyICpjb21wYXRpYmxlOworfSBzZW5zb3JfbmFtZXNbXSA9IHsKKwl7ImZh
-biIsICJpYm0sb3BhbC1zZW5zb3ItY29vbGluZy1mYW4ifSwKKwl7InRlbXAiLCAiaWJtLG9wYWwt
-c2Vuc29yLWFtYi10ZW1wIn0sCisJeyJpbiIsICJpYm0sb3BhbC1zZW5zb3ItcG93ZXItc3VwcGx5
-In0sCisJeyJwb3dlciIsICJpYm0sb3BhbC1zZW5zb3ItcG93ZXIifQorfTsKKworc3RydWN0IHBs
-YXRmb3JtX2RhdGEgeworCXN0cnVjdCBkZXZpY2UgKmh3bW9uX2RldjsKKwlzdHJ1Y3QgZGV2aWNl
-X2F0dHJpYnV0ZSBuYW1lX2F0dHI7CisJc3RydWN0IGxpc3RfaGVhZCBhdHRyX2xpc3Q7Cit9Owor
-CitzdHJ1Y3Qgc2Vuc29yX2RhdGEgeworCXUzMiBpZDsKKwllbnVtIHNlbnNvcnMgc3R5cGU7CisJ
-Y2hhciBuYW1lW01BWF9BVFRSX0xFTl07CisJc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRl
-IHNkX2F0dHI7CisJc3RydWN0IGxpc3RfaGVhZCBsaXN0OworfTsKKworLyogUGxhdGZvcm0gZGV2
-aWNlIHJlcHJlc2VudGluZyBhbGwgdGhlIGlibXBvd2VybnYgc2Vuc29ycyAqLworc3RhdGljIHN0
-cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXZpY2U7CisKK3N0YXRpYyB2b2lkIGdldF9zZW5zb3Jf
-aW5kZXhfYXR0cihjb25zdCBjaGFyICpuYW1lLCB1MzIgKmluZGV4LCBjaGFyICphdHRyKQorewor
-CWNoYXIgKmhhc2hfcG9zID0gc3RyY2hyKG5hbWUsICcjJyk7CisJY2hhciAqZGFzaF9wb3M7CisJ
-dTMyIGNvcHlfbGVuOworCWNoYXIgYnVmWzhdOworCisJbWVtc2V0KGJ1ZiwgMCwgc2l6ZW9mKGJ1
-ZikpOworCSppbmRleCA9IDA7CisJKmF0dHIgPSAnXDAnOworCisJaWYgKGhhc2hfcG9zKSB7CisJ
-CWRhc2hfcG9zID0gc3RyY2hyKGhhc2hfcG9zLCAnLScpOworCQlpZiAoZGFzaF9wb3MpIHsKKwkJ
-CWNvcHlfbGVuID0gZGFzaF9wb3MgLSBoYXNoX3BvcyAtIDE7CisJCQlpZiAoY29weV9sZW4gPCBz
-aXplb2YoYnVmKSkgeworCQkJCXN0cm5jcHkoYnVmLCBoYXNoX3BvcyArIDEsIGNvcHlfbGVuKTsK
-KwkJCQlzc2NhbmYoYnVmLCAiJWQiLCBpbmRleCk7CisJCQl9CisKKwkJCXN0cm5jcHkoYXR0ciwg
-ZGFzaF9wb3MgKyAxLCBNQVhfQVRUUl9MRU4pOworCQl9CisJfQorfQorCisvKgorICogVGhpcyBm
-dW5jdGlvbiB0cmFuc2xhdGVzIHRoZSBEVCBub2RlIG5hbWUgaW50byB0aGUgJ2h3bW9uJyBhdHRy
-aWJ1dGUgbmFtZS4KKyAqIElCTVBPV0VSTlYgZGV2aWNlIG5vZGUgYXBwZWFyIGxpa2UgY29vbGlu
-Zy1mYW4jMi1kYXRhLCBhbWItdGVtcCMxLXRocnMgZXRjLgorICogd2hpY2ggbmVlZCB0byBiZSBt
-YXBwZWQgYXMgZmFuMl9pbnB1dCwgdGVtcDFfbWF4IHJlc3BlY3RpdmVseSBiZWZvcmUKKyAqIHBv
-cHVsYXRpbmcgdGhlbSBpbnNpZGUgaHdtb24gZGV2aWNlIGNsYXNzLi4KKyAqLworc3RhdGljIGlu
-dCBjcmVhdGVfaHdtb25fYXR0cl9uYW1lKGVudW0gc2Vuc29ycyBzdHlwZSwgY29uc3QgY2hhciAq
-bm9kZV9uYW1lLAorCQljaGFyICpod21vbl9hdHRyX25hbWUpCit7CisJY2hhciBhdHRyX3N1ZmZp
-eFtNQVhfQVRUUl9MRU5dOworCWNoYXIgKmF0dHJfbmFtZTsKKwl1MzIgaW5kZXg7CisKKwlnZXRf
-c2Vuc29yX2luZGV4X2F0dHIobm9kZV9uYW1lLCAmaW5kZXgsIGF0dHJfc3VmZml4KTsKKwlpZiAo
-IWluZGV4IHx8ICFzdHJsZW4oYXR0cl9zdWZmaXgpKSB7CisJCXByX2luZm8oIiVzOiBTZW5zb3Ig
-ZGV2aWNlIG5vZGUgbmFtZSBpcyBpbnZhbGlkLCBuYW1lOiAlc1xuIiwKKwkJCQlfX2Z1bmNfXywg
-bm9kZV9uYW1lKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCisJaWYgKCFzdHJjbXAoYXR0cl9z
-dWZmaXgsIERUX0ZBVUxUX0FUVFJfU1VGRklYKSkKKwkJYXR0cl9uYW1lID0gImZhdWx0IjsKKwll
-bHNlIGlmKCFzdHJjbXAoYXR0cl9zdWZmaXgsIERUX0RBVEFfQVRUUl9TVUZGSVgpKQorCQlhdHRy
-X25hbWUgPSAiaW5wdXQiOworCWVsc2UgaWYgKCFzdHJjbXAoYXR0cl9zdWZmaXgsIERUX1RIUkVT
-SE9MRF9BVFRSX1NVRkZJWCkpIHsKKwkJaWYgKHN0eXBlID09IEFNQklFTlRfVEVNUCkKKwkJCWF0
-dHJfbmFtZSA9ICJtYXgiOworCQllbHNlIGlmIChzdHlwZSA9PSBGQU4pCisJCQlhdHRyX25hbWUg
-PSAibWluIjsKKwkJZWxzZQorCQkJcmV0dXJuIC1FTk9FTlQ7CisJfSBlbHNlCisJCXJldHVybiAt
-RU5PRU5UOworCisJc25wcmludGYoaHdtb25fYXR0cl9uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVk
-XyVzIiwKKwkJCXNlbnNvcl9uYW1lc1tzdHlwZV0ubmFtZSwgaW5kZXgsIGF0dHJfbmFtZSk7CisJ
-cmV0dXJuIDA7Cit9CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfc2Vuc29yKHN0cnVjdCBkZXZpY2Ug
-KmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0dHIsCisJCWNoYXIgKmJ1ZikKK3sK
-KwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgKnNkX2F0dHIgPSB0b19zZW5zb3JfZGV2
-X2F0dHIoZGV2YXR0cik7CisJc3RydWN0IHNlbnNvcl9kYXRhICpzZGF0YSA9IGNvbnRhaW5lcl9v
-ZihzZF9hdHRyLCBzdHJ1Y3Qgc2Vuc29yX2RhdGEsCisJCQlzZF9hdHRyKTsKKwlpbnQgZXJyOwor
-CXUzMiB4OworCisJZXJyID0gb3BhbF9nZXRfc2Vuc29yX2RhdGEoc2RhdGEtPmlkLCAmeCk7CisJ
-aWYgKGVycikgeworCQlwcl9lcnIoIiVzOiBGYWlsZWQgdG8gZ2V0IG9wYWwgc2Vuc29yIGRhdGFc
-biIsIF9fZnVuY19fKTsKKwkJeCA9IC0xOworCX0KKworCS8qIENvbnZlcnQgdGVtcGVyYXR1cmUg
-dG8gbWlsbGktZGVncmVlcyAqLworCWlmIChzZGF0YS0+c3R5cGUgPT0gQU1CSUVOVF9URU1QICYm
-IHggPiAwKQorCQl4ICo9IDEwMDA7CisJLyogQ29udmVydCBwb3dlciB0byBtaWNyby13YXR0cyAq
-LworCWVsc2UgaWYgKHNkYXRhLT5zdHlwZSA9PSBQT1dFUiAmJiB4ID4gMCkKKwkJeCAqPSAxMDAw
-MDAwOworCisJcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIHgpOworfQorCitzdGF0aWMgdm9p
-ZCByZW1vdmVfZGV2aWNlX2F0dHJzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCit7CisJ
-c3RydWN0IHBsYXRmb3JtX2RhdGEgKnBkYXRhID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEocGRldik7
-CisJc3RydWN0IGRldmljZSAqZGV2ID0gJnBkZXYtPmRldjsKKwlzdHJ1Y3Qgc2Vuc29yX2RhdGEg
-KnMsICpuZXh0OworCisJbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKHMsIG5leHQsICZwZGF0YS0+
-YXR0cl9saXN0LCBsaXN0KSB7CisJCWRldmljZV9yZW1vdmVfZmlsZShkZXYsICZzLT5zZF9hdHRy
-LmRldl9hdHRyKTsKKwkJbGlzdF9kZWwoJnMtPmxpc3QpOworCQlrZnJlZShzKTsKKwl9Cit9CisK
-Ky8qCisgKiBJdGVyYXRlIHRocm91Z2ggdGhlIGRldmljZSB0cmVlIGFuZCBmb3IgZWFjaCBjaGls
-ZCBvZiBzZW5zb3Igbm9kZSwgY3JlYXRlCisgKiBhIHN5c2ZzIGF0dHJpYnV0ZSBmaWxlLCB0aGUg
-ZmlsZSBpcyBuYW1lZCBieSB0cmFuc2xhdGluZyB0aGUgRFQgbm9kZSBuYW1lCisgKiB0byB0aGUg
-bmFtZSByZXF1aXJlZCBieSB0aGUgaGlnaGVyICdod21vbicgZHJpdmVyIGxpa2UgZmFuMV9pbnB1
-dCwgdGVtcDFfbWF4CisgKiBldGMuLgorICovCitzdGF0aWMgaW50IGNyZWF0ZV9kZXZpY2VfYXR0
-cnMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKK3sKKwlzdHJ1Y3QgcGxhdGZvcm1fZGF0
-YSAqcGRhdGEgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKKwlzdHJ1Y3QgZGV2aWNlICpk
-ZXYgPSAmcGRldi0+ZGV2OworCXN0cnVjdCBkZXZpY2Vfbm9kZSAqb3BhbCwgKm5wOworCXN0cnVj
-dCBzZW5zb3JfZGF0YSAqc2RhdGE7CisJY29uc3QgdTMyICpzZW5zb3JfaWQ7CisJZW51bSBzZW5z
-b3JzIHN0eXBlOworCWludCBlcnI7CisKKwlvcGFsID0gb2ZfZmluZF9ub2RlX2J5X3BhdGgoIi9p
-Ym0sb3BhbC9zZW5zb3JzIik7CisgICAgICAgIGlmICghb3BhbCkgeworCQlwcl9lcnIoIiVzOiBP
-cGFsICdzZW5zb3JzJyBub2RlIG5vdCBmb3VuZFxuIiwgX19mdW5jX18pOworCQllcnIgPSAtRU5Y
-SU87CisJCWdvdG8gZXhpdDsKKyAgICAgICAgfQorCisJZm9yX2VhY2hfY2hpbGRfb2Zfbm9kZShv
-cGFsLCBucCkgeworICAgICAgICAgICAgICAgIGlmIChucC0+bmFtZSA9PSBOVUxMKQorICAgICAg
-ICAgICAgICAgICAgICAgICAgY29udGludWU7CisKKwkJZm9yIChzdHlwZSA9IDA7IHN0eXBlIDwg
-TUFYX1NFTlNPUl9UWVBFOyBzdHlwZSsrKQorCQkJaWYgKG9mX2RldmljZV9pc19jb21wYXRpYmxl
-KG5wLAorCQkJCQlzZW5zb3JfbmFtZXNbc3R5cGVdLmNvbXBhdGlibGUpKQorCQkJCWJyZWFrOwor
-CisJCWlmIChzdHlwZSA9PSBNQVhfU0VOU09SX1RZUEUpCisJCQljb250aW51ZTsKKworCQlzZW5z
-b3JfaWQgPSBvZl9nZXRfcHJvcGVydHkobnAsICJzZW5zb3ItaWQiLCBOVUxMKTsKKwkJaWYgKCFz
-ZW5zb3JfaWQpIHsKKwkJCXByX2luZm8oIiVzOiAlcyBkb2Vzbid0IGhhdmUgc2Vuc29yLWlkXG4i
-LCBfX2Z1bmNfXywKKwkJCQkJbnAtPm5hbWUpOworCQkJY29udGludWU7CisJCX0KKworCQlzZGF0
-YSA9IGt6YWxsb2Moc2l6ZW9mKCpzZGF0YSksIEdGUF9LRVJORUwpOworCQlpZiAoIXNkYXRhKSB7
-CisJCQlwcl9lcnIoIiVzOiBGYWlsZWQgdG8gYWxsb2NhdGUgbWVtb3J5IGZvciBzZW5zb3JfZGF0
-YSIsCisJCQkJCV9fZnVuY19fKTsKKwkJCWVyciA9IC1FTk9NRU07CisJCQlnb3RvIGV4aXRfcHV0
-X25vZGU7CisJCX0KKworCQlzZGF0YS0+aWQgPSAqc2Vuc29yX2lkOworCQlzZGF0YS0+c3R5cGUg
-PSBzdHlwZTsKKwkJZXJyID0gY3JlYXRlX2h3bW9uX2F0dHJfbmFtZShzdHlwZSwgbnAtPm5hbWUs
-IHNkYXRhLT5uYW1lKTsKKwkJaWYgKGVycikgeworCQkJcHJfZXJyKCIlczogRmFpbGVkIHRvIGNy
-ZWF0ZSB0aGUgaHdtb24gYXR0cmlidXRlIG5hbWVcbiIsCisJCQkJCV9fZnVuY19fKTsKKwkJCWdv
-dG8gZXhpdF9mcmVlX3NkYXRhOworCQl9CisKKwkJc3lzZnNfYXR0cl9pbml0KCZzZGF0YS0+c2Rf
-YXR0ci5kZXZfYXR0ci5hdHRyKTsKKwkJc2RhdGEtPnNkX2F0dHIuZGV2X2F0dHIuYXR0ci5uYW1l
-ID0gc2RhdGEtPm5hbWU7CisJCXNkYXRhLT5zZF9hdHRyLmRldl9hdHRyLmF0dHIubW9kZSA9IFNf
-SVJVR087CisJCXNkYXRhLT5zZF9hdHRyLmRldl9hdHRyLnNob3cgPSBzaG93X3NlbnNvcjsKKwor
-CQkvKiBDcmVhdGUgc3lzZnMgYXR0cmlidXRlIGZpbGUgKi8KKwkJZXJyID0gZGV2aWNlX2NyZWF0
-ZV9maWxlKGRldiwgJnNkYXRhLT5zZF9hdHRyLmRldl9hdHRyKTsKKwkJaWYgKGVycikKKwkJCWdv
-dG8gZXhpdF9mcmVlX3NkYXRhOworCisJCWxpc3RfYWRkX3RhaWwoJnNkYXRhLT5saXN0LCAmcGRh
-dGEtPmF0dHJfbGlzdCk7CisJfQorCisJb2Zfbm9kZV9wdXQob3BhbCk7CisJcmV0dXJuIDA7CisK
-K2V4aXRfZnJlZV9zZGF0YToKKwlrZnJlZShzZGF0YSk7CitleGl0X3B1dF9ub2RlOgorCW9mX25v
-ZGVfcHV0KG9wYWwpOworCXJlbW92ZV9kZXZpY2VfYXR0cnMocGRldik7CitleGl0OgorCXJldHVy
-biBlcnI7Cit9CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfbmFtZShzdHJ1Y3QgZGV2aWNlICpkZXYs
-IHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLAorCQljaGFyICpidWYpCit7CisJc3Ry
-dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiA9IHRvX3BsYXRmb3JtX2RldmljZShkZXYpOworCXJl
-dHVybiBzcHJpbnRmKGJ1ZiwgIiVzXG4iLCBwZGV2LT5uYW1lKTsKK30KKworc3RhdGljIGludCBp
-Ym1wb3dlcm52X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCit7CisJc3RydWN0
-IGRldmljZSAqZGV2ID0gJnBkZXYtPmRldjsKKwlzdHJ1Y3QgcGxhdGZvcm1fZGF0YSAqcGRhdGE7
-CisJaW50IGVycjsKKworCXBkYXRhID0gZGV2bV9remFsbG9jKGRldiwgc2l6ZW9mKCpwZGF0YSks
-IEdGUF9LRVJORUwpOworCWlmICghcGRhdGEpIHsKKwkJZXJyID0gLUVOT01FTTsKKwkJZ290byBl
-eGl0OworCX0KKworCUlOSVRfTElTVF9IRUFEKCZwZGF0YS0+YXR0cl9saXN0KTsKKwlwbGF0Zm9y
-bV9zZXRfZHJ2ZGF0YShwZGV2LCBwZGF0YSk7CisKKwkvKiBDcmVhdGUgcGxhdGZvcm0gZGV2aWNl
-ICduYW1lJyBhdHRyaWJ1dGUgKi8KKwlzeXNmc19hdHRyX2luaXQoJnBkYXRhLT5uYW1lX2F0dHIu
-YXR0cik7CisJcGRhdGEtPm5hbWVfYXR0ci5hdHRyLm5hbWUgPSAibmFtZSI7CisJcGRhdGEtPm5h
-bWVfYXR0ci5hdHRyLm1vZGUgPSBTX0lSVUdPOworCXBkYXRhLT5uYW1lX2F0dHIuc2hvdyA9IHNo
-b3dfbmFtZTsKKwllcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGV2LCAmcGRhdGEtPm5hbWVfYXR0
-cik7CisJaWYgKGVycikKKwkJZ290byBleGl0OworCisJLyogQ3JlYXRlIHN5c2ZzIGF0dHJpYnV0
-ZSBmaWxlIGZvciBlYWNoIHNlbnNvciBmb3VuZCBpbiB0aGUgRFQgKi8KKwllcnIgPSBjcmVhdGVf
-ZGV2aWNlX2F0dHJzKHBkZXYpOworCWlmIChlcnIpIHsKKwkJcHJfZXJyKCIlczogRmFpbGVkIHRv
-IGNyZWF0ZSB0aGUgZGV2aWNlIGF0dHJpYnV0ZXNcbiIsCisJCQkJX19mdW5jX18pOworCQlnb3Rv
-IGV4aXRfcmVtb3ZlX25hbWU7CisJfQorCisJLyogRmluYWxseSwgcmVnaXN0ZXIgd2l0aCBod21v
-biAqLworCXBkYXRhLT5od21vbl9kZXYgPSBkZXZtX2h3bW9uX2RldmljZV9yZWdpc3Rlcl93aXRo
-X2dyb3VwcyhkZXYsIERSVk5BTUUsCisJCQlwZGF0YSwgTlVMTCk7CisJaWYgKElTX0VSUihwZGF0
-YS0+aHdtb25fZGV2KSkgeworCQllcnIgPSBQVFJfRVJSKHBkYXRhLT5od21vbl9kZXYpOworCQln
-b3RvIGV4aXRfcmVtb3ZlX2RldmF0dHJzOworCX0KKworCXJldHVybiAwOworCitleGl0X3JlbW92
-ZV9kZXZhdHRyczoKKwlyZW1vdmVfZGV2aWNlX2F0dHJzKHBkZXYpOworZXhpdF9yZW1vdmVfbmFt
-ZToKKwlkZXZpY2VfcmVtb3ZlX2ZpbGUoZGV2LCAmcGRhdGEtPm5hbWVfYXR0cik7CitleGl0Ogor
-CXJldHVybiBlcnI7Cit9CisKK3N0YXRpYyBpbnQgaWJtcG93ZXJudl9yZW1vdmUoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqcGRldikKK3sKKwlzdHJ1Y3QgcGxhdGZvcm1fZGF0YSAqcGRhdGEgPSBw
-bGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKKwlzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmcGRldi0+
-ZGV2OworCisJcmVtb3ZlX2RldmljZV9hdHRycyhwZGV2KTsKKwlkZXZpY2VfcmVtb3ZlX2ZpbGUo
-ZGV2LCAmcGRhdGEtPm5hbWVfYXR0cik7CisKKwlyZXR1cm4gMDsKK30KKworCitzdGF0aWMgc3Ry
-dWN0IHBsYXRmb3JtX2RyaXZlciBpYm1wb3dlcm52X2RyaXZlciA9IHsKKwkuZHJpdmVyID0gewor
-CQkub3duZXIgPSBUSElTX01PRFVMRSwKKwkJLm5hbWUgPSBEUlZOQU1FLAorCX0sCisJLnByb2Jl
-ID0gaWJtcG93ZXJudl9wcm9iZSwKKwkucmVtb3ZlID0gaWJtcG93ZXJudl9yZW1vdmUsCit9Owor
-CisKK3N0YXRpYyBpbnQgX19pbml0IGlibXBvd2VybnZfaW5pdCh2b2lkKQoreworCWludCBlcnI7
-CisKKworCWVyciA9IHBsYXRmb3JtX2RyaXZlcl9yZWdpc3RlcigmaWJtcG93ZXJudl9kcml2ZXIp
-OworCWlmIChlcnIpCisJCWdvdG8gZXhpdDsKKworCisJcGRldmljZSA9IHBsYXRmb3JtX2Rldmlj
-ZV9hbGxvYyhEUlZOQU1FLCAwKTsKKwlpZiAoIXBkZXZpY2UpIHsKKwkJcHJfZXJyKCIlczogRGV2
-aWNlIGFsbG9jYXRpb24gZmFpbGVkXG4iLCBfX2Z1bmNfXyk7CisJCWVyciA9IC1FTk9NRU07CisJ
-CWdvdG8gZXhpdF9kcml2ZXJfdW5yZWc7CisJfQorCisJZXJyID0gcGxhdGZvcm1fZGV2aWNlX2Fk
-ZChwZGV2aWNlKTsKKwlpZiAoZXJyKSB7CisJCXByX2VycigiJXM6IERldmljZSBhZGRpdGlvbiBm
-YWlsZWQgKCVkKVxuIiwgX19mdW5jX18sIGVycik7CisJCWdvdG8gZXhpdF9kZXZpY2VfcHV0Owor
-CX0KKworCXJldHVybiAwOworCitleGl0X2RldmljZV9wdXQ6CisJcGxhdGZvcm1fZGV2aWNlX3B1
-dChwZGV2aWNlKTsKK2V4aXRfZHJpdmVyX3VucmVnOgorCXBsYXRmb3JtX2RyaXZlcl91bnJlZ2lz
-dGVyKCZpYm1wb3dlcm52X2RyaXZlcik7CitleGl0OgorCXJldHVybiBlcnI7Cit9CisKK3N0YXRp
-YyB2b2lkIF9fZXhpdCBpYm1wb3dlcm52X2V4aXQodm9pZCkKK3sKKwlwbGF0Zm9ybV9kZXZpY2Vf
-dW5yZWdpc3RlcihwZGV2aWNlKTsKKwlwbGF0Zm9ybV9kcml2ZXJfdW5yZWdpc3RlcigmaWJtcG93
-ZXJudl9kcml2ZXIpOworfQorCitNT0RVTEVfREVTQ1JJUFRJT04oIklCTSBQT1dFUk5WIHBsYXRm
-b3JtIHNlbnNvcnMiKTsKK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKKworbW9kdWxlX2luaXQoaWJt
-cG93ZXJudl9pbml0KTsKK21vZHVsZV9leGl0KGlibXBvd2VybnZfZXhpdCk7CgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Wed, May 14, 2014 at 11:31:53AM +0530, Neelesh Gupta wrote:
+> This patch adds basic kernel enablement for reading power values, fan
+> speed rpm and temperature values on powernv platforms which will
+> be exported to user space through sysfs interface.
+>=20
+> Test results:
+> -------------
+> [root@tul163p1 ~]# sensors
+> ibmpowernv-isa-0000
+> Adapter: ISA adapter
+> fan1:        5294 RPM  (min =3D    0 RPM)
+> fan2:        4945 RPM  (min =3D    0 RPM)
+> fan3:        5831 RPM  (min =3D    0 RPM)
+> fan4:        5212 RPM  (min =3D    0 RPM)
+> fan5:           0 RPM  (min =3D    0 RPM)
+> fan6:           0 RPM  (min =3D    0 RPM)
+> fan7:        7472 RPM  (min =3D    0 RPM)
+> fan8:        7920 RPM  (min =3D    0 RPM)
+> temp1:        +39.0=B0C  (high =3D  +0.0=B0C)
+> power1:      192.00 W =20
+>=20
+> [root@tul163p1 ~]#=20
+> [root@tul163p1 ~]# ls /sys/devices/platform/ibmpowernv.0/
+> driver      fan2_min    fan4_min    fan6_min    fan8_min   modalias      =
+uevent
+> fan1_fault  fan3_fault  fan5_fault  fan7_fault  hwmon      name
+> fan1_input  fan3_input  fan5_input  fan7_input  in1_fault  power1_input
+> fan1_min    fan3_min    fan5_min    fan7_min    in2_fault  subsystem
+> fan2_fault  fan4_fault  fan6_fault  fan8_fault  in3_fault  temp1_input
+> fan2_input  fan4_input  fan6_input  fan8_input  in4_fault  temp1_max
+> [root@tul163p1 ~]#=20
+> [root@tul163p1 ~]# ls /sys/class/hwmon/hwmon0/device/
+> driver      fan2_min    fan4_min    fan6_min    fan8_min   modalias      =
+uevent
+> fan1_fault  fan3_fault  fan5_fault  fan7_fault  hwmon      name
+> fan1_input  fan3_input  fan5_input  fan7_input  in1_fault  power1_input
+> fan1_min    fan3_min    fan5_min    fan7_min    in2_fault  subsystem
+> fan2_fault  fan4_fault  fan6_fault  fan8_fault  in3_fault  temp1_input
+> fan2_input  fan4_input  fan6_input  fan8_input  in4_fault  temp1_max
+> [root@tul163p1 ~]#
+>=20
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.vnet.ibm.com>
+> Signed-off-by: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
+> ---
+>  drivers/hwmon/Kconfig      |    8 +
+>  drivers/hwmon/Makefile     |    1=20
+>  drivers/hwmon/ibmpowernv.c |  386 ++++++++++++++++++++++++++++++++++++++=
+++++++
+>  3 files changed, 395 insertions(+)
+>  create mode 100644 drivers/hwmon/ibmpowernv.c
+>=20
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index bc196f4..3e308fa 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -554,6 +554,14 @@ config SENSORS_IBMPEX
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called ibmpex.
+> =20
+> +config SENSORS_IBMPOWERNV
+> +	tristate "IBM POWERNV platform sensors"
+> +	depends on PPC_POWERNV
+> +	default y
+> +	help
+> +	  If you say yes here you get support for the temperature/fan/power
+> +	  sensors on your platform.
+> +
+>  config SENSORS_IIO_HWMON
+>  	tristate "Hwmon driver that uses channels specified via iio maps"
+>  	depends on IIO
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index c48f987..199c401 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -71,6 +71,7 @@ obj-$(CONFIG_SENSORS_ULTRA45)	+=3D ultra45_env.o
+>  obj-$(CONFIG_SENSORS_I5K_AMB)	+=3D i5k_amb.o
+>  obj-$(CONFIG_SENSORS_IBMAEM)	+=3D ibmaem.o
+>  obj-$(CONFIG_SENSORS_IBMPEX)	+=3D ibmpex.o
+> +obj-$(CONFIG_SENSORS_IBMPOWERNV)+=3D ibmpowernv.o
+>  obj-$(CONFIG_SENSORS_IIO_HWMON) +=3D iio_hwmon.o
+>  obj-$(CONFIG_SENSORS_INA209)	+=3D ina209.o
+>  obj-$(CONFIG_SENSORS_INA2XX)	+=3D ina2xx.o
+> diff --git a/drivers/hwmon/ibmpowernv.c b/drivers/hwmon/ibmpowernv.c
+> new file mode 100644
+> index 0000000..e5cffce
+> --- /dev/null
+> +++ b/drivers/hwmon/ibmpowernv.c
+> @@ -0,0 +1,386 @@
+> +/*
+> + * IBM PowerNV platform sensors for temperature/fan/power
+> + * Copyright (C) 2014 IBM
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 =
+ USA
+
+Please drop the FSF address; it can change, and we don't want to update the
+driver each time it does.
+
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/kernel.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/of.h>
+> +#include <linux/slab.h>
+> +
+> +#include <linux/platform_device.h>
+> +#include <asm/opal.h>
+> +#include <linux/err.h>
+> +
+> +#define DRVNAME		"ibmpowernv"
+> +#define MAX_ATTR_LEN	32
+> +
+> +/* Sensor suffix name from DT */
+> +#define DT_FAULT_ATTR_SUFFIX		"faulted"
+> +#define DT_DATA_ATTR_SUFFIX		"data"
+> +#define DT_THRESHOLD_ATTR_SUFFIX	"thrs"
+> +
+> +/* Enumerates all the sensors in the POWERNV platform and also index into
+> + * 'struct sensor_name'
+
+Comment coding style, please (this is not the networking subsystem ;-)
+
+> + */
+> +enum sensors {
+> +	FAN,
+> +	AMBIENT_TEMP,
+> +	POWERSUPPLY,
+> +	POWER,
+> +	MAX_SENSOR_TYPE,
+> +};
+> +
+> +static struct sensor_name {
+
+const ?
+
+> +	char *name;
+> +	char *compatible;
+> +} sensor_names[] =3D {
+> +	{"fan", "ibm,opal-sensor-cooling-fan"},
+> +	{"temp", "ibm,opal-sensor-amb-temp"},
+> +	{"in", "ibm,opal-sensor-power-supply"},
+> +	{"power", "ibm,opal-sensor-power"}
+> +};
+> +
+> +struct platform_data {
+> +	struct device *hwmon_dev;
+
+Not needed.
+
+> +	struct device_attribute name_attr;
+> +	struct list_head attr_list;
+> +};
+> +
+> +struct sensor_data {
+> +	u32 id;
+> +	enum sensors stype;
+> +	char name[MAX_ATTR_LEN];
+> +	struct sensor_device_attribute sd_attr;
+> +	struct list_head list;
+> +};
+> +
+> +/* Platform device representing all the ibmpowernv sensors */
+> +static struct platform_device *pdevice;
+> +
+> +static void get_sensor_index_attr(const char *name, u32 *index, char *at=
+tr)
+> +{
+> +	char *hash_pos =3D strchr(name, '#');
+> +	char *dash_pos;
+> +	u32 copy_len;
+> +	char buf[8];
+> +
+> +	memset(buf, 0, sizeof(buf));
+> +	*index =3D 0;
+> +	*attr =3D '\0';
+> +
+> +	if (hash_pos) {
+> +		dash_pos =3D strchr(hash_pos, '-');
+> +		if (dash_pos) {
+> +			copy_len =3D dash_pos - hash_pos - 1;
+> +			if (copy_len < sizeof(buf)) {
+> +				strncpy(buf, hash_pos + 1, copy_len);
+> +				sscanf(buf, "%d", index);
+> +			}
+> +
+> +			strncpy(attr, dash_pos + 1, MAX_ATTR_LEN);
+> +		}
+> +	}
+> +}
+> +
+> +/*
+> + * This function translates the DT node name into the 'hwmon' attribute =
+name.
+> + * IBMPOWERNV device node appear like cooling-fan#2-data, amb-temp#1-thr=
+s etc.
+> + * which need to be mapped as fan2_input, temp1_max respectively before
+> + * populating them inside hwmon device class..
+> + */
+> +static int create_hwmon_attr_name(enum sensors stype, const char *node_n=
+ame,
+> +		char *hwmon_attr_name)
+
+Please follow CodingStyle for continuation line alignment.
+
+> +{
+> +	char attr_suffix[MAX_ATTR_LEN];
+> +	char *attr_name;
+> +	u32 index;
+> +
+> +	get_sensor_index_attr(node_name, &index, attr_suffix);
+> +	if (!index || !strlen(attr_suffix)) {
+> +		pr_info("%s: Sensor device node name is invalid, name: %s\n",
+> +				__func__, node_name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!strcmp(attr_suffix, DT_FAULT_ATTR_SUFFIX))
+> +		attr_name =3D "fault";
+> +	else if(!strcmp(attr_suffix, DT_DATA_ATTR_SUFFIX))
+> +		attr_name =3D "input";
+> +	else if (!strcmp(attr_suffix, DT_THRESHOLD_ATTR_SUFFIX)) {
+> +		if (stype =3D=3D AMBIENT_TEMP)
+> +			attr_name =3D "max";
+> +		else if (stype =3D=3D FAN)
+> +			attr_name =3D "min";
+> +		else
+> +			return -ENOENT;
+> +	} else
+> +		return -ENOENT;
+> +
+> +	snprintf(hwmon_attr_name, MAX_ATTR_LEN, "%s%d_%s",
+> +			sensor_names[stype].name, index, attr_name);
+> +	return 0;
+> +}
+> +
+> +static ssize_t show_sensor(struct device *dev, struct device_attribute *=
+devattr,
+> +		char *buf)
+> +{
+> +	struct sensor_device_attribute *sd_attr =3D to_sensor_dev_attr(devattr);
+> +	struct sensor_data *sdata =3D container_of(sd_attr, struct sensor_data,
+> +			sd_attr);
+> +	int err;
+> +	u32 x;
+> +
+> +	err =3D opal_get_sensor_data(sdata->id, &x);
+> +	if (err) {
+> +		pr_err("%s: Failed to get opal sensor data\n", __func__);
+> +		x =3D -1;
+
+Unusual. Why not report the error to user space ?
+Reporting <maxuint> on error doesn't seem to be very useful.
+
+> +	}
+> +
+> +	/* Convert temperature to milli-degrees */
+> +	if (sdata->stype =3D=3D AMBIENT_TEMP && x > 0)
+> +		x *=3D 1000;
+> +	/* Convert power to micro-watts */
+> +	else if (sdata->stype =3D=3D POWER && x > 0)
+> +		x *=3D 1000000;
+> +
+Is there an overflow concern ? Guess not ... overflow happens at ~17KW.
+Just wondering.
+
+> +	return sprintf(buf, "%d\n", x);
+> +}
+> +
+> +static void remove_device_attrs(struct platform_device *pdev)
+> +{
+> +	struct platform_data *pdata =3D platform_get_drvdata(pdev);
+> +	struct device *dev =3D &pdev->dev;
+> +	struct sensor_data *s, *next;
+> +
+> +	list_for_each_entry_safe(s, next, &pdata->attr_list, list) {
+> +		device_remove_file(dev, &s->sd_attr.dev_attr);
+> +		list_del(&s->list);
+
+This is unnecessary since you always remove the entire list anyway.
+Actually, I don't think you need the list in the first place.
+You only use it to delete entries, but that can be handled automatically
+by the infrastructure. All you really need is an array pointing to the devi=
+ce
+attributes so you can create all attribute files with a single operation.
+
+> +		kfree(s);
+> +	}
+> +}
+> +
+> +/*
+> + * Iterate through the device tree and for each child of sensor node, cr=
+eate
+> + * a sysfs attribute file, the file is named by translating the DT node =
+name
+> + * to the name required by the higher 'hwmon' driver like fan1_input, te=
+mp1_max
+> + * etc..
+> + */
+> +static int create_device_attrs(struct platform_device *pdev)
+> +{
+> +	struct platform_data *pdata =3D platform_get_drvdata(pdev);
+> +	struct device *dev =3D &pdev->dev;
+> +	struct device_node *opal, *np;
+> +	struct sensor_data *sdata;
+> +	const u32 *sensor_id;
+> +	enum sensors stype;
+> +	int err;
+> +
+> +	opal =3D of_find_node_by_path("/ibm,opal/sensors");
+> +        if (!opal) {
+> +		pr_err("%s: Opal 'sensors' node not found\n", __func__);
+> +		err =3D -ENXIO;
+
+	ENODEV ?
+
+> +		goto exit;
+
+	I would suggest to simply return here.
+
+> +        }
+> +
+> +	for_each_child_of_node(opal, np) {
+> +                if (np->name =3D=3D NULL)
+> +                        continue;
+> +
+> +		for (stype =3D 0; stype < MAX_SENSOR_TYPE; stype++)
+> +			if (of_device_is_compatible(np,
+> +					sensor_names[stype].compatible))
+> +				break;
+> +
+> +		if (stype =3D=3D MAX_SENSOR_TYPE)
+> +			continue;
+> +
+> +		sensor_id =3D of_get_property(np, "sensor-id", NULL);
+> +		if (!sensor_id) {
+> +			pr_info("%s: %s doesn't have sensor-id\n", __func__,
+> +					np->name);
+> +			continue;
+> +		}
+> +
+> +		sdata =3D kzalloc(sizeof(*sdata), GFP_KERNEL);
+
+Can you use devm_kzalloc() ?
+
+> +		if (!sdata) {
+> +			pr_err("%s: Failed to allocate memory for sensor_data",
+> +					__func__);
+> +			err =3D -ENOMEM;
+> +			goto exit_put_node;
+> +		}
+> +
+> +		sdata->id =3D *sensor_id;
+> +		sdata->stype =3D stype;
+> +		err =3D create_hwmon_attr_name(stype, np->name, sdata->name);
+> +		if (err) {
+> +			pr_err("%s: Failed to create the hwmon attribute name\n",
+> +					__func__);
+
+create_hwmon_attr_name() (sometimes) already creates an error message.
+Would be nice if you can avoid duplicate error messages.
+
+> +			goto exit_free_sdata;
+> +		}
+> +
+> +		sysfs_attr_init(&sdata->sd_attr.dev_attr.attr);
+> +		sdata->sd_attr.dev_attr.attr.name =3D sdata->name;
+> +		sdata->sd_attr.dev_attr.attr.mode =3D S_IRUGO;
+> +		sdata->sd_attr.dev_attr.show =3D show_sensor;
+
+Since you are not using the index value from sensor_device_attribute,
+but use your own 'id' variable instead, you don't need sensor_device_attrib=
+ute
+but can use device_attribute instead (or drop 'id' and use
+sd_attr.index instead).
+
+> +
+> +		/* Create sysfs attribute file */
+> +		err =3D device_create_file(dev, &sdata->sd_attr.dev_attr);
+> +		if (err)
+> +			goto exit_free_sdata;
+> +
+Please don't create the attribute files here but just a list of attributes
+instead. See below for more details.
+
+> +		list_add_tail(&sdata->list, &pdata->attr_list);
+> +	}
+> +
+> +	of_node_put(opal);
+> +	return 0;
+> +
+> +exit_free_sdata:
+> +	kfree(sdata);
+> +exit_put_node:
+> +	of_node_put(opal);
+> +	remove_device_attrs(pdev);
+> +exit:
+> +	return err;
+> +}
+> +
+> +static ssize_t show_name(struct device *dev, struct device_attribute *de=
+vattr,
+> +		char *buf)
+> +{
+> +	struct platform_device *pdev =3D to_platform_device(dev);
+> +	return sprintf(buf, "%s\n", pdev->name);
+> +}
+Not necessary; see below.
+
+> +
+> +static int ibmpowernv_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev =3D &pdev->dev;
+> +	struct platform_data *pdata;
+> +	int err;
+> +
+> +	pdata =3D devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata) {
+> +		err =3D -ENOMEM;
+> +		goto exit;
+> +	}
+> +
+> +	INIT_LIST_HEAD(&pdata->attr_list);
+> +	platform_set_drvdata(pdev, pdata);
+> +
+> +	/* Create platform device 'name' attribute */
+> +	sysfs_attr_init(&pdata->name_attr.attr);
+> +	pdata->name_attr.attr.name =3D "name";
+> +	pdata->name_attr.attr.mode =3D S_IRUGO;
+> +	pdata->name_attr.show =3D show_name;
+> +	err =3D device_create_file(dev, &pdata->name_attr);
+
+You don't need to create a name attribute.
+devm_hwmon_device_register_with_groups does it for you (from the second
+argument).
+
+> +	if (err)
+> +		goto exit;
+> +
+> +	/* Create sysfs attribute file for each sensor found in the DT */
+> +	err =3D create_device_attrs(pdev);
+
+That defeats the purpose of using devm_hwmon_device_register_with_groups.
+The idea here is to build a list of attributes, which you can do in
+create_device_attrs(), but not create the actual device entries.
+Then also create an attribute_group as well as a list of groups,
+and pass that as last argument to devm_hwmon_device_register_with_groups().
+
+drivers/hwmon/pmbus/pmbus_core.c does something similar; maybe you can
+use a similar approach.
+
+With that, you also don't need the remove functions, since the hwmon
+subsystem will auto-remove the attributes. If you do it correctly=20
+(ie use devm_kzalloc() for allocating memory) you should not need a
+remove function at all.
+
+> +	if (err) {
+> +		pr_err("%s: Failed to create the device attributes\n",
+> +				__func__);
+> +		goto exit_remove_name;
+> +	}
+> +
+> +	/* Finally, register with hwmon */
+> +	pdata->hwmon_dev =3D devm_hwmon_device_register_with_groups(dev, DRVNAM=
+E,
+> +			pdata, NULL);
+> +	if (IS_ERR(pdata->hwmon_dev)) {
+> +		err =3D PTR_ERR(pdata->hwmon_dev);
+> +		goto exit_remove_devattrs;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_remove_devattrs:
+> +	remove_device_attrs(pdev);
+> +exit_remove_name:
+> +	device_remove_file(dev, &pdata->name_attr);
+> +exit:
+> +	return err;
+
+If you do it right you should be able to reduce this to something like
+
+	hwmon_dev =3D devm_hwmon_device_register_with_groups(dev, DRVNAME, pdata,
+							   pdata->attr_groups);
+	return PTR_ERR_OR_ZERO(hwmon_dev);
+
+...
+
+> +}
+> +
+> +static int ibmpowernv_remove(struct platform_device *pdev)
+> +{
+> +	struct platform_data *pdata =3D platform_get_drvdata(pdev);
+> +	struct device *dev =3D &pdev->dev;
+> +
+> +	remove_device_attrs(pdev);
+> +	device_remove_file(dev, &pdata->name_attr);
+> +
+> +	return 0;
+> +}
+
+... and you should be able to remove this entire function.
+
+> +
+> +
+No double empty lines please.
+
+> +static struct platform_driver ibmpowernv_driver =3D {
+> +	.driver =3D {
+> +		.owner =3D THIS_MODULE,
+> +		.name =3D DRVNAME,
+> +	},
+> +	.probe =3D ibmpowernv_probe,
+> +	.remove =3D ibmpowernv_remove,
+> +};
+> +
+> +
+Excessive empty lines.
+
+> +static int __init ibmpowernv_init(void)
+> +{
+> +	int err;
+> +
+> +
+Excessive empty lines.
+
+> +	err =3D platform_driver_register(&ibmpowernv_driver);
+> +	if (err)
+> +		goto exit;
+
+Sometimes you create an error message, sometimes not. I'd prefer no error
+message to start with (the module loader will create one anyway), but
+at least please be consistent.
+
+> +
+> +
+Excessive empty lines.
+
+> +	pdevice =3D platform_device_alloc(DRVNAME, 0);
+> +	if (!pdevice) {
+> +		pr_err("%s: Device allocation failed\n", __func__);
+> +		err =3D -ENOMEM;
+> +		goto exit_driver_unreg;
+> +	}
+> +
+> +	err =3D platform_device_add(pdevice);
+> +	if (err) {
+> +		pr_err("%s: Device addition failed (%d)\n", __func__, err);
+> +		goto exit_device_put;
+> +	}
+> +
+Can you use platform_driver_probe() here ?
+
+> +	return 0;
+> +
+> +exit_device_put:
+> +	platform_device_put(pdevice);
+> +exit_driver_unreg:
+> +	platform_driver_unregister(&ibmpowernv_driver);
+> +exit:
+> +	return err;
+> +}
+> +
+> +static void __exit ibmpowernv_exit(void)
+> +{
+> +	platform_device_unregister(pdevice);
+> +	platform_driver_unregister(&ibmpowernv_driver);
+> +}
+> +
+> +MODULE_DESCRIPTION("IBM POWERNV platform sensors");
+> +MODULE_LICENSE("GPL");
+> +
+> +module_init(ibmpowernv_init);
+> +module_exit(ibmpowernv_exit);
+>=20
+>=20
+Empty lines at end.
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
