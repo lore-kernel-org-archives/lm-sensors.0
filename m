@@ -1,32 +1,138 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 12 May 2014 19:55:13 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/emc1403.c: add support for emc14x2
-Message-Id: <20140512215513.42076761@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 15 May 2014 03:02:34 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Document hwmon kernel API
+Message-Id: <1400122954-1742-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140512123409.GB16252@dashie>
-	<20140512161415.GA16770@roeck-us.net>
-	<20140512190327.4f65c90a@endymion.delvare>
-	<20140512184727.GA9003@roeck-us.net>
-In-Reply-To: <20140512184727.GA9003@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Josef Gajdusek <atx@atx.name>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-On Mon, 12 May 2014 11:47:27 -0700, Guenter Roeck wrote:
-> The chips are not only compatible, the even have the same device IDs.
-> Maybe I missed it, but I did not find a difference.
+The hwmon subsystem has been around for a while. Time to document
+its kernel API.
 
-The EMC141x seem to have fewer package options (no SOIC) but better
-internal sensor accuracy (+/- 1=B0C instead of +/- 2=B0C.) The +/- 1=B0C
-accuracy for the external channels is also guaranteed over a wider
-temperature range. Just from a quick look at the product features,
-there may be more.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/hwmon-kernel-api.txt | 107 +++++++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
+ create mode 100644 Documentation/hwmon/hwmon-kernel-api.txt
 
---=20
-Jean Delvare
-SUSE L3 Support
+diff --git a/Documentation/hwmon/hwmon-kernel-api.txt b/Documentation/hwmon/hwmon-kernel-api.txt
+new file mode 100644
+index 0000000..70889de
+--- /dev/null
++++ b/Documentation/hwmon/hwmon-kernel-api.txt
+@@ -0,0 +1,107 @@
++The Linux Hardware Monitoring kernel API.
++====================+
++Guenter Roeck
++
++Introduction
++------------
++
++This document describes the API that can be used by hardware monitoring
++drivers that want to use the hardware monitoring framework.
++
++This document does not describe what a hardware monitoring (hwmon) Driver or
++Device is. It also does not describe the API which can be used by user space
++to communicate with a hardware monitoring device. If you want to know this
++then please read the following file: Documentation/hwmon/sysfs-interface.
++
++For additional guidelines on how to write and improve hwmon drivers, please
++also read Documentation/hwmon/submitting-patches.
++
++The API
++-------
++Each hardware monitoring driver must #include <linux/hwmon.h> and, in most
++cases, <linux/hwmon-sysfs.h>. linux/hwmon.h declares the following
++register/unregister functions:
++
++struct device *hwmon_device_register(struct device *dev);
++struct device *
++hwmon_device_register_with_groups(struct device *dev, const char *name,
++				  void *drvdata,
++				  const struct attribute_group **groups);
++
++struct device *
++devm_hwmon_device_register_with_groups(struct device *dev,
++				       const char *name, void *drvdata,
++				       const struct attribute_group **groups);
++
++void hwmon_device_unregister(struct device *dev);
++void devm_hwmon_device_unregister(struct device *dev);
++
++hwmon_device_register registers a hardware monitoring device. The parameter
++of this function is a pointer to the parent device.
++This function returns a pointer to the newly created hardware monitoring device
++or PTR_ERR for failure. If this registration function is used, hardware
++monitoring sysfs attributes are expected to have been created and attached to
++the parent device prior to calling hwmon_device_register. A name attribute must
++have been created by the caller.
++
++hwmon_device_register_with_groups is similar to hwmon_device_register. However,
++it has additional parameters. The name parameter is a pointer to the hwmon
++device name. The registration function wil create a name sysfs attribute
++pointing to this name. The drvdata parameter is the pointer to the local
++driver data.  hwmon_device_register_with_groups will attach this pointer
++to the newly allocated hwmon device. The pointer can be retrieved by the driver
++using dev_get_drvdata() on the hwmon device pointer. The groups parameter is
++a pointer to a list of sysfs attribute groups. The list must be NULL terminated.
++hwmon_device_register_with_groups creates the hwmon device with name attribute
++as well as all sysfs attributes attached to the hwmon device.
++
++devm_hwmon_device_register_with_groups is similar to
++hwmon_device_register_with_groups. However, it is device managed, meaning the
++hwmon device does not have to be removed explicitly by the removal function.
++
++hwmon_device_unregister deregisters a registered hardware monitoring device.
++The parameter of this function is the pointer to the registered hardware
++monitoring device structure. This function must be called from the driver
++remove function if the hardware monitoring device was registered with
++hwmon_device_register or with hwmon_device_register_with_groups.
++
++devm_hwmon_device_unregister does not normally have to be called. It is only
++needed for error handling, and only needed if the driver probe fails after
++the call to devm_hwmon_device_register_with_groups.
++
++The include file linux/hwmon-sysfs.h provides a number of useful macros to
++declare and use hardware monitoring sysfs attributes.
++
++In many cases, you can use the exsting define DEVICE_ATTR to declare such
++attributes. This is feasible if an attribute has no additional context. However,
++in many cases there will be additional information such as a sensor index which
++will need to be passed to the sysfs attribute handling function.
++
++SENSOR_DEVICE_ATTR and SENSOR_DEVICE_ATTR_2 can be used to define attributes
++which need such additional context information. SENSOR_DEVICE_ATTR requires
++one additional argument, SENSOR_DEVICE_ATTR_2 requires two.
++
++SENSOR_DEVICE_ATTR defines a struct sensor_device_attribute variable.
++This structure has the following fields.
++
++struct sensor_device_attribute {
++	struct device_attribute dev_attr;
++	int index;
++};
++
++You can use to_sensor_dev_attr to get the pointer to this structure from the
++attribute read or write function. Parameter is the device to which the attribute
++is attached.
++
++SENSOR_DEVICE_ATTR_2 defines a struct sensor_device_attribute_2 variable,
++which is defined as follows.
++
++struct sensor_device_attribute_2 {
++	struct device_attribute dev_attr;
++	u8 index;
++	u8 nr;
++};
++
++Use to_sensor_dev_attr_2 to get the pointer to this structure. Parameter is the
++device to which the attribute is attached.
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
