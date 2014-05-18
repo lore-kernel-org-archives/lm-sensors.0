@@ -1,25 +1,27 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 09 May 2014 13:49:01 +0000
-Subject: Re: [lm-sensors] [PATCH] MAINTAINERS: change my email
-Message-Id: <536CDCCD.4030709@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sun, 18 May 2014 08:19:10 +0000
+Subject: Re: [lm-sensors] Dell Latitude E6440 & i8k
+Message-Id: <20140518101910.35059ee7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1399558065-24479-1-git-send-email-clabbe.montjoie@gmail.com>
-In-Reply-To: <1399558065-24479-1-git-send-email-clabbe.montjoie@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 05/08/2014 07:07 AM, LABBE Corentin wrote:
-> Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
-> ---
+Please leave the list in Cc.
 
-Queued for -next.
+On Sun, 18 May 2014 00:52:13 +0200, Pali Roh=E1r wrote:
+> Do you know if there is any way to extract BIOS SMM code? Or it=20
+> is something which is not possible to do from OS/kernel side?
 
-Thanks,
-Guenter
+If you download a BIOS update for your laptop from Dell, the SMM code
+is certainly somewhere in the binary blob which gets flashed to the
+EEPROM. But extracting that code from there would certainly be
+challenge.
 
-
+--=20
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
