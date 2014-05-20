@@ -1,65 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 20 May 2014 20:03:36 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 20 May 2014 21:20:29 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon: Introduce the use of the managed version of kzalloc
-Message-Id: <20140520200336.GA11723@roeck-us.net>
+Message-Id: <20140520232029.2631e56b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140520181536.GA11483@himangi-Dell>
-In-Reply-To: <20140520181536.GA11483@himangi-Dell>
+	<20140520200336.GA11723@roeck-us.net>
+In-Reply-To: <20140520200336.GA11723@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Himangi Saraogi <himangi774@gmail.com>
-Cc: Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Himangi Saraogi <himangi774@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
 
-On Tue, May 20, 2014 at 11:45:37PM +0530, Himangi Saraogi wrote:
-> This patch moves data allocated using kzalloc to managed data allocated
-> using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-> functions. Also, the unnecessary label out_free is removed.
+On Tue, 20 May 2014 13:03:36 -0700, Guenter Roeck wrote:
+> On Tue, May 20, 2014 at 11:45:37PM +0530, Himangi Saraogi wrote:
+> Applied to -next, just for the sake of it, but frankly that driver
+> is screwed up so badly that it is pretty much unusable anyway.
+> Almost all of its attributes are non-standard, and for most of them
+> that is completely unnecsssary.
 > 
-> The following Coccinelle semantic patch was used for making the change:
-> 
-> @platform@
-> identifier p, probefn, removefn;
-> @@
-> struct platform_driver p = {
->   .probe = probefn,
->   .remove = removefn,
-> };
-> 
-> @prb@
-> identifier platform.probefn, pdev;
-> expression e, e1, e2;
-> @@
-> probefn(struct platform_device *pdev, ...) {
->   <+...
-> - e = kzalloc(e1, e2)
-> + e = devm_kzalloc(&pdev->dev, e1, e2)
->   ...
-> ?-kfree(e);
->   ...+>
-> }
-> 
-> @rem depends on prb@
-> identifier platform.removefn;
-> expression e;
-> @@
-> removefn(...) {
->   <...
-> - kfree(e);
->   ...>
-> }
-> 
-> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+> Maybe we should create a to-be-removed list and put it there
+> as first candidate.
 
-Applied to -next, just for the sake of it, but frankly that driver
-is screwed up so badly that it is pretty much unusable anyway.
-Almost all of its attributes are non-standard, and for most of them
-that is completely unnecsssary.
+The traditional way for this is to move the driver to drivers/staging,
+mention a deadline in the commit message, and delete it after a few
+releases if nobody steps up.
 
-Maybe we should create a to-be-removed list and put it there
-as first candidate.
+An alternative would be to contact the maintainer (or short of that,
+the original contributor) of the driver for an update. Again, with a
+deadline.
 
-Guenter
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
