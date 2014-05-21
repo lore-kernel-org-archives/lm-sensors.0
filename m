@@ -1,42 +1,74 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 12 May 2014 01:50:12 +0000
-Subject: Re: [lm-sensors] [PATCH 0/3] First shot at a hwmon device name mapper
-Message-Id: <537028D4.9070907@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 21 May 2014 12:58:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ntc_thermistor) Fix OF device ID mapping
+Message-Id: <20140521145822.56a3195e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140509100104.3dcdb46d@endymion.delvare>
-In-Reply-To: <20140509100104.3dcdb46d@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 05/09/2014 01:01 AM, Jean Delvare wrote:
-> Hi all,
->
-> As discussed lately on this list, here is a first shot at a helper
-> binary that resolves libsensors chip names to kernel device names and
-> back.
->
-> This is really a proof of concept at this point. Everything can still
-> be discussed and changed, just speak up if you see any problem or to
-> ask for improvements. Specifically I have no preference for the tool's
-> name or its command line interface, so if you can think of anything
-> better, just let me know.
->
+The mapping from OF device IDs to platform device IDs is wrong.
+TYPE_NCPXXWB473 is 0, TYPE_NCPXXWL333 is 1, so
+ntc_thermistor_id[TYPE_NCPXXWB473] is { "ncp15wb473", TYPE_NCPXXWB473 }
+while
+ntc_thermistor_id[TYPE_NCPXXWL333] is { "ncp18wb473", TYPE_NCPXXWB473 }.
 
-I tried with udev, but that doesn't work - if I understand corretly,
-device rename support needs explicit kernel support per subsystem.
-The networking subsystem does it with dev_change_name(). Other than that
-there is device_rename(), which is hardly used.
+So the name is wrong for all but the "ntc,ncp15wb473" entry, and the
+type is wrong for the "ntc,ncp15wl333" entry.
 
-So I guess we have no other choice than something like this, unless we go
-radical and start using per-driver names (coretemp0 instead of hwmonX).
-But I think even that would not be reboot-safe, for example on a system
-with multiple sensors of the same type connected to different i2c busses.
-Anyway, not sure if that would be a good idea to start with.
+So map the entries by index, it is neither elegant nor robust but at
+least it is correct.
 
-Guenter
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Fixes: 9e8269de hwmon: (ntc_thermistor) Add DT with IIO support to NTC thermistor driver
+Cc: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Doug Anderson <dianders@chromium.org>
+---
+Again this is a candidate for stable, but maybe we don't really care
+because the only in-tree user is for the only device for which the
+mapping wasn't broken.
 
+ drivers/hwmon/ntc_thermistor.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+--- linux-3.15-rc5.orig/drivers/hwmon/ntc_thermistor.c	2014-05-21 13:31:04.781217589 +0200
++++ linux-3.15-rc5/drivers/hwmon/ntc_thermistor.c	2014-05-21 14:12:48.408410951 +0200
+@@ -44,6 +44,7 @@ struct ntc_compensation {
+ 	unsigned int	ohm;
+ };
+ 
++/* Order matters, ntc_match references the entries by index */
+ static const struct platform_device_id ntc_thermistor_id[] = {
+ 	{ "ncp15wb473", TYPE_NCPXXWB473 },
+ 	{ "ncp18wb473", TYPE_NCPXXWB473 },
+@@ -163,15 +164,15 @@ static int ntc_adc_iio_read(struct ntc_t
+ 
+ static const struct of_device_id ntc_match[] = {
+ 	{ .compatible = "ntc,ncp15wb473",
+-		.data = &ntc_thermistor_id[TYPE_NCPXXWB473] },
++		.data = &ntc_thermistor_id[0] },
+ 	{ .compatible = "ntc,ncp18wb473",
+-		.data = &ntc_thermistor_id[TYPE_NCPXXWB473] },
++		.data = &ntc_thermistor_id[1] },
+ 	{ .compatible = "ntc,ncp21wb473",
+-		.data = &ntc_thermistor_id[TYPE_NCPXXWB473] },
++		.data = &ntc_thermistor_id[2] },
+ 	{ .compatible = "ntc,ncp03wb473",
+-		.data = &ntc_thermistor_id[TYPE_NCPXXWB473] },
++		.data = &ntc_thermistor_id[3] },
+ 	{ .compatible = "ntc,ncp15wl333",
+-		.data = &ntc_thermistor_id[TYPE_NCPXXWL333] },
++		.data = &ntc_thermistor_id[4] },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, ntc_match);
+
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
