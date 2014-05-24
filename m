@@ -1,50 +1,53 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 22 May 2014 16:27:56 +0000
-Subject: Re: [lm-sensors] [PATCH] i8k: increase fan limit to 3
-Message-Id: <20140522182756.04afd351@endymion.delvare>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sat, 24 May 2014 15:21:23 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct6775) Fix probe unwind paths to properly unregister platform devices
+Message-Id: <1400944883.17840.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1400725168-21358-1-git-send-email-fbl@redhat.com>
-	<537D6FC8.5000105@roeck-us.net>
-	<20140522082831.GA16167@alpha.franken.de>
-	<20140522151259.GC1001@roeck-us.net>
-In-Reply-To: <20140522151259.GC1001@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Flavio Leitner <fbl@redhat.com>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Flavio Leitner <fbl@sysclose.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Thu, 22 May 2014 08:12:59 -0700, Guenter Roeck wrote:
-> On Thu, May 22, 2014 at 10:28:31AM +0200, Thomas Bogendoerfer wrote:
-> > On Wed, May 21, 2014 at 08:32:24PM -0700, Guenter Roeck wrote:
-> > > On 05/21/2014 07:19 PM, Flavio Leitner wrote:
-> > > >From: Flavio Leitner <fbl@sysclose.org>
-> > > >
-> > > >It is possible to increase left fan speed on a
-> > > >DELL Precision 490n system up to 3.
-> > > >
-> > > >     value    fan rpm
-> > > >       1      35460
-> > > >       2      64740
-> > > >       3      78510
-> > > >
-> > > Guess the speed factor 30 doesn't apply here.
-> > 
-> > on my vostro 1720 value 3 is default value and it looks like
-> > it's sort of an auto mode.
-> > 
-> > BTW. the only fan in the system is on the left side, but shows up as
-> > RigthFan. Wouldn't it be better to simply number the fans and let the
-> > "real" labeling be done via sensors.conf ?
-> > 
-> I agree. Jean, any comments ? Is it ok to drop the fan labels ?
+Call platform_device_unregister() rather than platform_device_put() to
+unregister successfully registered platform devices.
 
-Yes it is, I had that it mind already, just I don't have the time to do
-it.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/nct6775.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 38d5a63..59d9a3f 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -4160,7 +4160,7 @@ static int __init sensors_nct6775_init(void)
+ 		pdev[i] = platform_device_alloc(DRVNAME, address);
+ 		if (!pdev[i]) {
+ 			err = -ENOMEM;
+-			goto exit_device_put;
++			goto exit_device_unregister;
+ 		}
+ 
+ 		err = platform_device_add_data(pdev[i], &sio_data,
+@@ -4198,9 +4198,11 @@ static int __init sensors_nct6775_init(void)
+ 	return 0;
+ 
+ exit_device_put:
+-	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
++	platform_device_put(pdev[i]);
++exit_device_unregister:
++	while (--i >= 0) {
+ 		if (pdev[i])
+-			platform_device_put(pdev[i]);
++			platform_device_unregister(pdev[i]);
+ 	}
+ exit_unregister:
+ 	platform_driver_unregister(&nct6775_driver);
 -- 
-Jean Delvare
-SUSE L3 Support
+1.8.3.2
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
