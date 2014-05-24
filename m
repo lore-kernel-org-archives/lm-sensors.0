@@ -1,53 +1,25 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sat, 24 May 2014 15:04:22 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (nct6683) Fix probe unwind paths to properly unregister platform devi
-Message-Id: <1400943862.14783.0.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 24 May 2014 15:47:52 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: (nct6683) Fix probe unwind paths to properly unregister platform 
+Message-Id: <20140524154752.GB31881@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1400943862.14783.0.camel@phoenix>
+In-Reply-To: <1400943862.14783.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Call platform_device_unregister() rather than platform_device_put() to
-unregister successfully registered platform devices.
+On Sat, May 24, 2014 at 11:04:22PM +0800, Axel Lin wrote:
+> Call platform_device_unregister() rather than platform_device_put() to
+> unregister successfully registered platform devices.
+> 
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> ---
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/nct6683.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+Applied, thanks.
 
-diff --git a/drivers/hwmon/nct6683.c b/drivers/hwmon/nct6683.c
-index 540c81c..7710f46 100644
---- a/drivers/hwmon/nct6683.c
-+++ b/drivers/hwmon/nct6683.c
-@@ -1389,7 +1389,7 @@ static int __init sensors_nct6683_init(void)
- 		pdev[i] = platform_device_alloc(DRVNAME, address);
- 		if (!pdev[i]) {
- 			err = -ENOMEM;
--			goto exit_device_put;
-+			goto exit_device_unregister;
- 		}
- 
- 		err = platform_device_add_data(pdev[i], &sio_data,
-@@ -1427,9 +1427,11 @@ static int __init sensors_nct6683_init(void)
- 	return 0;
- 
- exit_device_put:
--	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
-+	platform_device_put(pdev[i]);
-+exit_device_unregister:
-+	while (--i >= 0) {
- 		if (pdev[i])
--			platform_device_put(pdev[i]);
-+			platform_device_unregister(pdev[i]);
- 	}
- exit_unregister:
- 	platform_driver_unregister(&nct6683_driver);
--- 
-1.8.3.2
-
-
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
