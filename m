@@ -1,25 +1,51 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 07 May 2014 12:29:38 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (gpio-fan) Make of_device_id array const
-Message-Id: <536A2732.7040709@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sat, 24 May 2014 15:04:22 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (nct6683) Fix probe unwind paths to properly unregister platform devi
+Message-Id: <1400943862.14783.0.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <020d01cf69ce$3e6b90d0$bb42b270$%han@samsung.com>
-In-Reply-To: <020d01cf69ce$3e6b90d0$bb42b270$%han@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 05/07/2014 01:27 AM, Jingoo Han wrote:
-> Make of_device_id array const, because all OF functions
-> handle it as const.
->
-> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Call platform_device_unregister() rather than platform_device_put() to
+unregister successfully registered platform devices.
 
-Applied to -next.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/nct6683.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/nct6683.c b/drivers/hwmon/nct6683.c
+index 540c81c..7710f46 100644
+--- a/drivers/hwmon/nct6683.c
++++ b/drivers/hwmon/nct6683.c
+@@ -1389,7 +1389,7 @@ static int __init sensors_nct6683_init(void)
+ 		pdev[i] = platform_device_alloc(DRVNAME, address);
+ 		if (!pdev[i]) {
+ 			err = -ENOMEM;
+-			goto exit_device_put;
++			goto exit_device_unregister;
+ 		}
+ 
+ 		err = platform_device_add_data(pdev[i], &sio_data,
+@@ -1427,9 +1427,11 @@ static int __init sensors_nct6683_init(void)
+ 	return 0;
+ 
+ exit_device_put:
+-	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
++	platform_device_put(pdev[i]);
++exit_device_unregister:
++	while (--i >= 0) {
+ 		if (pdev[i])
+-			platform_device_put(pdev[i]);
++			platform_device_unregister(pdev[i]);
+ 	}
+ exit_unregister:
+ 	platform_driver_unregister(&nct6683_driver);
+-- 
+1.8.3.2
+
 
 
 
