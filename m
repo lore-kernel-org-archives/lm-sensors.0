@@ -1,45 +1,85 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Wed, 14 May 2014 18:41:42 +0000
-Subject: Re: [lm-sensors] [linux-sunxi] [PATCH v4 2/2] input: sun4i-ts: Add support for temperature sensor
-Message-Id: <20140514184142.GG30089@core.coreip.homeip.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sat, 24 May 2014 02:20:16 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct6683) Fix probe unwind paths to properly unregister platform devices
+Message-Id: <1400898016.10421.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1399795586-18919-1-git-send-email-hdegoede@redhat.com>
- <1399795586-18919-3-git-send-email-hdegoede@redhat.com>
- <CAGb2v66EiYy3XbLqBXmOhOfHF=2DC_tOyQpdM8Q05iR6+X66zg@mail.gmail.com>
-In-Reply-To: <CAGb2v66EiYy3XbLqBXmOhOfHF=2DC_tOyQpdM8Q05iR6+X66zg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>
-Cc: linux-sunxi <linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, May 12, 2014 at 04:44:51PM +0800, Chen-Yu Tsai wrote:
-> Hi,
-> 
-> On Sun, May 11, 2014 at 4:06 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> > @@ -232,14 +284,39 @@ static int sun4i_ts_probe(struct platform_device *pdev)
-> >         writel(STYLUS_UP_DEBOUN(5) | STYLUS_UP_DEBOUN_EN(1) | TP_MODE_EN(1),
-> >                ts->base + TP_CTRL1);
-> >
-> > -       ret = input_register_device(ts->input);
-> > -       if (ret)
-> > -               return ret;
-> > +       hwmon = devm_hwmon_device_register_with_groups(ts->dev, "sun4i_ts",
-> > +                                                      ts, sun4i_ts_groups);
-> 
-> This fails to compile when HWMON is not selected:
-> 
-> drivers/built-in.o: In function `sun4i_ts_probe':
-> /home/wens/cubieboard/linux/drivers/input/touchscreen/sun4i-ts.c:287:
-> undefined reference to `devm_hwmon_device_register_with_groups'
-> 
-> Best do a wrapper around the hwmon related code.
-> drivers/input/touchscreen/ads7846.c has something similar, albeit for voltage.
+Call platform_device_unregister() rather than platform_device_put() to
+unregister successfully registered platform devices.
 
-I added dependency on HWMON and applied, thank you.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/nct6683.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/hwmon/nct6683.c b/drivers/hwmon/nct6683.c
+index 540c81c..1fd6098 100644
+--- a/drivers/hwmon/nct6683.c
++++ b/drivers/hwmon/nct6683.c
+@@ -1389,13 +1389,15 @@ static int __init sensors_nct6683_init(void)
+ 		pdev[i] = platform_device_alloc(DRVNAME, address);
+ 		if (!pdev[i]) {
+ 			err = -ENOMEM;
+-			goto exit_device_put;
++			goto exit_device_unregister;
+ 		}
+ 
+ 		err = platform_device_add_data(pdev[i], &sio_data,
+ 					       sizeof(struct nct6683_sio_data));
+-		if (err)
+-			goto exit_device_put;
++		if (err) {
++			platform_device_put(pdev[i]);
++			goto exit_device_unregister;
++		}
+ 
+ 		memset(&res, 0, sizeof(res));
+ 		res.name = DRVNAME;
+@@ -1411,13 +1413,17 @@ static int __init sensors_nct6683_init(void)
+ 		}
+ 
+ 		err = platform_device_add_resources(pdev[i], &res, 1);
+-		if (err)
+-			goto exit_device_put;
++		if (err) {
++			platform_device_put(pdev[i]);
++			goto exit_device_unregister;
++		}
+ 
+ 		/* platform_device_add calls probe() */
+ 		err = platform_device_add(pdev[i]);
+-		if (err)
+-			goto exit_device_put;
++		if (err) {
++			platform_device_put(pdev[i]);
++			goto exit_device_unregister;
++		}
+ 	}
+ 	if (!found) {
+ 		err = -ENODEV;
+@@ -1426,10 +1432,10 @@ static int __init sensors_nct6683_init(void)
+ 
+ 	return 0;
+ 
+-exit_device_put:
+-	for (i = 0; i < ARRAY_SIZE(pdev); i++) {
++exit_device_unregister:
++	while (--i >= 0) {
+ 		if (pdev[i])
+-			platform_device_put(pdev[i]);
++			platform_device_unregister(pdev[i]);
+ 	}
+ exit_unregister:
+ 	platform_driver_unregister(&nct6683_driver);
 -- 
-Dmitry
+1.8.3.2
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
