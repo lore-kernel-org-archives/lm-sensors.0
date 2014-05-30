@@ -1,30 +1,34 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Wed, 28 May 2014 07:41:11 +0000
+From: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
+Date: Fri, 30 May 2014 14:17:30 +0000
 Subject: Re: [lm-sensors] [PATCH v2] powerpc/powernv: hwmon driver for power values, fan rpm and temperature
-Message-Id: <1401262871.8262.22.camel@pasglop>
+Message-Id: <5388902A.6050301@linux.vnet.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20140519141931.9248.11356.stgit@neelegup-tp-t420.in.ibm.com>
- <53858F02.2020808@roeck-us.net>
-In-Reply-To: <53858F02.2020808@roeck-us.net>
+ <53858F02.2020808@roeck-us.net> <1401262871.8262.22.camel@pasglop>
+In-Reply-To: <1401262871.8262.22.camel@pasglop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, sbhat@linux.vnet.ibm.com, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, linuxppc-dev@lists.ozlabs.org, jdelvare@suse.de
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: sbhat@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, jdelvare@suse.de, lm-sensors@lm-sensors.org
 
-On Wed, 2014-05-28 at 00:23 -0700, Guenter Roeck wrote:
-> Consider using of_property_read_u32().
-> 
-> > +             sdata[count].id = *sensor_id;
-> > +             sdata[count].type = type;
 
-Especially since this is broken for Little Endian !
+On 05/28/2014 01:11 PM, Benjamin Herrenschmidt wrote:
+> On Wed, 2014-05-28 at 00:23 -0700, Guenter Roeck wrote:
+>> Consider using of_property_read_u32().
+>>
+>>> +             sdata[count].id = *sensor_id;
+>>> +             sdata[count].type = type;
+> Especially since this is broken for Little Endian !
+>
+> Neelesh, please make sure you test your patch on LE.
+>
+> Cheers,
+> Ben.
 
-Neelesh, please make sure you test your patch on LE.
+Fixing it and will surely test on LE as well before posting.
 
-Cheers,
-Ben.
-
+- Neelesh
 
 
 _______________________________________________
