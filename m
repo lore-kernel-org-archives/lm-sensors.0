@@ -1,34 +1,23 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 09 Jun 2014 14:45:32 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ina2xx) Cast to s16 on shunt and current regs
-Message-Id: <5395C88C.5070408@roeck-us.net>
+From: Michael P Dixon <michael.p.dixon@seagate.com>
+Date: Mon, 02 Jun 2014 20:17:43 +0000
+Subject: [lm-sensors] Driver for PC87372
+Message-Id: <CADxL3QmF1q5wmSX=YCCTUc_BREXp2F4khHKdZPTPPuXFUtjLcg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1402261584-5301-1-git-send-email-fabio.baltieri@gmail.com>
-In-Reply-To: <1402261584-5301-1-git-send-email-fabio.baltieri@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Fabio Baltieri <fabio.baltieri@gmail.com>, Jean Delvare <jdelvare@suse.de>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 06/08/2014 02:06 PM, Fabio Baltieri wrote:
-> All devices supported by ina2xx are bidirectional and reports the
-> measured shunt voltage and power values as a signed 16 bit, but the
-> current driver implementation caches all registers as u16, leading to an
-> incorrect sign extension when reporting to the userspace in
-> ina2xx_get_value().
->
-> This patch fixes the problem by casting the signed registers to s16.
-> Tested on an INA219.
->
-> Signed-off-by: Fabio Baltieri <fabio.baltieri@gmail.com>
+Hello,
 
-Applied.
+I am interested in obtaining a driver for the PC87372 chip. sensors-detect
+lists it as 'to be written'. I understand that since it is such an old chip
+that it could be very low priority, if it has a priority at all. What kind
+of an effort would it take to produce this driver? The devices page says: *A
+driver has been requested, will be developed upon donation of a board. *What
+are the specifics of this? What kind of board? Any feedback is appreciated.
 
-Thanks,
-Guenter
-
-
+Thanks!
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
