@@ -1,41 +1,29 @@
-From: Thomas Trepper <thomas.trepper@blueclaim.com>
-Date: Tue, 03 Jun 2014 05:18:57 +0000
-Subject: [lm-sensors] Supermicro A1SAi
-Message-Id: <DE79CDD8-60B1-45D0-85B6-3E63F4204929@blueclaim.com>
+From: Phil Pokorny <ppokorny@penguincomputing.com>
+Date: Tue, 03 Jun 2014 09:55:39 +0000
+Subject: Re: [lm-sensors] Supermicro A1SAi
+Message-Id: <CAAek22HHVVj6ZbL96jiw4nEfLJgAPEwQ-Hcg_QzVgQkdqXm1hQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <DE79CDD8-60B1-45D0-85B6-3E63F4204929@blueclaim.com>
+In-Reply-To: <DE79CDD8-60B1-45D0-85B6-3E63F4204929@blueclaim.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,=20
-
-I was wondering if there is support for the Supermicro A1SAi? I have done t=
-his:
-
-# sensors-detect revision 6031 (2012-03-07 17:14:01 +0100)
-# System: Supermicro A1SAi [123456789]
-=85
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:=20
-
-Driver `to-be-written':
-  * ISA bus, address 0xca2
-    Chip `IPMI BMC KCS' (confidence: 8)
-
-Driver `coretemp':
-  * Chip `Intel digital thermal sensor' (confidence: 9)
-
-Are there any chances to get also voltage and fan beside the core-temp? Can=
- anybody maybe point be to the right direction?
-
-Thanks a lot in advance.
-
-Best,
-Thomas
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlc2RheSwgSnVuZSAzLCAyMDE0LCBUaG9tYXMgVHJlcHBlciA8dGhvbWFzLnRyZXBwZXJA
+Ymx1ZWNsYWltLmNvbT4Kd3JvdGU6Cgo+IEhpIGFsbCwKPgo+IEkgd2FzIHdvbmRlcmluZyBpZiB0
+aGVyZSBpcyBzdXBwb3J0IGZvciB0aGUgU3VwZXJtaWNybyBBMVNBaT8gSSBoYXZlIGRvbmUKPiB0
+aGlzOgo+Cj4gIyBzZW5zb3JzLWRldGVjdCByZXZpc2lvbiA2MDMxICgyMDEyLTAzLTA3IDE3OjE0
+OjAxICswMTAwKQo+ICMgU3lzdGVtOiBTdXBlcm1pY3JvIEExU0FpIFsxMjM0NTY3ODldCj4g4oCm
+Cj4gTm93IGZvbGxvd3MgYSBzdW1tYXJ5IG9mIHRoZSBwcm9iZXMgSSBoYXZlIGp1c3QgZG9uZS4K
+PiBKdXN0IHByZXNzIEVOVEVSIHRvIGNvbnRpbnVlOgo+Cj4gRHJpdmVyIGB0by1iZS13cml0dGVu
+JzoKPiAgICogSVNBIGJ1cywgYWRkcmVzcyAweGNhMgo+ICAgICBDaGlwIGBJUE1JIEJNQyBLQ1Mn
+IChjb25maWRlbmNlOiA4KQo+Cj4KRG9uJ3QgdXNlIGxtLXNlbnNvcnMuIFVzZSBpcG1pdG9vbCBv
+ciBmcmVlaXBtaSB3aXRoIG9wZW5JUE1JLiBTdXBlcm1pY3JvCmFsc28gbWFrZXMgc29tZSBjbG9z
+ZWQgc291cmNlIG1hbmFnZW1lbnQgdG9vbHMgZm9yIExpbnV4LgoKT3IgbG9vayB1cCBibWNzZW5z
+b3JzIHdoaWNoIHlvdSBtaWdodCBiZSBpbnRlcmVzdGVkIGluIHdvcmtpbmcgb24uCgoKCi0tIApQ
+aGlsaXAgUG9rb3JueSwgUkhDRQpDaGllZiBUZWNobmljYWwgT2ZmaWNlcgpQRU5HVUlOIENPTVBV
+VElORywgSW5jCnd3dy5wZW5ndWluY29tcHV0aW5nLmNvbQpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
+b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xtLXNlbnNvcnM
