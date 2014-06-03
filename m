@@ -1,172 +1,210 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sun, 29 Jun 2014 13:39:11 +0000
-Subject: [lm-sensors] [RFT][PATCH] hwmon: (jz4740) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <1404049151.17371.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 03 Jun 2014 04:01:53 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon changes for 3.16
+Message-Id: <20140603040153.GA9921@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4525418931582061212=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============4525418931582061212==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Content-Disposition: inline
+
+
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon changes for Linux 3.16 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 4b660a7f5c8099d88d1a43d8ae138965112592c7:
+
+  Linux 3.15-rc6 (2014-05-22 06:42:02 +0900)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 9d311eddf3565ed0e05b3cb5a22db41fa74d9d86:
+
+  hwmon: (nct6775) Fix probe unwind paths to properly unregister platform devices (2014-05-24 08:30:29 -0700)
+
+----------------------------------------------------------------
+New driver for NCT6683D
+
+New chip support to existing drivers:
+	Add support for STTS2004 and AT30TSE004 to jc42 driver
+	Add support for EMC1402/EMC1412/EMC1422 to emc1403 driver
+
+Other notable changes:
+	Document hwmon kernel API
+	Convert jc42, lm70, lm75, lm77, lm83, lm92, max1619, tmp421,
+	and tmp102 drivers to use new hwmon API functions
+	Replace function macros in lm80, lm92, and jc42 drivers with
+	real code
+	Convert emc1403 driver to use regmap, add support for additional
+	attributes, and add device IDs for EMC1412, EMC1413, and EMC1414
+	Various additional cleanup and minor bug fixes in several drivers
+
+----------------------------------------------------------------
+Axel Lin (2):
+      hwmon: (nct6683) Fix probe unwind paths to properly unregister platform devices
+      hwmon: (nct6775) Fix probe unwind paths to properly unregister platform devices
+
+Guenter Roeck (43):
+      hwmon: (lm70) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (tmp102) Introduce dev variable in probe function
+      hwmon: (tmp102) Convert to use hwmon_device_register_with_groups
+      hwmon: (tmp421) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (lm77) Drop FSF mailing address
+      hwmon: (lm77) Rearrange code to no longer require forward declarations
+      hwmon: (lm77) Do not preserve hysteresis when updating critical temp limit
+      hwmon: (lm77) Drop function macros
+      hwmon: (lm77) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (lm75) Convert to use hwmon_device_register_with_groups
+      hwmon: (lm92) Drop unnecessary forward declaration
+      hwmon: (lm92) Drop FSF mailing address
+      hwmon: (lm92) Drop function macros
+      hwmon: (lm92) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (ltc2945) Fix 1st comment line
+      hwmon: Document hwmon kernel API
+      hwmon: (emc1403) Add driver documentation
+      hwmon: (emc1403) Convert to use regmap
+      hwmon: (emc1403) Report external diode fault status
+      hwmon: (emc1403) Add support for alarm and diode fault status on EMC14x2
+      hwmon: (emc1403) Make all hyst attributes except for temp1_crit_hyst read-only
+      hwmon: (emc1403) Relax hysteresis limit write checks
+      hwmon: (emc1403) Add support for max_hyst attributes
+      hwmon: (emc1403) Add support for min_hyst attributes
+      hwmon: (emc1403) Add device IDs for EMC1412, EMC1413, and EMC1414
+      hwmon: (jc42) Rearrange code to avoid forward declarations
+      hwmon: (jc42) Convert function macros into functions
+      hwmon: (jc42) Add support for STTS2004 and AT30TSE004
+      hwmon: (max1619) Fix critical alarm display
+      hwmon: (max1619) Drop FSF address
+      hwmon: (max1619) Rearrange code to avoid forward declarations
+      hwmon: (max1619) Drop function macros
+      hwmon: (max1619) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (lm83) Drop FSF address
+      hwmon: (lm83) Rearange code to avoid forward declarations
+      hwmon: (lm83) Convert to use devm_hwmon_device_register_with_groups
+      hwmon: (lm80) Simplify TEMP_FROM_REG
+      hwmon: (lm80) Normalize all temperature values to 16 bit
+      hwmon: (lm80) Convert temperature display function macros into functions
+      hwmon: (lm80) Convert voltage display function macros into functions
+      hwmon: (lm80) Convert fan display function macros into functions
+      hwmon: (lm80) Rearrange code to avoid forward declarations
+      hwmon: Driver for NCT6683D
+
+Himangi Saraogi (1):
+      hwmon: (ultra45_env) Introduce managed version of kzalloc
+
+Jingoo Han (11):
+      hwmon: (f71805f) remove unnecessary OOM messages
+      hwmon: (ibmpex) remove unnecessary OOM messages
+      hwmon: (lm93) remove unnecessary OOM messages
+      hwmon: (max1111) remove unnecessary OOM messages
+      hwmon: (max197) remove unnecessary OOM messages
+      hwmon: (pc87427) remove unnecessary OOM messages
+      hwmon: (s3c-hwmon) remove unnecessary OOM messages
+      hwmon: (vt1211) remove unnecessary OOM messages
+      hwmon: (g762) Make of_device_id array const
+      hwmon: (gpio-fan) Make of_device_id array const
+      hwmon: (iio_hwmon) Make of_device_id array const
+
+Josef Gajdusek (1):
+      hwmon: (emc1403) Add support for emc14x2
+
+LABBE Corentin (2):
+      MAINTAINERS: Update Corentin Labbe's email
+      hwmon: (adm1029) Update Corentin Labbe's email
+
+ Documentation/hwmon/emc1403              |   59 ++
+ Documentation/hwmon/hwmon-kernel-api.txt |  107 +++
+ Documentation/hwmon/jc42                 |   16 +-
+ Documentation/hwmon/lm77                 |   20 +-
+ Documentation/hwmon/nct6683              |   57 ++
+ MAINTAINERS                              |    2 +-
+ drivers/hwmon/Kconfig                    |   10 +
+ drivers/hwmon/Makefile                   |    1 +
+ drivers/hwmon/adm1029.c                  |    4 +-
+ drivers/hwmon/emc1403.c                  |  267 ++++--
+ drivers/hwmon/f71805f.c                  |    4 +-
+ drivers/hwmon/g762.c                     |    2 +-
+ drivers/hwmon/gpio-fan.c                 |    2 +-
+ drivers/hwmon/ibmpex.c                   |    4 +-
+ drivers/hwmon/iio_hwmon.c                |    2 +-
+ drivers/hwmon/jc42.c                     |  315 +++----
+ drivers/hwmon/lm70.c                     |   62 +-
+ drivers/hwmon/lm75.c                     |   51 +-
+ drivers/hwmon/lm77.c                     |  374 +++-----
+ drivers/hwmon/lm80.c                     |  640 +++++++------
+ drivers/hwmon/lm83.c                     |  168 ++--
+ drivers/hwmon/lm92.c                     |  224 ++---
+ drivers/hwmon/lm93.c                     |    4 +-
+ drivers/hwmon/ltc2945.c                  |    2 +-
+ drivers/hwmon/max1111.c                  |    4 +-
+ drivers/hwmon/max1619.c                  |  304 +++----
+ drivers/hwmon/max197.c                   |    4 +-
+ drivers/hwmon/nct6683.c                  | 1457 ++++++++++++++++++++++++++++++
+ drivers/hwmon/nct6775.c                  |    8 +-
+ drivers/hwmon/pc87427.c                  |    4 +-
+ drivers/hwmon/s3c-hwmon.c                |    4 +-
+ drivers/hwmon/tmp102.c                   |   62 +-
+ drivers/hwmon/tmp421.c                   |   47 +-
+ drivers/hwmon/ultra45_env.c              |    7 +-
+ drivers/hwmon/vt1211.c                   |    4 +-
+ 35 files changed, 2885 insertions(+), 1417 deletions(-)
+ create mode 100644 Documentation/hwmon/emc1403
+ create mode 100644 Documentation/hwmon/hwmon-kernel-api.txt
+ create mode 100644 Documentation/hwmon/nct6683
+ create mode 100644 drivers/hwmon/nct6683.c
+
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTjUixAAoJEMsfJm/On5mBl7QQAJz1Is/925/FfTPBukKt9SG9
+GeQwgC/SUCDZEjtRtK3seKgfBy2mr8fBdsmnQ0hNAapyDxvoEKCSPJgB12gUKcfC
+cyxhCfASezfe+Q/ymoEN7T4ugd3Sww2TXS5CEU4Cvs7h3FqLWfpCQAk7kSVJgZYT
+IbLLXbQNxQxtk42DByaaCFdFxqB4R75DUDTDg0hadt/Lbrub/8oPAvuUS/Vxmksr
+Y/GF0yYE05lWbGY3FAD9uMp8HqhT4UY8c8Z3XRZKF6tEG/FT0koUNg8vRUskNaCm
+y5Sbp5vj8vcqY/9Zvk3peFC3KxPfWZ6ePfEx8SYkAtTxV/9dlnnvmJS25Z4AT5mh
+T88qnkvQCC5997MX51YaCAyvRJNTcmHM1SBSXnByeown4S1epGQbI5Xd9M+ZB7jG
+1DZkkD49Lw0C72iwQD4qBZp/XM5CPJuGRoSMaoscMI+K1QnBlGIPI3eCKdIzFOJE
+IS45Crt4/MP1qA1lXtn3OHNbMuMLKhhXzi3T//9hpSJaLLmb9xrOzyoePt5Ccdh/
+4W3bIMETgfCg3qfxnbcIeaV36NDIzWyA3k8rJ9SCYi76HzEBz4b1ChPsH2GamSbb
+XG+WeNnpwxREaTcgOU9dvdMAQV7LxEgjwob0cVQkybGzpyxX4Bp76Ru/luwo2CwC
+49qB9D8NYfLmymYdTAw6
+=0SHc
+-----END PGP SIGNATURE-----
+
+--RnlQjJ0d97Da+TV1--
+
+
+--===============4525418931582061212==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-simplify the code a bit.
-
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/jz4740-hwmon.c | 65 ++++++++++----------------------------------
- 1 file changed, 14 insertions(+), 51 deletions(-)
-
-diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
-index 7488e36..32f10cc 100644
---- a/drivers/hwmon/jz4740-hwmon.c
-+++ b/drivers/hwmon/jz4740-hwmon.c
-@@ -29,23 +29,13 @@
- 
- struct jz4740_hwmon {
- 	void __iomem *base;
--
- 	int irq;
--
- 	const struct mfd_cell *cell;
--	struct device *hwmon;
--
-+	struct platform_device *pdev;
- 	struct completion read_completion;
--
- 	struct mutex lock;
- };
- 
--static ssize_t jz4740_hwmon_show_name(struct device *dev,
--	struct device_attribute *dev_attr, char *buf)
--{
--	return sprintf(buf, "jz4740\n");
--}
--
- static irqreturn_t jz4740_hwmon_irq(int irq, void *data)
- {
- 	struct jz4740_hwmon *hwmon = data;
-@@ -58,6 +48,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
- 	struct device_attribute *dev_attr, char *buf)
- {
- 	struct jz4740_hwmon *hwmon = dev_get_drvdata(dev);
-+	struct platform_device *pdev = hwmon->pdev;
- 	struct completion *completion = &hwmon->read_completion;
- 	long t;
- 	unsigned long val;
-@@ -68,7 +59,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
- 	reinit_completion(completion);
- 
- 	enable_irq(hwmon->irq);
--	hwmon->cell->enable(to_platform_device(dev));
-+	hwmon->cell->enable(pdev);
- 
- 	t = wait_for_completion_interruptible_timeout(completion, HZ);
- 
-@@ -80,7 +71,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
- 		ret = t ? t : -ETIMEDOUT;
- 	}
- 
--	hwmon->cell->disable(to_platform_device(dev));
-+	hwmon->cell->disable(pdev);
- 	disable_irq(hwmon->irq);
- 
- 	mutex_unlock(&hwmon->lock);
-@@ -88,26 +79,24 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
- 	return ret;
- }
- 
--static DEVICE_ATTR(name, S_IRUGO, jz4740_hwmon_show_name, NULL);
- static DEVICE_ATTR(in0_input, S_IRUGO, jz4740_hwmon_read_adcin, NULL);
- 
--static struct attribute *jz4740_hwmon_attributes[] = {
--	&dev_attr_name.attr,
-+static struct attribute *jz4740_attrs[] = {
- 	&dev_attr_in0_input.attr,
- 	NULL
- };
- 
--static const struct attribute_group jz4740_hwmon_attr_group = {
--	.attrs = jz4740_hwmon_attributes,
--};
-+ATTRIBUTE_GROUPS(jz4740);
- 
- static int jz4740_hwmon_probe(struct platform_device *pdev)
- {
- 	int ret;
-+	struct device *dev = &pdev->dev;
- 	struct jz4740_hwmon *hwmon;
-+	struct device *hwmon_dev;
- 	struct resource *mem;
- 
--	hwmon = devm_kzalloc(&pdev->dev, sizeof(*hwmon), GFP_KERNEL);
-+	hwmon = devm_kzalloc(dev, sizeof(*hwmon), GFP_KERNEL);
- 	if (!hwmon)
- 		return -ENOMEM;
- 
-@@ -125,12 +114,11 @@ static int jz4740_hwmon_probe(struct platform_device *pdev)
- 	if (IS_ERR(hwmon->base))
- 		return PTR_ERR(hwmon->base);
- 
-+	hwmon->pdev = pdev;
- 	init_completion(&hwmon->read_completion);
- 	mutex_init(&hwmon->lock);
- 
--	platform_set_drvdata(pdev, hwmon);
--
--	ret = devm_request_irq(&pdev->dev, hwmon->irq, jz4740_hwmon_irq, 0,
-+	ret = devm_request_irq(dev, hwmon->irq, jz4740_hwmon_irq, 0,
- 			       pdev->name, hwmon);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to request irq: %d\n", ret);
-@@ -138,38 +126,13 @@ static int jz4740_hwmon_probe(struct platform_device *pdev)
- 	}
- 	disable_irq(hwmon->irq);
- 
--	ret = sysfs_create_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
--	if (ret) {
--		dev_err(&pdev->dev, "Failed to create sysfs group: %d\n", ret);
--		return ret;
--	}
--
--	hwmon->hwmon = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(hwmon->hwmon)) {
--		ret = PTR_ERR(hwmon->hwmon);
--		goto err_remove_file;
--	}
--
--	return 0;
--
--err_remove_file:
--	sysfs_remove_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
--	return ret;
--}
--
--static int jz4740_hwmon_remove(struct platform_device *pdev)
--{
--	struct jz4740_hwmon *hwmon = platform_get_drvdata(pdev);
--
--	hwmon_device_unregister(hwmon->hwmon);
--	sysfs_remove_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
--
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "jz4740", hwmon,
-+							   jz4740_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
- 
- static struct platform_driver jz4740_hwmon_driver = {
- 	.probe	= jz4740_hwmon_probe,
--	.remove = jz4740_hwmon_remove,
- 	.driver = {
- 		.name = "jz4740-hwmon",
- 		.owner = THIS_MODULE,
--- 
-1.9.1
-
-
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4525418931582061212==--
