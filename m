@@ -1,31 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 13 Jun 2014 18:10:22 +0000
-Subject: Re: [lm-sensors] [PATCH] Added support for Lattice's POWR1220 power manager IC.
-Message-Id: <539B3E8E.2010300@roeck-us.net>
+From: Thomas Trepper <thomas.trepper@blueclaim.com>
+Date: Tue, 03 Jun 2014 05:18:57 +0000
+Subject: [lm-sensors] Supermicro A1SAi
+Message-Id: <DE79CDD8-60B1-45D0-85B6-3E63F4204929@blueclaim.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53965259.8020806@roeck-us.net>
-In-Reply-To: <53965259.8020806@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 06/12/2014 01:22 PM, Scott Kanowitz wrote:
-> This patch adds support for Lattice's POWR1220 power manager IC. Read
-> access to all the ADCs on the chip are supported through the hwmon
-> sysfs files.
->
-> Signed-off-by: Scott Kanowitz <skanowitz@echo360.com>
+Hi all,=20
 
-Hi Scott,
+I was wondering if there is support for the Supermicro A1SAi? I have done t=
+his:
 
-Nicely done, though next time it would be great if you can add a change log.
-There are a couple of unneeded ( ), which I removed. No need to resend.
-Applied to -next.
+# sensors-detect revision 6031 (2012-03-07 17:14:01 +0100)
+# System: Supermicro A1SAi [123456789]
+=85
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:=20
 
-Thanks,
-Guenter
+Driver `to-be-written':
+  * ISA bus, address 0xca2
+    Chip `IPMI BMC KCS' (confidence: 8)
 
+Driver `coretemp':
+  * Chip `Intel digital thermal sensor' (confidence: 9)
+
+Are there any chances to get also voltage and fan beside the core-temp? Can=
+ anybody maybe point be to the right direction?
+
+Thanks a lot in advance.
+
+Best,
+Thomas
 
 
 _______________________________________________
