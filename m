@@ -1,63 +1,136 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 30 Jun 2014 13:34:31 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] fs: asus_atk0110: Fix DEFINE_SIMPLE_ATTRIBUTE semicolon definition and 
-Message-Id: <CAKPcRGpKuGsGvZ--3oVFGEpWwBg3RajAVzr3Hiz3bcmdbZR2=w@mail.gmail.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 04 Jun 2014 23:47:12 +0000
+Subject: [lm-sensors] [RFT][PATCH] hwmon: (ltc4151) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1401925632.5828.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1403999769.git.joe@perches.com>
-	<530fc2e19919f12996227b27645be7e8f911a7ba.1403999769.git.joe@perches.com>
-In-Reply-To: <530fc2e19919f12996227b27645be7e8f911a7ba.1403999769.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joe Perches <joe@perches.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Jeff Layton <jlayton@poochiereds.net>, "J. Bruce Fields" <bfields@fieldses.org>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 29, 2014 at 1:20 AM, Joe Perches <joe@perches.com> wrote:
-> The DEFINE_SIMPLE_ATTRIBUTE macro should not end in a ;
-> Fix the one use in the kernel tree that did not have a semicolon.
->
-> Signed-off-by: Joe Perches <joe@perches.com>
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups to
+simplify the code a bit.
 
-Acked-by: Luca Tettamanti <kronos.it@gmail.com>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+Hi,
+I don't have the h/w to test, I'd appreciate if someone can review and test this
+patch.
+Thanks,
+Axel
+ drivers/hwmon/ltc4151.c | 51 +++++++++++++------------------------------------
+ 1 file changed, 13 insertions(+), 38 deletions(-)
 
-For my driver only ;-)
+diff --git a/drivers/hwmon/ltc4151.c b/drivers/hwmon/ltc4151.c
+index af81be1..c86a184 100644
+--- a/drivers/hwmon/ltc4151.c
++++ b/drivers/hwmon/ltc4151.c
+@@ -47,7 +47,7 @@
+ #define LTC4151_ADIN_L	0x05
+ 
+ struct ltc4151_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 
+ 	struct mutex update_lock;
+ 	bool valid;
+@@ -59,8 +59,8 @@ struct ltc4151_data {
+ 
+ static struct ltc4151_data *ltc4151_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ltc4151_data *data = i2c_get_clientdata(client);
++	struct ltc4151_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	struct ltc4151_data *ret = data;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -159,7 +159,7 @@ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ltc4151_show_value, NULL,
+  * Finally, construct an array of pointers to members of the above objects,
+  * as required for sysfs_create_group()
+  */
+-static struct attribute *ltc4151_attributes[] = {
++static struct attribute *ltc4151_attrs[] = {
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 
+@@ -167,54 +167,30 @@ static struct attribute *ltc4151_attributes[] = {
+ 
+ 	NULL,
+ };
+-
+-static const struct attribute_group ltc4151_group = {
+-	.attrs = ltc4151_attributes,
+-};
++ATTRIBUTE_GROUPS(ltc4151);
+ 
+ static int ltc4151_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
++	struct device *dev = &client->dev;
+ 	struct ltc4151_data *data;
+-	int ret;
++	struct device *hwmon_dev;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+-	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+-	/* Register sysfs hooks */
+-	ret = sysfs_create_group(&client->dev.kobj, &ltc4151_group);
+-	if (ret)
+-		return ret;
+-
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		ret = PTR_ERR(data->hwmon_dev);
+-		goto out_hwmon_device_register;
+-	}
+-
+-	return 0;
+-
+-out_hwmon_device_register:
+-	sysfs_remove_group(&client->dev.kobj, &ltc4151_group);
+-	return ret;
+-}
+-
+-static int ltc4151_remove(struct i2c_client *client)
+-{
+-	struct ltc4151_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &ltc4151_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data,
++							   ltc4151_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct i2c_device_id ltc4151_id[] = {
+@@ -229,7 +205,6 @@ static struct i2c_driver ltc4151_driver = {
+ 		.name	= "ltc4151",
+ 	},
+ 	.probe		= ltc4151_probe,
+-	.remove		= ltc4151_remove,
+ 	.id_table	= ltc4151_id,
+ };
+ 
+-- 
+1.8.3.2
 
-Luca
 
-> ---
->  drivers/hwmon/asus_atk0110.c | 2 +-
->  include/linux/fs.h           | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-> index ae208f6..cccef87 100644
-> --- a/drivers/hwmon/asus_atk0110.c
-> +++ b/drivers/hwmon/asus_atk0110.c
-> @@ -688,7 +688,7 @@ static int atk_debugfs_gitm_get(void *p, u64 *val)
->  DEFINE_SIMPLE_ATTRIBUTE(atk_debugfs_gitm,
->                         atk_debugfs_gitm_get,
->                         NULL,
-> -                       "0x%08llx\n")
-> +                       "0x%08llx\n");
->
->  static int atk_acpi_print(char *buf, size_t sz, union acpi_object *obj)
->  {
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 8a9e7f8..e78e9ac 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -2701,7 +2701,7 @@ static const struct file_operations __fops = {                            \
->         .read    = simple_attr_read,                                    \
->         .write   = simple_attr_write,                                   \
->         .llseek  = generic_file_llseek,                                 \
-> -};
-> +}
->
->  static inline __printf(1, 2)
->  void __simple_attr_check_format(const char *fmt, ...)
-> --
-> 1.8.1.2.459.gbcd45b4.dirty
->
+
 
 _______________________________________________
 lm-sensors mailing list
