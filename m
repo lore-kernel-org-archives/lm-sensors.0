@@ -1,642 +1,409 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 21 Jun 2014 17:15:32 +0000
-Subject: Re: [lm-sensors] [PATCH v3] powerpc/powernv: hwmon driver for power, fan rpm, voltage and temperatur
-Message-Id: <53A5BDB4.5020008@roeck-us.net>
+From: Tomas Pop <tomas.pop.mff@gmail.com>
+Date: Thu, 05 Jun 2014 22:24:19 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: add support for Sensirion SHTC1 sensor
+Message-Id: <1402007059.32023.8.camel@ltli10.sensirion.lokal>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140618083250.20069.73848.stgit@localhost.localdomain>
-In-Reply-To: <20140618083250.20069.73848.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Neelesh Gupta <neelegup@linux.vnet.ibm.com>, linuxppc-dev@lists.ozlabs.org, jdelvare@suse.de, lm-sensors@lm-sensors.org
-Cc: sbhat@linux.vnet.ibm.com
+To: "linux@roeck-us.net" <linux@roeck-us.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jdelvare@suse.de" <jdelvare@suse.de>, "johannes.winkelmann@sensirion.com" <johannes.winkelmann@sensirion.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On 06/18/2014 01:35 AM, Neelesh Gupta wrote:
-> This patch adds basic kernel enablement for reading power values, fan
+From: Tomas Pop <Tomas.Pop@sensirion.com>
 
-how about support instead of enablement ?
+Add support for Sensirion SHTC1 and compatible temperature and humidity 
+sensors.
 
-> speed rpm, voltage and temperature data on powernv platforms which will
-> be exported to user space through sysfs interface.
->
-> Test results:
-> -------------
-> [root@ltctul57a-p1 ~]# sensors
-> ibmpowernv-isa-0000
-> Adapter: ISA adapter
-> fan1:        5660 RPM  (min =    0 RPM)
-> fan2:        5273 RPM  (min =    0 RPM)
-> fan3:        5625 RPM  (min =    0 RPM)
-> fan4:        5283 RPM  (min =    0 RPM)
-> fan5:        5625 RPM  (min =    0 RPM)
-> fan6:        5242 RPM  (min =    0 RPM)
-> fan7:        5636 RPM  (min =    0 RPM)
-> fan8:        5273 RPM  (min =    0 RPM)
-> fan9:        4984 RPM  (min =    0 RPM)
-> fan10:       4984 RPM  (min =    0 RPM)
-> fan11:       4984 RPM  (min =    0 RPM)
-> fan12:       4984 RPM  (min =    0 RPM)
-> temp1:        +24.0 C  (high =  +0.0 C)
-> power1:      573.00 W
->
-> [root@ltctul57a-p1 ~]#
-> [root@ltctul57a-p1 ~]# ls /sys/devices/platform/
-> alarmtimer  ibmpowernv.0  rtc-generic  serial8250  uevent
-> [root@ltctul57a-p1 ~]# ls /sys/devices/platform/ibmpowernv.0/hwmon/hwmon0/
-> device	     fan12_input  fan3_fault  fan5_min	  fan8_input  in4_fault
-> fan10_fault  fan12_min	  fan3_input  fan6_fault  fan8_min    name
-> fan10_input  fan1_fault   fan3_min    fan6_input  fan9_fault  power1_input
-> fan10_min    fan1_input   fan4_fault  fan6_min	  fan9_input  subsystem
-> fan11_fault  fan1_min	  fan4_input  fan7_fault  fan9_min    temp1_input
-> fan11_input  fan2_fault   fan4_min    fan7_input  in1_fault   temp1_max
-> fan11_min    fan2_input   fan5_fault  fan7_min	  in2_fault   uevent
-> fan12_fault  fan2_min	  fan5_input  fan8_fault  in3_fault
-> [root@ltctul57a-p1 ~]#
-> [root@ltctul57a-p1 ~]# ls /sys/class/hwmon/hwmon0/
-> device	     fan12_input  fan3_fault  fan5_min	  fan8_input  in4_fault
-> fan10_fault  fan12_min	  fan3_input  fan6_fault  fan8_min    name
-> fan10_input  fan1_fault   fan3_min    fan6_input  fan9_fault  power1_input
-> fan10_min    fan1_input   fan4_fault  fan6_min	  fan9_input  subsystem
-> fan11_fault  fan1_min	  fan4_input  fan7_fault  fan9_min    temp1_input
-> fan11_input  fan2_fault   fan4_min    fan7_input  in1_fault   temp1_max
-> fan11_min    fan2_input   fan5_fault  fan7_min	  in2_fault   uevent
-> fan12_fault  fan2_min	  fan5_input  fan8_fault  in3_fault
-> [root@ltctul57a-p1 ~]#
->
-> Signed-off-by: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
-> ---
->
-> Changes in V3
-> ====> - Fixed an endianness bug leading the driver to break on LE.
-> - Fixed a bug that when one of the 'attribute_group' not populated, following
->    groups attributes were dropped.
-> - Rewrite the get_sensor_index_attr() function to handle all the error scenarios
->    like 'sscanf' etc.
-> - Fixed all the errors/warnings related to coding style/whitespace.
-> - Added 'Documentation' files.
-> - Addressed remaining review comments on V2.
->
-> Changes in v2
-> ======> - Generic use of devm_* functions in hwmon like using devm_kzalloc() for dynamic
->    memory request, avoiding the need to explicit free of memory.
->    Adding 'struct attribute_group' as member of platform data structure to be
->    populated and then passed to devm_hwmon_device_register_with_groups().
->
->    Note: Having an array of pointers of 'attribute_group' and each group
->    corresponds to 'enum sensors' type. Not completely sure, if it's ideal or
->    could have just one group populated with attributes of sensor types?
->
-> - 'ibmpowernv' is not hot-pluggable device so moving 'platform_driver' callback
->    function (probe) as part of __init code.
-> - Fixed issues related to coding style.
-> - Other general comments in v1.
->
->   .../devicetree/bindings/hwmon/ibmpowernv.txt       |   27 +
->   Documentation/hwmon/ibmpowernv                     |   41 ++
->   drivers/hwmon/Kconfig                              |   11 +
->   drivers/hwmon/Makefile                             |    1
->   drivers/hwmon/ibmpowernv.c                         |  366 ++++++++++++++++++++
->   5 files changed, 446 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/hwmon/ibmpowernv.txt
->   create mode 100644 Documentation/hwmon/ibmpowernv
->   create mode 100644 drivers/hwmon/ibmpowernv.c
->
-> diff --git a/Documentation/devicetree/bindings/hwmon/ibmpowernv.txt b/Documentation/devicetree/bindings/hwmon/ibmpowernv.txt
-> new file mode 100644
-> index 0000000..e3bd1eb
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwmon/ibmpowernv.txt
-> @@ -0,0 +1,27 @@
-> +IBM POWERNV platform sensors
-> +----------------------------
-> +
-> +Required node properties:
-> +- compatible: must be one of
-> +		"ibm,opal-sensor-cooling-fan"
-> +		"ibm,opal-sensor-amb-temp"
-> +		"ibm,opal-sensor-power-supply"
-> +		"ibm,opal-sensor-power"
-> +- sensor-id: an opaque id provided by the firmware to the kernel, identifies a
-> +	     given sensor and its attribute data
-> +
-> +Example sensors node:
-> +
-> +cooling-fan#8-data {
-> +	sensor-id = <0x7052107>;
-> +	phandle = <0x10000028>;
-> +	linux,phandle = <0x10000028>;
-> +	compatible = "ibm,opal-sensor-cooling-fan";
-> +};
-> +
-> +amb-temp#1-thrs {
-> +	sensor-id = <0x5096000>;
-> +	phandle = <0x10000017>;
-> +	linux,phandle = <0x10000017>;
-> +	compatible = "ibm,opal-sensor-amb-temp";
-> +};
-> diff --git a/Documentation/hwmon/ibmpowernv b/Documentation/hwmon/ibmpowernv
-> new file mode 100644
-> index 0000000..d9ce50e
-> --- /dev/null
-> +++ b/Documentation/hwmon/ibmpowernv
-> @@ -0,0 +1,41 @@
-> +Kernel Driver IBMPOWENV
-> +===========> +
-> +Supported systems:
-> +  * Any recent IBM P servers based on POWERNV platform
-> +
-> +Author: Neelesh Gupta
-> +
-> +Description
-> +-----------
-> +
-> +This driver implements reading the platform sensors data like temperature/fan/
-> +voltage/power for 'POWERNV' platform.
-> +
-> +The driver uses the platform device infrastructure. It probes the device tree
-> +for sensor devices during the __init phase and registers them with the 'hwmon'.
-> +'hwmon' populates the 'sysfs' tree having attribute files, each for a given
-> +sensor type and its attribute data.
-> +
-> +All the nodes in the DT appear under "/ibm,opal/sensors" and each valid node in
-> +the DT maps to an attribute file in 'sysfs'. The node exports unique 'sensor-id'
-> +which the driver uses to make an OPAL call to the firmware.
-> +
-> +Usage notes
-> +-----------
-> +The driver is built statically with the kernel by enabling the config
-> +CONFIG_SENSORS_IBMPOWERNV. It can also be built as module 'ibmpowernv'.
-> +
-> +Sysfs attributes
-> +----------------
-> +
-> +fanX_input		Measured RPM value.
-> +fanX_min		Threshold RPM for alert generation.
-> +fanX_fault		0: No fail condition
-> +			1: Failing fan
-> +tempX_input		Measured ambient temperature.
-> +tempX_max		Threshold ambient temperature for alert generation.
-> +inX_input		Measured power supply voltage
-> +inX_fault		0: No fail condition.
-> +			1: Failing power supply.
-> +power1_input		System power consumption (milliWatts)
+Signed-off-by: Tomas Pop <tomas.pop@sensirion.com>
+---
+This is a fourth version of the driver, we inlcuded suggested corrections, 
+i.e., hwmon_dev field is removed from shtc1 structure, correct variable is 
+tested in probe function and we use DEVICE_ATTR_RO instead of DEVICE_ATTR.
 
-ABI says micro-watts. Code below agrees.
+Patch was generated against v3.14.4 (the version we used for testing of 
+driver functionality), but it can be applied smoothly to v3.15-rc8.
 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index bc196f4..fc69112 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -554,6 +554,17 @@ config SENSORS_IBMPEX
->   	  This driver can also be built as a module.  If so, the module
->   	  will be called ibmpex.
->
-> +config SENSORS_IBMPOWERNV
-> +	tristate "IBM POWERNV platform sensors"
-> +	depends on PPC_POWERNV
-> +	default y
-> +	help
-> +	  If you say yes here you get support for the temperature/fan/power
-> +	  sensors on your platform.
+ Documentation/hwmon/shtc1           |  43 ++++++
+ drivers/hwmon/Kconfig               |  10 ++
+ drivers/hwmon/Makefile              |   1 +
+ drivers/hwmon/shtc1.c               | 251 ++++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/shtc1.h |  23 ++++
+ 5 files changed, 328 insertions(+)
+ create mode 100644 Documentation/hwmon/shtc1
+ create mode 100644 drivers/hwmon/shtc1.c
+ create mode 100644 include/linux/platform_data/shtc1.h
 
-on your PowerNV platform
+diff --git a/Documentation/hwmon/shtc1 b/Documentation/hwmon/shtc1
+new file mode 100644
+index 0000000..da16ed6
+--- /dev/null
++++ b/Documentation/hwmon/shtc1
+@@ -0,0 +1,43 @@
++Kernel driver shtc1
++=========+
++Supported chips:
++  * Sensirion SHTC1
++    Prefix: 'shtc1'
++    Addresses scanned: none
++    Datasheet: http://www.sensirion.com/file/datasheet_shtc1
++
++  * Sensirion SHTW1
++    Prefix: 'shtw1'
++    Addresses scanned: none
++    Datasheet: Not publicly available
++
++Author:
++  Johannes Winkelmann <johannes.winkelmann@sensirion.com>
++
++Description
++-----------
++
++This driver implements support for the Sensirion SHTC1 chip, a humidity and
++temperature sensor. Temperature is measured in degrees celsius, relative
++humidity is expressed as a percentage. Driver can be used as well for SHTW1
++chip, which has the same electrical interface.
++
++The device communicates with the I2C protocol. All sensors are set to I2C
++address 0x70. See Documentation/i2c/instantiating-devices for methods to
++instantiate the device.
++
++There are two options configurable by means of shtc1_platform_data:
++1. blocking (pull the I2C clock line down while performing the measurement) or
++   non-blocking mode. Blocking mode will guarantee the fastest result but
++   the I2C bus will be busy during that time. By default, non-blocking mode
++   is used. Make sure clock-stretching works properly on your device if you
++   want to use blocking mode.
++2. high or low accuracy. High accuracy is used by default and using it is
++   strongly recommended.
++
++sysfs-Interface
++---------------
++
++temp1_input - temperature input
++humidity1_input - humidity input
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 193c496..7f56ae1 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1047,6 +1047,16 @@ config SENSORS_SHT21
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called sht21.
+ 
++config SENSORS_SHTC1
++	tristate "Sensiron humidity and temperature sensors. SHTC1 and compat."
++	depends on I2C
++	help
++	  If you say yes here you get support for the Sensiron SHTC1 and SHTW1
++	  humidity and temperature sensors.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called shtc1.
++
+ config SENSORS_S3C
+ 	tristate "Samsung built-in ADC"
+ 	depends on S3C_ADC
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index a06e078..311932f 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -121,6 +121,7 @@ obj-$(CONFIG_SENSORS_SCH5627)	+= sch5627.o
+ obj-$(CONFIG_SENSORS_SCH5636)	+= sch5636.o
+ obj-$(CONFIG_SENSORS_SHT15)	+= sht15.o
+ obj-$(CONFIG_SENSORS_SHT21)	+= sht21.o
++obj-$(CONFIG_SENSORS_SHTC1)	+= shtc1.o
+ obj-$(CONFIG_SENSORS_SIS5595)	+= sis5595.o
+ obj-$(CONFIG_SENSORS_SMM665)	+= smm665.o
+ obj-$(CONFIG_SENSORS_SMSC47B397)+= smsc47b397.o
+diff --git a/drivers/hwmon/shtc1.c b/drivers/hwmon/shtc1.c
+new file mode 100644
+index 0000000..430a066
+--- /dev/null
++++ b/drivers/hwmon/shtc1.c
+@@ -0,0 +1,251 @@
++/* Sensirion SHTC1 humidity and temperature sensor driver
++ *
++ * Copyright (C) 2014 Sensirion AG, Switzerland
++ * Author: Johannes Winkelmann <johannes.winkelmann@sensirion.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/delay.h>
++#include <linux/platform_data/shtc1.h>
++
++/* commands (high precision mode) */
++static const unsigned char shtc1_cmd_measure_blocking_hpm[]    = { 0x7C, 0xA2 };
++static const unsigned char shtc1_cmd_measure_nonblocking_hpm[] = { 0x78, 0x66 };
++
++/* commands (low precision mode) */
++static const unsigned char shtc1_cmd_measure_blocking_lpm[]    = { 0x64, 0x58 };
++static const unsigned char shtc1_cmd_measure_nonblocking_lpm[] = { 0x60, 0x9c };
++
++/* command for reading the ID register */
++static const unsigned char shtc1_cmd_read_id_reg[]	       = { 0xef, 0xc8 };
++
++/* constants for reading the ID register */
++#define SHTC1_ID	  0x07
++#define SHTC1_ID_REG_MASK 0x1f
++
++/* delays for non-blocking i2c commands, both in us */
++#define SHTC1_NONBLOCKING_WAIT_TIME_HPM  14400
++#define SHTC1_NONBLOCKING_WAIT_TIME_LPM   1000
++
++#define SHTC1_CMD_LENGTH      2
++#define SHTC1_RESPONSE_LENGTH 6
++
++struct shtc1_data {
++	struct i2c_client *client;
++	struct mutex update_lock;
++	bool valid;
++	unsigned long last_updated; /* in jiffies */
++
++	const unsigned char *command;
++	unsigned int nonblocking_wait_time; /* in us */
++
++	struct shtc1_platform_data setup;
++
++	int temperature; /* 1000 * temperature in dgr C */
++	int humidity; /* 1000 * relative humidity in %RH */
++};
++
++static int shtc1_update_values(struct i2c_client *client,
++			       struct shtc1_data *data,
++			       char *buf, int bufsize)
++{
++	int ret = i2c_master_send(client, data->command, SHTC1_CMD_LENGTH);
++	if (ret != SHTC1_CMD_LENGTH) {
++		dev_err(&client->dev, "failed to send command: %d\n", ret);
++		return ret < 0 ? ret : -EIO;
++	}
++
++	/*
++	 * In blocking mode (clock stretching mode) the I2C bus
++	 * is blocked for other traffic, thus the call to i2c_master_recv()
++	 * will wait until the data is ready. For non blocking mode, we
++	 * have to wait ourselves.
++	 */
++	if (!data->setup.blocking_io)
++		usleep_range(data->nonblocking_wait_time,
++			     data->nonblocking_wait_time + 1000);
++
++	ret = i2c_master_recv(client, buf, bufsize);
++	if (ret != bufsize) {
++		dev_err(&client->dev, "failed to read values: %d\n", ret);
++		return ret < 0 ? ret : -EIO;
++	}
++
++	return 0;
++}
++
++/* sysfs attributes */
++static struct shtc1_data *shtc1_update_client(struct device *dev)
++{
++	struct shtc1_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
++	unsigned char buf[SHTC1_RESPONSE_LENGTH];
++	int val;
++	int ret = 0;
++
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + HZ / 10) || !data->valid) {
++		ret = shtc1_update_values(client, data, buf, sizeof(buf));
++		if (ret)
++			goto out;
++
++		/*
++		 * From datasheet:
++		 * T = -45 + 175 * ST / 2^16
++		 * RH = 100 * SRH / 2^16
++		 *
++		 * Adapted for integer fixed point (3 digit) arithmetic.
++		 */
++		val = be16_to_cpup((__be16 *)buf);
++		data->temperature = ((21875 * val) >> 13) - 45000;
++		val = be16_to_cpup((__be16 *)(buf + 3));
++		data->humidity = ((12500 * val) >> 13);
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++out:
++	mutex_unlock(&data->update_lock);
++
++	return ret = 0 ? data : ERR_PTR(ret);
++}
++
++static ssize_t temp1_input_show(struct device *dev,
++				struct device_attribute *attr,
++				char *buf)
++{
++	struct shtc1_data *data = shtc1_update_client(dev);
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%d\n", data->temperature);
++}
++
++static ssize_t humidity1_input_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
++{
++	struct shtc1_data *data = shtc1_update_client(dev);
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%d\n", data->humidity);
++}
++
++static DEVICE_ATTR_RO(temp1_input);
++static DEVICE_ATTR_RO(humidity1_input);
++
++static struct attribute *shtc1_attrs[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_humidity1_input.attr,
++	NULL
++};
++
++ATTRIBUTE_GROUPS(shtc1);
++
++static void shtc1_select_command(struct shtc1_data *data)
++{
++	if (data->setup.high_precision) {
++		data->command = data->setup.blocking_io ?
++				shtc1_cmd_measure_blocking_hpm :
++				shtc1_cmd_measure_nonblocking_hpm;
++		data->nonblocking_wait_time = SHTC1_NONBLOCKING_WAIT_TIME_HPM;
++
++	} else {
++		data->command = data->setup.blocking_io ?
++				shtc1_cmd_measure_blocking_lpm :
++				shtc1_cmd_measure_nonblocking_lpm;
++		data->nonblocking_wait_time = SHTC1_NONBLOCKING_WAIT_TIME_LPM;
++	}
++}
++
++static int shtc1_probe(struct i2c_client *client,
++		       const struct i2c_device_id *id)
++{
++	int ret;
++	char id_reg[2];
++	struct shtc1_data *data;
++	struct device *hwmon_dev;
++	struct i2c_adapter *adap = client->adapter;
++	struct device *dev = &client->dev;
++
++	if (!i2c_check_functionality(adap, I2C_FUNC_I2C)) {
++		dev_err(dev, "plain i2c transactions not supported\n");
++		return -ENODEV;
++	}
++
++	ret = i2c_master_send(client, shtc1_cmd_read_id_reg, SHTC1_CMD_LENGTH);
++	if (ret != SHTC1_CMD_LENGTH) {
++		dev_err(dev, "could not send read_id_reg command: %d\n", ret);
++		return ret < 0 ? ret : -ENODEV;
++	}
++	ret = i2c_master_recv(client, id_reg, sizeof(id_reg));
++	if (ret != sizeof(id_reg)) {
++		dev_err(dev, "could not read ID register: %d\n", ret);
++		return -ENODEV;
++	}
++	if ((id_reg[1] & SHTC1_ID_REG_MASK) != SHTC1_ID) {
++		dev_err(dev, "ID register doesn't match\n");
++		return -ENODEV;
++	}
++
++	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->setup.blocking_io = false;
++	data->setup.high_precision = true;
++	data->client = client;
++
++	if (client->dev.platform_data)
++		data->setup = *(struct shtc1_platform_data *)dev->platform_data;
++	shtc1_select_command(data);
++	mutex_init(&data->update_lock);
++
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev,
++							   client->name,
++							   data,
++							   shtc1_groups);
++	if (IS_ERR(hwmon_dev))
++		dev_dbg(dev, "unable to register hwmon device\n");
++
++	return PTR_ERR_OR_ZERO(hwmon_dev);
++}
++
++/* device ID table */
++static const struct i2c_device_id shtc1_id[] = {
++	{ "shtc1", 0 },
++	{ "shtw1", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, shtc1_id);
++
++static struct i2c_driver shtc1_i2c_driver = {
++	.driver.name  = "shtc1",
++	.probe        = shtc1_probe,
++	.id_table     = shtc1_id,
++};
++
++module_i2c_driver(shtc1_i2c_driver);
++
++MODULE_AUTHOR("Johannes Winkelmann <johannes.winkelmann@sensirion.com>");
++MODULE_DESCRIPTION("Sensirion SHTC1 humidity and temperature sensor driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/platform_data/shtc1.h b/include/linux/platform_data/shtc1.h
+new file mode 100644
+index 0000000..7b8c353
+--- /dev/null
++++ b/include/linux/platform_data/shtc1.h
+@@ -0,0 +1,23 @@
++/*
++ * Copyright (C) 2014 Sensirion AG, Switzerland
++ * Author: Johannes Winkelmann <johannes.winkelmann@sensirion.com>
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef __SHTC1_H_
++#define __SHTC1_H_
++
++struct shtc1_platform_data {
++	bool blocking_io;
++	bool high_precision;
++};
++#endif /* __SHTC1_H_ */
+-- 
+1.8.3.2
 
-> +
-> +	  This driver can also be built as a module. If so, the module
-> +	  will be called ibmpowernv.
-> +
->   config SENSORS_IIO_HWMON
->   	tristate "Hwmon driver that uses channels specified via iio maps"
->   	depends on IIO
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index c48f987..199c401 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -71,6 +71,7 @@ obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o
->   obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
->   obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
->   obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
-> +obj-$(CONFIG_SENSORS_IBMPOWERNV)+= ibmpowernv.o
->   obj-$(CONFIG_SENSORS_IIO_HWMON) += iio_hwmon.o
->   obj-$(CONFIG_SENSORS_INA209)	+= ina209.o
->   obj-$(CONFIG_SENSORS_INA2XX)	+= ina2xx.o
-> diff --git a/drivers/hwmon/ibmpowernv.c b/drivers/hwmon/ibmpowernv.c
-> new file mode 100644
-> index 0000000..45c7f4b
-> --- /dev/null
-> +++ b/drivers/hwmon/ibmpowernv.c
-> @@ -0,0 +1,366 @@
-> +/*
-> + * IBM PowerNV platform sensors for temperature/fan/voltage/power
-> + * Copyright (C) 2014 IBM
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program.
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/of.h>
-> +#include <linux/slab.h>
-> +
-> +#include <linux/platform_device.h>
-> +#include <asm/opal.h>
-> +#include <linux/err.h>
-> +
-> +#define DRVNAME		"ibmpowernv"
-> +#define MAX_ATTR_LEN	32
-> +
-> +/* Sensor suffix name from DT */
-> +#define DT_FAULT_ATTR_SUFFIX		"faulted"
-> +#define DT_DATA_ATTR_SUFFIX		"data"
-> +#define DT_THRESHOLD_ATTR_SUFFIX	"thrs"
-> +
-> +/*
-> + * Enumerates all the types of sensors in the POWERNV platform and does index
-> + * into 'struct sensor_group'
-> + */
-> +enum sensors {
-> +	FAN,
-> +	AMBIENT_TEMP,
-> +	POWER_SUPPLY,
-> +	POWER_INPUT,
-> +	MAX_SENSOR_TYPE,
-> +};
-> +
-> +static struct sensor_group {
-> +	const char *name;
-> +	const char *compatible;
-> +	struct attribute_group group;
-> +	u32 attr_count;
-> +} sensor_groups[] = {
-> +	{"fan", "ibm,opal-sensor-cooling-fan"},
-> +	{"temp", "ibm,opal-sensor-amb-temp"},
-> +	{"in", "ibm,opal-sensor-power-supply"},
-> +	{"power", "ibm,opal-sensor-power"}
-> +};
-> +
-> +struct sensor_data {
-> +	u32 id; /* An opaque id of the firmware for each sensor */
-> +	enum sensors type;
-> +	char name[MAX_ATTR_LEN];
-> +	struct device_attribute dev_attr;
-> +};
-> +
-> +struct platform_data {
-> +	const struct attribute_group *attr_groups[MAX_SENSOR_TYPE + 1];
-> +	u32 sensors_count; /* Total count of sensors from each group */
-> +};
-> +
-> +/* Platform device representing all the ibmpowernv sensors */
-> +static struct platform_device *pdevice;
-> +
-> +static ssize_t show_sensor(struct device *dev, struct device_attribute *devattr,
-> +			   char *buf)
-> +{
-> +	struct sensor_data *sdata = container_of(devattr, struct sensor_data,
-> +						 dev_attr);
-> +	ssize_t ret;
-> +	u32 x;
-> +
-> +	ret = opal_get_sensor_data(sdata->id, &x);
-> +	if (ret) {
-> +		pr_err("%s: Failed to get opal sensor data\n", __func__);
 
-Please use dev_err, and drop __func__. Also, do really need that error message ?
-The caller already gets notified, so polluting the log with it isn't really
-that helpful (if every driver in the kernel would do that, the log would be all
-but useless).
-
-> +		return ret;
-> +	}
-> +
-> +	/* Convert temperature to milli-degrees */
-> +	if (sdata->type = AMBIENT_TEMP)
-> +		x *= 1000;
-> +	/* Convert power to micro-watts */
-> +	else if (sdata->type = POWER_INPUT)
-> +		x *= 1000000;
-> +
-> +	return sprintf(buf, "%u\n", x);
-> +}
-> +
-> +static int __init get_sensor_index_attr(const char *name, u32 *index,
-> +					char *attr)
-> +{
-> +	char *hash_pos = strchr(name, '#');
-> +	char *dash_pos;
-> +	u32 copy_len;
-> +	char buf[8];
-> +
-> +	memset(buf, 0, sizeof(buf));
-> +
-Consider using
-	char buf[8] = { 0 };
-to leave it up to the compiler how to initialize the field.
-
-> +	if (!hash_pos)
-> +		return -EINVAL;
-> +
-> +	dash_pos = strchr(hash_pos, '-');
-> +	if (!dash_pos)
-> +		return -EINVAL;
-> +
-> +	copy_len = dash_pos - hash_pos - 1;
-> +	if (copy_len >= sizeof(buf))
-> +		return -EINVAL;
-> +
-> +	strncpy(buf, hash_pos + 1, copy_len);
-> +	if (sscanf(buf, "%d", index) != 1)
-> +		return -EINVAL;
-> +
-checkpatch says:
-
-WARNING: Prefer kstrto<type> to single variable sscanf
-#347: FILE: drivers/hwmon/ibmpowernv.c:124:
-+	if (sscanf(buf, "%d", index) != 1)
-+		return -EINVAL;
-
-> +	strncpy(attr, dash_pos + 1, MAX_ATTR_LEN);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * This function translates the DT node name into the 'hwmon' attribute name.
-> + * IBMPOWERNV device node appear like cooling-fan#2-data, amb-temp#1-thrs etc.
-> + * which need to be mapped as fan2_input, temp1_max respectively before
-> + * populating them inside hwmon device class..
-> + */
-> +static int __init create_hwmon_attr_name(enum sensors type,
-> +					 const char *node_name,
-> +					 char *hwmon_attr_name)
-> +{
-> +	char attr_suffix[MAX_ATTR_LEN];
-> +	char *attr_name;
-> +	u32 index;
-> +	int err;
-> +
-> +	err = get_sensor_index_attr(node_name, &index, attr_suffix);
-> +	if (err) {
-> +		pr_info("%s: Sensor device node name is invalid, name: %s\n",
-> +			__func__, node_name);
-
-dev_info please, and drop __func__. Pass dev as parameter to the function.
-Why _info anyway ? Isn't this an error ?
-
-> +		return err;
-> +	}
-> +
-> +	if (!strcmp(attr_suffix, DT_FAULT_ATTR_SUFFIX)) {
-> +		attr_name = "fault";
-> +	} else if (!strcmp(attr_suffix, DT_DATA_ATTR_SUFFIX)) {
-> +		attr_name = "input";
-> +	} else if (!strcmp(attr_suffix, DT_THRESHOLD_ATTR_SUFFIX)) {
-> +		if (type = AMBIENT_TEMP)
-> +			attr_name = "max";
-> +		else if (type = FAN)
-> +			attr_name = "min";
-> +		else
-> +			return -ENOENT;
-> +	} else {
-> +		return -ENOENT;
-> +	}
-> +
-> +	snprintf(hwmon_attr_name, MAX_ATTR_LEN, "%s%d_%s",
-> +		 sensor_groups[type].name, index, attr_name);
-> +	return 0;
-> +}
-> +
-> +static int __init populate_attr_groups(struct platform_device *pdev)
-> +{
-> +	struct platform_data *pdata = platform_get_drvdata(pdev);
-> +	const struct attribute_group **pgroups = pdata->attr_groups;
-> +	struct device_node *opal, *np;
-> +	enum sensors type;
-> +
-> +	opal = of_find_node_by_path("/ibm,opal/sensors");
-> +	if (!opal) {
-> +		pr_err("%s: Opal 'sensors' node not found\n", __func__);
-
-dev_err please, and drop __func__.
-
-> +		return -ENODEV;
-> +	}
-> +
-> +	for_each_child_of_node(opal, np) {
-> +		if (np->name = NULL)
-> +			continue;
-> +
-> +		for (type = 0; type < MAX_SENSOR_TYPE; type++)
-> +			if (of_device_is_compatible(np,
-> +					sensor_groups[type].compatible)) {
-> +				sensor_groups[type].attr_count++;
-> +				break;
-> +			}
-> +	}
-> +
-> +	of_node_put(opal);
-> +
-> +	for (type = 0; type < MAX_SENSOR_TYPE; type++) {
-> +		sensor_groups[type].group.attrs = devm_kzalloc(&pdev->dev,
-> +					sizeof(struct attribute *) *
-> +					(sensor_groups[type].attr_count + 1),
-> +					GFP_KERNEL);
-> +		if (!sensor_groups[type].group.attrs)
-> +			return -ENOMEM;
-> +
-> +		pgroups[type] = &sensor_groups[type].group;
-> +		pdata->sensors_count += sensor_groups[type].attr_count;
-> +		sensor_groups[type].attr_count = 0;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Iterate through the device tree for each child of 'sensors' node, create
-> + * a sysfs attribute file, the file is named by translating the DT node name
-> + * to the name required by the higher 'hwmon' driver like fan1_input, temp1_max
-> + * etc..
-> + */
-> +static int __init create_device_attrs(struct platform_device *pdev)
-> +{
-> +	struct platform_data *pdata = platform_get_drvdata(pdev);
-> +	const struct attribute_group **pgroups = pdata->attr_groups;
-> +	struct device_node *opal, *np;
-> +	struct sensor_data *sdata;
-> +	const __be32 *sensor_id;
-> +	enum sensors type;
-> +	u32 count = 0;
-> +	int err = 0;
-> +
-> +	opal = of_find_node_by_path("/ibm,opal/sensors");
-> +	if (!opal) {
-> +		pr_err("%s: Opal 'sensors' node not found\n", __func__);
-
-dev_err. Why are you checking this twice, anyway ?
-
-> +		return -ENODEV;
-> +	}
-> +
-> +	sdata = devm_kzalloc(&pdev->dev, (pdata->sensors_count) *
-> +			     sizeof(*sdata), GFP_KERNEL);
-
-( ) around pdata->sensors_count is unnecessary.
-
-> +	if (!sdata) {
-> +		err = -ENOMEM;
-> +		goto exit_put_node;
-> +	}
-> +
-> +	for_each_child_of_node(opal, np) {
-> +		if (np->name = NULL)
-> +			continue;
-> +
-> +		for (type = 0; type < MAX_SENSOR_TYPE; type++)
-> +			if (of_device_is_compatible(np,
-> +					sensor_groups[type].compatible))
-> +				break;
-> +
-> +		if (type = MAX_SENSOR_TYPE)
-> +			continue;
-> +
-> +		sensor_id = of_get_property(np, "sensor-id", NULL);
-> +		if (!sensor_id) {
-> +			pr_info("%s: 'sensor-id' property not present in %s\n",
-> +				__func__, np->name);
-
-dev_info
-
-> +			continue;
-> +		}
-> +
-> +		sdata[count].id = be32_to_cpup(sensor_id);
-> +		sdata[count].type = type;
-> +		err = create_hwmon_attr_name(type, np->name, sdata[count].name);
-> +		if (err)
-> +			goto exit_put_node;
-> +
-> +		sysfs_attr_init(&sdata[count].dev_attr.attr);
-> +		sdata[count].dev_attr.attr.name = sdata[count].name;
-> +		sdata[count].dev_attr.attr.mode = S_IRUGO;
-> +		sdata[count].dev_attr.show = show_sensor;
-> +
-> +		pgroups[type]->attrs[sensor_groups[type].attr_count++] > +				&sdata[count++].dev_attr.attr;
-> +	}
-> +
-> +exit_put_node:
-> +	of_node_put(opal);
-> +	return err;
-> +}
-> +
-> +static int __init ibmpowernv_probe(struct platform_device *pdev)
-> +{
-> +	struct platform_data *pdata;
-> +	struct device *hwmon_dev;
-> +	int err;
-> +
-> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, pdata);
-> +	pdata->sensors_count = 0;
-> +	err = populate_attr_groups(pdev);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Create sysfs attribute data for each sensor found in the DT */
-> +	err = create_device_attrs(pdev);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Finally, register with hwmon */
-> +	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev, DRVNAME,
-> +							   pdata,
-> +							   pdata->attr_groups);
-> +
-> +	return PTR_ERR_OR_ZERO(hwmon_dev);
-> +}
-> +
-> +static struct platform_driver ibmpowernv_driver = {
-> +	.driver = {
-> +		.owner = THIS_MODULE,
-> +		.name = DRVNAME,
-> +	},
-> +};
-> +
-> +static int __init ibmpowernv_init(void)
-> +{
-> +	int err;
-> +
-> +	pdevice = platform_device_alloc(DRVNAME, 0);
-> +	if (!pdevice) {
-> +		pr_err("%s: Device allocation failed\n", __func__);
-
-Please define something like
-
-#define pr_fmt(fmt) DRVNAME ": " fmt
-
-at the beginning of the driver (before the include files)
-to get an automatic driver name prefix.
-Then you can drop __func__ as it is redundant and doesn't provide
-as much value as the name of the driver.
-
-> +		err = -ENOMEM;
-> +		goto exit;
-> +	}
-> +
-> +	err = platform_device_add(pdevice);
-> +	if (err) {
-> +		pr_err("%s: Device addition failed (%d)\n", __func__, err);
-> +		goto exit_device_put;
-> +	}
-> +
-> +	err = platform_driver_probe(&ibmpowernv_driver, ibmpowernv_probe);
-> +	if (err) {
-> +		pr_err("%s: Platfrom driver probe failed\n", __func__);
-> +		goto exit_device_del;
-> +	}
-> +
-> +	return 0;
-> +
-> +exit_device_del:
-> +	platform_device_del(pdevice);
-> +exit_device_put:
-> +	platform_device_put(pdevice);
-> +exit:
-> +	return err;
-> +}
-> +
-> +static void __exit ibmpowernv_exit(void)
-> +{
-> +	platform_driver_unregister(&ibmpowernv_driver);
-> +	platform_device_unregister(pdevice);
-> +}
-> +
-> +MODULE_AUTHOR("Neelesh Gupta <neelegup@linux.vnet.ibm.com>");
-> +MODULE_DESCRIPTION("IBM POWERNV platform sensors");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(ibmpowernv_init);
-> +module_exit(ibmpowernv_exit);
->
->
->
 
 
 _______________________________________________
