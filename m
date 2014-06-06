@@ -1,50 +1,83 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 11 Jun 2014 11:49:16 +0000
-Subject: Re: [lm-sensors] Config file success report for GA-MA78GPM-DS2H
-Message-Id: <20140611134916.2fc806a2@endymion.delvare>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Fri, 06 Jun 2014 09:50:56 +0000
+Subject: [lm-sensors] [PATCH 1/2 v2] hwmon: (atxp1) Avoid forward declaration
+Message-Id: <1402048256.690.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140609180910.GG11531@localhost.localdomain>
-In-Reply-To: <20140609180910.GG11531@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 9 Jun 2014 11:09:10 -0700, Ryan C. Underwood wrote:
->=20
-> Hi,
->=20
-> I would just like to report that the config file for MA785GM-US2H also
-> works perfectly on my GA-MA78GPM-DS2H.  I don't have a wiki account so
-> I can't add it myself.
+Move atxp1_id and atxp1_driver to proper place to avoid forward declaration.
 
-I added a link, thanks for reporting.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/atxp1.c | 42 ++++++++++++++++++------------------------
+ 1 file changed, 18 insertions(+), 24 deletions(-)
 
-> it8718-isa-0228
-> Adapter: ISA adapter
-> Vcore:        +1.09 V  (min =3D  +0.80 V, max =3D  +1.50 V)
-> Vram:         +1.95 V  (min =3D  +1.71 V, max =3D  +2.10 V)
-> +3.3V:        +3.34 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> +5V:          +4.89 V  (min =3D  +4.76 V, max =3D  +5.24 V)
-> +12V:        +12.16 V  (min =3D +11.39 V, max =3D +12.61 V)
-> Vbat:         +3.04 V =20
-> CPU Fan:     2295 RPM  (min =3D 1000 RPM)
-> Case Fan:    1997 RPM  (min =3D 1000 RPM)
-> NBr Fan:        0 RPM  (min =3D 1000 RPM)
-> Sys Temp:     +37.0=B0C  (low  =3D +10.0=B0C, high =3D +50.0=B0C)  sensor=
- =3D thermistor
-> CPU Temp:     +39.0=B0C  (low  =3D +10.0=B0C, high =3D +60.0=B0C)  sensor=
- =3D thermal diode
-> NBr Temp:     +43.0=B0C  (low  =3D +10.0=B0C, high =3D +50.0=B0C)  sensor=
- =3D thermistor
-> cpu0_vid:    +1.100 V
-> intrusion0:  ALARM
+diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
+index 6edce42..2ae8a30 100644
+--- a/drivers/hwmon/atxp1.c
++++ b/drivers/hwmon/atxp1.c
+@@ -45,30 +45,6 @@ MODULE_AUTHOR("Sebastian Witt <se.witt@gmx.net>");
+ 
+ static const unsigned short normal_i2c[] = { 0x37, 0x4e, I2C_CLIENT_END };
+ 
+-static int atxp1_probe(struct i2c_client *client,
+-		       const struct i2c_device_id *id);
+-static int atxp1_remove(struct i2c_client *client);
+-static struct atxp1_data *atxp1_update_device(struct device *dev);
+-static int atxp1_detect(struct i2c_client *client, struct i2c_board_info *info);
+-
+-static const struct i2c_device_id atxp1_id[] = {
+-	{ "atxp1", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, atxp1_id);
+-
+-static struct i2c_driver atxp1_driver = {
+-	.class		= I2C_CLASS_HWMON,
+-	.driver = {
+-		.name	= "atxp1",
+-	},
+-	.probe		= atxp1_probe,
+-	.remove		= atxp1_remove,
+-	.id_table	= atxp1_id,
+-	.detect		= atxp1_detect,
+-	.address_list	= normal_i2c,
+-};
+-
+ struct atxp1_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
+@@ -386,4 +362,22 @@ static int atxp1_remove(struct i2c_client *client)
+ 	return 0;
+ };
+ 
++static const struct i2c_device_id atxp1_id[] = {
++	{ "atxp1", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, atxp1_id);
++
++static struct i2c_driver atxp1_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "atxp1",
++	},
++	.probe		= atxp1_probe,
++	.remove		= atxp1_remove,
++	.id_table	= atxp1_id,
++	.detect		= atxp1_detect,
++	.address_list	= normal_i2c,
++};
++
+ module_i2c_driver(atxp1_driver);
+-- 
+1.8.3.2
 
-Looks all good :)
 
---=20
-Jean Delvare
-SUSE L3 Support
+
 
 _______________________________________________
 lm-sensors mailing list
