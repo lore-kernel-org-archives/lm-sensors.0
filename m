@@ -1,28 +1,55 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 14 Jun 2014 13:26:00 +0000
-Subject: Re: [lm-sensors] [PATCH RFT] hwmon: (gpio-fan) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <539C4D68.3020505@roeck-us.net>
+From: Fabio Baltieri <fabio.baltieri@gmail.com>
+Date: Sun, 08 Jun 2014 21:06:24 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ina2xx) Cast to s16 on shunt and current regs
+Message-Id: <1402261584-5301-1-git-send-email-fabio.baltieri@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1402728650.25269.1.camel@phoenix>
-In-Reply-To: <1402728650.25269.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Fabio Baltieri <fabio.baltieri@gmail.com>
 
-On 06/13/2014 11:50 PM, Axel Lin wrote:
-> This simplifies the code a bit and also ensures the attribute groups are
-> properly removed from sysfs when unload the module.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+All devices supported by ina2xx are bidirectional and reports the
+measured shunt voltage and power values as a signed 16 bit, but the
+current driver implementation caches all registers as u16, leading to an
+incorrect sign extension when reporting to the userspace in
+ina2xx_get_value().
 
-Hmm ... no idea why I did not use the devm_ function to start with. Applied to -next.
+This patch fixes the problem by casting the signed registers to s16.
+Tested on an INA219.
 
-On a side note, I wonder if the interrupt handler works on this one.
-Shared edge triggered interrupts used to be not supported, or my memory is wrong.
-If I find some time, I may build a little test board to give this a try.
+Signed-off-by: Fabio Baltieri <fabio.baltieri@gmail.com>
+---
+ drivers/hwmon/ina2xx.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Guenter
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 93d26e8..bfd3f3e 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -148,7 +148,8 @@ static int ina2xx_get_value(struct ina2xx_data *data, u8 reg)
+ 
+ 	switch (reg) {
+ 	case INA2XX_SHUNT_VOLTAGE:
+-		val = DIV_ROUND_CLOSEST(data->regs[reg],
++		/* signed register */
++		val = DIV_ROUND_CLOSEST((s16)data->regs[reg],
+ 					data->config->shunt_div);
+ 		break;
+ 	case INA2XX_BUS_VOLTAGE:
+@@ -160,8 +161,8 @@ static int ina2xx_get_value(struct ina2xx_data *data, u8 reg)
+ 		val = data->regs[reg] * data->config->power_lsb;
+ 		break;
+ 	case INA2XX_CURRENT:
+-		/* LSB=1mA (selected). Is in mA */
+-		val = data->regs[reg];
++		/* signed register, LSB=1mA (selected), in mA */
++		val = (s16)data->regs[reg];
+ 		break;
+ 	default:
+ 		/* programmer goofed */
+-- 
+1.8.4
 
 
 _______________________________________________
