@@ -1,17 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 10 Jun 2014 00:33:29 +0000
+From: Scott Kanowitz <skanowitz@echo360.com>
+Date: Tue, 10 Jun 2014 14:25:05 +0000
 Subject: Re: [lm-sensors] [PATCH] Added support for Lattice's POWR1220 power manager IC.
-Message-Id: <53965259.8020806@roeck-us.net>
+Message-Id: <e3d93e5b08ef4da493a4df412067ead9@BN1PR05MB536.namprd05.prod.outlook.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <53965259.8020806@roeck-us.net>
+In-Reply-To: <53965259.8020806@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Guenter,
+
+Thanks for the feedback. I'll update the driver and resubmit it.
+
+--Scott
+
+-----Original Message-----
+From: Guenter Roeck [mailto:linux@roeck-us.net] 
+Sent: Monday, June 09, 2014 8:33 PM
+To: Scott Kanowitz; jdelvare@suse.de; LM Sensors
+Subject: Re: [PATCH] Added support for Lattice's POWR1220 power manager IC.
+
 On 06/09/2014 09:08 AM, Scott Kanowitz wrote:
-> This patch adds support for Lattice's POWR1220 power manager IC. Read/write
-> access to all the registers and ADCs on the chip are supported through the
-> hwmon sysfs files.
+> This patch adds support for Lattice's POWR1220 power manager IC. 
+> Read/write access to all the registers and ADCs on the chip are 
+> supported through the hwmon sysfs files.
 >
 > Signed-off-by: Scott Kanowitz <skanowitz@echo360.com>
 
@@ -33,11 +47,9 @@ This ensures that it is copied to patchwork and does not get lost.
 >   mode change 100644 => 100755 drivers/hwmon/Kconfig
 >   create mode 100755 drivers/hwmon/powr1220.c
 
-Configuration and source files are not executable. Please make sure
-that your patch passes checkpatch without errors and warnings.
+Configuration and source files are not executable. Please make sure that your patch passes checkpatch without errors and warnings.
 
-I won't review in detail since literally none of your attributes
-follows the hwmon ABI. Some general comments, though.
+I won't review in detail since literally none of your attributes follows the hwmon ABI. Some general comments, though.
 
 - Attributes are displayed in decimal.
 - There is no need to add blocking around a single i2c function call.
@@ -59,10 +71,8 @@ Thanks,
 Guenter
 
 >
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> old mode 100644
-> new mode 100755
-> index 4af0da9..fc4d7f1
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig old mode 
+> 100644 new mode 100755 index 4af0da9..fc4d7f1
 > --- a/drivers/hwmon/Kconfig
 > +++ b/drivers/hwmon/Kconfig
 > @@ -608,6 +608,18 @@ config SENSORS_JC42
@@ -84,8 +94,8 @@ Guenter
 >   config SENSORS_LINEAGE
 >   	tristate "Lineage Compact Power Line Power Entry Module"
 >   	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index c48f987..842e6b3 100644
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile index 
+> c48f987..842e6b3 100644
 > --- a/drivers/hwmon/Makefile
 > +++ b/drivers/hwmon/Makefile
 > @@ -119,6 +119,7 @@ obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
@@ -96,14 +106,14 @@ Guenter
 >   obj-$(CONFIG_SENSORS_S3C)	+= s3c-hwmon.o
 >   obj-$(CONFIG_SENSORS_SCH56XX_COMMON)+= sch56xx-common.o
 >   obj-$(CONFIG_SENSORS_SCH5627)	+= sch5627.o
-> diff --git a/drivers/hwmon/powr1220.c b/drivers/hwmon/powr1220.c
-> new file mode 100755
-> index 0000000..2452e29
+> diff --git a/drivers/hwmon/powr1220.c b/drivers/hwmon/powr1220.c new 
+> file mode 100755 index 0000000..2452e29
 > --- /dev/null
 > +++ b/drivers/hwmon/powr1220.c
 > @@ -0,0 +1,624 @@
 > +/*
-> + * powr1220.c - Driver for the Lattice POWR1220 programmable power supply
+> + * powr1220.c - Driver for the Lattice POWR1220 programmable power 
+> +supply
 > + * and monitor. Users can read all the values from the device, reset
 > + * the device, read all the ADC inputs and adjust the trim values
 > + * using the sysfs nodes.
@@ -111,8 +121,10 @@ Guenter
 > + * Copyright (c) 2014 Echo360 http://www.echo360.com
 > + * Scott Kanowitz <skanowitz@echo360.com> <scott.kanowitz@gmail.com>
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
+> + * This program is free software; you can redistribute it and/or 
+> +modify
+> + * it under the terms of the GNU General Public License as published 
+> +by
 > + * the Free Software Foundation; either version 2 of the License, or
 > + * (at your option) any later version.
 > + *
@@ -213,17 +225,16 @@ Guenter
 > +};
 > +
 > +
-> +static struct powr1220_data *powr1220_update_device(struct device *dev);
-> +static int powr1220_read_adc(struct device *dev, int ch_num);
+> +static struct powr1220_data *powr1220_update_device(struct device 
+> +*dev); static int powr1220_read_adc(struct device *dev, int ch_num); 
 > +static int powr1220_probe(struct i2c_client *client,
 > +	const struct i2c_device_id *id);
 > +static int powr1220_remove(struct i2c_client *client);
 > +
 > +
-> +/* Resets the device with a write to the reset register */
-> +static ssize_t powr1220_reset(struct device *dev,
-> +	struct device_attribute *dev_attr, const char *buf, size_t count)
-> +{
+> +/* Resets the device with a write to the reset register */ static 
+> +ssize_t powr1220_reset(struct device *dev,
+> +	struct device_attribute *dev_attr, const char *buf, size_t count) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +
@@ -235,52 +246,43 @@ Guenter
 > +}
 > +
 > +
-> +/* Shows the voltage associated with the specified ADC channel */
+> +/* Shows the voltage associated with the specified ADC channel */ 
 > +static ssize_t powr1220_show_voltage(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	int adc_val = powr1220_read_adc(dev, attr->index);
 > +
-> +	return sprintf(buf, "%04d\n", adc_val);
-> +}
+> +	return sprintf(buf, "%04d\n", adc_val); }
 > +
 > +
-> +/* Shows the status associated with the specified vmon register */
+> +/* Shows the status associated with the specified vmon register */ 
 > +static ssize_t powr1220_show_vmon_status(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%02X\n", data->vmon_status[attr->index]);
-> +}
+> +	return sprintf(buf, "0x%02X\n", data->vmon_status[attr->index]); }
 > +
 > +
-> +/* Shows the value of the input status register */
-> +static ssize_t powr1220_show_input_status(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the value of the input status register */ static ssize_t 
+> +powr1220_show_input_status(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%02X\n", data->input_status);
-> +}
+> +	return sprintf(buf, "0x%02X\n", data->input_status); }
 > +
 > +
-> +/* Shows the value of the input value register */
-> +static ssize_t powr1220_show_input_value(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the value of the input value register */ static ssize_t 
+> +powr1220_show_input_value(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%02X\n", data->input_value);
-> +}
+> +	return sprintf(buf, "0x%02X\n", data->input_value); }
 > +
 > +
-> +/* Sets the value of the input_value register. Input value is always hex */
-> +static ssize_t powr1220_set_input_value(struct device *dev,
-> +	struct device_attribute *dev_attr, const char *buf, size_t count)
-> +{
+> +/* Sets the value of the input_value register. Input value is always 
+> +hex */ static ssize_t powr1220_set_input_value(struct device *dev,
+> +	struct device_attribute *dev_attr, const char *buf, size_t count) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +	unsigned long value;
@@ -300,30 +302,25 @@ Guenter
 > +}
 > +
 > +
-> +/* Shows the value of the output status */
-> +static ssize_t powr1220_show_output_status(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the value of the output status */ static ssize_t 
+> +powr1220_show_output_status(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%06X\n", data->output_status);
-> +}
+> +	return sprintf(buf, "0x%06X\n", data->output_status); }
 > +
 > +
-> +/* Shows the value of the gp output */
-> +static ssize_t powr1220_show_gp_output(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the value of the gp output */ static ssize_t 
+> +powr1220_show_gp_output(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%06X\n", data->gp_output);
-> +}
+> +	return sprintf(buf, "0x%06X\n", data->gp_output); }
 > +
 > +
-> +/* Sets the value of the gp_output registers. Input value is always hex */
-> +static ssize_t powr1220_set_gp_output(struct device *dev,
-> +	struct device_attribute *dev_attr, const char *buf, size_t count)
-> +{
+> +/* Sets the value of the gp_output registers. Input value is always 
+> +hex */ static ssize_t powr1220_set_gp_output(struct device *dev,
+> +	struct device_attribute *dev_attr, const char *buf, size_t count) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +	unsigned long value;
@@ -350,39 +347,32 @@ Guenter
 > +
 > +/* Shows the value of the hvout */
 > +static ssize_t powr1220_show_hvout(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%02X\n", data->hvout);
-> +}
+> +	return sprintf(buf, "0x%02X\n", data->hvout); }
 > +
 > +
 > +/* Shows the value of ues */
 > +static ssize_t powr1220_show_ues(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%08X\n", data->ues);
-> +}
+> +	return sprintf(buf, "0x%08X\n", data->ues); }
 > +
 > +
-> +/* Shows the value of the specified trim value */
-> +static ssize_t powr1220_show_trim(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the value of the specified trim value */ static ssize_t 
+> +powr1220_show_trim(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "0x%02X\n", data->trim[attr->index]);
-> +}
+> +	return sprintf(buf, "0x%02X\n", data->trim[attr->index]); }
 > +
 > +
-> +/* Sets the value of the specified trim register. Input value is always hex */
-> +static ssize_t powr1220_set_trim(struct device *dev,
-> +	struct device_attribute *dev_attr, const char *buf, size_t count)
-> +{
+> +/* Sets the value of the specified trim register. Input value is 
+> +always hex */ static ssize_t powr1220_set_trim(struct device *dev,
+> +	struct device_attribute *dev_attr, const char *buf, size_t count) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
@@ -401,20 +391,17 @@ Guenter
 > +}
 > +
 > +
-> +/* Shows the value of the adc range (0 or 1) */
-> +static ssize_t powr1220_show_adc_range(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the value of the adc range (0 or 1) */ static ssize_t 
+> +powr1220_show_adc_range(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct powr1220_data *data = powr1220_update_device(dev);
 > +
-> +	return sprintf(buf, "%d\n", (data->adc_range ? 1 : 0));
-> +}
+> +	return sprintf(buf, "%d\n", (data->adc_range ? 1 : 0)); }
 > +
 > +
-> +/* Sets the value of the adc range (0 or 1) */
-> +static ssize_t powr1220_set_adc_range(struct device *dev,
-> +	struct device_attribute *dev_attr, const char *buf, size_t count)
-> +{
+> +/* Sets the value of the adc range (0 or 1) */ static ssize_t 
+> +powr1220_set_adc_range(struct device *dev,
+> +	struct device_attribute *dev_attr, const char *buf, size_t count) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +	unsigned long range;
@@ -433,9 +420,8 @@ Guenter
 > +
 > +
 > +
-> +/* Reads the specified ADC channel */
-> +static int powr1220_read_adc(struct device *dev, int ch_num)
-> +{
+> +/* Reads the specified ADC channel */ static int 
+> +powr1220_read_adc(struct device *dev, int ch_num) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +	unsigned char reg;
@@ -475,9 +461,9 @@ Guenter
 > +}
 > +
 > +
-> +/* Reads from the device and updates the local data if after the timeout */
-> +static struct powr1220_data *powr1220_update_device(struct device *dev)
-> +{
+> +/* Reads from the device and updates the local data if after the 
+> +timeout */ static struct powr1220_data *powr1220_update_device(struct 
+> +device *dev) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +	unsigned char regs[MAX_POWR1220_REGS];
@@ -530,23 +516,23 @@ Guenter
 > +
 > +
 > +
-> +static SENSOR_DEVICE_ATTR(vmon1, S_IRUGO, powr1220_show_voltage, NULL, VMON1);
-> +static SENSOR_DEVICE_ATTR(vmon2, S_IRUGO, powr1220_show_voltage, NULL, VMON2);
-> +static SENSOR_DEVICE_ATTR(vmon3, S_IRUGO, powr1220_show_voltage, NULL, VMON3);
-> +static SENSOR_DEVICE_ATTR(vmon4, S_IRUGO, powr1220_show_voltage, NULL, VMON4);
-> +static SENSOR_DEVICE_ATTR(vmon5, S_IRUGO, powr1220_show_voltage, NULL, VMON5);
-> +static SENSOR_DEVICE_ATTR(vmon6, S_IRUGO, powr1220_show_voltage, NULL, VMON6);
-> +static SENSOR_DEVICE_ATTR(vmon7, S_IRUGO, powr1220_show_voltage, NULL, VMON7);
-> +static SENSOR_DEVICE_ATTR(vmon8, S_IRUGO, powr1220_show_voltage, NULL, VMON8);
-> +static SENSOR_DEVICE_ATTR(vmon9, S_IRUGO, powr1220_show_voltage, NULL, VMON9);
-> +static SENSOR_DEVICE_ATTR(vmon10, S_IRUGO, powr1220_show_voltage, NULL,
+> +static SENSOR_DEVICE_ATTR(vmon1, S_IRUGO, powr1220_show_voltage, 
+> +NULL, VMON1); static SENSOR_DEVICE_ATTR(vmon2, S_IRUGO, 
+> +powr1220_show_voltage, NULL, VMON2); static SENSOR_DEVICE_ATTR(vmon3, 
+> +S_IRUGO, powr1220_show_voltage, NULL, VMON3); static 
+> +SENSOR_DEVICE_ATTR(vmon4, S_IRUGO, powr1220_show_voltage, NULL, 
+> +VMON4); static SENSOR_DEVICE_ATTR(vmon5, S_IRUGO, 
+> +powr1220_show_voltage, NULL, VMON5); static SENSOR_DEVICE_ATTR(vmon6, 
+> +S_IRUGO, powr1220_show_voltage, NULL, VMON6); static 
+> +SENSOR_DEVICE_ATTR(vmon7, S_IRUGO, powr1220_show_voltage, NULL, 
+> +VMON7); static SENSOR_DEVICE_ATTR(vmon8, S_IRUGO, powr1220_show_voltage, NULL, VMON8); static SENSOR_DEVICE_ATTR(vmon9, S_IRUGO, powr1220_show_voltage, NULL, VMON9); static SENSOR_DEVICE_ATTR(vmon10, S_IRUGO, powr1220_show_voltage, NULL,
 > +		VMON10);
 > +static SENSOR_DEVICE_ATTR(vmon11, S_IRUGO, powr1220_show_voltage, NULL,
 > +		VMON11);
 > +static SENSOR_DEVICE_ATTR(vmon12, S_IRUGO, powr1220_show_voltage, NULL,
 > +		VMON12);
-> +static SENSOR_DEVICE_ATTR(vcca, S_IRUGO, powr1220_show_voltage, NULL, VCCA);
-> +static SENSOR_DEVICE_ATTR(vccinp, S_IRUGO, powr1220_show_voltage, NULL,
+> +static SENSOR_DEVICE_ATTR(vcca, S_IRUGO, powr1220_show_voltage, NULL, 
+> +VCCA); static SENSOR_DEVICE_ATTR(vccinp, S_IRUGO, powr1220_show_voltage, NULL,
 > +		VCCINP);
 > +
 > +static SENSOR_DEVICE_ATTR(reset, S_IWUSR, NULL, powr1220_reset, 0);
@@ -561,12 +547,12 @@ Guenter
 > +static SENSOR_DEVICE_ATTR(input_status, S_IRUGO, powr1220_show_input_status,
 > +		NULL, 0);
 > +static SENSOR_DEVICE_ATTR(input_value, S_IWUSR | S_IRUGO,
-> +		powr1220_show_input_value, powr1220_set_input_value, 0);
-> +static SENSOR_DEVICE_ATTR(output_status, S_IRUGO, powr1220_show_output_status,
+> +		powr1220_show_input_value, powr1220_set_input_value, 0); static 
+> +SENSOR_DEVICE_ATTR(output_status, S_IRUGO, powr1220_show_output_status,
 > +		NULL, 0);
 > +static SENSOR_DEVICE_ATTR(gp_output, S_IWUSR | S_IRUGO,
-> +		powr1220_show_gp_output, powr1220_set_gp_output, 0);
-> +static SENSOR_DEVICE_ATTR(hvout, S_IRUGO, powr1220_show_hvout,
+> +		powr1220_show_gp_output, powr1220_set_gp_output, 0); static 
+> +SENSOR_DEVICE_ATTR(hvout, S_IRUGO, powr1220_show_hvout,
 > +		NULL, 0);
 > +static SENSOR_DEVICE_ATTR(ues, S_IRUGO, powr1220_show_ues, NULL, 0);
 > +
@@ -679,8 +665,7 @@ Guenter
 > +}
 > +
 > +
-> +static int powr1220_remove(struct i2c_client *client)
-> +{
+> +static int powr1220_remove(struct i2c_client *client) {
 > +	struct powr1220_data *data = i2c_get_clientdata(client);
 > +
 > +	hwmon_device_unregister(data->hwmon_dev);
@@ -709,13 +694,10 @@ Guenter
 > +};
 > +
 > +
-> +static int __init powr1220_init(void)
-> +{
-> +	return i2c_add_driver(&powr1220_driver);
-> +}
+> +static int __init powr1220_init(void) {
+> +	return i2c_add_driver(&powr1220_driver); }
 > +
-> +static void __exit powr1220_exit(void)
-> +{
+> +static void __exit powr1220_exit(void) {
 > +	i2c_del_driver(&powr1220_driver);
 > +}
 > +
@@ -724,8 +706,7 @@ Guenter
 > +module_exit(powr1220_exit);
 > +
 > +MODULE_AUTHOR("Scott Kanowitz");
-> +MODULE_DESCRIPTION("POWR1220 driver");
-> +MODULE_LICENSE("GPL");
+> +MODULE_DESCRIPTION("POWR1220 driver"); MODULE_LICENSE("GPL");
 >
 
 
