@@ -1,61 +1,84 @@
-From: Mike Dixon <qualitydixon@gmail.com>
-Date: Wed, 11 Jun 2014 14:19:22 +0000
-Subject: [lm-sensors] [lm85] Sensors yields triplicate output
-Message-Id: <CAGTLibq22gJ-GzaVagS7JDL=fNnHs6nhxTeD_OVKoMrHYPwhmw@mail.gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 11 Jun 2014 14:55:41 +0000
+Subject: Re: [lm-sensors] [lm85] Sensors yields triplicate output
+Message-Id: <20140611165541.50fd7c58@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAGTLibq22gJ-GzaVagS7JDL=fNnHs6nhxTeD_OVKoMrHYPwhmw@mail.gmail.com>
+In-Reply-To: <CAGTLibq22gJ-GzaVagS7JDL=fNnHs6nhxTeD_OVKoMrHYPwhmw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sCgpJIGhhdmUgYSBib2FyZCBpbiB3aGljaCBzZW5zb3JzIGlzIGdpdmluZyBtZSBlc3Nl
-bnRpYWxseSB0aHJlZSBvdXRwdXRzIGZvcgp0aGUgc2FtZSBjaGlwIChzZWUgYmVsb3cpLiBJIGhh
-dmVuJ3QgYmVlbiBhYmxlIHRvIGZpbmQgYW55b25lIGVsc2Ugd2l0aAp0aGlzIHByb2JsZW0uIEhh
-cyBhbnlvbmUgc2VlbiB0aGlzIGJlZm9yZT8gQXMgeW91IGNhbiBzZWUsIHR3byBvZiB0aGUKb3V0
-cHV0cyBnaXZlIGVycm9uZW91cyBkYXRhLiBEbyB5b3Uga25vdyBob3cgSSBjb3VsZCBkaXNhYmxl
-IHR3byBvZiB0aGUKYWRhcHRlcnMgc28gSSBvbmx5IGdldCBvbmUgb3V0cHV0PyBJIGhhdmUgYWxy
-ZWFkeSB0cmllZCBhbHRlcmluZyB0aGUKc2Vuc29yczMuY29uZiBmaWxlLiBCdXQgYW55IHVzZSBv
-ZiB3aWxkY2FyZHMgb3RoZXIgdGhhbiAibG04NS0qIiB5aWVsZHMgYW4KZXJyb3IuIEZvciBleGFt
-cGxlIEkgdHJpZWQgImxtODUtaTJjLTQtMmUiLCAiKi00LSoiIGFuZCB0aGV5IGRpZCBub3Qgd29y
-ay4KSSBhbSBydW5uaW5nIENlbnRPUyA2LjQgd2l0aCBsbV9zZW5zb3JzIDMuMS4xLiBUaGFua3Mu
-CgpbdXNlckBsb2NhbGhvc3Qgfl0kIHNlbnNvcnMKbG04NS1pMmMtMC0yZQpBZGFwdGVyOiBSYWRl
-b24gaTJjIGJpdCBidXMgRFZJX0REQwppbjA6ICAgICAgICAgKzMuMjUgViAgKG1pbiA9ICArMy4y
-NSBWLCBtYXggPSAgKzMuMjUgVikKVmNvcmU6ICAgICAgICsyLjkzIFYgIChtaW4gPSAgKzIuOTMg
-ViwgbWF4ID0gICsyLjkzIFYpICAgQUxBUk0KKzMuM1Y6ICAgICAgICs0LjMwIFYgIChtaW4gPSAg
-KzQuMzAgViwgbWF4ID0gICs0LjMwIFYpCis1VjogICAgICAgICArNi41MSBWICAobWluID0gICs2
-LjUxIFYsIG1heCA9ICArNi41MSBWKSAgIEFMQVJNCisxMlY6ICAgICAgICsxNS42MiBWICAobWlu
-ID0gKzE1LjYyIFYsIG1heCA9ICsxNS42MiBWKQpmYW4xOiAgICAgICAgIDg0IFJQTSAgKG1pbiA9
-ICAgODQgUlBNKQpmYW4yOiAgICAgICAgIDg0IFJQTSAgKG1pbiA9ICAgODQgUlBNKSAgQUxBUk0K
-ZmFuMzogICAgICAgICA4NCBSUE0gIChtaW4gPSAgIDg0IFJQTSkgIEFMQVJNCmZhbjQ6ICAgICAg
-ICAgODQgUlBNICAobWluID0gICA4NCBSUE0pICBBTEFSTQp0ZW1wMTogICAgICAgICBGQVVMVCAg
-KGxvdyAgPSAgLTYuMMKwQywgaGlnaCA9ICAtNi4wwrBDKSAgQUxBUk0KTS9CIFRlbXA6ICAgICAt
-Ni4wwrBDICAobG93ICA9ICAtNi4wwrBDLCBoaWdoID0gIC02LjDCsEMpICBBTEFSTQp0ZW1wMzog
-ICAgICAgICBGQVVMVCAgKGxvdyAgPSAgLTYuMMKwQywgaGlnaCA9ICAtNi4wwrBDKSAgQUxBUk0K
-Y3B1MF92aWQ6ICAgKzEuMjEzIFYKCmxtODUtaTJjLTQtMmMKQWRhcHRlcjogU01CdXMgSTgwMSBh
-ZGFwdGVyIGF0IDMwMDAKaW4wOiAgICAgICAgICsxLjUxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4
-ID0gICszLjMyIFYpClZjb3JlOiAgICAgICArMS4yMiBWICAobWluID0gICswLjAwIFYsIG1heCA9
-ICArMi45OSBWKQorMy4zVjogICAgICAgKzMuMjggViAgKG1pbiA9ICArMi45NyBWLCBtYXggPSAg
-KzMuNjMgVikKKzVWOiAgICAgICAgICs1LjEzIFYgIChtaW4gPSAgKzQuNTAgViwgbWF4ID0gICs1
-LjUwIFYpCisxMlY6ICAgICAgICsxMS45NCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICsxNS45
-NCBWKQpmYW4xOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAgICAg
-ICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4zOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAg
-IDAgUlBNKQpmYW40OiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQp0ZW1wMTogICAg
-ICAgICBGQVVMVCAgKGxvdyAgPSAtMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBBTEFSTQpN
-L0IgVGVtcDogICAgKzI3LjDCsEMgIChsb3cgID0gLTEyNy4wwrBDLCBoaWdoID0gKzEyNy4wwrBD
-KQp0ZW1wMzogICAgICAgICBGQVVMVCAgKGxvdyAgPSAtMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDC
-sEMpICBBTEFSTQpjcHUwX3ZpZDogICArMS4wODggVgoKbG04NS1pMmMtNC0yZQpBZGFwdGVyOiBT
-TUJ1cyBJODAxIGFkYXB0ZXIgYXQgMzAwMAppbjA6ICAgICAgICAgKzEuNTEgViAgKG1pbiA9ICAr
-MS40MiBWLCBtYXggPSAgKzEuNTggVikKVmNvcmU6ICAgICAgICsxLjIzIFYgIChtaW4gPSAgKzEu
-MjAgViwgbWF4ID0gICsxLjM1IFYpCiszLjNWOiAgICAgICArMy4yNyBWICAobWluID0gICsyLjk3
-IFYsIG1heCA9ICArMy42MyBWKQorNVY6ICAgICAgICAgKzUuMTAgViAgKG1pbiA9ICArNC41MCBW
-LCBtYXggPSAgKzUuNTAgVikKKzEyVjogICAgICAgKzExLjk0IFYgIChtaW4gPSArMTEuMzggViwg
-bWF4ID0gKzEyLjYyIFYpCmZhbjE6ICAgICAgIDExOTYgUlBNICAobWluID0gIDcwMCBSUE0pCmZh
-bjI6ICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCmZhbjM6ICAgICAgICAgIDAgUlBN
-ICAobWluID0gIDcwMCBSUE0pICBBTEFSTQpmYW40OiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICA3
-MDAgUlBNKSAgQUxBUk0KdGVtcDE6ICAgICAgICs1Ny4wwrBDICAobG93ICA9ICsxMC4wwrBDLCBo
-aWdoID0gKzY1LjDCsEMpCk0vQiBUZW1wOiAgICArMjUuMMKwQyAgKGxvdyAgPSArMTAuMMKwQywg
-aGlnaCA9ICs1NS4wwrBDKQp0ZW1wMzogICAgICAgKzQxLjDCsEMgIChsb3cgID0gKzEwLjDCsEMs
-IGhpZ2ggPSArNTUuMMKwQykKY3B1MF92aWQ6ICAgKzEuMDg4IFYKCi0tIApNaWtlIERpeG9uCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMg
-bWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNl
-bnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Hi Mike,
+
+On Wed, 11 Jun 2014 08:19:22 -0600, Mike Dixon wrote:
+> I have a board in which sensors is giving me essentially three outputs for
+> the same chip (see below). I haven't been able to find anyone else with
+> this problem. Has anyone seen this before?
+
+Not that I can remember, no.
+
+Please note: you are not seeing 3 different outputs from the same chip.
+The driver sees 3 devices. Some could be misdetections, but they are
+definitely separate chips.
+
+> As you can see, two of the
+> outputs give erroneous data. Do you know how I could disable two of the
+> adapters so I only get one output?
+
+Difficult. You can't prevent the driver from binding to the devices.
+What you can do is unbind the driver afterward. As root:
+# echo 0-002e > /sys/bus/i2c/drivers/lm85/unbind
+# echo 4-002c > /sys/bus/i2c/drivers/lm85/unbind
+
+I think you'll need a kernel with hot-plug support, but that should
+pretty much be the default these days.
+
+You can put the above in some init script, however this assumes that
+the I2C bus numbers are stable, which is not guaranteed. Also this must
+be done _after_ the lm85 driver is loaded.
+
+> I have already tried altering the
+> sensors3.conf file. But any use of wildcards other than "lm85-*" yields an
+> error. For example I tried "lm85-i2c-4-2e", "*-4-*" and they did not work.
+
+Any reference to an I2C bus number requires that you first map this bus
+number to an actual I2C bus, by name, using a "bus" statement. This is
+explained in the sensors.conf man page.
+
+> I am running CentOS 6.4 with lm_sensors 3.1.1. Thanks.
+
+We would also need to know your kernel version and also which piece of
+hardware you're seeing this on. Also please let us know if you
+installed a separate lm85 driver.
+
+Please also unload the lm85 driver and run a recent version of
+sensors-detect [1], and show us the output.
+
+[1] http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
+
+I would also appreciate dumps from all 3 devices. Install i2c-tools,
+then:
+# modprobe i2c-dev
+# i2cdump -y 0 0x2e > /tmp/lm85-i2c-0-2e.dump
+# i2cdump -y 4 0x2c > /tmp/lm85-i2c-4-2c.dump
+# i2cdump -y 4 0x2e > /tmp/lm85-i2c-4-2e.dump
+
+Most likely the lm85 driver is misdetecting devices. The 1st one at
+least looks plain wrong. The 2nd one might be real, especially if this
+is a 2-CPU system. The 3rd one looks totally correct.
+
+There is generic detection code in the driver which could lead to that,
+I think it should be removed. I have a patch ready which I will post
+soon, and I would also appreciate if you could test an updated version
+of the lm85 driver. But first I need the information above.
+
+-- 
+Jean Delvare
+http://jdelvare.nerim.net/wishlist.html
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
