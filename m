@@ -1,7 +1,7 @@
 From: Mike Dixon <qualitydixon@gmail.com>
-Date: Thu, 12 Jun 2014 16:36:09 +0000
+Date: Thu, 12 Jun 2014 16:44:10 +0000
 Subject: Re: [lm-sensors] [lm85] Sensors yields triplicate output
-Message-Id: <CAGTLibq1VhvvcMTZre0Jr=qgFK7Fw+ndxb_-4LYC_ub+=wECZg@mail.gmail.com>
+Message-Id: <CAGTLibpHzFN6k1tycOGqTdmDy5R6083pjhmaA_jCJkJu7+=KXg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAGTLibq22gJ-GzaVagS7JDL=fNnHs6nhxTeD_OVKoMrHYPwhmw@mail.gmail.com>
 In-Reply-To: <CAGTLibq22gJ-GzaVagS7JDL=fNnHs6nhxTeD_OVKoMrHYPwhmw@mail.gmail.com>
@@ -10,410 +10,451 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-sensors-detect output with lm85 unloaded:
+i2cdetecct -l output:
 
-# sensors-detect revision 6248 (2014-05-12 09:14:50 +0200)
-# System: Sunware 0073351-01 05/16/2007 [SE7230NH1LX]
-# Board: Intel Corporation SE7230NH1LX
+[user@localhost]# i2cdetect -l
+i2c-4    smbus         SMBus I801 adapter at 3000          SMBus adapter
+i2c-0    i2c           Radeon i2c bit bus DVI_DDC          I2C adapter
+i2c-1    i2c           Radeon i2c bit bus VGA_DDC          I2C adapter
+i2c-2    i2c           Radeon i2c bit bus MONID            I2C adapter
+i2c-3    i2c           Radeon i2c bit bus CRT2_DDC         I2C adapter
 
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
+ls -l /dev/i2c* output:
 
-Some south bridges, CPUs or memory controllers contain embedded sensors.
-Do you want to scan for them? This is totally safe. (YES/no):
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD Family 10h thermal sensors...                           No
-AMD Family 11h thermal sensors...                           No
-AMD Family 12h and 14h thermal sensors...                   No
-AMD Family 15h thermal sensors...                           No
-AMD Family 16h thermal sensors...                           No
-AMD Family 15h power sensors...                             No
-AMD Family 16h power sensors...                             No
-Intel digital thermal sensor...                             No
-Intel AMB FB-DIMM thermal sensor...                         No
-VIA C7 thermal sensor...                                    No
-VIA Nano thermal sensor...                                  No
-
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no):
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor/ITE'...               Yes
-Found `Nat. Semi. PC8374L Super IO Sensors'
-    (but not activated)
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor/ITE'...               No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      No
-
-Some systems (mainly servers) implement IPMI, a set of common interfaces
-through which system health data may be retrieved, amongst other things.
-We first try to get the information from SMBIOS. If we don't find it
-there, we have to read from arbitrary I/O ports to probe for such
-interfaces. This is normally safe. Do you want to scan for IPMI
-interfaces? (YES/no):
-Probing for `IPMI BMC KCS' at 0xca0...                      No
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
-
-Some hardware monitoring chips are accessible through the ISA I/O ports.
-We have to write to arbitrary I/O ports to probe them. This is usually
-safe though. Yes, you do have ISA I/O ports even if you do not have any
-ISA slots! Do you want to scan the ISA I/O ports? (YES/no):
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Lastly, we can probe the I2C/SMBus adapters for connected hardware
-monitoring devices. This is the most risky part, and while it works
-reasonably well on most systems, it has been reported to cause trouble
-on some systems.
-Do you want to probe the I2C/SMBus adapters now? (YES/no):
-Using driver `i2c-i801' for device 0000:00:1f.3: Intel 82801G ICH7
-
-Next adapter: Radeon i2c bit bus DVI_DDC (i2c-0)
-Do you want to scan it? (yes/NO/selectively): y
-
-Next adapter: Radeon i2c bit bus VGA_DDC (i2c-1)
-Do you want to scan it? (yes/NO/selectively): y
-
-Next adapter: Radeon i2c bit bus MONID (i2c-2)
-Do you want to scan it? (yes/NO/selectively): y
-
-Next adapter: Radeon i2c bit bus CRT2_DDC (i2c-3)
-Do you want to scan it? (yes/NO/selectively): y
-
-Next adapter: SMBus I801 adapter at 3000 (i2c-4)
-Do you want to scan it? (YES/no/selectively): y
-Client found at address 0x2c
-Probing for `Myson MTP008'...                               No
-Probing for `National Semiconductor LM78'...                No
-Probing for `National Semiconductor LM79'...                No
-Probing for `National Semiconductor LM80'...                No
-Probing for `National Semiconductor LM96080'...             No
-Probing for `National Semiconductor LM85'...                No
-Probing for `National Semiconductor LM96000 or PC8374L'...  No
-Probing for `Analog Devices ADM1027'...                     No
-Probing for `Analog Devices ADT7460 or ADT7463'...          No
-Probing for `SMSC EMC6D100 or EMC6D101'...                  No
-Probing for `SMSC EMC6D102'...                              No
-Probing for `SMSC EMC6D103'...                              Success!
-    (confidence 7, driver `lm85')
-Probing for `SMSC EMC6D103S or EMC2300'...                  No
-Probing for `SMSC EMC6W201'...                              No
-Probing for `Winbond WPCD377I'...                           No
-Probing for `Analog Devices ADT7470'...                     No
-Probing for `Analog Devices ADT7473'...                     No
-Probing for `Analog Devices ADT7476'...                     No
-Probing for `Analog Devices ADT7490'...                     No
-Probing for `Andigilog aSC7611'...                          No
-Probing for `Andigilog aSC7621'...                          No
-Probing for `National Semiconductor LM87'...                No
-Probing for `Analog Devices ADM1024'...                     No
-Probing for `National Semiconductor LM93'...                No
-Probing for `National Semiconductor LM94 or LM96194'...     No
-Probing for `Winbond W83781D'...                            No
-Probing for `Winbond W83782D'...                            No
-Probing for `Winbond W83791D'...                            No
-Probing for `Winbond W83792D'...                            No
-Probing for `Winbond W83793R/G'...                          No
-Probing for `Nuvoton W83795G/ADG'...                        No
-Probing for `Winbond W83627HF'...                           No
-Probing for `Winbond W83627EHF'...                          No
-Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
-Probing for `Asus AS99127F (rev.1)'...                      No
-Probing for `Asus AS99127F (rev.2)'...                      No
-Probing for `Asus ASB100 Bach'...                           No
-Probing for `Genesys Logic GL518SM'...                      No
-Probing for `Genesys Logic GL520SM'...                      No
-Probing for `Analog Devices ADM9240'...                     No
-Probing for `Dallas Semiconductor DS1780'...                No
-Probing for `National Semiconductor LM81'...                No
-Probing for `Analog Devices ADM1026'...                     No
-Probing for `Analog Devices ADM1025'...                     No
-Probing for `Philips NE1619'...                             No
-Probing for `Maxim MAX6639'...                              No
-Probing for `Texas Instruments AMC6821'...                  No
-Probing for `Analog Devices ADM1029'...                     No
-Probing for `Analog Devices ADM1030'...                     No
-Probing for `Analog Devices ADM1031'...                     No
-Probing for `Analog Devices ADM1022'...                     No
-Probing for `Texas Instruments THMC50'...                   No
-Probing for `ITE IT8712F'...                                No
-Probing for `ALi M5879'...                                  No
-Probing for `SMSC LPC47M15x/192/292/997'...                 No
-Probing for `SMSC DME1737'...                               No
-Probing for `SMSC SCH5027D-NW'...                           No
-Probing for `SMSC EMC1072'...                               No
-Probing for `SMSC EMC1073'...                               No
-Probing for `SMSC EMC1074'...                               No
-Probing for `Winbond W83791SD'...                           No
-Client found at address 0x2d
-Probing for `Myson MTP008'...                               No
-Probing for `National Semiconductor LM78'...                No
-Probing for `National Semiconductor LM79'...                No
-Probing for `National Semiconductor LM80'...                No
-Probing for `National Semiconductor LM96080'...             No
-Probing for `TI / National Semiconductor ADC128D818'...     No
-Probing for `National Semiconductor LM85'...                No
-Probing for `National Semiconductor LM96000 or PC8374L'...  No
-Probing for `Analog Devices ADM1027'...                     No
-Probing for `Analog Devices ADT7460 or ADT7463'...          No
-Probing for `SMSC EMC6D100 or EMC6D101'...                  No
-Probing for `SMSC EMC6D102'...                              No
-Probing for `SMSC EMC6D103'...                              No
-Probing for `SMSC EMC6D103S or EMC2300'...                  No
-Probing for `SMSC EMC6W201'...                              No
-Probing for `Winbond WPCD377I'...                           Yes
-    (confidence 7, not a hardware monitoring chip)
-Probing for `Analog Devices ADT7473'...                     No
-Probing for `Analog Devices ADT7476'...                     No
-Probing for `Analog Devices ADT7490'...                     No
-Probing for `Andigilog aSC7611'...                          No
-Probing for `Andigilog aSC7621'...                          No
-Probing for `National Semiconductor LM87'...                No
-Probing for `Analog Devices ADM1024'...                     No
-Probing for `National Semiconductor LM93'...                No
-Probing for `National Semiconductor LM94 or LM96194'...     No
-Probing for `Winbond W83781D'...                            No
-Probing for `Winbond W83782D'...                            No
-Probing for `Winbond W83783S'...                            No
-Probing for `Winbond W83791D'...                            No
-Probing for `Winbond W83792D'...                            No
-Probing for `Winbond W83793R/G'...                          No
-Probing for `Nuvoton W83795G/ADG'...                        No
-Probing for `Winbond W83627HF'...                           No
-Probing for `Winbond W83627EHF'...                          No
-Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
-Probing for `Asus AS99127F (rev.1)'...                      No
-Probing for `Asus AS99127F (rev.2)'...                      No
-Probing for `Asus ASB100 Bach'...                           No
-Probing for `Winbond W83L784R/AR/G'...                      No
-Probing for `Winbond W83L785R/G'...                         No
-Probing for `Genesys Logic GL518SM'...                      No
-Probing for `Genesys Logic GL520SM'...                      No
-Probing for `Genesys Logic GL525SM'...                      No
-Probing for `Analog Devices ADM9240'...                     No
-Probing for `Dallas Semiconductor DS1780'...                No
-Probing for `National Semiconductor LM81'...                No
-Probing for `Analog Devices ADM1026'...                     No
-Probing for `Analog Devices ADM1025'...                     No
-Probing for `Philips NE1619'...                             No
-Probing for `Texas Instruments AMC6821'...                  No
-Probing for `Analog Devices ADM1029'...                     No
-Probing for `Analog Devices ADM1030'...                     No
-Probing for `Analog Devices ADM1031'...                     No
-Probing for `Analog Devices ADM1022'...                     No
-Probing for `Texas Instruments THMC50'...                   No
-Probing for `VIA VT1211 (I2C)'...                           No
-Probing for `ITE IT8712F'...                                No
-Probing for `ALi M5879'...                                  No
-Probing for `SMSC LPC47M15x/192/292/997'...                 No
-Probing for `SMSC DME1737'...                               No
-Probing for `SMSC SCH5027D-NW'...                           No
-Probing for `Fintek F75373S/SG'...                          No
-Probing for `Fintek F75375S/SP'...                          No
-Probing for `Fintek F75387SG/RG'...                         No
-Probing for `Winbond W83791SD'...                           No
-Client found at address 0x2e
-Probing for `Myson MTP008'...                               No
-Probing for `National Semiconductor LM78'...                No
-Probing for `National Semiconductor LM79'...                No
-Probing for `National Semiconductor LM80'...                No
-Probing for `National Semiconductor LM96080'...             No
-Probing for `TI / National Semiconductor ADC128D818'...     No
-Probing for `National Semiconductor LM85'...                No
-Probing for `National Semiconductor LM96000 or PC8374L'...  No
-Probing for `Analog Devices ADM1027'...                     No
-Probing for `Analog Devices ADT7460 or ADT7463'...          No
-Probing for `SMSC EMC6D100 or EMC6D101'...                  No
-Probing for `SMSC EMC6D102'...                              No
-Probing for `SMSC EMC6D103'...                              Success!
-    (confidence 7, driver `lm85')
-Probing for `SMSC EMC6D103S or EMC2300'...                  No
-Probing for `SMSC EMC6W201'...                              No
-Probing for `Winbond WPCD377I'...                           No
-Probing for `Analog Devices ADT7467 or ADT7468'...          No
-Probing for `Analog Devices ADT7470'...                     No
-Probing for `Analog Devices ADT7473'...                     No
-Probing for `Analog Devices ADT7475'...                     No
-Probing for `Analog Devices ADT7476'...                     No
-Probing for `Analog Devices ADT7490'...                     No
-Probing for `Andigilog aSC7611'...                          No
-Probing for `Andigilog aSC7621'...                          No
-Probing for `National Semiconductor LM87'...                No
-Probing for `Analog Devices ADM1024'...                     No
-Probing for `National Semiconductor LM93'...                No
-Probing for `National Semiconductor LM94 or LM96194'...     No
-Probing for `Winbond W83781D'...                            No
-Probing for `Winbond W83782D'...                            No
-Probing for `Winbond W83791D'...                            No
-Probing for `Winbond W83792D'...                            No
-Probing for `Winbond W83793R/G'...                          No
-Probing for `Nuvoton W83795G/ADG'...                        No
-Probing for `Winbond W83627HF'...                           No
-Probing for `Winbond W83627EHF'...                          No
-Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
-Probing for `Asus AS99127F (rev.1)'...                      No
-Probing for `Asus AS99127F (rev.2)'...                      No
-Probing for `Asus ASB100 Bach'...                           No
-Probing for `Winbond W83L786NR/NG/R/G'...                   No
-Probing for `Winbond W83L785TS-S'...                        No
-Probing for `Analog Devices ADM9240'...                     No
-Probing for `Dallas Semiconductor DS1780'...                No
-Probing for `National Semiconductor LM81'...                No
-Probing for `Analog Devices ADM1026'...                     No
-Probing for `Analog Devices ADM1025'...                     No
-Probing for `Maxim MAX6639'...                              No
-Probing for `Texas Instruments AMC6821'...                  No
-Probing for `Analog Devices ADM1029'...                     No
-Probing for `Analog Devices ADM1030'...                     No
-Probing for `Analog Devices ADM1031'...                     No
-Probing for `Analog Devices ADM1022'...                     No
-Probing for `Texas Instruments THMC50'...                   No
-Probing for `Analog Devices ADM1028'...                     No
-Probing for `Texas Instruments THMC51'...                   No
-Probing for `ITE IT8712F'...                                No
-Probing for `SMSC DME1737'...                               No
-Probing for `SMSC SCH5027D-NW'...                           No
-Probing for `SMSC EMC2103'...                               No
-Probing for `Fintek F75373S/SG'...                          No
-Probing for `Fintek F75375S/SP'...                          No
-Probing for `Fintek F75387SG/RG'...                         No
-Probing for `Winbond W83791SD'...                           No
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-    (confidence 8, not a hardware monitoring chip)
-Probing for `EDID EEPROM'...                                No
-Client found at address 0x52
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-    (confidence 8, not a hardware monitoring chip)
-
-
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
-
-Driver `lm85':
-  * Bus `SMBus I801 adapter at 3000'
-    Busdriver `i2c_i801', I2C address 0x2c
-    Chip `SMSC EMC6D103' (confidence: 7)
-  * Bus `SMBus I801 adapter at 3000'
-    Busdriver `i2c_i801', I2C address 0x2e
-    Chip `SMSC EMC6D103' (confidence: 7)
-
-Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): n
-To load everything that is needed, add this to one of the system
-initialization scripts (e.g. /etc/rc.d/rc.local):
-
-#----cut here----
-# Chip drivers
-modprobe lm85
-/usr/bin/sensors -s
-#----cut here----
-
-You really should try these commands right now to make sure everything
-is working properly. Monitoring programs won't work until the needed
-modules are loaded.
+[user@localhost]# ls -l /dev/i2c*
+crw------- 1 root root 89, 0 Jun 11 08:57 /dev/i2c0
+crw------- 1 root root 89, 0 Jun 11 15:39 /dev/i2c-0
+crw------- 1 root root 89, 1 Jun 11 08:57 /dev/i2c1
+crw------- 1 root root 89, 1 Jun 11 15:39 /dev/i2c-1
+crw------- 1 root root 89, 2 Jun 11 08:57 /dev/i2c2
+crw------- 1 root root 89, 2 Jun 11 15:39 /dev/i2c-2
+crw------- 1 root root 89, 3 Jun 11 08:57 /dev/i2c3
+crw------- 1 root root 89, 3 Jun 11 15:39 /dev/i2c-3
+crw------- 1 root root 89, 4 Jun 11 08:57 /dev/i2c4
+crw-rw---- 1 root root 89, 4 Jun 11 15:39 /dev/i2c-4
+crw------- 1 root root 89, 5 Jun 11 08:57 /dev/i2c5
+crw------- 1 root root 89, 5 Jun 11 08:57 /dev/i2c-5
+crw------- 1 root root 89, 6 Jun 11 08:57 /dev/i2c6
+crw------- 1 root root 89, 6 Jun 11 08:57 /dev/i2c-6
+crw------- 1 root root 89, 7 Jun 11 08:57 /dev/i2c7
+crw------- 1 root root 89, 7 Jun 11 08:57 /dev/i2c-7
 
 
 
-On Thu, Jun 12, 2014 at 2:12 AM, Jean Delvare <jdelvare@suse.de> wrote:
+On Thu, Jun 12, 2014 at 10:36 AM, Mike Dixon <qualitydixon@gmail.com> wrote:
 
-> Hi Mike,
+> sensors-detect output with lm85 unloaded:
 >
-> On Wed, 11 Jun 2014 15:32:33 -0600, Mike Dixon wrote:
-> > I have NOT installed a separate lm85 driver. I will gladly test your
-> patch.
+> # sensors-detect revision 6248 (2014-05-12 09:14:50 +0200)
+> # System: Sunware 0073351-01 05/16/2007 [SE7230NH1LX]
+> # Board: Intel Corporation SE7230NH1LX
 >
-> I have posted the patch yesterday. I have also made a standalone driver
-> available at:
->   http://jdelvare.nerim.net/devel/lm-sensors/drivers/lm85/
-> For installation instructions, see:
->   http://jdelvare.nerim.net/devel/lm-sensors/drivers/INSTALL
+> This program will help you determine which kernel modules you need
+> to load to use lm_sensors most effectively. It is generally safe
+> and recommended to accept the default answers to all questions,
+> unless you know what you're doing.
 >
-> > *System Info:*System: Sunware 0073351-01 05/16/2007 [SE7230NH1LX]
-> > Board: Intel Corporation SE7230NH1LX
+> Some south bridges, CPUs or memory controllers contain embedded sensors.
+> Do you want to scan for them? This is totally safe. (YES/no):
+> Silicon Integrated Systems SIS5595...                       No
+> VIA VT82C686 Integrated Sensors...                          No
+> VIA VT8231 Integrated Sensors...                            No
+> AMD K8 thermal sensors...                                   No
+> AMD Family 10h thermal sensors...                           No
+> AMD Family 11h thermal sensors...                           No
+> AMD Family 12h and 14h thermal sensors...                   No
+> AMD Family 15h thermal sensors...                           No
+> AMD Family 16h thermal sensors...                           No
+> AMD Family 15h power sensors...                             No
+> AMD Family 16h power sensors...                             No
+> Intel digital thermal sensor...                             No
+> Intel AMB FB-DIMM thermal sensor...                         No
+> VIA C7 thermal sensor...                                    No
+> VIA Nano thermal sensor...                                  No
 >
-> The datasheet says that hardware monitoring is implemented by the LPC
-> Super-I/O on this board. It doesn't say which chip it is though. But
-> anyway this is in contradiction with the theory that you have one
-> LM85-compatible chip on the board.
+> Some Super I/O chips contain embedded sensors. We have to write to
+> standard I/O ports to probe them. This is usually safe.
+> Do you want to scan for Super I/O sensors? (YES/no):
+> Probing for Super-I/O at 0x2e/0x2f
+> Trying family `National Semiconductor/ITE'...               Yes
+> Found `Nat. Semi. PC8374L Super IO Sensors'
+>     (but not activated)
+> Probing for Super-I/O at 0x4e/0x4f
+> Trying family `National Semiconductor/ITE'...               No
+> Trying family `SMSC'...                                     No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+> Trying family `ITE'...                                      No
 >
-> > *Kernel Version*:
-> >
-> > 2.6.32-431.17.1.el6.i686
-> >
-> >
-> > *sensors-detect output (not sure if you wanted the whole thing or just
-> the
-> > summary):*
-> >
-> > Driver `lm85':
-> >   * Bus `Radeon i2c bit bus DVI_DDC'
-> >     Busdriver `drm', I2C address 0x2e
-> >     Chip `lm85' (confidence: 6)
-> >   * Bus `SMBus I801 adapter at 3000'
-> >     Busdriver `i2c_i801', I2C address 0x2c
-> >     Chip `lm85' (confidence: 6)
-> >   * Bus `SMBus I801 adapter at 3000'
-> >     Busdriver `i2c_i801', I2C address 0x2e
-> >     Chip `lm85' (confidence: 6)
+> Some systems (mainly servers) implement IPMI, a set of common interfaces
+> through which system health data may be retrieved, amongst other things.
+> We first try to get the information from SMBIOS. If we don't find it
+> there, we have to read from arbitrary I/O ports to probe for such
+> interfaces. This is normally safe. Do you want to scan for IPMI
+> interfaces? (YES/no):
+> Probing for `IPMI BMC KCS' at 0xca0...                      No
+> Probing for `IPMI BMC SMIC' at 0xca8...                     No
 >
-> You did not rmmod the lm85 driver before running the script, as I
-> asked. That make the above output useless (sensors-detect had to
-> blindly trust the detection done by the lm85 driver, which we know is
-> wrong.) So you can do it all again. And yes I would prefer the whole
-> output.
+> Some hardware monitoring chips are accessible through the ISA I/O ports.
+> We have to write to arbitrary I/O ports to probe them. This is usually
+> safe though. Yes, you do have ISA I/O ports even if you do not have any
+> ISA slots! Do you want to scan the ISA I/O ports? (YES/no):
+> Probing for `National Semiconductor LM78' at 0x290...       No
+> Probing for `National Semiconductor LM79' at 0x290...       No
+> Probing for `Winbond W83781D' at 0x290...                   No
+> Probing for `Winbond W83782D' at 0x290...                   No
 >
-> > *i2c dumps:*
-> > Only the '0 0x2e' i2c dump worked (pasted below). The other two yielded
-> > errors:
-> >
-> > [user@localhost]# i2cdump -y 4 0x2c > /tmp/lm85-i2c-4-2c.dump
-> > No size specified (using byte-data access)
-> > Error: Could not open file `/dev/i2c-4' or `/dev/i2c/4': No such file or
-> > directory
-> > [user@localhost]# i2cdump -y 4 0x2e > /tmp/lm85-i2c-4-2e.dump
-> > No size specified (using byte-data access)
-> > Error: Could not open file `/dev/i2c-4' or `/dev/i2c/4': No such file or
-> > directory
+> Lastly, we can probe the I2C/SMBus adapters for connected hardware
+> monitoring devices. This is the most risky part, and while it works
+> reasonably well on most systems, it has been reported to cause trouble
+> on some systems.
+> Do you want to probe the I2C/SMBus adapters now? (YES/no):
+> Using driver `i2c-i801' for device 0000:00:1f.3: Intel 82801G ICH7
 >
-> That's kind of odd. What does "i2cdetect -l" say? What does "ls
-> -l /dev/i2c*" say?
+> Next adapter: Radeon i2c bit bus DVI_DDC (i2c-0)
+> Do you want to scan it? (yes/NO/selectively): y
 >
-> >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> > 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> Next adapter: Radeon i2c bit bus VGA_DDC (i2c-1)
+> Do you want to scan it? (yes/NO/selectively): y
 >
-> That's not a successful dump.
+> Next adapter: Radeon i2c bit bus MONID (i2c-2)
+> Do you want to scan it? (yes/NO/selectively): y
+>
+> Next adapter: Radeon i2c bit bus CRT2_DDC (i2c-3)
+> Do you want to scan it? (yes/NO/selectively): y
+>
+> Next adapter: SMBus I801 adapter at 3000 (i2c-4)
+> Do you want to scan it? (YES/no/selectively): y
+> Client found at address 0x2c
+> Probing for `Myson MTP008'...                               No
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `National Semiconductor LM85'...                No
+> Probing for `National Semiconductor LM96000 or PC8374L'...  No
+> Probing for `Analog Devices ADM1027'...                     No
+> Probing for `Analog Devices ADT7460 or ADT7463'...          No
+> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
+> Probing for `SMSC EMC6D102'...                              No
+> Probing for `SMSC EMC6D103'...                              Success!
+>     (confidence 7, driver `lm85')
+> Probing for `SMSC EMC6D103S or EMC2300'...                  No
+> Probing for `SMSC EMC6W201'...                              No
+> Probing for `Winbond WPCD377I'...                           No
+> Probing for `Analog Devices ADT7470'...                     No
+> Probing for `Analog Devices ADT7473'...                     No
+> Probing for `Analog Devices ADT7476'...                     No
+> Probing for `Analog Devices ADT7490'...                     No
+> Probing for `Andigilog aSC7611'...                          No
+> Probing for `Andigilog aSC7621'...                          No
+> Probing for `National Semiconductor LM87'...                No
+> Probing for `Analog Devices ADM1024'...                     No
+> Probing for `National Semiconductor LM93'...                No
+> Probing for `National Semiconductor LM94 or LM96194'...     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Genesys Logic GL518SM'...                      No
+> Probing for `Genesys Logic GL520SM'...                      No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Analog Devices ADM1026'...                     No
+> Probing for `Analog Devices ADM1025'...                     No
+> Probing for `Philips NE1619'...                             No
+> Probing for `Maxim MAX6639'...                              No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `Analog Devices ADM1030'...                     No
+> Probing for `Analog Devices ADM1031'...                     No
+> Probing for `Analog Devices ADM1022'...                     No
+> Probing for `Texas Instruments THMC50'...                   No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `ALi M5879'...                                  No
+> Probing for `SMSC LPC47M15x/192/292/997'...                 No
+> Probing for `SMSC DME1737'...                               No
+> Probing for `SMSC SCH5027D-NW'...                           No
+> Probing for `SMSC EMC1072'...                               No
+> Probing for `SMSC EMC1073'...                               No
+> Probing for `SMSC EMC1074'...                               No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x2d
+> Probing for `Myson MTP008'...                               No
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `TI / National Semiconductor ADC128D818'...     No
+> Probing for `National Semiconductor LM85'...                No
+> Probing for `National Semiconductor LM96000 or PC8374L'...  No
+> Probing for `Analog Devices ADM1027'...                     No
+> Probing for `Analog Devices ADT7460 or ADT7463'...          No
+> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
+> Probing for `SMSC EMC6D102'...                              No
+> Probing for `SMSC EMC6D103'...                              No
+> Probing for `SMSC EMC6D103S or EMC2300'...                  No
+> Probing for `SMSC EMC6W201'...                              No
+> Probing for `Winbond WPCD377I'...                           Yes
+>     (confidence 7, not a hardware monitoring chip)
+> Probing for `Analog Devices ADT7473'...                     No
+> Probing for `Analog Devices ADT7476'...                     No
+> Probing for `Analog Devices ADT7490'...                     No
+> Probing for `Andigilog aSC7611'...                          No
+> Probing for `Andigilog aSC7621'...                          No
+> Probing for `National Semiconductor LM87'...                No
+> Probing for `Analog Devices ADM1024'...                     No
+> Probing for `National Semiconductor LM93'...                No
+> Probing for `National Semiconductor LM94 or LM96194'...     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83783S'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Winbond W83L784R/AR/G'...                      No
+> Probing for `Winbond W83L785R/G'...                         No
+> Probing for `Genesys Logic GL518SM'...                      No
+> Probing for `Genesys Logic GL520SM'...                      No
+> Probing for `Genesys Logic GL525SM'...                      No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Analog Devices ADM1026'...                     No
+> Probing for `Analog Devices ADM1025'...                     No
+> Probing for `Philips NE1619'...                             No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `Analog Devices ADM1030'...                     No
+> Probing for `Analog Devices ADM1031'...                     No
+> Probing for `Analog Devices ADM1022'...                     No
+> Probing for `Texas Instruments THMC50'...                   No
+> Probing for `VIA VT1211 (I2C)'...                           No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `ALi M5879'...                                  No
+> Probing for `SMSC LPC47M15x/192/292/997'...                 No
+> Probing for `SMSC DME1737'...                               No
+> Probing for `SMSC SCH5027D-NW'...                           No
+> Probing for `Fintek F75373S/SG'...                          No
+> Probing for `Fintek F75375S/SP'...                          No
+> Probing for `Fintek F75387SG/RG'...                         No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x2e
+> Probing for `Myson MTP008'...                               No
+> Probing for `National Semiconductor LM78'...                No
+> Probing for `National Semiconductor LM79'...                No
+> Probing for `National Semiconductor LM80'...                No
+> Probing for `National Semiconductor LM96080'...             No
+> Probing for `TI / National Semiconductor ADC128D818'...     No
+> Probing for `National Semiconductor LM85'...                No
+> Probing for `National Semiconductor LM96000 or PC8374L'...  No
+> Probing for `Analog Devices ADM1027'...                     No
+> Probing for `Analog Devices ADT7460 or ADT7463'...          No
+> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
+> Probing for `SMSC EMC6D102'...                              No
+> Probing for `SMSC EMC6D103'...                              Success!
+>     (confidence 7, driver `lm85')
+> Probing for `SMSC EMC6D103S or EMC2300'...                  No
+> Probing for `SMSC EMC6W201'...                              No
+> Probing for `Winbond WPCD377I'...                           No
+> Probing for `Analog Devices ADT7467 or ADT7468'...          No
+> Probing for `Analog Devices ADT7470'...                     No
+> Probing for `Analog Devices ADT7473'...                     No
+> Probing for `Analog Devices ADT7475'...                     No
+> Probing for `Analog Devices ADT7476'...                     No
+> Probing for `Analog Devices ADT7490'...                     No
+> Probing for `Andigilog aSC7611'...                          No
+> Probing for `Andigilog aSC7621'...                          No
+> Probing for `National Semiconductor LM87'...                No
+> Probing for `Analog Devices ADM1024'...                     No
+> Probing for `National Semiconductor LM93'...                No
+> Probing for `National Semiconductor LM94 or LM96194'...     No
+> Probing for `Winbond W83781D'...                            No
+> Probing for `Winbond W83782D'...                            No
+> Probing for `Winbond W83791D'...                            No
+> Probing for `Winbond W83792D'...                            No
+> Probing for `Winbond W83793R/G'...                          No
+> Probing for `Nuvoton W83795G/ADG'...                        No
+> Probing for `Winbond W83627HF'...                           No
+> Probing for `Winbond W83627EHF'...                          No
+> Probing for `Winbond W83627DHG/W83667HG/W83677HG'...        No
+> Probing for `Asus AS99127F (rev.1)'...                      No
+> Probing for `Asus AS99127F (rev.2)'...                      No
+> Probing for `Asus ASB100 Bach'...                           No
+> Probing for `Winbond W83L786NR/NG/R/G'...                   No
+> Probing for `Winbond W83L785TS-S'...                        No
+> Probing for `Analog Devices ADM9240'...                     No
+> Probing for `Dallas Semiconductor DS1780'...                No
+> Probing for `National Semiconductor LM81'...                No
+> Probing for `Analog Devices ADM1026'...                     No
+> Probing for `Analog Devices ADM1025'...                     No
+> Probing for `Maxim MAX6639'...                              No
+> Probing for `Texas Instruments AMC6821'...                  No
+> Probing for `Analog Devices ADM1029'...                     No
+> Probing for `Analog Devices ADM1030'...                     No
+> Probing for `Analog Devices ADM1031'...                     No
+> Probing for `Analog Devices ADM1022'...                     No
+> Probing for `Texas Instruments THMC50'...                   No
+> Probing for `Analog Devices ADM1028'...                     No
+> Probing for `Texas Instruments THMC51'...                   No
+> Probing for `ITE IT8712F'...                                No
+> Probing for `SMSC DME1737'...                               No
+> Probing for `SMSC SCH5027D-NW'...                           No
+> Probing for `SMSC EMC2103'...                               No
+> Probing for `Fintek F75373S/SG'...                          No
+> Probing for `Fintek F75375S/SP'...                          No
+> Probing for `Fintek F75387SG/RG'...                         No
+> Probing for `Winbond W83791SD'...                           No
+> Client found at address 0x50
+> Probing for `Analog Devices ADM1033'...                     No
+> Probing for `Analog Devices ADM1034'...                     No
+> Probing for `SPD EEPROM'...                                 Yes
+>     (confidence 8, not a hardware monitoring chip)
+> Probing for `EDID EEPROM'...                                No
+> Client found at address 0x52
+> Probing for `Analog Devices ADM1033'...                     No
+> Probing for `Analog Devices ADM1034'...                     No
+> Probing for `SPD EEPROM'...                                 Yes
+>     (confidence 8, not a hardware monitoring chip)
+>
+>
+> Now follows a summary of the probes I have just done.
+> Just press ENTER to continue:
+>
+> Driver `lm85':
+>
+>   * Bus `SMBus I801 adapter at 3000'
+>     Busdriver `i2c_i801', I2C address 0x2c
+>     Chip `SMSC EMC6D103' (confidence: 7)
+>
+>   * Bus `SMBus I801 adapter at 3000'
+>     Busdriver `i2c_i801', I2C address 0x2e
+>     Chip `SMSC EMC6D103' (confidence: 7)
+>
+> Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): n
+> To load everything that is needed, add this to one of the system
+> initialization scripts (e.g. /etc/rc.d/rc.local):
+>
+> #----cut here----
+> # Chip drivers
+> modprobe lm85
+> /usr/bin/sensors -s
+> #----cut here----
+>
+> You really should try these commands right now to make sure everything
+> is working properly. Monitoring programs won't work until the needed
+> modules are loaded.
+>
+>
+>
+> On Thu, Jun 12, 2014 at 2:12 AM, Jean Delvare <jdelvare@suse.de> wrote:
+>
+>> Hi Mike,
+>>
+>> On Wed, 11 Jun 2014 15:32:33 -0600, Mike Dixon wrote:
+>> > I have NOT installed a separate lm85 driver. I will gladly test your
+>> patch.
+>>
+>> I have posted the patch yesterday. I have also made a standalone driver
+>> available at:
+>>   http://jdelvare.nerim.net/devel/lm-sensors/drivers/lm85/
+>> For installation instructions, see:
+>>   http://jdelvare.nerim.net/devel/lm-sensors/drivers/INSTALL
+>>
+>> > *System Info:*System: Sunware 0073351-01 05/16/2007 [SE7230NH1LX]
+>> > Board: Intel Corporation SE7230NH1LX
+>>
+>> The datasheet says that hardware monitoring is implemented by the LPC
+>> Super-I/O on this board. It doesn't say which chip it is though. But
+>> anyway this is in contradiction with the theory that you have one
+>> LM85-compatible chip on the board.
+>>
+>> > *Kernel Version*:
+>> >
+>> > 2.6.32-431.17.1.el6.i686
+>> >
+>> >
+>> > *sensors-detect output (not sure if you wanted the whole thing or just
+>> the
+>> > summary):*
+>> >
+>> > Driver `lm85':
+>> >   * Bus `Radeon i2c bit bus DVI_DDC'
+>> >     Busdriver `drm', I2C address 0x2e
+>> >     Chip `lm85' (confidence: 6)
+>> >   * Bus `SMBus I801 adapter at 3000'
+>> >     Busdriver `i2c_i801', I2C address 0x2c
+>> >     Chip `lm85' (confidence: 6)
+>> >   * Bus `SMBus I801 adapter at 3000'
+>> >     Busdriver `i2c_i801', I2C address 0x2e
+>> >     Chip `lm85' (confidence: 6)
+>>
+>> You did not rmmod the lm85 driver before running the script, as I
+>> asked. That make the above output useless (sensors-detect had to
+>> blindly trust the detection done by the lm85 driver, which we know is
+>> wrong.) So you can do it all again. And yes I would prefer the whole
+>> output.
+>>
+>> > *i2c dumps:*
+>> > Only the '0 0x2e' i2c dump worked (pasted below). The other two yielded
+>> > errors:
+>> >
+>> > [user@localhost]# i2cdump -y 4 0x2c > /tmp/lm85-i2c-4-2c.dump
+>> > No size specified (using byte-data access)
+>> > Error: Could not open file `/dev/i2c-4' or `/dev/i2c/4': No such file or
+>> > directory
+>> > [user@localhost]# i2cdump -y 4 0x2e > /tmp/lm85-i2c-4-2e.dump
+>> > No size specified (using byte-data access)
+>> > Error: Could not open file `/dev/i2c-4' or `/dev/i2c/4': No such file or
+>> > directory
+>>
+>> That's kind of odd. What does "i2cdetect -l" say? What does "ls
+>> -l /dev/i2c*" say?
+>>
+>> >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+>> > 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>> > f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+>>
+>> That's not a successful dump.
+>>
+>> --
+>> Jean Delvare
+>> SUSE L3 Support
+>>
+>
+>
 >
 > --
-> Jean Delvare
-> SUSE L3 Support
+> Mike Dixon
 >
 
 
