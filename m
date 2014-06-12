@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 11 Jun 2014 22:26:28 +0000
+From: Scott Kanowitz <skanowitz@echo360.com>
+Date: Thu, 12 Jun 2014 03:16:20 +0000
 Subject: Re: [lm-sensors] [PATCH] Added support for Lattice's POWR1220 power manager IC.
-Message-Id: <5398D794.6020309@roeck-us.net>
+Message-Id: <fb546250f9ac4890b2b20fa4b203bc60@BN1PR05MB536.namprd05.prod.outlook.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <53965259.8020806@roeck-us.net>
 In-Reply-To: <53965259.8020806@roeck-us.net>
@@ -10,9 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Guenter,
+
+I'll update with your changes and resubmit the patch.
+
+To answer your question:
+	> Is the factor the same for both low and high range ? Shouldn't the factor be 6 for the high range ?
+The factor is always 2 mV. The attenuator circuitry implements a divide by three before the ADC followed by a multiply by three. Therefore the step size is always 2 mV, you just lose resolution with the voltages in the higher range.
+
+--Scott
+
+
+-----Original Message-----
+From: Guenter Roeck [mailto:linux@roeck-us.net] 
+Sent: Wednesday, June 11, 2014 6:26 PM
+To: Scott Kanowitz
+Cc: jdelvare@suse.de; lm-sensors@lm-sensors.org
+Subject: Re: [PATCH] Added support for Lattice's POWR1220 power manager IC.
+
 On 06/11/2014 01:35 PM, Scott Kanowitz wrote:
-> This patch adds support for Lattice's POWR1220 power manager IC. Read
-> access to all the ADCs on the chip are supported through the hwmon
+> This patch adds support for Lattice's POWR1220 power manager IC. Read 
+> access to all the ADCs on the chip are supported through the hwmon 
 > sysfs files.
 >
 > Signed-off-by: Scott Kanowitz <skanowitz@echo360.com>
@@ -34,9 +52,9 @@ Guenter
 >   create mode 100644 Documentation/hwmon/powr1220
 >   create mode 100644 drivers/hwmon/powr1220.c
 >
-> diff --git a/Documentation/hwmon/powr1220 b/Documentation/hwmon/powr1220
-> new file mode 100644
-> index 0000000..21e44f7
+> diff --git a/Documentation/hwmon/powr1220 
+> b/Documentation/hwmon/powr1220 new file mode 100644 index 
+> 0000000..21e44f7
 > --- /dev/null
 > +++ b/Documentation/hwmon/powr1220
 > @@ -0,0 +1,45 @@
@@ -55,15 +73,15 @@ Guenter
 > +Description
 > +-----------
 > +
-> +This driver supports the Lattice POWR1220AT8 chip. The POWR1220
-> +includes voltage monitoring for 14 inputs as well as trim settings
-> +for output voltages and GPIOs. This driver implements the voltage
+> +This driver supports the Lattice POWR1220AT8 chip. The POWR1220 
+> +includes voltage monitoring for 14 inputs as well as trim settings 
+> +for output voltages and GPIOs. This driver implements the voltage 
 > +monitoring portion of the chip.
 > +
 > +Voltages are sampled by a 12-bit ADC with a step size of 2 mV.
-> +An in-line attenuator allows measurements from 0 to 6 V. The
-> +attenuator is enabled or disabled depending on the setting of the
-> +input's max value. The driver will enable the attenuator for any
+> +An in-line attenuator allows measurements from 0 to 6 V. The 
+> +attenuator is enabled or disabled depending on the setting of the 
+> +input's max value. The driver will enable the attenuator for any 
 > +value over the low measurement range maximum of 2 V.
 > +
 > +The input naming convention is as follows:
@@ -85,8 +103,8 @@ Guenter
 > +in13           VCCINP
 > +
 > +The ADC readings are updated on request with a minimum period of 1s.
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 4af0da9..fc4d7f1 100644
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig index 
+> 4af0da9..fc4d7f1 100644
 > --- a/drivers/hwmon/Kconfig
 > +++ b/drivers/hwmon/Kconfig
 > @@ -608,6 +608,18 @@ config SENSORS_JC42
@@ -108,8 +126,8 @@ Guenter
 >   config SENSORS_LINEAGE
 >   	tristate "Lineage Compact Power Line Power Entry Module"
 >   	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index c48f987..842e6b3 100644
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile index 
+> c48f987..842e6b3 100644
 > --- a/drivers/hwmon/Makefile
 > +++ b/drivers/hwmon/Makefile
 > @@ -119,6 +119,7 @@ obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
@@ -120,22 +138,24 @@ Guenter
 >   obj-$(CONFIG_SENSORS_S3C)	+= s3c-hwmon.o
 >   obj-$(CONFIG_SENSORS_SCH56XX_COMMON)+= sch56xx-common.o
 >   obj-$(CONFIG_SENSORS_SCH5627)	+= sch5627.o
-> diff --git a/drivers/hwmon/powr1220.c b/drivers/hwmon/powr1220.c
-> new file mode 100644
-> index 0000000..59e5ff8
+> diff --git a/drivers/hwmon/powr1220.c b/drivers/hwmon/powr1220.c new 
+> file mode 100644 index 0000000..59e5ff8
 > --- /dev/null
 > +++ b/drivers/hwmon/powr1220.c
 > @@ -0,0 +1,416 @@
 > +/*
-> + * powr1220.c - Driver for the Lattice POWR1220 programmable power supply
+> + * powr1220.c - Driver for the Lattice POWR1220 programmable power 
+> +supply
 > + * and monitor. Users can read all ADC inputs along with their labels
 > + * using the sysfs nodes.
 > + *
 > + * Copyright (c) 2014 Echo360 http://www.echo360.com
 > + * Scott Kanowitz <skanowitz@echo360.com> <scott.kanowitz@gmail.com>
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
+> + * This program is free software; you can redistribute it and/or 
+> +modify
+> + * it under the terms of the GNU General Public License as published 
+> +by
 > + * the Free Software Foundation; either version 2 of the License, or
 > + * (at your option) any later version.
 > + *
@@ -160,8 +180,8 @@ Guenter
 Only one empty line please.
 
 > +#define ADC_STEP_MV	2
-> +#define ADC_MAX_LOW_MEASUREMENT_MV 2000
-> +#define ADC_MAX_HIGH_MEASUREMENT_MV 6000
+> +#define ADC_MAX_LOW_MEASUREMENT_MV 2000 #define 
+> +ADC_MAX_HIGH_MEASUREMENT_MV 6000
 
 Please use a tab after _MV.
 
@@ -256,9 +276,8 @@ One empty line
 > +
 Single empty line
 
-> +/* Reads the specified ADC channel */
-> +static int powr1220_read_adc(struct device *dev, int ch_num)
-> +{
+> +/* Reads the specified ADC channel */ static int 
+> +powr1220_read_adc(struct device *dev, int ch_num) {
 > +	struct powr1220_data *data = dev_get_drvdata(dev);
 > +	unsigned char reg;
 > +	int reading;
@@ -281,8 +300,7 @@ Single empty line
 > +		/* set the attenuator and mux */
 > +		reg = (adc_range << 4) | ch_num;
 
-If you assign (1 << 4) to adc_range above, you don't need to shift here
-and make life a bit easier on the compiler.
+If you assign (1 << 4) to adc_range above, you don't need to shift here and make life a bit easier on the compiler.
 
 > +		i2c_smbus_write_byte_data(data->client, ADC_MUX, reg);
 
@@ -310,9 +328,7 @@ Datasheet says you don't need to check this bit after waiting for the maximum Tc
 > +			reg = i2c_smbus_read_byte_data(data->client,
 > +					ADC_VALUE_HIGH);
 
-This can return an error (and is then negative). You should check for that condition
-and handle it. Since the function always returns values >= 0 if there is no error,
-you can return the negative error code and report it to the user.
+This can return an error (and is then negative). You should check for that condition and handle it. Since the function always returns values >= 0 if there is no error, you can return the negative error code and report it to the user.
 
 > +			reading |= (unsigned int)reg << 4;
 
@@ -322,8 +338,7 @@ Unnecessary typecast.
 > +			/* now convert the reading to a voltage */
 > +			data->adc_values[ch_num] = reading * ADC_STEP_MV;
 
-Is the factor the same for both low and high range ? Shouldn't the factor
-be 6 for the high range ?
+Is the factor the same for both low and high range ? Shouldn't the factor be 6 for the high range ?
 
 > +		}
 
@@ -334,8 +349,7 @@ else error (though the conditional should not be necessary per above) ?
 > +		data->adc_valid[ch_num] = 1;
 
 					= true;
-and please move inside the if() statement. Otherwise the value is treated as updated
-even if it wasn't.
+and please move inside the if() statement. Otherwise the value is treated as updated even if it wasn't.
 
 > +	}
 > +
@@ -347,34 +361,29 @@ even if it wasn't.
 > +
 Single empty line
 
-> +/* Shows the voltage associated with the specified ADC channel */
+> +/* Shows the voltage associated with the specified ADC channel */ 
 > +static ssize_t powr1220_show_voltage(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	int adc_val = powr1220_read_adc(dev, attr->index);
 > +
-> +	return sprintf(buf, "%d\n", adc_val);
-> +}
+> +	return sprintf(buf, "%d\n", adc_val); }
 > +
 > +
-> +/* Shows the maximum setting associated with the specified ADC channel */
-> +static ssize_t powr1220_show_max(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +/* Shows the maximum setting associated with the specified ADC 
+> +channel */ static ssize_t powr1220_show_max(struct device *dev,
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	struct powr1220_data *data = dev_get_drvdata(dev);
 > +
-> +	return sprintf(buf, "%d\n", data->adc_maxes[attr->index]);
-> +}
+> +	return sprintf(buf, "%d\n", data->adc_maxes[attr->index]); }
 > +
 > +
 Single empty line
 
-> +/* Sets the maximum setting associated with the specified ADC channel */
-> +static ssize_t powr1220_set_max(struct device *dev,
-> +	struct device_attribute *dev_attr, const char *buf, size_t count)
-> +{
+> +/* Sets the maximum setting associated with the specified ADC channel 
+> +*/ static ssize_t powr1220_set_max(struct device *dev,
+> +	struct device_attribute *dev_attr, const char *buf, size_t count) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +	struct powr1220_data *data = dev_get_drvdata(dev);
 > +	unsigned long max;
@@ -388,14 +397,10 @@ Single empty line
 > +
 > +	data->adc_maxes[attr->index] = max;
 > +
-It might make sense to set adc_maxes[] to either ADC_MAX_LOW_MEASUREMENT_MV
-or ADC_MAX_HIGH_MEASUREMENT_MV depending on the entered value. Otherwise
-returns a pretty much random number which doesn't really make much sense.
-If you set it to one of the two values, at least the user will have an idea
-if the value was too low.
+It might make sense to set adc_maxes[] to either ADC_MAX_LOW_MEASUREMENT_MV or ADC_MAX_HIGH_MEASUREMENT_MV depending on the entered value. Otherwise returns a pretty much random number which doesn't really make much sense.
+If you set it to one of the two values, at least the user will have an idea if the value was too low.
 
-Alternative (which I would prefer) would be to auto-configure the max
-value and get rid of the max attributes. This should be quite simple:
+Alternative (which I would prefer) would be to auto-configure the max value and get rid of the max attributes. This should be quite simple:
 - start with the large range.
 - if the reported voltage is below ADC_MAX_LOW_MEASUREMENT_MV,
    remember it and use the low range next time.
@@ -408,14 +413,12 @@ value and get rid of the max attributes. This should be quite simple:
 > +
 Single empty line
 
-> +/* Shows the label associated with the specified ADC channel */
+> +/* Shows the label associated with the specified ADC channel */ 
 > +static ssize_t powr1220_show_label(struct device *dev,
-> +	struct device_attribute *dev_attr, char *buf)
-> +{
+> +	struct device_attribute *dev_attr, char *buf) {
 > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 > +
-> +	return sprintf(buf, "%s\n", input_names[attr->index]);
-> +}
+> +	return sprintf(buf, "%s\n", input_names[attr->index]); }
 > +
 > +
 Single empty line
@@ -610,13 +613,10 @@ Single empty line.
 > +};
 > +
 > +
-> +static int __init powr1220_init(void)
-> +{
-> +	return i2c_add_driver(&powr1220_driver);
-> +}
+> +static int __init powr1220_init(void) {
+> +	return i2c_add_driver(&powr1220_driver); }
 > +
-> +static void __exit powr1220_exit(void)
-> +{
+> +static void __exit powr1220_exit(void) {
 > +	i2c_del_driver(&powr1220_driver);
 > +}
 > +
@@ -627,8 +627,7 @@ Single empty line.
 Please use module_i2c_driver().
 
 > +MODULE_AUTHOR("Scott Kanowitz");
-> +MODULE_DESCRIPTION("POWR1220 driver");
-> +MODULE_LICENSE("GPL");
+> +MODULE_DESCRIPTION("POWR1220 driver"); MODULE_LICENSE("GPL");
 >
 
 
