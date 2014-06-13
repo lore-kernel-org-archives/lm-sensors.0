@@ -1,140 +1,119 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sun, 29 Jun 2014 02:55:12 +0000
-Subject: [lm-sensors] [RFT][PATCH 2/2] hwmon: (da9055) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <1404010512.5607.3.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 13 Jun 2014 16:07:14 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.16 (take two)
+Message-Id: <20140613160714.GA16162@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6060282254252599680=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============6060282254252599680==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Content-Disposition: inline
+
+
+--0OAP2g/MAC+5xKAE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull the second round of hwmon updates for Linux 3.16 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 5c02c392cd2320e8d612376d6b72b6548a680923:
+
+  Merge tag 'virtio-next-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/rusty/linux (2014-06-11 21:10:33 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 78cebd0889c7b8b92f43e7667efc16636b858c34:
+
+  hwmon: vexpress: Use devm helper for hwmon device registration (2014-06-12 08:36:50 -0700)
+
+----------------------------------------------------------------
+New driver for Sensirion SHTC1 humidity / temperature sensor
+Convert ltc4151 and vexpress drivers to use devm functions
+Drop generic chip detection from lm85 driver
+Avoid forward declarations in atxp1 driver
+Fix sign extensions in ina2xx driver
+
+----------------------------------------------------------------
+Axel Lin (2):
+      hwmon: (ltc4151) Convert to devm_hwmon_device_register_with_groups
+      hwmon: (atxp1) Avoid forward declaration
+
+Fabio Baltieri (1):
+      hwmon: (ina2xx) Cast to s16 on shunt and current regs
+
+Jean Delvare (1):
+      hwmon: (lm85) Drop generic detection
+
+Pawel Moll (1):
+      hwmon: vexpress: Use devm helper for hwmon device registration
+
+Tomas Pop (1):
+      hwmon: add support for Sensirion SHTC1 sensor
+
+ Documentation/hwmon/shtc1           |  43 ++++++
+ drivers/hwmon/Kconfig               |  10 ++
+ drivers/hwmon/Makefile              |   1 +
+ drivers/hwmon/atxp1.c               |  42 +++---
+ drivers/hwmon/ina2xx.c              |   7 +-
+ drivers/hwmon/lm85.c                |  33 ++---
+ drivers/hwmon/ltc4151.c             |  51 ++------
+ drivers/hwmon/shtc1.c               | 251 ++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/vexpress.c            |  82 ++++--------
+ include/linux/platform_data/shtc1.h |  23 ++++
+ 10 files changed, 401 insertions(+), 142 deletions(-)
+ create mode 100644 Documentation/hwmon/shtc1
+ create mode 100644 drivers/hwmon/shtc1.c
+ create mode 100644 include/linux/platform_data/shtc1.h
+
+--0OAP2g/MAC+5xKAE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTmyGxAAoJEMsfJm/On5mBWWEP/23ODeHy2HxG1l7zwSFR/nMx
+K5cuhDjK6BzYBzTWjyBmpSaIigJVoo9B8S9PcYyOkblLbhH8VlhP7I1FOsrnDaSj
+0AYetbBQJL5/oho5Ydd/D1rlFSTNHOrFw/s2aJIovnfeRgmHNwf0wSGOEwHRCp9K
+JE/BQxkyq0Y1/q5kRCJhTV9q8A42OWoLWUAdOuYfjEtn7Ir27VZoEPxkv1CNS8nY
+dC9fm8M87hy5LTuC9f1Ueb/axenX6Rs2HuFmRfifSbpTsd1Xeq3UrO4G+Y1ybLPo
+eSiOHYhiW2shf9VQ5hQ4zXEwWuOTIZH8TbDj+JkmiT+5SmmlJgHauNxTI87WamEv
+K6ctzAGdyEdn0teQQG4YXZCDboFeKHdJfRqU7jAfIi6iSMAX6HmuZvwCVEQyy4eY
+CjDeLrmnieX9B8/5IrhgLVO9j9N3dyaHZUynHo/YpbDLb/RSSdPUTy+Ul8hpGiMf
+KfuarBSJLAkkI8gkB6tA3h102c+OtHWCTqYB26iusN7CQybvBUDFjZUnpeJ2RRzX
+buUaOPzLCu9Ea43VJtI5Seu80/8mheKfCm3iPWgbVDDTvUbJ80ycNd7jVQWapUxB
+l+kMEriyroDnnFPHXbfcnwINO5eece+awdPUoMTygCI9nEa2x9UjemnouI+QLhyC
+ciap2GYkGPSQxvJb1UOh
+=Tdsi
+-----END PGP SIGNATURE-----
+
+--0OAP2g/MAC+5xKAE--
+
+
+--===============6060282254252599680==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-simplify the code a bit.
-
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
-Note, devm_hwmon_device_register_with_groups does not allow "-" in the name
-argument. So there is a change in 'name' attribute.
-It was "da9055-hwmon", and now it's "da9055".
-
- drivers/hwmon/da9055-hwmon.c | 52 ++++++++------------------------------------
- 1 file changed, 9 insertions(+), 43 deletions(-)
-
-diff --git a/drivers/hwmon/da9055-hwmon.c b/drivers/hwmon/da9055-hwmon.c
-index 73b3865..9916a3f 100644
---- a/drivers/hwmon/da9055-hwmon.c
-+++ b/drivers/hwmon/da9055-hwmon.c
-@@ -36,7 +36,6 @@
- 
- struct da9055_hwmon {
- 	struct da9055	*da9055;
--	struct device	*class_device;
- 	struct mutex	hwmon_lock;
- 	struct mutex	irq_lock;
- 	struct completion done;
-@@ -200,13 +199,6 @@ static ssize_t da9055_read_tjunc(struct device *dev,
- 							+ 3076332, 10000));
- }
- 
--static ssize_t da9055_hwmon_show_name(struct device *dev,
--				      struct device_attribute *devattr,
--				      char *buf)
--{
--	return sprintf(buf, "da9055-hwmon\n");
--}
--
- static ssize_t show_label(struct device *dev,
- 			  struct device_attribute *devattr, char *buf)
- {
-@@ -236,10 +228,7 @@ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, da9055_read_tjunc, NULL,
- static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
- 			  DA9055_ADC_TJUNC);
- 
--static DEVICE_ATTR(name, S_IRUGO, da9055_hwmon_show_name, NULL);
--
--static struct attribute *da9055_attr[] = {
--	&dev_attr_name.attr,
-+static struct attribute *da9055_attrs[] = {
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_label.dev_attr.attr,
- 	&sensor_dev_attr_in1_input.dev_attr.attr,
-@@ -254,15 +243,16 @@ static struct attribute *da9055_attr[] = {
- 	NULL
- };
- 
--static const struct attribute_group da9055_attr_group = {.attrs = da9055_attr};
-+ATTRIBUTE_GROUPS(da9055);
- 
- static int da9055_hwmon_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct da9055_hwmon *hwmon;
-+	struct device *hwmon_dev;
- 	int hwmon_irq, ret;
- 
--	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9055_hwmon),
--			     GFP_KERNEL);
-+	hwmon = devm_kzalloc(dev, sizeof(struct da9055_hwmon), GFP_KERNEL);
- 	if (!hwmon)
- 		return -ENOMEM;
- 
-@@ -272,8 +262,6 @@ static int da9055_hwmon_probe(struct platform_device *pdev)
- 	init_completion(&hwmon->done);
- 	hwmon->da9055 = dev_get_drvdata(pdev->dev.parent);
- 
--	platform_set_drvdata(pdev, hwmon);
--
- 	hwmon_irq = platform_get_irq_byname(pdev, "HWMON");
- 	if (hwmon_irq < 0)
- 		return hwmon_irq;
-@@ -288,36 +276,14 @@ static int da9055_hwmon_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
--	ret = sysfs_create_group(&pdev->dev.kobj, &da9055_attr_group);
--	if (ret)
--		return ret;
--
--	hwmon->class_device = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(hwmon->class_device)) {
--		ret = PTR_ERR(hwmon->class_device);
--		goto err;
--	}
--
--	return 0;
--
--err:
--	sysfs_remove_group(&pdev->dev.kobj, &da9055_attr_group);
--	return ret;
--}
--
--static int da9055_hwmon_remove(struct platform_device *pdev)
--{
--	struct da9055_hwmon *hwmon = platform_get_drvdata(pdev);
--
--	sysfs_remove_group(&pdev->dev.kobj, &da9055_attr_group);
--	hwmon_device_unregister(hwmon->class_device);
--
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "da9055",
-+							   hwmon,
-+							   da9055_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
- 
- static struct platform_driver da9055_hwmon_driver = {
- 	.probe = da9055_hwmon_probe,
--	.remove = da9055_hwmon_remove,
- 	.driver = {
- 		.name = "da9055-hwmon",
- 		.owner = THIS_MODULE,
--- 
-1.9.1
-
-
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6060282254252599680==--
