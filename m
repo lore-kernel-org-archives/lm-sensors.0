@@ -1,129 +1,87 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sun, 29 Jun 2014 02:53:08 +0000
-Subject: [lm-sensors] [RFT][PATCH 1/2] hwmon: (da9052) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <1404010388.5607.1.camel@phoenix>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 16 Jun 2014 18:24:28 +0000
+Subject: [lm-sensors] [PATCH 1/2] touchscreen: sun4i-ts: A10 (sun4i) has double the temperature precision
+Message-Id: <1402943069-19420-2-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1402943069-19420-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1402943069-19420-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: Tong Zhang <lovewilliam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-simplify the code a bit.
+Testing has revealed that the temperature in the rtp controller of the A10
+(sun4i) SoC has a resolution of 50 milli degrees / step, where as the
+A13 (sun5i) and later models have 100 milli degrees / step.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Add a new sun5i-a13-ts compatible to differentiate the newer models and
+set the resolution based on the compatible string.
+
+This fixes the temperature reported on the A10 being twice as high as expected.
+
+Reported-by: Tong Zhang <lovewilliam@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Note, devm_hwmon_device_register_with_groups does not allow "-" in the name
-argument. So there is a change in 'name' attribute.
-It was "da9052-hwmon", and now it's "da9052".
- drivers/hwmon/da9052-hwmon.c | 54 ++++++++------------------------------------
- 1 file changed, 9 insertions(+), 45 deletions(-)
+ Documentation/devicetree/bindings/input/touchscreen/sun4i.txt | 2 +-
+ drivers/input/touchscreen/sun4i-ts.c                          | 8 +++++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-index afd3104..692b3f3 100644
---- a/drivers/hwmon/da9052-hwmon.c
-+++ b/drivers/hwmon/da9052-hwmon.c
-@@ -26,7 +26,6 @@
+diff --git a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+index aef5779..5106709 100644
+--- a/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
++++ b/Documentation/devicetree/bindings/input/touchscreen/sun4i.txt
+@@ -2,7 +2,7 @@ sun4i resistive touchscreen controller
+ --------------------------------------
  
- struct da9052_hwmon {
- 	struct da9052	*da9052;
--	struct device	*class_device;
- 	struct mutex	hwmon_lock;
+ Required properties:
+- - compatible: "allwinner,sun4i-a10-ts"
++ - compatible: "allwinner,sun4i-a10-ts" or "allwinner,sun5i-a13-ts"
+  - reg: mmio address range of the chip
+  - interrupts: interrupt to which the chip is connected
+ 
+diff --git a/drivers/input/touchscreen/sun4i-ts.c b/drivers/input/touchscreen/sun4i-ts.c
+index 2ba8260..5661be0 100644
+--- a/drivers/input/touchscreen/sun4i-ts.c
++++ b/drivers/input/touchscreen/sun4i-ts.c
+@@ -111,6 +111,7 @@ struct sun4i_ts_data {
+ 	unsigned int irq;
+ 	bool ignore_fifo_data;
+ 	int temp_data;
++	int temp_step;
  };
  
-@@ -190,13 +189,6 @@ static ssize_t da9052_read_vbbat(struct device *dev,
- 	return sprintf(buf, "%d\n", vbbat_reg_to_mv(ret));
+ static void sun4i_ts_irq_handle_input(struct sun4i_ts_data *ts, u32 reg_val)
+@@ -189,7 +190,7 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
+ 	if (ts->temp_data = -1)
+ 		return -EAGAIN;
+ 
+-	return sprintf(buf, "%d\n", (ts->temp_data - 1447) * 100);
++	return sprintf(buf, "%d\n", (ts->temp_data - 1447) * ts->temp_step);
  }
  
--static ssize_t da9052_hwmon_show_name(struct device *dev,
--				      struct device_attribute *devattr,
--				      char *buf)
--{
--	return sprintf(buf, "da9052-hwmon\n");
--}
--
- static ssize_t show_label(struct device *dev,
- 			  struct device_attribute *devattr, char *buf)
- {
-@@ -243,10 +235,7 @@ static SENSOR_DEVICE_ATTR(temp8_input, S_IRUGO, da9052_read_tjunc, NULL,
- static SENSOR_DEVICE_ATTR(temp8_label, S_IRUGO, show_label, NULL,
- 			  DA9052_ADC_TJUNC);
+ static ssize_t show_temp_label(struct device *dev,
+@@ -224,6 +225,10 @@ static int sun4i_ts_probe(struct platform_device *pdev)
+ 	ts->dev = dev;
+ 	ts->ignore_fifo_data = true;
+ 	ts->temp_data = -1;
++	if (of_device_is_compatible(np, "allwinner,sun4i-a10-ts"))
++		ts->temp_step = 50;
++	else
++		ts->temp_step = 100;
  
--static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
--
--static struct attribute *da9052_attr[] = {
--	&dev_attr_name.attr,
-+static struct attribute *da9052_attrs[] = {
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_label.dev_attr.attr,
- 	&sensor_dev_attr_in3_input.dev_attr.attr,
-@@ -268,54 +257,29 @@ static struct attribute *da9052_attr[] = {
- 	NULL
+ 	ts_attached = of_property_read_bool(np, "allwinner,ts-attached");
+ 	if (ts_attached) {
+@@ -318,6 +323,7 @@ static int sun4i_ts_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id sun4i_ts_of_match[] = {
+ 	{ .compatible = "allwinner,sun4i-a10-ts", },
++	{ .compatible = "allwinner,sun5i-a13-ts", },
+ 	{ /* sentinel */ }
  };
- 
--static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
-+ATTRIBUTE_GROUPS(da9052);
- 
- static int da9052_hwmon_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct da9052_hwmon *hwmon;
--	int ret;
-+	struct device *hwmon_dev;
- 
--	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9052_hwmon),
--			     GFP_KERNEL);
-+	hwmon = devm_kzalloc(dev, sizeof(struct da9052_hwmon), GFP_KERNEL);
- 	if (!hwmon)
- 		return -ENOMEM;
- 
- 	mutex_init(&hwmon->hwmon_lock);
- 	hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
- 
--	platform_set_drvdata(pdev, hwmon);
--
--	ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
--	if (ret)
--		goto err_mem;
--
--	hwmon->class_device = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(hwmon->class_device)) {
--		ret = PTR_ERR(hwmon->class_device);
--		goto err_sysfs;
--	}
--
--	return 0;
--
--err_sysfs:
--	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
--err_mem:
--	return ret;
--}
--
--static int da9052_hwmon_remove(struct platform_device *pdev)
--{
--	struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
--
--	hwmon_device_unregister(hwmon->class_device);
--	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
--
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "da9052",
-+							   hwmon,
-+							   da9052_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
- 
- static struct platform_driver da9052_hwmon_driver = {
- 	.probe = da9052_hwmon_probe,
--	.remove = da9052_hwmon_remove,
- 	.driver = {
- 		.name = "da9052-hwmon",
- 		.owner = THIS_MODULE,
+ MODULE_DEVICE_TABLE(of, sun4i_ts_of_match);
 -- 
-1.9.1
-
-
+2.0.0
 
 
 _______________________________________________
