@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 17 Jun 2014 06:31:27 +0000
+Date: Tue, 17 Jun 2014 17:15:39 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] touchscreen: sun4i-ts: A10 (sun4i) has double the temperature precision
-Message-Id: <539FE0BF.7030708@redhat.com>
+Message-Id: <53A077BB.2090203@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1402943069-19420-1-git-send-email-hdegoede@redhat.com> <1402943069-19420-2-git-send-email-hdegoede@redhat.com> <20140616213048.GA422@core.coreip.homeip.net>
 In-Reply-To: <20140616213048.GA422-WlK9ik9hQGAhIp7JRqBPierSzoNAToWh@public.gmane.org>
@@ -15,7 +15,7 @@ Hi,
 
 On 06/16/2014 11:30 PM, Dmitry Torokhov wrote:
 > Hi Hans,
-> 
+>
 > On Mon, Jun 16, 2014 at 08:24:28PM +0200, Hans de Goede wrote:
 >> Testing has revealed that the temperature in the rtp controller of the A10
 >> (sun4i) SoC has a resolution of 50 milli degrees / step, where as the
@@ -25,14 +25,12 @@ On 06/16/2014 11:30 PM, Dmitry Torokhov wrote:
 >> set the resolution based on the compatible string.
 >>
 >> This fixes the temperature reported on the A10 being twice as high as expected.
-> 
+>
 > Should we maybe add explicit temperature steps property so that we won;t
 > need to patch again if they decided to change resolution again?
 
-I can understand where your coming from, but in general the rule for
-devicetree bindings is to not add properties for things which are purely
-dependent on the SoC generation. Those must be deferred from the compatible
-string.
+Self NAK, further testing has revealed that it is likely not the resolution which is
+different on the A10, but that we need to apply a different offset.
 
 Regards,
 
