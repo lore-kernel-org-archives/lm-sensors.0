@@ -1,7 +1,7 @@
-From: Kevin Lo <kevlo@kevlo.org>
-Date: Wed, 25 Jun 2014 01:48:20 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 25 Jun 2014 05:49:31 +0000
 Subject: Re: [lm-sensors] [RFT][PATCH] hwmon: (w83l786ng) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <20140625014820.GA45680@ns.kevlo.org>
+Message-Id: <20140625074931.10342140@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1403609228.348.1.camel@phoenix>
 In-Reply-To: <1403609228.348.1.camel@phoenix>
@@ -10,49 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 25, 2014 at 09:06:17AM +0800, Axel Lin wrote:
-> 
-> 2014-06-24 22:38 GMT+08:00 Guenter Roeck <linux@roeck-us.net>:
-> > On 06/24/2014 04:27 AM, Axel Lin wrote:
-> >>
-> >> Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-> >> simplify the code a bit.
-> >>
-> >> The 'sensors' command never worked with this driver, fixed with this
-> >> conversion.
-> >>
-> > Hi Axel,
-> >
-> > You'd have to be a bit more specific here. Why ? It is not obvious to me.
-> > If you mean the 'name' attribute, that is created by the i2c subsystem.
-> I thought the 'name' attribute was missing, but since it's created by the i2c
-> subsystem, that would be fine.
-> 
-> >
-> > The driver is buggy, though. It shows the current fan speed as minimum fan
-> > speed.
-> 
-> I just sent a patch to fix this.
-> 
-> > Typical bug that can happen easily with function macros. But that is a
-> > different
-> > problem.
-> >
-> > The driver could also benefit from some cleanup. It wastes code space by
-> > using
-> > function macros instead of SENSOR_ATTR_2, and functions should be reordered
-> > to get rid of forward declarations.
-> 
-> ok. I'll address these issues.
-> Thanks for your review,
+Hi Guenter,
 
-Thank you for taking the time to fix issues.
-Since I've had no w83l786ng chips available for testing, I couldn't verify 
-that your patch works or not.
+On Tue, 24 Jun 2014 07:38:46 -0700, Guenter Roeck wrote:
+> The driver could also benefit from some cleanup. It wastes code space by using
+> function macros instead of SENSOR_ATTR_2, and functions should be reordered
+> to get rid of forward declarations. Difficult to do without HW or at least
+> simulation, though. Jean, do you have a register dump, by any chance ?
 
-> Axel
+I have the following:
 
-	Kevin
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+20: c0 c1 c2 XX XX 25 26 XX 88 89 XX ff 00 ff 00 ff
+30: 00 XX XX XX XX 50 4b 50 4b XX XX ff ff f0 f0 XX
+40: 01 00 00 de fe 00 00 00 XX 00 00 00 a3 5c 80 XX
+50: XX 00 04 41 11 XX XX XX XX XX XX XX XX XX XX XX
+80: 3c ff ff 00 00 00 00 ff ff 00 00 00 00 33 XX 22
+90: 00 14 0a 00 00 00 19 19 XX XX XX XX XX XX XX XX
+
+It was stored under the name w83l786ng-powerup.dump, so it is likely
+that I generated it based on the default register values in the
+datasheet and this isn't an real chip dump. Hope that helps anyway.
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
