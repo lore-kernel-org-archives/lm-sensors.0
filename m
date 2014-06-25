@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Jun 2014 20:42:26 +0000
-Subject: [lm-sensors] [PATCH 2/2] sensors-detect: Add detection of NCT7802Y
-Message-Id: <1403728946-6653-2-git-send-email-linux@roeck-us.net>
+Date: Wed, 25 Jun 2014 20:45:34 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] sensors-detect: Add detection of NCT7802Y
+Message-Id: <20140625204534.GA14652@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
@@ -10,113 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- CHANGES                    |  1 +
- prog/detect/sensors-detect | 68 ++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 69 insertions(+)
+On Wed, Jun 25, 2014 at 01:42:26PM -0700, Guenter Roeck wrote:
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  CHANGES                    |  1 +
+>  prog/detect/sensors-detect | 68 ++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 69 insertions(+)
+> 
 
-diff --git a/CHANGES b/CHANGES
-index 3390942..a16e7be 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -13,6 +13,7 @@ SVN HEAD
-                   Add detection of ITE IT8620E and IT8623E
-                   Add detection of TMP441, TMP442, LM95233, LM95234,
-                   and LM95235
-+                  Add detection of NCT7802Y
- 
- 3.3.5 "Happy Birthday Beddy" (2014-01-22)
-   libsensors: Improve documentation of two functions
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index df9a408..159d2cb 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -733,6 +733,11 @@ use vars qw(@i2c_adapter_names);
- 		i2c_addrs => [0x2c..0x2f],
- 		i2c_detect => sub { w83795_detect(@_); },
- 	}, {
-+		name => "Nuvoton NCT7802Y",
-+		driver => "to-be-written",
-+		i2c_addrs => [0x28..0x2f],
-+		i2c_detect => sub { nct7802_detect(@_); },
-+	}, {
- 		name => "Winbond W83627HF",
- 		driver => "use-isa-instead",
- 		i2c_addrs => [0x28..0x2f],
-@@ -5483,6 +5488,69 @@ sub w83795_detect
- }
- 
- # Registers used:
-+#   0x00: bank selection (Bank 0, 1)
-+#   0x40, 0x80, 0xc0: bank selection (Bank 1)
-+#   0x01, 0x41, 0x81, 0xc1: PECI control register 1 (Bank 1)
-+#   0x02, 0x42, 0x82, 0xc2: PECI control register 2 (Bank 1)
-+#   0x03, 0x43, 0x83, 0xc3: PECI control register 3 (Bank 1)
-+#   0xfd: Vendor ID (Bank 0)
-+#   0xfe: Device ID (Bank 0)
-+#   0xff: Device Revision (Bank 0)
-+sub nct7802_detect
-+{
-+	my ($bank, $reg, $pc1, $pc2, $pc3);
-+	my ($file, $addr) = @_;
-+
-+	$bank = i2c_smbus_read_byte_data($file, 0x00);
-+	return unless ($bank = 0x00 or $bank = 0x01);
-+
-+	# we can not do much if bank 1 is selected
-+	if ($bank = 0x01) {
-+		# We can not use bit masks since all bits
-+		# (including reserved bits) can be set.
-+		$pc1 = i2c_smbus_read_byte_data($file, 0x01);
-+		$pc2 = i2c_smbus_read_byte_data($file, 0x02);
-+		$pc3 = i2c_smbus_read_byte_data($file, 0x03);
-+
-+		# Register values repeat every 64 registers on bank 1.
-+		# Check the first four registers of each group.
-+		for (my $i = 0x40; $i <= 0xc0; $i += 0x40) {
-+			$reg = i2c_smbus_read_byte_data($file, $i);
-+			return if $reg != 0x01;
-+			$reg = i2c_smbus_read_byte_data($file, $i + 1);
-+			return if $reg != $pc1;
-+			$reg = i2c_smbus_read_byte_data($file, $i + 2);
-+			return if $reg != $pc2;
-+			$reg = i2c_smbus_read_byte_data($file, $i + 3);
-+			return if $reg != $pc3;
-+		}
-+		return 3;
-+	}
-+
-+	# bank 0, can support real chip detection
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0xfd);
-+	return unless ($reg = 0x50);
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0xfe);
-+	return unless $reg = 0xc3;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0xff);
-+	return unless ($reg & 0xf0) = 0x20;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0x05);
-+	return unless ($reg & 0x1f) = 0x00;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0x08);
-+	return unless ($reg & 0x3f) = 0x00;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0x0f);
-+	return unless ($reg & 0x3f) = 0x00;
-+
-+	return 8;
-+}
-+
-+# Registers used:
- #   0x48: Full I2C Address
- #   0x4e: Vendor ID byte selection
- #   0x4f: Vendor ID
--- 
-1.9.1
+Register maps for NCT7802Y:
 
+Bank 0:
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 3f 00 00 2d 20 2e 00 00 ce d7 00 83 96 d3 00    .?..- ...??.???.
+10: ff ff ff f8 00 64 00 00 00 00 00 00 00 11 00 00    ...?.d.......?..
+20: 00 81 7d 03 03 03 03 03 00 04 ee 80 f4 32 40 00    .?}?????.????2@.
+30: 55 00 55 00 55 00 55 00 55 00 64 64 64 64 64 ff    U.U.U.U.U.ddddd.
+40: 00 ff 00 ff 00 ff 00 cc cc ff ff ff f8 f8 f8 7f    .......??...????
+50: 3f 07 8f bf 3f 00 3f 00 00 00 00 00 00 00 00 00    ?????.?.........
+60: 00 00 7f 00 21 00 00 00 44 00 00 00 d1 02 01 01    ..?.!...D...????
+70: 7f 84 84 84 53 53 53 80 0a 00 80 00 00 ff ff ff    ????SSS??.?.....
+80: 3b 3c 4b 5a 5f 00 4c a5 ff ff ff ff ff ff ff ff    ;<KZ_.L?........
+90: 3b 3c 4b 5a 5f 00 4c a5 ff ff ff ff ff ff ff ff    ;<KZ_.L?........
+a0: 36 37 43 4f 5f 00 b2 d8 ff ff ff ff ff ff ff ff    67CO_.??........
+b0: 47 00 00 00 00 00 00 00 00 00 ff ff ff ff 00 0b    G..............?
+c0: 00 08 3d 3d 00 00 00 39 33 33 ff 00 00 00 40 00    .?=...933....@.
+d0: 00 aa 0a 0a 0a 0a 02 f2 81 1e 00 18 07 41 7f 70    .?????????.??A?p
+e0: e4 00 00 00 00 00 00 00 00 00 00 00 00 00 10 f0    ?.............??
+f0: 00 30 00 ff 00 05 ff ff 00 08 07 01 ff 50 c3 21    .0...?...???.P?!
+
+Bank 1:
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 01 91 00 30 00 00 00 00 00 64 64 00 00 00 00 00    ??.0.....dd.....
+10: 00 00 00 00 00 00 00 f2 92 f8 80 f8 80 f8 80 01    .......?????????
+20: 2e 01 06 00 02 09 00 1b 00 f9 00 00 00 00 00 00    .??.??.?.?......
+30: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+40: 01 91 00 30 00 00 00 00 00 64 64 00 00 00 00 00    ??.0.....dd.....
+50: 00 00 00 00 00 00 00 f2 ab f8 80 f8 80 f8 80 01    .......?????????
+60: 2e 02 06 00 02 09 00 5f 00 f9 00 00 00 00 00 00    .??.??._.?......
+70: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+80: 01 91 00 30 00 00 00 00 00 64 64 00 00 00 00 00    ??.0.....dd.....
+90: 00 00 00 00 00 00 00 f2 ab f8 80 f8 80 f8 80 01    .......?????????
+a0: 2e 02 06 00 02 09 00 5f 00 f9 00 00 00 00 00 00    .??.??._.?......
+b0: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: 01 91 00 30 00 00 00 00 00 64 64 00 00 00 00 00    ??.0.....dd.....
+d0: 00 00 00 00 00 00 00 f2 ab f8 80 f8 80 f8 80 01    .......?????????
+e0: 2e 02 06 00 02 09 00 5f 00 f9 00 00 00 00 00 00    .??.??._.?......
+f0: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
