@@ -1,51 +1,31 @@
-From: Per =?iso-8859-1?Q?Dal=E9n?= <per.dalen@appeartv.com>
-Date: Thu, 05 Jun 2014 19:02:00 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH] hwmon: (ltc4151) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <43937.62.16.236.213.1401994920.squirrel@webmail.m5.itpays.net>
+From: Josef Gajdusek <atx@atx.name>
+Date: Wed, 25 Jun 2014 14:21:21 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (emc1403) Fix missing 'select REGMAP_I2C' in Kconfig
+Message-Id: <20140625142121.GA14873@dashie>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1401925632.5828.1.camel@phoenix>
-In-Reply-To: <1401925632.5828.1.camel@phoenix>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@lm-sensors.org
+Cc: jdelvare@suse.de, linux@roeck-us.net, linux-kernel@vger.kernel.org
 
-Hi all,
+In commit 4cab259f, the emc1403 driver was converted to use regmap but the 
+necessary Kconfig option was not added.
 
-> On Thu, Jun 05, 2014 at 03:21:08PM +0200, Per Dal=E9n wrote:
->> Hi Axel,
->>
->> On 06/05/2014 01:47 AM, Axel Lin wrote:
->> >Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups
->> to
->> >simplify the code a bit.
->> >
->> >Signed-off-by: Axel Lin <axel.lin@ingics.com>
->> >---
->> >Hi,
->> >I don't have the h/w to test, I'd appreciate if someone can review and
->> test this
->> >patch.
->> >Thanks,
->> >Axel
->>
->> I have tested it on our board (PowerPC e500v2) and it works fine.
->>
-> With Per's test, and comparing the patch with the one I had pending,
-> which was almost the same, we are good to go. Applied to -next.
->
-> Per, can I add your Tested-by: ?
->
-> Thanks,
-> Guenter
->
-
-Ok.
-
-Tested-by: Per Dal=E9n <per.dalen@appeartv.com>
-
-Regards
-Per
+Signed-off-by: Josef Gajdusek <atx@atx.name>
+---
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 08531a1..bdb90a0 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1176,6 +1176,7 @@ config SENSORS_DME1737
+ config SENSORS_EMC1403
+ 	tristate "SMSC EMC1403/23 thermal sensor"
+ 	depends on I2C
++	select REGMAP_I2C
+ 	help
+ 	  If you say yes here you get support for the SMSC EMC1403/23
+ 	  temperature monitoring chip.
 
 
 _______________________________________________
