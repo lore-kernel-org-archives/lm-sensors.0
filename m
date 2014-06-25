@@ -1,39 +1,122 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 11 Jun 2014 20:42:27 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm85) Drop generic detection
-Message-Id: <20140611204227.GA20336@roeck-us.net>
+Date: Wed, 25 Jun 2014 20:42:26 +0000
+Subject: [lm-sensors] [PATCH 2/2] sensors-detect: Add detection of NCT7802Y
+Message-Id: <1403728946-6653-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140611183556.58890a5c@endymion.delvare>
-In-Reply-To: <20140611183556.58890a5c@endymion.delvare>
+References: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 11, 2014 at 09:50:49PM +0200, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Wed, 11 Jun 2014 09:52:04 -0700, Guenter Roeck wrote:
-> > On Wed, Jun 11, 2014 at 06:35:56PM +0200, Jean Delvare wrote:
-> > > Generic detection leads to too many false positives, so drop it. FWIW
-> > > sensors-detect does not have such generic detection. If the user wants
-> > > to force the driver to bind to a not yet supported chip, he/she can
-> > > still do so using sysfs attribute new_device.
-> > > 
-> > > Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> > 
-> > Good idea. That was way too generic.
-> > 
-> > Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-> > 
-> > Do you want to take it, or should I ? I have another fix pending, so it would
-> > not make a difference for me.
-> 
-> Please take it, I don't have anything else to send this time.
-> 
-Ok, will do.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    |  1 +
+ prog/detect/sensors-detect | 68 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+)
 
-Guenter
+diff --git a/CHANGES b/CHANGES
+index 3390942..a16e7be 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -13,6 +13,7 @@ SVN HEAD
+                   Add detection of ITE IT8620E and IT8623E
+                   Add detection of TMP441, TMP442, LM95233, LM95234,
+                   and LM95235
++                  Add detection of NCT7802Y
+ 
+ 3.3.5 "Happy Birthday Beddy" (2014-01-22)
+   libsensors: Improve documentation of two functions
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index df9a408..159d2cb 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -733,6 +733,11 @@ use vars qw(@i2c_adapter_names);
+ 		i2c_addrs => [0x2c..0x2f],
+ 		i2c_detect => sub { w83795_detect(@_); },
+ 	}, {
++		name => "Nuvoton NCT7802Y",
++		driver => "to-be-written",
++		i2c_addrs => [0x28..0x2f],
++		i2c_detect => sub { nct7802_detect(@_); },
++	}, {
+ 		name => "Winbond W83627HF",
+ 		driver => "use-isa-instead",
+ 		i2c_addrs => [0x28..0x2f],
+@@ -5483,6 +5488,69 @@ sub w83795_detect
+ }
+ 
+ # Registers used:
++#   0x00: bank selection (Bank 0, 1)
++#   0x40, 0x80, 0xc0: bank selection (Bank 1)
++#   0x01, 0x41, 0x81, 0xc1: PECI control register 1 (Bank 1)
++#   0x02, 0x42, 0x82, 0xc2: PECI control register 2 (Bank 1)
++#   0x03, 0x43, 0x83, 0xc3: PECI control register 3 (Bank 1)
++#   0xfd: Vendor ID (Bank 0)
++#   0xfe: Device ID (Bank 0)
++#   0xff: Device Revision (Bank 0)
++sub nct7802_detect
++{
++	my ($bank, $reg, $pc1, $pc2, $pc3);
++	my ($file, $addr) = @_;
++
++	$bank = i2c_smbus_read_byte_data($file, 0x00);
++	return unless ($bank = 0x00 or $bank = 0x01);
++
++	# we can not do much if bank 1 is selected
++	if ($bank = 0x01) {
++		# We can not use bit masks since all bits
++		# (including reserved bits) can be set.
++		$pc1 = i2c_smbus_read_byte_data($file, 0x01);
++		$pc2 = i2c_smbus_read_byte_data($file, 0x02);
++		$pc3 = i2c_smbus_read_byte_data($file, 0x03);
++
++		# Register values repeat every 64 registers on bank 1.
++		# Check the first four registers of each group.
++		for (my $i = 0x40; $i <= 0xc0; $i += 0x40) {
++			$reg = i2c_smbus_read_byte_data($file, $i);
++			return if $reg != 0x01;
++			$reg = i2c_smbus_read_byte_data($file, $i + 1);
++			return if $reg != $pc1;
++			$reg = i2c_smbus_read_byte_data($file, $i + 2);
++			return if $reg != $pc2;
++			$reg = i2c_smbus_read_byte_data($file, $i + 3);
++			return if $reg != $pc3;
++		}
++		return 3;
++	}
++
++	# bank 0, can support real chip detection
++
++	$reg = i2c_smbus_read_byte_data($file, 0xfd);
++	return unless ($reg = 0x50);
++
++	$reg = i2c_smbus_read_byte_data($file, 0xfe);
++	return unless $reg = 0xc3;
++
++	$reg = i2c_smbus_read_byte_data($file, 0xff);
++	return unless ($reg & 0xf0) = 0x20;
++
++	$reg = i2c_smbus_read_byte_data($file, 0x05);
++	return unless ($reg & 0x1f) = 0x00;
++
++	$reg = i2c_smbus_read_byte_data($file, 0x08);
++	return unless ($reg & 0x3f) = 0x00;
++
++	$reg = i2c_smbus_read_byte_data($file, 0x0f);
++	return unless ($reg & 0x3f) = 0x00;
++
++	return 8;
++}
++
++# Registers used:
+ #   0x48: Full I2C Address
+ #   0x4e: Vendor ID byte selection
+ #   0x4f: Vendor ID
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
