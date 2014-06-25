@@ -1,38 +1,27 @@
-From: Julien D'Ascenzio <jdascenzio@yahoo.fr>
-Date: Wed, 25 Jun 2014 20:00:31 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (gpio-fan) Change name used in hwmon_device_register_with_groups
-Message-Id: <1403726431-18749-1-git-send-email-jdascenzio@yahoo.fr>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 25 Jun 2014 20:47:45 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (gpio-fan) Change name used in hwmon_device_register_with_groups
+Message-Id: <20140625204745.GB14652@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1403726431-18749-1-git-send-email-jdascenzio@yahoo.fr>
+In-Reply-To: <1403726431-18749-1-git-send-email-jdascenzio@yahoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Julien D'Ascenzio <jdascenzio@yahoo.fr>
+Cc: Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Since commit 648cd48c9e566f53c5df30d79857e0937ae13b09
-The hwmon name attributes must not include '-' so the name must be
-rename from gpio-fan to gpio_fan
+On Wed, Jun 25, 2014 at 10:00:31PM +0200, Julien D'Ascenzio wrote:
+> Since commit 648cd48c9e566f53c5df30d79857e0937ae13b09
+> The hwmon name attributes must not include '-' so the name must be
+> rename from gpio-fan to gpio_fan
+> 
+> Signed-off-by: Julien D'Ascenzio <jdascenzio@yahoo.fr>
 
-Signed-off-by: Julien D'Ascenzio <jdascenzio@yahoo.fr>
----
- drivers/hwmon/gpio-fan.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Good catch. Applied.
 
-diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-index 73181be..160ca00 100644
---- a/drivers/hwmon/gpio-fan.c
-+++ b/drivers/hwmon/gpio-fan.c
-@@ -538,7 +538,7 @@ static int gpio_fan_probe(struct platform_device *pdev)
- 
- 	/* Make this driver part of hwmon class. */
- 	fan_data->hwmon_dev = hwmon_device_register_with_groups(&pdev->dev,
--						"gpio-fan", fan_data,
-+						"gpio_fan", fan_data,
- 						gpio_fan_groups);
- 	if (IS_ERR(fan_data->hwmon_dev))
- 		return PTR_ERR(fan_data->hwmon_dev);
--- 
-1.9.1
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
