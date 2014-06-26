@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 26 Jun 2014 13:45:56 +0000
+From: Frans Klaver <fransklaver@gmail.com>
+Date: Thu, 26 Jun 2014 18:21:07 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: add support for tmp112
-Message-Id: <53AC2414.8000404@roeck-us.net>
+Message-Id: <CAH6sp9P15E1r4ENzg1DpYGOVLxVnQ0TRL+JdPJ5gZGEqyJSHLA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1403774471-31497-1-git-send-email-frans.klaver@xsens.com>
 In-Reply-To: <1403774471-31497-1-git-send-email-frans.klaver@xsens.com>
@@ -10,15 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 06/26/2014 02:21 AM, Frans Klaver wrote:
-> Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
-> ---
+On Thu, Jun 26, 2014 at 3:45 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> Applied to hwmon-next.
 
-Applied to hwmon-next.
+Great.
 
 Thanks,
-Guenter
-
+Frans
 
 _______________________________________________
 lm-sensors mailing list
