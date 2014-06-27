@@ -1,27 +1,26 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Jun 2014 14:29:43 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (emc1403) Fix missing 'select REGMAP_I2C' in Kconfig
-Message-Id: <53AADCD7.1010908@roeck-us.net>
+From: Johannes Pointner <johannes.pointner@gmail.com>
+Date: Fri, 27 Jun 2014 08:50:39 +0000
+Subject: [lm-sensors] hwmon: ntc_thermistor: Add another ntc(epcos) to the driver
+Message-Id: <CAJKbBDDYdGATTtW0Vz6v1iqnwkLgjj8dB8-dgM0xPAb+UkHvAg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140625142121.GA14873@dashie>
-In-Reply-To: <20140625142121.GA14873@dashie>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Josef Gajdusek <atx@atx.name>, lm-sensors@lm-sensors.org
-Cc: jdelvare@suse.de, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+Cc: lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-On 06/25/2014 07:21 AM, Josef Gajdusek wrote:
-> In commit 4cab259f, the emc1403 driver was converted to use regmap but the
-> necessary Kconfig option was not added.
->
-> Signed-off-by: Josef Gajdusek <atx@atx.name>
+As I saw in the latest patches for the ntc_thermistor, in which as
+part of the patch the module description changed to :
 
-Applied.
+MODULE_DESCRIPTION("NTC Thermistor Driver from Murata");
+
+I wanted to know if it is intended to extend the driver for further
+manufacturers like in my case for an epcos ntc in the future?
+
+Of course I would create the necessary patch.
 
 Thanks,
-Guenter
-
+Hannes
 
 _______________________________________________
 lm-sensors mailing list
