@@ -1,41 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Jun 2014 06:08:33 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: (w83l786ng) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <53AA6761.3030300@roeck-us.net>
+From: Johannes Pointner <johannes.pointner@gmail.com>
+Date: Fri, 27 Jun 2014 17:53:53 +0000
+Subject: [lm-sensors] [PATCH 1/2] Adds the vendor prefix "epcos" to vendor-prefixes.txt
+Message-Id: <2420621.lSeA9X6AqK@lenovobook>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1403660391.31123.2.camel@phoenix>
-In-Reply-To: <1403660391.31123.2.camel@phoenix>
+References: <CAJKbBDDFD294xnqkYq_auW=ppMyPJxigYUF-YAhXZVXw3NN5Xg@mail.gmail.com> <53AD7F8F.7070501@roeck-us.net>
+In-Reply-To: <53AD7F8F.7070501@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <jdelvare@suse.de>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-On 06/24/2014 10:57 PM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Tue, 24 Jun 2014 19:24:32 -0700, Guenter Roeck wrote:
->> On a side note, it appears the chip is long since obsolete, so I wonder
->> if anyone is still using it.
->
-> It wasn't very popular back then either, so odds are indeed that the
-> current user count is close to 0. However this isn't the only driver in
-> that case, and I know of no policy to drop drivers just because of
-> this. Being able to run on old hardware is a Linux feature.
->
-> I think it only makes sense to drop drivers which have been heavily
-> broken for a long time without nobody complaining, or which would
-> require a major rework nobody is able to spend time on.
->
+This patch adds the vendor prefix for "epcos" to the vendor-prefixes.
 
-Agreed.
+Signed-off-by: Johannes Pointner <johannes.pointner@gmail.com>
+---
+ Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-There was a discussion about deprecating old drivers a couple
-of weeks ago on the kernel summit mailing list, but I don't think
-people agreed on anything. Personally I am fine with keeping drivers
-in the code base.
-
-Guenter
-
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt=20
+b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 46a311e..97c9c06 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -42,6 +42,7 @@ dmo	Data Modul AG
+ ebv	EBV Elektronik
+ edt	Emerging Display Technologies
+ emmicro	EM Microelectronic
++epcos	EPCOS AG
+ epfl	Ecole Polytechnique F=E9d=E9rale de Lausanne
+ epson	Seiko Epson Corp.
+ est	ESTeem Wireless Modems
+--=20
+2.0.0
 
 _______________________________________________
 lm-sensors mailing list
