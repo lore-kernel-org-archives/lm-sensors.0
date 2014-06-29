@@ -1,50 +1,138 @@
-From: Doug Anderson <dianders@chromium.org>
-Date: Mon, 09 Jun 2014 20:45:20 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ntc_thermistor) Fix OF device ID mapping
-Message-Id: <CAD=FV=UmX2th=SQMN4XtYxFs=FK8v_yiWYy_=+3UxVjvj12B0A@mail.gmail.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sun, 29 Jun 2014 02:55:12 +0000
+Subject: [lm-sensors] [RFT][PATCH 2/2] hwmon: (da9055) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1404010512.5607.3.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean,
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+simplify the code a bit.
 
-On Wed, May 21, 2014 at 5:58 AM, Jean Delvare <jdelvare@suse.de> wrote:
-> The mapping from OF device IDs to platform device IDs is wrong.
-> TYPE_NCPXXWB473 is 0, TYPE_NCPXXWL333 is 1, so
-> ntc_thermistor_id[TYPE_NCPXXWB473] is { "ncp15wb473", TYPE_NCPXXWB473 }
-> while
-> ntc_thermistor_id[TYPE_NCPXXWL333] is { "ncp18wb473", TYPE_NCPXXWB473 }.
->
-> So the name is wrong for all but the "ntc,ncp15wb473" entry, and the
-> type is wrong for the "ntc,ncp15wl333" entry.
->
-> So map the entries by index, it is neither elegant nor robust but at
-> least it is correct.
->
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Fixes: 9e8269de hwmon: (ntc_thermistor) Add DT with IIO support to NTC thermistor driver
-> Cc: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Doug Anderson <dianders@chromium.org>
-> ---
-> Again this is a candidate for stable, but maybe we don't really care
-> because the only in-tree user is for the only device for which the
-> mapping wasn't broken.
->
->  drivers/hwmon/ntc_thermistor.c |   11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+Note, devm_hwmon_device_register_with_groups does not allow "-" in the name
+argument. So there is a change in 'name' attribute.
+It was "da9055-hwmon", and now it's "da9055".
 
-You caught me on vacation and then this was lost in the backlog.  I
-see it's already applied, but better late than never, I guess.
+ drivers/hwmon/da9055-hwmon.c | 52 ++++++++------------------------------------
+ 1 file changed, 9 insertions(+), 43 deletions(-)
 
-We only have a "ncp15wb473" in our systems, which is probably why this
-was never caught.
+diff --git a/drivers/hwmon/da9055-hwmon.c b/drivers/hwmon/da9055-hwmon.c
+index 73b3865..9916a3f 100644
+--- a/drivers/hwmon/da9055-hwmon.c
++++ b/drivers/hwmon/da9055-hwmon.c
+@@ -36,7 +36,6 @@
+ 
+ struct da9055_hwmon {
+ 	struct da9055	*da9055;
+-	struct device	*class_device;
+ 	struct mutex	hwmon_lock;
+ 	struct mutex	irq_lock;
+ 	struct completion done;
+@@ -200,13 +199,6 @@ static ssize_t da9055_read_tjunc(struct device *dev,
+ 							+ 3076332, 10000));
+ }
+ 
+-static ssize_t da9055_hwmon_show_name(struct device *dev,
+-				      struct device_attribute *devattr,
+-				      char *buf)
+-{
+-	return sprintf(buf, "da9055-hwmon\n");
+-}
+-
+ static ssize_t show_label(struct device *dev,
+ 			  struct device_attribute *devattr, char *buf)
+ {
+@@ -236,10 +228,7 @@ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, da9055_read_tjunc, NULL,
+ static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
+ 			  DA9055_ADC_TJUNC);
+ 
+-static DEVICE_ATTR(name, S_IRUGO, da9055_hwmon_show_name, NULL);
+-
+-static struct attribute *da9055_attr[] = {
+-	&dev_attr_name.attr,
++static struct attribute *da9055_attrs[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_label.dev_attr.attr,
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+@@ -254,15 +243,16 @@ static struct attribute *da9055_attr[] = {
+ 	NULL
+ };
+ 
+-static const struct attribute_group da9055_attr_group = {.attrs = da9055_attr};
++ATTRIBUTE_GROUPS(da9055);
+ 
+ static int da9055_hwmon_probe(struct platform_device *pdev)
+ {
++	struct device *dev = &pdev->dev;
+ 	struct da9055_hwmon *hwmon;
++	struct device *hwmon_dev;
+ 	int hwmon_irq, ret;
+ 
+-	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9055_hwmon),
+-			     GFP_KERNEL);
++	hwmon = devm_kzalloc(dev, sizeof(struct da9055_hwmon), GFP_KERNEL);
+ 	if (!hwmon)
+ 		return -ENOMEM;
+ 
+@@ -272,8 +262,6 @@ static int da9055_hwmon_probe(struct platform_device *pdev)
+ 	init_completion(&hwmon->done);
+ 	hwmon->da9055 = dev_get_drvdata(pdev->dev.parent);
+ 
+-	platform_set_drvdata(pdev, hwmon);
+-
+ 	hwmon_irq = platform_get_irq_byname(pdev, "HWMON");
+ 	if (hwmon_irq < 0)
+ 		return hwmon_irq;
+@@ -288,36 +276,14 @@ static int da9055_hwmon_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
+-	ret = sysfs_create_group(&pdev->dev.kobj, &da9055_attr_group);
+-	if (ret)
+-		return ret;
+-
+-	hwmon->class_device = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(hwmon->class_device)) {
+-		ret = PTR_ERR(hwmon->class_device);
+-		goto err;
+-	}
+-
+-	return 0;
+-
+-err:
+-	sysfs_remove_group(&pdev->dev.kobj, &da9055_attr_group);
+-	return ret;
+-}
+-
+-static int da9055_hwmon_remove(struct platform_device *pdev)
+-{
+-	struct da9055_hwmon *hwmon = platform_get_drvdata(pdev);
+-
+-	sysfs_remove_group(&pdev->dev.kobj, &da9055_attr_group);
+-	hwmon_device_unregister(hwmon->class_device);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "da9055",
++							   hwmon,
++							   da9055_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static struct platform_driver da9055_hwmon_driver = {
+ 	.probe = da9055_hwmon_probe,
+-	.remove = da9055_hwmon_remove,
+ 	.driver = {
+ 		.name = "da9055-hwmon",
+ 		.owner = THIS_MODULE,
+-- 
+1.9.1
 
-Thank you for fixing, though!
 
--Doug
+
 
 _______________________________________________
 lm-sensors mailing list
