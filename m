@@ -1,17 +1,17 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 27 Jun 2014 14:15:55 +0000
+From: Jan Kardell <jan.kardell@telliq.com>
+Date: Sun, 29 Jun 2014 14:23:03 +0000
 Subject: Re: [lm-sensors] hwmon: ntc_thermistor: Add another ntc(epcos) to the driver
-Message-Id: <53AD7C9B.8040407@roeck-us.net>
+Message-Id: <53B02147.1000608@telliq.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAJKbBDDYdGATTtW0Vz6v1iqnwkLgjj8dB8-dgM0xPAb+UkHvAg@mail.gmail.com>
 In-Reply-To: <CAJKbBDDYdGATTtW0Vz6v1iqnwkLgjj8dB8-dgM0xPAb+UkHvAg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Johannes Pointner <johannes.pointner@gmail.com>, Jean Delvare <jdelvare@suse.de>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>
+To: Johannes Pointner <johannes.pointner@gmail.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>
 Cc: lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-On 06/27/2014 01:50 AM, Johannes Pointner wrote:
+Johannes Pointner skriver:
 > As I saw in the latest patches for the ntc_thermistor, in which as
 > part of the patch the module description changed to :
 >
@@ -20,13 +20,20 @@ On 06/27/2014 01:50 AM, Johannes Pointner wrote:
 > I wanted to know if it is intended to extend the driver for further
 > manufacturers like in my case for an epcos ntc in the future?
 >
+> Of course I would create the necessary patch.
+>
+> Thanks,
+> Hannes
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Sure, why not ? Better than create an entirely new driver which would
-be all the same but for the tables. The comment is misleading anyway
-(the driver is for Murata thermistors, not from them), so we can
-always drop the "from Murata".
+Why not move the table to DT? There are lots of NTC types out there, and 
+each type comes in an number of varietes. IMHO it seems impractical to 
+change the code for each one, and the tables would grow to be very large.
 
-Guenter
+//Jan
 
 
 _______________________________________________
