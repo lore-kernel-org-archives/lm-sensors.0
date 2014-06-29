@@ -1,75 +1,130 @@
-From: Fabio Baltieri <fabio.baltieri@gmail.com>
-Date: Sun, 08 Jun 2014 20:54:07 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ina2xx) Change register cache to signed
-Message-Id: <CABkP77cnLvvQH-M45xJ14ny8x_z3DWPPj_zi9xtABQpvsMr4tw@mail.gmail.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sun, 29 Jun 2014 02:53:08 +0000
+Subject: [lm-sensors] [RFT][PATCH 1/2] hwmon: (da9052) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1404010388.5607.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1402174021-25857-1-git-send-email-fabio.baltieri@gmail.com>
- <20140608201600.GA30953@roeck-us.net> <20140608203007.GA6265@roeck-us.net>
-In-Reply-To: <20140608203007.GA6265@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, Lothar Felten <l-felten@ti.com>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 8, 2014 at 9:30 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> On Sun, Jun 08, 2014 at 01:16:00PM -0700, Guenter Roeck wrote:
->> On Sat, Jun 07, 2014 at 09:47:01PM +0100, Fabio Baltieri wrote:
->> > All devices supported by the ina2xx driver are bidirectional and repor=
-ts
->> > the measured value as a signed 16 bit, but the current driver
->> > implementation caches the number as an u16, leading to an incorrect si=
-gn
->> > extension when reporting to the userspace in ina2xx_get_value().
->> >
->> > This patch fixes the problem by using a s16 instead, and has been test=
-ed
->> > on an INA219.
->> >
->> > Signed-off-by: Fabio Baltieri <fabio.baltieri@gmail.com>
->>
->> Applied.
->>
-> Actually, no, this won't work. The statement above is only correct for cu=
-rrent
-> and shunt voltage measurements, but not for power measurements and not fo=
-r bus
-> voltage measurements. Changing the register to s16 won't help; conversion=
- needs
-> to be done in ina2xx_get_value() for shunt voltage and current measuremen=
-t only.
-> Otherwise we just move the bug from current/shunt voltage measurements to
-> power / bus voltage measurements.
->
-> Even more interesting, the power is supposed to be the product of Bus vol=
-tage
-> and current, and the latter can be negative. However, the power register
-> description does not suggest that the upper bit would be a sign bit. So t=
-here
-> is some discrepancy in the datasheet, and we'll need some real-world data=
- to
-> understand if the upper power bit is signed or not.
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+simplify the code a bit.
 
-Hi Guenter,
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+Note, devm_hwmon_device_register_with_groups does not allow "-" in the name
+argument. So there is a change in 'name' attribute.
+It was "da9052-hwmon", and now it's "da9052".
+ drivers/hwmon/da9052-hwmon.c | 54 ++++++++------------------------------------
+ 1 file changed, 9 insertions(+), 45 deletions(-)
 
-looks like you're right here, I wasn't paying too attention to the
-power register and it actually always reads positive, even when the
-current is flowing in the reverse direction, real data from the
-ina219:
+diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
+index afd3104..692b3f3 100644
+--- a/drivers/hwmon/da9052-hwmon.c
++++ b/drivers/hwmon/da9052-hwmon.c
+@@ -26,7 +26,6 @@
+ 
+ struct da9052_hwmon {
+ 	struct da9052	*da9052;
+-	struct device	*class_device;
+ 	struct mutex	hwmon_lock;
+ };
+ 
+@@ -190,13 +189,6 @@ static ssize_t da9052_read_vbbat(struct device *dev,
+ 	return sprintf(buf, "%d\n", vbbat_reg_to_mv(ret));
+ }
+ 
+-static ssize_t da9052_hwmon_show_name(struct device *dev,
+-				      struct device_attribute *devattr,
+-				      char *buf)
+-{
+-	return sprintf(buf, "da9052-hwmon\n");
+-}
+-
+ static ssize_t show_label(struct device *dev,
+ 			  struct device_attribute *devattr, char *buf)
+ {
+@@ -243,10 +235,7 @@ static SENSOR_DEVICE_ATTR(temp8_input, S_IRUGO, da9052_read_tjunc, NULL,
+ static SENSOR_DEVICE_ATTR(temp8_label, S_IRUGO, show_label, NULL,
+ 			  DA9052_ADC_TJUNC);
+ 
+-static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
+-
+-static struct attribute *da9052_attr[] = {
+-	&dev_attr_name.attr,
++static struct attribute *da9052_attrs[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_label.dev_attr.attr,
+ 	&sensor_dev_attr_in3_input.dev_attr.attr,
+@@ -268,54 +257,29 @@ static struct attribute *da9052_attr[] = {
+ 	NULL
+ };
+ 
+-static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
++ATTRIBUTE_GROUPS(da9052);
+ 
+ static int da9052_hwmon_probe(struct platform_device *pdev)
+ {
++	struct device *dev = &pdev->dev;
+ 	struct da9052_hwmon *hwmon;
+-	int ret;
++	struct device *hwmon_dev;
+ 
+-	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9052_hwmon),
+-			     GFP_KERNEL);
++	hwmon = devm_kzalloc(dev, sizeof(struct da9052_hwmon), GFP_KERNEL);
+ 	if (!hwmon)
+ 		return -ENOMEM;
+ 
+ 	mutex_init(&hwmon->hwmon_lock);
+ 	hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
+ 
+-	platform_set_drvdata(pdev, hwmon);
+-
+-	ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
+-	if (ret)
+-		goto err_mem;
+-
+-	hwmon->class_device = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(hwmon->class_device)) {
+-		ret = PTR_ERR(hwmon->class_device);
+-		goto err_sysfs;
+-	}
+-
+-	return 0;
+-
+-err_sysfs:
+-	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
+-err_mem:
+-	return ret;
+-}
+-
+-static int da9052_hwmon_remove(struct platform_device *pdev)
+-{
+-	struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
+-
+-	hwmon_device_unregister(hwmon->class_device);
+-	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "da9052",
++							   hwmon,
++							   da9052_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static struct platform_driver da9052_hwmon_driver = {
+ 	.probe = da9052_hwmon_probe,
+-	.remove = da9052_hwmon_remove,
+ 	.driver = {
+ 		.name = "da9052-hwmon",
+ 		.owner = THIS_MODULE,
+-- 
+1.9.1
 
-[55694.263502] shunt_voltage=FB46
-[55694.263691] bus_voltage c2
-[55694.263847] power=00fe
-[55694.263954] current=FB46
 
-I'll send a v2 to only cast the two signed register then.
 
-Many thanks for spotting this!
-
-Fabio
-
---=20
-Fabio Baltieri
 
 _______________________________________________
 lm-sensors mailing list
