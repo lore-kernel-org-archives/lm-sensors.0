@@ -1,57 +1,53 @@
-From: Johannes Pointner <johannes.pointner@gmail.com>
-Date: Fri, 27 Jun 2014 17:50:06 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: ntc_thermistor: Adds support for EPCOS ntc thermistor
-Message-Id: <2383887.HrpgCMVlam@lenovobook>
+From: Joe Perches <joe@perches.com>
+Date: Sun, 29 Jun 2014 00:20:16 +0000
+Subject: [lm-sensors] [PATCH 4/4] fs: asus_atk0110: Fix DEFINE_SIMPLE_ATTRIBUTE semicolon definition and use
+Message-Id: <530fc2e19919f12996227b27645be7e8f911a7ba.1403999769.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAJKbBDDFD294xnqkYq_auW=ppMyPJxigYUF-YAhXZVXw3NN5Xg@mail.gmail.com> <53AD7F8F.7070501@roeck-us.net>
-In-Reply-To: <53AD7F8F.7070501@roeck-us.net>
+References: <cover.1403999769.git.joe@perches.com>
+In-Reply-To: <cover.1403999769.git.joe@perches.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Jean Delvare <jdelvare@suse.de>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Jeff Layton <jlayton@poochiereds.net>, "J. Bruce Fields" <bfields@fieldses.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Hello Guenter,
+The DEFINE_SIMPLE_ATTRIBUTE macro should not end in a ;
+Fix the one use in the kernel tree that did not have a semicolon.
 
-sorry for that, this was my first patch.
-I send the patches now separate and with supported email client.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/asus_atk0110.c | 2 +-
+ include/linux/fs.h           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-On Friday 27 June 2014 07:28:31 Guenter Roeck wrote:
-> On 06/27/2014 05:59 AM, Johannes Pointner wrote:
-> > The patch series adds support for the ntc thermistor B57330V2103 from
-> >=20
-> >   EPCOS.
-> >=20
-> > Signed-off-by: Johannes Pointner <johannes.pointner@gmail.com>
->=20
-> Hi Johannes,
->=20
-> you sent two patches in the same e-mail, and it is all corrupted.
-> All tabs have been replaced with spaces.
->=20
-> Guenter
->=20
-> > ---
-> >=20
-> >   Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
-> >   1 file changed, 1 insertion(+)
-> >=20
-> > diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > index 46a311e..97c9c06 100644
-> > --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > @@ -42,6 +42,7 @@ dmo    Data Modul AG
-> >=20
-> >   ebv    EBV Elektronik
-> >   edt    Emerging Display Technologies
-> >   emmicro    EM Microelectronic
-> >=20
-> > +epcos    EPCOS AG
-> >=20
-> >   epfl    Ecole Polytechnique F=E9d=E9rale de Lausanne
-> >   epson    Seiko Epson Corp.
-> >   est    ESTeem Wireless Modems
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index ae208f6..cccef87 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -688,7 +688,7 @@ static int atk_debugfs_gitm_get(void *p, u64 *val)
+ DEFINE_SIMPLE_ATTRIBUTE(atk_debugfs_gitm,
+ 			atk_debugfs_gitm_get,
+ 			NULL,
+-			"0x%08llx\n")
++			"0x%08llx\n");
+ 
+ static int atk_acpi_print(char *buf, size_t sz, union acpi_object *obj)
+ {
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8a9e7f8..e78e9ac 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2701,7 +2701,7 @@ static const struct file_operations __fops = {				\
+ 	.read	 = simple_attr_read,					\
+ 	.write	 = simple_attr_write,					\
+ 	.llseek	 = generic_file_llseek,					\
+-};
++}
+ 
+ static inline __printf(1, 2)
+ void __simple_attr_check_format(const char *fmt, ...)
+-- 
+1.8.1.2.459.gbcd45b4.dirty
 
 
 _______________________________________________
