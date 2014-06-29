@@ -1,69 +1,163 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 16 Jun 2014 18:24:29 +0000
-Subject: [lm-sensors] [PATCH 2/2] ARM: dts: sunxi: Adjust touchscreen compatible for sun5i and later
-Message-Id: <1402943069-19420-3-git-send-email-hdegoede@redhat.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sun, 29 Jun 2014 03:32:01 +0000
+Subject: [lm-sensors] [RFT][PATCH] hwmon: (emc6w201) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1404012721.27831.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1402943069-19420-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1402943069-19420-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Cc: Tong Zhang <lovewilliam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-The touchscreen controller in the A13 and later has a different temperature
-resulution compated to the one in the original A10, change the compatible
-for the A13 and later so that the kernel will use the correct resolution.
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+simplify the code a bit.
 
-Reported-by: Tong Zhang <lovewilliam@gmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 ---
- arch/arm/boot/dts/sun5i-a10s.dtsi | 2 +-
- arch/arm/boot/dts/sun5i-a13.dtsi  | 2 +-
- arch/arm/boot/dts/sun7i-a20.dtsi  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/emc6w201.c | 64 ++++++++++++++----------------------------------
+ 1 file changed, 19 insertions(+), 45 deletions(-)
 
-diff --git a/arch/arm/boot/dts/sun5i-a10s.dtsi b/arch/arm/boot/dts/sun5i-a10s.dtsi
-index 6835b88..25549c1 100644
---- a/arch/arm/boot/dts/sun5i-a10s.dtsi
-+++ b/arch/arm/boot/dts/sun5i-a10s.dtsi
-@@ -519,7 +519,7 @@
- 		};
+diff --git a/drivers/hwmon/emc6w201.c b/drivers/hwmon/emc6w201.c
+index f76a74c..e87da90 100644
+--- a/drivers/hwmon/emc6w201.c
++++ b/drivers/hwmon/emc6w201.c
+@@ -56,7 +56,7 @@ enum subfeature { input, min, max };
+  */
  
- 		rtp: rtp@01c25000 {
--			compatible = "allwinner,sun4i-a10-ts";
-+			compatible = "allwinner,sun5i-a13-ts";
- 			reg = <0x01c25000 0x100>;
- 			interrupts = <29>;
- 		};
-diff --git a/arch/arm/boot/dts/sun5i-a13.dtsi b/arch/arm/boot/dts/sun5i-a13.dtsi
-index 206b6f8..be28b3b 100644
---- a/arch/arm/boot/dts/sun5i-a13.dtsi
-+++ b/arch/arm/boot/dts/sun5i-a13.dtsi
-@@ -467,7 +467,7 @@
- 		};
+ struct emc6w201_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	struct mutex update_lock;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+@@ -134,8 +134,8 @@ static int emc6w201_write8(struct i2c_client *client, u8 reg, u8 val)
  
- 		rtp: rtp@01c25000 {
--			compatible = "allwinner,sun4i-a10-ts";
-+			compatible = "allwinner,sun5i-a13-ts";
- 			reg = <0x01c25000 0x100>;
- 			interrupts = <29>;
- 		};
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 8029a75..87c7d33 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -823,7 +823,7 @@
- 		};
+ static struct emc6w201_data *emc6w201_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct emc6w201_data *data = i2c_get_clientdata(client);
++	struct emc6w201_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int nr;
  
- 		rtp: rtp@01c25000 {
--			compatible = "allwinner,sun4i-a10-ts";
-+			compatible = "allwinner,sun5i-a13-ts";
- 			reg = <0x01c25000 0x100>;
- 			interrupts = <0 29 4>;
- 		};
+ 	mutex_lock(&data->update_lock);
+@@ -203,8 +203,8 @@ static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
+ static ssize_t set_in(struct device *dev, struct device_attribute *devattr,
+ 		      const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct emc6w201_data *data = i2c_get_clientdata(client);
++	struct emc6w201_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int sf = to_sensor_dev_attr_2(devattr)->index;
+ 	int nr = to_sensor_dev_attr_2(devattr)->nr;
+ 	int err;
+@@ -240,8 +240,8 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
+ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
+ 			const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct emc6w201_data *data = i2c_get_clientdata(client);
++	struct emc6w201_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int sf = to_sensor_dev_attr_2(devattr)->index;
+ 	int nr = to_sensor_dev_attr_2(devattr)->nr;
+ 	int err;
+@@ -283,8 +283,8 @@ static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
+ static ssize_t set_fan(struct device *dev, struct device_attribute *devattr,
+ 		       const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct emc6w201_data *data = i2c_get_clientdata(client);
++	struct emc6w201_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	int sf = to_sensor_dev_attr_2(devattr)->index;
+ 	int nr = to_sensor_dev_attr_2(devattr)->nr;
+ 	int err;
+@@ -388,7 +388,7 @@ static SENSOR_DEVICE_ATTR_2(fan5_input, S_IRUGO, show_fan, NULL, 4, input);
+ static SENSOR_DEVICE_ATTR_2(fan5_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
+ 			    4, min);
+ 
+-static struct attribute *emc6w201_attributes[] = {
++static struct attribute *emc6w201_attrs[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
+ 	&sensor_dev_attr_in0_max.dev_attr.attr,
+@@ -440,9 +440,7 @@ static struct attribute *emc6w201_attributes[] = {
+ 	NULL
+ };
+ 
+-static const struct attribute_group emc6w201_group = {
+-	.attrs = emc6w201_attributes,
+-};
++ATTRIBUTE_GROUPS(emc6w201);
+ 
+ /*
+  * Driver interface
+@@ -488,44 +486,21 @@ static int emc6w201_detect(struct i2c_client *client,
+ static int emc6w201_probe(struct i2c_client *client,
+ 			  const struct i2c_device_id *id)
+ {
++	struct device *dev = &client->dev;
+ 	struct emc6w201_data *data;
+-	int err;
++	struct device *hwmon_dev;
+ 
+-	data = devm_kzalloc(&client->dev, sizeof(struct emc6w201_data),
+-			    GFP_KERNEL);
++	data = devm_kzalloc(dev, sizeof(struct emc6w201_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+-	/* Create sysfs attribute */
+-	err = sysfs_create_group(&client->dev.kobj, &emc6w201_group);
+-	if (err)
+-		return err;
+-
+-	/* Expose as a hwmon device */
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
+-
+-	return 0;
+-
+- exit_remove:
+-	sysfs_remove_group(&client->dev.kobj, &emc6w201_group);
+-	return err;
+-}
+-
+-static int emc6w201_remove(struct i2c_client *client)
+-{
+-	struct emc6w201_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &emc6w201_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data,
++							   emc6w201_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct i2c_device_id emc6w201_id[] = {
+@@ -540,7 +515,6 @@ static struct i2c_driver emc6w201_driver = {
+ 		.name	= "emc6w201",
+ 	},
+ 	.probe		= emc6w201_probe,
+-	.remove		= emc6w201_remove,
+ 	.id_table	= emc6w201_id,
+ 	.detect		= emc6w201_detect,
+ 	.address_list	= normal_i2c,
 -- 
-2.0.0
+1.9.1
+
+
 
 
 _______________________________________________
