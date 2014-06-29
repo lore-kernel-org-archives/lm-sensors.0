@@ -1,29 +1,170 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 16 Jun 2014 18:24:27 +0000
-Subject: [lm-sensors] [PATCH 0/2] touchscreen: sun4i-ts: fix reported temperature on A10
-Message-Id: <1402943069-19420-1-git-send-email-hdegoede@redhat.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sun, 29 Jun 2014 13:39:11 +0000
+Subject: [lm-sensors] [RFT][PATCH] hwmon: (jz4740) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1404049151.17371.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Cc: Tong Zhang <lovewilliam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+To: lm-sensors@vger.kernel.org
 
-Hi Dmitry and Maxime,
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+simplify the code a bit.
 
-I've learned today that the temperature reported on the A10 / sun4i SoC family
-is aprox twice too high, since the A10 rtp controller temperature register
-seems to have double the resolution (one bit more) then that of the A13
-(sun5i) and later.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/jz4740-hwmon.c | 65 ++++++++++----------------------------------
+ 1 file changed, 14 insertions(+), 51 deletions(-)
 
-Dmitry, can you please add the sun4i-ts.c patch to your tree? Ideally
-as a bug-fix for 3.16 (where this driver was first added).
+diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
+index 7488e36..32f10cc 100644
+--- a/drivers/hwmon/jz4740-hwmon.c
++++ b/drivers/hwmon/jz4740-hwmon.c
+@@ -29,23 +29,13 @@
+ 
+ struct jz4740_hwmon {
+ 	void __iomem *base;
+-
+ 	int irq;
+-
+ 	const struct mfd_cell *cell;
+-	struct device *hwmon;
+-
++	struct platform_device *pdev;
+ 	struct completion read_completion;
+-
+ 	struct mutex lock;
+ };
+ 
+-static ssize_t jz4740_hwmon_show_name(struct device *dev,
+-	struct device_attribute *dev_attr, char *buf)
+-{
+-	return sprintf(buf, "jz4740\n");
+-}
+-
+ static irqreturn_t jz4740_hwmon_irq(int irq, void *data)
+ {
+ 	struct jz4740_hwmon *hwmon = data;
+@@ -58,6 +48,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
+ 	struct device_attribute *dev_attr, char *buf)
+ {
+ 	struct jz4740_hwmon *hwmon = dev_get_drvdata(dev);
++	struct platform_device *pdev = hwmon->pdev;
+ 	struct completion *completion = &hwmon->read_completion;
+ 	long t;
+ 	unsigned long val;
+@@ -68,7 +59,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
+ 	reinit_completion(completion);
+ 
+ 	enable_irq(hwmon->irq);
+-	hwmon->cell->enable(to_platform_device(dev));
++	hwmon->cell->enable(pdev);
+ 
+ 	t = wait_for_completion_interruptible_timeout(completion, HZ);
+ 
+@@ -80,7 +71,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
+ 		ret = t ? t : -ETIMEDOUT;
+ 	}
+ 
+-	hwmon->cell->disable(to_platform_device(dev));
++	hwmon->cell->disable(pdev);
+ 	disable_irq(hwmon->irq);
+ 
+ 	mutex_unlock(&hwmon->lock);
+@@ -88,26 +79,24 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
+ 	return ret;
+ }
+ 
+-static DEVICE_ATTR(name, S_IRUGO, jz4740_hwmon_show_name, NULL);
+ static DEVICE_ATTR(in0_input, S_IRUGO, jz4740_hwmon_read_adcin, NULL);
+ 
+-static struct attribute *jz4740_hwmon_attributes[] = {
+-	&dev_attr_name.attr,
++static struct attribute *jz4740_attrs[] = {
+ 	&dev_attr_in0_input.attr,
+ 	NULL
+ };
+ 
+-static const struct attribute_group jz4740_hwmon_attr_group = {
+-	.attrs = jz4740_hwmon_attributes,
+-};
++ATTRIBUTE_GROUPS(jz4740);
+ 
+ static int jz4740_hwmon_probe(struct platform_device *pdev)
+ {
+ 	int ret;
++	struct device *dev = &pdev->dev;
+ 	struct jz4740_hwmon *hwmon;
++	struct device *hwmon_dev;
+ 	struct resource *mem;
+ 
+-	hwmon = devm_kzalloc(&pdev->dev, sizeof(*hwmon), GFP_KERNEL);
++	hwmon = devm_kzalloc(dev, sizeof(*hwmon), GFP_KERNEL);
+ 	if (!hwmon)
+ 		return -ENOMEM;
+ 
+@@ -125,12 +114,11 @@ static int jz4740_hwmon_probe(struct platform_device *pdev)
+ 	if (IS_ERR(hwmon->base))
+ 		return PTR_ERR(hwmon->base);
+ 
++	hwmon->pdev = pdev;
+ 	init_completion(&hwmon->read_completion);
+ 	mutex_init(&hwmon->lock);
+ 
+-	platform_set_drvdata(pdev, hwmon);
+-
+-	ret = devm_request_irq(&pdev->dev, hwmon->irq, jz4740_hwmon_irq, 0,
++	ret = devm_request_irq(dev, hwmon->irq, jz4740_hwmon_irq, 0,
+ 			       pdev->name, hwmon);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Failed to request irq: %d\n", ret);
+@@ -138,38 +126,13 @@ static int jz4740_hwmon_probe(struct platform_device *pdev)
+ 	}
+ 	disable_irq(hwmon->irq);
+ 
+-	ret = sysfs_create_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Failed to create sysfs group: %d\n", ret);
+-		return ret;
+-	}
+-
+-	hwmon->hwmon = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(hwmon->hwmon)) {
+-		ret = PTR_ERR(hwmon->hwmon);
+-		goto err_remove_file;
+-	}
+-
+-	return 0;
+-
+-err_remove_file:
+-	sysfs_remove_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
+-	return ret;
+-}
+-
+-static int jz4740_hwmon_remove(struct platform_device *pdev)
+-{
+-	struct jz4740_hwmon *hwmon = platform_get_drvdata(pdev);
+-
+-	hwmon_device_unregister(hwmon->hwmon);
+-	sysfs_remove_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "jz4740", hwmon,
++							   jz4740_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static struct platform_driver jz4740_hwmon_driver = {
+ 	.probe	= jz4740_hwmon_probe,
+-	.remove = jz4740_hwmon_remove,
+ 	.driver = {
+ 		.name = "jz4740-hwmon",
+ 		.owner = THIS_MODULE,
+-- 
+1.9.1
 
-Maxime, can you please add the dts patch to your tree ?
 
-Thanks & Regards,
 
-Hans
 
 _______________________________________________
 lm-sensors mailing list
