@@ -1,106 +1,148 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 26 Jun 2014 04:36:34 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.16-rc3
-Message-Id: <20140626043634.GA4242@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3888990858234542697=="
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sun, 29 Jun 2014 01:42:17 +0000
+Subject: [lm-sensors] [RFT][PATCH 2/2] hwmon: (adm1029) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1404006137.19191.2.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
-
---===============3888990858234542697==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
-Content-Disposition: inline
-
-
---BXVAT5kNtrzKuDFl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.16-rc3 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit a497c3ba1d97fc69c1e78e7b96435ba8c2cb42ee:
-
-  Linux 3.16-rc2 (2014-06-21 19:02:54 -1000)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to d26e0da783adbb94977f60dec9a035b427813b83:
-
-  hwmon: (gpio-fan) Change name used in hwmon_device_register_with_groups (2014-06-25 15:16:09 -0700)
-
-----------------------------------------------------------------
-Various minor fixes
-
-----------------------------------------------------------------
-Axel Lin (1):
-      hwmon: (w83l786ng) Report correct minimum fan speed
-
-Josef Gajdusek (1):
-      hwmon: (emc1403) Fix missing 'select REGMAP_I2C' in Kconfig
-
-Julien D'Ascenzio (1):
-      hwmon: (gpio-fan) Change name used in hwmon_device_register_with_groups
-
-Naveen Krishna Chatradhi (2):
-      devicetree: bindings: Document murata vendor prefix
-      hwmon: (ntc_thermistor) Use the manufacturer name properly
-
- .../devicetree/bindings/arm/samsung/exynos-adc.txt   |  2 +-
- .../devicetree/bindings/hwmon/ntc_thermistor.txt     | 20 ++++++++++++++------
- .../devicetree/bindings/vendor-prefixes.txt          |  1 +
- Documentation/hwmon/ntc_thermistor                   |  8 ++++----
- drivers/hwmon/Kconfig                                |  6 ++++--
- drivers/hwmon/gpio-fan.c                             |  2 +-
- drivers/hwmon/ntc_thermistor.c                       | 14 +++++++++++++-
- drivers/hwmon/w83l786ng.c                            |  2 +-
- 8 files changed, 39 insertions(+), 16 deletions(-)
-
---BXVAT5kNtrzKuDFl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTq6NSAAoJEMsfJm/On5mBNo4P/AjkFjGcDtYmvzvI2l6qXPLM
-EAZ7GmX8fTRUNHm6mX0uZEUUm2aGtcouFjteCfiia2NMqJfiKCEuwSNnsc9FBbZr
-Kd4UQEilmRHJxuB0qe2quTm+4DBYOp/sHGJJd3U0EY8HdZtMjQW+Zhnd/hS6mSXM
-5VYs05kREvAOJ4gdqgbaarwOzUleI8gYOwnEend/ECDBlmNT6y4FlovsDJaWt4am
-lG4uLHKiG8Zcp20VHpTDNoHlsIGd3U9o42+Z/Z7X/N75BXVXALQix3I3F3Cr2Grp
-l2Pcqdc2ARKs7oE3MeT+GXm2SPzHDZ7EQhzzeVQJkyJPLOiHlAnKftrueI5+vE7C
-tQGaBWIDMX2PpGkPoLmUP2ZlyxcmeeBZnknfdoMf2e/UlJ6k3cNQCZUmLc9g1b9g
-xTrGNa+LBrod2QClY2RaKsj5oQSXDg8blbr4XnNk8+mshhXweWBEWZCWPGfnFzs/
-lkGEU4v2A+Yl2ipf7L7TBEeJJapHcqwTrJ99Sn/wfiY4YXKUt/2xgJMBzYwKaw4B
-bN0cZ7hMEXCNsaXnC/+jyAXBaDqW4OEaGQUcZ85OAMRzA+Nzot+ZQ6Vx6YXYBJrA
-4kwZ5DfuGjXZ/7m+Lrjq2E4DI2Mlgsv10LWqCGHv9A4Kq9GSi1RmMs0FWuM7a+YM
-K8YyH3oEBwjBi09a/oAn
-=+3Bk
------END PGP SIGNATURE-----
-
---BXVAT5kNtrzKuDFl--
-
-
---===============3888990858234542697==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+simplify the code a bit.
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/adm1029.c | 55 ++++++++++++++-----------------------------------
+ 1 file changed, 15 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
+index 7782de9..1cd11b3 100644
+--- a/drivers/hwmon/adm1029.c
++++ b/drivers/hwmon/adm1029.c
+@@ -110,7 +110,7 @@ static const u8 ADM1029_REG_FAN_DIV[] = {
+  */
+ 
+ struct adm1029_data {
+-	struct device *hwmon_dev;
++	struct i2c_client *client;
+ 	struct mutex update_lock;
+ 	char valid;		/* zero until following fields are valid */
+ 	unsigned long last_updated;	/* in jiffies */
+@@ -126,8 +126,8 @@ struct adm1029_data {
+  */
+ static struct adm1029_data *adm1029_update_device(struct device *dev)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1029_data *data = i2c_get_clientdata(client);
++	struct adm1029_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	/*
+@@ -207,8 +207,8 @@ show_fan_div(struct device *dev, struct device_attribute *devattr, char *buf)
+ static ssize_t set_fan_div(struct device *dev,
+ 	    struct device_attribute *devattr, const char *buf, size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1029_data *data = i2c_get_clientdata(client);
++	struct adm1029_data *data = dev_get_drvdata(dev);
++	struct i2c_client *client = data->client;
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	u8 reg;
+ 	long val;
+@@ -277,7 +277,7 @@ static SENSOR_DEVICE_ATTR(fan1_div, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(fan2_div, S_IRUGO | S_IWUSR,
+ 			  show_fan_div, set_fan_div, 1);
+ 
+-static struct attribute *adm1029_attributes[] = {
++static struct attribute *adm1029_attrs[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+@@ -296,9 +296,7 @@ static struct attribute *adm1029_attributes[] = {
+ 	NULL
+ };
+ 
+-static const struct attribute_group adm1029_group = {
+-	.attrs = adm1029_attributes,
+-};
++ATTRIBUTE_GROUPS(adm1029);
+ 
+ /*
+  * Real code
+@@ -368,15 +366,15 @@ static int adm1029_init_client(struct i2c_client *client)
+ static int adm1029_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
++	struct device *dev = &client->dev;
+ 	struct adm1029_data *data;
+-	int err;
++	struct device *hwmon_dev;
+ 
+-	data = devm_kzalloc(&client->dev, sizeof(struct adm1029_data),
+-			    GFP_KERNEL);
++	data = devm_kzalloc(dev, sizeof(struct adm1029_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	i2c_set_clientdata(client, data);
++	data->client = client;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/*
+@@ -386,32 +384,10 @@ static int adm1029_probe(struct i2c_client *client,
+ 	if (adm1029_init_client(client) = 0)
+ 		return -ENODEV;
+ 
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&client->dev.kobj, &adm1029_group);
+-	if (err)
+-		return err;
+-
+-	data->hwmon_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
+-
+-	return 0;
+-
+- exit_remove_files:
+-	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
+-	return err;
+-}
+-
+-static int adm1029_remove(struct i2c_client *client)
+-{
+-	struct adm1029_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++							   data,
++							   adm1029_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct i2c_device_id adm1029_id[] = {
+@@ -426,7 +402,6 @@ static struct i2c_driver adm1029_driver = {
+ 		.name = "adm1029",
+ 	},
+ 	.probe		= adm1029_probe,
+-	.remove		= adm1029_remove,
+ 	.id_table	= adm1029_id,
+ 	.detect		= adm1029_detect,
+ 	.address_list	= normal_i2c,
+-- 
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3888990858234542697==--
