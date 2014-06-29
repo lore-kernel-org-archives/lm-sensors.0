@@ -1,100 +1,232 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Date: Mon, 09 Jun 2014 16:23:31 +0000
-Subject: Re: [lm-sensors] [PATCH] sensord: do not fail if some sensor does not return data
-Message-Id: <201406091823.31743@pali>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4469120782357899946=="
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sun, 29 Jun 2014 01:41:08 +0000
+Subject: [lm-sensors] [RFT][PATCH 1/2] hwmon: (adm1029) Avoid forward declaration
+Message-Id: <1404006068.19191.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============4469120782357899946==
-Content-Type: multipart/signed;
-  boundary="nextPart1810333.KdIiV8SdDh";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Reorder functions to avoid forward declaration.
 
---nextPart1810333.KdIiV8SdDh
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/adm1029.c | 171 ++++++++++++++++++++++--------------------------
+ 1 file changed, 78 insertions(+), 93 deletions(-)
 
-On Saturday 17 May 2014 22:02:12 Pali Roh=C3=A1r wrote:
-> Hello,
->=20
-> I see very annoying bug in sensord. When some hwmon driver
-> returns -EINVAL (for any reason), sensord daemon will stop
-> reading next sensors values. This means if first hwmon device
-> fail to return value, sensord daemon will not log anything.
->=20
-> Returning -EINVAL from kernel driver is normal (e.g. when
-> graphic card with has internal temperature sensor is turned
-> off) and sensord should not fail on this.
->=20
-> Program sensors already handling this problem and will print
-> N/A if there is reading error.
->=20
-> I'm sending simple patch which just report NaN value when
-> kernel report error. And also sensord will continue to
-> reading next hwmon interfaces.
->=20
-> Without this patch I see only these lines logged:
->=20
-> sensord: Chip: radeon-pci-0100
-> sensord: Adapter: PCI adapter
-> sensord: Error getting sensor data: radeon/#0: Can't read
-> sensord: sensor read error (-1)
->=20
-> And all other sensors are ignored and nothing more is logged.
->=20
-> After my patch all hwmon sensors data are logged:
->=20
-> sensord: Chip: radeon-pci-0100
-> sensord: Adapter: PCI adapter
-> sensord:   temp1: nan C
-> sensord: Chip: i8k-virtual-0
-> sensord: Adapter: Virtual device
-> sensord:   Left Fan: 2685 RPM
-> sensord:   CPU: 49.0 C
-> sensord:   temp2: 55.0 C
-> sensord:   temp3: 39.0 C
-> sensord: Chip: coretemp-isa-0000
-> sensord: Adapter: ISA adapter
-> sensord:   Physical id 0: 50.0 C
-> sensord:   Core 0: 47.0 C
-> sensord:   Core 1: 50.0 C
+diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
+index 78339e8..7782de9 100644
+--- a/drivers/hwmon/adm1029.c
++++ b/drivers/hwmon/adm1029.c
+@@ -106,40 +106,6 @@ static const u8 ADM1029_REG_FAN_DIV[] = {
+ };
+ 
+ /*
+- * Functions declaration
+- */
+-
+-static int adm1029_probe(struct i2c_client *client,
+-			 const struct i2c_device_id *id);
+-static int adm1029_detect(struct i2c_client *client,
+-			  struct i2c_board_info *info);
+-static int adm1029_remove(struct i2c_client *client);
+-static struct adm1029_data *adm1029_update_device(struct device *dev);
+-static int adm1029_init_client(struct i2c_client *client);
+-
+-/*
+- * Driver data (common to all clients)
+- */
+-
+-static const struct i2c_device_id adm1029_id[] = {
+-	{ "adm1029", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, adm1029_id);
+-
+-static struct i2c_driver adm1029_driver = {
+-	.class		= I2C_CLASS_HWMON,
+-	.driver = {
+-		.name = "adm1029",
+-	},
+-	.probe		= adm1029_probe,
+-	.remove		= adm1029_remove,
+-	.id_table	= adm1029_id,
+-	.detect		= adm1029_detect,
+-	.address_list	= normal_i2c,
+-};
+-
+-/*
+  * Client data (each client gets its own)
+  */
+ 
+@@ -156,6 +122,50 @@ struct adm1029_data {
+ };
+ 
+ /*
++ * function that update the status of the chips (temperature for example)
++ */
++static struct adm1029_data *adm1029_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm1029_data *data = i2c_get_clientdata(client);
++
++	mutex_lock(&data->update_lock);
++	/*
++	 * Use the "cache" Luke, don't recheck values
++	 * if there are already checked not a long time later
++	 */
++	if (time_after(jiffies, data->last_updated + HZ * 2)
++	 || !data->valid) {
++		int nr;
++
++		dev_dbg(&client->dev, "Updating adm1029 data\n");
++
++		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_TEMP); nr++) {
++			data->temp[nr] +			    i2c_smbus_read_byte_data(client,
++						     ADM1029_REG_TEMP[nr]);
++		}
++		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN); nr++) {
++			data->fan[nr] +			    i2c_smbus_read_byte_data(client,
++						     ADM1029_REG_FAN[nr]);
++		}
++		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN_DIV); nr++) {
++			data->fan_div[nr] +			    i2c_smbus_read_byte_data(client,
++						     ADM1029_REG_FAN_DIV[nr]);
++		}
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++/*
+  * Sysfs stuff
+  */
+ 
+@@ -337,6 +347,24 @@ static int adm1029_detect(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static int adm1029_init_client(struct i2c_client *client)
++{
++	u8 config;
++
++	config = i2c_smbus_read_byte_data(client, ADM1029_REG_CONFIG);
++	if ((config & 0x10) = 0) {
++		i2c_smbus_write_byte_data(client, ADM1029_REG_CONFIG,
++					  config | 0x10);
++	}
++	/* recheck config */
++	config = i2c_smbus_read_byte_data(client, ADM1029_REG_CONFIG);
++	if ((config & 0x10) = 0) {
++		dev_err(&client->dev, "Initialization failed!\n");
++		return 0;
++	}
++	return 1;
++}
++
+ static int adm1029_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -376,23 +404,6 @@ static int adm1029_probe(struct i2c_client *client,
+ 	return err;
+ }
+ 
+-static int adm1029_init_client(struct i2c_client *client)
+-{
+-	u8 config;
+-	config = i2c_smbus_read_byte_data(client, ADM1029_REG_CONFIG);
+-	if ((config & 0x10) = 0) {
+-		i2c_smbus_write_byte_data(client, ADM1029_REG_CONFIG,
+-					  config | 0x10);
+-	}
+-	/* recheck config */
+-	config = i2c_smbus_read_byte_data(client, ADM1029_REG_CONFIG);
+-	if ((config & 0x10) = 0) {
+-		dev_err(&client->dev, "Initialization failed!\n");
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+ static int adm1029_remove(struct i2c_client *client)
+ {
+ 	struct adm1029_data *data = i2c_get_clientdata(client);
+@@ -403,49 +414,23 @@ static int adm1029_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-/*
+- * function that update the status of the chips (temperature for example)
+- */
+-static struct adm1029_data *adm1029_update_device(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1029_data *data = i2c_get_clientdata(client);
+-
+-	mutex_lock(&data->update_lock);
+-	/*
+-	 * Use the "cache" Luke, don't recheck values
+-	 * if there are already checked not a long time later
+-	 */
+-	if (time_after(jiffies, data->last_updated + HZ * 2)
+-	 || !data->valid) {
+-		int nr;
+-
+-		dev_dbg(&client->dev, "Updating adm1029 data\n");
+-
+-		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_TEMP); nr++) {
+-			data->temp[nr] -			    i2c_smbus_read_byte_data(client,
+-						     ADM1029_REG_TEMP[nr]);
+-		}
+-		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN); nr++) {
+-			data->fan[nr] -			    i2c_smbus_read_byte_data(client,
+-						     ADM1029_REG_FAN[nr]);
+-		}
+-		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN_DIV); nr++) {
+-			data->fan_div[nr] -			    i2c_smbus_read_byte_data(client,
+-						     ADM1029_REG_FAN_DIV[nr]);
+-		}
+-
+-		data->last_updated = jiffies;
+-		data->valid = 1;
+-	}
+-
+-	mutex_unlock(&data->update_lock);
++static const struct i2c_device_id adm1029_id[] = {
++	{ "adm1029", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adm1029_id);
+ 
+-	return data;
+-}
++static struct i2c_driver adm1029_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name = "adm1029",
++	},
++	.probe		= adm1029_probe,
++	.remove		= adm1029_remove,
++	.id_table	= adm1029_id,
++	.detect		= adm1029_detect,
++	.address_list	= normal_i2c,
++};
+ 
+ module_i2c_driver(adm1029_driver);
+ 
+-- 
+1.9.1
 
-BUMP!
-
-Can somebody review my patch?
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1810333.KdIiV8SdDh
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlOV34MACgkQi/DJPQPkQ1IaTQCghxoZnl4YGplACB/4BiWnVLWn
-JhYAnRvHc/tkwPd83IQr+KTtHlNNWcP3
-=Qygg
------END PGP SIGNATURE-----
-
---nextPart1810333.KdIiV8SdDh--
 
 
---===============4469120782357899946==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4469120782357899946==--
