@@ -1,85 +1,116 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 25 Jul 2014 17:34:51 +0000
-Subject: Re: [lm-sensors] not fan detected chromebook c720
-Message-Id: <20140725193451.17d88cf1@endymion.delvare>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Tue, 01 Jul 2014 14:29:28 +0000
+Subject: [lm-sensors] [RFT][PATCH] hwmon: (ad7314) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1404224968.17487.2.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53D18E7E.4020308@gmail.com>
-In-Reply-To: <53D18E7E.4020308@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Pietro,
+Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+simplify the code a bit.
 
-Please keep the list Cc'd.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ad7314.c | 48 +++++++-----------------------------------------
+ 1 file changed, 7 insertions(+), 41 deletions(-)
 
-On Fri, 25 Jul 2014 11:46:39 -0500, Pietro Sammarco wrote:
-> >I'm surprised by the designware stuff, instead I would expected
-> >cros-ec-i2c-tunnel. Can you check if the i2c-cros-ec-tunnel driver is
-> >loaded (as well as the cros_ec driver itself)?
-> 
-> In regard of this, i2c-cros-ec-tunnel cannot be found, while cros_ec 
-> wasn't loaded. What are exactly those two kernel modules supposed to do?
-
-The cros_ec driver is handing the "embedded controller" of some
-ChromeOS laptops. See this as a gate to access other components /
-features of the mainboard. i2c-cros-ec-tunnel is on of these
-components, which gives access to a secondary I2C bus distinct from the
-Intel PCH SMBus. My idea was that maybe there was some hardware
-monitoring chip on that secondary I2C bus.
-
-You should try to find out if the cros_ec driver is needed on your
-laptop. Maybe it is, maybe not. BTW the cros_ec module itself is only a
-helper module, the actual driver is cros_ec_i2c or cros_ec_spi
-depending on the laptop model.
-
-I don't know much about ChromeOS hardware myself, so I can only give
-you vague hints, take these with a grain of salt, I may be off-track.
-
-> I am going to go a bit offtopic now. The real issue whit my c720 in 
-> particular is that the part of the motherboard at the opposite side of 
-> the fan gets quite hotter after an hour of use (look the part numbered 5 
-> in the c720 picture, that's exactly where the intense smell comes from 
-> hthttp://www.chromium.org/_/rsrc/1381990807648/chromium-os/developer-information-for-chrome-os-devices/acer-c720-chromebook/c720-chromebook-annotated-innards.png 
-> ), and its when the burning of electronic smells starts to come out. 
-> Therefore I would assume the firmware that handles the fan speed simply 
-> doesn't do enough for my chromebook, and since lm-sensors doesn't yet 
-> work with it, I need to know a way to manually increase the fan speed 
-> RPM min, max and per temperature so that there will be enough 
-> ventilation all across the motherboard for the laptop to cool off properly.
-> 
-> At the same time I am going to do some further investigations in regard 
-> of how ChromeOS exactly handles thermal and fan control.
-
-You should be very careful, I doubt the hardware will last long in
-these conditions. Using an external cooling system until you get things
-sorted out may help.
-
-Note that getting lm-sensors to work would probably not solve your
-problem. In the best case, it will tell you how fast the fan is
-spinning. It is unlikely that it will give your control of the fan
-speed, that's almost always handled by the firmware on laptops.
-
-Also note that the problem may not be the cooling per se. I have a
-laptop with a discrete graphics chip which heats more than the CPU when
-the graphics driver doesn't perform proper power management. That
-machine worked fine with the binary graphics driver from the vendor.
-Once I switched to the open source driver (I had no choice as the
-binary driver was no longer maintained) the machine started overheating.
-
-The thing marked with "1" in the picture you sent, seems to generate
-some heat, and is not far away from the area you say is getting hot.
-
-It could also be an issue with the CPU. You should check that things
-like CPU idle and CPUFreq are working properly. If the CPU doesn't get
-proper power management, the fan may be simply unable to cope with the
-generated heat. So you should perform some analysis with tools such as
-powertop.
-
+diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
+index f4f9b21..1dcce9a 100644
+--- a/drivers/hwmon/ad7314.c
++++ b/drivers/hwmon/ad7314.c
+@@ -36,7 +36,6 @@ enum ad7314_variant {
+ 
+ struct ad7314_data {
+ 	struct spi_device	*spi_dev;
+-	struct device		*hwmon_dev;
+ 	u16 rx ____cacheline_aligned;
+ };
+ 
+@@ -87,62 +86,30 @@ static ssize_t ad7314_show_temperature(struct device *dev,
+ 	}
+ }
+ 
+-static ssize_t ad7314_show_name(struct device *dev,
+-				struct device_attribute *devattr, char *buf)
+-{
+-	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
+-}
+-
+-static DEVICE_ATTR(name, S_IRUGO, ad7314_show_name, NULL);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+ 			  ad7314_show_temperature, NULL, 0);
+ 
+-static struct attribute *ad7314_attributes[] = {
+-	&dev_attr_name.attr,
++static struct attribute *ad7314_attrs[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	NULL,
+ };
+ 
+-static const struct attribute_group ad7314_group = {
+-	.attrs = ad7314_attributes,
+-};
++ATTRIBUTE_GROUPS(ad7314);
+ 
+ static int ad7314_probe(struct spi_device *spi_dev)
+ {
+-	int ret;
+ 	struct ad7314_data *chip;
++	struct device *hwmon_dev;
+ 
+ 	chip = devm_kzalloc(&spi_dev->dev, sizeof(*chip), GFP_KERNEL);
+ 	if (chip = NULL)
+ 		return -ENOMEM;
+ 
+-	spi_set_drvdata(spi_dev, chip);
+-
+-	ret = sysfs_create_group(&spi_dev->dev.kobj, &ad7314_group);
+-	if (ret < 0)
+-		return ret;
+-
+-	chip->hwmon_dev = hwmon_device_register(&spi_dev->dev);
+-	if (IS_ERR(chip->hwmon_dev)) {
+-		ret = PTR_ERR(chip->hwmon_dev);
+-		goto error_remove_group;
+-	}
+ 	chip->spi_dev = spi_dev;
+-
+-	return 0;
+-error_remove_group:
+-	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
+-	return ret;
+-}
+-
+-static int ad7314_remove(struct spi_device *spi_dev)
+-{
+-	struct ad7314_data *chip = spi_get_drvdata(spi_dev);
+-
+-	hwmon_device_unregister(chip->hwmon_dev);
+-	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(&spi_dev->dev,
++							   spi_dev->modalias,
++							   chip, ad7314_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct spi_device_id ad7314_id[] = {
+@@ -159,7 +126,6 @@ static struct spi_driver ad7314_driver = {
+ 		.owner = THIS_MODULE,
+ 	},
+ 	.probe = ad7314_probe,
+-	.remove = ad7314_remove,
+ 	.id_table = ad7314_id,
+ };
+ 
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
