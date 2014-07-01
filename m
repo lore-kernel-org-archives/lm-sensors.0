@@ -1,24 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 03 Jul 2014 03:58:56 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH 1/2] hwmon: (gl520sm) Avoid forward declaration
-Message-Id: <53B4D500.3010202@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Tue, 01 Jul 2014 23:44:44 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (amc6821) Fix permissions for temp2_input
+Message-Id: <1404258284.7829.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1404352161.29709.4.camel@phoenix>
-In-Reply-To: <1404352161.29709.4.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/02/2014 06:49 PM, Axel Lin wrote:
-> Reorder functions to avoid forward declaration.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+temp2_input should not be writable, fix it.
 
-Applied to -next.
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/amc6821.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/amc6821.c b/drivers/hwmon/amc6821.c
+index cb84fb9..66b994a 100644
+--- a/drivers/hwmon/amc6821.c
++++ b/drivers/hwmon/amc6821.c
+@@ -743,7 +743,7 @@ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
+ 	get_temp_alarm, NULL, IDX_TEMP1_MAX);
+ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
+ 	get_temp_alarm, NULL, IDX_TEMP1_CRIT);
+-static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO,
+ 	get_temp, NULL, IDX_TEMP2_INPUT);
+ static SENSOR_DEVICE_ATTR(temp2_min, S_IRUGO | S_IWUSR, get_temp,
+ 	set_temp, IDX_TEMP2_MIN);
+-- 
+1.9.1
+
 
 
 
