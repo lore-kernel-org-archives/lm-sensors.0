@@ -1,47 +1,92 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Date: Mon, 14 Jul 2014 14:25:25 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: pwm-fan: Add pwm-fan driver
-Message-Id: <20140714142525.GB7668@distanz.ch>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 02 Jul 2014 00:42:18 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Make regmap configs const
+Message-Id: <1404261738.14234.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1405345835-17089-1-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1405345835-17089-1-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Kamil Debski <k.debski@samsung.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, t.figa@samsung.com, m.szyprowski@samsung.com, linux@roeck-us.net, linux-pwm@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 2014-07-14 at 15:50:35 +0200, Kamil Debski <k.debski@samsung.com> wrote:
-> The pwm-fan driver enables control of fans connected to PWM lines.
-> This driver uses the PWM framework, so it is compatible with all
-> PWM devices that provide drivers through the PWM framework.
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> ---
-> Changes since v1:
-> - added documentation to Documentation/hwmon
-> - fix checkpatch errors
-> 	- added extra description to Kconfig
-> 	- removed whitespace errors
-> - include files rearranged to be in alphabetical order
-> - remove unused sysfs entry pwm1_enable
-> - changed the behavior of the set_pwm function
-> 	- when 0 PWM value is set pwm_disable is run
-> 	- pwm_config return value is checked for errors
-> - use of ATTRIBUTE_GROUPS was added
-> - removed "Not enouch memory" error message
-> - fixed probe return value in case of devm_of_pwm_get error
-> - changed hwmon_device_register_with_groups to
->   devm_hwmon_device_register_with_groups
-> - changes suspend/resume to use pwm_disable/enable
-> - removed unnecessary CONFIG_PM_SLEEP ifdefs
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/emc1403.c | 2 +-
+ drivers/hwmon/ltc2945.c | 2 +-
+ drivers/hwmon/ltc4222.c | 2 +-
+ drivers/hwmon/ltc4260.c | 2 +-
+ drivers/hwmon/tmp103.c  | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-pwm_fan_suspend and pwm_fan_resume should still be enclosed in #ifdef
-CONFIG_PM_SLEEP, otherwise you'll get 'defined but not used' compiler
-warnings when building without CONFIG_PM being set.
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index a37b220..1ea7ca5 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -416,7 +416,7 @@ static bool emc1403_regmap_is_volatile(struct device *dev, unsigned int reg)
+ 	}
+ }
+ 
+-static struct regmap_config emc1403_regmap_config = {
++static const struct regmap_config emc1403_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 	.cache_type = REGCACHE_RBTREE,
+diff --git a/drivers/hwmon/ltc2945.c b/drivers/hwmon/ltc2945.c
+index 3701b32..1b92e4f 100644
+--- a/drivers/hwmon/ltc2945.c
++++ b/drivers/hwmon/ltc2945.c
+@@ -469,7 +469,7 @@ static struct attribute *ltc2945_attrs[] = {
+ };
+ ATTRIBUTE_GROUPS(ltc2945);
+ 
+-static struct regmap_config ltc2945_regmap_config = {
++static const struct regmap_config ltc2945_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 	.max_register = LTC2945_MIN_ADIN_THRES_L,
+diff --git a/drivers/hwmon/ltc4222.c b/drivers/hwmon/ltc4222.c
+index 07c2565..88f7472 100644
+--- a/drivers/hwmon/ltc4222.c
++++ b/drivers/hwmon/ltc4222.c
+@@ -186,7 +186,7 @@ static struct attribute *ltc4222_attrs[] = {
+ };
+ ATTRIBUTE_GROUPS(ltc4222);
+ 
+-static struct regmap_config ltc4222_regmap_config = {
++static const struct regmap_config ltc4222_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 	.max_register = LTC4222_ADC_CONTROL,
+diff --git a/drivers/hwmon/ltc4260.c b/drivers/hwmon/ltc4260.c
+index 453a250..afb09574 100644
+--- a/drivers/hwmon/ltc4260.c
++++ b/drivers/hwmon/ltc4260.c
+@@ -150,7 +150,7 @@ static struct attribute *ltc4260_attrs[] = {
+ };
+ ATTRIBUTE_GROUPS(ltc4260);
+ 
+-static struct regmap_config ltc4260_regmap_config = {
++static const struct regmap_config ltc4260_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 	.max_register = LTC4260_ADIN,
+diff --git a/drivers/hwmon/tmp103.c b/drivers/hwmon/tmp103.c
+index e69dbca..f4770b4 100644
+--- a/drivers/hwmon/tmp103.c
++++ b/drivers/hwmon/tmp103.c
+@@ -116,7 +116,7 @@ static bool tmp103_regmap_is_volatile(struct device *dev, unsigned int reg)
+ 	return reg = TMP103_TEMP_REG;
+ }
+ 
+-static struct regmap_config tmp103_regmap_config = {
++static const struct regmap_config tmp103_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 	.max_register = TMP103_THIGH_REG,
+-- 
+1.9.1
 
-Cheers
-Tobias
+
+
 
 _______________________________________________
 lm-sensors mailing list
