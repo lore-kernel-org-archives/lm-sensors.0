@@ -1,26 +1,64 @@
-From: =?UTF-8?Q?Nuno_Magalh=C3=A3es?= <nunomagalhaes@eu.ipp.pt>
-Date: Tue, 22 Jul 2014 12:20:32 +0000
-Subject: Re: [lm-sensors] incomplete sensors on Asus M2NPV-VM
-Message-Id: <CADqA9ub_skJc43+zhAmuwXd_3Sne98mr4uaBh6Liw9siN3tKTA@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 06 Jul 2014 18:43:44 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (emc2103) Clamp limits instead of bailing out
+Message-Id: <1404672224-30984-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CADqA9uYqmuTQttc-=pSAvhwYuAnR3P+t-68fEQ2tOeuVwG9VFA@mail.gmail.com>
-In-Reply-To: <CADqA9uYqmuTQttc-=pSAvhwYuAnR3P+t-68fEQ2tOeuVwG9VFA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCBKdWwgMjIsIDIwMTQgYXQgMTE6NTYgQU0sIEx1Y2EgVGV0dGFtYW50aSA8a3Jvbm9z
-Lml0QGdtYWlsLmNvbT4gd3JvdGU6Cj4gT24gV2VkLCBKdWwgMTYsIDIwMTQgYXQgOTozMSBQTSwg
-TnVubyBNYWdhbGjDo2VzIDxudW5vbWFnYWxoYWVzQGV1LmlwcC5wdD4gd3JvdGU6Cj4+IE9uIFdl
-ZCwgSnVsIDE2LCAyMDE0IGF0IDI6MDAgUE0sIEx1Y2EgVGV0dGFtYW50aSA8a3Jvbm9zLml0QGdt
-YWlsLmNvbT4gd3JvdGU6Cj4+PiBUaGlzIG1lYW5zIHRoYXQgdGhlcmUncyBhIHNtYnVzIGNvbnRy
-b2xsZXIgdGhhdCBpcyB1c2VkIGJ5IEFDUEkgc28KPj4+IGl0J3Mgbm90IHNhZmUgdG8gdXNlIGl0
-IGRpcmVjdGx5IChpdDg3KS4KPj4KPj4gU28gaSBlaXRoZXIgc3RpY2sgdG8gQVRLMDExMCBhbmQg
-aGF2ZSBubyBpbmZvcm1hdGlvbiBvbiBGQU4yOyBvciBpIHVzZQo+PiBpdDg3IGFuZCByaXNrIHN5
-c3RlbSBpbnN0YWJpbGl0eT8KPj4gSXMgdGhlcmUgYSBtaWRkbGUgZ3JvdW5kPwo+Cj4gVW5mb3J0
-dW5hdGVseSBuby4uLgoKCkkgY2FuIGxpbWl0IEZBTjIgdmlhIGhhcmR3YXJlLCBpJ2wgcHJvYmFi
-bHkgc3RpY2sgdG8gQVRLMDExMC4KVGhhbmtzIGZvciB5b3VyIHJlcGx5LgoKQ2hlZXJzLApOdW5v
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5z
-b3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5s
-bS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+It is customary to clamp limits instead of bailing out with an error
+if a configured limit is out of the range supported by the driver.
+This simplifies limit configuration, since the user will not typically
+know chip and/or driver specific limits.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/emc2103.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
+index fd892dd..0f38294 100644
+--- a/drivers/hwmon/emc2103.c
++++ b/drivers/hwmon/emc2103.c
+@@ -250,9 +250,7 @@ static ssize_t set_temp_min(struct device *dev, struct device_attribute *da,
+ 	if (result < 0)
+ 		return result;
+ 
+-	val = DIV_ROUND_CLOSEST(val, 1000);
+-	if ((val < -63) || (val > 127))
+-		return -EINVAL;
++	val = clamp_val(DIV_ROUND_CLOSEST(val, 1000), -63, 127);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_min[nr] = val;
+@@ -274,9 +272,7 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *da,
+ 	if (result < 0)
+ 		return result;
+ 
+-	val = DIV_ROUND_CLOSEST(val, 1000);
+-	if ((val < -63) || (val > 127))
+-		return -EINVAL;
++	val = clamp_val(DIV_ROUND_CLOSEST(val, 1000), -63, 127);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_max[nr] = val;
+@@ -397,8 +393,7 @@ static ssize_t set_fan_target(struct device *dev, struct device_attribute *da,
+ 		return result;
+ 
+ 	/* Datasheet states 16384 as maximum RPM target (table 3.2) */
+-	if ((rpm_target < 0) || (rpm_target > 16384))
+-		return -EINVAL;
++	rpm_target = clamp_val(rpm_target, 0, 16384);
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-- 
+1.9.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
