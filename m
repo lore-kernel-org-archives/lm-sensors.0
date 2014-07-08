@@ -1,161 +1,106 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Mon, 21 Jul 2014 10:36:15 +0000
-Subject: [lm-sensors] [RFT][PATCH] hwmon: (max1111) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <1405938975.1757.3.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 08 Jul 2014 17:01:07 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.16-rc5
+Message-Id: <20140708170107.GA13973@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7610092637481627720=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============7610092637481627720==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Content-Disposition: inline
+
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.16-rc5 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 4c834452aad01531db949414f94f817a86348d59:
+
+  Linux 3.16-rc3 (2014-06-29 14:11:36 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 7fe7381cbdadf16792e733789983690b3fa82880:
+
+  hwmon: (adc128d818) Drop write support on inX_input attributes (2014-07-07 09:48:23 -0700)
+
+----------------------------------------------------------------
+Fix a number of zero-day bugs, mostly found with module test scripts.
+Nothing major, but potentially annoying and worthwhile to fix.
+
+----------------------------------------------------------------
+Axel Lin (3):
+      hwmon: (amc6821) Fix permissions for temp2_input
+      hwmon: (adm1029) Ensure the fan_div cache is updated in set_fan_div
+      hwmon: (adm1021) Fix cache problem when writing temperature limits
+
+Guenter Roeck (3):
+      hwmon: (adm1031) Fix writes to limit registers
+      hwmon: (emc2103) Clamp limits instead of bailing out
+      hwmon: (adc128d818) Drop write support on inX_input attributes
+
+Naveen Krishna Chatradhi (1):
+      hwmon: (ntc_thermistor) Correct information printed during probe
+
+ drivers/hwmon/adc128d818.c     | 28 ++++++++++++++--------------
+ drivers/hwmon/adm1021.c        | 14 ++++++++------
+ drivers/hwmon/adm1029.c        |  3 +++
+ drivers/hwmon/adm1031.c        |  8 +++++---
+ drivers/hwmon/amc6821.c        |  2 +-
+ drivers/hwmon/emc2103.c        | 15 +++++----------
+ drivers/hwmon/ntc_thermistor.c |  2 +-
+ 7 files changed, 37 insertions(+), 35 deletions(-)
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTvCPTAAoJEMsfJm/On5mB5XIP+wRlGvJ1agEHIHMTGyRMT8DU
+YQgw4WGE2RZhGmlUePz973GVBFd5xt3kNUii4EN5vXtYN4uJzXjAqie/xboWdzD2
+deg37OE6cGNzsTiUtF8Xeoec3P6bp6hy3XSO5MFldTVJ0q+rGNeidE7ekzOD/IHH
+O7488rdfMgj5ufmPib933P0YQTq9JdXYczCNEp6OT3tsUIpWBU8UenYHqMhfWJus
+UDbBpTglJv6WvmTK6MJ0tE5vX/mE1ttQBTzxvhCXM+20Qv7aoW5qHx8/9Q2oLJ12
+VKcDGNoQuIIfmKLBw08Wu7o63nm9Pp0+4Z8x8j/X+H0TgaYZYwarmAvFbUO00lsT
+djrzAoPoKpIQFB8XZFWD8skOAtxwRERD//LvZQBiv+Uwbe7R4AJFpBvOT2Z5afqI
+ksWu8Pi78mpwS6HLczk0/pVJ7AzStNkFC2WswIde6OpFbXs+gYHEQB18quGpY03V
+jo0SbHzhQTv8tcjhefzAtnv6ZnBmixtymLe+52MR5z5nGa/jPKWMCKmwSqMXumo/
+lqj5SMKXcaoaUMm4QbMHLBRVPv5wFw9Wbfd89POUnDmGnYlBZb9OXu6PUQY7MQKp
+JWbwzTtq4ej3U39K9QfRoXIehysE23HlQscJfP978J5qjoLkq6FVeu2TbNLjtn8D
+s6r3Glb8KqVH8Qcj7Ejh
+=0nLk
+-----END PGP SIGNATURE-----
+
+--PEIAKu/WMn1b1Hv9--
+
+
+--===============7610092637481627720==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Use devm_hwmon_device_register_with_groups() to simplify the code a bit.
-
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/max1111.c | 65 +++++++++----------------------------------------
- 1 file changed, 12 insertions(+), 53 deletions(-)
-
-diff --git a/drivers/hwmon/max1111.c b/drivers/hwmon/max1111.c
-index f67d71e..6191409 100644
---- a/drivers/hwmon/max1111.c
-+++ b/drivers/hwmon/max1111.c
-@@ -38,7 +38,7 @@ enum chips { max1110, max1111, max1112, max1113 };
- 
- struct max1111_data {
- 	struct spi_device	*spi;
--	struct device		*hwmon_dev;
-+	const struct attribute_group *groups[3];
- 	struct spi_message	msg;
- 	struct spi_transfer	xfer[2];
- 	uint8_t tx_buf[MAX1111_TX_BUF_SIZE];
-@@ -90,17 +90,6 @@ int max1111_read_channel(int channel)
- EXPORT_SYMBOL(max1111_read_channel);
- #endif
- 
--/*
-- * NOTE: SPI devices do not have a default 'name' attribute, which is
-- * likely to be used by hwmon applications to distinguish between
-- * different devices, explicitly add a name attribute here.
-- */
--static ssize_t show_name(struct device *dev,
--			 struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
--}
--
- static ssize_t show_adc(struct device *dev,
- 			struct device_attribute *attr, char *buf)
- {
-@@ -122,7 +111,6 @@ static ssize_t show_adc(struct device *dev,
- #define MAX1111_ADC_ATTR(_id)		\
- 	SENSOR_DEVICE_ATTR(in##_id##_input, S_IRUGO, show_adc, NULL, _id)
- 
--static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
- static MAX1111_ADC_ATTR(0);
- static MAX1111_ADC_ATTR(1);
- static MAX1111_ADC_ATTR(2);
-@@ -133,7 +121,6 @@ static MAX1111_ADC_ATTR(6);
- static MAX1111_ADC_ATTR(7);
- 
- static struct attribute *max1111_attributes[] = {
--	&dev_attr_name.attr,
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in1_input.dev_attr.attr,
- 	&sensor_dev_attr_in2_input.dev_attr.attr,
-@@ -182,7 +169,9 @@ static int setup_transfer(struct max1111_data *data)
- static int max1111_probe(struct spi_device *spi)
- {
- 	enum chips chip = spi_get_device_id(spi)->driver_data;
-+	struct device *dev = &spi->dev;
- 	struct max1111_data *data;
-+	struct device *hwmon_dev;
- 	int err;
- 
- 	spi->bits_per_word = 8;
-@@ -191,7 +180,7 @@ static int max1111_probe(struct spi_device *spi)
- 	if (err < 0)
- 		return err;
- 
--	data = devm_kzalloc(&spi->dev, sizeof(struct max1111_data), GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(struct max1111_data), GFP_KERNEL);
- 	if (data = NULL)
- 		return -ENOMEM;
- 
-@@ -218,51 +207,22 @@ static int max1111_probe(struct spi_device *spi)
- 		return err;
- 
- 	mutex_init(&data->drvdata_lock);
--
- 	data->spi = spi;
--	spi_set_drvdata(spi, data);
- 
--	err = sysfs_create_group(&spi->dev.kobj, &max1111_attr_group);
--	if (err) {
--		dev_err(&spi->dev, "failed to create attribute group\n");
--		return err;
--	}
--	if (chip = max1110 || chip = max1112) {
--		err = sysfs_create_group(&spi->dev.kobj, &max1110_attr_group);
--		if (err) {
--			dev_err(&spi->dev,
--				"failed to create extended attribute group\n");
--			goto err_remove;
--		}
--	}
-+	/* sysfs hooks */
-+	data->groups[0] = &max1111_attr_group;
-+	if (chip = max1110 || chip = max1112)
-+		data->groups[1] = &max1110_attr_group;
- 
--	data->hwmon_dev = hwmon_device_register(&spi->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		dev_err(&spi->dev, "failed to create hwmon device\n");
--		err = PTR_ERR(data->hwmon_dev);
--		goto err_remove;
--	}
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, spi->modalias,
-+							   data, data->groups);
-+	if (IS_ERR(hwmon_dev))
-+		return PTR_ERR(hwmon_dev);
- 
- #ifdef CONFIG_SHARPSL_PM
- 	the_max1111 = data;
- #endif
- 	return 0;
--
--err_remove:
--	sysfs_remove_group(&spi->dev.kobj, &max1110_attr_group);
--	sysfs_remove_group(&spi->dev.kobj, &max1111_attr_group);
--	return err;
--}
--
--static int max1111_remove(struct spi_device *spi)
--{
--	struct max1111_data *data = spi_get_drvdata(spi);
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&spi->dev.kobj, &max1110_attr_group);
--	sysfs_remove_group(&spi->dev.kobj, &max1111_attr_group);
--	mutex_destroy(&data->drvdata_lock);
--	return 0;
- }
- 
- static const struct spi_device_id max1111_ids[] = {
-@@ -281,7 +241,6 @@ static struct spi_driver max1111_driver = {
- 	},
- 	.id_table	= max1111_ids,
- 	.probe		= max1111_probe,
--	.remove		= max1111_remove,
- };
- 
- module_spi_driver(max1111_driver);
--- 
-1.9.1
-
-
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7610092637481627720==--
