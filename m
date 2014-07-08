@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 07 Jul 2014 16:58:57 +0000
+From: "Zhu, Richard (NSN - CN/Beijing)" <richard.zhu@nsn.com>
+Date: Tue, 08 Jul 2014 08:00:50 +0000
 Subject: Re: [lm-sensors] [PATCH]: hwmon: (pmbus) Add tps40422 front-end driver
-Message-Id: <20140707165857.GA12335@roeck-us.net>
+Message-Id: <E9BC5E534B6C564CA4B01BC388FD1B5A4515B4D1@SGSIMBX004.nsn-intra.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E9BC5E534B6C564CA4B01BC388FD1B5A344175BE@SGSIMBX007.nsn-intra.net>
 In-Reply-To: <E9BC5E534B6C564CA4B01BC388FD1B5A344175BE@SGSIMBX007.nsn-intra.net>
@@ -9,6 +9,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thanks Guenter for the help!!
+
+-----Original Message-----
+From: Guenter Roeck [mailto:groeck7@gmail.com] On Behalf Of ext Guenter Roeck
+Sent: Tuesday, July 08, 2014 12:59 AM
+To: Zhu, Richard (NSN - CN/Beijing)
+Cc: jdelvare@suse.de; lm-sensors@lm-sensors.org; Sverdlin, Alexander (NSN - DE/Ulm); Nicu, Ioan (EXT-Other - DE/Ulm)
+Subject: Re: [PATCH]: hwmon: (pmbus) Add tps40422 front-end driver
 
 On Tue, Jul 01, 2014 at 07:14:23AM +0000, Zhu, Richard (NSN - CN/Beijing) wrote:
 > Hi Guenter,
