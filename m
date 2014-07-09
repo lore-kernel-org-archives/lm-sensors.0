@@ -1,39 +1,31 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Wed, 09 Jul 2014 01:18:59 +0000
-Subject: [lm-sensors] [RFT][PATCH v2 1/2] hwmon: (da9052) Don't use dash in the name attribute
-Message-Id: <1404868739.12195.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 09 Jul 2014 01:33:37 +0000
+Subject: Re: [lm-sensors] [RFT][PATCH v2 1/2] hwmon: (da9052) Don't use dash in the name attribute
+Message-Id: <53BC9BF1.40305@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1404868739.12195.1.camel@phoenix>
+In-Reply-To: <1404868739.12195.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dashes are not allowed in hwmon name attributes.
-So now use "da9052" instead of "da9052-hwmon" in name attribue.
+On 07/08/2014 06:18 PM, Axel Lin wrote:
+> Dashes are not allowed in hwmon name attributes.
+> So now use "da9052" instead of "da9052-hwmon" in name attribue.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
-Cc: stable@vger.kernel.org
----
- drivers/hwmon/da9052-hwmon.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+s/attribue/attribute/
 
-diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-index afd3104..d14ab3c 100644
---- a/drivers/hwmon/da9052-hwmon.c
-+++ b/drivers/hwmon/da9052-hwmon.c
-@@ -194,7 +194,7 @@ static ssize_t da9052_hwmon_show_name(struct device *dev,
- 				      struct device_attribute *devattr,
- 				      char *buf)
- {
--	return sprintf(buf, "da9052-hwmon\n");
-+	return sprintf(buf, "da9052\n");
- }
- 
- static ssize_t show_label(struct device *dev,
--- 
-1.9.1
+>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> Cc: stable@vger.kernel.org
 
+Applied.
 
+Fyi, you don't need to send the e-mail to stable@ yourself; the tag takes care of it.
+
+Thanks,
+Guenter
 
 
 _______________________________________________
