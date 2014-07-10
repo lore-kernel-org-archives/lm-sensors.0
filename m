@@ -1,58 +1,40 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sat, 12 Jul 2014 21:49:12 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ds620): Check data pointer before dereference it
-Message-Id: <CAFRkauAXc+qx6FPCgVgzPTy4X1YKDZ2eReU7yotfKphh0D7X0Q@mail.gmail.com>
+From: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>
+Date: Thu, 10 Jul 2014 22:16:00 +0000
+Subject: [lm-sensors] [PATCH] hwmon, fam15h_power: Remove needless pci dev id
+Message-Id: <1405030560-2128-1-git-send-email-Aravind.Gopalakrishnan@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1405155313.7852.1.camel@phoenix>
-In-Reply-To: <1405155313.7852.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: herrmann.der.user@googlemail.com, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>
 
-2014-07-12 23:00 GMT+08:00 Guenter Roeck <linux@roeck-us.net>:
-> On 07/12/2014 07:24 AM, Guenter Roeck wrote:
->>
->> On 07/12/2014 01:55 AM, Axel Lin wrote:
->>>
->>> data can be an ERR_PTR, so the client assignment must only happen after
->>> the
->>> ERR_PTR check.
->>>
->>> Reported-by: Guenter Roeck <linux@roeck-us.net>
->>> Signed-off-by: Axel Lin <axel.lin@ingics.com>
->>> ---
->>>   drivers/hwmon/ds620.c | 11 +++++++++--
->>>   1 file changed, 9 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/hwmon/ds620.c b/drivers/hwmon/ds620.c
->>> index 1bdb6246..65e01a8 100644
->>> --- a/drivers/hwmon/ds620.c
->>> +++ b/drivers/hwmon/ds620.c
->>> @@ -159,7 +159,12 @@ static ssize_t set_temp(struct device *dev, struct
->>> device_attribute *da,
->>>
->>>       struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
->>>       struct ds620_data *data = dev_get_drvdata(dev);
->>> -    struct i2c_client *client = data->client;
->>> +    struct i2c_client *client;
->>> +
->>> +    if (IS_ERR(data))
->>> +        return PTR_ERR(data);
->>> +
->>
->> Hi Axel,
->>
->> This check is not needed; data is from dev_get_drvdata() and that is not
->> problematic.
->>
->
-> Never mind, though. I fixed it up myself and merged it with the original
-> devm conversion patch.
+PCI_DEVICE_ID_AMD_16H_NB_F4 can be obtained from it's
+definition in pci_ids.h. So we don't have to define it
+again here.
 
-Thank you, Guenter.
+Signed-off-by: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>
+---
+ drivers/hwmon/fam15h_power.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Axel
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 6040121..d442000 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -31,9 +31,6 @@ MODULE_DESCRIPTION("AMD Family 15h CPU processor power monitor");
+ MODULE_AUTHOR("Andreas Herrmann <herrmann.der.user@googlemail.com>");
+ MODULE_LICENSE("GPL");
+ 
+-/* Family 16h Northbridge's function 4 PCI ID */
+-#define PCI_DEVICE_ID_AMD_16H_NB_F4	0x1534
+-
+ /* D18F3 */
+ #define REG_NORTHBRIDGE_CAP		0xe8
+ 
+-- 
+1.8.1.2
+
 
 _______________________________________________
 lm-sensors mailing list
