@@ -1,77 +1,24 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 17 Jul 2014 04:06:35 +0000
-Subject: [lm-sensors] Fwd: [PATCH v2] hwmon: (adt7470) Fix writes to temperature limit registers
-Message-Id: <53C74BCB.6010004@roeck-us.net>
+Date: Fri, 11 Jul 2014 04:22:36 +0000
+Subject: Re: [lm-sensors] [RFT][PATCH] hwmon: (sht21) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <53BF668C.1020404@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fyi, forgot to copy you. Unrelated to your patch, found in module test.
+On 07/10/2014 07:44 PM, Axel Lin wrote:
+> Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
+> simplify the code a bit.
+>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> ---
 
+Tested, and applied to -next.
+
+Thanks,
 Guenter
-
--------- Original Message --------
-Subject: [PATCH v2] hwmon: (adt7470) Fix writes to temperature limit registers
-Date: Wed, 16 Jul 2014 18:08:56 -0700
-From: Guenter Roeck <linux@roeck-us.net>
-To: lm-sensors <lm-sensors@lm-sensors.org>
-CC: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-
-Temperature limit registers are signed. Limits therefore need
-to be clamped to (-128, 127) degrees C and not to (0, 255)
-degrees C.
-
-Without this fix, writing a limit of 128 degrees C sets the
-actual limit to -128 degrees C.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Apply to pwm[1-4]_auto_point1_temp as well. While the datasheet
-     does not state clearly that the register is signed, anything else
-     does not really make sense. Either case, since the data is stored
-     as s8, the bug as described applies to this register as well.
-
-  drivers/hwmon/adt7470.c | 6 +++---
-  1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index 0f4dea5..9ee3913 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -515,7 +515,7 @@ static ssize_t set_temp_min(struct device *dev,
-  		return -EINVAL;
-
-  	temp = DIV_ROUND_CLOSEST(temp, 1000);
--	temp = clamp_val(temp, 0, 255);
-+	temp = clamp_val(temp, -128, 127);
-
-  	mutex_lock(&data->lock);
-  	data->temp_min[attr->index] = temp;
-@@ -549,7 +549,7 @@ static ssize_t set_temp_max(struct device *dev,
-  		return -EINVAL;
-
-  	temp = DIV_ROUND_CLOSEST(temp, 1000);
--	temp = clamp_val(temp, 0, 255);
-+	temp = clamp_val(temp, -128, 127);
-
-  	mutex_lock(&data->lock);
-  	data->temp_max[attr->index] = temp;
-@@ -826,7 +826,7 @@ static ssize_t set_pwm_tmin(struct device *dev,
-  		return -EINVAL;
-
-  	temp = DIV_ROUND_CLOSEST(temp, 1000);
--	temp = clamp_val(temp, 0, 255);
-+	temp = clamp_val(temp, -128, 127);
-
-  	mutex_lock(&data->lock);
-  	data->pwm_tmin[attr->index] = temp;
--- 
-1.9.1
-
-
-
 
 
 
