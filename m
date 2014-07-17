@@ -1,38 +1,49 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Sat, 19 Jul 2014 03:40:04 +0000
-Subject: [lm-sensors] [PATCH 2/4] hwmon: (adm9240) Use DIV_ROUND_CLOSEST to simplify implementation for SCALE
-Message-Id: <1405741204.13406.4.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 17 Jul 2014 00:44:03 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adt7470) Fix writes to temperature limit registers
+Message-Id: <1405557843-15609-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/adm9240.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Temperature limit registers are signed. Limits therefore need
+to be clamped to (-128, 127) degrees C and not to (0, 255)
+degrees C.
 
-diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
-index 98114ce..6e75ff1 100644
---- a/drivers/hwmon/adm9240.c
-+++ b/drivers/hwmon/adm9240.c
-@@ -82,10 +82,7 @@ enum chips { adm9240, ds1780, lm81 };
- /* generalised scaling with integer rounding */
- static inline int SCALE(long val, int mul, int div)
- {
--	if (val < 0)
--		return (val * mul - div / 2) / div;
--	else
--		return (val * mul + div / 2) / div;
-+	return DIV_ROUND_CLOSEST(val * mul, div);
- }
+Without this fix, writing a limit of 128 degrees C sets the
+actual limit to -128 degrees C.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/adt7470.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 0f4dea5..8fe1495 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -515,7 +515,7 @@ static ssize_t set_temp_min(struct device *dev,
+ 		return -EINVAL;
  
- /* adm9240 internally scales voltage measurements */
+ 	temp = DIV_ROUND_CLOSEST(temp, 1000);
+-	temp = clamp_val(temp, 0, 255);
++	temp = clamp_val(temp, -128, 127);
+ 
+ 	mutex_lock(&data->lock);
+ 	data->temp_min[attr->index] = temp;
+@@ -549,7 +549,7 @@ static ssize_t set_temp_max(struct device *dev,
+ 		return -EINVAL;
+ 
+ 	temp = DIV_ROUND_CLOSEST(temp, 1000);
+-	temp = clamp_val(temp, 0, 255);
++	temp = clamp_val(temp, -128, 127);
+ 
+ 	mutex_lock(&data->lock);
+ 	data->temp_max[attr->index] = temp;
 -- 
 1.9.1
-
-
 
 
 _______________________________________________
