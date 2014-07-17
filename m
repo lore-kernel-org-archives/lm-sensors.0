@@ -1,26 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 01 Jul 2014 20:56:11 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH 2/2] hwmon: (amc6821) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <20140701205611.GB13520@roeck-us.net>
+From: Martin Peres <martin.peres@free.fr>
+Date: Thu, 17 Jul 2014 08:07:26 +0000
+Subject: Re: [lm-sensors] [Nouveau] hwmon: question about the sysfs interface
+Message-Id: <53C7843E.6090907@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20140714164728.GA1041@elysium.lan>
+ <20140714172556.GA3753@roeck-us.net> <20140717062929.GA1487@elysium.lan>
+ <53C7704E.4060705@roeck-us.net>
+In-Reply-To: <53C7704E.4060705-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Gianni Vialetto <gianni-1aVadY534Hbk1uMJSBkQmQ@public.gmane.org>
+Cc: nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
 
-On Sun, Jun 29, 2014 at 10:33:34AM +0800, Axel Lin wrote:
-> Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-> simplify the code a bit.
-> 
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+On 17/07/2014 08:42, Guenter Roeck wrote:
+> I can not really comment on this. We prefer to retain at least some level
+> of attribute name consistency, but the Nouveau hwmon driver pretty much
+> bypasses hwmon review anyway, so from a practical perspective you can
+> invent as many new attribute names as you like.
+>
+> Guenter 
 
-Applied to -next.
+Please do comment on this. I may never have asked for a review but I 
+still tried to stick
+to the hwmon sysfs interface documentation.
 
-Module testing finds a bug (unrelated to this patch): temp2_input
-should not be writable. Feel free to submit a patch if you have time ...
-
-Thanks,
-Guenter
+Martin
 
 _______________________________________________
 lm-sensors mailing list
