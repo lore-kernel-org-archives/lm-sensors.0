@@ -1,55 +1,209 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 08 Jul 2014 13:34:43 +0000
-Subject: Re: [lm-sensors] [PATCH v5] powerpc/powernv: hwmon driver for power, fan rpm, voltage and temperatur
-Message-Id: <53BBF373.6020703@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Thu, 17 Jul 2014 11:05:23 +0000
+Subject: [lm-sensors] [RFT][PATCH 1/2] hwmon: (thmc50) Avoid forward declaration
+Message-Id: <1405595123.13586.3.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140708090315.3866.15604.stgit@localhost.localdomain>
-In-Reply-To: <20140708090315.3866.15604.stgit-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Neelesh Gupta <neelegup-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-Cc: benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, svaidy-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, sbhat-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, jdelvare-l3A5Bk7waGM@public.gmane.org
+To: lm-sensors@vger.kernel.org
 
-T24gMDcvMDgvMjAxNCAwMjowOCBBTSwgTmVlbGVzaCBHdXB0YSB3cm90ZToKPiBUaGlzIHBhdGNo
-IGFkZHMgYmFzaWMga2VybmVsIHN1cHBvcnQgZm9yIHJlYWRpbmcgcG93ZXIgdmFsdWVzLCBmYW4K
-PiBzcGVlZCBycG0sIHZvbHRhZ2UgYW5kIHRlbXBlcmF0dXJlIGRhdGEgb24gcG93ZXJudiBwbGF0
-Zm9ybXMgd2hpY2gKPiB3aWxsIGJlIGV4cG9ydGVkIHRvIHVzZXIgc3BhY2UgdGhyb3VnaCBzeXNm
-cyBpbnRlcmZhY2UuCj4KPiBUZXN0IHJlc3VsdHM6Cj4gLS0tLS0tLS0tLS0tLQo+IFtyb290QHR1
-bDE2M3AxIH5dIyBzZW5zb3JzCj4gaWJtcG93ZXJudi1pc2EtMDAwMAo+IEFkYXB0ZXI6IElTQSBh
-ZGFwdGVyCj4gZmFuMTogICAgICAgIDU0NjUgUlBNICAobWluID0gICAgMCBSUE0pCj4gZmFuMjog
-ICAgICAgIDUxNTIgUlBNICAobWluID0gICAgMCBSUE0pCj4gZmFuMzogICAgICAgIDU1MjEgUlBN
-ICAobWluID0gICAgMCBSUE0pCj4gZmFuNDogICAgICAgIDQ4OTEgUlBNICAobWluID0gICAgMCBS
-UE0pCj4gZmFuNTogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCj4gZmFuNjogICAg
-ICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCj4gZmFuNzogICAgICAgIDc0ODAgUlBNICAo
-bWluID0gICAgMCBSUE0pCj4gZmFuODogICAgICAgIDc5NDQgUlBNICAobWluID0gICAgMCBSUE0p
-Cj4gdGVtcDE6ICAgICAgICArMzkuMMKwQyAgKGhpZ2ggPSAgKzAuMMKwQykKPiBwb3dlcjE6ICAg
-ICAgMTkwLjAwIFcKPgo+IFtyb290QHR1bDE2M3AxIH5dIyBscyAvc3lzL2RldmljZXMvcGxhdGZv
-cm0vCj4gYWxhcm10aW1lciAgaWJtcG93ZXJudi4wICBwb3dlciAgcnRjLWdlbmVyaWMgIHNlcmlh
-bDgyNTAgIHVldmVudAo+IFtyb290QHR1bDE2M3AxIH5dIyBscyAvc3lzL2RldmljZXMvcGxhdGZv
-cm0vaWJtcG93ZXJudi4wL2h3bW9uL2h3bW9uMC8KPiBkZXZpY2UJICAgIGZhbjJfbWluCWZhbjRf
-bWluICAgIGZhbjZfbWluCWZhbjhfbWluICAgcG93ZXIKPiBmYW4xX2ZhdWx0ICBmYW4zX2ZhdWx0
-CWZhbjVfZmF1bHQgIGZhbjdfZmF1bHQJaW4xX2ZhdWx0ICBwb3dlcjFfaW5wdXQKPiBmYW4xX2lu
-cHV0ICBmYW4zX2lucHV0CWZhbjVfaW5wdXQgIGZhbjdfaW5wdXQJaW4yX2ZhdWx0ICBzdWJzeXN0
-ZW0KPiBmYW4xX21pbiAgICBmYW4zX21pbglmYW41X21pbiAgICBmYW43X21pbglpbjNfZmF1bHQg
-IHRlbXAxX2lucHV0Cj4gZmFuMl9mYXVsdCAgZmFuNF9mYXVsdAlmYW42X2ZhdWx0ICBmYW44X2Zh
-dWx0CWluNF9mYXVsdCAgdGVtcDFfbWF4Cj4gZmFuMl9pbnB1dCAgZmFuNF9pbnB1dAlmYW42X2lu
-cHV0ICBmYW44X2lucHV0CW5hbWUJICAgdWV2ZW50Cj4gW3Jvb3RAdHVsMTYzcDEgfl0jIGxzIC9z
-eXMvY2xhc3MvaHdtb24vaHdtb24wLwo+IGRldmljZQkgICAgZmFuMl9taW4JZmFuNF9taW4gICAg
-ZmFuNl9taW4JZmFuOF9taW4gICBwb3dlcgo+IGZhbjFfZmF1bHQgIGZhbjNfZmF1bHQJZmFuNV9m
-YXVsdCAgZmFuN19mYXVsdAlpbjFfZmF1bHQgIHBvd2VyMV9pbnB1dAo+IGZhbjFfaW5wdXQgIGZh
-bjNfaW5wdXQJZmFuNV9pbnB1dCAgZmFuN19pbnB1dAlpbjJfZmF1bHQgIHN1YnN5c3RlbQo+IGZh
-bjFfbWluICAgIGZhbjNfbWluCWZhbjVfbWluICAgIGZhbjdfbWluCWluM19mYXVsdCAgdGVtcDFf
-aW5wdXQKPiBmYW4yX2ZhdWx0ICBmYW40X2ZhdWx0CWZhbjZfZmF1bHQgIGZhbjhfZmF1bHQJaW40
-X2ZhdWx0ICB0ZW1wMV9tYXgKPiBmYW4yX2lucHV0ICBmYW40X2lucHV0CWZhbjZfaW5wdXQgIGZh
-bjhfaW5wdXQJbmFtZQkgICB1ZXZlbnQKPiBbcm9vdEB0dWwxNjNwMSB+XSMKPgo+IFNpZ25lZC1v
-ZmYtYnk6IE5lZWxlc2ggR3VwdGEgPG5lZWxlZ3VwQGxpbnV4LnZuZXQuaWJtLmNvbT4KCkFwcGxp
-ZWQgdG8gLW5leHQsIHdpdGggYSBtaW5vciBjbGVhbnVwLgoKVGhhbmtzIGZvciB5b3VyIHBhdGll
-bmNlLAoKR3VlbnRlcgoKCj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vaHdtb24vaWJtcG93
-ZXJudiBiL0RvY3VtZW50YXRpb24vaHdtb24vaWJtcG93ZXJudgo+IG5ldyBmaWxlIG1vZGUgMTAw
-NjQ0Cj4gaW5kZXggMDAwMDAwMC4uNjQ0MjQ1YQo+IC0tLSAvZGV2L251bGwKPiArKysgYi9Eb2N1
-bWVudGF0aW9uL2h3bW9uL2libXBvd2VybnYKPiBAQCAtMCwwICsxLDQxIEBACj4gK0tlcm5lbCBE
-cml2ZXIgSUJNUE9XRU5WCgpzL0lCTVBPV0VOVi9JQk1QT1dFUk5WLwoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
-CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
-aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Reorder functions to avoid forward declaration.
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/thmc50.c | 160 +++++++++++++++++++++++--------------------------
+ 1 file changed, 76 insertions(+), 84 deletions(-)
+
+diff --git a/drivers/hwmon/thmc50.c b/drivers/hwmon/thmc50.c
+index db288db..bb538da 100644
+--- a/drivers/hwmon/thmc50.c
++++ b/drivers/hwmon/thmc50.c
+@@ -85,32 +85,47 @@ struct thmc50_data {
+ 	u8 alarms;
+ };
+ 
+-static int thmc50_detect(struct i2c_client *client,
+-			 struct i2c_board_info *info);
+-static int thmc50_probe(struct i2c_client *client,
+-			const struct i2c_device_id *id);
+-static int thmc50_remove(struct i2c_client *client);
+-static void thmc50_init_client(struct i2c_client *client);
+-static struct thmc50_data *thmc50_update_device(struct device *dev);
++static struct thmc50_data *thmc50_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct thmc50_data *data = i2c_get_clientdata(client);
++	int timeout = HZ / 5 + (data->type = thmc50 ? HZ : 0);
+ 
+-static const struct i2c_device_id thmc50_id[] = {
+-	{ "adm1022", adm1022 },
+-	{ "thmc50", thmc50 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, thmc50_id);
++	mutex_lock(&data->update_lock);
+ 
+-static struct i2c_driver thmc50_driver = {
+-	.class = I2C_CLASS_HWMON,
+-	.driver = {
+-		.name = "thmc50",
+-	},
+-	.probe = thmc50_probe,
+-	.remove = thmc50_remove,
+-	.id_table = thmc50_id,
+-	.detect = thmc50_detect,
+-	.address_list = normal_i2c,
+-};
++	if (time_after(jiffies, data->last_updated + timeout)
++	    || !data->valid) {
++
++		int temps = data->has_temp3 ? 3 : 2;
++		int i;
++		int prog = i2c_smbus_read_byte_data(client, THMC50_REG_CONF);
++
++		prog &= THMC50_REG_CONF_PROGRAMMED;
++
++		for (i = 0; i < temps; i++) {
++			data->temp_input[i] = i2c_smbus_read_byte_data(client,
++						THMC50_REG_TEMP[i]);
++			data->temp_max[i] = i2c_smbus_read_byte_data(client,
++						THMC50_REG_TEMP_MAX[i]);
++			data->temp_min[i] = i2c_smbus_read_byte_data(client,
++						THMC50_REG_TEMP_MIN[i]);
++			data->temp_critical[i] +				i2c_smbus_read_byte_data(client,
++					prog ? THMC50_REG_TEMP_CRITICAL[i]
++					     : THMC50_REG_TEMP_DEFAULT[i]);
++		}
++		data->analog_out +		    i2c_smbus_read_byte_data(client, THMC50_REG_ANALOG_OUT);
++		data->alarms +		    i2c_smbus_read_byte_data(client, THMC50_REG_INTR);
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
+ 
+ static ssize_t show_analog_out(struct device *dev,
+ 			       struct device_attribute *attr, char *buf)
+@@ -355,6 +370,26 @@ static int thmc50_detect(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static void thmc50_init_client(struct i2c_client *client)
++{
++	struct thmc50_data *data = i2c_get_clientdata(client);
++	int config;
++
++	data->analog_out = i2c_smbus_read_byte_data(client,
++						    THMC50_REG_ANALOG_OUT);
++	/* set up to at least 1 */
++	if (data->analog_out = 0) {
++		data->analog_out = 1;
++		i2c_smbus_write_byte_data(client, THMC50_REG_ANALOG_OUT,
++					  data->analog_out);
++	}
++	config = i2c_smbus_read_byte_data(client, THMC50_REG_CONF);
++	config |= 0x1;	/* start the chip if it is in standby mode */
++	if (data->type = adm1022 && (config & (1 << 7)))
++		data->has_temp3 = 1;
++	i2c_smbus_write_byte_data(client, THMC50_REG_CONF, config);
++}
++
+ static int thmc50_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -413,67 +448,24 @@ static int thmc50_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-static void thmc50_init_client(struct i2c_client *client)
+-{
+-	struct thmc50_data *data = i2c_get_clientdata(client);
+-	int config;
+-
+-	data->analog_out = i2c_smbus_read_byte_data(client,
+-						    THMC50_REG_ANALOG_OUT);
+-	/* set up to at least 1 */
+-	if (data->analog_out = 0) {
+-		data->analog_out = 1;
+-		i2c_smbus_write_byte_data(client, THMC50_REG_ANALOG_OUT,
+-					  data->analog_out);
+-	}
+-	config = i2c_smbus_read_byte_data(client, THMC50_REG_CONF);
+-	config |= 0x1;	/* start the chip if it is in standby mode */
+-	if (data->type = adm1022 && (config & (1 << 7)))
+-		data->has_temp3 = 1;
+-	i2c_smbus_write_byte_data(client, THMC50_REG_CONF, config);
+-}
+-
+-static struct thmc50_data *thmc50_update_device(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct thmc50_data *data = i2c_get_clientdata(client);
+-	int timeout = HZ / 5 + (data->type = thmc50 ? HZ : 0);
+-
+-	mutex_lock(&data->update_lock);
+-
+-	if (time_after(jiffies, data->last_updated + timeout)
+-	    || !data->valid) {
+-
+-		int temps = data->has_temp3 ? 3 : 2;
+-		int i;
+-		int prog = i2c_smbus_read_byte_data(client, THMC50_REG_CONF);
+-
+-		prog &= THMC50_REG_CONF_PROGRAMMED;
+-
+-		for (i = 0; i < temps; i++) {
+-			data->temp_input[i] = i2c_smbus_read_byte_data(client,
+-						THMC50_REG_TEMP[i]);
+-			data->temp_max[i] = i2c_smbus_read_byte_data(client,
+-						THMC50_REG_TEMP_MAX[i]);
+-			data->temp_min[i] = i2c_smbus_read_byte_data(client,
+-						THMC50_REG_TEMP_MIN[i]);
+-			data->temp_critical[i] -				i2c_smbus_read_byte_data(client,
+-					prog ? THMC50_REG_TEMP_CRITICAL[i]
+-					     : THMC50_REG_TEMP_DEFAULT[i]);
+-		}
+-		data->analog_out -		    i2c_smbus_read_byte_data(client, THMC50_REG_ANALOG_OUT);
+-		data->alarms -		    i2c_smbus_read_byte_data(client, THMC50_REG_INTR);
+-		data->last_updated = jiffies;
+-		data->valid = 1;
+-	}
+-
+-	mutex_unlock(&data->update_lock);
++static const struct i2c_device_id thmc50_id[] = {
++	{ "adm1022", adm1022 },
++	{ "thmc50", thmc50 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, thmc50_id);
+ 
+-	return data;
+-}
++static struct i2c_driver thmc50_driver = {
++	.class = I2C_CLASS_HWMON,
++	.driver = {
++		.name = "thmc50",
++	},
++	.probe = thmc50_probe,
++	.remove = thmc50_remove,
++	.id_table = thmc50_id,
++	.detect = thmc50_detect,
++	.address_list = normal_i2c,
++};
+ 
+ module_i2c_driver(thmc50_driver);
+ 
+-- 
+1.9.1
+
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
