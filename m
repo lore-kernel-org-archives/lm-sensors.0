@@ -1,62 +1,99 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Thu, 31 Jul 2014 14:49:04 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] hwmon: (lm77) Prevent overflow problem when writing large limits
-Message-Id: <CAFRkauCi_RWGUOaf6Rnw-0Q+MHnNAJnzVfRdTtZHUXbm=1wefg@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 18 Jul 2014 13:57:51 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.16-rc6
+Message-Id: <20140718135751.GB18432@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3954096647468206881=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1406791851.7637.1.camel@phoenix>
-In-Reply-To: <1406791851.7637.1.camel@phoenix>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============3954096647468206881==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
+Content-Disposition: inline
+
+
+--huq684BweRXVnRxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.16-rc6 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 1795cd9b3a91d4b5473c97f491d63892442212ab:
+
+  Linux 3.16-rc5 (2014-07-13 14:04:33 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to de12d6f4b10b21854441f5242dcb29ea96181e58:
+
+  hwmon: (adt7470) Fix writes to temperature limit registers (2014-07-16 21:18:47 -0700)
+
+----------------------------------------------------------------
+More fallout from module tests and code inspection.
+
+Fixes to temperature limit write operations in adt7470 driver.
+Also, dashes are not allowed in hwmon 'name' attributes.
+Fix drivers where necessary.
+
+----------------------------------------------------------------
+Axel Lin (2):
+      hwmon: (da9052) Don't use dash in the name attribute
+      hwmon: (da9055) Don't use dash in the name attribute
+
+Guenter Roeck (1):
+      hwmon: (adt7470) Fix writes to temperature limit registers
+
+ drivers/hwmon/adt7470.c      | 6 +++---
+ drivers/hwmon/da9052-hwmon.c | 2 +-
+ drivers/hwmon/da9055-hwmon.c | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+--huq684BweRXVnRxX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTySffAAoJEMsfJm/On5mBYvMP/2tSsN3lUKVuOuUFj//xaBix
+HH131fzj8sinMXiMrVe253IIbDDWwwsqY6TQxJLhAhL3C/opjzsJMSdwKntg7mzi
+OJgd3bJUgoqOb1iCVSzVXavJtZI+fMeNHscVJsZ4vEmMA0xVneZqY5dlS4Yso4Nu
+cXChwUAcLJSTwU1gScJqvxgRaUV5/dOV0qUgGnX2i4u87HBmfDeU9NETYFZgbR2h
+N213K+m8YQXSSw3SI1FTukyVVjoN+fi9PKlgliPEIcvMoSp0O4c1GGlvOdWCyIhh
+eNoL7uDjs+4dD5XyzXFZsrI7BQBnWftDsSsf7yngtpG9C1x/wrMGdlEtXu7PC1rp
+m87z9Uka8Fj9q1LazfbVjOkzldgDCvHyuLXeMGpDPI+tlM0A0ce8OMvkSD3fmSMF
+M+dW6I/AxYHmmcR5Qq9lqHzeAwetAxkKyYfJ3nigomPasFIHKvebgQIyWM/OFQH+
+Xkim3dL6ZMZe4KGVIkig78OKlQ41B0QGvQRLlav5CJFlw2Pi2LegUNYPnACl8LYs
+5r4ftOPMibN9vxSodcQP7dgeDhw9JangeYqw0UE2qKSlNAJg0Jy8rZoPZEcc4dPY
+wmees2kjdXHiTWn3Woxc+FFbEN/HgzqfQ/U0GkJPC1zJQNg8nFA1An7YwVv/J6hQ
+MCYOPMi8gE60o6pHIOB+
+=boB9
+-----END PGP SIGNATURE-----
+
+--huq684BweRXVnRxX--
+
+
+--===============3954096647468206881==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-2014-07-31 22:46 GMT+08:00 Guenter Roeck <linux@roeck-us.net>:
-> On 07/31/2014 12:30 AM, Axel Lin wrote:
->>
->> On platforms with sizeof(int) < sizeof(long), writing a temperature
->> limit larger than MAXINT will result in unpredictable limit values
->> written to the chip.
->> Clamp the input values to the supported limits first to fix the problem.
->>
->> Signed-off-by: Axel Lin <axel.lin@ingics.com>
->> ---
->>   drivers/hwmon/lm77.c | 6 +++---
->>   1 file changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
->> index 5ceb443..72a02b0 100644
->> --- a/drivers/hwmon/lm77.c
->> +++ b/drivers/hwmon/lm77.c
->> @@ -80,8 +80,7 @@ struct lm77_data {
->>    */
->>   static inline s16 LM77_TEMP_TO_REG(int temp)
->>   {
->> -       int ntemp = clamp_val(temp, LM77_TEMP_MIN, LM77_TEMP_MAX);
->> -       return (ntemp / 500) * 8;
->> +       return (temp / 500) * 8;
->>   }
->>
->>   static inline int LM77_TEMP_FROM_REG(s16 reg)
->> @@ -176,7 +175,7 @@ static ssize_t set_temp(struct device *dev, struct
->> device_attribute *devattr,
->>                 return err;
->>
->>         mutex_lock(&data->update_lock);
->> -       data->temp[nr] = val;
->> +       data->temp[nr] = clamp_val(val, LM77_TEMP_MIN, LM77_TEMP_MAX);
->>         lm77_write_value(client, temp_regs[nr], LM77_TEMP_TO_REG(val));
->
->
-> Found it: Clamp applied to data->temp[nr], but you are still using val here.
-> Has to be LM77_TEMP_TO_REG(data->temp[nr]).
-
-Thanks a lot.
-I'll send a v3 soon.
-
-Regards,
-Axel
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3954096647468206881==--
