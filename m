@@ -1,122 +1,31 @@
 From: Axel Lin <axel.lin@ingics.com>
-Date: Wed, 09 Jul 2014 01:20:41 +0000
-Subject: [lm-sensors] [RFT][PATCH v2 2/2] hwmon: (da9052) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <1404868841.12195.3.camel@phoenix>
+Date: Sat, 19 Jul 2014 03:37:59 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (adm1026) Use DIV_ROUND_CLOSEST to simplify implementation for SCALE
+Message-Id: <1405741079.13406.2.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-simplify the code a bit.
-
 Signed-off-by: Axel Lin <axel.lin@ingics.com>
 ---
- drivers/hwmon/da9052-hwmon.c | 54 ++++++++------------------------------------
- 1 file changed, 9 insertions(+), 45 deletions(-)
+ drivers/hwmon/adm1026.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-index d14ab3c..692b3f3 100644
---- a/drivers/hwmon/da9052-hwmon.c
-+++ b/drivers/hwmon/da9052-hwmon.c
-@@ -26,7 +26,6 @@
- 
- struct da9052_hwmon {
- 	struct da9052	*da9052;
--	struct device	*class_device;
- 	struct mutex	hwmon_lock;
- };
- 
-@@ -190,13 +189,6 @@ static ssize_t da9052_read_vbbat(struct device *dev,
- 	return sprintf(buf, "%d\n", vbbat_reg_to_mv(ret));
- }
- 
--static ssize_t da9052_hwmon_show_name(struct device *dev,
--				      struct device_attribute *devattr,
--				      char *buf)
--{
--	return sprintf(buf, "da9052\n");
--}
--
- static ssize_t show_label(struct device *dev,
- 			  struct device_attribute *devattr, char *buf)
- {
-@@ -243,10 +235,7 @@ static SENSOR_DEVICE_ATTR(temp8_input, S_IRUGO, da9052_read_tjunc, NULL,
- static SENSOR_DEVICE_ATTR(temp8_label, S_IRUGO, show_label, NULL,
- 			  DA9052_ADC_TJUNC);
- 
--static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
--
--static struct attribute *da9052_attr[] = {
--	&dev_attr_name.attr,
-+static struct attribute *da9052_attrs[] = {
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_label.dev_attr.attr,
- 	&sensor_dev_attr_in3_input.dev_attr.attr,
-@@ -268,54 +257,29 @@ static struct attribute *da9052_attr[] = {
- 	NULL
- };
- 
--static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
-+ATTRIBUTE_GROUPS(da9052);
- 
- static int da9052_hwmon_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct da9052_hwmon *hwmon;
--	int ret;
-+	struct device *hwmon_dev;
- 
--	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9052_hwmon),
--			     GFP_KERNEL);
-+	hwmon = devm_kzalloc(dev, sizeof(struct da9052_hwmon), GFP_KERNEL);
- 	if (!hwmon)
- 		return -ENOMEM;
- 
- 	mutex_init(&hwmon->hwmon_lock);
- 	hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
- 
--	platform_set_drvdata(pdev, hwmon);
--
--	ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
--	if (ret)
--		goto err_mem;
--
--	hwmon->class_device = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(hwmon->class_device)) {
--		ret = PTR_ERR(hwmon->class_device);
--		goto err_sysfs;
--	}
--
--	return 0;
--
--err_sysfs:
--	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
--err_mem:
--	return ret;
--}
--
--static int da9052_hwmon_remove(struct platform_device *pdev)
--{
--	struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
--
--	hwmon_device_unregister(hwmon->class_device);
--	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
--
--	return 0;
-+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "da9052",
-+							   hwmon,
-+							   da9052_groups);
-+	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
- 
- static struct platform_driver da9052_hwmon_driver = {
- 	.probe = da9052_hwmon_probe,
--	.remove = da9052_hwmon_remove,
- 	.driver = {
- 		.name = "da9052-hwmon",
- 		.owner = THIS_MODULE,
+diff --git a/drivers/hwmon/adm1026.c b/drivers/hwmon/adm1026.c
+index ca8430f..c632e46 100644
+--- a/drivers/hwmon/adm1026.c
++++ b/drivers/hwmon/adm1026.c
+@@ -196,7 +196,7 @@ static int adm1026_scaling[] = { /* .001 Volts */
+ 		3330, 4995, 2250, 12000, 13875
+ 	};
+ #define NEG12_OFFSET  16000
+-#define SCALE(val, from, to) (((val)*(to) + ((from)/2))/(from))
++#define SCALE(val, from, to) DIV_ROUND_CLOSEST((val) * (to), (from))
+ #define INS_TO_REG(n, val)  (clamp_val(SCALE(val, adm1026_scaling[n], 192),\
+ 	0, 255))
+ #define INS_FROM_REG(n, val) (SCALE(val, 192, adm1026_scaling[n]))
 -- 
 1.9.1
 
