@@ -1,7 +1,7 @@
-From: =?UTF-8?Q?Nuno_Magalh=C3=A3es?= <nunomagalhaes@eu.ipp.pt>
-Date: Wed, 16 Jul 2014 20:31:18 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 22 Jul 2014 10:56:30 +0000
 Subject: Re: [lm-sensors] incomplete sensors on Asus M2NPV-VM
-Message-Id: <CADqA9uZFS7GMW17gq6U_KKN6HE4HobrUBM2_PCXERc5iveKDYA@mail.gmail.com>
+Message-Id: <CAKPcRGopjWLfyy_FAD_P4T1z-7CSHiek_qHOg94mioseai_eNQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CADqA9uYqmuTQttc-=pSAvhwYuAnR3P+t-68fEQ2tOeuVwG9VFA@mail.gmail.com>
 In-Reply-To: <CADqA9uYqmuTQttc-=pSAvhwYuAnR3P+t-68fEQ2tOeuVwG9VFA@mail.gmail.com>
@@ -10,26 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 16, 2014 at 2:00 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
-> This means that there's a smbus controller that is used by ACPI so
-> it's not safe to use it directly (it87).
-
-So i either stick to ATK0110 and have no information on FAN2; or i use
-it87 and risk system instability?
-Is there a middle ground?
-
-nForce2_smbus is the southbrige, i'd rather not have instability with
-that, since the SATA controller depends on it. Which,come to think of
-it, makes me wonder if that isn't causing disks to get dropped at
-boot[1].
-
-
-Thanks,
-Nuno
-
-[1] http://marc.info/?l=linux-ide&m0535582932375&w=2
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCBKdWwgMTYsIDIwMTQgYXQgOTozMSBQTSwgTnVubyBNYWdhbGjDo2VzIDxudW5vbWFn
+YWxoYWVzQGV1LmlwcC5wdD4gd3JvdGU6Cj4gT24gV2VkLCBKdWwgMTYsIDIwMTQgYXQgMjowMCBQ
+TSwgTHVjYSBUZXR0YW1hbnRpIDxrcm9ub3MuaXRAZ21haWwuY29tPiB3cm90ZToKPj4gVGhpcyBt
+ZWFucyB0aGF0IHRoZXJlJ3MgYSBzbWJ1cyBjb250cm9sbGVyIHRoYXQgaXMgdXNlZCBieSBBQ1BJ
+IHNvCj4+IGl0J3Mgbm90IHNhZmUgdG8gdXNlIGl0IGRpcmVjdGx5IChpdDg3KS4KPgo+IFNvIGkg
+ZWl0aGVyIHN0aWNrIHRvIEFUSzAxMTAgYW5kIGhhdmUgbm8gaW5mb3JtYXRpb24gb24gRkFOMjsg
+b3IgaSB1c2UKPiBpdDg3IGFuZCByaXNrIHN5c3RlbSBpbnN0YWJpbGl0eT8KPiBJcyB0aGVyZSBh
+IG1pZGRsZSBncm91bmQ/CgpVbmZvcnR1bmF0ZWx5IG5vLi4uCgo+IG5Gb3JjZTJfc21idXMgaXMg
+dGhlIHNvdXRoYnJpZ2UsIGknZCByYXRoZXIgbm90IGhhdmUgaW5zdGFiaWxpdHkgd2l0aAo+IHRo
+YXQsIHNpbmNlIHRoZSBTQVRBIGNvbnRyb2xsZXIgZGVwZW5kcyBvbiBpdC4gV2hpY2gsY29tZSB0
+byB0aGluayBvZgo+IGl0LCBtYWtlcyBtZSB3b25kZXIgaWYgdGhhdCBpc24ndCBjYXVzaW5nIGRp
+c2tzIHRvIGdldCBkcm9wcGVkIGF0Cj4gYm9vdFsxXS4KCkl0IHNlZW1zIHVubGlrZWx5LCBJIHdv
+dWxkIGV4cGVjdCBhbnkgc2lkZSBlZmZlY3QgdG8gYmUgY29uZmluZWQgdG8KdGhlIGh3bW9uIGNo
+aXAgKHJlYWRpbmcgZ2FyYmFnZSwgbWVzc2luZyB1cCBzcGVlZCBjb250cm9sLCBldGMpCgpMdWNh
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5z
+b3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5s
+bS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
