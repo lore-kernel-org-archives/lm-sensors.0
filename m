@@ -1,208 +1,192 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 18 Jul 2014 14:50:19 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH 2/2] hwmon: (smsc47m1) Convert to devm_hwmon_device_register_with_group
-Message-Id: <53C9342B.1090909@roeck-us.net>
+From: Pietro Sammarco <kernel.panic007@gmail.com>
+Date: Thu, 24 Jul 2014 22:53:50 +0000
+Subject: [lm-sensors] not fan detected chromebook c720
+Message-Id: <53D18E7E.4020308@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1405595851.13586.8.camel@phoenix>
-In-Reply-To: <1405595851.13586.8.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/17/2014 04:17 AM, Axel Lin wrote:
-> Use devm_hwmon_device_register_with_groups() to simplify the code a bit.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Hello people,
 
-We'll need test coverage for this one.
+I have recently bought a brand new Acer chromebook c720 which I am using 
+with ArchLinux. Ever since I wiped out ChromeOS to install ArchLinux I 
+realized a smell of electronic burning coming from it. Digging around I 
+have realized lm-sensors does not detect the fan.
+
+The chipset is a Lynx Point (PCH), therefore as according the wiki it 
+should work with the i2c-i801.
+
+I am going to attach a bit of informations below.
+
+Linux chromebookC720 3.16.0-1-mainline-chromebook #1 SMP PREEMPT Mon Jul 
+14 22:04:51 NZST 2014 x86_64 GNU/Linux
+
+[latrina@chromebookC720 ~]$ sudo i2cdetect -l
+i2c-0    i2c           i2c-designware-pci                  I2C adapter
+i2c-1    i2c           i2c-designware-pci                  I2C adapter
+i2c-2    smbus         SMBus I801 adapter at 0400          SMBus adapter
+i2c-3    i2c           i915 gmbus ssc                      I2C adapter
+i2c-4    i2c           i915 gmbus vga                      I2C adapter
+i2c-5    i2c           i915 gmbus panel                    I2C adapter
+i2c-6    i2c           i915 gmbus dpc                      I2C adapter
+i2c-7    i2c           i915 gmbus dpb                      I2C adapter
+i2c-8    i2c           i915 gmbus dpd                      I2C adapter
+i2c-9    i2c           DPDDC-A                             I2C adapter
+
+[latrina@chromebookC720 ~]$ sudo lspci -nn |grep SMBus
+00:1f.3 SMBus [0c05]: Intel Corporation 8 Series SMBus Controller 
+[8086:9c22] (rev 04)
+
+[latrina@chromebookC720 ~]$ sudo lsmod |grep i2c
+i2c_dev                 6953  0
+i2c_i801               11301  0
+i2c_designware_platform     3325  0
+i2c_designware_pci      3931  0
+i2c_designware_core     7013  2 i2c_designware_pci,i2c_designware_platform
+i2c_algo_bit            5480  1 i915
+i2c_core               41648  12 
+drm,i2c_designware_pci,i915,i2c_i801,i2c_dev,cyapa,i2c_designware_platform,drm_kms_helper,i2c_algo_bit,v4l2_common,chromeos_laptop,videodev
+
+[latrina@chromebookC720 ~]$ sensors -u
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:
+   temp1_input: 46.000
+   temp1_max: 100.000
+   temp1_crit: 100.000
+   temp1_crit_alarm: 0.000
+Core 1:
+   temp2_input: 46.000
+   temp2_max: 100.000
+   temp2_crit: 100.000
+   temp2_crit_alarm: 0.000
+Core 2:
+   temp3_input: 46.000
+   temp3_max: 100.000
+   temp3_crit: 100.000
+   temp3_crit_alarm: 0.000
+
+
+[latrina@chromebookC720 ~]$ sudo sensors-detect
+# sensors-detect revision 6209 (2014-01-14 22:51:58 +0100)
+# System: Acer Peppy [1.0]
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):
+Module cpuid loaded successfully.
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           No
+AMD Family 11h thermal sensors...                           No
+AMD Family 12h and 14h thermal sensors...                   No
+AMD Family 15h thermal sensors...                           No
+AMD Family 15h power sensors...                             No
+AMD Family 16h power sensors...                             No
+Intel digital thermal sensor...                             Success!
+     (driver `coretemp')
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor/ITE'...               No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor/ITE'...               No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no):
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (YES/no):
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no):
+Found unknown SMBus adapter 8086:9c22 at 0000:00:1f.3.
+Sorry, no supported PCI bus adapters found.
+
+Next adapter: i2c-designware-pci (i2c-0)
+Do you want to scan it? (YES/no/selectively):
+Adapter doesn't support all probing functions.
+Some addresses won't be probed.
+
+Next adapter: i2c-designware-pci (i2c-1)
+Do you want to scan it? (YES/no/selectively):
+Adapter doesn't support all probing functions.
+Some addresses won't be probed.
+
+Next adapter: SMBus I801 adapter at 0400 (i2c-2)
+Do you want to scan it? (YES/no/selectively):
+
+Next adapter: i915 gmbus ssc (i2c-3)
+Do you want to scan it? (yes/NO/selectively):
+
+Next adapter: i915 gmbus vga (i2c-4)
+Do you want to scan it? (yes/NO/selectively):
+
+Next adapter: i915 gmbus panel (i2c-5)
+Do you want to scan it? (yes/NO/selectively):
+
+Next adapter: i915 gmbus dpc (i2c-6)
+Do you want to scan it? (yes/NO/selectively):
+
+Next adapter: i915 gmbus dpb (i2c-7)
+Do you want to scan it? (yes/NO/selectively):
+
+Next adapter: i915 gmbus dpd (i2c-8)
+Do you want to scan it? (yes/NO/selectively):
+
+Next adapter: DPDDC-A (i2c-9)
+Do you want to scan it? (yes/NO/selectively):
+
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `coretemp':
+   * Chip `Intel digital thermal sensor' (confidence: 9)
+
+Do you want to generate /etc/conf.d/lm_sensors? (YES/no):
+Unloading cpuid... OK
+
+-------------------------------------------------------------------------------------------
+
+Hopefully someone will able to tell me what I am doing wrong.
 
 Thanks,
-Guenter
-
-> ---
->   drivers/hwmon/smsc47m1.c | 112 ++++++++++++-----------------------------------
->   1 file changed, 27 insertions(+), 85 deletions(-)
->
-> diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
-> index d748565..f8922fb 100644
-> --- a/drivers/hwmon/smsc47m1.c
-> +++ b/drivers/hwmon/smsc47m1.c
-> @@ -125,7 +125,7 @@ struct smsc47m1_data {
->   	unsigned short addr;
->   	const char *name;
->   	enum chips type;
-> -	struct device *hwmon_dev;
-> +	const struct attribute_group *groups[8];
->
->   	struct mutex update_lock;
->   	unsigned long last_updated;	/* In jiffies */
-> @@ -442,15 +442,6 @@ fan_present(3);
->
->   static DEVICE_ATTR(alarms, S_IRUGO, get_alarms, NULL);
->
-> -static ssize_t show_name(struct device *dev, struct device_attribute
-> -			 *devattr, char *buf)
-> -{
-> -	struct smsc47m1_data *data = dev_get_drvdata(dev);
-> -
-> -	return sprintf(buf, "%s\n", data->name);
-> -}
-> -static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
-> -
->   static struct attribute *smsc47m1_attributes_fan1[] = {
->   	&sensor_dev_attr_fan1_input.dev_attr.attr,
->   	&sensor_dev_attr_fan1_min.dev_attr.attr,
-> @@ -519,7 +510,6 @@ static const struct attribute_group smsc47m1_group_pwm3 = {
->
->   static struct attribute *smsc47m1_attributes[] = {
->   	&dev_attr_alarms.attr,
-> -	&dev_attr_name.attr,
->   	NULL
->   };
->
-> @@ -690,25 +680,16 @@ static int __init smsc47m1_handle_resources(unsigned short address,
->   	return 0;
->   }
->
-> -static void smsc47m1_remove_files(struct device *dev)
-> -{
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group);
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group_fan1);
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group_fan2);
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group_fan3);
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group_pwm1);
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group_pwm2);
-> -	sysfs_remove_group(&dev->kobj, &smsc47m1_group_pwm3);
-> -}
-> -
->   static int __init smsc47m1_probe(struct platform_device *pdev)
->   {
->   	struct device *dev = &pdev->dev;
-> +	struct device *hwmon_dev;
->   	struct smsc47m1_sio_data *sio_data = dev_get_platdata(dev);
->   	struct smsc47m1_data *data;
->   	struct resource *res;
->   	int err;
->   	int fan1, fan2, fan3, pwm1, pwm2, pwm3;
-> +	int idx = 0;
->
->   	static const char * const names[] = {
->   		"smsc47m1",
-> @@ -771,80 +752,42 @@ static int __init smsc47m1_probe(struct platform_device *pdev)
->   	 */
->   	smsc47m1_update_device(dev, 1);
->
-> -	/* Register sysfs hooks */
-> -	if (fan1) {
-> -		err = sysfs_create_group(&dev->kobj,
-> -					 &smsc47m1_group_fan1);
-> -		if (err)
-> -			goto error_remove_files;
-> -	} else
-> +	/* sysfs hooks */
-> +	data->groups[idx++] = &smsc47m1_group;
-> +
-> +	if (fan1)
-> +		data->groups[idx++] = &smsc47m1_group_fan1;
-> +	else
->   		dev_dbg(dev, "Fan 1 not enabled by hardware, skipping\n");
->
-> -	if (fan2) {
-> -		err = sysfs_create_group(&dev->kobj,
-> -					 &smsc47m1_group_fan2);
-> -		if (err)
-> -			goto error_remove_files;
-> -	} else
-> +	if (fan2)
-> +		data->groups[idx++] = &smsc47m1_group_fan2;
-> +	else
->   		dev_dbg(dev, "Fan 2 not enabled by hardware, skipping\n");
->
-> -	if (fan3) {
-> -		err = sysfs_create_group(&dev->kobj,
-> -					 &smsc47m1_group_fan3);
-> -		if (err)
-> -			goto error_remove_files;
-> -	} else if (data->type = smsc47m2)
-> +	if (fan3)
-> +		data->groups[idx++] = &smsc47m1_group_fan3;
-> +	else
->   		dev_dbg(dev, "Fan 3 not enabled by hardware, skipping\n");
->
-> -	if (pwm1) {
-> -		err = sysfs_create_group(&dev->kobj,
-> -					 &smsc47m1_group_pwm1);
-> -		if (err)
-> -			goto error_remove_files;
-> -	} else
-> +	if (pwm1)
-> +		data->groups[idx++] = &smsc47m1_group_pwm1;
-> +	else
->   		dev_dbg(dev, "PWM 1 not enabled by hardware, skipping\n");
->
-> -	if (pwm2) {
-> -		err = sysfs_create_group(&dev->kobj,
-> -					 &smsc47m1_group_pwm2);
-> -		if (err)
-> -			goto error_remove_files;
-> -	} else
-> +	if (pwm2)
-> +		data->groups[idx++] = &smsc47m1_group_pwm2;
-> +	else
->   		dev_dbg(dev, "PWM 2 not enabled by hardware, skipping\n");
->
-> -	if (pwm3) {
-> -		err = sysfs_create_group(&dev->kobj,
-> -					 &smsc47m1_group_pwm3);
-> -		if (err)
-> -			goto error_remove_files;
-> -	} else if (data->type = smsc47m2)
-> +	if (pwm3)
-> +		data->groups[idx++] = &smsc47m1_group_pwm3;
-> +	else
->   		dev_dbg(dev, "PWM 3 not enabled by hardware, skipping\n");
->
-> -	err = sysfs_create_group(&dev->kobj, &smsc47m1_group);
-> -	if (err)
-> -		goto error_remove_files;
-> -
-> -	data->hwmon_dev = hwmon_device_register(dev);
-> -	if (IS_ERR(data->hwmon_dev)) {
-> -		err = PTR_ERR(data->hwmon_dev);
-> -		goto error_remove_files;
-> -	}
-> -
-> -	return 0;
-> -
-> -error_remove_files:
-> -	smsc47m1_remove_files(dev);
-> -	return err;
-> -}
-> -
-> -static int __exit smsc47m1_remove(struct platform_device *pdev)
-> -{
-> -	struct smsc47m1_data *data = platform_get_drvdata(pdev);
-> -
-> -	hwmon_device_unregister(data->hwmon_dev);
-> -	smsc47m1_remove_files(&pdev->dev);
-> -
-> -	return 0;
-> +	hwmon_dev = devm_hwmon_device_register_with_groups(dev, data->name,
-> +							   data, data->groups);
-> +	return PTR_ERR_OR_ZERO(hwmon_dev);
->   }
->
->   static struct platform_driver smsc47m1_driver = {
-> @@ -852,7 +795,6 @@ static struct platform_driver smsc47m1_driver = {
->   		.owner	= THIS_MODULE,
->   		.name	= DRVNAME,
->   	},
-> -	.remove		= __exit_p(smsc47m1_remove),
->   };
->
->   static int __init smsc47m1_device_add(unsigned short address,
->
+Pietro
 
 
 _______________________________________________
