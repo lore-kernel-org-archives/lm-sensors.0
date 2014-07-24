@@ -1,25 +1,53 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 01 Jul 2014 18:35:34 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH 2/2] hwmon: (g760a) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <53B2FF76.2030603@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Thu, 24 Jul 2014 00:58:24 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (nct6775) Update module description and Kconfig for NCT6106D and NCT
+Message-Id: <1406163504.7561.2.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1404183458.17083.3.camel@phoenix>
-In-Reply-To: <1404183458.17083.3.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 06/30/2014 07:57 PM, Axel Lin wrote:
-> Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups() to
-> simplify the code a bit.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+This driver also supports NCT6106D and NCT6791D, thus update module description
+and Kconfig accordingly.
 
-Applied to -next.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/Kconfig   | 4 ++--
+ drivers/hwmon/nct6775.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index c0aec8d..27e4e56 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1105,8 +1105,8 @@ config SENSORS_NCT6775
+ 	select HWMON_VID
+ 	help
+ 	  If you say yes here you get support for the hardware monitoring
+-	  functionality of the Nuvoton NCT6775F, NCT6776F, NCT6779D
+-	  and compatible Super-I/O chips. This driver replaces the
++	  functionality of the Nuvoton NCT6106D, NCT6775F, NCT6776F, NCT6779D,
++	  NCT6791D and compatible Super-I/O chips. This driver replaces the
+ 	  w83627ehf driver for NCT6775F and NCT6776F.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 59d9a3f..1c98655 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -4221,7 +4221,7 @@ static void __exit sensors_nct6775_exit(void)
+ }
+ 
+ MODULE_AUTHOR("Guenter Roeck <linux@roeck-us.net>");
+-MODULE_DESCRIPTION("NCT6775F/NCT6776F/NCT6779D driver");
++MODULE_DESCRIPTION("NCT6106D/NCT6775F/NCT6776F/NCT6779D/NCT6791D driver");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(sensors_nct6775_init);
+-- 
+1.9.1
+
 
 
 
