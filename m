@@ -1,102 +1,59 @@
-From: =?UTF-8?Q?=C3=89ric_Le_Bras?= <eric.lebras@gmail.com>
-Date: Fri, 25 Jul 2014 16:44:13 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 25 Jul 2014 16:58:10 +0000
 Subject: Re: [lm-sensors] Sensors configuration for Intel D201GLY2 motherboard
-Message-Id: <CAKWkBZjiz9+2x2s9Xw69eyh6oiJoL28DYOKvHppmeAcoi+gQ7A@mail.gmail.com>
+Message-Id: <20140725165810.GA7672@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAKWkBZiTFXYvuq8jH8y2+HzxtY2GdJD17_c=3k9PZBLvoFcSNA@mail.gmail.com>
 In-Reply-To: <CAKWkBZiTFXYvuq8jH8y2+HzxtY2GdJD17_c=3k9PZBLvoFcSNA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCgoyMDE0LTA3LTI1IDE3OjQ1IEdNVCswMjowMCBKZWFuIERlbHZhcmUgPGpkZWx2
-YXJlQHN1c2UuZGU+OgoKPiBIaSBFcmljLAo+Cj4gUGxlYXNlIGxlYXZlIHRoZSBsaXN0IENjJ2Qu
-Cj4KPiBPbiBGcmksIDI1IEp1bCAyMDE0IDE1OjU1OjA2ICswMjAwLCDDiXJpYyBMZSBCcmFzIHdy
-b3RlOgo+ID4gMjAxNC0wNy0yNSA5OjMxIEdNVCswMjowMCBKZWFuIERlbHZhcmUgPGpkZWx2YXJl
-QHN1c2UuZGU+Ogo+ID4gPiBPbiBXZWQsIDIzIEp1bCAyMDE0IDExOjA4OjE0ICswMjAwLCDDiXJp
-YyBMZSBCcmFzIHdyb3RlOgo+ID4gPiA+ICAgICBsYWJlbCB0ZW1wMSAiU3lzIHRlbXAiCj4gPiA+
-ID4gICAgIGxhYmVsIHRlbXAyICJ1bmtub3duIgo+ID4gPiA+ICAgICBsYWJlbCB0ZW1wMyAidW5r
-bm93biIKPiA+ID4KPiA+ID4gSWYgeW91IGRvbid0IGtub3csIGp1c3QgZG9uJ3QgcHV0IGxhYmVs
-cywgInVua25vd24iIGRvZXNuJ3QgYWRkIG11Y2gKPiA+ID4gdmFsdWUuIE9uZSBvZiB0aGVzZSBp
-cyBtb3N0IGNlcnRhaW5seSB0aGUgQ1BVIHRlbXBlcmF0dXJlLCBJJ20KPiA+ID4gc3VycHJpc2Vk
-IGl0J3Mgbm90IG9idmlvdXMuIFdoYXQgZG9lcyB0aGUgb3V0cHV0IG9mICJzZW5zb3JzCj4gPiA+
-IC1jIC9kZXYvbnVsbCIgc2F5Pwo+ID4KPiA+IHRlbXAyIHNlbnNvciBpcyBsYWJlbGVkIGFzIENQ
-VSBkaW9kZSwgc28gaXQgaXMgc29tZXdoYXQgcmVsYXRlZCB0byBDUFUKPiA+IHRlbXAuIEhvd2V2
-ZXIgdGhlcmUgaXMgYW5vdGhlciBtZWFzdXJlIHJlcG9ydGVkIGJ5ICJjb3JldGVtcCIgY2lyY3Vp
-dCwKPiA+IHdoaWNoIHJlcG9ydHMgdGhlIGV4YWN0IHRlbXBlcmF0dXJlIGRpc3BsYXllZCBieSB0
-aGUgQklPUy4gU28gd2hhdCBpcwo+ID4gZXhhY3RseSB0ZW1wMj8KPgoKPiBDb3JldGVtcCBpcyBh
-IGRpZ2l0YWwgcmVhZGluZyBzdHJhaWdodCBmcm9tIHRoZSBDUFUuIFJlYWN0cyB2ZXJ5IGZhc3Qs
-Cj4gZ29vZCBhY2N1cmFjeSBhdCBoaWdoIHRlbXBlcmF0dXJlcywgYnV0IHZlcnkgcG9vciBhY2N1
-cmFjeSBhdCBsb3cKPiB0ZW1wZXJhdHVyZXMuIFRoZSByZWFkaW5ncyBmcm9tIHRoZSBXODM2MjdE
-SEcgY2hpcCwgT1RPSCwgYXJlIGFuYWxvZwo+IHRlbXBlcmF0dXJlIG1lYXN1cmVtZW50cyB1c2lu
-ZyBkaW9kZXMgb3IgdGhlcm1pc3RvcnMuIFNvIGJvdGggY29yZXRlbXAKPiBhbmQgdGVtcDIgYXJl
-IHRoZSBDUFUgdGVtcGVyYXR1cmUsIGp1c3QgbWVhc3VyZWQgZGlmZmVyZW50bHkuCj4KCk9rLCBJ
-IGtlZXAgdGVtcDIgYW5kIGxhYmVsIGl0ICJDUFUgdGVtcCIKCgo+Cj4gPiBUZW1wMyBoYXMgYSB3
-ZWlyZCBiZWhhdmlvdXIuIEl0IGxvd2VycyB3aGVuIHRoZSBDUFUgbG9hZCBpbmNyZWFzZXMuIEkK
-PiA+IGVuY2xvc2VkIGEgZ3JhcGggZ2VuZXJhdGVkIHdpdGggc2Vuc29yZC4gVGhlIGN1cnZlIGZv
-ciB0ZW1wMyBoYXMgYW4KPiA+ICJpbnZlcnNlZCIgcHJvZmlsZSwgY29tcGFyZWQgdG8gb3RoZXIg
-dGVtcHMuCj4KPiBUaGF0IGRvZXMgbm90IG1lYW4gaXQncyB3cm9uZy4gWW91IHNob3VsZCBkcmF3
-IHRoZSBmYW4gc3BlZWQgdG9nZXRoZXIKPiB3aXRoIHRoZSB0ZW1wZXJhdHVyZXMuIEhpZ2hlciBD
-UFUgdGVtcGVyYXR1cmUgd2lsbCB0eXBpY2FsbHkgcmVzdWx0IGluCj4gYSBmYXN0ZXIgc3Bpbm5p
-bmcgZmFuLCB3aGljaCBpbiB0dXJuIGNhbiBsb3dlciB0aGUgdGVtcGVyYXR1cmUgb2YKPiBvdGhl
-ciBwYXJ0cyBvZiB0aGUgc3lzdGVtLiBUaGlzIGlzIGV2ZW4gbW9yZSBsaWtlbHkgZm9yIGEgc3lz
-dGVtCj4gd2l0aG91dCBhIENQVSBmYW4gd2hlcmUgdGhlIENQVSBjb29saW5nIGlzIGFjaGlldmVk
-IGJ5IHRoZSBjYXNlIGZhbi4KPgo+IDIwLjXCsEMgY291bGQgd2VsbCBiZSB0aGUgYW1iaWVudCB0
-ZW1wZXJhdHVyZSBpbnNpZGUgdGhlIGNhc2UsIGlmIGNhc2UKPiBjb29saW5nIGlzIHZlcnkgZ29v
-ZCBhbmQgdGhlIHJvb20gdGVtcGVyYXR1cmUgaXMgY29vbCB0b28uCj4KCk5vdCBzdXJlLiBGaXJz
-dCB0aGUgZmFuIGlzIG5vdCByZWd1bGF0ZWQsIHNvIGl0IHNwaW5zIGF0IGNvbnN0YW50IHNwZWVk
-LgpOZXh0LCBJIGxpdmUgaW4gc291dGhlcm4gRnJhbmNlLCBhbmQgdGhlIHJvb20gaGFzIG5vIEFD
-LCBzbyB0aGUgcm9vbQp0ZW1wZXJhdHVyZSBpcyBhcHByb3guIDI1wrBDIHRvZGF5LgoKCj4KPiA+
-IGVyaWNAdGFuZ2hhIC9ldGMvc2Vuc29ycy5kICUgc2Vuc29ycyAtYyAvZGV2L251bGwKPiA+IGNv
-cmV0ZW1wLWlzYS0wMDAwCj4gPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+ID4gQ29yZSAwOiAgICAg
-ICArNTUuMMKwQyAgKGhpZ2ggPSArMTAwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCj4gPgo+ID4g
-dzgzNjI3ZGhnLWlzYS0wMjkwCj4gPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+ID4gaW4wOiAgICAg
-ICAgICArMS4zNCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS43NCBWKQo+ID4gaW4xOiAg
-ICAgICAgICArMS43NCBWICAobWluID0gICsxLjY2IFYsIG1heCA9ICArMS44MyBWKQo+ID4gaW4y
-OiAgICAgICAgICArMy4yNSBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQo+ID4g
-aW4zOiAgICAgICAgICArMy4yNSBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQo+
-ID4gaW40OiAgICAgICAgICArMS44MSBWICAobWluID0gICsyLjA0IFYsIG1heCA9ICArMi4wNCBW
-KSAgQUxBUk0KPiA+IGluNTogICAgICAgICAgKzAuMTAgViAgKG1pbiA9ICArMS40MSBWLCBtYXgg
-PSAgKzEuNzIgVikgIEFMQVJNCj4gPiBpbjY6ICAgICAgICAgICsxLjU3IFYgIChtaW4gPSAgKzEu
-MzUgViwgbWF4ID0gICsxLjY1IFYpCj4gPiBpbjc6ICAgICAgICAgICszLjI1IFYgIChtaW4gPSAg
-KzIuOTggViwgbWF4ID0gICszLjYzIFYpCj4gPiBpbjg6ICAgICAgICAgICszLjA5IFYgIChtaW4g
-PSAgKzIuNzAgViwgbWF4ID0gICszLjYzIFYpCj4KPiBpbjUgaXMgd2F5IHRvbyBsb3cgdG8gYmUg
-YSBzY2FsZWQgKzVWLiBUaGlzIHN0cm9uZ2x5IHN1Z2dlc3RzIHRoYXQgaW40Cj4gaXMgKzVWIChh
-c3N1bWluZyBpbjEgaXMgcmVhbGx5ICsxMlYgLSBob3cgZG8geW91IGtub3cgdGhhdD8pIElmCj4g
-YW55dGhpbmcsIGluNSBjb3VsZCBvbmx5IGJlIGEgbmVnYXRpdmUgdm9sdGFnZSwgYnV0IGV2ZW4g
-dGhlbiBpdCBpcyB3YXkKPiB0b28gY2xvc2UgdG8gMFYgdG8gYmUgcGxhdXNpYmxlLiBTbyBJIHRo
-aW5rIGl0J3Mgbm90IGNvbm5lY3RlZCwgYW5kIGlzCj4gcmVwb3J0aW5nIG5vaXNlLgo+Cj4gSWYg
-d2UgYXNzdW1lIHRoYXQgaW40IGlzIDVWIHRoZW4gdGhlIHNjYWxpbmcgZmFjdG9yIHdvdWxkIGJl
-IGFyb3VuZAo+IDIuNzYuIEkgdXNlZCB0byBoYXZlIGFuIEludGVsIGJvYXJkIHdpdGggYSBzaW1p
-bGFyIG1vbml0b3JpbmcgY2hpcAo+IHdoZXJlICs1ViB3YXMgb24gaW40IGFuZCB0aGUgc2NhbGlu
-ZyBmYWN0b3Igd2FzOgo+Cj4gICAgY29tcHV0ZSBpbjQgIEAqKDErMTgvMTApLCAgQC8oMSsxOC8x
-MCkKPgo+IFRoYXQgbWlnaHQgd29yayBmb3IgeW91LiBJZiB5b3UgaGF2ZSBhIGdvb2QgbXVsdGlt
-ZXRlciwgeW91IGNhbiBjaGVjawo+IG9uIGEgbW9sZXggY29ubmVjdG9yIGlmIHRoZSByZXN1bHRp
-bmcgKzVWIHJlYWRpbmcgaXMgcmVhbGlzdGljIChrZWVwIGluCj4gbWluZCB0aGF0IHRoZSBtb25p
-dG9yaW5nIGNoaXAgdmFsdWUgaXMgdHlwaWNhbGx5IG5vdCBtb3JlIGFjY3VyYXRlIHRoYW4KPiAr
-Ly0gMiUuKQo+CgpJIHdpbGwgdHJ5IHRvIHZlcmlmeSBmb3IgaW40LgoKRm9yIHRoZSArMTJWLCBJ
-IGhhZCBvbmx5IG9uZSB2YWx1ZSBmb3VuZCBvbiB0aGUgd2ViICgxMi4wODQpLCBhbmQgSQpvYnNl
-cnZlZCAyIGRpZmZlcmVudHMgdmFsdWVzIG9uIHRoZSBCSU9TIG9uIG15IG93biBQQyAoMTEuOTM1
-IGFuZCAxMS45OTApLgoKVGhlIDEyViB3YXMgYWx0ZXJuaW5nIGJldHdlZW4gdGhlIDIgdmFsdWVz
-IDExLjkzNSBhbmQgMTEuOTkwLCBhbmQgb25seSBvbmUKb2YgdGhlIDMgcG9zc2libGVzIHNlbnNv
-cnMgKGluMSwgaW40IGFuZCBpbjUpIHdhcyBhbHRlcm5pbmcgYXQgdGhlIHNhbWUKdGltZSA6IGlu
-MSAoMS43MzYgYW5kIDEuNzQ0KS4KClRoZSBzaXRlIHNheXMgdGhlIGF0b21pYyBtZWFzdXJlIGZv
-ciB0aGUgVzgzNjI3REhHIGlzIDhtdi4gU28gSSB0cmllZCB3aXRoCmEgZGl2aXNvciBvZiA4LCBh
-bmQgZm91bmQgdGhhdCB0aGUgcmF0aW8gNTUvOCB3YXMgb2suIEl0IGdhdmUgZXhhY3RseSB0aGUK
-dGVtcGVyYXR1cmVzIGRpc3BsYXllZCBieSB0aGUgQklPUyB3aGVuIGFwcGxpZWQgdG8gaW4xLgoK
-Cj4KPiA+IGZhbjE6ICAgICAgICAzMDEzIFJQTSAgKG1pbiA9IDE2MDcgUlBNLCBkaXYgPSA4KQo+
-ID4gZmFuMjogICAgICAgICAgIDAgUlBNICAobWluID0gMTA1NDYgUlBNLCBkaXYgPSAxMjgpICBB
-TEFSTQo+ID4gZmFuMzogICAgICAgICAgIDAgUlBNICAobWluID0gMTA1NDYgUlBNLCBkaXYgPSAx
-MjgpICBBTEFSTQo+ID4gZmFuNDogICAgICAgICAgIDAgUlBNICAobWluID0gMTA1NDYgUlBNLCBk
-aXYgPSAxMjgpICBBTEFSTQo+ID4gdGVtcDE6ICAgICAgICArNDMuMMKwQyAgKGhpZ2ggPSArOTUu
-MMKwQywgaHlzdCA9ICs2MC4wwrBDKSAgc2Vuc29yID0KPiB0aGVybWlzdG9yCj4gPiB0ZW1wMjog
-ICAgICAgICs0OS41wrBDICAoaGlnaCA9ICsxMTAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vu
-c29yID0gQ1BVCj4gZGlvZGUKPiA+IHRlbXAzOiAgICAgICAgKzIwLjXCsEMgIChoaWdoID0gKzgw
-LjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9Cj4gdGhlcm1pc3Rvcgo+ID4gY3B1MF92
-aWQ6ICAgICswLjAwMCBWCj4gPiBpbnRydXNpb24wOiAgQUxBUk0KPgo+IFlvdSBjYW4gYWRkIGFu
-IGlnbm9yZSBzdGF0ZW1lbnQgZm9yIGNwdTBfdmlkIHRvbywgYXMgaXQgaXMgYXBwYXJlbnRseQo+
-IG5vdCBjb25uZWN0ZWQuCj4KPiAtLQo+IEplYW4gRGVsdmFyZQo+IFNVU0UgTDMgU3VwcG9ydAo+
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
-cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
-LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Fri, Jul 25, 2014 at 05:45:30PM +0200, Jean Delvare wrote:
+> Hi Eric,
+>=20
+> Please leave the list Cc'd.
+>=20
+> On Fri, 25 Jul 2014 15:55:06 +0200, =C9ric Le Bras wrote:
+> > 2014-07-25 9:31 GMT+02:00 Jean Delvare <jdelvare@suse.de>:
+> > > On Wed, 23 Jul 2014 11:08:14 +0200, =C9ric Le Bras wrote:
+> > > >     label temp1 "Sys temp"
+> > > >     label temp2 "unknown"
+> > > >     label temp3 "unknown"
+> > >
+> > > If you don't know, just don't put labels, "unknown" doesn't add much
+> > > value. One of these is most certainly the CPU temperature, I'm
+> > > surprised it's not obvious. What does the output of "sensors
+> > > -c /dev/null" say?
+> >=20
+> > temp2 sensor is labeled as CPU diode, so it is somewhat related to CPU
+> > temp. However there is another measure reported by "coretemp" circuit,
+> > which reports the exact temperature displayed by the BIOS. So what is
+> > exactly temp2?
+>=20
+> Coretemp is a digital reading straight from the CPU. Reacts very fast,
+> good accuracy at high temperatures, but very poor accuracy at low
+> temperatures. The readings from the W83627DHG chip, OTOH, are analog
+> temperature measurements using diodes or thermistors. So both coretemp
+> and temp2 are the CPU temperature, just measured differently.
+>=20
+> > Temp3 has a weird behaviour. It lowers when the CPU load increases. I
+> > enclosed a graph generated with sensord. The curve for temp3 has an
+> > "inversed" profile, compared to other temps.
+>=20
+> That does not mean it's wrong. You should draw the fan speed together
+> with the temperatures. Higher CPU temperature will typically result in
+> a faster spinning fan, which in turn can lower the temperature of
+> other parts of the system. This is even more likely for a system
+> without a CPU fan where the CPU cooling is achieved by the case fan.
+>=20
+Is it possible that temp3 is the temperature reported by the CPU through
+PECI and the chip reports the raw PECI value for some reason ?
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
