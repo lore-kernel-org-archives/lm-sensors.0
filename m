@@ -1,36 +1,26 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Fri, 25 Jul 2014 03:12:26 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (pwm-fan) Remove duplicate dev_set_drvdata call
-Message-Id: <1406257946.9778.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 25 Jul 2014 04:31:27 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (pwm-fan) Remove duplicate dev_set_drvdata call
+Message-Id: <53D1DD9F.3030401@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1406257946.9778.1.camel@phoenix>
+In-Reply-To: <1406257946.9778.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The dev_set_drvdata() call is equivalent to the platform_set_drvdata() call in
-next line.
+On 07/24/2014 08:12 PM, Axel Lin wrote:
+> The dev_set_drvdata() call is equivalent to the platform_set_drvdata() call in
+> next line.
+>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> ---
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/pwm-fan.c | 1 -
- 1 file changed, 1 deletion(-)
+Applied to -next.
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index ba7fe3e..d2507a6 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -110,7 +110,6 @@ static int pwm_fan_probe(struct platform_device *pdev)
- 		return PTR_ERR(ctx->pwm);
- 	}
- 
--	dev_set_drvdata(&pdev->dev, ctx);
- 	platform_set_drvdata(pdev, ctx);
- 
- 	/* Set duty cycle to maximum allowed */
--- 
-1.9.1
-
+Thanks,
+Guenter
 
 
 
