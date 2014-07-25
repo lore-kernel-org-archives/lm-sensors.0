@@ -1,7 +1,7 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 25 Jul 2014 07:31:04 +0000
+Date: Fri, 25 Jul 2014 15:45:30 +0000
 Subject: Re: [lm-sensors] Sensors configuration for Intel D201GLY2 motherboard
-Message-Id: <20140725093104.0e0af2b8@endymion.delvare>
+Message-Id: <20140725174530.6d006b5e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAKWkBZiTFXYvuq8jH8y2+HzxtY2GdJD17_c=3k9PZBLvoFcSNA@mail.gmail.com>
 In-Reply-To: <CAKWkBZiTFXYvuq8jH8y2+HzxtY2GdJD17_c=3k9PZBLvoFcSNA@mail.gmail.com>
@@ -12,76 +12,93 @@ To: lm-sensors@vger.kernel.org
 
 Hi Eric,
 
-On Wed, 23 Jul 2014 11:08:14 +0200, =C9ric Le Bras wrote:
-> Here is the configuration I made for the Intel D201GLY2 motherboard. I us=
-ed
-> BIOS values read from my system and on the Internet to find voltages labe=
-ls
-> and scaling factors.
->=20
-> Only the configurations specific to the board and not found in
-> sensors3.conf for w83627dhg have been kept.
->=20
-> # libsensors configuration file
-> # -----------------------------
-> #
-> # Configuration file for Intel D201GLY2 motherboard
-> # Hardware monitor subsystem controlled by Winbond W83627DHG-B I/O
-> controller.
-> # Created using information from BIOS and board documentation.
->=20
-> chip "w83627dhg-*"
->=20
->     label in1 "+12.0V"
->     label in6 "+1.5V"
->=20
-> # in4 and in5 report values, oviously one of the two is for the +5V, howe=
-ver
-> # none of them is reported by the BIOS.
+Please leave the list Cc'd.
 
-Odd :(
+On Fri, 25 Jul 2014 15:55:06 +0200, =C9ric Le Bras wrote:
+> 2014-07-25 9:31 GMT+02:00 Jean Delvare <jdelvare@suse.de>:
+> > On Wed, 23 Jul 2014 11:08:14 +0200, =C9ric Le Bras wrote:
+> > >     label temp1 "Sys temp"
+> > >     label temp2 "unknown"
+> > >     label temp3 "unknown"
+> >
+> > If you don't know, just don't put labels, "unknown" doesn't add much
+> > value. One of these is most certainly the CPU temperature, I'm
+> > surprised it's not obvious. What does the output of "sensors
+> > -c /dev/null" say?
+>=20
+> temp2 sensor is labeled as CPU diode, so it is somewhat related to CPU
+> temp. However there is another measure reported by "coretemp" circuit,
+> which reports the exact temperature displayed by the BIOS. So what is
+> exactly temp2?
 
->     ignore in4
->     ignore in5
->=20
->     compute in1 @*(55/8),@/(55/8)
->=20
->     set in1_min 12.0 * 0.90
->     set in1_max 12.0 * 1.10
+Coretemp is a digital reading straight from the CPU. Reacts very fast,
+good accuracy at high temperatures, but very poor accuracy at low
+temperatures. The readings from the W83627DHG chip, OTOH, are analog
+temperature measurements using diodes or thermistors. So both coretemp
+and temp2 are the CPU temperature, just measured differently.
 
-The ATX standard says +12V is +/- 5%.
+> Temp3 has a weird behaviour. It lowers when the CPU load increases. I
+> enclosed a graph generated with sensord. The curve for temp3 has an
+> "inversed" profile, compared to other temps.
 
->     set in6_min  1.5 * 0.90
->     set in6_max  1.5 * 1.10
->=20
->     label fan1 "Chassis fan"
->     label fan2 "CPU fan"
->=20
-> # By default the D201GLY2 has a passive heatsink. If the optional active
-> # heatsink is present, then one of the following lines is to be commented=
- out
-> # (very likely fan2, though not tried).
->     ignore fan2
->     ignore fan3
->     ignore fan4
->=20
->     label temp1 "Sys temp"
->     label temp2 "unknown"
->     label temp3 "unknown"
+That does not mean it's wrong. You should draw the fan speed together
+with the temperatures. Higher CPU temperature will typically result in
+a faster spinning fan, which in turn can lower the temperature of
+other parts of the system. This is even more likely for a system
+without a CPU fan where the CPU cooling is achieved by the case fan.
 
-If you don't know, just don't put labels, "unknown" doesn't add much
-value. One of these is most certainly the CPU temperature, I'm
-surprised it's not obvious. What does the output of "sensors
--c /dev/null" say?
+20.5=B0C could well be the ambient temperature inside the case, if case
+cooling is very good and the room temperature is cool too.
 
+> eric@tangha /etc/sensors.d % sensors -c /dev/null
+> coretemp-isa-0000
+> Adapter: ISA adapter
+> Core 0:       +55.0=B0C  (high =3D +100.0=B0C, crit =3D +100.0=B0C)
 >=20
->     ignore intrusion0
->=20
->=20
+> w83627dhg-isa-0290
+> Adapter: ISA adapter
+> in0:          +1.34 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+> in1:          +1.74 V  (min =3D  +1.66 V, max =3D  +1.83 V)
+> in2:          +3.25 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+> in3:          +3.25 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+> in4:          +1.81 V  (min =3D  +2.04 V, max =3D  +2.04 V)  ALARM
+> in5:          +0.10 V  (min =3D  +1.41 V, max =3D  +1.72 V)  ALARM
+> in6:          +1.57 V  (min =3D  +1.35 V, max =3D  +1.65 V)
+> in7:          +3.25 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+> in8:          +3.09 V  (min =3D  +2.70 V, max =3D  +3.63 V)
 
-Thanks for your contribution, I've added it as:
+in5 is way too low to be a scaled +5V. This strongly suggests that in4
+is +5V (assuming in1 is really +12V - how do you know that?) If
+anything, in5 could only be a negative voltage, but even then it is way
+too close to 0V to be plausible. So I think it's not connected, and is
+reporting noise.
 
-http://www.lm-sensors.org/wiki/Configurations/Intel/D201GLY2
+If we assume that in4 is 5V then the scaling factor would be around
+2.76. I used to have an Intel board with a similar monitoring chip
+where +5V was on in4 and the scaling factor was:
+
+   compute in4  @*(1+18/10),  @/(1+18/10)
+
+That might work for you. If you have a good multimeter, you can check
+on a molex connector if the resulting +5V reading is realistic (keep in
+mind that the monitoring chip value is typically not more accurate than
++/- 2%.)
+
+> fan1:        3013 RPM  (min =3D 1607 RPM, div =3D 8)
+> fan2:           0 RPM  (min =3D 10546 RPM, div =3D 128)  ALARM
+> fan3:           0 RPM  (min =3D 10546 RPM, div =3D 128)  ALARM
+> fan4:           0 RPM  (min =3D 10546 RPM, div =3D 128)  ALARM
+> temp1:        +43.0=B0C  (high =3D +95.0=B0C, hyst =3D +60.0=B0C)  sensor=
+ =3D thermistor
+> temp2:        +49.5=B0C  (high =3D +110.0=B0C, hyst =3D +75.0=B0C)  senso=
+r =3D CPU diode
+> temp3:        +20.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor=
+ =3D thermistor
+> cpu0_vid:    +0.000 V
+> intrusion0:  ALARM
+
+You can add an ignore statement for cpu0_vid too, as it is apparently
+not connected.
 
 --=20
 Jean Delvare
