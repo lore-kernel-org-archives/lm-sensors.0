@@ -1,52 +1,26 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Fri, 25 Jul 2014 03:14:33 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (pwm-fan) Add proper #ifdef CONFIG_OF guard for of_device_id table
-Message-Id: <1406258073.9778.3.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 25 Jul 2014 04:29:34 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (pwm-fan) Add proper #ifdef CONFIG_OF guard for of_device_id tab
+Message-Id: <53D1DD2E.2090704@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1406258073.9778.3.camel@phoenix>
+In-Reply-To: <1406258073.9778.3.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use of_match_ptr and proper #ifdef CONFIG_OF guard for of_device_id table.
-Also makes of_pwm_fan_match const.
+On 07/24/2014 08:14 PM, Axel Lin wrote:
+> Use of_match_ptr and proper #ifdef CONFIG_OF guard for of_device_id table.
+> Also makes of_pwm_fan_match const.
+>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/pwm-fan.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+The driver won't instantiate if OF is not configured.
+Given that, I'd rather keep the code as is, because it does compile
+without CONFIG_OF, so the ifdef is not really technically necessary.
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index d2507a6..5354c36 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -170,10 +170,12 @@ static int pwm_fan_resume(struct device *dev)
- 
- static SIMPLE_DEV_PM_OPS(pwm_fan_pm, pwm_fan_suspend, pwm_fan_resume);
- 
--static struct of_device_id of_pwm_fan_match[] = {
-+#ifdef CONFIG_OF
-+static const struct of_device_id of_pwm_fan_match[] = {
- 	{ .compatible = "pwm-fan", },
- 	{},
- };
-+#endif
- 
- static struct platform_driver pwm_fan_driver = {
- 	.probe		= pwm_fan_probe,
-@@ -181,7 +183,7 @@ static struct platform_driver pwm_fan_driver = {
- 	.driver	= {
- 		.name		= "pwm-fan",
- 		.pm		= &pwm_fan_pm,
--		.of_match_table	= of_pwm_fan_match,
-+		.of_match_table	= of_match_ptr(of_pwm_fan_match),
- 	},
- };
- 
--- 
-1.9.1
-
-
+Guenter
 
 
 _______________________________________________
