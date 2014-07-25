@@ -1,26 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 25 Jul 2014 04:31:27 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (pwm-fan) Remove duplicate dev_set_drvdata call
-Message-Id: <53D1DD9F.3030401@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Fri, 25 Jul 2014 14:19:35 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (pwm-fan) Make SENSORS_PWM_FAN depend on OF
+Message-Id: <1406297975.4906.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1406257946.9778.1.camel@phoenix>
-In-Reply-To: <1406257946.9778.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/24/2014 08:12 PM, Axel Lin wrote:
-> The dev_set_drvdata() call is equivalent to the platform_set_drvdata() call in
-> next line.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
+This driver won't instantiate if OF is not configured, thus add OF dependency.
+Also add COMPILE_TEST to increase build testing coverage.
 
-Applied to -next.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index b93ab97..b9a2764 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1130,7 +1130,7 @@ source drivers/hwmon/pmbus/Kconfig
+ 
+ config SENSORS_PWM_FAN
+ 	tristate "PWM fan"
+-	depends on PWM
++	depends on (PWM && OF) || COMPILE_TEST
+ 	help
+ 	  If you say yes here you get support for fans connected to PWM lines.
+ 	  The driver uses the generic PWM interface, thus it will work on a
+-- 
+1.9.1
+
 
 
 
