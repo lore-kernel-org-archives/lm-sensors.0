@@ -1,31 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 09 Jul 2014 01:33:37 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH v2 1/2] hwmon: (da9052) Don't use dash in the name attribute
-Message-Id: <53BC9BF1.40305@roeck-us.net>
+From: weiyj_lk@163.com
+Date: Mon, 28 Jul 2014 13:17:58 +0000
+Subject: [lm-sensors] [PATCH -next] hwmon: (pwm-fan) Fix sparse NULL pointer warning
+Message-Id: <1406553478-29767-1-git-send-email-weiyj_lk@163.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1404868739.12195.1.camel@phoenix>
-In-Reply-To: <1404868739.12195.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/08/2014 06:18 PM, Axel Lin wrote:
-> Dashes are not allowed in hwmon name attributes.
-> So now use "da9052" instead of "da9052-hwmon" in name attribue.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-s/attribue/attribute/
+Fixes the following sparse warnings:
 
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> Cc: stable@vger.kernel.org
+drivers/hwmon/pwm-fan.c:107:67: warning: Using plain integer as NULL pointer
 
-Applied.
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/hwmon/pwm-fan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Fyi, you don't need to send the e-mail to stable@ yourself; the tag takes care of it.
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index ba7fe3e..af30dd6 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -104,7 +104,7 @@ static int pwm_fan_probe(struct platform_device *pdev)
+ 
+ 	mutex_init(&ctx->lock);
+ 
+-	ctx->pwm = devm_of_pwm_get(&pdev->dev, pdev->dev.of_node, 0);
++	ctx->pwm = devm_of_pwm_get(&pdev->dev, pdev->dev.of_node, NULL);
+ 	if (IS_ERR(ctx->pwm)) {
+ 		dev_err(&pdev->dev, "Could not get PWM\n");
+ 		return PTR_ERR(ctx->pwm);
 
 
 _______________________________________________
