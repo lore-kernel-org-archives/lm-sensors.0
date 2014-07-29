@@ -1,49 +1,24 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Tue, 29 Jul 2014 15:06:22 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (max6697) Use of_property_read_bool at appropriate places
-Message-Id: <1406646382.6132.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 29 Jul 2014 16:47:13 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (max6697) Use of_property_read_bool at appropriate places
+Message-Id: <20140729164713.GA28543@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1406646382.6132.1.camel@phoenix>
+In-Reply-To: <1406646382.6132.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This slightly improves readability.
+On Tue, Jul 29, 2014 at 11:06:22PM +0800, Axel Lin wrote:
+> This slightly improves readability.
+> 
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/max6697.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+Applied to -next.
 
-diff --git a/drivers/hwmon/max6697.c b/drivers/hwmon/max6697.c
-index 7fd3eaf..f03a717 100644
---- a/drivers/hwmon/max6697.c
-+++ b/drivers/hwmon/max6697.c
-@@ -495,15 +495,13 @@ static void max6697_get_config_of(struct device_node *node,
- 	int len;
- 	const __be32 *prop;
- 
--	prop = of_get_property(node, "smbus-timeout-disable", &len);
--	if (prop)
--		pdata->smbus_timeout_disable = true;
--	prop = of_get_property(node, "extended-range-enable", &len);
--	if (prop)
--		pdata->extended_range_enable = true;
--	prop = of_get_property(node, "beta-compensation-enable", &len);
--	if (prop)
--		pdata->beta_compensation = true;
-+	pdata->smbus_timeout_disable +		of_property_read_bool(node, "smbus-timeout-disable");
-+	pdata->extended_range_enable +		of_property_read_bool(node, "extended-range-enable");
-+	pdata->beta_compensation +		of_property_read_bool(node, "beta-compensation-enable");
-+
- 	prop = of_get_property(node, "alert-mask", &len);
- 	if (prop && len = sizeof(u32))
- 		pdata->alert_mask = be32_to_cpu(prop[0]);
--- 
-1.9.1
-
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
