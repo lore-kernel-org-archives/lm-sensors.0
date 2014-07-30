@@ -1,65 +1,47 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 20 Jul 2014 23:44:42 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (tmp421) Add support for TMP441 and TMP442
-Message-Id: <53CC546A.5030707@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 30 Jul 2014 10:35:01 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (lm92) Prevent overflow problem when writing large limits
+Message-Id: <1406716501.28163.3.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1404680101-8843-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1404680101-8843-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/20/2014 10:08 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun,  6 Jul 2014 13:55:00 -0700, Guenter Roeck wrote:
->> TMP441 and TMP442 are compatible to TMP421 and TMP422.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   Documentation/hwmon/tmp421 | 22 +++++++++++++++-------
->>   drivers/hwmon/Kconfig      |  2 +-
->>   drivers/hwmon/tmp421.c     | 19 ++++++++++++++++---
->>   3 files changed, 32 insertions(+), 11 deletions(-)
->>
->> diff --git a/Documentation/hwmon/tmp421 b/Documentation/hwmon/tmp421
->> index d0e7714..eac5423 100644
->> --- a/Documentation/hwmon/tmp421
->> +++ b/Documentation/hwmon/tmp421
->> @@ -14,6 +14,14 @@ Supported chips:
->>       Prefix: 'tmp423'
->>       Addresses scanned: I2C 0x4c and 0x4d
->>       Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp421.html
->> +  * Texas Instruments TMP441
->> +    Prefix: 'tmp441'
->> +    Addresses scanned: I2C 0x2a, 0x4c, 0x4d, 0x4e and 0x4f
->> +    Datasheet: http://www.ti.com/product/tmp441
->> +  * Texas Instruments TMP442
->> +    Prefix: 'tmp442'
->> +    Addresses scanned: I2C 0x4c and 0x4d
->> +    Datasheet: http://www.ti.com/product/tmp441
->
-> /tmp442
->
->>
->>   Authors:
->>   	Andre Prendel <andre.prendel@gmx.de>
->> (...)
->
-> Everything else looks good. You may want to update the
-> MODULE_DESCRIPTION too, as it says TMP421/422/423.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-> Please also add the TMP441 and TMP442 to wiki/Devices.
->
+On platforms with sizeof(int) < sizeof(long), writing a temperature
+limit larger than MAXINT will result in unpredictable limit values
+written to the chip. Avoid auto-conversion from long to int to fix
+the problem.
 
-Fixed, and done.
+Also uses clamp_val to simplify the code a bit.
 
-Thanks a lot for the reviews!
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/lm92.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-Guenter
+diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
+index d2060e2..3dbced2 100644
+--- a/drivers/hwmon/lm92.c
++++ b/drivers/hwmon/lm92.c
+@@ -74,12 +74,9 @@ static inline int TEMP_FROM_REG(s16 reg)
+ 	return reg / 8 * 625 / 10;
+ }
+ 
+-static inline s16 TEMP_TO_REG(int val)
++static inline s16 TEMP_TO_REG(long val)
+ {
+-	if (val <= -60000)
+-		return -60000 * 10 / 625 * 8;
+-	if (val >= 160000)
+-		return 160000 * 10 / 625 * 8;
++	val = clamp_val(val, -60000, 160000);
+ 	return val * 10 / 625 * 8;
+ }
+ 
+-- 
+1.9.1
+
 
 
 
