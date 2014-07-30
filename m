@@ -1,38 +1,27 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Wed, 30 Jul 2014 03:13:52 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (ads1015) Fix off-by-one for valid channel index checking
-Message-Id: <1406690032.6636.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 30 Jul 2014 03:28:15 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (ads1015) Fix off-by-one for valid channel index checking
+Message-Id: <53D8664F.9010304@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1406690032.6636.1.camel@phoenix>
+In-Reply-To: <1406690032.6636.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Current code uses channel as array index, so the valid channel value is
-0 .. ADS1015_CHANNELS - 1.
+On 07/29/2014 08:13 PM, Axel Lin wrote:
+> Current code uses channel as array index, so the valid channel value is
+> 0 .. ADS1015_CHANNELS - 1.
+>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/ads1015.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Amazing. How do you find this stuff ?
 
-diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-index 7f9dc2f..22e0c92 100644
---- a/drivers/hwmon/ads1015.c
-+++ b/drivers/hwmon/ads1015.c
-@@ -198,7 +198,7 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
- 		}
- 
- 		channel = be32_to_cpup(property);
--		if (channel > ADS1015_CHANNELS) {
-+		if (channel >= ADS1015_CHANNELS) {
- 			dev_err(&client->dev,
- 				"invalid channel index %d on %s\n",
- 				channel, node->full_name);
--- 
-1.9.1
+Applied.
 
-
+Thanks,
+Guenter
 
 
 _______________________________________________
