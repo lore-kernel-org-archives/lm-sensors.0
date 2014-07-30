@@ -1,32 +1,27 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 20 Jul 2014 04:07:38 +0000
-Subject: Re: [lm-sensors] [RFT][PATCH] hwmon: (g762) Convert to hwmon_device_register_with_groups
-Message-Id: <53CB408A.5090601@roeck-us.net>
+From: "Zvi Vered" <veredz72@gmail.com>
+Date: Wed, 30 Jul 2014 17:59:15 +0000
+Subject: [lm-sensors] Problem in sending I2C message from SMBus Intel's controller to a slave device
+Message-Id: <0C5FB4BA9524443595534D6ECF9E3D51@ZviVeredPC>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1405780184.15902.3.camel@phoenix>
-In-Reply-To: <1405780184.15902.3.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/19/2014 07:29 AM, Axel Lin wrote:
-> Use ATTRIBUTE_GROUPS macro and hwmon_device_register_with_groups() to simplify
-> the code a bit.
->
-> Use hwmon_device_register_with_groups rather than the device managed version to
-> ensure g762_of_clock_disable() is called after hwmon_device_unregister().
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-
-Applied to -next.
-
-Thanks,
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGVsbG8sCgpGcm9tIGFuIEludGVsknMgQVRPTSBJIHdhbnQgdG8gc2VuZCBhbiBJMkMgbWVzc2Fn
+ZSBmcm9tIFNNQnVzIGNvbnRyb2xsZXIgdG8gCmEgVEmScyBtaWNyb2NvbnRyb2xsZXIgY29uZmln
+dXJlZCBhcyBhbiBJMkMgc2xhdmUuCgpJIHVzZWQgdGhlIGZvbGxvd2luZyBjb2RlOgoKaGFuZGxl
+ID0gZm9wZW4gKJMvZGV2L2kyYy0xNJQsT19SRFdSKTsgLy9vcGVuIFNNQlVzIGNvbnRyb2xsZXIK
+CmlvY3RsIChoYW5kbGUsIEkyQ19TTEFWRSwgMHg0Myk7ICAvL3NldCBJMkMgc2xhdmUgZGVzdGlu
+YXRpb24gYWRkcmVzcwoKaTJjX3NtYnVzX3dyaXRlX2Jsb2NrX2RhdGEgKGhhbmRsZSwgMHgwMCwg
+MTYsIGJ1ZmZlcik7IC8vc2VuZCAxNiBieXRlcyAKbWVzc2FnZSwgY29tbWFuZCA9IDB4MDAKClRo
+ZSBtZXNzYWdlIEkgd2FudCB0byBzZW5kIGlzOiAweEFELCAweDJELCAweEZFLCAweENBLCAuLi4u
+LiAweDAwICAoMTYgCmJ5dGVzKQoKSZJtIHVzaW5nIEkyQyBzbmlmZmVyIHRvIHNlZSB3aGF0IEkg
+c2VudCBhbmQgd2hhdCBJIHNlZSBpczoKCjB4MDAsIDB4MTAsIDB4QUQsIDB4MkQsIDB4RkUsIDB4
+Q0EsIC4uLi4uCgpJdCBzZWVtcyB0aGUgcmVnaXN0ZXIgKGNvbW1hbmQpIGFuZCBsZW5ndGggYXJl
+IGFsc28gc2VudC4KClRoZSBNQ1UgZXhwZWN0IHB1cmUgZGF0YSB3aXRob3V0IHRoZSAyIGJ5dGVz
+OiAweDAwLCAweDEwCgpUaGUgYWJvdmUgY29kZSBydW5zIHVuZGVyIHZhbmlsbGEgbGludXggMy4y
+LjQ4CgpDYW4geW91IGhlbHAgPwoKVGhhbmtzLApaLlYKCgoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycw=
