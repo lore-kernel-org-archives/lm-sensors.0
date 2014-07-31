@@ -1,7 +1,7 @@
-From: "Zvi Vered" <veredz72@gmail.com>
-Date: Wed, 30 Jul 2014 20:22:17 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 31 Jul 2014 05:18:25 +0000
 Subject: Re: [lm-sensors] Problem in sending I2C message from SMBus Intel's controller to a slave device
-Message-Id: <349E59B95DEC401EA8840DF633C2B1A8@ZviVeredPC>
+Message-Id: <20140731071825.63f4f55b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <0C5FB4BA9524443595534D6ECF9E3D51@ZviVeredPC>
 In-Reply-To: <0C5FB4BA9524443595534D6ECF9E3D51@ZviVeredPC>
@@ -10,25 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCkRvIHlvdSBtZWFuIHRoZSBsaXN0IGluIDpodHRwOi8vdmdlci5rZXJuZWwub3Jn
-L3ZnZXItbGlzdHMuaHRtbCNsaW51eC1pMmMgPwoKVGhhbmtzLApadmlrYQoKLS0tLS1PcmlnaW5h
-bCBNZXNzYWdlLS0tLS0gCkZyb206IFp2aSBWZXJlZApTZW50OiBXZWRuZXNkYXksIEp1bHkgMzAs
-IDIwMTQgODo1OSBQTQpUbzogbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpTdWJqZWN0OiBQcm9i
-bGVtIGluIHNlbmRpbmcgSTJDIG1lc3NhZ2UgZnJvbSBTTUJ1cyBJbnRlbCdzIGNvbnRyb2xsZXIg
-dG8gYSAKc2xhdmUgZGV2aWNlCgpIZWxsbywKCkZyb20gYW4gSW50ZWyScyBBVE9NIEkgd2FudCB0
-byBzZW5kIGFuIEkyQyBtZXNzYWdlIGZyb20gU01CdXMgY29udHJvbGxlciB0bwphIFRJknMgbWlj
-cm9jb250cm9sbGVyIGNvbmZpZ3VyZWQgYXMgYW4gSTJDIHNsYXZlLgoKSSB1c2VkIHRoZSBmb2xs
-b3dpbmcgY29kZToKCmhhbmRsZSA9IGZvcGVuICiTL2Rldi9pMmMtMTSULE9fUkRXUik7IC8vb3Bl
-biBTTUJVcyBjb250cm9sbGVyCgppb2N0bCAoaGFuZGxlLCBJMkNfU0xBVkUsIDB4NDMpOyAgLy9z
-ZXQgSTJDIHNsYXZlIGRlc3RpbmF0aW9uIGFkZHJlc3MKCmkyY19zbWJ1c193cml0ZV9ibG9ja19k
-YXRhIChoYW5kbGUsIDB4MDAsIDE2LCBidWZmZXIpOyAvL3NlbmQgMTYgYnl0ZXMKbWVzc2FnZSwg
-Y29tbWFuZCA9IDB4MDAKClRoZSBtZXNzYWdlIEkgd2FudCB0byBzZW5kIGlzOiAweEFELCAweDJE
-LCAweEZFLCAweENBLCAuLi4uLiAweDAwICAoMTYKYnl0ZXMpCgpJkm0gdXNpbmcgSTJDIHNuaWZm
-ZXIgdG8gc2VlIHdoYXQgSSBzZW50IGFuZCB3aGF0IEkgc2VlIGlzOgoKMHgwMCwgMHgxMCwgMHhB
-RCwgMHgyRCwgMHhGRSwgMHhDQSwgLi4uLi4KCkl0IHNlZW1zIHRoZSByZWdpc3RlciAoY29tbWFu
-ZCkgYW5kIGxlbmd0aCBhcmUgYWxzbyBzZW50LgoKVGhlIE1DVSBleHBlY3QgcHVyZSBkYXRhIHdp
-dGhvdXQgdGhlIDIgYnl0ZXM6IDB4MDAsIDB4MTAKClRoZSBhYm92ZSBjb2RlIHJ1bnMgdW5kZXIg
-dmFuaWxsYSBsaW51eCAzLjIuNDgKCkNhbiB5b3UgaGVscCA/CgpUaGFua3MsClouVgoKCgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
-YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
-c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Wed, 30 Jul 2014 23:22:17 +0300, Zvi Vered wrote:
+> Hi Jean,
+> 
+> Do you mean the list in :http://vger.kernel.org/vger-lists.html#linux-i2c ?
+
+Yes.
+
+-- 
+Jean Delvare
+SUSE L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
