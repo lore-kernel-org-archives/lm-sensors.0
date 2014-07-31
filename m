@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 31 Jul 2014 14:29:48 +0000
+Date: Thu, 31 Jul 2014 14:46:46 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/2] hwmon: (lm77) Prevent overflow problem when writing large limits
-Message-Id: <53DA52DC.5000402@roeck-us.net>
+Message-Id: <53DA56D6.9010706@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1406791851.7637.1.camel@phoenix>
 In-Reply-To: <1406791851.7637.1.camel@phoenix>
@@ -42,6 +42,12 @@ On 07/31/2014 12:30 AM, Axel Lin wrote:
 > -	data->temp[nr] = val;
 > +	data->temp[nr] = clamp_val(val, LM77_TEMP_MIN, LM77_TEMP_MAX);
 >   	lm77_write_value(client, temp_regs[nr], LM77_TEMP_TO_REG(val));
+
+Found it: Clamp applied to data->temp[nr], but you are still using val here.
+Has to be LM77_TEMP_TO_REG(data->temp[nr]).
+
+Guenter
+
 >   	mutex_unlock(&data->update_lock);
 >   	return count;
 > @@ -199,6 +198,7 @@ static ssize_t set_temp_hyst(struct device *dev,
@@ -49,32 +55,10 @@ On 07/31/2014 12:30 AM, Axel Lin wrote:
 >   		return err;
 >
 > +	val = clamp_val(val, LM77_TEMP_MIN, LM77_TEMP_MAX);
-
-Unfortunately that doesn't work, for a number of reasons.
-First, the temperature is read as unsigned and stored in an unsigned long.
-This is wrong; nothing in the datasheet suggests that the value (the absolute
-temperature) must be positive.
-
-Second, the value written into the register is actually based on ...
-
 >   	mutex_lock(&data->update_lock);
 >   	data->temp[t_hyst] = data->temp[t_crit] - val;
-
-"data->temp[t_crit] - val", so applying the clamp on val won't help since
-the final value can still be out of range. Changing the code to use
-long / kstrtol and to
-	val = clamp_val(data->temp[t_crit] - val, LM77_TEMP_MIN, LM77_TEMP_MAX);
-         data->temp[t_hyst] = val;
-solved the problem and made my test happy.
-
-Unfortunately, there is yet another problem: The cached value after a write and
-the temperature read back from the chip after the cache expires do not match.
-Specifically, writing a large value as limit returns 125000 initially,
-but 1696000 (!) after the cache expires. Right now I have no idea how that happens.
-Unfortunately I won't have time to track it down before early next week.
-
-Thanks,
-Guenter
+>   	lm77_write_value(client, LM77_REG_TEMP_HYST,
+>
 
 
 _______________________________________________
