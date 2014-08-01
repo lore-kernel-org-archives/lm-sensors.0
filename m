@@ -1,42 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 22 Aug 2014 09:04:43 +0000
-Subject: Re: [lm-sensors] [PATCH v4 4/4] drivers/hwmon/menf21bmc_hwmon: introduce MEN14F021P00 BMC HWMON driv
-Message-Id: <20140822090443.GB13483@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Fri, 01 Aug 2014 02:03:09 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (ads1015) Fix out-of-bounds array access
+Message-Id: <1406858589.21842.2.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1407918792.git.andreas.werner@men.de>
- <cf0593273cbadcb16b094b7bc3bd9d3b5a93f7ed.1407918792.git.andreas.werner@men.de>
- <20140821184501.GC16045@roeck-us.net>
- <20140822083930.GB453@awelinux>
-In-Reply-To: <20140822083930.GB453@awelinux>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andreas Werner <andreas.werner@men.de>
-Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Fri, Aug 22, 2014 at 10:39:31AM +0200, Andreas Werner wrote:
-> On Thu, Aug 21, 2014 at 11:45:01AM -0700, Guenter Roeck wrote:
-> > On Wed, Aug 13, 2014 at 10:40:37AM +0200, Andreas Werner wrote:
-> > > Added driver to support the 14F021P00 BMC Hardware Monitoring.
-> > > The BMC is a Board Management Controller including monitoring of the
-> > > board voltages.
-> > > 
-> > > Signed-off-by: Andreas Werner <andreas.werner@men.de>
-> > > ---
-> > >  drivers/hwmon/Kconfig           |   7 ++
-> > >  drivers/hwmon/Makefile          |   1 +
-> > >  drivers/hwmon/menf21bmc_hwmon.c | 238 ++++++++++++++++++++++++++++++++++++++++
-> > 
-> > Forgot: Please also provide Documentation/hwmon/menf21bmc.
-> > 
-> 
-> Did not know that i have to do it.
-> But you are right it is good to have one.
-> 
-Documentation/hwmon/submitting-patches is quite useful.
+Current code uses data_rate as array index in ads1015_read_adc() and uses pga
+as array index in ads1015_reg_to_mv, so we must make sure both data_rate and
+pga settings are in valid value range. If the setting is out-of-range, don't
+apply it.
 
-Thanks,
-Guenter
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ads1015.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index 22e0c92..db7a448 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -212,6 +212,7 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 				dev_err(&client->dev,
+ 					"invalid gain on %s\n",
+ 					node->full_name);
++				continue;
+ 			}
+ 		}
+ 
+@@ -222,6 +223,7 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 				dev_err(&client->dev,
+ 					"invalid data_rate on %s\n",
+ 					node->full_name);
++				continue;
+ 			}
+ 		}
+ 
+-- 
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
