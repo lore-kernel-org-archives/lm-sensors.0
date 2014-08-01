@@ -1,39 +1,47 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Date: Mon, 25 Aug 2014 15:57:55 +0000
-Subject: Re: [lm-sensors] [PATCH] iio:inkern: fix overwritten -EPROBE_DEFER in of_iio_channel_get_by_name
-Message-Id: <53FB5D03.40509@kernel.org>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Fri, 01 Aug 2014 02:07:25 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (g762) Use of_property_read_u32 at appropriate place
+Message-Id: <1406858845.21842.5.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1472905.aEm3bdqRZp@lenovobook> <53FB17A6.5000008@roeck-us.net>
-In-Reply-To: <53FB17A6.5000008@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Johannes Pointner <johannes.pointner@gmail.com>
-Cc: linux-iio@vger.kernel.org, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On 25/08/14 12:01, Guenter Roeck wrote:
-> On 08/25/2014 01:04 AM, Johannes Pointner wrote:
->> This patch fixes the overwritten -EPROBE_DEFER return value in of_iio_channel_get_by_name.
->>
->> Signed-off-by: Johannes Pointner <johannes.pointner@br-automation.com>
-> 
-> Fixes: a2c12493ed7e ('iio: of_iio_channel_get_by_name() returns non-null pointers for error legs')
-> 
-> which improperly assumes that of_iio_channel_get_by_name must always
-> return NULL and thus now hides -EPROBE_DEFER.
-> 
-> Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-Applied to the fixes-togreg branch of iio.git with Guenter's more specific
-patch description.  Also marked for stable.
+Simplify the code a bit and also improve readability.
 
-Thanks to both of you for this fix!
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/g762.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-J
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/hwmon/g762.c b/drivers/hwmon/g762.c
+index 7dbc8c9..6aac695 100644
+--- a/drivers/hwmon/g762.c
++++ b/drivers/hwmon/g762.c
+@@ -649,15 +649,12 @@ static int g762_of_prop_import_one(struct i2c_client *client,
+ 				   int (*psetter)(struct device *dev,
+ 						  unsigned long val))
+ {
+-	const __be32 *prop;
+-	int len, ret;
++	int ret;
+ 	u32 pval;
+ 
+-	prop = of_get_property(client->dev.of_node, pname, &len);
+-	if (!prop || len != sizeof(u32))
++	if (of_property_read_u32(client->dev.of_node, pname, &pval))
+ 		return 0;
+ 
+-	pval = be32_to_cpu(prop[0]);
+ 	dev_dbg(&client->dev, "found %s (%d)\n", pname, pval);
+ 	ret = (*psetter)(&client->dev, pval);
+ 	if (ret)
+-- 
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
