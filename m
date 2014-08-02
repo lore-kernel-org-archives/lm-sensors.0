@@ -1,25 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 04 Aug 2014 16:17:51 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (sis5595) Prevent overflow problem when writing large limits
-Message-Id: <20140804161751.GA12852@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sat, 02 Aug 2014 06:28:52 +0000
+Subject: [lm-sensors] [PATCH v2 2/2] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
+Message-Id: <1406960932.15669.3.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jul 31, 2014 at 10:27:04PM +0800, Axel Lin wrote:
-> On platforms with sizeof(int) < sizeof(long), writing a temperature
-> limit larger than MAXINT will result in unpredictable limit values
-> written to the chip. Avoid auto-conversion from long to int to fix
-> the problem.
-> 
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Simplify the code a bit and also improve readability.
 
-Applied.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ads1015.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index fe1a5a1..32994d5 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -184,20 +184,18 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 		return -EINVAL;
+ 
+ 	for_each_child_of_node(client->dev.of_node, node) {
+-		const __be32 *property;
+-		int len;
++		u32 pval;
+ 		unsigned int channel;
+ 		unsigned int pga = ADS1015_DEFAULT_PGA;
+ 		unsigned int data_rate = ADS1015_DEFAULT_DATA_RATE;
+ 
+-		property = of_get_property(node, "reg", &len);
+-		if (!property || len != sizeof(int)) {
++		if (of_property_read_u32(node, "reg", &pval)) {
+ 			dev_err(&client->dev, "invalid reg on %s\n",
+ 				node->full_name);
+ 			continue;
+ 		}
+ 
+-		channel = be32_to_cpup(property);
++		channel = pval;
+ 		if (channel >= ADS1015_CHANNELS) {
+ 			dev_err(&client->dev,
+ 				"invalid channel index %d on %s\n",
+@@ -205,20 +203,17 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 			continue;
+ 		}
+ 
+-		property = of_get_property(node, "ti,gain", &len);
+-		if (property && len = sizeof(int)) {
+-			pga = be32_to_cpup(property);
++		if (!of_property_read_u32(node, "ti,gain", &pval)) {
++			pga = pval;
+ 			if (pga > 6) {
+-				dev_err(&client->dev,
+-					"invalid gain on %s\n",
++				dev_err(&client->dev, "invalid gain on %s\n",
+ 					node->full_name);
+ 				pga = ADS1015_DEFAULT_PGA;
+ 			}
+ 		}
+ 
+-		property = of_get_property(node, "ti,datarate", &len);
+-		if (property && len = sizeof(int)) {
+-			data_rate = be32_to_cpup(property);
++		if (!of_property_read_u32(node, "ti,datarate", &pval)) {
++			data_rate = pval;
+ 			if (data_rate > 7) {
+ 				dev_err(&client->dev,
+ 					"invalid data_rate on %s\n",
+-- 
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
