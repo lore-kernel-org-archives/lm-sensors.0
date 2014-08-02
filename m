@@ -1,25 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 05 Aug 2014 05:05:35 +0000
-Subject: Re: [lm-sensors] [PATCH v3 RESEND] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
-Message-Id: <53E0661F.5030409@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Sat, 02 Aug 2014 05:36:38 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (gpio-fan) Prevent overflow problem when writing large limits
+Message-Id: <1406957798.14101.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1407207407.25560.0.camel@phoenix>
-In-Reply-To: <1407207407.25560.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/04/2014 07:56 PM, Axel Lin wrote:
-> Simplify the code a bit and also improve readability.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
+On platforms with sizeof(int) < sizeof(unsigned long), writing a rpm value
+larger than MAXINT will result in unpredictable limit values written to the
+chip. Avoid auto-conversion from unsigned long to int to fix the problem.
 
-This one works. Queued for 3.18.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/gpio-fan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index a43e5b0..4efa173 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -173,7 +173,7 @@ static int get_fan_speed_index(struct gpio_fan_data *fan_data)
+ 	return -ENODEV;
+ }
+ 
+-static int rpm_to_speed_index(struct gpio_fan_data *fan_data, int rpm)
++static int rpm_to_speed_index(struct gpio_fan_data *fan_data, unsigned long rpm)
+ {
+ 	struct gpio_fan_speed *speed = fan_data->speed;
+ 	int i;
+-- 
+1.9.1
+
 
 
 
