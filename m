@@ -1,46 +1,25 @@
-From: <atull@opensource.altera.com>
-Date: Fri, 22 Aug 2014 21:11:32 +0000
-Subject: [lm-sensors] [PATCH v2 0/2] dd regulator support for pmbus and ltc2978
-Message-Id: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 04 Aug 2014 16:17:51 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (sis5595) Prevent overflow problem when writing large limits
+Message-Id: <20140804161751.GA12852@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, jdelvare@suse.de
-Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
+To: lm-sensors@vger.kernel.org
 
-From: Alan Tull <atull@opensource.altera.com>
+On Thu, Jul 31, 2014 at 10:27:04PM +0800, Axel Lin wrote:
+> On platforms with sizeof(int) < sizeof(long), writing a temperature
+> limit larger than MAXINT will result in unpredictable limit values
+> written to the chip. Avoid auto-conversion from long to int to fix
+> the problem.
+> 
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-Version 2 :
-  * Get regulator_init_data from platform data or device tree.
-  * One regulator per pmbus part.
-  * Clean up Kconfig and #includes.
-
-This set of patches adds regulator support to pmbus_core.c and to
-ltc2978.c.  Other pmbus parts can use this to add their own
-regulator support.  Current ltc2978 support is limited to
-enable/disable.
-
-Tested on ltc2978.  Looking at the datasheets for the other parts
-supported by ltc2978.c, it looks like it should work.
+Applied.
 
 Thanks,
-Alan
-
-Alan Tull (2):
-  pmbus: add regulator support
-  pmbus: ltc2978: add regulator gating
-
- drivers/hwmon/pmbus/Kconfig      |    7 +++++
- drivers/hwmon/pmbus/ltc2978.c    |   60 ++++++++++++++++++++++++++++++++++++++
- drivers/hwmon/pmbus/pmbus.h      |    5 ++++
- drivers/hwmon/pmbus/pmbus_core.c |   51 ++++++++++++++++++++++++++++++++
- include/linux/i2c/pmbus.h        |    1 +
- 5 files changed, 124 insertions(+)
-
--- 
-1.7.9.5
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
