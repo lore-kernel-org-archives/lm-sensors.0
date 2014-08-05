@@ -1,65 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 22 Aug 2014 13:32:52 +0000
-Subject: Re: [lm-sensors] iio: iio_channel_get: ntc_thermistor isn't working since patch for of_iio_channel_g
-Message-Id: <20140822133252.GA8773@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Tue, 05 Aug 2014 02:00:38 +0000
+Subject: [lm-sensors] [PATCH v3 2/2] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
+Message-Id: <1407204038.20206.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAJKbBDBCEVfB-f6W1NbpPhuyduYB4KQMoT=9=wF4yny3a6weKA@mail.gmail.com>
- <20140821132556.GA24224@roeck-us.net>
- <CAJKbBDDrzA6SBBFO+ZLGz6pwmXZ1MzsTSmwy=wVS+c9veCrLYg@mail.gmail.com>
-In-Reply-To: <CAJKbBDDrzA6SBBFO+ZLGz6pwmXZ1MzsTSmwy=wVS+c9veCrLYg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Johannes Pointner <johannes.pointner@gmail.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Fri, Aug 22, 2014 at 01:50:23PM +0200, Johannes Pointner wrote:
-> Hello Guenter,
-> 
-> thank you for your quick answer.
-> 
-> 2014-08-21 15:25 GMT+02:00 Guenter Roeck <linux@roeck-us.net>:
-> > On Thu, Aug 21, 2014 at 09:29:56AM +0200, Johannes Pointner wrote:
-> >> Hello,
-> >>
-> >> I found out that since this patch https://lkml.org/lkml/2014/6/11/201,
-> >> which fixes the return values in this function, the ntc_thermistor
-> >> driver isn't working anymore for me.
-> >> The problem is that before the driver asked for probe deferral because
-> >> the adc driver isn't loaded at this point and now the probe fails in
-> >> the function iio_channel_get_sys and returns -ENODEV.
-> >> My question is: Who is in this case responsible to request a deferral?
-> >> The driver or the subsystem?
-> >>
-> > Unless I am missing something, iio_get_channel() should request probe deferral.
-> > There is no other way for the driver to know that the adc driver is not loaded
-> > yet.
-> 
-> Yes, I missed that. In the function __of_iio_channel_get the subsystem
-> returns a -EPROBE_DEFER.
-> 
-> >
-> > The problem here may be that the devicetree entry for the ntc_thermistor driver
-> > may not be correct. The above referenced patch fixes a bug in that area, and
-> > devicetree data is now better validated.
-> >
-> But the problem is, that this statement:
-> if (np && !of_get_property(np, "io-channel-ranges", NULL))
->             return NULL;
-> overrides the -EPROBE_DEFER. Before the fix there was a break
-> statement and the -EPROBE_DEFER was returned.
-> 
-I think the code further up should be
+Simplify the code a bit and also improve readability.
 
-	if (!IS_ERR(chan) || PTR_ERR(chan) = -EPROBE_DEFER)
-		break;
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ads1015.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-> Do I have made a mistake in the devicetree if I put the ntc
-> declaration directly under the root node?
-> 
-No, I don't think so. I would suggest to submit a patch to fix the above.
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index 55030bd..b6c9fb4d 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -184,20 +184,18 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 		return -EINVAL;
+ 
+ 	for_each_child_of_node(client->dev.of_node, node) {
+-		const __be32 *property;
+-		int len;
++		u32 pval;
+ 		unsigned int channel;
+ 		unsigned int pga = ADS1015_DEFAULT_PGA;
+ 		unsigned int data_rate = ADS1015_DEFAULT_DATA_RATE;
+ 
+-		property = of_get_property(node, "reg", &len);
+-		if (!property || len != sizeof(int)) {
++		if (of_property_read_u32(node, "reg", &pval)) {
+ 			dev_err(&client->dev, "invalid reg on %s\n",
+ 				node->full_name);
+ 			continue;
+ 		}
+ 
+-		channel = be32_to_cpup(property);
++		channel = pval;
+ 		if (channel > ADS1015_CHANNELS) {
+ 			dev_err(&client->dev,
+ 				"invalid channel index %d on %s\n",
+@@ -205,20 +203,17 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 			continue;
+ 		}
+ 
+-		property = of_get_property(node, "ti,gain", &len);
+-		if (property && len = sizeof(int)) {
+-			pga = be32_to_cpup(property);
++		if (!of_property_read_u32(node, "ti,gain", &pval)) {
++			pga = pval;
+ 			if (pga > 6) {
+-				dev_err(&client->dev,
+-					"invalid gain on %s\n",
++				dev_err(&client->dev, "invalid gain on %s\n",
+ 					node->full_name);
+ 				return -EINVAL;
+ 			}
+ 		}
+ 
+-		property = of_get_property(node, "ti,datarate", &len);
+-		if (property && len = sizeof(int)) {
+-			data_rate = be32_to_cpup(property);
++		if (!of_property_read_u32(node, "ti,datarate", &pval)) {
++			data_rate = pval;
+ 			if (data_rate > 7) {
+ 				dev_err(&client->dev,
+ 					"invalid data_rate on %s\n",
+-- 
+1.9.1
 
-Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
