@@ -1,42 +1,48 @@
-From: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Date: Thu, 14 Aug 2014 22:20:15 +0000
-Subject: Re: [lm-sensors] [PATCH V2] hwmon, k10temp: Add support for F15h M60h
-Message-Id: <53ED361F.4010009@amd.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Tue, 05 Aug 2014 01:59:49 +0000
+Subject: [lm-sensors] [PATCH v3 1/2] hwmon: (ads1015) Fix out-of-bounds array access
+Message-Id: <1407203989.20206.0.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408035262-18026-1-git-send-email-aravind.gopalakrishnan@amd.com>
- <20140814201730.GA501@roeck-us.net> <53ED1A87.6000400@ladisch.de>
- <20140814210816.GC18887@pd.tnic> <53ED30BD.90403@amd.com>
- <20140814220530.GD18887@pd.tnic>
-In-Reply-To: <20140814220530.GD18887@pd.tnic>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@suse.de>
-Cc: Clemens Ladisch <clemens@ladisch.de>, Guenter Roeck <linux@roeck-us.net>, jdelvare@suse.de, rdunlap@infradead.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, dan.carpenter@oracle.com, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 8/14/2014 5:05 PM, Borislav Petkov wrote:
-> On Thu, Aug 14, 2014 at 04:57:17PM -0500, Aravind Gopalakrishnan wrote:
->> Actually I don't need it outside of k10temp as of now (or near future)
->> I added it in amd_nb as that was Clemens, Guenter's suggestion on the
->> previous version;
->> Besides, it made sense as it's an indirect access of NB_SMU register and
->> amd_nb seems a good place to put the function in case someone needs it in
->> the future.
-> Then someone can move it then. But until that happens it is pretty
-> pointless of having the Kconfig dependency just for one small function
-> with a single user.
->
->> I can move it locally to k10temp and remove the dependency if that's
->> more preferable.
-> Yeah, it looks like a fabricated and not true dependency, which doesn't
-> make any sense currently.
->
-> Thanks.
->
+Current code uses data_rate as array index in ads1015_read_adc() and uses pga
+as array index in ads1015_reg_to_mv, so we must make sure both data_rate and
+pga settings are in valid value range.
+Return -EINVAL if the setting is out-of-range.
 
-Ok, Will fix this and send V3.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ads1015.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
--Aravind.
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index 7f9dc2f..55030bd 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -212,6 +212,7 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 				dev_err(&client->dev,
+ 					"invalid gain on %s\n",
+ 					node->full_name);
++				return -EINVAL;
+ 			}
+ 		}
+ 
+@@ -222,6 +223,7 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 				dev_err(&client->dev,
+ 					"invalid data_rate on %s\n",
+ 					node->full_name);
++				return -EINVAL;
+ 			}
+ 		}
+ 
+-- 
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
