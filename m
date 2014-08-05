@@ -1,77 +1,25 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Tue, 05 Aug 2014 02:56:47 +0000
-Subject: [lm-sensors] [PATCH v3 RESEND] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
-Message-Id: <1407207407.25560.0.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 05 Aug 2014 05:05:35 +0000
+Subject: Re: [lm-sensors] [PATCH v3 RESEND] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
+Message-Id: <53E0661F.5030409@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1407207407.25560.0.camel@phoenix>
+In-Reply-To: <1407207407.25560.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Simplify the code a bit and also improve readability.
+On 08/04/2014 07:56 PM, Axel Lin wrote:
+> Simplify the code a bit and also improve readability.
+>
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> ---
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/ads1015.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+This one works. Queued for 3.18.
 
-diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-index 1265164..f155b83 100644
---- a/drivers/hwmon/ads1015.c
-+++ b/drivers/hwmon/ads1015.c
-@@ -184,20 +184,18 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
- 		return -EINVAL;
- 
- 	for_each_child_of_node(client->dev.of_node, node) {
--		const __be32 *property;
--		int len;
-+		u32 pval;
- 		unsigned int channel;
- 		unsigned int pga = ADS1015_DEFAULT_PGA;
- 		unsigned int data_rate = ADS1015_DEFAULT_DATA_RATE;
- 
--		property = of_get_property(node, "reg", &len);
--		if (!property || len != sizeof(int)) {
-+		if (of_property_read_u32(node, "reg", &pval)) {
- 			dev_err(&client->dev, "invalid reg on %s\n",
- 				node->full_name);
- 			continue;
- 		}
- 
--		channel = be32_to_cpup(property);
-+		channel = pval;
- 		if (channel >= ADS1015_CHANNELS) {
- 			dev_err(&client->dev,
- 				"invalid channel index %d on %s\n",
-@@ -205,20 +203,17 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
- 			continue;
- 		}
- 
--		property = of_get_property(node, "ti,gain", &len);
--		if (property && len = sizeof(int)) {
--			pga = be32_to_cpup(property);
-+		if (!of_property_read_u32(node, "ti,gain", &pval)) {
-+			pga = pval;
- 			if (pga > 6) {
--				dev_err(&client->dev,
--					"invalid gain on %s\n",
-+				dev_err(&client->dev, "invalid gain on %s\n",
- 					node->full_name);
- 				return -EINVAL;
- 			}
- 		}
- 
--		property = of_get_property(node, "ti,datarate", &len);
--		if (property && len = sizeof(int)) {
--			data_rate = be32_to_cpup(property);
-+		if (!of_property_read_u32(node, "ti,datarate", &pval)) {
-+			data_rate = pval;
- 			if (data_rate > 7) {
- 				dev_err(&client->dev,
- 					"invalid data_rate on %s\n",
--- 
-1.9.1
-
+Thanks,
+Guenter
 
 
 
