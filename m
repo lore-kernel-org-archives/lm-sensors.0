@@ -1,61 +1,65 @@
-From: Andreas Werner <andreas.werner@men.de>
-Date: Thu, 28 Aug 2014 08:16:43 +0000
-Subject: Re: [lm-sensors] [PATCH v6 4/4] drivers/hwmon/menf21bmc_hwmon: introduce MEN14F021P00 BMC HWMON driv
-Message-Id: <20140828081643.GA27707@awelinux>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Tue, 05 Aug 2014 02:08:31 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: (lm92) Prevent overflow problem when writing large limits
+Message-Id: <1407204511.20206.3.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1409161615.git.andreas.werner@men.de>
- <65074740dfc6363134384b45fcd3acf5f2b4254f.1409161615.git.andreas.werner@men.de>
- <20140827183843.GC2198@roeck-us.net>
-In-Reply-To: <20140827183843.GC2198@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Andreas Werner <andreas.werner@men.de>, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, Aug 27, 2014 at 11:38:43AM -0700, Guenter Roeck wrote:
-> On Wed, Aug 27, 2014 at 07:53:06PM +0200, Andreas Werner wrote:
-> > Added driver to support the 14F021P00 BMC Hardware Monitoring.
-> > The BMC is a Board Management Controller including monitoring of the
-> > board voltages.
-> > 
-> > Signed-off-by: Andreas Werner <andreas.werner@men.de>
-> 
-> Looks good, though I do have one comment ...
-> 
-> > +
-> > +	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
-> > +						   "menf21bmc", drv_data,
-> > +						   menf21bmc_hwmon_groups);
-> > +	if (IS_ERR(hwmon_dev))
-> > +		return PTR_ERR(hwmon_dev);
-> > +
-> > +	dev_info(&pdev->dev, "MEN 14F021P00 BMC hwmon device enabled");
-> > +
-> You removed the dev_info from the mfd driver but left it in the client
-> drivers.  If you'd drop it here as well, you could use
-> 'return PTR_ERR_OR_ZERO(hwmon_dev);'.  Just a suggestion, not mandatory.
-> 
-> Either case,
+On platforms with sizeof(int) < sizeof(long), writing a temperature
+limit larger than MAXINT will result in unpredictable limit values
+written to the chip. Avoid auto-conversion from long to int to fix
+the problem.
 
-It is a nice info for every slave driver which are the drivers for accessing
-the features in the BMC. The mfd is just the driver who will instantiate the
-slaves. For the mfd the most important info is if there was an error.
+The hysteresis temperature range depends on the value of
+data->temp[attr->index], since val is subtracted from it.
+Use a wider clamp, [-120000, 220000] should do to cover the
+possible range.
 
-Anyway good idea with PTR_ERR_OR_ZERO.
+Also uses clamp_val to simplify the code a bit.
 
-Thanks for the nice review and the comments.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/lm92.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-Regards
-Andy
+diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
+index d2060e2..08a261d 100644
+--- a/drivers/hwmon/lm92.c
++++ b/drivers/hwmon/lm92.c
+@@ -74,12 +74,9 @@ static inline int TEMP_FROM_REG(s16 reg)
+ 	return reg / 8 * 625 / 10;
+ }
+ 
+-static inline s16 TEMP_TO_REG(int val)
++static inline s16 TEMP_TO_REG(long val)
+ {
+-	if (val <= -60000)
+-		return -60000 * 10 / 625 * 8;
+-	if (val >= 160000)
+-		return 160000 * 10 / 625 * 8;
++	val = clamp_val(val, -60000, 160000);
+ 	return val * 10 / 625 * 8;
+ }
+ 
+@@ -206,8 +203,10 @@ static ssize_t set_temp_hyst(struct device *dev,
+ 	if (err)
+ 		return err;
+ 
++	val = clamp_val(val, -120000, 220000);
+ 	mutex_lock(&data->update_lock);
+-	data->temp[t_hyst] = TEMP_FROM_REG(data->temp[attr->index]) - val;
++	 data->temp[t_hyst] +		TEMP_TO_REG(TEMP_FROM_REG(data->temp[attr->index]) - val);
+ 	i2c_smbus_write_word_swapped(client, LM92_REG_TEMP_HYST,
+ 				     TEMP_TO_REG(data->temp[t_hyst]));
+ 	mutex_unlock(&data->update_lock);
+-- 
+1.9.1
 
-> 
-> Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-> 
-> I assume this will go in through the mfd tree.
-> 
-> Thanks,
-> Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
