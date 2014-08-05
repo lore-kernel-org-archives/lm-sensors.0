@@ -1,42 +1,81 @@
-From: =?UTF-8?B?TWF0ZXVzeiBKb8WEY3p5aw==?= <mat.jonczyk@o2.pl>
-Date: Tue, 05 Aug 2014 13:38:43 +0000
-Subject: Re: [lm-sensors] SCH5317 public datasheet
-Message-Id: <53E0DE63.30100@o2.pl>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Tue, 05 Aug 2014 02:56:47 +0000
+Subject: [lm-sensors] [PATCH v3 RESEND] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
+Message-Id: <1407207407.25560.0.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53E0C3F5.6040109@o2.pl>
-In-Reply-To: <53E0C3F5.6040109@o2.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEExCgpXIGRuaXUgMDUu
-MDguMjAxNCBvIDE0OjMyLCBKZWFuIERlbHZhcmUgcGlzemU6Cj4gSXQgY2FuIGJlIGFjY2Vzc2Vk
-IHB1YmxpY2x5LiBIb3dldmVyIEkgc2VlIGxpdHRsZSBsb3ctbGV2ZWwgdGVjaG5pY2FsIAo+IGRl
-c2NyaXB0aW9uIG9mIHRoZSBoYXJkd2FyZSBtb25pdG9yaW5nIHBhcnQgb2YgdGhlIFNDSDUzMTcg
-Y2hpcCBpbiB0aGlzIAo+IGRvY3VtZW50LiBUaGUgb25seSByZWxldmFudCBpbmZvcm1hdGlvbiBp
-cyB0aGUgU3VwZXItSS9PIGNvbmZpZ3VyYXRpb24gCj4gc3BhY2UgYWNjZXNzIGluIHNlY3Rpb24g
-NC42LjIuIEJ1dCB0aGlzIGlzIHByZXR0eSBzdGFuZGFyZCBzbyBpdCBkb2Vzbid0IAo+IGhhdmUg
-bXVjaCB2YWx1ZS4gV2hhdCB3b3VsZCBiZSByZWFsbHkgdXNlZnVsIGlzIHRoZSByZWdpc3RlciBt
-YXBwaW5nIHdpdGgKPiBkZXNjcmlwdGlvbnMuCj4gCj4gRGlkIHlvdSBmaW5kIGFueXRoaW5nIGlu
-IHRoZSBkb2N1bWVudCB0aGF0IHdvdWxkIHJlbGF0ZSB0byB0ZW1wZXJhdHVyZSAKPiBtb25pdG9y
-aW5nLCB2b2x0YWdlIG1vbml0b3JpbmcsIGZhbiBzcGVlZCBtb25pdG9yaW5nIG9yIGZhbiBzcGVl
-ZCBjb250cm9sPwo+IEkgZGlkIG5vdC4KCkkgZGlkbid0IGFsc28uIEkgd2FzIHNvIGV4Y2l0ZWQg
-dGhhdCBJIHBvc3RlZCB0aGlzIHdpdGhvdXQgY2hlY2tpbmcgaG93IG11Y2gKaW5mbyBpcyB0aGVy
-ZS4gU28gcGxlYXNlIGV4Y3VzZSBtZS4KCkZvciBtZSB0aGUgc2NoZW1hdGljIG9uIHBhZ2UgMzQg
-d2FzIGludGVyZXN0aW5nIGJlY2F1c2UgaXQgaXMgcmVsYXRlZCB0byB0aGUKaXNzdWUgSSBhbSBk
-ZWJ1Z2dpbmcgY3VycmVudGx5LgoKCgotIC0tIApQb3pkcmF3aWFtLApNYXRldXN6IEpvxYRjenlr
-CkFFSSwgSW5mb3JtYXR5a2EsIFNlbWVzdHIgMyBNYWdpc3RlcnNraWNoLCBCRGlJUwoKLS0tLS1C
-RUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0KVmVyc2lvbjogR251UEcgdjEuNC4xMSAoR05VL0xpbnV4
-KQpDb21tZW50OiBNeSBwdWJsaWMga2V5OiAweDJDNjRDNDg4IG9uIGhrcDovL3Bvb2wuc2tzLWtl
-eXNlcnZlcnMubmV0CgppUUVjQkFFQkFnQUdCUUpUNE41aUFBb0pFTExUOUxjc1pNU0lRM1FIL0Fy
-aU0yTXdFdkZkTTRLdnJxQzJnUnR5CmNPREQ5Y2YyYk5ZWE53L0JLeEVXaktlQkJ6S3k5M1ZGWjF4
-VEt0cVFQamw4ZHRDc0wvL0dtY2NsTlc5R0Fua0gKb1dIdDR4UHkyMFppUVBrcmdZNTlSdHJPd2hY
-L01KUElaU2pUUEVDNVAwRWpPcDgzVlVMemMrRk54UEIwMDM1VApld1k5Um5CU21wRmlTQ2k4K0ww
-R05pZEJoS0ZMQnlnMldsNlhGMzJ2elpyQjQ3ZXNtTy9hQUUvRGNaZE5JMm53CmZza0o3UWJWR0lT
-RXpuMmM0emI5TWIzeVQwQzJ2djAxdlR4ekEyQ1RmTWpzRVhMSDdoeHhxeUpRMm1xdVhjZ3cKZG52
-ZWZoOGlEaUdWZHZoSFF2Zm44Mmp1Y1kwbDdjNHRXMnJ4NTdOTWdPV0tjelpuZ285aUhQaDlyWFF1
-Y2FBPQo9NmtkRQotLS0tLUVORCBQR1AgU0lHTkFUVVJFLS0tLS0KCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Simplify the code a bit and also improve readability.
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ads1015.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index 1265164..f155b83 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -184,20 +184,18 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 		return -EINVAL;
+ 
+ 	for_each_child_of_node(client->dev.of_node, node) {
+-		const __be32 *property;
+-		int len;
++		u32 pval;
+ 		unsigned int channel;
+ 		unsigned int pga = ADS1015_DEFAULT_PGA;
+ 		unsigned int data_rate = ADS1015_DEFAULT_DATA_RATE;
+ 
+-		property = of_get_property(node, "reg", &len);
+-		if (!property || len != sizeof(int)) {
++		if (of_property_read_u32(node, "reg", &pval)) {
+ 			dev_err(&client->dev, "invalid reg on %s\n",
+ 				node->full_name);
+ 			continue;
+ 		}
+ 
+-		channel = be32_to_cpup(property);
++		channel = pval;
+ 		if (channel >= ADS1015_CHANNELS) {
+ 			dev_err(&client->dev,
+ 				"invalid channel index %d on %s\n",
+@@ -205,20 +203,17 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
+ 			continue;
+ 		}
+ 
+-		property = of_get_property(node, "ti,gain", &len);
+-		if (property && len = sizeof(int)) {
+-			pga = be32_to_cpup(property);
++		if (!of_property_read_u32(node, "ti,gain", &pval)) {
++			pga = pval;
+ 			if (pga > 6) {
+-				dev_err(&client->dev,
+-					"invalid gain on %s\n",
++				dev_err(&client->dev, "invalid gain on %s\n",
+ 					node->full_name);
+ 				return -EINVAL;
+ 			}
+ 		}
+ 
+-		property = of_get_property(node, "ti,datarate", &len);
+-		if (property && len = sizeof(int)) {
+-			data_rate = be32_to_cpup(property);
++		if (!of_property_read_u32(node, "ti,datarate", &pval)) {
++			data_rate = pval;
+ 			if (data_rate > 7) {
+ 				dev_err(&client->dev,
+ 					"invalid data_rate on %s\n",
+-- 
+1.9.1
+
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
