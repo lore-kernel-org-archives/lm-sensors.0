@@ -1,41 +1,38 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Mon, 25 Aug 2014 06:29:44 +0000
-Subject: [lm-sensors] [PATCH v3 0/4] expose lm90 to thermal fw
-Message-Id: <1408948188-4181-1-git-send-email-wni@nvidia.com>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 06 Aug 2014 00:28:02 +0000
+Subject: [lm-sensors] [PATCH 09/10] hwmon: (w83791d) Fix vrm write operation
+Message-Id: <1407284882.4924.15.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-Expose lm90 to thermal framework via DT nodes.
+vrm is an u8, so the written value needs to be limited to [0, 255].
 
-This series is v3, previous version patches are:
-[v2]: https://lkml.org/lkml/2014/3/4/194
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/w83791d.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Changes from v2:
-add more description in documentation, per Stephen's comment.
-
-Changes from v1:
-1. remove the unnecessary log messages, per Guenter's request.
-2. add thermal zones node for nct1008 on dalmore.
-
-Wei Ni (1):
-  thermal: add more description for thermal-zones
-
-lightning314 (3):
-  hwmon: (lm90) split set&show temp as common codes
-  hwmon: lm90: expose to thermal fw via DT nodes
-  ARM: tegra: dalmore: add thermal zones for nct1008
-
- .../devicetree/bindings/thermal/thermal.txt        |  10 +-
- arch/arm/boot/dts/tegra114-dalmore.dts             |  20 +-
- drivers/hwmon/lm90.c                               | 222 ++++++++++++++++-----
- 3 files changed, 192 insertions(+), 60 deletions(-)
-
+diff --git a/drivers/hwmon/w83791d.c b/drivers/hwmon/w83791d.c
+index cb3765f..001df85 100644
+--- a/drivers/hwmon/w83791d.c
++++ b/drivers/hwmon/w83791d.c
+@@ -1181,6 +1181,9 @@ static ssize_t store_vrm_reg(struct device *dev,
+ 	if (err)
+ 		return err;
+ 
++	if (val > 255)
++		return -EINVAL;
++
+ 	data->vrm = val;
+ 	return count;
+ }
 -- 
-1.8.1.5
+1.9.1
+
+
 
 
 _______________________________________________
