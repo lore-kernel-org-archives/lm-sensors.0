@@ -1,28 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 05 Aug 2014 02:42:01 +0000
-Subject: Re: [lm-sensors] [PATCH v3 1/2] hwmon: (ads1015) Fix out-of-bounds array access
-Message-Id: <53E04479.40102@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 06 Aug 2014 00:19:43 +0000
+Subject: [lm-sensors] [PATCH 01/10] hwmon: (adm1025) Fix vrm write operation
+Message-Id: <1407284383.4924.5.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1407203989.20206.0.camel@phoenix>
-In-Reply-To: <1407203989.20206.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/04/2014 06:59 PM, Axel Lin wrote:
-> Current code uses data_rate as array index in ads1015_read_adc() and uses pga
-> as array index in ads1015_reg_to_mv, so we must make sure both data_rate and
-> pga settings are in valid value range.
-> Return -EINVAL if the setting is out-of-range.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
+vrm is an u8, so the written value needs to be limited to [0, 255].
 
-Applied.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/adm1025.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/adm1025.c b/drivers/hwmon/adm1025.c
+index d3d0e8c..d6c767a 100644
+--- a/drivers/hwmon/adm1025.c
++++ b/drivers/hwmon/adm1025.c
+@@ -382,6 +382,9 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+ 	if (err)
+ 		return err;
+ 
++	if (val > 255)
++		return -EINVAL;
++
+ 	data->vrm = val;
+ 	return count;
+ }
+-- 
+1.9.1
+
+
 
 
 _______________________________________________
