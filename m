@@ -1,38 +1,154 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Aug 2014 21:09:24 +0000
-Subject: Re: [lm-sensors] [RFT PATCH] hwmon: (k10temp) Convert to devm_hwmon_device_register_with_groups
-Message-Id: <53EE7704.2060500@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 06 Aug 2014 00:02:44 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (dme1737) Prevent overflow problem when writing large limits
+Message-Id: <1407283364.4924.0.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408120361-26570-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1408120361-26570-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/15/2014 01:57 PM, Clemens Ladisch wrote:
-> Guenter Roeck wrote:
->> Use devm_hwmon_device_register_with_groups() to simplify the code
->> and reduce code size.
->>
->> Cc: Clemens Ladisch <clemens@ladisch.de>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->> Would be great if someone with access to hardware can test this patch
->> and let me know if it works. Thanks!
->
-> The {name,temp*} files moved from /sys/devices/pci0000:00/0000:00:18.3/ to
-> /sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon3/.  (And my own little script
-> of course does not use libsensors.)
->
-Yes, with the new API the attributes are attached to the hwmon device.
+On platforms with sizeof(int) < sizeof(long), writing a temperature
+limit larger than MAXINT will result in unpredictable limit values
+written to the chip. Avoid auto-conversion from long to int to fix
+the problem.
 
->
-> Tested-by: Clemens Ladisch <clemens@ladisch.de>
->
-Thanks!
+Voltage limits, fan minimum speed, pwm frequency, pwm ramp rate, and
+other attributes have the same problem, fixes them as well.
 
-Guenter
+vrm is an u8, so the written value needs to be limited to [0, 255].
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/dme1737.c | 29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
+index 4ae3fff..71dd0f2 100644
+--- a/drivers/hwmon/dme1737.c
++++ b/drivers/hwmon/dme1737.c
+@@ -277,7 +277,7 @@ static inline int IN_FROM_REG(int reg, int nominal, int res)
+ 	return (reg * nominal + (3 << (res - 3))) / (3 << (res - 2));
+ }
+ 
+-static inline int IN_TO_REG(int val, int nominal)
++static inline int IN_TO_REG(long val, int nominal)
+ {
+ 	return clamp_val((val * 192 + nominal / 2) / nominal, 0, 255);
+ }
+@@ -293,7 +293,7 @@ static inline int TEMP_FROM_REG(int reg, int res)
+ 	return (reg * 1000) >> (res - 8);
+ }
+ 
+-static inline int TEMP_TO_REG(int val)
++static inline int TEMP_TO_REG(long val)
+ {
+ 	return clamp_val((val < 0 ? val - 500 : val + 500) / 1000, -128, 127);
+ }
+@@ -308,7 +308,7 @@ static inline int TEMP_RANGE_FROM_REG(int reg)
+ 	return TEMP_RANGE[(reg >> 4) & 0x0f];
+ }
+ 
+-static int TEMP_RANGE_TO_REG(int val, int reg)
++static int TEMP_RANGE_TO_REG(long val, int reg)
+ {
+ 	int i;
+ 
+@@ -331,7 +331,7 @@ static inline int TEMP_HYST_FROM_REG(int reg, int ix)
+ 	return (((ix = 1) ? reg : reg >> 4) & 0x0f) * 1000;
+ }
+ 
+-static inline int TEMP_HYST_TO_REG(int val, int ix, int reg)
++static inline int TEMP_HYST_TO_REG(long val, int ix, int reg)
+ {
+ 	int hyst = clamp_val((val + 500) / 1000, 0, 15);
+ 
+@@ -347,7 +347,7 @@ static inline int FAN_FROM_REG(int reg, int tpc)
+ 		return (reg = 0 || reg = 0xffff) ? 0 : 90000 * 60 / reg;
+ }
+ 
+-static inline int FAN_TO_REG(int val, int tpc)
++static inline int FAN_TO_REG(long val, int tpc)
+ {
+ 	if (tpc) {
+ 		return clamp_val(val / tpc, 0, 0xffff);
+@@ -379,7 +379,7 @@ static inline int FAN_TYPE_FROM_REG(int reg)
+ 	return (edge > 0) ? 1 << (edge - 1) : 0;
+ }
+ 
+-static inline int FAN_TYPE_TO_REG(int val, int reg)
++static inline int FAN_TYPE_TO_REG(long val, int reg)
+ {
+ 	int edge = (val = 4) ? 3 : val;
+ 
+@@ -402,7 +402,7 @@ static int FAN_MAX_FROM_REG(int reg)
+ 	return 1000 + i * 500;
+ }
+ 
+-static int FAN_MAX_TO_REG(int val)
++static int FAN_MAX_TO_REG(long val)
+ {
+ 	int i;
+ 
+@@ -460,7 +460,7 @@ static inline int PWM_ACZ_FROM_REG(int reg)
+ 	return acz[(reg >> 5) & 0x07];
+ }
+ 
+-static inline int PWM_ACZ_TO_REG(int val, int reg)
++static inline int PWM_ACZ_TO_REG(long val, int reg)
+ {
+ 	int acz = (val = 4) ? 2 : val - 1;
+ 
+@@ -476,7 +476,7 @@ static inline int PWM_FREQ_FROM_REG(int reg)
+ 	return PWM_FREQ[reg & 0x0f];
+ }
+ 
+-static int PWM_FREQ_TO_REG(int val, int reg)
++static int PWM_FREQ_TO_REG(long val, int reg)
+ {
+ 	int i;
+ 
+@@ -510,7 +510,7 @@ static inline int PWM_RR_FROM_REG(int reg, int ix)
+ 	return (rr & 0x08) ? PWM_RR[rr & 0x07] : 0;
+ }
+ 
+-static int PWM_RR_TO_REG(int val, int ix, int reg)
++static int PWM_RR_TO_REG(long val, int ix, int reg)
+ {
+ 	int i;
+ 
+@@ -528,7 +528,7 @@ static inline int PWM_RR_EN_FROM_REG(int reg, int ix)
+ 	return PWM_RR_FROM_REG(reg, ix) ? 1 : 0;
+ }
+ 
+-static inline int PWM_RR_EN_TO_REG(int val, int ix, int reg)
++static inline int PWM_RR_EN_TO_REG(long val, int ix, int reg)
+ {
+ 	int en = (ix = 1) ? 0x80 : 0x08;
+ 
+@@ -1481,13 +1481,16 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+ 		       const char *buf, size_t count)
+ {
+ 	struct dme1737_data *data = dev_get_drvdata(dev);
+-	long val;
++	unsigned long val;
+ 	int err;
+ 
+-	err = kstrtol(buf, 10, &val);
++	err = kstrtoul(buf, 10, &val);
+ 	if (err)
+ 		return err;
+ 
++	if (val > 255)
++		return -EINVAL;
++
+ 	data->vrm = val;
+ 	return count;
+ }
+-- 
+1.9.1
+
+
 
 
 _______________________________________________
