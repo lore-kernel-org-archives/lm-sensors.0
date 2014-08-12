@@ -1,42 +1,20 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Wed, 27 Aug 2014 13:46:35 +0000
-Subject: Re: [lm-sensors] [PATCH v5 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
-Message-Id: <20140827134635.GE6364@lee--X1>
+From: Chris Kelly <ck42@bellsouth.net>
+Date: Tue, 12 Aug 2014 18:34:50 +0000
+Subject: [lm-sensors] Nuvoton NCT5573D - Unsupported.  Any plans?
+Message-Id: <1407868490.26207.YahooMailNeo@web181302.mail.ne1.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1409074255.git.andreas.werner@men.de>
- <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de>
- <20140827072633.GY26707@lee--X1>
- <53FDDF0F.2080607@roeck-us.net>
-In-Reply-To: <53FDDF0F.2080607@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Andreas Werner <andreas.werner@men.de>, linux-kernel@vger.kernel.org, sameo@linux.intel.com, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyNyBBdWcgMjAxNCwgR3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiAwOC8yNy8yMDE0
-IDEyOjI2IEFNLCBMZWUgSm9uZXMgd3JvdGU6Cj4gPk9uIFR1ZSwgMjYgQXVnIDIwMTQsIEFuZHJl
-YXMgV2VybmVyIHdyb3RlOgo+ID4+VGhlIE1FTiAxNEYwMjFQMDAgQm9hcmQgTWFuYWdlbWVudCBD
-b250cm9sbGVyIHByb3ZpZGVzIGFuCj4gPj5JMkMgaW50ZXJmYWNlIHRvIHRoZSBob3N0IHRvIGFj
-Y2VzcyB0aGUgZmVhdHVyZSBpbXBsZW1lbnRlZCBpbiB0aGUgQk1DLgo+ID4+VGhlIEJNQyBpcyBh
-IFBJQyBNaWNyb250cm9sbGVyIGFzc2VtYmxlZCBvbiBDUENJIENhcmQgZnJvbSBNRU4gTWlrcm9l
-bGVrdHJvbmlrCj4gPj5hbmQgb24gYSBmZXcgQm94L0Rpc3BsYXkgQ29tcHV0ZXIuCj4gPj4KPiA+
-PkFkZGVkIE1GRCBDb3JlIGRyaXZlciwgc3VwcG9ydGluZyB0aGUgSTJDIGNvbW11bmljYXRpb24g
-dG8gdGhlIGRldmljZS4KPiA+Pgo+ID4+VGhlIE1GRCBkcml2ZXIgY3VycmVudGx5IHN1cHBvcnRz
-IHRoZSBmb2xsb3dpbmcgZmVhdHVyZXM6Cj4gPj4gIAktIFdhdGNoZG9nCj4gPj4gIAktIExFRHMK
-PiA+PgktIEh3bW9uICh2b2x0YWdlIG1vbml0b3JpbmcpCj4gPj4KPiAKPiA+PisJeyB9Cj4gPj4r
-fTsKPiA+PitNT0RVTEVfREVWSUNFX1RBQkxFKGkyYywgbWVuZjIxYm1jX2lkX3RhYmxlKTsKPiA+
-PisKPiA+PitzdGF0aWMgc3RydWN0IGkyY19kcml2ZXIgbWVuZjIxYm1jX2RyaXZlciA9IHsKPiA+
-PisJLmRyaXZlci5uYW1lCT0gIm1lbmYyMWJtYyIsCj4gPj4rCS5pZF90YWJsZQk9IG1lbmYyMWJt
-Y19pZF90YWJsZSwKPiA+PisJLnByb2JlCQk9IG1lbmYyMWJtY19wcm9iZSwKPiA+PisJLnJlbW92
-ZQkJPSBtZW5mMjFibWNfcmVtb3ZlLAo+ID4+K307Cj4gPgo+ID5ObyBEVCBzdXBwb3J0Pwo+ID4K
-PiBpMmMgZGV2aWNlcyBhdXRvLWluc3RhbnRpYXRlIGZyb20gZHQgZW50cmllcyBldmVuIGlmIHRo
-ZXJlIGlzIG5vCj4gZXhwbGljaXQgZGV2aWNldHJlZSBjb25maWd1cmF0aW9uIGhlcmUuIFRoZSBk
-ZXZpY2V0cmVlIGVudHJ5Cj4gd291bGQgaGF2ZSB0byBiZSBzb21ldGhpbmcgbGlrZSAibWVuLG1l
-bmYyMWJtYyIsIGllIGl0IG5lZWRzCj4gdG8gbWF0Y2ggdGhlIGRyaXZlciBuYW1lLgoKaHR0cHM6
-Ly9wYXRjaHdvcmsub3psYWJzLm9yZy9wYXRjaC8zNjIxODAvCgotLSAKTGVlIEpvbmVzCkxpbmFy
-byBTVE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDilIIgT3Bl
-biBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwg
-VHdpdHRlciB8IEJsb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcK
-aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+It appears that the AsRock motherboard C2550D4I (and 2750) use this sensor.=
+=A0 Looking at the supported listing, I don't see it.
+This is a very recently released motherboard, but I don't know if that mean=
+s that this chip is also too new to be supported yet.
+
+This is a server motherboard (mITX too)
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
