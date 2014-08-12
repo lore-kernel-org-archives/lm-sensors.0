@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 12 Aug 2014 20:48:36 +0000
+Date: Tue, 12 Aug 2014 21:47:29 +0000
 Subject: Re: [lm-sensors] Nuvoton NCT5573D - Unsupported.  Any plans?
-Message-Id: <53EA7DA4.4070807@roeck-us.net>
+Message-Id: <53EA8B71.3010906@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1407868490.26207.YahooMailNeo@web181302.mail.ne1.yahoo.com>
 In-Reply-To: <1407868490.26207.YahooMailNeo@web181302.mail.ne1.yahoo.com>
@@ -10,15 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/12/2014 11:34 AM, Chris Kelly wrote:
-> It appears that the AsRock motherboard C2550D4I (and 2750) use this sensor.  Looking at the supported listing, I don't see it.
-> This is a very recently released motherboard, but I don't know if that means that this chip is also too new to be supported yet.
+On 08/12/2014 02:05 PM, Chris Kelly wrote:
+> Here's the full detection listing:  (There is a Nuvoton chip detected (NCT6776F) but apparently this board has more than 1 Nuvoton on it?)
 >
-> This is a server motherboard (mITX too)
 
-What does sensors-detect tell you ?
+Please don't drop the list (they are interested in the answer as well),
+and don't top-post.
 
-Thanks,
+> Do you want to scan for Super I/O sensors? (YES/no):
+> Probing for Super-I/O at 0x2e/0x2f
+> Trying family `National Semiconductor/ITE'...               No
+> Trying family `SMSC'...                                     No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+> Found `Nuvoton NCT6776F Super IO Sensors'                   Success!
+>      (address 0x290, driver `w83627ehf')
+
+there is only one chip. The NCT5573D is supposedly compatible with NCT6776F,
+and you hereby confirmed that. I updated the lm-sensors web page accordingly.
+
+If your distribution includes the nct6775 driver, you might want to use it instead
+of the w83627ehf driver.
+
 Guenter
 
 
