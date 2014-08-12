@@ -1,7 +1,7 @@
-From: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
-Date: Tue, 12 Aug 2014 15:14:49 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 12 Aug 2014 15:37:59 +0000
 Subject: Re: [lm-sensors] [RFT][PATCH v2 2/2] hwmon: (da9052) Convert to devm_hwmon_device_register_with_grou
-Message-Id: <2E89032DDAA8B9408CB92943514A0337AB50EAD3@SW-EX-MBX01.diasemi.com>
+Message-Id: <53EA34D7.3010005@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1404868841.12195.3.camel@phoenix>
 In-Reply-To: <1404868841.12195.3.camel@phoenix>
@@ -10,127 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On July 9, 2014 02:21, Axel Lin wrote:
- 
-> Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups()
-> to
-> simplify the code a bit.
-> 
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
->  drivers/hwmon/da9052-hwmon.c | 54 ++++++++------------------------------------
->  1 file changed, 9 insertions(+), 45 deletions(-)
-> 
-> diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-> index d14ab3c..692b3f3 100644
-> --- a/drivers/hwmon/da9052-hwmon.c
-> +++ b/drivers/hwmon/da9052-hwmon.c
-> @@ -26,7 +26,6 @@
-> 
->  struct da9052_hwmon {
->  	struct da9052	*da9052;
-> -	struct device	*class_device;
->  	struct mutex	hwmon_lock;
->  };
-> 
-> @@ -190,13 +189,6 @@ static ssize_t da9052_read_vbbat(struct device *dev,
->  	return sprintf(buf, "%d\n", vbbat_reg_to_mv(ret));
->  }
-> 
-> -static ssize_t da9052_hwmon_show_name(struct device *dev,
-> -				      struct device_attribute *devattr,
-> -				      char *buf)
-> -{
-> -	return sprintf(buf, "da9052\n");
-> -}
-> -
->  static ssize_t show_label(struct device *dev,
->  			  struct device_attribute *devattr, char *buf)
->  {
-> @@ -243,10 +235,7 @@ static SENSOR_DEVICE_ATTR(temp8_input, S_IRUGO,
-> da9052_read_tjunc, NULL,
->  static SENSOR_DEVICE_ATTR(temp8_label, S_IRUGO, show_label, NULL,
->  			  DA9052_ADC_TJUNC);
-> 
-> -static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
-> -
-> -static struct attribute *da9052_attr[] = {
-> -	&dev_attr_name.attr,
-> +static struct attribute *da9052_attrs[] = {
->  	&sensor_dev_attr_in0_input.dev_attr.attr,
->  	&sensor_dev_attr_in0_label.dev_attr.attr,
->  	&sensor_dev_attr_in3_input.dev_attr.attr,
-> @@ -268,54 +257,29 @@ static struct attribute *da9052_attr[] = {
->  	NULL
->  };
-> 
-> -static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
-> +ATTRIBUTE_GROUPS(da9052);
-> 
->  static int da9052_hwmon_probe(struct platform_device *pdev)
->  {
-> +	struct device *dev = &pdev->dev;
->  	struct da9052_hwmon *hwmon;
-> -	int ret;
-> +	struct device *hwmon_dev;
-> 
-> -	hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9052_hwmon),
-> -			     GFP_KERNEL);
-> +	hwmon = devm_kzalloc(dev, sizeof(struct da9052_hwmon), GFP_KERNEL);
->  	if (!hwmon)
->  		return -ENOMEM;
-> 
->  	mutex_init(&hwmon->hwmon_lock);
->  	hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
-> 
-> -	platform_set_drvdata(pdev, hwmon);
-> -
-> -	ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
-> -	if (ret)
-> -		goto err_mem;
-> -
-> -	hwmon->class_device = hwmon_device_register(&pdev->dev);
-> -	if (IS_ERR(hwmon->class_device)) {
-> -		ret = PTR_ERR(hwmon->class_device);
-> -		goto err_sysfs;
-> -	}
-> -
-> -	return 0;
-> -
-> -err_sysfs:
-> -	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> -err_mem:
-> -	return ret;
-> -}
-> -
-> -static int da9052_hwmon_remove(struct platform_device *pdev)
-> -{
-> -	struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
-> -
-> -	hwmon_device_unregister(hwmon->class_device);
-> -	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> -
-> -	return 0;
-> +	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "da9052",
-> +							   hwmon,
-> +							   da9052_groups);
-> +	return PTR_ERR_OR_ZERO(hwmon_dev);
->  }
-> 
->  static struct platform_driver da9052_hwmon_driver = {
->  	.probe = da9052_hwmon_probe,
-> -	.remove = da9052_hwmon_remove,
->  	.driver = {
->  		.name = "da9052-hwmon",
->  		.owner = THIS_MODULE,
-> --
-> 1.9.1
-> 
-> 
+On 08/12/2014 08:14 AM, Opensource [Adam Thomson] wrote:
+> On July 9, 2014 02:21, Axel Lin wrote:
+>
+>> Use ATTRIBUTE_GROUPS macro and devm_hwmon_device_register_with_groups()
+>> to
+>> simplify the code a bit.
+>>
+>> Signed-off-by: Axel Lin <axel.lin@ingics.com>
 
-Change seems fine from my bring-up test.
+[ ... ]
 
-Tested-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+>
+> Change seems fine from my bring-up test.
+>
+> Tested-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+>
+
+Thanks a lot for testing. Applied to -next.
+
+Guenter
+
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
