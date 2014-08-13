@@ -1,78 +1,73 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Fri, 01 Aug 2014 02:04:16 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (ads1015) Use of_property_read_u32 at appropriate places
-Message-Id: <1406858656.21842.3.camel@phoenix>
+From: Andreas Werner <andreas.werner@men.de>
+Date: Wed, 13 Aug 2014 08:38:20 +0000
+Subject: [lm-sensors] [PATCH v4 0/4] Introduce MEN 14F021P BMC driver series
+Message-Id: <cover.1407918792.git.andreas.werner@men.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: andreas.werner@men.de, sameo@linux.intel.com, lee.jones@linaro.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org
 
-Simplify the code a bit and also improve readability.
+This patch set add support for the MEN 14F021P00 Board Management called BMC.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/ads1015.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+The BMC is a PIC Mikrocontroller which assembled on almost all of our
+3U Compact PCI CPU board and a few Box PCs.
+main part of the BMC is to start and monitor the board, but there are a
+lot more features which can be accessed using an I2C Host interface
 
-diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-index db7a448..1e55c1e 100644
---- a/drivers/hwmon/ads1015.c
-+++ b/drivers/hwmon/ads1015.c
-@@ -184,20 +184,18 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
- 		return -EINVAL;
- 
- 	for_each_child_of_node(client->dev.of_node, node) {
--		const __be32 *property;
--		int len;
-+		u32 pval;
- 		unsigned int channel;
- 		unsigned int pga = ADS1015_DEFAULT_PGA;
- 		unsigned int data_rate = ADS1015_DEFAULT_DATA_RATE;
- 
--		property = of_get_property(node, "reg", &len);
--		if (!property || len != sizeof(int)) {
-+		if (of_property_read_u32(node, "reg", &pval)) {
- 			dev_err(&client->dev, "invalid reg on %s\n",
- 				node->full_name);
- 			continue;
- 		}
- 
--		channel = be32_to_cpup(property);
-+		channel = pval;
- 		if (channel >= ADS1015_CHANNELS) {
- 			dev_err(&client->dev,
- 				"invalid channel index %d on %s\n",
-@@ -205,20 +203,17 @@ static int ads1015_get_channels_config_of(struct i2c_client *client)
- 			continue;
- 		}
- 
--		property = of_get_property(node, "ti,gain", &len);
--		if (property && len = sizeof(int)) {
--			pga = be32_to_cpup(property);
-+		if (!of_property_read_u32(node, "ti,gain", &pval)) {
-+			pga = pval;
- 			if (pga > 6) {
--				dev_err(&client->dev,
--					"invalid gain on %s\n",
-+				dev_err(&client->dev, "invalid gain on %s\n",
- 					node->full_name);
- 				continue;
- 			}
- 		}
- 
--		property = of_get_property(node, "ti,datarate", &len);
--		if (property && len = sizeof(int)) {
--			data_rate = be32_to_cpup(property);
-+		if (!of_property_read_u32(node, "ti,datarate", &pval)) {
-+			data_rate = pval;
- 			if (data_rate > 7) {
- 				dev_err(&client->dev,
- 					"invalid data_rate on %s\n",
+Features supported in this Patchset:
+        - Watchdog
+        - LEDs
+	- HWMON
+
+The Patchset includes a MFD Core driver, Watchdog, hwmon  and LEDs driver.
+
+Changes in v4:
+	- fixed some style issues
+	- fixed GPL license version
+	- added hwmon voltage monitoring slave driver
+
+Changes in v3:
+        - deleted i2c_smbus wrapper functions and use native one
+        - some cosmentics and variable renaming to be more clear
+        - renamed "leave production" mode to "exit production mode"
+
+Changes in v2:
+        - changed i2c_smbus_read wrapper function to return both, value
+          and error.
+        - moved "leave production mode" from Watchdog driver to mfd core.
+        - fixed some return values in the watchdog driver to return the original
+          error value instead of -EIO.
+
+
+Andreas Werner (4):
+  drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
+  drivers/watchdog/menf21bmc_wdt: introduce MEN 14F021P00 BMC Watchdog
+    driver
+  drivers/leds/leds-menf21bmc: introduce MEN 14F021P00 BMC LED driver
+  drivers/hwmon/menf21bmc_hwmon: introduce MEN14F021P00 BMC HWMON driver
+
+ drivers/hwmon/Kconfig            |   7 ++
+ drivers/hwmon/Makefile           |   1 +
+ drivers/hwmon/menf21bmc_hwmon.c  | 238 +++++++++++++++++++++++++++++++++++++++
+ drivers/leds/Kconfig             |   6 +
+ drivers/leds/Makefile            |   1 +
+ drivers/leds/leds-menf21bmc.c    | 131 +++++++++++++++++++++
+ drivers/mfd/Kconfig              |  12 ++
+ drivers/mfd/Makefile             |   1 +
+ drivers/mfd/menf21bmc.c          | 132 ++++++++++++++++++++++
+ drivers/watchdog/Kconfig         |   7 ++
+ drivers/watchdog/Makefile        |   1 +
+ drivers/watchdog/menf21bmc_wdt.c | 203 +++++++++++++++++++++++++++++++++
+ 12 files changed, 740 insertions(+)
+ create mode 100644 drivers/hwmon/menf21bmc_hwmon.c
+ create mode 100644 drivers/leds/leds-menf21bmc.c
+ create mode 100644 drivers/mfd/menf21bmc.c
+ create mode 100644 drivers/watchdog/menf21bmc_wdt.c
+
 -- 
-1.9.1
-
-
+2.0.4
 
 
 _______________________________________________
