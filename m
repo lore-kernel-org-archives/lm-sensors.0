@@ -1,114 +1,133 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 11 Aug 2014 17:49:57 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.17 (part 2)
-Message-Id: <20140811174957.GA24677@roeck-us.net>
+Date: Thu, 14 Aug 2014 05:03:04 +0000
+Subject: Re: [lm-sensors] [GIT PULL] hwmon updates for 3.17 (part 2)
+Message-Id: <20140814050304.GA17299@roeck-us.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5855330727827434958=="
+Content-Type: multipart/mixed; boundary="===============7080078005015995231=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20140811174957.GA24677@roeck-us.net>
+In-Reply-To: <20140811174957.GA24677@roeck-us.net>
 To: torvalds@linux-foundation.org
 Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
 
---===============5855330727827434958==
+--===============7080078005015995231==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
+	protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
 Content-Disposition: inline
 
 
---zYM0uCDKw75PZbzx
+--5vNYLRcllDrimb99
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Aug 11, 2014 at 10:49:57AM -0700, Guenter Roeck wrote:
+> Hi Linus,
+>=20
+> Please pull hwmon updates for Linux 3.17 from signed tag:
+>=20
+>     git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.gi=
+t hwmon-for-linus
+>=20
 Hi Linus,
 
-Please pull hwmon updates for Linux 3.17 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+did this get lost, am I impatient, or is there a problem with it ?
 
 Thanks,
 Guenter
-------
 
-The following changes since commit f4d33337eac4007793ca11fd1ab68d91ce7aa762:
+> Thanks,
+> Guenter
+> ------
+>=20
+> The following changes since commit f4d33337eac4007793ca11fd1ab68d91ce7aa7=
+62:
+>=20
+>   Merge branch 'v4l_for_linus' of git://git.kernel.org/pub/scm/linux/kern=
+el/git/mchehab/linux-media (2014-08-05 16:36:30 -0700)
+>=20
+> are available in the git repository at:
+>=20
+>=20
+>   git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git =
+tags/hwmon-for-linus
+>=20
+> for you to fetch changes up to 6ddd855c13bcd324a2d9756134e6b57c659cfde6:
+>=20
+>   hwmon: (tmp103) Remove duplicate test for I2C_FUNC_SMBUS_BYTE_DATA func=
+tionality (2014-08-10 07:51:42 -0700)
+>=20
+> ----------------------------------------------------------------
+> Several bug fixes in various drivers, plus a minor cleanup
+> in the tmp103 driver.
+>=20
+> ----------------------------------------------------------------
+> Axel Lin (14):
+>       hwmon: (lm92) Prevent overflow problem when writing large limits
+>       hwmon: (ads1015) Fix out-of-bounds array access
+>       hwmon: (dme1737) Prevent overflow problem when writing large limits
+>       hwmon: (hih6130) Fix missing hih6130->write_length setting
+>       hwmon: (adm1025) Fix vrm write operation
+>       hwmon: (adm1026) Fix vrm write operation
+>       hwmon: (asb100) Fix vrm write operation
+>       hwmon: (lm87) Fix vrm write operation
+>       hwmon: (pc87360) Fix vrm write operation
+>       hwmon: (vt1211) Fix vrm write operation
+>       hwmon: (w83627hf) Fix vrm write operation
+>       hwmon: (w83791d) Fix vrm write operation
+>       hwmon: (w83793) Fix vrm write operation
+>       hwmon: (tmp103) Remove duplicate test for I2C_FUNC_SMBUS_BYTE_DATA =
+functionality
+>=20
+> Guenter Roeck (1):
+>       hwmon: (emc6w201) Fix temperature limit range
+>=20
+>  drivers/hwmon/adm1025.c  |  3 +++
+>  drivers/hwmon/adm1026.c  |  3 +++
+>  drivers/hwmon/ads1015.c  |  2 ++
+>  drivers/hwmon/asb100.c   |  4 ++++
+>  drivers/hwmon/dme1737.c  | 33 ++++++++++++++++++---------------
+>  drivers/hwmon/emc6w201.c |  4 ++--
+>  drivers/hwmon/hih6130.c  |  3 +++
+>  drivers/hwmon/lm87.c     |  4 ++++
+>  drivers/hwmon/lm92.c     | 13 ++++++-------
+>  drivers/hwmon/pc87360.c  |  3 +++
+>  drivers/hwmon/tmp103.c   |  7 -------
+>  drivers/hwmon/vt1211.c   |  3 +++
+>  drivers/hwmon/w83627hf.c |  3 +++
+>  drivers/hwmon/w83791d.c  |  3 +++
+>  drivers/hwmon/w83793.c   |  3 +++
+>  15 files changed, 60 insertions(+), 31 deletions(-)
 
-  Merge branch 'v4l_for_linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2014-08-05 16:36:30 -0700)
-
-are available in the git repository at:
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 6ddd855c13bcd324a2d9756134e6b57c659cfde6:
-
-  hwmon: (tmp103) Remove duplicate test for I2C_FUNC_SMBUS_BYTE_DATA functionality (2014-08-10 07:51:42 -0700)
-
-----------------------------------------------------------------
-Several bug fixes in various drivers, plus a minor cleanup
-in the tmp103 driver.
-
-----------------------------------------------------------------
-Axel Lin (14):
-      hwmon: (lm92) Prevent overflow problem when writing large limits
-      hwmon: (ads1015) Fix out-of-bounds array access
-      hwmon: (dme1737) Prevent overflow problem when writing large limits
-      hwmon: (hih6130) Fix missing hih6130->write_length setting
-      hwmon: (adm1025) Fix vrm write operation
-      hwmon: (adm1026) Fix vrm write operation
-      hwmon: (asb100) Fix vrm write operation
-      hwmon: (lm87) Fix vrm write operation
-      hwmon: (pc87360) Fix vrm write operation
-      hwmon: (vt1211) Fix vrm write operation
-      hwmon: (w83627hf) Fix vrm write operation
-      hwmon: (w83791d) Fix vrm write operation
-      hwmon: (w83793) Fix vrm write operation
-      hwmon: (tmp103) Remove duplicate test for I2C_FUNC_SMBUS_BYTE_DATA functionality
-
-Guenter Roeck (1):
-      hwmon: (emc6w201) Fix temperature limit range
-
- drivers/hwmon/adm1025.c  |  3 +++
- drivers/hwmon/adm1026.c  |  3 +++
- drivers/hwmon/ads1015.c  |  2 ++
- drivers/hwmon/asb100.c   |  4 ++++
- drivers/hwmon/dme1737.c  | 33 ++++++++++++++++++---------------
- drivers/hwmon/emc6w201.c |  4 ++--
- drivers/hwmon/hih6130.c  |  3 +++
- drivers/hwmon/lm87.c     |  4 ++++
- drivers/hwmon/lm92.c     | 13 ++++++-------
- drivers/hwmon/pc87360.c  |  3 +++
- drivers/hwmon/tmp103.c   |  7 -------
- drivers/hwmon/vt1211.c   |  3 +++
- drivers/hwmon/w83627hf.c |  3 +++
- drivers/hwmon/w83791d.c  |  3 +++
- drivers/hwmon/w83793.c   |  3 +++
- 15 files changed, 60 insertions(+), 31 deletions(-)
-
---zYM0uCDKw75PZbzx
+--5vNYLRcllDrimb99
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT6QJFAAoJEMsfJm/On5mBpgwP/jjq6YvZspromQbrKJtCbeVL
-GvjnbAAymIziopwz903f1ud7RDex/NoQbnQTEqPbckb4y3YnFQ49l/w5zKFLxSlK
-L2+zaEpWD0IyGslXlqsSCbozvPOto9A5Q+ye2+Vn+RPTjQblmbrdhJ6mxjMmKrpD
-q6MXQRIHt+192H5mtFYrLFkeReqZ3yk4tDKCQIUmp8exvzwQpEOuBLmh9XpraY83
-FquePMPSGYsMqhrSo+U748+x347Ptcuhi22quMXDf44an+qFxcGbaClWuKp0zER9
-J0kZJ0V2jXop0e0G5ICRyUvNuu/a5tT2PJsbv96HONIN7h65Zog9nKgmzl2S4bsX
-H26iBDI0qy4FPYBTp0gLb6wbtD8pMg3/Ede5bfyjtgtMJAsYGFZqsE6hvZE7adma
-WOzR8yn6N+qWMUsCGUygsy9UnIdRR/+AzsrNBkFPDVQR832zGioUArqrK5OCF/bS
-vc2SDxw14KsP49EsVge42NLW2yw7m+C0fSsPBLgHD8vaNgbdo8NB6As3MCCzqPEV
-9EJN9akhMILIklM/hPB7xPb+FILSpxHD/8GF6Q+ZjJ3TVU1vhliTG30cdeQIdopZ
-ziRN35ldAGTGagNv83ULcktEl4XfpfWX7bvko8qhE3R4yJ59DH8Ys20nnRqkfB3J
-GmmJfRWwjx2uMPbEM0uH
-=x1bn
+iQIcBAEBAgAGBQJT7EMIAAoJEMsfJm/On5mB/a0P/3Onq//2Lp7D+kjzhAZtNklh
+2Nd89p8JY07cVmhltmVltRyBhla95SK3WiiSxJY4dV7mpFzHYF5sImavtWdIw9Rn
+c9ee6JcdO/dO+zt8O9ywrfFyApTBelaIOmC1p8Uso9pcB1hJnLTgCzXMBGKX5fGH
+3YA4qwbya+GOgWx0ZkmEnR+xJevXI5QX0kEu4PyuVN6tsc3CaCzWl0xwuHasrlOB
+htU+sUAvoOjmrJeCYja/MBkKj4N6NQkNDyc1wgLFMURosxgHZVbO5QhniY+4V/mW
+968GQbRRHOnnfJ9efRJKzEYZHxxddkpHt3T3YVZf6BC9O4NWsE0StRVrRELxGVo1
+urILuu1j01TRIpLbqngVQ0l2J/v2Vg3s2q2x8vYe2UetOx/9/MxHXOIesMPnWblc
+MDw3zx2+JiKv28mLhbgyDzM21e1zqJnkiMIfZ+57tIzOW/VRpzvmaLqJr0Lst/ye
+wPGpGUQHkr5bmRBmcVnqOZkFCJoos1i/d0o6vm/iry6O33s01XY/48PbYOCaY/iL
+Qe/NSK5rliBdJKkAv/D8+mF6ccCzsejc25W4yqqB68hNCNyGij0CShix7quoaQ4P
+VXaDACU+Jt0W6XmLZscUz0vEMrJFaQN6t9iWYg3vfEDzYIjQ+EElPJidyhf+RE+s
+trnw+/57SS05HovMc6aq
+=ADu6
 -----END PGP SIGNATURE-----
 
---zYM0uCDKw75PZbzx--
+--5vNYLRcllDrimb99--
 
 
---===============5855330727827434958==
+--===============7080078005015995231==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -118,4 +137,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5855330727827434958==--
+--===============7080078005015995231==--
