@@ -1,24 +1,132 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 04 Aug 2014 14:04:41 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ibmpowernv) Use of_property_read_u32 at appropriate place
-Message-Id: <53DF92F9.3010709@roeck-us.net>
+From: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
+Date: Thu, 14 Aug 2014 23:15:27 +0000
+Subject: [lm-sensors] [PATCH V3] hwmon, k10temp: Add support for F15h M60h
+Message-Id: <1408058127-19374-1-git-send-email-aravind.gopalakrishnan@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1406867927.25393.1.camel@phoenix>
-In-Reply-To: <1406867927.25393.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: clemens@ladisch.de, linux@roeck-us.net, jdelvare@suse.de, rdunlap@infradead.org, bp@suse.de
+Cc: lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
 
-On 07/31/2014 09:38 PM, Axel Lin wrote:
-> Simplify the code a bit and also improve readability.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+This patch adds temperature monitoring support for F15h M60h processor.
+ - Add new pci device id for the relevant processor
+ - The functionality of REG_REPORTED_TEMPERATURE is moved to
+   D0F0xBC_xD820_0CA4 [Reported Temperature Control]
+   - So, use this to get CUR_TEMP value
+   - Since we need an indirect register access, protect this with
+     a mutex lock
+ - Add Kconfig, Doc entries to indicate support for this processor.
 
-Applied to -next.
+Signed-off-by: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
+---
+Changes in V3:
+ - Move helper function that protects indirect register access locally
+   until a time when others outside k10temp may need it
+   
+Changes in V2:
+ - Prevent race with other code that may require indirect NB_SMU_REG access
+ - Fix some minor style issues
 
-Guenter
+ Documentation/hwmon/k10temp |  2 +-
+ drivers/hwmon/Kconfig       |  4 ++--
+ drivers/hwmon/k10temp.c     | 35 ++++++++++++++++++++++++++++++++---
+ 3 files changed, 35 insertions(+), 6 deletions(-)
 
+diff --git a/Documentation/hwmon/k10temp b/Documentation/hwmon/k10temp
+index ee6d30e..254d2f5 100644
+--- a/Documentation/hwmon/k10temp
++++ b/Documentation/hwmon/k10temp
+@@ -11,7 +11,7 @@ Supported chips:
+   Socket S1G2: Athlon (X2), Sempron (X2), Turion X2 (Ultra)
+ * AMD Family 12h processors: "Llano" (E2/A4/A6/A8-Series)
+ * AMD Family 14h processors: "Brazos" (C/E/G/Z-Series)
+-* AMD Family 15h processors: "Bulldozer" (FX-Series), "Trinity", "Kaveri"
++* AMD Family 15h processors: "Bulldozer" (FX-Series), "Trinity", "Kaveri", "Carrizo"
+ * AMD Family 16h processors: "Kabini", "Mullins"
+ 
+   Prefix: 'k10temp'
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 02d3d85..57ba400 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -280,8 +280,8 @@ config SENSORS_K10TEMP
+ 	  If you say yes here you get support for the temperature
+ 	  sensor(s) inside your CPU. Supported are later revisions of
+ 	  the AMD Family 10h and all revisions of the AMD Family 11h,
+-	  12h (Llano), 14h (Brazos), 15h (Bulldozer/Trinity/Kaveri) and
+-	  16h (Kabini/Mullins) microarchitectures.
++	  12h (Llano), 14h (Brazos), 15h (Bulldozer/Trinity/Kaveri/Carrizo)
++	  and 16h (Kabini/Mullins) microarchitectures.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called k10temp.
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index f7b46f6..36ea152 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -33,6 +33,9 @@ static bool force;
+ module_param(force, bool, 0444);
+ MODULE_PARM_DESC(force, "force loading on processors with erratum 319");
+ 
++/* Provide lock for writing to NB_SMU_IND_ADDR */
++DEFINE_MUTEX(nb_smu_ind_mutex);
++
+ /* CPUID function 0x80000001, ebx */
+ #define CPUID_PKGTYPE_MASK	0xf0000000
+ #define CPUID_PKGTYPE_F		0x00000000
+@@ -51,13 +54,38 @@ MODULE_PARM_DESC(force, "force loading on processors with erratum 319");
+ #define REG_NORTHBRIDGE_CAPABILITIES	0xe8
+ #define  NB_CAP_HTC			0x00000400
+ 
++/*
++ * For F15h M60h, functionality of REG_REPORTED_TEMPERATURE
++ * has been moved to D0F0xBC_xD820_0CA4 [Reported Temperature
++ * Control]
++ */
++#define F15H_M60H_REPORTED_TEMP_CTRL_OFFSET	0xd8200ca4
++#define PCI_DEVICE_ID_AMD_15H_M60H_NB_F3	0x1573
++
++void amd_nb_smu_index_read(struct pci_dev *pdev, unsigned int devfn,
++			   int offset, u32 *val)
++{
++	mutex_lock(&nb_smu_ind_mutex);
++	pci_bus_write_config_dword(pdev->bus, devfn,
++				   0xb8, offset);
++	pci_bus_read_config_dword(pdev->bus, devfn,
++				  0xbc, val);
++	mutex_unlock(&nb_smu_ind_mutex);
++}
++
+ static ssize_t show_temp(struct device *dev,
+ 			 struct device_attribute *attr, char *buf)
+ {
+ 	u32 regval;
+-
+-	pci_read_config_dword(to_pci_dev(dev),
+-			      REG_REPORTED_TEMPERATURE, &regval);
++	struct pci_dev *pdev = to_pci_dev(dev);
++
++	if (boot_cpu_data.x86 = 0x15 && boot_cpu_data.x86_model = 0x60) {
++		amd_nb_smu_index_read(pdev, PCI_DEVFN(0, 0),
++				      F15H_M60H_REPORTED_TEMP_CTRL_OFFSET,
++				      &regval);
++	} else {
++		pci_read_config_dword(pdev, REG_REPORTED_TEMPERATURE, &regval);
++	}
+ 	return sprintf(buf, "%u\n", (regval >> 21) * 125);
+ }
+ 
+@@ -211,6 +239,7 @@ static const struct pci_device_id k10temp_id_table[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F3) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M60H_NB_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_M30H_NB_F3) },
+ 	{}
+-- 
+2.0.3
 
 
 _______________________________________________
