@@ -1,202 +1,199 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 25 Aug 2014 19:05:59 +0000
-Subject: Re: [lm-sensors] [PATCH v4 3/4] drivers/leds/leds-menf21bmc: introduce MEN 14F021P00 BMC LED driver
-Message-Id: <20140825190559.GA29112@roeck-us.net>
+Date: Fri, 15 Aug 2014 16:32:41 +0000
+Subject: [lm-sensors] [RFT PATCH] hwmon: (k10temp) Convert to devm_hwmon_device_register_with_groups
+Message-Id: <1408120361-26570-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1407918792.git.andreas.werner@men.de>
- <b3c6bc75345ba821572b22e05432960f7867bdbb.1407918792.git.andreas.werner@men.de>
- <CAK5ve-KCv=kfkJK-x5m1sFiSBVH9FMUys_tLw5Cup=3rHLZxYQ@mail.gmail.com>
-In-Reply-To: <CAK5ve-KCv=kfkJK-x5m1sFiSBVH9FMUys_tLw5Cup=3rHLZxYQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Andreas Werner <andreas.werner@men.de>, lkml <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, wim@iguana.be, linux-watchdog@vger.kernel.org, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, Linux LED Subsystem <linux-leds@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, Aug 25, 2014 at 11:53:32AM -0700, Bryan Wu wrote:
-> On Wed, Aug 13, 2014 at 1:40 AM, Andreas Werner <andreas.werner@men.de> wrote:
-> > Added driver to support the 14F021P00 BMC LEDs.
-> > The BMC is a Board Management Controller including four LEDs which
-> > can be switched on and off.
-> >
-> > Signed-off-by: Andreas Werner <andreas.werner@men.de>
-> > ---
-> >  drivers/leds/Kconfig          |   6 ++
-> >  drivers/leds/Makefile         |   1 +
-> >  drivers/leds/leds-menf21bmc.c | 131 ++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 138 insertions(+)
-> >  create mode 100644 drivers/leds/leds-menf21bmc.c
-> >
-> > diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> > index 27cf0cd..d38ff3f 100644
-> > --- a/drivers/leds/Kconfig
-> > +++ b/drivers/leds/Kconfig
-> > @@ -458,6 +458,12 @@ config LEDS_OT200
-> >           This option enables support for the LEDs on the Bachmann OT200.
-> >           Say Y to enable LEDs on the Bachmann OT200.
-> >
-> > +config LEDS_MENF21BMC
-> > +       tristate "LED support for the MEN 14F021P00 BMC"
-> > +       depends on LEDS_CLASS && MFD_MENF21BMC
-> > +       help
-> > +         Say Y here to include support for the MEN 14F021P00 BMC LEDs.
-> > +
-> >  comment "LED driver for blink(1) USB RGB LED is under Special HID drivers (HID_THINGM)"
-> >
-> >  config LEDS_BLINKM
-> > diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-> > index 3c03666..cadc433 100644
-> > --- a/drivers/leds/Makefile
-> > +++ b/drivers/leds/Makefile
-> > @@ -53,6 +53,7 @@ obj-$(CONFIG_LEDS_MAX8997)            += leds-max8997.o
-> >  obj-$(CONFIG_LEDS_LM355x)              += leds-lm355x.o
-> >  obj-$(CONFIG_LEDS_BLINKM)              += leds-blinkm.o
-> >  obj-$(CONFIG_LEDS_VERSATILE)           += leds-versatile.o
-> > +obj-$(CONFIG_LEDS_MENF21BMC)           += leds-menf21bmc.o
-> >
-> >  # LED SPI Drivers
-> >  obj-$(CONFIG_LEDS_DAC124S085)          += leds-dac124s085.o
-> > diff --git a/drivers/leds/leds-menf21bmc.c b/drivers/leds/leds-menf21bmc.c
-> > new file mode 100644
-> > index 0000000..4621f72
-> > --- /dev/null
-> > +++ b/drivers/leds/leds-menf21bmc.c
-> > @@ -0,0 +1,131 @@
-> > +/*
-> > + *  MEN 14F021P00 Board Management Controller (BMC) LEDs Driver.
-> > + *
-> > + *  This is the core LED driver of the MEN 14F021P00 BMC.
-> > + *  There are four LEDs available which can be switched on and off.
-> > + *  STATUS LED, HOT SWAP LED, USER LED 1, USER LED 2
-> > + *
-> > + *  Copyright (C) 2014 MEN Mikro Elektronik Nuernberg GmbH
-> > + *
-> > + *  This program is free software; you can redistribute  it and/or modify it
-> > + *  under  the terms of  the GNU General  Public License as published by the
-> > + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> > + *  option) any later version.
-> > + */
-> > +
-> > +#include <linux/module.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/leds.h>
-> > +#include <linux/i2c.h>
-> > +
-> > +#define BMC_CMD_LED_GET_SET    0xA0
-> > +#define BMC_BIT_LED_STATUS     BIT(0)
-> > +#define BMC_BIT_LED_HOTSWAP    BIT(1)
-> > +#define BMC_BIT_LED_USER1      BIT(2)
-> > +#define BMC_BIT_LED_USER2      BIT(3)
-> > +
-> > +struct menf21bmc_led {
-> > +       struct led_classdev cdev;
-> > +       u8 led_bit;
-> > +       const char *name;
-> > +       struct i2c_client *i2c_client;
-> > +};
-> > +
-> > +static struct menf21bmc_led leds[] = {
-> > +       {
-> > +               .name = "menf21bmc:led_status",
-> > +               .led_bit = BMC_BIT_LED_STATUS,
-> > +       },
-> > +       {
-> > +               .name = "menf21bmc:led_hotswap",
-> > +               .led_bit = BMC_BIT_LED_HOTSWAP,
-> > +       },
-> > +       {
-> > +               .name = "menf21bmc:led_user1",
-> > +               .led_bit = BMC_BIT_LED_USER1,
-> > +       },
-> > +       {
-> > +               .name = "menf21bmc:led_user2",
-> > +               .led_bit = BMC_BIT_LED_USER2,
-> > +       }
-> > +};
-> > +
-> > +static DEFINE_MUTEX(led_lock);
-> > +
-> > +static void
-> > +menf21bmc_led_set(struct led_classdev *led_cdev, enum led_brightness value)
-> > +{
-> > +       int led_val;
-> > +       struct menf21bmc_led *led = container_of(led_cdev,
-> > +                                       struct menf21bmc_led, cdev);
-> > +
-> > +       mutex_lock(&led_lock);
-> > +       led_val = i2c_smbus_read_byte_data(led->i2c_client,
-> > +                                               BMC_CMD_LED_GET_SET);
-> > +       if (led_val < 0)
-> > +               goto err_out;
-> > +
-> > +       if (value = LED_OFF)
-> > +               led_val &= ~led->led_bit;
-> > +       else
-> > +               led_val |= led->led_bit;
-> > +
-> > +       i2c_smbus_write_byte_data(led->i2c_client,
-> > +                                       BMC_CMD_LED_GET_SET, led_val);
-> > +err_out:
-> > +       mutex_unlock(&led_lock);
-> > +}
-> > +
-> > +static int menf21bmc_led_probe(struct platform_device *pdev)
-> > +{
-> > +       int i;
-> > +       int ret;
-> > +       struct i2c_client *i2c_client = to_i2c_client(pdev->dev.parent);
-> > +
-> > +       for (i = 0; i < ARRAY_SIZE(leds); i++) {
-> > +               leds[i].cdev.name = leds[i].name;
-> > +               leds[i].cdev.brightness_set = menf21bmc_led_set;
-> > +               leds[i].i2c_client = i2c_client;
-> > +               ret = led_classdev_register(&pdev->dev, &leds[i].cdev);
-> > +               if (ret < 0)
-> > +                       goto err_free_leds;
-> > +       }
-> > +       dev_info(&pdev->dev, "MEN 140F21P00 BMC LED device enabled\n");
-> > +
-> > +       return 0;
-> > +
-> > +err_free_leds:
-> > +       dev_err(&pdev->dev, "failed to register LED device\n");
-> > +
-> > +       for (i = i - 1; i >= 0; i--)
-> > +               led_classdev_unregister(&leds[i].cdev);
-> > +
-> > +       return ret;
-> > +}
-> > +
-> > +static int menf21bmc_led_remove(struct platform_device *pdev)
-> > +{
-> > +       int i;
-> > +
-> > +       for (i = 0; i < ARRAY_SIZE(leds); i++)
-> > +               led_classdev_unregister(&leds[i].cdev);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +static struct platform_driver menf21bmc_led = {
-> > +       .probe          = menf21bmc_led_probe,
-> > +       .remove         = menf21bmc_led_remove,
-> > +       .driver         = {
-> > +               .name           = "menf21bmc_led",
-> > +               .owner          = THIS_MODULE,
-> > +       },
-> > +};
-> > +
-> 
-> I still think this driver should be an I2C driver which is simply than
-> a platform driver.
-> Did I miss some discussion about this in our email?
-> 
-It is not possible to instantiate multiple drivers (watchdog, hwmon, led
-in this case) with a single i2c chip.
+Use devm_hwmon_device_register_with_groups() to simplify the code
+and reduce code size.
 
-Thanks,
-Guenter
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Would be great if someone with access to hardware can test this patch
+and let me know if it works. Thanks!
+
+ drivers/hwmon/k10temp.c | 124 +++++++++++++++++++-----------------------------
+ 1 file changed, 48 insertions(+), 76 deletions(-)
+
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index 730bdf7..1e7bdcd 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -77,7 +77,7 @@ static ssize_t show_temp(struct device *dev,
+ 			 struct device_attribute *attr, char *buf)
+ {
+ 	u32 regval;
+-	struct pci_dev *pdev = to_pci_dev(dev);
++	struct pci_dev *pdev = dev_get_drvdata(dev);
+ 
+ 	if (boot_cpu_data.x86 = 0x15 && boot_cpu_data.x86_model = 0x60) {
+ 		amd_nb_smu_index_read(pdev, PCI_DEVFN(0, 0),
+@@ -103,7 +103,7 @@ static ssize_t show_temp_crit(struct device *dev,
+ 	u32 regval;
+ 	int value;
+ 
+-	pci_read_config_dword(to_pci_dev(dev),
++	pci_read_config_dword(dev_get_drvdata(dev),
+ 			      REG_HARDWARE_THERMAL_CONTROL, &regval);
+ 	value = ((regval >> 16) & 0x7f) * 500 + 52000;
+ 	if (show_hyst)
+@@ -111,17 +111,43 @@ static ssize_t show_temp_crit(struct device *dev,
+ 	return sprintf(buf, "%d\n", value);
+ }
+ 
+-static ssize_t show_name(struct device *dev,
+-			 struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "k10temp\n");
+-}
+-
+ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
+ static DEVICE_ATTR(temp1_max, S_IRUGO, show_temp_max, NULL);
+ static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_temp_crit, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IRUGO, show_temp_crit, NULL, 1);
+-static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static umode_t k10temp_is_visible(struct kobject *kobj,
++				  struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct pci_dev *pdev = dev_get_drvdata(dev);
++
++	if (index >= 2) {
++		u32 reg_caps, reg_htc;
++
++		pci_read_config_dword(pdev, REG_NORTHBRIDGE_CAPABILITIES,
++				      &reg_caps);
++		pci_read_config_dword(pdev, REG_HARDWARE_THERMAL_CONTROL,
++				      &reg_htc);
++		if (!(reg_caps & NB_CAP_HTC) || !(reg_htc & HTC_ENABLE))
++			return 0;
++	}
++	return attr->mode;
++}
++
++static struct attribute *k10temp_attrs[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_max.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group k10temp_group = {
++	.attrs = k10temp_attrs,
++	.is_visible = k10temp_is_visible,
++};
++__ATTRIBUTE_GROUPS(k10temp);
+ 
+ static bool has_erratum_319(struct pci_dev *pdev)
+ {
+@@ -160,76 +186,23 @@ static bool has_erratum_319(struct pci_dev *pdev)
+ static int k10temp_probe(struct pci_dev *pdev,
+ 				   const struct pci_device_id *id)
+ {
+-	struct device *hwmon_dev;
+-	u32 reg_caps, reg_htc;
+ 	int unreliable = has_erratum_319(pdev);
+-	int err;
+-
+-	if (unreliable && !force) {
+-		dev_err(&pdev->dev,
+-			"unreliable CPU thermal sensor; monitoring disabled\n");
+-		err = -ENODEV;
+-		goto exit;
+-	}
+-
+-	err = device_create_file(&pdev->dev, &dev_attr_temp1_input);
+-	if (err)
+-		goto exit;
+-	err = device_create_file(&pdev->dev, &dev_attr_temp1_max);
+-	if (err)
+-		goto exit_remove;
+-
+-	pci_read_config_dword(pdev, REG_NORTHBRIDGE_CAPABILITIES, &reg_caps);
+-	pci_read_config_dword(pdev, REG_HARDWARE_THERMAL_CONTROL, &reg_htc);
+-	if ((reg_caps & NB_CAP_HTC) && (reg_htc & HTC_ENABLE)) {
+-		err = device_create_file(&pdev->dev,
+-				&sensor_dev_attr_temp1_crit.dev_attr);
+-		if (err)
+-			goto exit_remove;
+-		err = device_create_file(&pdev->dev,
+-				&sensor_dev_attr_temp1_crit_hyst.dev_attr);
+-		if (err)
+-			goto exit_remove;
+-	}
+-
+-	err = device_create_file(&pdev->dev, &dev_attr_name);
+-	if (err)
+-		goto exit_remove;
+-
+-	hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(hwmon_dev)) {
+-		err = PTR_ERR(hwmon_dev);
+-		goto exit_remove;
+-	}
+-	pci_set_drvdata(pdev, hwmon_dev);
++	struct device *dev = &pdev->dev;
++	struct device *hwmon_dev;
+ 
+-	if (unreliable && force)
+-		dev_warn(&pdev->dev,
++	if (unreliable) {
++		if (!force) {
++			dev_err(dev,
++				"unreliable CPU thermal sensor; monitoring disabled\n");
++			return -ENODEV;
++		}
++		dev_warn(dev,
+ 			 "unreliable CPU thermal sensor; check erratum 319\n");
+-	return 0;
+-
+-exit_remove:
+-	device_remove_file(&pdev->dev, &dev_attr_name);
+-	device_remove_file(&pdev->dev, &dev_attr_temp1_input);
+-	device_remove_file(&pdev->dev, &dev_attr_temp1_max);
+-	device_remove_file(&pdev->dev,
+-			   &sensor_dev_attr_temp1_crit.dev_attr);
+-	device_remove_file(&pdev->dev,
+-			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
+-exit:
+-	return err;
+-}
++	}
+ 
+-static void k10temp_remove(struct pci_dev *pdev)
+-{
+-	hwmon_device_unregister(pci_get_drvdata(pdev));
+-	device_remove_file(&pdev->dev, &dev_attr_name);
+-	device_remove_file(&pdev->dev, &dev_attr_temp1_input);
+-	device_remove_file(&pdev->dev, &dev_attr_temp1_max);
+-	device_remove_file(&pdev->dev,
+-			   &sensor_dev_attr_temp1_crit.dev_attr);
+-	device_remove_file(&pdev->dev,
+-			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "k10temp", pdev,
++							   k10temp_groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+ static const struct pci_device_id k10temp_id_table[] = {
+@@ -250,7 +223,6 @@ static struct pci_driver k10temp_driver = {
+ 	.name = "k10temp",
+ 	.id_table = k10temp_id_table,
+ 	.probe = k10temp_probe,
+-	.remove = k10temp_remove,
+ };
+ 
+ module_pci_driver(k10temp_driver);
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
