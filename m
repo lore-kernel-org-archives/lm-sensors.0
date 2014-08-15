@@ -1,17 +1,17 @@
-From: Borislav Petkov <bp@suse.de>
-Date: Fri, 15 Aug 2014 06:16:28 +0000
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Fri, 15 Aug 2014 06:35:16 +0000
 Subject: Re: [lm-sensors] [PATCH V3] hwmon, k10temp: Add support for F15h M60h
-Message-Id: <20140815061628.GC23775@pd.tnic>
+Message-Id: <53EDAA24.3080705@ladisch.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1408058127-19374-1-git-send-email-aravind.gopalakrishnan@amd.com>
 In-Reply-To: <1408058127-19374-1-git-send-email-aravind.gopalakrishnan@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Cc: clemens@ladisch.de, linux@roeck-us.net, jdelvare@suse.de, rdunlap@infradead.org, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux@roeck-us.net, jdelvare@suse.de, rdunlap@infradead.org, bp@suse.de
+Cc: lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 14, 2014 at 06:15:27PM -0500, Aravind Gopalakrishnan wrote:
+Aravind Gopalakrishnan wrote:
 > This patch adds temperature monitoring support for F15h M60h processor.
 >  - Add new pci device id for the relevant processor
 >  - The functionality of REG_REPORTED_TEMPERATURE is moved to
@@ -20,32 +20,23 @@ On Thu, Aug 14, 2014 at 06:15:27PM -0500, Aravind Gopalakrishnan wrote:
 >    - Since we need an indirect register access, protect this with
 >      a mutex lock
 >  - Add Kconfig, Doc entries to indicate support for this processor.
-> 
+>
 > Signed-off-by: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
 > ---
 > Changes in V3:
 >  - Move helper function that protects indirect register access locally
 >    until a time when others outside k10temp may need it
->    
+>
 > Changes in V2:
 >  - Prevent race with other code that may require indirect NB_SMU_REG access
 >  - Fix some minor style issues
-> 
+>
 >  Documentation/hwmon/k10temp |  2 +-
 >  drivers/hwmon/Kconfig       |  4 ++--
 >  drivers/hwmon/k10temp.c     | 35 ++++++++++++++++++++++++++++++++---
 >  3 files changed, 35 insertions(+), 6 deletions(-)
 
-Looks good to me.
-
-Acked-by: Borislav Petkov <bp@suse.de>
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+Acked-by: Clemens Ladisch <clemens@ladisch.de>
 
 _______________________________________________
 lm-sensors mailing list
