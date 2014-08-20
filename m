@@ -1,41 +1,26 @@
-From: Kamil Debski <k.debski@samsung.com>
-Date: Wed, 20 Aug 2014 09:29:23 +0000
-Subject: [lm-sensors] [PATCH] MAINTAINERS: add entry for the PWM fan driver
-Message-Id: <1408526963-30524-1-git-send-email-k.debski@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 20 Aug 2014 13:15:45 +0000
+Subject: Re: [lm-sensors] [PATCH] MAINTAINERS: add entry for the PWM fan driver
+Message-Id: <20140820131545.GA8664@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1408526963-30524-1-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1408526963-30524-1-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: linux@roeck-us.net, Kamil Debski <k.debski@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+On Wed, Aug 20, 2014 at 11:29:23AM +0200, Kamil Debski wrote:
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 548602f..38e4765 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7244,6 +7244,14 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/pwc/*
- 
-+PWM FAN DRIVER
-+M:	Kamil Debski <k.debski@samsung.com>
-+L:	lm-sensors@lm-sensors.org
-+S:	Supported
-+F:	Documentation/devicetree/bindings/hwmon/pwm-fan.txt
-+F:	Documentation/hwmon/pwm-fan
-+F:	drivers/hwmon/pwm-fan.c
-+
- PWM SUBSYSTEM
- M:	Thierry Reding <thierry.reding@gmail.com>
- L:	linux-pwm@vger.kernel.org
--- 
-1.7.9.5
+Thanks a lot for stepping up.
 
+Applied.
+
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
