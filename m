@@ -1,63 +1,143 @@
-From: atull <atull@opensource.altera.com>
-Date: Tue, 19 Aug 2014 14:21:36 +0000
-Subject: Re: [lm-sensors] power supply gating with ltc2978
-Message-Id: <alpine.DEB.2.02.1408190914310.22837@atx-linux-37>
+From: <atull@opensource.altera.com>
+Date: Thu, 21 Aug 2014 22:21:26 +0000
+Subject: [lm-sensors] [PATCH 2/2] pmbus: ltc2978: add regulator gating
+Message-Id: <1408659686-29106-3-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.2.02.1408151623140.21645@atx-linux-37> <20140816132050.GH28623@sirena.org.uk> <20140818030717.GA5131@roeck-us.net>
-In-Reply-To: <20140818030717.GA5131@roeck-us.net>
+References: <1408659686-29106-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1408659686-29106-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Mark Brown <broonie@kernel.org>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-On Mon, 18 Aug 2014, Guenter Roeck wrote:
+From: Alan Tull <atull@opensource.altera.com>
 
-> On Sat, Aug 16, 2014 at 02:20:50PM +0100, Mark Brown wrote:
-> > On Fri, Aug 15, 2014 at 04:34:49PM -0500, atull wrote:
-> > 
-> > > I am interested in adding functionality to be able to gate power supplies 
-> > > going through a ltc2978.  I see that there is a hwmon driver already 
-> > > existing (hwmon/pmbus/ltc2978.c).  I see some of the other hwmon drivers 
-> > > have MFD's.  It looks like this ltc driver would need a MFD and a 
-> > > regulator driver added.  However I don't see other pmbus hwmon drivers
-> > > using MFD.
-> > 
-> > > So I am asking for recommendations and reservations on how to proceed here 
-> > > before I get too far with this.
-> > 
-> > Without knowing anything at all about pmbus or this particular hardware
-> > it's hard to comment but what you're saying here sounds sensible (though
-> > I do see that apparently splitting the drivers may not actually be
-> > sensible from Guenter's followup).
-> 
-> I had originally thought about converting the pmbus drivers to mfd with client
-> drivers, but I concluded that it would add a lot of complexity with little gain.
-> It makes sense to separate a driver into mfd and a number of client drivers
-> if a device has clear functional blocks for the different devices it supports.
-> With PMBus, this is not the case. Separating a PMBus driver would be a purely
-> artificial costruct, and there would be overlapping functionality. Separating
-> just a single driver out of the group of PMBus drivers, as seems to be suggested
-> above, makes even less sense as one simply can not separate the core PMBus
-> driver code from its front-end drivers.
-> 
-> On the other side, adding regulator support into the PMBus driver code would
-> make a lot of sense. It should also be quite straightforward.
-> 
-> Or anyway that is my opinion. If someone wants to spend the time and separate
-> the PMBus drivers into an MfD part and hwmon and regulator client drivers, I'll
-> be happy to look at the resulting patch set.
-> 
-> Guenter
-> 
+Add support for enabling or disabling all supplies.
 
-Hi Guenter,
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
+---
+ drivers/hwmon/pmbus/Kconfig   |    9 ++++++
+ drivers/hwmon/pmbus/ltc2978.c |   69 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
-I'd really rather just add regulator support to the PMBus driver code and 
-avoid all the mess of creating a MFD.  It seems more straigtforward. I'll 
-let you know when I have something working to look at.
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
+index 6e1e493..c0d98f2 100644
+--- a/drivers/hwmon/pmbus/Kconfig
++++ b/drivers/hwmon/pmbus/Kconfig
+@@ -56,6 +56,15 @@ config SENSORS_LTC2978
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called ltc2978.
+ 
++config SENSORS_LTC2978_REGULATOR
++	boolean "Regulator support for LTC2974, LTC2978, LTC3880, and LTC3883"
++	default n
++	depends on SENSORS_LTC2978
++	select REGULATOR
++	help
++	  If you say yes here you get regulator support for Linear
++	  Technology LTC2974, LTC2978, LTC3880, and LTC3883.
++
+ config SENSORS_MAX16064
+ 	tristate "Maxim MAX16064"
+ 	default n
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index e24ed52..1e25346 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -20,6 +20,8 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include "pmbus.h"
+@@ -151,6 +153,66 @@ static int ltc2978_read_word_data_common(struct i2c_client *client, int page,
+ 	return ret;
+ }
+ 
++#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
++static int ltc2978_write_pmbus_operation(struct regulator_dev *rdev, u8 value)
++{
++	struct device *dev = rdev_get_dev(rdev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
++	int ret;
++
++	ret = pmbus_set_page(client, 0xff);
++	if (ret < 0)
++		return ret;
++
++	return i2c_smbus_write_byte_data(client, PMBUS_OPERATION, value);
++}
++
++static int ltc2978_enable_all(struct regulator_dev *rdev)
++{
++	return ltc2978_write_pmbus_operation(rdev, 0x80);
++}
++
++static int ltc2978_disable_all(struct regulator_dev *rdev)
++{
++	return ltc2978_write_pmbus_operation(rdev, 0);
++}
++
++static int ltc2978_is_enabled(struct regulator_dev *rdev)
++{
++	struct device *dev = rdev_get_dev(rdev);
++	struct i2c_client *client = to_i2c_client(dev->parent);
++	int ret;
++
++	ret = pmbus_set_page(client, 0xff);
++	if (ret < 0)
++		return ret;
++
++	ret = i2c_smbus_read_byte_data(client, PMBUS_OPERATION);
++	if (ret < 0)
++		return ret;
++
++	return !!(ret & 0x80);
++}
++
++static struct regulator_ops ltc2978_regulator_ops = {
++	.enable = ltc2978_enable_all,
++	.disable = ltc2978_disable_all,
++	.is_enabled = ltc2978_is_enabled,
++};
++
++static const struct regulator_desc ltc2978_reg_desc = {
++	.name = "ltc2978",
++	.ops = &ltc2978_regulator_ops,
++	.owner = THIS_MODULE,
++};
++
++static struct regulator_init_data ltc2978_regulator_init = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++};
++#endif
++
+ static int ltc2978_read_word_data(struct i2c_client *client, int page, int reg)
+ {
+ 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+@@ -487,6 +549,13 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	default:
+ 		return -ENODEV;
+ 	}
++
++#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
++	info->num_regulators = 1;
++	info->reg_desc = &ltc2978_reg_desc;
++	info->reg_init = &ltc2978_regulator_init;
++#endif
++
+ 	return pmbus_do_probe(client, id, info);
+ }
+ 
+-- 
+1.7.9.5
 
-Alan
 
 _______________________________________________
 lm-sensors mailing list
