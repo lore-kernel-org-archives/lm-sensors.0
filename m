@@ -1,36 +1,44 @@
-From: Lee Jones <lee.jones@linaro.org>
-Date: Thu, 28 Aug 2014 07:37:29 +0000
-Subject: Re: [lm-sensors] [PATCH v6 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
-Message-Id: <20140828073729.GJ24579@lee--X1>
+From: <atull@opensource.altera.com>
+Date: Thu, 21 Aug 2014 22:21:24 +0000
+Subject: [lm-sensors] [PATCH 0/2] add regulator support for pmbus and ltc2978
+Message-Id: <1408659686-29106-1-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1409161615.git.andreas.werner@men.de>
- <71aa7a1bbed06f0ec840b3a00664dfd8214fa49a.1409161615.git.andreas.werner@men.de>
-In-Reply-To: <71aa7a1bbed06f0ec840b3a00664dfd8214fa49a.1409161615.git.andreas.werner@men.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andreas Werner <andreas.werner@men.de>
-Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, linux@roeck-us.net, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-T24gV2VkLCAyNyBBdWcgMjAxNCwgQW5kcmVhcyBXZXJuZXIgd3JvdGU6Cgo+IFRoZSBNRU4gMTRG
-MDIxUDAwIEJvYXJkIE1hbmFnZW1lbnQgQ29udHJvbGxlciBwcm92aWRlcyBhbgo+IEkyQyBpbnRl
-cmZhY2UgdG8gdGhlIGhvc3QgdG8gYWNjZXNzIHRoZSBmZWF0dXJlIGltcGxlbWVudGVkIGluIHRo
-ZSBCTUMuCj4gVGhlIEJNQyBpcyBhIFBJQyBNaWNyb250cm9sbGVyIGFzc2VtYmxlZCBvbiBDUENJ
-IENhcmQgZnJvbSBNRU4gTWlrcm9lbGVrdHJvbmlrCj4gYW5kIG9uIGEgZmV3IEJveC9EaXNwbGF5
-IENvbXB1dGVyLgo+IAo+IEFkZGVkIE1GRCBDb3JlIGRyaXZlciwgc3VwcG9ydGluZyB0aGUgSTJD
-IGNvbW11bmljYXRpb24gdG8gdGhlIGRldmljZS4KPiAKPiBUaGUgTUZEIGRyaXZlciBjdXJyZW50
-bHkgc3VwcG9ydHMgdGhlIGZvbGxvd2luZyBmZWF0dXJlczoKPiAgCS0gV2F0Y2hkb2cKPiAgCS0g
-TEVEcwo+IAktIEh3bW9uICh2b2x0YWdlIG1vbml0b3JpbmcpCj4gCj4gU2lnbmVkLW9mZi1ieTog
-QW5kcmVhcyBXZXJuZXIgPGFuZHJlYXMud2VybmVyQG1lbi5kZT4KPiAtLS0KPiAgZHJpdmVycy9t
-ZmQvS2NvbmZpZyAgICAgfCAgMTUgKysrKysrCj4gIGRyaXZlcnMvbWZkL01ha2VmaWxlICAgIHwg
-ICAxICsKPiAgZHJpdmVycy9tZmQvbWVuZjIxYm1jLmMgfCAxMzIgKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gIDMgZmlsZXMgY2hhbmdlZCwgMTQ4IGlu
-c2VydGlvbnMoKykKPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWZkL21lbmYyMWJtYy5j
-CgpJJ2QgbGlrZSB0byB0YWtlIHRoaXMgc2V0IHRocm91Z2ggdGhlIE1GRCB0cmVlLCBidXQgZm9y
-IG5vdzoKCkFja2VkLWJ5OiBMZWUgSm9uZXMgPGxlZS5qb25lc0BsaW5hcm8ub3JnPgoKLS0gCkxl
-ZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFy
-by5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJv
-OiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnM
+From: Alan Tull <atull@opensource.altera.com>
+
+This set of patches adds regulator support to pmbus_core.c and to
+ltc2978.c.
+
+Other pmbus parts can use this to add their own regulator support.
+
+Current ltc2978 support is limited to enable/disable.
+
+Tested on ltc2978.  Looking at the datasheets for the other parts
+supported by ltc2978.c, it looks like it should work.
+
+Thanks,
+Alan
+
+Alan Tull (2):
+  pmbus: add regulator support
+  pmbus: ltc2978: add regulator enable disable
+
+ drivers/hwmon/pmbus/Kconfig      |    9 +++++
+ drivers/hwmon/pmbus/ltc2978.c    |   69 ++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/pmbus/pmbus.h      |    7 ++++
+ drivers/hwmon/pmbus/pmbus_core.c |   40 ++++++++++++++++++++++
+ 4 files changed, 125 insertions(+)
+
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
