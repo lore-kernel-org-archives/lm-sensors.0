@@ -1,152 +1,75 @@
-From: <atull@opensource.altera.com>
-Date: Fri, 22 Aug 2014 21:11:33 +0000
-Subject: [lm-sensors] [PATCH v2 1/2] pmbus: add regulator support
-Message-Id: <1408741894-24879-2-git-send-email-atull@opensource.altera.com>
+From: Mark Brown <broonie@kernel.org>
+Date: Fri, 22 Aug 2014 21:44:17 +0000
+Subject: Re: [lm-sensors] [PATCH v2 1/2] pmbus: add regulator support
+Message-Id: <20140822214417.GC24407@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4510723180573062426=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
-In-Reply-To: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
-MIME-Version: 1.0
+ <1408741894-24879-2-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1408741894-24879-2-git-send-email-atull@opensource.altera.com>
+To: atull@opensource.altera.com
+Cc: linux@roeck-us.net, jdelvare@suse.de, lm-sensors@lm-sensors.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com
+
+
+--===============4510723180573062426==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/OCBIV6O7sl/38gM"
+Content-Disposition: inline
+
+
+--/OCBIV6O7sl/38gM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Aug 22, 2014 at 04:11:33PM -0500, atull@opensource.altera.com wrote:
+
+> +	if (pdata && pdata->reg_init_data) {
+> +		config.init_data = pdata->reg_init_data;
+> +	} else {
+> +		config.init_data = of_get_regulator_init_data(dev, np);
+> +		if (!config.init_data)
+> +			return -ENOMEM;
+> +	}
+
+It should be fine to start with no init data - just let the regulator
+core worry about it.  This will allow users to read back the state even
+if they can't change anything which is useful for system bringup or
+general debugging.
+
+--/OCBIV6O7sl/38gM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT97muAAoJELSic+t+oim9RE0P/3ctAmxcQw+eYMxcs0XVvZQ6
+ZwqnDoovINlsRXoi9kAGgp/gdeng1zsPgqVhdSgOdTL1p2gvoMshAnGSRGDKLopY
+abZb87Nhf65UEvNob+opqeeQvRAs7pvjLNo+3BFUQ0CfhIji1LP2EwLqJt5UwJG5
+sGK/MA2zchzWy9JZzRGA1meOS74wV7EzhZM047Ic1fu2+IkxXW8NpamiID4R5zey
+tdxdf3jnQi3Q2M2RD7ZamEwDHSlCxSiNZCtPrj8o3KdmGoM+U0/AfWHXaDuaT961
+cJNCxde7r1DSqoGMk7+4874lDjHzmdackgRyKEXFWPyDY/eAFvELbq3j7HCNKFKA
+a4bRnknMubMZq3J8pY8pIpgU8BfzV+smwRN9FIbdECnNCVX7OuWA5fQBFUFXXAZn
+UTslMrS8HihGspgctLkiZBjypThhaSJPvIvOpLpnvYACuCkekK2VY2bPCVW05sic
+Q4FP431tG5V2tLfcgxUaJAktBrE56KvTQTU8TLtFdHOe1WZ3mZJqEwsBO33p8Q/v
+fcbsWALG80OU2ljEOBdhxFfQ2Sw7aNvJyEeYToEQcYW3s8P5msPE2KkgIOcC9J9B
+h14KVTjVJmNjPRn1EDtojH/3gZOgsoIaHTwL+qNocmpsV3iYLSQcEc1DqXCyDwZ7
+/IPQv7z+iSoHn/fcGSmj
+=chNo
+-----END PGP SIGNATURE-----
+
+--/OCBIV6O7sl/38gM--
+
+
+--===============4510723180573062426==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, jdelvare@suse.de
-Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
-
-From: Alan Tull <atull@opensource.altera.com>
-
-To add a regulator, the pmbus device driver needs to add
-regulator_desc information to its pmbus_driver_info struct.
-The regulator_init_data can be intialized from either
-platform data or the device tree.
-
-Signed-off-by: Alan Tull <atull@opensource.altera.com>
-
-v2: Remove '#include <linux/regulator/machine.h>'
-    Only one regulator per pmbus device
-    Get regulator_init_data from pdata or device tree
----
- drivers/hwmon/pmbus/pmbus.h      |    5 ++++
- drivers/hwmon/pmbus/pmbus_core.c |   51 ++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/pmbus.h        |    1 +
- 3 files changed, 57 insertions(+)
-
-diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
-index fa9beb3..93fadc3 100644
---- a/drivers/hwmon/pmbus/pmbus.h
-+++ b/drivers/hwmon/pmbus/pmbus.h
-@@ -19,6 +19,8 @@
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#include <linux/regulator/driver.h>
-+
- #ifndef PMBUS_H
- #define PMBUS_H
- 
-@@ -365,6 +367,9 @@ struct pmbus_driver_info {
- 	 */
- 	int (*identify)(struct i2c_client *client,
- 			struct pmbus_driver_info *info);
-+
-+	/* Regulator functionality, if supported by this chip driver. */
-+	const struct regulator_desc *reg_desc;
- };
- 
- /* Function declarations */
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index 291d11f..472baff 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -29,6 +29,8 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/jiffies.h>
- #include <linux/i2c/pmbus.h>
-+#include <linux/regulator/of_regulator.h>
-+#include <linux/regulator/driver.h>
- #include "pmbus.h"
- 
- /*
-@@ -1727,6 +1729,48 @@ static int pmbus_init_common(struct i2c_client *client, struct pmbus_data *data,
- 	return 0;
- }
- 
-+#if IS_ENABLED(CONFIG_REGULATOR)
-+static int pmbus_regulator_register(struct pmbus_data *data,
-+				    const struct pmbus_platform_data *pdata)
-+{
-+	struct device *dev = data->dev;
-+	struct device_node *np = dev->of_node;
-+	const struct pmbus_driver_info *info = data->info;
-+	const struct regulator_desc *reg_desc = info->reg_desc;
-+	struct regulator_dev *rdev;
-+	struct regulator_config config = { };
-+
-+	if (!reg_desc)
-+		return 0;
-+
-+	if (pdata && pdata->reg_init_data) {
-+		config.init_data = pdata->reg_init_data;
-+	} else {
-+		config.init_data = of_get_regulator_init_data(dev, np);
-+		if (!config.init_data)
-+			return -ENOMEM;
-+	}
-+
-+	config.dev = dev;
-+	config.driver_data = data;
-+
-+	rdev = devm_regulator_register(dev, reg_desc, &config);
-+	if (IS_ERR(rdev)) {
-+		dev_err(dev, "failed to register regulator %s\n",
-+			reg_desc->name);
-+		return PTR_ERR(rdev);
-+	}
-+
-+	return 0;
-+}
-+#else
-+static int pmbus_regulator_register(struct pmbus_data *data,
-+				    const struct pmbus_platform_data *pdata)
-+{
-+	return 0;
-+}
-+#endif
-+
- int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 		   struct pmbus_driver_info *info)
- {
-@@ -1781,8 +1825,15 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 		dev_err(dev, "Failed to register hwmon device\n");
- 		goto out_kfree;
- 	}
-+
-+	ret = pmbus_regulator_register(data, pdata);
-+	if (ret)
-+		goto out_unregister;
-+
- 	return 0;
- 
-+out_unregister:
-+	hwmon_device_unregister(data->hwmon_dev);
- out_kfree:
- 	kfree(data->group.attrs);
- 	return ret;
-diff --git a/include/linux/i2c/pmbus.h b/include/linux/i2c/pmbus.h
-index 69280db..15e08da 100644
---- a/include/linux/i2c/pmbus.h
-+++ b/include/linux/i2c/pmbus.h
-@@ -40,6 +40,7 @@
- 
- struct pmbus_platform_data {
- 	u32 flags;		/* Device specific flags */
-+	struct regulator_init_data *reg_init_data;
- };
- 
- #endif /* _PMBUS_H_ */
--- 
-1.7.9.5
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4510723180573062426==--
