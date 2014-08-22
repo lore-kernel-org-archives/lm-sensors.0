@@ -1,139 +1,72 @@
-From: <atull@opensource.altera.com>
-Date: Fri, 22 Aug 2014 21:11:34 +0000
-Subject: [lm-sensors] [PATCH v2 2/2] pmbus: ltc2978: add regulator gating
-Message-Id: <1408741894-24879-3-git-send-email-atull@opensource.altera.com>
+From: Mark Brown <broonie@kernel.org>
+Date: Fri, 22 Aug 2014 21:45:46 +0000
+Subject: Re: [lm-sensors] [PATCH v2 2/2] pmbus: ltc2978: add regulator gating
+Message-Id: <20140822214546.GD24407@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5859432839877731606=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
-In-Reply-To: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
-MIME-Version: 1.0
+ <1408741894-24879-3-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1408741894-24879-3-git-send-email-atull@opensource.altera.com>
+To: atull@opensource.altera.com
+Cc: linux@roeck-us.net, jdelvare@suse.de, lm-sensors@lm-sensors.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com
+
+
+--===============5859432839877731606==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rgqXlh/A5ZVYK4yt"
+Content-Disposition: inline
+
+
+--rgqXlh/A5ZVYK4yt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Aug 22, 2014 at 04:11:34PM -0500, atull@opensource.altera.com wrote:
+> From: Alan Tull <atull@opensource.altera.com>
+>=20
+> Add regulator with support for enabling or disabling all
+> supplies.
+
+Reviwed-by: Mark Brown <broonie@linaro.org>
+
+though it still looks like you should be able to create generic
+functions for the operations.
+
+--rgqXlh/A5ZVYK4yt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT97oHAAoJELSic+t+oim9Jc4QAJkRwMPl4yQQvPD+5fBmfQPf
+UVDLPZdBSIkpa1E4mXCh8J7POVGUP+L9s1nemF79e/1lIj2HNSI4gK6Hn2vJGJ4I
+D1zTU4/IdYadHpfYmk083vHYWnkZDEQbjcHRl+lSSGhpVPRgjGx+3BuG5xERTxJF
+17dZ5z64edOk+1BMue2a3GQvGdKLse6e4QxmFmu1K2nBP1jG9c2v2lwlmiLwPPkj
+XzMwt5G0lpvJ7Xe2aH8bdP2tiPvF4CyfKAV+tNIrtt+w04ygZO6P8QMUctHHLEH2
+jFosBxdFpZSxRM2eDh+a8P/PqhYHnfsJc/p3zAyruCNdExU+IyaW8KnL/7pGMvkH
+VndaPywP5KpmmGxVHbGD15XfcjFVAduKS+ojfsAq8QhOnFYPkQvs4wvDmd/jbi3o
+uHPyp58jZJ7h+whlfIEBNPKWkblL5HvLVIuLf0IJyBxhibkYJwrpV94qXLc9I2rW
+kBHp9/bgZLO/9earmwKZ0fMOp2RDCNvMZ8feY9hVMGjYcfBgpyGCaK8/tz4U177g
+/4VkGXf4haqoLAvAV8dwpFM5AIROBdgsUiENwlhS0yhNqnxnt4i1MKMY+5gGuzuR
+0AaKSSEhplQygfbAO/QvVqE2he2+o2j80kTcqcR7g76X2PLnTAtwmsxMNeKzyRSU
+tOo8oGWgM8JL/IfjuSm3
+=xVAF
+-----END PGP SIGNATURE-----
+
+--rgqXlh/A5ZVYK4yt--
+
+
+--===============5859432839877731606==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net, jdelvare@suse.de
-Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
-
-From: Alan Tull <atull@opensource.altera.com>
-
-Add regulator with support for enabling or disabling all
-supplies.
-
-Signed-off-by: Alan Tull <atull@opensource.altera.com>
-
-v2:  Remove '#include <linux/regulator/machine.h>'
-     Kconfig fixes
-     Remove hardwired regulator_init_data
----
- drivers/hwmon/pmbus/Kconfig   |    7 +++++
- drivers/hwmon/pmbus/ltc2978.c |   60 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+)
-
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index 6e1e493..79117b7 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -56,6 +56,13 @@ config SENSORS_LTC2978
- 	  This driver can also be built as a module. If so, the module will
- 	  be called ltc2978.
- 
-+config SENSORS_LTC2978_REGULATOR
-+	boolean "Regulator support for LTC2974, LTC2978, LTC3880, and LTC3883"
-+	depends on SENSORS_LTC2978 && REGULATOR
-+	help
-+	  If you say yes here you get regulator support for Linear
-+	  Technology LTC2974, LTC2978, LTC3880, and LTC3883.
-+
- config SENSORS_MAX16064
- 	tristate "Maxim MAX16064"
- 	default n
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index e24ed52..2bdcfe2 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -20,6 +20,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/err.h>
-+#include <linux/regulator/driver.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
- #include "pmbus.h"
-@@ -151,6 +152,60 @@ static int ltc2978_read_word_data_common(struct i2c_client *client, int page,
- 	return ret;
- }
- 
-+#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
-+static int ltc2978_write_pmbus_operation(struct regulator_dev *rdev, u8 value)
-+{
-+	struct device *dev = rdev_get_dev(rdev);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
-+	int ret;
-+
-+	ret = pmbus_set_page(client, 0xff);
-+	if (ret < 0)
-+		return ret;
-+
-+	return i2c_smbus_write_byte_data(client, PMBUS_OPERATION, value);
-+}
-+
-+static int ltc2978_enable_all(struct regulator_dev *rdev)
-+{
-+	return ltc2978_write_pmbus_operation(rdev, 0x80);
-+}
-+
-+static int ltc2978_disable_all(struct regulator_dev *rdev)
-+{
-+	return ltc2978_write_pmbus_operation(rdev, 0);
-+}
-+
-+static int ltc2978_is_enabled(struct regulator_dev *rdev)
-+{
-+	struct device *dev = rdev_get_dev(rdev);
-+	struct i2c_client *client = to_i2c_client(dev->parent);
-+	int ret;
-+
-+	ret = pmbus_set_page(client, 0xff);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = i2c_smbus_read_byte_data(client, PMBUS_OPERATION);
-+	if (ret < 0)
-+		return ret;
-+
-+	return !!(ret & 0x80);
-+}
-+
-+static struct regulator_ops ltc2978_regulator_ops = {
-+	.enable = ltc2978_enable_all,
-+	.disable = ltc2978_disable_all,
-+	.is_enabled = ltc2978_is_enabled,
-+};
-+
-+static const struct regulator_desc ltc2978_reg_desc = {
-+	.name = "ltc2978",
-+	.ops = &ltc2978_regulator_ops,
-+	.owner = THIS_MODULE,
-+};
-+#endif
-+
- static int ltc2978_read_word_data(struct i2c_client *client, int page, int reg)
- {
- 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-@@ -487,6 +542,11 @@ static int ltc2978_probe(struct i2c_client *client,
- 	default:
- 		return -ENODEV;
- 	}
-+
-+#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
-+	info->reg_desc = &ltc2978_reg_desc;
-+#endif
-+
- 	return pmbus_do_probe(client, id, info);
- }
- 
--- 
-1.7.9.5
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5859432839877731606==--
