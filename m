@@ -1,140 +1,45 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Mon, 25 Aug 2014 06:29:46 +0000
-Subject: [lm-sensors] [PATCH v3 2/4] hwmon: lm90: expose to thermal fw via DT nodes
-Message-Id: <1408948188-4181-3-git-send-email-wni@nvidia.com>
+From: <atull@opensource.altera.com>
+Date: Fri, 22 Aug 2014 21:11:32 +0000
+Subject: [lm-sensors] [PATCH v2 0/2] dd regulator support for pmbus and ltc2978
+Message-Id: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408948188-4181-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1408948188-4181-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: edubezval@gmail.com, khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org
-Cc: lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, lightning314 <wni@nvidia.com>
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-From: lightning314 <wni@nvidia.com>
+From: Alan Tull <atull@opensource.altera.com>
 
-This patch adds to lm90 temperature sensor the possibility
-to expose itself as thermal zone device, registered on the
-thermal framework.
+Version 2 :
+  * Get regulator_init_data from platform data or device tree.
+  * One regulator per pmbus part.
+  * Clean up Kconfig and #includes.
 
-The thermal zone is built only if a device tree node
-describing a thermal zone for this sensor is present
-inside the lm90 DT node. Otherwise, the driver behavior
-will be the same.
+This set of patches adds regulator support to pmbus_core.c and to
+ltc2978.c.  Other pmbus parts can use this to add their own
+regulator support.  Current ltc2978 support is limited to
+enable/disable.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
----
- drivers/hwmon/lm90.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+Tested on ltc2978.  Looking at the datasheets for the other parts
+supported by ltc2978.c, it looks like it should work.
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index cb33dcf..2a385c5 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -96,6 +96,8 @@
- #include <linux/sysfs.h>
- #include <linux/interrupt.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/of.h>
-+#include <linux/thermal.h>
- 
- /*
-  * Addresses to scan
-@@ -119,6 +121,13 @@ static const unsigned short normal_i2c[] = {
- enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
- 	max6646, w83l771, max6696, sa56004, g781, tmp451 };
- 
-+enum sensor_id {
-+	LOCAL = 0,
-+	REMOTE,
-+	REMOTE2,
-+	SENSOR_ID_END,
-+};
-+
- /*
-  * The LM90 registers
-  */
-@@ -368,6 +377,7 @@ struct lm90_data {
- 	struct i2c_client *client;
- 	struct device *hwmon_dev;
- 	const struct attribute_group *groups[6];
-+	struct thermal_zone_device *tz[SENSOR_ID_END];
- 	struct mutex update_lock;
- 	struct regulator *regulator;
- 	char valid; /* zero until following fields are valid */
-@@ -874,6 +884,24 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
- 	return sprintf(buf, "%d\n", read_temp11(dev, attr->index));
- }
- 
-+static int lm90_read_local_temp(void *dev, long *temp)
-+{
-+	*temp = read_temp11(dev, LOCAL_TEMP);
-+	return 0;
-+}
-+
-+static int lm90_read_remote_temp(void *dev, long *temp)
-+{
-+	*temp = read_temp11(dev, REMOTE_TEMP);
-+	return 0;
-+}
-+
-+static int lm90_read_remote2_temp(void *dev, long *temp)
-+{
-+	*temp = read_temp11(dev, REMOTE2_TEMP);
-+	return 0;
-+}
-+
- static int write_temp11(struct device *dev, int nr, int index, long val)
- {
- 	struct {
-@@ -1653,6 +1681,33 @@ static int lm90_probe(struct i2c_client *client,
- 		}
- 	}
- 
-+	data->tz[LOCAL] = thermal_zone_of_sensor_register(&client->dev,
-+							LOCAL,
-+							&client->dev,
-+							lm90_read_local_temp,
-+							NULL);
-+	if (IS_ERR(data->tz[LOCAL]))
-+		data->tz[LOCAL] = NULL;
-+
-+	data->tz[REMOTE] = thermal_zone_of_sensor_register(&client->dev,
-+							REMOTE,
-+							&client->dev,
-+							lm90_read_remote_temp,
-+							NULL);
-+	if (IS_ERR(data->tz[REMOTE]))
-+		data->tz[REMOTE] = NULL;
-+
-+	if (data->flags & LM90_HAVE_TEMP3) {
-+		data->tz[REMOTE2] = thermal_zone_of_sensor_register(
-+							&client->dev,
-+							REMOTE2,
-+							&client->dev,
-+							lm90_read_remote2_temp,
-+							NULL);
-+		if (IS_ERR(data->tz[REMOTE2]))
-+			data->tz[REMOTE2] = NULL;
-+	}
-+
- 	return 0;
- 
- exit_unregister:
-@@ -1668,8 +1723,11 @@ exit_restore:
- 
- static int lm90_remove(struct i2c_client *client)
- {
-+	int i;
- 	struct lm90_data *data = i2c_get_clientdata(client);
- 
-+	for (i = 0; i < SENSOR_ID_END; i++)
-+		thermal_zone_of_sensor_unregister(&client->dev, data->tz[i]);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	device_remove_file(&client->dev, &dev_attr_pec);
- 	lm90_restore_conf(client, data);
+Thanks,
+Alan
+
+Alan Tull (2):
+  pmbus: add regulator support
+  pmbus: ltc2978: add regulator gating
+
+ drivers/hwmon/pmbus/Kconfig      |    7 +++++
+ drivers/hwmon/pmbus/ltc2978.c    |   60 ++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/pmbus/pmbus.h      |    5 ++++
+ drivers/hwmon/pmbus/pmbus_core.c |   51 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/pmbus.h        |    1 +
+ 5 files changed, 124 insertions(+)
+
 -- 
-1.8.1.5
+1.7.9.5
 
 
 _______________________________________________
