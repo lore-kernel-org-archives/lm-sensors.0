@@ -1,75 +1,50 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Fri, 22 Aug 2014 01:26:22 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 22 Aug 2014 02:30:38 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] pmbus: ltc2978: add regulator gating
-Message-Id: <20140822012622.GS24407@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4654451307479375088=="
+Message-Id: <20140822023038.GA17819@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1408659686-29106-1-git-send-email-atull@opensource.altera.com>
  <1408659686-29106-3-git-send-email-atull@opensource.altera.com>
  <20140822003650.GQ24407@sirena.org.uk>
  <20140822011810.GA17461@roeck-us.net>
-In-Reply-To: <20140822011810.GA17461@roeck-us.net>
-To: Guenter Roeck <linux@roeck-us.net>
+ <20140822012622.GS24407@sirena.org.uk>
+In-Reply-To: <20140822012622.GS24407@sirena.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Mark Brown <broonie@kernel.org>
 Cc: atull@opensource.altera.com, jdelvare@suse.de, lm-sensors@lm-sensors.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com
 
+On Thu, Aug 21, 2014 at 08:26:22PM -0500, Mark Brown wrote:
+> On Thu, Aug 21, 2014 at 06:18:10PM -0700, Guenter Roeck wrote:
+> > On Thu, Aug 21, 2014 at 07:36:50PM -0500, Mark Brown wrote:
+> > > On Thu, Aug 21, 2014 at 05:21:26PM -0500, atull@opensource.altera.com wrote:
+> 
+> > > This all looks very much like pmbus could use regmap and then the regmap
+> > > helpers.  I'd not insist on it though.  What I would however suggest is
+> 
+> > Not unless regmap got extended recently to support quick, byte, and word
+> > smbus accesses at the same time.
+> 
+> Depending on how you decide which it quite possibly does - if it's based
+> on the register number that'd work.
 
---===============4654451307479375088==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eV6hq+iIxLRNwbYS"
-Content-Disposition: inline
+Mostly per register, but also per chip (for manufacturing specific registers
+the register size is determined by the chip type). Also, there are block
+registers. Plus, the scope of each register (ie if it is paged or not)
+is chip specific.  The same register may be paged on one chip, and unpaged
+on another. I'll have another look to see if that all can be mapped into the
+regmap model. If yes, it might actually be quite helpful and might simplify
+the pmbus code quite a bit.
 
+Either case, even if regmap now supports all the PMBus oddities, converting
+the pmbus drivers to use regmap should be a separate patch set and not be
+tied together.
 
---eV6hq+iIxLRNwbYS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Aug 21, 2014 at 06:18:10PM -0700, Guenter Roeck wrote:
-> On Thu, Aug 21, 2014 at 07:36:50PM -0500, Mark Brown wrote:
-> > On Thu, Aug 21, 2014 at 05:21:26PM -0500, atull@opensource.altera.com wrote:
-
-> > This all looks very much like pmbus could use regmap and then the regmap
-> > helpers.  I'd not insist on it though.  What I would however suggest is
-
-> Not unless regmap got extended recently to support quick, byte, and word
-> smbus accesses at the same time.
-
-Depending on how you decide which it quite possibly does - if it's based
-on the register number that'd work.
-
---eV6hq+iIxLRNwbYS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJT9pw7AAoJELSic+t+oim9I8YP/3fxE8mTRYRNcShnaQi0RNox
-SQV3BtIGhKtEfQo7bZTvynT27JeKeQoh0JCU9SqdDbpLKrqgbP/CAqd/E6z97xxT
-tCF+wB+iHlHG1Xd4uMuoHzdbUEo94zlm3TA8hwkqK0lrz7fRl8Q6K08DBkzCuT9p
-+Xyez0epnYMzTkYriE1gQqbm7My4uRZ3MgDRpBnjZ03ljnyVzdoZvijgLks3R2wD
-nnxWG2Af2gIBcbtcpwjeCrVRq0qRktUj6bsORqH6eIhbUqGECtfhXC1CpzZaPruu
-3g1nRy1bds5mgS7yHS0jzxyJR9FIlZlIAGarGNP8oJ1FRm/LERGpQ1UMp29WQXdg
-+akTj3M3b4bm2LR1pzWocg3cEU5UMsynmKNUKkI4n6UequFiqgc3o59SYl+/Z2Wi
-AZfHSoN+jHAedMA2B9J1qSHHT1ZX9U3jqXbi+Np+FTuk84aZjfOSdD9do3p5/Y/q
-cMAZBHo6+Ky0sTr7E3+/QxStaZfYnhE3Ib5E7ScCfyQQ7Win1pIiIXzgoZh7/ieD
-i3naTY535FqQ5fv1mY6nl218YfkSj+ZPNwDInxq3YaJk/DEt9DGcJ0Bj3zqDmD4N
-t9rSgMRCPy8LeAdPHFj+ylWIIoDS+Zbx6PQVpLl8EuZJ9zaAWh7eh4GaY5Ppw70o
-q1XoMED8yzEGf1RmP/g4
-=a4Kt
------END PGP SIGNATURE-----
-
---eV6hq+iIxLRNwbYS--
-
-
---===============4654451307479375088==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Tnanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4654451307479375088==--
