@@ -1,51 +1,149 @@
-From: atull <atull@opensource.altera.com>
-Date: Fri, 22 Aug 2014 21:14:47 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2] add regulator support for pmbus and ltc2978
-Message-Id: <alpine.DEB.2.02.1408221614040.24915@atx-linux-37>
+From: <atull@opensource.altera.com>
+Date: Fri, 22 Aug 2014 21:11:33 +0000
+Subject: [lm-sensors] [PATCH v2 1/2] pmbus: add regulator support
+Message-Id: <1408741894-24879-2-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408659686-29106-1-git-send-email-atull@opensource.altera.com>
-In-Reply-To: <1408659686-29106-1-git-send-email-atull@opensource.altera.com>
+References: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1408741894-24879-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux@roeck-us.net, jdelvare@suse.de
-Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-On Thu, 21 Aug 2014, atull@opensource.altera.com wrote:
+From: Alan Tull <atull@opensource.altera.com>
 
-> From: Alan Tull <atull@opensource.altera.com>
-> 
-> This set of patches adds regulator support to pmbus_core.c and to
-> ltc2978.c.
-> 
-> Other pmbus parts can use this to add their own regulator support.
-> 
-> Current ltc2978 support is limited to enable/disable.
-> 
-> Tested on ltc2978.  Looking at the datasheets for the other parts
-> supported by ltc2978.c, it looks like it should work.
-> 
-> Thanks,
-> Alan
-> 
-> Alan Tull (2):
->   pmbus: add regulator support
->   pmbus: ltc2978: add regulator enable disable
-> 
->  drivers/hwmon/pmbus/Kconfig      |    9 +++++
->  drivers/hwmon/pmbus/ltc2978.c    |   69 ++++++++++++++++++++++++++++++++++++++
->  drivers/hwmon/pmbus/pmbus.h      |    7 ++++
->  drivers/hwmon/pmbus/pmbus_core.c |   40 ++++++++++++++++++++++
->  4 files changed, 125 insertions(+)
-> 
-> -- 
-> 1.7.9.5
-> 
-> 
+To add a regulator, the pmbus device driver needs to add
+regulator_desc information to its pmbus_driver_info struct.
+The regulator_init_data can be intialized from either
+platform data or the device tree.
 
-I've posted V2 of these patches.
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
 
-Alan
+v2: Remove '#include <linux/regulator/machine.h>'
+    Only one regulator per pmbus device
+    Get regulator_init_data from pdata or device tree
+---
+ drivers/hwmon/pmbus/pmbus.h      |    5 ++++
+ drivers/hwmon/pmbus/pmbus_core.c |   51 ++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/pmbus.h        |    1 +
+ 3 files changed, 57 insertions(+)
+
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index fa9beb3..93fadc3 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -19,6 +19,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#include <linux/regulator/driver.h>
++
+ #ifndef PMBUS_H
+ #define PMBUS_H
+ 
+@@ -365,6 +367,9 @@ struct pmbus_driver_info {
+ 	 */
+ 	int (*identify)(struct i2c_client *client,
+ 			struct pmbus_driver_info *info);
++
++	/* Regulator functionality, if supported by this chip driver. */
++	const struct regulator_desc *reg_desc;
+ };
+ 
+ /* Function declarations */
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 291d11f..472baff 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -29,6 +29,8 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/jiffies.h>
+ #include <linux/i2c/pmbus.h>
++#include <linux/regulator/of_regulator.h>
++#include <linux/regulator/driver.h>
+ #include "pmbus.h"
+ 
+ /*
+@@ -1727,6 +1729,48 @@ static int pmbus_init_common(struct i2c_client *client, struct pmbus_data *data,
+ 	return 0;
+ }
+ 
++#if IS_ENABLED(CONFIG_REGULATOR)
++static int pmbus_regulator_register(struct pmbus_data *data,
++				    const struct pmbus_platform_data *pdata)
++{
++	struct device *dev = data->dev;
++	struct device_node *np = dev->of_node;
++	const struct pmbus_driver_info *info = data->info;
++	const struct regulator_desc *reg_desc = info->reg_desc;
++	struct regulator_dev *rdev;
++	struct regulator_config config = { };
++
++	if (!reg_desc)
++		return 0;
++
++	if (pdata && pdata->reg_init_data) {
++		config.init_data = pdata->reg_init_data;
++	} else {
++		config.init_data = of_get_regulator_init_data(dev, np);
++		if (!config.init_data)
++			return -ENOMEM;
++	}
++
++	config.dev = dev;
++	config.driver_data = data;
++
++	rdev = devm_regulator_register(dev, reg_desc, &config);
++	if (IS_ERR(rdev)) {
++		dev_err(dev, "failed to register regulator %s\n",
++			reg_desc->name);
++		return PTR_ERR(rdev);
++	}
++
++	return 0;
++}
++#else
++static int pmbus_regulator_register(struct pmbus_data *data,
++				    const struct pmbus_platform_data *pdata)
++{
++	return 0;
++}
++#endif
++
+ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 		   struct pmbus_driver_info *info)
+ {
+@@ -1781,8 +1825,15 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 		dev_err(dev, "Failed to register hwmon device\n");
+ 		goto out_kfree;
+ 	}
++
++	ret = pmbus_regulator_register(data, pdata);
++	if (ret)
++		goto out_unregister;
++
+ 	return 0;
+ 
++out_unregister:
++	hwmon_device_unregister(data->hwmon_dev);
+ out_kfree:
+ 	kfree(data->group.attrs);
+ 	return ret;
+diff --git a/include/linux/i2c/pmbus.h b/include/linux/i2c/pmbus.h
+index 69280db..15e08da 100644
+--- a/include/linux/i2c/pmbus.h
++++ b/include/linux/i2c/pmbus.h
+@@ -40,6 +40,7 @@
+ 
+ struct pmbus_platform_data {
+ 	u32 flags;		/* Device specific flags */
++	struct regulator_init_data *reg_init_data;
+ };
+ 
+ #endif /* _PMBUS_H_ */
+-- 
+1.7.9.5
 
 
 _______________________________________________
