@@ -1,25 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 04 Aug 2014 18:37:59 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (g762) Use of_property_read_u32 at appropriate place
-Message-Id: <20140804183759.GA18288@roeck-us.net>
+From: Ben Barker <ben@bbarker.co.uk>
+Date: Sun, 24 Aug 2014 18:51:50 +0000
+Subject: [lm-sensors] Fintek F71868AD
+Message-Id: <CALefuyhPk2GP7-XCb=hWtnuWj5PU-Ve8d_Ydgb1T3QDAeaLL3Q@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1406858845.21842.5.camel@phoenix>
-In-Reply-To: <1406858845.21842.5.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Aug 01, 2014 at 10:07:25AM +0800, Axel Lin wrote:
-> Simplify the code a bit and also improve readability.
-> 
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Hi,
 
-Applied to -next.
+I have an MSI A78M-E45 motherboard.
 
-Thanks,
-Guenter
+So far as I can tell, it uses a Fintek F71868AD sensor chip. Running
+sensors-detect gives:
 
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+Found unknown chip with ID 0x1106
+    (logical device 4 has address 0x295, could be sensors)
+
+
+Looking online there seems to have been some discussion of this about a
+year ago, but nothing for some time:
+
+http://www.lm-sensors.org/changeset/6190
+
+Is there any likelihood of this being supported?
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
