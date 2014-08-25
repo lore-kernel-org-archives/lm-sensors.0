@@ -1,40 +1,68 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Aug 2014 15:39:24 +0000
-Subject: Re: [lm-sensors] [PATCH V3] hwmon, k10temp: Add support for F15h M60h
-Message-Id: <53EE29AC.6050709@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 25 Aug 2014 06:29:48 +0000
+Subject: [lm-sensors] [PATCH v3 4/4] ARM: tegra: dalmore: add thermal zones for nct1008
+Message-Id: <1408948188-4181-5-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408058127-19374-1-git-send-email-aravind.gopalakrishnan@amd.com>	<53EDE4B3.6090903@roeck-us.net>	<53EE1E04.9080406@amd.com> <CAAek22FpQRhDqjSQjOL_UfoJ51hHqbxYZu2AGTA54LRM9sFn2g@mail.gmail.com>
-In-Reply-To: <CAAek22FpQRhDqjSQjOL_UfoJ51hHqbxYZu2AGTA54LRM9sFn2g@mail.gmail.com>
+References: <1408948188-4181-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1408948188-4181-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Phil Pokorny <ppokorny@penguincomputing.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Cc: "clemens@ladisch.de" <clemens@ladisch.de>, "jdelvare@suse.de" <jdelvare@suse.de>, "rdunlap@infradead.org" <rdunlap@infradead.org>, "bp@suse.de" <bp@suse.de>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: edubezval@gmail.com, khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org
+Cc: lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, lightning314 <wni@nvidia.com>
 
-On 08/15/2014 08:18 AM, Phil Pokorny wrote:
->
->         On 08/14/2014 04:15 PM, Aravind Gopalakrishnan wrote:
->
->             This patch adds temperature monitoring support for F15h M60h processor.
->                - Add new pci device id for the relevant processor
->                - The functionality of REG_REPORTED_TEMPERATURE is moved to
->                  D0F0xBC_xD820_0CA4 [Reported Temperature Control]
->                  - So, use this to get CUR_TEMP value
->                  - Since we need an indirect register access, protect this with
->                    a mutex lock
->
->
-> What about making this a new driver forked from k10temp.
->
-> AMD has changed how they report temperatures and the very different method of getting these temps suggests that it is no longer reasonable to add support to this driver for these new chips. Particular attention to the mutex required to protect the indirect register suggests that this would benefit from focus in its own driver now that there are multiple members of the "k15temp" family.
->
-> Anyone else have thoughts?
->
+From: lightning314 <wni@nvidia.com>
 
-Everything in that new driver except for reading the actual temperature
-would be exactly the same. That doesn't make sense to me.
+Add dt node to describe the thermal zone for the nct1008.
 
-Guenter
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra114-dalmore.dts | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/tegra114-dalmore.dts b/arch/arm/boot/dts/tegra114-dalmore.dts
+index 5c21d21..94a1b5d 100644
+--- a/arch/arm/boot/dts/tegra114-dalmore.dts
++++ b/arch/arm/boot/dts/tegra114-dalmore.dts
+@@ -779,12 +779,14 @@
+ 				<&gpio TEGRA_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+-		temperature-sensor@4c {
++		nct1008: temperature-sensor@4c {
+ 			compatible = "onnn,nct1008";
+ 			reg = <0x4c>;
+ 			vcc-supply = <&palmas_ldo6_reg>;
+ 			interrupt-parent = <&gpio>;
+ 			interrupts = <TEGRA_GPIO(O, 4) IRQ_TYPE_LEVEL_LOW>;
++
++			#thermal-sensor-cells = <1>;
+ 		};
+ 	};
+ 
+@@ -1283,4 +1285,20 @@
+ 			 <&tegra_car TEGRA114_CLK_EXTERN1>;
+ 		clock-names = "pll_a", "pll_a_out0", "mclk";
+ 	};
++
++	thermal-zones {
++		nct1008-local {
++			polling-delay-passive = <2000>; /* milliseconds */
++			polling-delay = <0>; /* milliseconds */
++
++			thermal-sensors = <&nct1008 0>;
++		};
++
++		nct1008-remote {
++			polling-delay-passive = <1000>; /* milliseconds */
++			polling-delay = <0>; /* milliseconds */
++
++			thermal-sensors = <&nct1008 1>;
++		};
++	};
+ };
+-- 
+1.8.1.5
 
 
 _______________________________________________
