@@ -1,42 +1,62 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 06 Aug 2014 00:51:11 +0000
-Subject: Re: [lm-sensors] [GIT PULL] hwmon updates for 3.17
-Message-Id: <53E17BFF.70403@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 25 Aug 2014 06:29:47 +0000
+Subject: [lm-sensors] [PATCH v3 3/4] thermal: add more description for thermal-zones
+Message-Id: <1408948188-4181-4-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140805022209.GA13813@roeck-us.net>	<20140805131447.5cec84e5@canb.auug.org.au>	<53E04DF3.40604@roeck-us.net> <CA+55aFx26rhMq_y0wuBrGi+QhFH0Odtg2eof-r_J6L46opsrjA@mail.gmail.com>
-In-Reply-To: <CA+55aFx26rhMq_y0wuBrGi+QhFH0Odtg2eof-r_J6L46opsrjA@mail.gmail.com>
+References: <1408948188-4181-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1408948188-4181-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: edubezval@gmail.com, khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org
+Cc: lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, Wei Ni <wni@nvidia.com>
 
-On 08/05/2014 03:58 PM, Linus Torvalds wrote:
-> On Mon, Aug 4, 2014 at 8:22 PM, Guenter Roeck <linux@roeck-us.net> wrote:
->>>
->>> This branch was rewritten (but not rebased) to add 5 commits at its
->>> start and 8 commits at its end since yesterday's linux-next.
->>
->> Yes, the start because I missed to send a bunch of fixes to Linus last week
->> because I was on vacation
->> and merged it all together, and the end because I missed to push out a bunch
->> of patches for the same
->> reason. Everything did pass my test suite, though.
->>
->> If that is a problem, let me know.
->
-> Please, next time, just send me *two* pull requests - one with the
-> missed fixes, and one with the linux-next work. No point in rewriting
-> the series so that all the commits are now different from the ones in
-> linux-next.
->
-Ok, will do.
+Add more description for the "polling-delay" property.
+Set "trips" and "cooling maps" as optional property, because
+if missing these two sub-nodes, the thermal zone device still
+work properly.
 
-> I've pulled it, but why rewrite history and mess up the next statistics?
->
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ Documentation/devicetree/bindings/thermal/thermal.txt | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/Documentation/devicetree/bindings/thermal/thermal.txt b/Documentation/devicetree/bindings/thermal/thermal.txt
+index f5db6b7..e3d3ed9 100644
+--- a/Documentation/devicetree/bindings/thermal/thermal.txt
++++ b/Documentation/devicetree/bindings/thermal/thermal.txt
+@@ -136,8 +136,8 @@ containing trip nodes and one sub-node containing all the zone cooling maps.
+ 
+ Required properties:
+ - polling-delay:	The maximum number of milliseconds to wait between polls
+-  Type: unsigned	when checking this thermal zone.
+-  Size: one cell
++  Type: unsigned	when checking this thermal zone. If this value is 0, the
++  Size: one cell	driver will not run polling queue, but just cancel it.
+ 
+ - polling-delay-passive: The maximum number of milliseconds to wait
+   Type: unsigned	between polls when performing passive cooling.
+@@ -148,14 +148,16 @@ Required properties:
+   phandles + sensor
+   specifier
+ 
++Optional property:
+ - trips:		A sub-node which is a container of only trip point nodes
+   Type: sub-node	required to describe the thermal zone.
+ 
+ - cooling-maps:		A sub-node which is a container of only cooling device
+   Type: sub-node	map nodes, used to describe the relation between trips
+-			and cooling devices.
++			and cooling devices. If missing the "trips" property,
++			This sub-node will not be parsed, because no trips can
++			be bound to cooling devices.
+ 
+-Optional property:
+ - coefficients:		An array of integers (one signed cell) containing
+   Type: array		coefficients to compose a linear relation between
+   Elem size: one cell	the sensors listed in the thermal-sensors property.
+-- 
+1.8.1.5
 
 
 _______________________________________________
