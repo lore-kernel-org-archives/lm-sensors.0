@@ -1,7 +1,7 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Tue, 26 Aug 2014 02:17:29 +0000
+Date: Tue, 26 Aug 2014 03:03:21 +0000
 Subject: Re: [lm-sensors] [PATCH v3 3/4] thermal: add more description for thermal-zones
-Message-Id: <53FBEE39.2020001@nvidia.com>
+Message-Id: <53FBF8F9.7070708@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1408948188-4181-1-git-send-email-wni@nvidia.com> <1408948188-4181-4-git-send-email-wni@nvidia.com> <20140825110711.GA12349@developer>
 In-Reply-To: <20140825110711.GA12349@developer>
@@ -41,6 +41,11 @@ On 08/25/2014 07:07 PM, Eduardo Valentin wrote:
 > 
 > The description above is specific to Linux kernel implementation
 > nomenclature. DT description needs to be OS agnostic.
+
+Normally, the user may think a delay of 0 means that software
+continually polls this zone, but in here it mean no polling. May be it's
+better to add this description.
+
 > 
 >>  - polling-delay-passive: The maximum number of milliseconds to wait
 >>    Type: unsigned	between polls when performing passive cooling.
@@ -63,16 +68,6 @@ On 08/25/2014 07:07 PM, Eduardo Valentin wrote:
 > the binding describes both, cooling-maps and trips, as required
 > properties. Thus, both needs to be in place to consider the thermal zone
 > as a proper described zone.
-
-I moved the "trips" and "cooling-maps" to optional property, because if
-missing these two properties, the thermal zone devices still can be
-registered, and the driver can work properly, it has the basic function,
-can read temperature from thermal sysfs, although it doesn't have trips
-and bind with cooling devices.
-
-Thanks.
-Wei.
-
 > 
 >>  
 >> -Optional property:
