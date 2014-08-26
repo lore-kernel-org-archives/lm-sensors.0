@@ -1,17 +1,17 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Tue, 26 Aug 2014 02:21:43 +0000
+Date: Tue, 26 Aug 2014 02:24:42 +0000
 Subject: Re: [lm-sensors] [PATCH v3 4/4] ARM: tegra: dalmore: add thermal zones for nct1008
-Message-Id: <53FBEF37.2040008@nvidia.com>
+Message-Id: <53FBEFEA.8050706@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408948188-4181-1-git-send-email-wni@nvidia.com> <1408948188-4181-5-git-send-email-wni@nvidia.com> <20140825110844.GB12349@developer>
-In-Reply-To: <20140825110844.GB12349@developer>
+References: <1408948188-4181-1-git-send-email-wni@nvidia.com> <1408948188-4181-5-git-send-email-wni@nvidia.com> <20140825111041.GC12349@developer>
+In-Reply-To: <20140825111041.GC12349@developer>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On 08/25/2014 07:08 PM, Eduardo Valentin wrote:
+On 08/25/2014 07:10 PM, Eduardo Valentin wrote:
 > On Mon, Aug 25, 2014 at 02:29:48PM +0800, Wei Ni wrote:
 >> From: lightning314 <wni@nvidia.com>
 >>
@@ -49,6 +49,19 @@ On 08/25/2014 07:08 PM, Eduardo Valentin wrote:
 >> +
 >> +	thermal-zones {
 >> +		nct1008-local {
+> 
+> at this level, can the thermal zone name be a meaningful string? What
+> part of the hardware does the local and remote monitors the the dalmore
+> platform?
+
+Oh, yes, you are right.
+I think it's better to use "board_thermal_sensor: nct1008-local" and
+"diode_thermal_sensor: nct1008-remote".
+
+Thanks.
+Wei.
+
+> 
 >> +			polling-delay-passive = <2000>; /* milliseconds */
 >> +			polling-delay = <0>; /* milliseconds */
 >> +
@@ -62,32 +75,10 @@ On 08/25/2014 07:08 PM, Eduardo Valentin wrote:
 >> +			thermal-sensors = <&nct1008 1>;
 >> +		};
 >> +	};
-> 
-> The above zones misses the required properties, as per the thermal.txt
-> binding description. Could you please have a look on those that are
-> required and improve the zones above?
-
-I changed the thermal.txt in the patch 3/4, to move these two properties
-to optional property.
-On the Dalmore, we just need to register these two sensors as thermal
-zone devices.
-Indeed, we have a skin-temperature driver, which used these two thermal
-zone deives' temperature to estimator the skin temperature, so we
-doesn't need to set trips and bind with any cooling devices on them.
-
-Thanks.
-Wei.
-
-> 
 >>  };
 >> -- 
 >> 1.8.1.5
 >>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
 
 _______________________________________________
