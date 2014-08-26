@@ -1,164 +1,212 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 06 Aug 2014 02:33:01 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (dme1737) Prevent overflow problem when writing large limits
-Message-Id: <53E193DD.7080305@roeck-us.net>
+From: Andreas Werner <andreas.werner@men.de>
+Date: Tue, 26 Aug 2014 17:45:44 +0000
+Subject: [lm-sensors] [PATCH v5 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
+Message-Id: <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1407283364.4924.0.camel@phoenix>
-In-Reply-To: <1407283364.4924.0.camel@phoenix>
+References: <cover.1409074255.git.andreas.werner@men.de>
+In-Reply-To: <cover.1409074255.git.andreas.werner@men.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sameo@linux.intel.com, lee.jones@linaro.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
 
-On 08/05/2014 05:02 PM, Axel Lin wrote:
-> On platforms with sizeof(int) < sizeof(long), writing a temperature
-> limit larger than MAXINT will result in unpredictable limit values
-> written to the chip. Avoid auto-conversion from long to int to fix
-> the problem.
->
-> Voltage limits, fan minimum speed, pwm frequency, pwm ramp rate, and
-> other attributes have the same problem, fixes them as well.
->
-> vrm is an u8, so the written value needs to be limited to [0, 255].
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+The MEN 14F021P00 Board Management Controller provides an
+I2C interface to the host to access the feature implemented in the BMC.
+The BMC is a PIC Microntroller assembled on CPCI Card from MEN Mikroelektronik
+and on a few Box/Display Computer.
 
-This driver has yet another problem: zone_low and zone_abs are declared
-as u8 but written with TEMP_TO_REG, which returns a signed value.
-The datasheet (for SCH111X which is supposedly compatible) suggests
-that the temperatures should be signed.
+Added MFD Core driver, supporting the I2C communication to the device.
 
-No need to resubmit, I fixed it up. Applied.
+The MFD driver currently supports the following features:
+ 	- Watchdog
+ 	- LEDs
+	- Hwmon (voltage monitoring)
 
-Guenter
+Signed-off-by: Andreas Werner <andreas.werner@men.de>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/mfd/Kconfig     |  12 +++++
+ drivers/mfd/Makefile    |   1 +
+ drivers/mfd/menf21bmc.c | 132 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 145 insertions(+)
+ create mode 100644 drivers/mfd/menf21bmc.c
 
-> ---
->   drivers/hwmon/dme1737.c | 29 ++++++++++++++++-------------
->   1 file changed, 16 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-> index 4ae3fff..71dd0f2 100644
-> --- a/drivers/hwmon/dme1737.c
-> +++ b/drivers/hwmon/dme1737.c
-> @@ -277,7 +277,7 @@ static inline int IN_FROM_REG(int reg, int nominal, int res)
->   	return (reg * nominal + (3 << (res - 3))) / (3 << (res - 2));
->   }
->
-> -static inline int IN_TO_REG(int val, int nominal)
-> +static inline int IN_TO_REG(long val, int nominal)
->   {
->   	return clamp_val((val * 192 + nominal / 2) / nominal, 0, 255);
->   }
-> @@ -293,7 +293,7 @@ static inline int TEMP_FROM_REG(int reg, int res)
->   	return (reg * 1000) >> (res - 8);
->   }
->
-> -static inline int TEMP_TO_REG(int val)
-> +static inline int TEMP_TO_REG(long val)
->   {
->   	return clamp_val((val < 0 ? val - 500 : val + 500) / 1000, -128, 127);
->   }
-> @@ -308,7 +308,7 @@ static inline int TEMP_RANGE_FROM_REG(int reg)
->   	return TEMP_RANGE[(reg >> 4) & 0x0f];
->   }
->
-> -static int TEMP_RANGE_TO_REG(int val, int reg)
-> +static int TEMP_RANGE_TO_REG(long val, int reg)
->   {
->   	int i;
->
-> @@ -331,7 +331,7 @@ static inline int TEMP_HYST_FROM_REG(int reg, int ix)
->   	return (((ix = 1) ? reg : reg >> 4) & 0x0f) * 1000;
->   }
->
-> -static inline int TEMP_HYST_TO_REG(int val, int ix, int reg)
-> +static inline int TEMP_HYST_TO_REG(long val, int ix, int reg)
->   {
->   	int hyst = clamp_val((val + 500) / 1000, 0, 15);
->
-> @@ -347,7 +347,7 @@ static inline int FAN_FROM_REG(int reg, int tpc)
->   		return (reg = 0 || reg = 0xffff) ? 0 : 90000 * 60 / reg;
->   }
->
-> -static inline int FAN_TO_REG(int val, int tpc)
-> +static inline int FAN_TO_REG(long val, int tpc)
->   {
->   	if (tpc) {
->   		return clamp_val(val / tpc, 0, 0xffff);
-> @@ -379,7 +379,7 @@ static inline int FAN_TYPE_FROM_REG(int reg)
->   	return (edge > 0) ? 1 << (edge - 1) : 0;
->   }
->
-> -static inline int FAN_TYPE_TO_REG(int val, int reg)
-> +static inline int FAN_TYPE_TO_REG(long val, int reg)
->   {
->   	int edge = (val = 4) ? 3 : val;
->
-> @@ -402,7 +402,7 @@ static int FAN_MAX_FROM_REG(int reg)
->   	return 1000 + i * 500;
->   }
->
-> -static int FAN_MAX_TO_REG(int val)
-> +static int FAN_MAX_TO_REG(long val)
->   {
->   	int i;
->
-> @@ -460,7 +460,7 @@ static inline int PWM_ACZ_FROM_REG(int reg)
->   	return acz[(reg >> 5) & 0x07];
->   }
->
-> -static inline int PWM_ACZ_TO_REG(int val, int reg)
-> +static inline int PWM_ACZ_TO_REG(long val, int reg)
->   {
->   	int acz = (val = 4) ? 2 : val - 1;
->
-> @@ -476,7 +476,7 @@ static inline int PWM_FREQ_FROM_REG(int reg)
->   	return PWM_FREQ[reg & 0x0f];
->   }
->
-> -static int PWM_FREQ_TO_REG(int val, int reg)
-> +static int PWM_FREQ_TO_REG(long val, int reg)
->   {
->   	int i;
->
-> @@ -510,7 +510,7 @@ static inline int PWM_RR_FROM_REG(int reg, int ix)
->   	return (rr & 0x08) ? PWM_RR[rr & 0x07] : 0;
->   }
->
-> -static int PWM_RR_TO_REG(int val, int ix, int reg)
-> +static int PWM_RR_TO_REG(long val, int ix, int reg)
->   {
->   	int i;
->
-> @@ -528,7 +528,7 @@ static inline int PWM_RR_EN_FROM_REG(int reg, int ix)
->   	return PWM_RR_FROM_REG(reg, ix) ? 1 : 0;
->   }
->
-> -static inline int PWM_RR_EN_TO_REG(int val, int ix, int reg)
-> +static inline int PWM_RR_EN_TO_REG(long val, int ix, int reg)
->   {
->   	int en = (ix = 1) ? 0x80 : 0x08;
->
-> @@ -1481,13 +1481,16 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
->   		       const char *buf, size_t count)
->   {
->   	struct dme1737_data *data = dev_get_drvdata(dev);
-> -	long val;
-> +	unsigned long val;
->   	int err;
->
-> -	err = kstrtol(buf, 10, &val);
-> +	err = kstrtoul(buf, 10, &val);
->   	if (err)
->   		return err;
->
-> +	if (val > 255)
-> +		return -EINVAL;
-> +
->   	data->vrm = val;
->   	return count;
->   }
->
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index b8d9ca0..6a9f101 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -453,6 +453,18 @@ config MFD_MAX8998
+ 	  additional drivers must be enabled in order to use the functionality
+ 	  of the device.
+ 
++config MFD_MENF21BMC
++	tristate "MEN 14F021P00 Board Management Controller Support"
++	depends on I2C
++	select MFD_CORE
++	help
++	  Say yes here to add support for the MEN 14F021P00 BMC
++	  which is a Board Management Controller connected to the I2C bus.
++	  The device supports multiple sub-devices like LED, HWMON  and WDT.
++	  This driver provides common support for accessing the devices;
++	  additional drivers must be enabled in order to use the
++	  functionality of the BMC device.
++
+ config EZX_PCAP
+ 	bool "Motorola EZXPCAP Support"
+ 	depends on SPI_MASTER
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 4e2bc25..37bf336 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -169,6 +169,7 @@ obj-$(CONFIG_MFD_AS3711)	+= as3711.o
+ obj-$(CONFIG_MFD_AS3722)	+= as3722.o
+ obj-$(CONFIG_MFD_STW481X)	+= stw481x.o
+ obj-$(CONFIG_MFD_IPAQ_MICRO)	+= ipaq-micro.o
++obj-$(CONFIG_MFD_MENF21BMC)	+= menf21bmc.o
+ 
+ intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
+ obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
+diff --git a/drivers/mfd/menf21bmc.c b/drivers/mfd/menf21bmc.c
+new file mode 100644
+index 0000000..a6eb03f
+--- /dev/null
++++ b/drivers/mfd/menf21bmc.c
+@@ -0,0 +1,132 @@
++/*
++ *  MEN 14F021P00 Board Management Controller (BMC) MFD Core Driver.
++ *
++ *  Copyright (C) 2014 MEN Mikro Elektronik Nuernberg GmbH
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/i2c.h>
++#include <linux/mfd/core.h>
++
++#define BMC_CMD_WDT_EXIT_PROD	0x18
++#define BMC_CMD_WDT_PROD_STAT	0x19
++#define BMC_CMD_REV_MAJOR	0x80
++#define BMC_CMD_REV_MINOR	0x81
++#define BMC_CMD_REV_MAIN	0x82
++
++static struct mfd_cell menf21bmc_cell[] = {
++	{ .name = "menf21bmc_wdt", },
++	{ .name = "menf21bmc_led", },
++	{ .name = "menf21bmc_hwmon", }
++};
++
++static int menf21bmc_wdt_exit_prod_mode(struct i2c_client *client)
++{
++	int val, ret;
++
++	val = i2c_smbus_read_byte_data(client, BMC_CMD_WDT_PROD_STAT);
++	if (val < 0)
++		return val;
++
++	/*
++	 * Production mode should be not active after delivery of the Board.
++	 * To be sure we check it, inform the user and exit the mode
++	 * if active.
++	 */
++	if (val = 0x00) {
++		dev_info(&client->dev,
++			"BMC in production mode. Exit production mode\n");
++
++		ret = i2c_smbus_write_byte(client, BMC_CMD_WDT_EXIT_PROD);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int
++menf21bmc_probe(struct i2c_client *client, const struct i2c_device_id *ids)
++{
++	int ret;
++	int rev_major, rev_minor, rev_main;
++
++	ret = i2c_check_functionality(client->adapter,
++				      I2C_FUNC_SMBUS_BYTE_DATA |
++				      I2C_FUNC_SMBUS_WORD_DATA |
++				      I2C_FUNC_SMBUS_BYTE);
++	if (!ret)
++		return -ENODEV;
++
++	rev_major = i2c_smbus_read_word_data(client, BMC_CMD_REV_MAJOR);
++	if (rev_major < 0) {
++		dev_err(&client->dev, "failed to get BMC major revision\n");
++		return rev_major;
++	}
++
++	rev_minor = i2c_smbus_read_word_data(client, BMC_CMD_REV_MINOR);
++	if (rev_minor < 0) {
++		dev_err(&client->dev, "failed to get BMC minor revision\n");
++		return rev_minor;
++	}
++
++	rev_main = i2c_smbus_read_word_data(client, BMC_CMD_REV_MAIN);
++	if (rev_main < 0) {
++		dev_err(&client->dev, "failed to get BMC main revision\n");
++		return rev_main;
++	}
++
++	dev_info(&client->dev, "FW Revision: %02d.%02d.%02d\n",
++					rev_major, rev_minor, rev_main);
++
++	/*
++	 * We have to exit the Production Mode of the BMC to activate the
++	 * Watchdog functionality and the BIOS life sign monitoring.
++	 */
++	ret = menf21bmc_wdt_exit_prod_mode(client);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed to leave production mode\n");
++		return ret;
++	}
++
++	ret = mfd_add_devices(&client->dev, 0, menf21bmc_cell,
++				ARRAY_SIZE(menf21bmc_cell), NULL, 0, NULL);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed to add BMC sub-devices\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static int menf21bmc_remove(struct i2c_client *client)
++{
++	mfd_remove_devices(&client->dev);
++	return 0;
++}
++
++static const struct i2c_device_id menf21bmc_id_table[] = {
++	{ "menf21bmc", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, menf21bmc_id_table);
++
++static struct i2c_driver menf21bmc_driver = {
++	.driver.name	= "menf21bmc",
++	.id_table	= menf21bmc_id_table,
++	.probe		= menf21bmc_probe,
++	.remove		= menf21bmc_remove,
++};
++
++module_i2c_driver(menf21bmc_driver);
++
++MODULE_DESCRIPTION("MEN 14F021P00 BMC mfd core driver");
++MODULE_AUTHOR("Andreas Werner <andreas.werner@men.de>");
++MODULE_LICENSE("GPL v2");
+-- 
+2.0.4
 
 
 _______________________________________________
