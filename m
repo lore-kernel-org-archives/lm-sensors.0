@@ -1,22 +1,20 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Date: Tue, 26 Aug 2014 12:08:57 +0000
+Date: Tue, 26 Aug 2014 12:12:12 +0000
 Subject: Re: [lm-sensors] [PATCH v3 3/4] thermal: add more description for thermal-zones
-Message-Id: <20140826120855.GA15219@developer>
+Message-Id: <20140826121210.GB15219@developer>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1408948188-4181-1-git-send-email-wni@nvidia.com>
  <1408948188-4181-4-git-send-email-wni@nvidia.com>
  <20140825110711.GA12349@developer>
- <53FBF8F9.7070708@nvidia.com>
-In-Reply-To: <53FBF8F9.7070708@nvidia.com>
+ <53FBEE39.2020001@nvidia.com>
+In-Reply-To: <53FBEE39.2020001-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni@nvidia.com>
-Cc: khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org, lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Hi,
-
-On Tue, Aug 26, 2014 at 11:03:21AM +0800, Wei Ni wrote:
+On Tue, Aug 26, 2014 at 10:17:29AM +0800, Wei Ni wrote:
 > On 08/25/2014 07:07 PM, Eduardo Valentin wrote:
 > > Hello Wei Ni,
 > > 
@@ -47,15 +45,6 @@ On Tue, Aug 26, 2014 at 11:03:21AM +0800, Wei Ni wrote:
 > > 
 > > The description above is specific to Linux kernel implementation
 > > nomenclature. DT description needs to be OS agnostic.
-> 
-> Normally, the user may think a delay of 0 means that software
-> continually polls this zone, but in here it mean no polling. May be it's
-> better to add this description.
-> 
-
-Sure, I am fine adding it. Just please do not use Linux specific
-nomenclature.
-
 > > 
 > >>  - polling-delay-passive: The maximum number of milliseconds to wait
 > >>    Type: unsigned	between polls when performing passive cooling.
@@ -78,6 +67,26 @@ nomenclature.
 > > the binding describes both, cooling-maps and trips, as required
 > > properties. Thus, both needs to be in place to consider the thermal zone
 > > as a proper described zone.
+> 
+> I moved the "trips" and "cooling-maps" to optional property, because if
+> missing these two properties, the thermal zone devices still can be
+> registered, and the driver can work properly, it has the basic function,
+> can read temperature from thermal sysfs, although it doesn't have trips
+> and bind with cooling devices.
+
+
+If a thermal zone is used only for monitoring, then I believe it lost
+its purpose. As  Maybe a different framework shall be used, such as hwmon,
+for instance?
+
+The purpose of a thermal zone is to describe thermal behavior of a
+hardware. As it is mentioned in the thermal.txt file.
+
+
+> 
+> Thanks.
+> Wei.
+> 
 > > 
 > >>  
 > >> -Optional property:
