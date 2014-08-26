@@ -1,42 +1,29 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 25 Aug 2014 00:33:29 +0000
-Subject: Re: [lm-sensors] Fintek F71868AD
-Message-Id: <53FA8459.4040600@roeck-us.net>
+From: Venkat Duvvuru <VenkatKumar.Duvvuru@Emulex.Com>
+Date: Tue, 26 Aug 2014 15:02:48 +0000
+Subject: [lm-sensors] hwmon_device_register compatibility with lm-sensors
+Message-Id: <BF3270C86E8B1349A26C34E4EC1C44CB2C9388EE@CMEXMB1.ad.emulex.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CALefuyhPk2GP7-XCb=hWtnuWj5PU-Ve8d_Ydgb1T3QDAeaLL3Q@mail.gmail.com>
-In-Reply-To: <CALefuyhPk2GP7-XCb=hWtnuWj5PU-Ve8d_Ydgb1T3QDAeaLL3Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/24/2014 11:51 AM, Ben Barker wrote:
-> Hi,
->
-> I have an MSI A78M-E45 motherboard.
->
-> So far as I can tell, it uses a Fintek F71868AD sensor chip. Running
-> sensors-detect gives:
->
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-> Found unknown chip with ID 0x1106
->      (logical device 4 has address 0x295, could be sensors)
->
->
-> Looking online there seems to have been some discussion of this about a
-> year ago, but nothing for some time:
->
-> http://www.lm-sensors.org/changeset/6190
->
-> Is there any likelihood of this being supported?
+Hi,
+I'm using "hwmon_device_register_with_groups" to register with hwmon to show be2net's on-die temperature. I'm successful in doing it and the node is also visible at "/sys/class/hwmon/hwmon1/temp1_input" and lm-sensors  (sensors command) also shows the temperature.
 
-The chip seems to be somewhat compatible with F71869A.
-You could try "modprobe f71882fg force_id=0x1007" and see
-if you get anything useful.
+However I'm not sure if a kernel doesn't support "_groups" version of the api, how do I register with hwmon so that it is compatible with lm-sensors.
 
-Guenter
+For example, in kernels where "_groups" is not supported. I'm doing the following to register with hwmon
 
+1.       sysfs_create_group
 
+2.       hwmon_device_register
+The above calls are creating "temp1_input" node at "/sys/class/hwmon/hwmon1/device/temp1_input" and sensors command is not showing the temperature.
+
+Please let me know if I'm missing anything.
+
+Thanks,
+Venkat.
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
