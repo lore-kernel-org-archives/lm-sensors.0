@@ -1,99 +1,385 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Aug 2014 18:09:24 +0000
-Subject: Re: [lm-sensors] MSI Z97M gaming motherboard (NCT6792D)
-Message-Id: <53F8D8D4.1030306@roeck-us.net>
+Date: Tue, 26 Aug 2014 17:15:41 +0000
+Subject: Re: [lm-sensors] [PATCH v5 4/4] drivers/hwmon/menf21bmc_hwmon: introduce MEN14F021P00 BMC HWMON driv
+Message-Id: <20140826171541.GA12190@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B57331A-0F4F-4E58-AC24-E222F762F24C@floatingpenguins.com>
-In-Reply-To: <4B57331A-0F4F-4E58-AC24-E222F762F24C@floatingpenguins.com>
+References: <cover.1409074255.git.andreas.werner@men.de>
+ <35eb5fcf2fd6efd96810831eb4649a458dbdeec9.1409074255.git.andreas.werner@men.de>
+In-Reply-To: <35eb5fcf2fd6efd96810831eb4649a458dbdeec9.1409074255.git.andreas.werner@men.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andreas Werner <andreas.werner@men.de>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
 
-On 08/22/2014 09:32 AM, jingai wrote:
-> This is what I have now.  For an MSI Z97M 'gaming' motherboard with Intel 4770k CPU.
->
-> I *think* in6 is the cpu voltage.  It is around 0.80V at idle and under load (via mprime) it rises to around 1.2V.
->
-> in10 I am unsure of, but it hovers just a little above 0V at idle and is just a bit higher than in6 under load (1.25V being the highest I've seen).
->
-> The others (in5, 9, 11-14) I'm not sure.  DRAM voltage should be in there somewhere since it shows in the BIOS (1.488V) but none of the values match that.
->
-> Any assistance with the above questions would be most appreciated.  When it's done, I'll be happy to add it to the wiki.
->
-> -j
->
-Hi,
+On Tue, Aug 26, 2014 at 07:46:53PM +0200, Andreas Werner wrote:
+> Added driver to support the 14F021P00 BMC Hardware Monitoring.
+> The BMC is a Board Management Controller including monitoring of the
+> board voltages.
+> 
+> Signed-off-by: Andreas Werner <andreas.werner@men.de>
 
-I looked at my system for a bit (MSI H97M-G43 with i7-4790K).
-Seems to be quite similar.
+Hi Andreas,
 
-> chip "nct6792-isa-0a00"
->          label in0 "VCCIN"
->                  compute in0 @ * 2, @ / 2
->                  set in0_min 1.75 * 0.95
->                  set in0_max 1.75 * 1.05
-
-raw reading on my board is 0.864 .. 0.888V.
-
->          label in1 "+5V"
->                  compute in1 @ * (40 / 8), @ / (40 / 8)
->                  set in1_min 5 * 0.95
->                  set in1_max 5 * 1.05
->          label in2 "AVCC"
->                  set in2_min 3.3 * 0.95
->                  set in2_max 3.3 * 1.05
->          label in3 "+3.3V"
->                  set in3_min 3.3 * 0.95
->                  set in3_max 3.3 * 1.05
->          label in4 "+12V"
->                  compute in4 @ * (96 / 8), @ / (96 / 8)
->                  set in4_min 12 * 0.95
->                  set in4_max 12 * 1.05
->          ignore in5                      # not sure, stays ~0.82V
-
-0.808V or 0.816V for me.
-
-> #       ignore in6                      # between 0.80V and 1.20V, Vcore?
-
-1.168 or 1.176V for me.
-
->          label in7 "3VSB"
->                  set in7_min 3.3 * 0.95
->                  set in7_max 3.3 * 1.05
->          label in8 "Vbat"
->                  set in8_min 3.3 * 0.90
->                  set in8_max 3.3 * 1.10
->          ignore in9                      # not sure, stays ~1.02V
-
-1.008V for me.
-
-> #       ignore in10                     # between 0.0V and 1.25V, increases under load
-
-Between 0.192 and 1.112V for me.
-
->          ignore in11                     # always 0.0V
-
-Anywhere between 0.000 and 0.408V.
-
->          ignore in12                     # not sure, stays ~1.02V
-
-1.008V
-
->          ignore in13                     # not sure, stays ~0.74V
-
-0.672 or 0.680V.
-
->          ignore in14                     # not sure, stays ~1.82V
-
-1.832V or 1.840V.
-
-Question is if you see the DRAM voltage in the BIOS change over time.
-If so, we should be able to use the different values to determine
-which of the above readings is the DRAM voltage.
+Couple of additional comments below. Sorry I didn't notice earlier.
 
 Guenter
 
+> ---
+>  Documentation/hwmon/menf21bmc   |  49 +++++++++
+>  drivers/hwmon/Kconfig           |   7 ++
+>  drivers/hwmon/Makefile          |   1 +
+>  drivers/hwmon/menf21bmc_hwmon.c | 230 ++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 287 insertions(+)
+>  create mode 100644 Documentation/hwmon/menf21bmc
+>  create mode 100644 drivers/hwmon/menf21bmc_hwmon.c
+> 
+> diff --git a/Documentation/hwmon/menf21bmc b/Documentation/hwmon/menf21bmc
+> new file mode 100644
+> index 0000000..22b6840
+> --- /dev/null
+> +++ b/Documentation/hwmon/menf21bmc
+> @@ -0,0 +1,49 @@
+> +Kernel driver menf21bmc_hwmon
+> +==============> +
+> +Supported chips:
+> +	* MEN 14F021P00
+> +	  Prefix: 'menf21bmc_hwmon'
+> +	  Adresses scanned: -
+> +
+> +Author: Andreas Werner <andreas.werner@men.de>
+> +
+> +Description
+> +-----------
+> +
+> +The menf21bmc is a Board Management Controller (BMC) which provides an I2C
+> +interface to the host to access the features implemented in the BMC.
+> +
+> +This driver gives access to the voltage monitoring feature of the main
+> +voltages of the board.
+> +The voltage sensors are connected to the ADC inputs of the BMC which is
+> +a PIC16F917 Mikrocontroller.
+> +
+> +Usage Notes
+> +-----------
+> +
+> +This driver does not auto-detect devices. You will have to instantiate the
+> +devices explicitly. Please see Documentation/i2c/instantiating-devices for
+> +details.
+> +
+> +Sysfs entries
+> +-------------
+> +
+> +The following attributes are supported. All attributes are read only
+> +The Limits are read once by the driver.
+> +
+> +in0_input	+3.3V input voltage
+> +in1_input	+5.0V input voltage
+> +in2_input	+12.0V input voltage
+> +in3_input	+5V Standby input voltage
+> +in4_input	VBAT (on board battery)
+> +
+> +in[0-4]_min	Minimum voltage limit
+> +in[0-4]_max	Maximum voltage limit
+> +
+> +in0_label	"MON_3_3V"
+> +in1_label	"MON_5V"
+> +in2_label	"MON_12V"
+> +in3_label	"5V_STANDBY"
+> +in4_label	"VBAT"
+> +
+
+The empty line adds a whitespace error when applying the patch.
+
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 37908ff..db3a6eb 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -828,6 +828,13 @@ config SENSORS_MCP3021
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called mcp3021.
+>  
+> +config SENSORS_MENF21BMC_HWMON
+> +	tristate "MEN 14F021P00 BMC Hardware Monitoring"
+> +	depends on MFD_MENF21BMC
+> +	help
+> +	  Say Y here to include support for the MEN 14F021P00 BMC
+> +	  hardware monitoring.
+> +
+It is customary to add a note describing how the module is called
+if the driver is built as module.
+
+>  config SENSORS_ADCXX
+>  	tristate "National Semiconductor ADCxxxSxxx"
+>  	depends on SPI_MASTER
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index 1362382..56ab872 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -114,6 +114,7 @@ obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+>  obj-$(CONFIG_SENSORS_MAX6697)	+= max6697.o
+>  obj-$(CONFIG_SENSORS_MC13783_ADC)+= mc13783-adc.o
+>  obj-$(CONFIG_SENSORS_MCP3021)	+= mcp3021.o
+> +obj-$(CONFIG_SENSORS_MENF21BMC_HWMON) += menf21bmc_hwmon.o
+>  obj-$(CONFIG_SENSORS_NCT6683)	+= nct6683.o
+>  obj-$(CONFIG_SENSORS_NCT6775)	+= nct6775.o
+>  obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
+> diff --git a/drivers/hwmon/menf21bmc_hwmon.c b/drivers/hwmon/menf21bmc_hwmon.c
+> new file mode 100644
+> index 0000000..2eaec6a
+> --- /dev/null
+> +++ b/drivers/hwmon/menf21bmc_hwmon.c
+> @@ -0,0 +1,230 @@
+> +/*
+> + *  MEN 14F021P00 Board Management Controller (BMC) hwmon driver.
+> + *
+> + *  This is the core hwmon driver of the MEN 14F021P00 BMC.
+> + *  The BMC monitors the board voltages which can be access with this
+> + *  driver through sysfs.
+> + *
+> + *  Copyright (C) 2014 MEN Mikro Elektronik Nuernberg GmbH
+> + *
+> + *  This program is free software; you can redistribute  it and/or modify it
+> + *  under  the terms of  the GNU General  Public License as published by the
+> + *  Free Software Foundation;  either version 2 of the  License, or (at your
+> + *  option) any later version.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/slab.h>
+> +#include <linux/i2c.h>
+> +
+> +#define DRV_NAME  "menf21bmc_hwmon"
+> +
+> +#define BMC_VOLT_COUNT	5
+> +#define MENF21BMC_V33	0
+> +#define MENF21BMC_V5	1
+> +#define MENF21BMC_V12	2
+> +#define MENF21BMC_V5_SB	3
+> +#define MENF21BMC_VBAT	4
+> +
+> +#define IDX_TO_VOLT_MIN_CMD(idx) (0x40 + idx)
+> +#define IDX_TO_VOLT_MAX_CMD(idx) (0x50 + idx)
+> +#define IDX_TO_VOLT_INP_CMD(idx) (0x60 + idx)
+> +
+> +struct menf21bmc_hwmon {
+> +	char valid;
+
+Please use bool (and true / false to set it). char doesn't
+save anything and may actually increase code size depending
+on the architecture.
+
+> +	struct i2c_client *i2c_client;
+> +	unsigned long last_update;
+> +	u16 in_val[BMC_VOLT_COUNT];
+> +	u16 in_min[BMC_VOLT_COUNT];
+> +	u16 in_max[BMC_VOLT_COUNT];
+> +};
+> +
+> +static const char *const input_names[] = {
+> +	[MENF21BMC_V33]		= "MON_3_3V",
+> +	[MENF21BMC_V5]		= "MON_5V",
+> +	[MENF21BMC_V12]		= "MON_12V",
+> +	[MENF21BMC_V5_SB]	= "5V_STANDBY",
+> +	[MENF21BMC_VBAT]	= "VBAT"
+> +};
+> +
+> +static struct menf21bmc_hwmon *menf21bmc_hwmon_update(struct device *dev)
+> +{
+> +	int i;
+> +	uint16_t val;
+
+That doesn't work well with the checks against < 0.
+Please compile with W=1 to find all instances of this problem
+(there is another one below).
+
+> +	struct menf21bmc_hwmon *drv_data = dev_get_drvdata(dev);
+> +	struct menf21bmc_hwmon *data_ret = drv_data;
+> +
+> +	if (time_after(jiffies, drv_data->last_update + HZ) || !drv_data->valid) {
+
+Line over 80 characters.
+
+> +		for (i = 0; i < BMC_VOLT_COUNT; i++) {
+> +			val = i2c_smbus_read_word_data(drv_data->i2c_client,
+> +						       IDX_TO_VOLT_INP_CMD(i));
+> +			if (val < 0) {
+> +				data_ret = ERR_PTR(val);
+> +				goto abort;
+> +			}
+> +			drv_data->in_val[i] = val;
+> +		}
+> +		drv_data->last_update = jiffies;
+> +		drv_data->valid = 1;
+> +	}
+> +abort:
+> +	return data_ret;
+> +}
+> +
+> +static int menf21bmc_hwmon_get_volt_limits(struct menf21bmc_hwmon *drv_data)
+> +{
+> +	int i;
+> +	uint16_t val;
+> +
+> +	for (i = 0; i < BMC_VOLT_COUNT; i++) {
+> +		val = i2c_smbus_read_word_data(drv_data->i2c_client,
+> +					       IDX_TO_VOLT_MIN_CMD(i));
+> +		if (val < 0)
+> +			return val;
+> +
+> +		drv_data->in_min[i] = val;
+> +
+> +		val = i2c_smbus_read_word_data(drv_data->i2c_client,
+> +					       IDX_TO_VOLT_MAX_CMD(i));
+> +		if (val < 0)
+> +			return val;
+> +
+> +		drv_data->in_max[i] = val;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static ssize_t
+> +show_label(struct device *dev, struct device_attribute *devattr, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +
+> +	return sprintf(buf, "%s\n", input_names[attr->index]);
+> +}
+> +
+> +static ssize_t
+> +show_in(struct device *dev, struct device_attribute *devattr, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct menf21bmc_hwmon *drv_data = menf21bmc_hwmon_update(dev);
+> +
+> +	if (IS_ERR(drv_data))
+> +		return PTR_ERR(drv_data);
+> +
+> +	return sprintf(buf, "%d\n", drv_data->in_val[attr->index]);
+> +}
+> +
+> +static ssize_t
+> +show_min(struct device *dev, struct device_attribute *devattr, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct menf21bmc_hwmon *drv_data = dev_get_drvdata(dev);
+> +
+> +	return sprintf(buf, "%d\n", drv_data->in_min[attr->index]);
+> +}
+> +
+> +static ssize_t
+> +show_max(struct device *dev, struct device_attribute *devattr, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct menf21bmc_hwmon *drv_data = dev_get_drvdata(dev);
+> +
+> +	return sprintf(buf, "%d\n", drv_data->in_max[attr->index]);
+> +}
+> +
+> +#define create_voltage_sysfs(idx)			\
+> +static SENSOR_DEVICE_ATTR(in##idx##_input, S_IRUGO,	\
+> +			show_in, NULL, idx);		\
+> +static SENSOR_DEVICE_ATTR(in##idx##_min, S_IRUGO,	\
+> +			show_min, NULL, idx);		\
+> +static SENSOR_DEVICE_ATTR(in##idx##_max, S_IRUGO,	\
+> +			show_max, NULL, idx);		\
+> +static SENSOR_DEVICE_ATTR(in##idx##_label, S_IRUGO,	\
+> +			show_label, NULL, idx);
+> +
+> +create_voltage_sysfs(0);
+> +create_voltage_sysfs(1);
+> +create_voltage_sysfs(2);
+> +create_voltage_sysfs(3);
+> +create_voltage_sysfs(4);
+> +
+> +static struct attribute *menf21bmc_hwmon_attrs[] = {
+> +	&sensor_dev_attr_in0_input.dev_attr.attr,
+> +	&sensor_dev_attr_in0_min.dev_attr.attr,
+> +	&sensor_dev_attr_in0_max.dev_attr.attr,
+> +	&sensor_dev_attr_in0_label.dev_attr.attr,
+> +
+> +	&sensor_dev_attr_in1_input.dev_attr.attr,
+> +	&sensor_dev_attr_in1_min.dev_attr.attr,
+> +	&sensor_dev_attr_in1_max.dev_attr.attr,
+> +	&sensor_dev_attr_in1_label.dev_attr.attr,
+> +
+> +	&sensor_dev_attr_in2_input.dev_attr.attr,
+> +	&sensor_dev_attr_in2_min.dev_attr.attr,
+> +	&sensor_dev_attr_in2_max.dev_attr.attr,
+> +	&sensor_dev_attr_in2_label.dev_attr.attr,
+> +
+> +	&sensor_dev_attr_in3_input.dev_attr.attr,
+> +	&sensor_dev_attr_in3_min.dev_attr.attr,
+> +	&sensor_dev_attr_in3_max.dev_attr.attr,
+> +	&sensor_dev_attr_in3_label.dev_attr.attr,
+> +
+> +	&sensor_dev_attr_in4_input.dev_attr.attr,
+> +	&sensor_dev_attr_in4_min.dev_attr.attr,
+> +	&sensor_dev_attr_in4_max.dev_attr.attr,
+> +	&sensor_dev_attr_in4_label.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +ATTRIBUTE_GROUPS(menf21bmc_hwmon);
+> +
+> +static int menf21bmc_hwmon_probe(struct platform_device *pdev)
+> +{
+> +	int ret;
+> +	struct menf21bmc_hwmon *drv_data;
+> +	struct i2c_client *i2c_client = to_i2c_client(pdev->dev.parent);
+> +	struct device *hwmon_dev;
+> +
+> +	drv_data = devm_kzalloc(&pdev->dev, sizeof(struct menf21bmc_hwmon),
+> +				GFP_KERNEL);
+> +	if (!drv_data)
+> +		return -ENOMEM;
+> +
+> +	drv_data->i2c_client = i2c_client;
+> +
+> +	ret = menf21bmc_hwmon_get_volt_limits(drv_data);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "failed to read sensor limits");
+> +		return ret;
+> +	}
+> +
+> +	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
+> +							   "menf21bmc", drv_data,
+> +							   menf21bmc_hwmon_groups);
+
+Line over 80 characters. Just use less indentation for the continuation lines.
+
+> +	if (IS_ERR(hwmon_dev))
+> +		return PTR_ERR(hwmon_dev);
+> +
+> +	dev_info(&pdev->dev, "MEN 14F021P00 BMC hwmon device enabled");
+> +
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver menf21bmc_hwmon = {
+> +	.probe		= menf21bmc_hwmon_probe,
+> +	.driver		= {
+> +		.name		= DRV_NAME,
+> +		.owner		= THIS_MODULE,
+> +	},
+> +};
+> +
+> +module_platform_driver(menf21bmc_hwmon);
+> +
+> +MODULE_AUTHOR("Andreas Werner <andreas.werner@men.de>");
+> +MODULE_DESCRIPTION("MEN 14F021P00 BMC hwmon");
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_ALIAS("platform:menf21bmc_hwmon");
+> -- 
+> 2.0.4
+> 
+> 
 
 _______________________________________________
 lm-sensors mailing list
