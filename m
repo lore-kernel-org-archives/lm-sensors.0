@@ -1,215 +1,136 @@
-From: Andreas Werner <andreas.werner@men.de>
-Date: Tue, 26 Aug 2014 17:45:44 +0000
-Subject: [lm-sensors] [PATCH v5 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
-Message-Id: <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de>
+From: Lee Jones <lee.jones@linaro.org>
+Date: Wed, 27 Aug 2014 07:26:33 +0000
+Subject: Re: [lm-sensors] [PATCH v5 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
+Message-Id: <20140827072633.GY26707@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <cover.1409074255.git.andreas.werner@men.de>
-In-Reply-To: <cover.1409074255.git.andreas.werner@men.de>
+ <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de>
+In-Reply-To: <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sameo@linux.intel.com, lee.jones@linaro.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
+To: Andreas Werner <andreas.werner@men.de>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
 
-The MEN 14F021P00 Board Management Controller provides an
-I2C interface to the host to access the feature implemented in the BMC.
-The BMC is a PIC Microntroller assembled on CPCI Card from MEN Mikroelektronik
-and on a few Box/Display Computer.
-
-Added MFD Core driver, supporting the I2C communication to the device.
-
-The MFD driver currently supports the following features:
- 	- Watchdog
- 	- LEDs
-	- Hwmon (voltage monitoring)
-
-Signed-off-by: Andreas Werner <andreas.werner@men.de>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/mfd/Kconfig     |  12 +++++
- drivers/mfd/Makefile    |   1 +
- drivers/mfd/menf21bmc.c | 132 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 145 insertions(+)
- create mode 100644 drivers/mfd/menf21bmc.c
-
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index b8d9ca0..6a9f101 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -453,6 +453,18 @@ config MFD_MAX8998
- 	  additional drivers must be enabled in order to use the functionality
- 	  of the device.
- 
-+config MFD_MENF21BMC
-+	tristate "MEN 14F021P00 Board Management Controller Support"
-+	depends on I2C
-+	select MFD_CORE
-+	help
-+	  Say yes here to add support for the MEN 14F021P00 BMC
-+	  which is a Board Management Controller connected to the I2C bus.
-+	  The device supports multiple sub-devices like LED, HWMON  and WDT.
-+	  This driver provides common support for accessing the devices;
-+	  additional drivers must be enabled in order to use the
-+	  functionality of the BMC device.
-+
- config EZX_PCAP
- 	bool "Motorola EZXPCAP Support"
- 	depends on SPI_MASTER
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 4e2bc25..37bf336 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -169,6 +169,7 @@ obj-$(CONFIG_MFD_AS3711)	+= as3711.o
- obj-$(CONFIG_MFD_AS3722)	+= as3722.o
- obj-$(CONFIG_MFD_STW481X)	+= stw481x.o
- obj-$(CONFIG_MFD_IPAQ_MICRO)	+= ipaq-micro.o
-+obj-$(CONFIG_MFD_MENF21BMC)	+= menf21bmc.o
- 
- intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
- obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
-diff --git a/drivers/mfd/menf21bmc.c b/drivers/mfd/menf21bmc.c
-new file mode 100644
-index 0000000..a6eb03f
---- /dev/null
-+++ b/drivers/mfd/menf21bmc.c
-@@ -0,0 +1,132 @@
-+/*
-+ *  MEN 14F021P00 Board Management Controller (BMC) MFD Core Driver.
-+ *
-+ *  Copyright (C) 2014 MEN Mikro Elektronik Nuernberg GmbH
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/mfd/core.h>
-+
-+#define BMC_CMD_WDT_EXIT_PROD	0x18
-+#define BMC_CMD_WDT_PROD_STAT	0x19
-+#define BMC_CMD_REV_MAJOR	0x80
-+#define BMC_CMD_REV_MINOR	0x81
-+#define BMC_CMD_REV_MAIN	0x82
-+
-+static struct mfd_cell menf21bmc_cell[] = {
-+	{ .name = "menf21bmc_wdt", },
-+	{ .name = "menf21bmc_led", },
-+	{ .name = "menf21bmc_hwmon", }
-+};
-+
-+static int menf21bmc_wdt_exit_prod_mode(struct i2c_client *client)
-+{
-+	int val, ret;
-+
-+	val = i2c_smbus_read_byte_data(client, BMC_CMD_WDT_PROD_STAT);
-+	if (val < 0)
-+		return val;
-+
-+	/*
-+	 * Production mode should be not active after delivery of the Board.
-+	 * To be sure we check it, inform the user and exit the mode
-+	 * if active.
-+	 */
-+	if (val = 0x00) {
-+		dev_info(&client->dev,
-+			"BMC in production mode. Exit production mode\n");
-+
-+		ret = i2c_smbus_write_byte(client, BMC_CMD_WDT_EXIT_PROD);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int
-+menf21bmc_probe(struct i2c_client *client, const struct i2c_device_id *ids)
-+{
-+	int ret;
-+	int rev_major, rev_minor, rev_main;
-+
-+	ret = i2c_check_functionality(client->adapter,
-+				      I2C_FUNC_SMBUS_BYTE_DATA |
-+				      I2C_FUNC_SMBUS_WORD_DATA |
-+				      I2C_FUNC_SMBUS_BYTE);
-+	if (!ret)
-+		return -ENODEV;
-+
-+	rev_major = i2c_smbus_read_word_data(client, BMC_CMD_REV_MAJOR);
-+	if (rev_major < 0) {
-+		dev_err(&client->dev, "failed to get BMC major revision\n");
-+		return rev_major;
-+	}
-+
-+	rev_minor = i2c_smbus_read_word_data(client, BMC_CMD_REV_MINOR);
-+	if (rev_minor < 0) {
-+		dev_err(&client->dev, "failed to get BMC minor revision\n");
-+		return rev_minor;
-+	}
-+
-+	rev_main = i2c_smbus_read_word_data(client, BMC_CMD_REV_MAIN);
-+	if (rev_main < 0) {
-+		dev_err(&client->dev, "failed to get BMC main revision\n");
-+		return rev_main;
-+	}
-+
-+	dev_info(&client->dev, "FW Revision: %02d.%02d.%02d\n",
-+					rev_major, rev_minor, rev_main);
-+
-+	/*
-+	 * We have to exit the Production Mode of the BMC to activate the
-+	 * Watchdog functionality and the BIOS life sign monitoring.
-+	 */
-+	ret = menf21bmc_wdt_exit_prod_mode(client);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed to leave production mode\n");
-+		return ret;
-+	}
-+
-+	ret = mfd_add_devices(&client->dev, 0, menf21bmc_cell,
-+				ARRAY_SIZE(menf21bmc_cell), NULL, 0, NULL);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed to add BMC sub-devices\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int menf21bmc_remove(struct i2c_client *client)
-+{
-+	mfd_remove_devices(&client->dev);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id menf21bmc_id_table[] = {
-+	{ "menf21bmc", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, menf21bmc_id_table);
-+
-+static struct i2c_driver menf21bmc_driver = {
-+	.driver.name	= "menf21bmc",
-+	.id_table	= menf21bmc_id_table,
-+	.probe		= menf21bmc_probe,
-+	.remove		= menf21bmc_remove,
-+};
-+
-+module_i2c_driver(menf21bmc_driver);
-+
-+MODULE_DESCRIPTION("MEN 14F021P00 BMC mfd core driver");
-+MODULE_AUTHOR("Andreas Werner <andreas.werner@men.de>");
-+MODULE_LICENSE("GPL v2");
--- 
-2.0.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCAyNiBBdWcgMjAxNCwgQW5kcmVhcyBXZXJuZXIgd3JvdGU6Cj4gVGhlIE1FTiAxNEYw
+MjFQMDAgQm9hcmQgTWFuYWdlbWVudCBDb250cm9sbGVyIHByb3ZpZGVzIGFuCj4gSTJDIGludGVy
+ZmFjZSB0byB0aGUgaG9zdCB0byBhY2Nlc3MgdGhlIGZlYXR1cmUgaW1wbGVtZW50ZWQgaW4gdGhl
+IEJNQy4KPiBUaGUgQk1DIGlzIGEgUElDIE1pY3JvbnRyb2xsZXIgYXNzZW1ibGVkIG9uIENQQ0kg
+Q2FyZCBmcm9tIE1FTiBNaWtyb2VsZWt0cm9uaWsKPiBhbmQgb24gYSBmZXcgQm94L0Rpc3BsYXkg
+Q29tcHV0ZXIuCj4gCj4gQWRkZWQgTUZEIENvcmUgZHJpdmVyLCBzdXBwb3J0aW5nIHRoZSBJMkMg
+Y29tbXVuaWNhdGlvbiB0byB0aGUgZGV2aWNlLgo+IAo+IFRoZSBNRkQgZHJpdmVyIGN1cnJlbnRs
+eSBzdXBwb3J0cyB0aGUgZm9sbG93aW5nIGZlYXR1cmVzOgo+ICAJLSBXYXRjaGRvZwo+ICAJLSBM
+RURzCj4gCS0gSHdtb24gKHZvbHRhZ2UgbW9uaXRvcmluZykKPiAKPiBTaWduZWQtb2ZmLWJ5OiBB
+bmRyZWFzIFdlcm5lciA8YW5kcmVhcy53ZXJuZXJAbWVuLmRlPgo+IEFja2VkLWJ5OiBMZWUgSm9u
+ZXMgPGxlZS5qb25lc0BsaW5hcm8ub3JnPgo+IC0tLQo+ICBkcml2ZXJzL21mZC9LY29uZmlnICAg
+ICB8ICAxMiArKysrKwo+ICBkcml2ZXJzL21mZC9NYWtlZmlsZSAgICB8ICAgMSArCj4gIGRyaXZl
+cnMvbWZkL21lbmYyMWJtYy5jIHwgMTMyICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKwo+ICAzIGZpbGVzIGNoYW5nZWQsIDE0NSBpbnNlcnRpb25zKCspCj4g
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21mZC9tZW5mMjFibWMuYwo+IAo+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL21mZC9LY29uZmlnIGIvZHJpdmVycy9tZmQvS2NvbmZpZwo+IGluZGV4IGI4
+ZDljYTAuLjZhOWYxMDEgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9tZmQvS2NvbmZpZwo+ICsrKyBi
+L2RyaXZlcnMvbWZkL0tjb25maWcKPiBAQCAtNDUzLDYgKzQ1MywxOCBAQCBjb25maWcgTUZEX01B
+WDg5OTgKPiAgCSAgYWRkaXRpb25hbCBkcml2ZXJzIG11c3QgYmUgZW5hYmxlZCBpbiBvcmRlciB0
+byB1c2UgdGhlIGZ1bmN0aW9uYWxpdHkKPiAgCSAgb2YgdGhlIGRldmljZS4KPiAgCj4gK2NvbmZp
+ZyBNRkRfTUVORjIxQk1DCj4gKwl0cmlzdGF0ZSAiTUVOIDE0RjAyMVAwMCBCb2FyZCBNYW5hZ2Vt
+ZW50IENvbnRyb2xsZXIgU3VwcG9ydCIKPiArCWRlcGVuZHMgb24gSTJDCj4gKwlzZWxlY3QgTUZE
+X0NPUkUKPiArCWhlbHAKPiArCSAgU2F5IHllcyBoZXJlIHRvIGFkZCBzdXBwb3J0IGZvciB0aGUg
+TUVOIDE0RjAyMVAwMCBCTUMKPiArCSAgd2hpY2ggaXMgYSBCb2FyZCBNYW5hZ2VtZW50IENvbnRy
+b2xsZXIgY29ubmVjdGVkIHRvIHRoZSBJMkMgYnVzLgo+ICsJICBUaGUgZGV2aWNlIHN1cHBvcnRz
+IG11bHRpcGxlIHN1Yi1kZXZpY2VzIGxpa2UgTEVELCBIV01PTiAgYW5kIFdEVC4KCk5pdDogV2hp
+dGVzcGFjZSBlcnJvci4KCj4gKwkgIFRoaXMgZHJpdmVyIHByb3ZpZGVzIGNvbW1vbiBzdXBwb3J0
+IGZvciBhY2Nlc3NpbmcgdGhlIGRldmljZXM7Cj4gKwkgIGFkZGl0aW9uYWwgZHJpdmVycyBtdXN0
+IGJlIGVuYWJsZWQgaW4gb3JkZXIgdG8gdXNlIHRoZQo+ICsJICBmdW5jdGlvbmFsaXR5IG9mIHRo
+ZSBCTUMgZGV2aWNlLgo+ICsKPiAgY29uZmlnIEVaWF9QQ0FQCj4gIAlib29sICJNb3Rvcm9sYSBF
+WlhQQ0FQIFN1cHBvcnQiCj4gIAlkZXBlbmRzIG9uIFNQSV9NQVNURVIKPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9tZmQvTWFrZWZpbGUgYi9kcml2ZXJzL21mZC9NYWtlZmlsZQo+IGluZGV4IDRlMmJj
+MjUuLjM3YmYzMzYgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9tZmQvTWFrZWZpbGUKPiArKysgYi9k
+cml2ZXJzL21mZC9NYWtlZmlsZQo+IEBAIC0xNjksNiArMTY5LDcgQEAgb2JqLSQoQ09ORklHX01G
+RF9BUzM3MTEpCSs9IGFzMzcxMS5vCj4gIG9iai0kKENPTkZJR19NRkRfQVMzNzIyKQkrPSBhczM3
+MjIubwo+ICBvYmotJChDT05GSUdfTUZEX1NUVzQ4MVgpCSs9IHN0dzQ4MXgubwo+ICBvYmotJChD
+T05GSUdfTUZEX0lQQVFfTUlDUk8pCSs9IGlwYXEtbWljcm8ubwo+ICtvYmotJChDT05GSUdfTUZE
+X01FTkYyMUJNQykJKz0gbWVuZjIxYm1jLm8KPiAgCj4gIGludGVsLXNvYy1wbWljLW9ianMJCTo9
+IGludGVsX3NvY19wbWljX2NvcmUubyBpbnRlbF9zb2NfcG1pY19jcmMubwo+ICBvYmotJChDT05G
+SUdfSU5URUxfU09DX1BNSUMpCSs9IGludGVsLXNvYy1wbWljLm8KPiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9tZmQvbWVuZjIxYm1jLmMgYi9kcml2ZXJzL21mZC9tZW5mMjFibWMuYwo+IG5ldyBmaWxl
+IG1vZGUgMTAwNjQ0Cj4gaW5kZXggMDAwMDAwMC4uYTZlYjAzZgo+IC0tLSAvZGV2L251bGwKPiAr
+KysgYi9kcml2ZXJzL21mZC9tZW5mMjFibWMuYwo+IEBAIC0wLDAgKzEsMTMyIEBACj4gKy8qCj4g
+KyAqICBNRU4gMTRGMDIxUDAwIEJvYXJkIE1hbmFnZW1lbnQgQ29udHJvbGxlciAoQk1DKSBNRkQg
+Q29yZSBEcml2ZXIuCj4gKyAqCj4gKyAqICBDb3B5cmlnaHQgKEMpIDIwMTQgTUVOIE1pa3JvIEVs
+ZWt0cm9uaWsgTnVlcm5iZXJnIEdtYkgKPiArICoKPiArICogIFRoaXMgcHJvZ3JhbSBpcyBmcmVl
+IHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSAgaXQgYW5kL29yIG1vZGlmeSBpdAo+ICsg
+KiAgdW5kZXIgIHRoZSB0ZXJtcyBvZiAgdGhlIEdOVSBHZW5lcmFsICBQdWJsaWMgTGljZW5zZSBh
+cyBwdWJsaXNoZWQgYnkgdGhlCj4gKyAqICBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247ICBlaXRo
+ZXIgdmVyc2lvbiAyIG9mIHRoZSAgTGljZW5zZSwgb3IgKGF0IHlvdXIKPiArICogIG9wdGlvbikg
+YW55IGxhdGVyIHZlcnNpb24uCj4gKyAqLwo+ICsKPiArI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5o
+Pgo+ICsjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUu
+aD4KPiArI2luY2x1ZGUgPGxpbnV4L2kyYy5oPgo+ICsjaW5jbHVkZSA8bGludXgvbWZkL2NvcmUu
+aD4KPiArCj4gKyNkZWZpbmUgQk1DX0NNRF9XRFRfRVhJVF9QUk9ECTB4MTgKPiArI2RlZmluZSBC
+TUNfQ01EX1dEVF9QUk9EX1NUQVQJMHgxOQo+ICsjZGVmaW5lIEJNQ19DTURfUkVWX01BSk9SCTB4
+ODAKPiArI2RlZmluZSBCTUNfQ01EX1JFVl9NSU5PUgkweDgxCj4gKyNkZWZpbmUgQk1DX0NNRF9S
+RVZfTUFJTgkweDgyCj4gKwo+ICtzdGF0aWMgc3RydWN0IG1mZF9jZWxsIG1lbmYyMWJtY19jZWxs
+W10gPSB7Cj4gKwl7IC5uYW1lID0gIm1lbmYyMWJtY193ZHQiLCB9LAo+ICsJeyAubmFtZSA9ICJt
+ZW5mMjFibWNfbGVkIiwgfSwKPiArCXsgLm5hbWUgPSAibWVuZjIxYm1jX2h3bW9uIiwgfQo+ICt9
+Owo+ICsKPiArc3RhdGljIGludCBtZW5mMjFibWNfd2R0X2V4aXRfcHJvZF9tb2RlKHN0cnVjdCBp
+MmNfY2xpZW50ICpjbGllbnQpCj4gK3sKPiArCWludCB2YWwsIHJldDsKPiArCj4gKwl2YWwgPSBp
+MmNfc21idXNfcmVhZF9ieXRlX2RhdGEoY2xpZW50LCBCTUNfQ01EX1dEVF9QUk9EX1NUQVQpOwo+
+ICsJaWYgKHZhbCA8IDApCj4gKwkJcmV0dXJuIHZhbDsKPiArCj4gKwkvKgo+ICsJICogUHJvZHVj
+dGlvbiBtb2RlIHNob3VsZCBiZSBub3QgYWN0aXZlIGFmdGVyIGRlbGl2ZXJ5IG9mIHRoZSBCb2Fy
+ZC4KPiArCSAqIFRvIGJlIHN1cmUgd2UgY2hlY2sgaXQsIGluZm9ybSB0aGUgdXNlciBhbmQgZXhp
+dCB0aGUgbW9kZQo+ICsJICogaWYgYWN0aXZlLgo+ICsJICovCj4gKwlpZiAodmFsID09IDB4MDAp
+IHsKPiArCQlkZXZfaW5mbygmY2xpZW50LT5kZXYsCj4gKwkJCSJCTUMgaW4gcHJvZHVjdGlvbiBt
+b2RlLiBFeGl0IHByb2R1Y3Rpb24gbW9kZVxuIik7Cj4gKwo+ICsJCXJldCA9IGkyY19zbWJ1c193
+cml0ZV9ieXRlKGNsaWVudCwgQk1DX0NNRF9XRFRfRVhJVF9QUk9EKTsKPiArCQlpZiAocmV0IDwg
+MCkKPiArCQkJcmV0dXJuIHJldDsKPiArCX0KPiArCj4gKwlyZXR1cm4gMDsKPiArfQo+ICsKPiAr
+c3RhdGljIGludAo+ICttZW5mMjFibWNfcHJvYmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwg
+Y29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkcykKPiArewo+ICsJaW50IHJldDsKPiArCWlu
+dCByZXZfbWFqb3IsIHJldl9taW5vciwgcmV2X21haW47CgpSZWFsbHkgc21hbGwgbml0IChhcyB5
+b3UgaGF2ZSB0byBmaXggdGhlIHdoaXRlc3BhY2UgZXJyIGFueXdheSk6CiAgQ2FuIHlvdSBjaGFu
+Z2UgdGhlIG9yZGVyIG9mIHRoZSB0d28gbGluZXMgYWJvdmUgcGxlYXNlPwoKPiArCXJldCA9IGky
+Y19jaGVja19mdW5jdGlvbmFsaXR5KGNsaWVudC0+YWRhcHRlciwKPiArCQkJCSAgICAgIEkyQ19G
+VU5DX1NNQlVTX0JZVEVfREFUQSB8Cj4gKwkJCQkgICAgICBJMkNfRlVOQ19TTUJVU19XT1JEX0RB
+VEEgfAo+ICsJCQkJICAgICAgSTJDX0ZVTkNfU01CVVNfQllURSk7Cj4gKwlpZiAoIXJldCkKPiAr
+CQlyZXR1cm4gLUVOT0RFVjsKPiArCj4gKwlyZXZfbWFqb3IgPSBpMmNfc21idXNfcmVhZF93b3Jk
+X2RhdGEoY2xpZW50LCBCTUNfQ01EX1JFVl9NQUpPUik7Cj4gKwlpZiAocmV2X21ham9yIDwgMCkg
+ewo+ICsJCWRldl9lcnIoJmNsaWVudC0+ZGV2LCAiZmFpbGVkIHRvIGdldCBCTUMgbWFqb3IgcmV2
+aXNpb25cbiIpOwo+ICsJCXJldHVybiByZXZfbWFqb3I7Cj4gKwl9Cj4gKwo+ICsJcmV2X21pbm9y
+ID0gaTJjX3NtYnVzX3JlYWRfd29yZF9kYXRhKGNsaWVudCwgQk1DX0NNRF9SRVZfTUlOT1IpOwo+
+ICsJaWYgKHJldl9taW5vciA8IDApIHsKPiArCQlkZXZfZXJyKCZjbGllbnQtPmRldiwgImZhaWxl
+ZCB0byBnZXQgQk1DIG1pbm9yIHJldmlzaW9uXG4iKTsKPiArCQlyZXR1cm4gcmV2X21pbm9yOwo+
+ICsJfQo+ICsKPiArCXJldl9tYWluID0gaTJjX3NtYnVzX3JlYWRfd29yZF9kYXRhKGNsaWVudCwg
+Qk1DX0NNRF9SRVZfTUFJTik7Cj4gKwlpZiAocmV2X21haW4gPCAwKSB7Cj4gKwkJZGV2X2Vycigm
+Y2xpZW50LT5kZXYsICJmYWlsZWQgdG8gZ2V0IEJNQyBtYWluIHJldmlzaW9uXG4iKTsKPiArCQly
+ZXR1cm4gcmV2X21haW47Cj4gKwl9Cj4gKwo+ICsJZGV2X2luZm8oJmNsaWVudC0+ZGV2LCAiRlcg
+UmV2aXNpb246ICUwMmQuJTAyZC4lMDJkXG4iLAo+ICsJCQkJCXJldl9tYWpvciwgcmV2X21pbm9y
+LCByZXZfbWFpbik7CgpZb3UgZW5mb3JjZWQgYSAnbGluZSA+IDgwIGNoYXJzJyB3YXJuaW5nIGlu
+IHlvdXIgb3RoZXIgZHJpdmVyIGp1c3Qgc28KeW91IGNhbiAnZG8gdGhlIHJpZ2h0IHRoaW5nJyBh
+bmQgbGluZSB1cCBhZ2FpbnN0IHRoZSAnKCcuIDopCgpDYW4geW91IGRvIHRoYXQgaGVyZSBwbGVh
+c2U/Cgo+ICsJLyoKPiArCSAqIFdlIGhhdmUgdG8gZXhpdCB0aGUgUHJvZHVjdGlvbiBNb2RlIG9m
+IHRoZSBCTUMgdG8gYWN0aXZhdGUgdGhlCj4gKwkgKiBXYXRjaGRvZyBmdW5jdGlvbmFsaXR5IGFu
+ZCB0aGUgQklPUyBsaWZlIHNpZ24gbW9uaXRvcmluZy4KPiArCSAqLwo+ICsJcmV0ID0gbWVuZjIx
+Ym1jX3dkdF9leGl0X3Byb2RfbW9kZShjbGllbnQpOwo+ICsJaWYgKHJldCA8IDApIHsKPiArCQlk
+ZXZfZXJyKCZjbGllbnQtPmRldiwgImZhaWxlZCB0byBsZWF2ZSBwcm9kdWN0aW9uIG1vZGVcbiIp
+Owo+ICsJCXJldHVybiByZXQ7Cj4gKwl9Cj4gKwo+ICsJcmV0ID0gbWZkX2FkZF9kZXZpY2VzKCZj
+bGllbnQtPmRldiwgMCwgbWVuZjIxYm1jX2NlbGwsCj4gKwkJCQlBUlJBWV9TSVpFKG1lbmYyMWJt
+Y19jZWxsKSwgTlVMTCwgMCwgTlVMTCk7CgpMaW5lIHVwIHRvIHRvICcoJy4KCj4gKwlpZiAocmV0
+IDwgMCkgewo+ICsJCWRldl9lcnIoJmNsaWVudC0+ZGV2LCAiZmFpbGVkIHRvIGFkZCBCTUMgc3Vi
+LWRldmljZXNcbiIpOwo+ICsJCXJldHVybiByZXQ7Cj4gKwl9Cj4gKwo+ICsJcmV0dXJuIDA7Cj4g
+K30KPiArCj4gK3N0YXRpYyBpbnQgbWVuZjIxYm1jX3JlbW92ZShzdHJ1Y3QgaTJjX2NsaWVudCAq
+Y2xpZW50KQo+ICt7Cj4gKwltZmRfcmVtb3ZlX2RldmljZXMoJmNsaWVudC0+ZGV2KTsKPiArCXJl
+dHVybiAwOwo+ICt9Cj4gKwo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgbWVu
+ZjIxYm1jX2lkX3RhYmxlW10gPSB7Cj4gKwl7ICJtZW5mMjFibWMiLCAwIH0sCgpUaGUgc2Vjb25k
+IGF0dHJpYnV0ZSBpcyB1bnVzZWQgaW4gdGhpcyBkcml2ZXIsIHBsZWFzZSByZW1vdmUgaXQuCgo+
+ICsJeyB9Cj4gK307Cj4gK01PRFVMRV9ERVZJQ0VfVEFCTEUoaTJjLCBtZW5mMjFibWNfaWRfdGFi
+bGUpOwo+ICsKPiArc3RhdGljIHN0cnVjdCBpMmNfZHJpdmVyIG1lbmYyMWJtY19kcml2ZXIgPSB7
+Cj4gKwkuZHJpdmVyLm5hbWUJPSAibWVuZjIxYm1jIiwKPiArCS5pZF90YWJsZQk9IG1lbmYyMWJt
+Y19pZF90YWJsZSwKPiArCS5wcm9iZQkJPSBtZW5mMjFibWNfcHJvYmUsCj4gKwkucmVtb3ZlCQk9
+IG1lbmYyMWJtY19yZW1vdmUsCj4gK307CgpObyBEVCBzdXBwb3J0PwoKPiArbW9kdWxlX2kyY19k
+cml2ZXIobWVuZjIxYm1jX2RyaXZlcik7Cj4gKwo+ICtNT0RVTEVfREVTQ1JJUFRJT04oIk1FTiAx
+NEYwMjFQMDAgQk1DIG1mZCBjb3JlIGRyaXZlciIpOwoKcy9tZmQvTUZECgo+ICtNT0RVTEVfQVVU
+SE9SKCJBbmRyZWFzIFdlcm5lciA8YW5kcmVhcy53ZXJuZXJAbWVuLmRlPiIpOwo+ICtNT0RVTEVf
+TElDRU5TRSgiR1BMIHYyIik7CgotLSAKTGVlIEpvbmVzCkxpbmFybyBTVE1pY3JvZWxlY3Ryb25p
+Y3MgTGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUg
+Zm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdpdHRlciB8IEJsb2cKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMg
+bWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNl
+bnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
