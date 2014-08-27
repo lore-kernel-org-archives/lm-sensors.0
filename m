@@ -1,20 +1,18 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Wed, 27 Aug 2014 02:31:55 +0000
+Date: Wed, 27 Aug 2014 02:54:07 +0000
 Subject: Re: [lm-sensors] [PATCH v3 3/4] thermal: add more description for thermal-zones
-Message-Id: <53FD431B.40501@nvidia.com>
+Message-Id: <53FD484F.7030504@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1408948188-4181-1-git-send-email-wni@nvidia.com> <1408948188-4181-4-git-send-email-wni@nvidia.com> <20140825110711.GA12349@developer> <53FBF8F9.7070708@nvidia.com> <20140826120855.GA15219@developer>
-In-Reply-To: <20140826120855.GA15219@developer>
+References: <1408948188-4181-1-git-send-email-wni@nvidia.com> <1408948188-4181-4-git-send-email-wni@nvidia.com> <20140825110711.GA12349@developer> <53FBEE39.2020001@nvidia.com> <20140826121210.GB15219@developer>
+In-Reply-To: <20140826121210.GB15219@developer>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: khali@linux-fr.org, linux@roeck-us.net, swarren@wwwdotorg.org, lm-sensors@lm-sensors.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On 08/26/2014 08:08 PM, Eduardo Valentin wrote:
-> Hi,
-> 
-> On Tue, Aug 26, 2014 at 11:03:21AM +0800, Wei Ni wrote:
+On 08/26/2014 08:12 PM, Eduardo Valentin wrote:
+> On Tue, Aug 26, 2014 at 10:17:29AM +0800, Wei Ni wrote:
 >> On 08/25/2014 07:07 PM, Eduardo Valentin wrote:
 >>> Hello Wei Ni,
 >>>
@@ -45,20 +43,6 @@ On 08/26/2014 08:08 PM, Eduardo Valentin wrote:
 >>>
 >>> The description above is specific to Linux kernel implementation
 >>> nomenclature. DT description needs to be OS agnostic.
->>
->> Normally, the user may think a delay of 0 means that software
->> continually polls this zone, but in here it mean no polling. May be it's
->> better to add this description.
->>
-> 
-> Sure, I am fine adding it. Just please do not use Linux specific
-> nomenclature.
-
-Yes, you are right, I will just add "Cancel the polling if the delay is 0".
-
-Wei.
-
-> 
 >>>
 >>>>  - polling-delay-passive: The maximum number of milliseconds to wait
 >>>>    Type: unsigned	between polls when performing passive cooling.
@@ -81,6 +65,38 @@ Wei.
 >>> the binding describes both, cooling-maps and trips, as required
 >>> properties. Thus, both needs to be in place to consider the thermal zone
 >>> as a proper described zone.
+>>
+>> I moved the "trips" and "cooling-maps" to optional property, because if
+>> missing these two properties, the thermal zone devices still can be
+>> registered, and the driver can work properly, it has the basic function,
+>> can read temperature from thermal sysfs, although it doesn't have trips
+>> and bind with cooling devices.
+> 
+> 
+> If a thermal zone is used only for monitoring, then I believe it lost
+> its purpose. As  Maybe a different framework shall be used, such as hwmon,
+> for instance?
+
+Yes, if we only use it for monitoring, we can use hwmon. But we have
+more functions base on these two thermal zone devices. We have a
+skin-temperature driver, which used nct1008's remote and local
+temperatures to estimator the skin temperature. As you know the thermal
+framework is more powerful, the remote/local sensors can be register as
+thermal zone, then the skin-temp driver can use thermal_zone_get_temp()
+to read their temperatures and then estimator skin's temp. We also will
+set trips and cooling devices for this skin-temp.
+
+Wei.
+
+> 
+> The purpose of a thermal zone is to describe thermal behavior of a
+> hardware. As it is mentioned in the thermal.txt file.
+> 
+> 
+>>
+>> Thanks.
+>> Wei.
+>>
 >>>
 >>>>  
 >>>> -Optional property:
@@ -91,6 +107,11 @@ Wei.
 >>>> 1.8.1.5
 >>>>
 >>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 _______________________________________________
