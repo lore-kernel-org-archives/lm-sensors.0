@@ -1,155 +1,217 @@
 From: Andreas Werner <andreas.werner@men.de>
-Date: Fri, 29 Aug 2014 11:38:15 +0000
-Subject: Re: [lm-sensors] [PATCH v6 3/4] drivers/leds/leds-menf21bmc: introduce MEN 14F021P00 BMC LED driver
-Message-Id: <20140829113815.GA30736@awelinux>
+Date: Wed, 27 Aug 2014 17:51:45 +0000
+Subject: [lm-sensors] [PATCH v6 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
+Message-Id: <71aa7a1bbed06f0ec840b3a00664dfd8214fa49a.1409161615.git.andreas.werner@men.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <cover.1409161615.git.andreas.werner@men.de>
- <e91e4f47cda55c03fa1d0a54c0891341d73adfa6.1409161615.git.andreas.werner@men.de>
- <CAK5ve-+zjZBw_HXWm9kGE5Vbv=R2SO4P2dB_0opzLHTAV-BQ0Q@mail.gmail.com>
- <20140829065915.GZ24579@lee--X1>
-In-Reply-To: <20140829065915.GZ24579@lee--X1>
+In-Reply-To: <cover.1409161615.git.andreas.werner@men.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Bryan Wu <cooloney@gmail.com>, Andreas Werner <andreas.werner@men.de>, lkml <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, linux@roeck-us.net, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, Linux LED Subsystem <linux-leds@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: sameo@linux.intel.com, lee.jones@linaro.org, linux@roeck-us.net, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org
 
-T24gRnJpLCBBdWcgMjksIDIwMTQgYXQgMDc6NTk6MTVBTSArMDEwMCwgTGVlIEpvbmVzIHdyb3Rl
-Ogo+IE9uIFRodSwgMjggQXVnIDIwMTQsIEJyeWFuIFd1IHdyb3RlOgo+IAo+ID4gT24gV2VkLCBB
-dWcgMjcsIDIwMTQgYXQgMTA6NTIgQU0sIEFuZHJlYXMgV2VybmVyIDxhbmRyZWFzLndlcm5lckBt
-ZW4uZGU+IHdyb3RlOgo+ID4gPiBBZGRlZCBkcml2ZXIgdG8gc3VwcG9ydCB0aGUgMTRGMDIxUDAw
-IEJNQyBMRURzLgo+ID4gPiBUaGUgQk1DIGlzIGEgQm9hcmQgTWFuYWdlbWVudCBDb250cm9sbGVy
-IGluY2x1ZGluZyBmb3VyIExFRHMgd2hpY2gKPiA+ID4gY2FuIGJlIHN3aXRjaGVkIG9uIGFuZCBv
-ZmYuCj4gPiA+Cj4gPiAKPiA+IFBsZWFzZSBnbyBhaGVhZCB3aXRoIG15IEFjawo+ID4gQWNrZWQt
-Ynk6IEJyeWFuIFd1IDxjb29sb25leUBnbWFpbC5jb20+Cj4gPiAKPiA+IExlZSwgd2lsbCB5b3Ug
-bWVyZ2UgdGhpcyB0aHJvdWdoIHlvdXIgdHJlZT8gSSB0aGluayB3ZSBkbyB0aGF0IGluIG9uZQo+
-ID4gc2hvdCBpcyBiZXR0ZXIuCj4gCj4gWWVzLCB0aGF0J3MgZmluZS4gIFB1bGwtcmVxdWVzdCB0
-byBmb2xsb3cuCj4gCgpUaGFua3MgdG8gYWxsIGZvciByZXZpZXcuCgpXaG8gb2YgeW91IGRvZXMg
-dGhlIFdhdGNoZG9nIHBhcnQ/IElzIGl0IHRoZSBwYXJ0IG9mIFdpbSB0byBBY2sgdGhlIHBhdGNo
-CmlmIGV2ZXJ5dGhpbmdzIGlzIHJpZ2h0IG9yIEd1ZW50aGVyPwoKSSBhc2sgYmVjYXVzZSBpZiBl
-dmVyeXRoaW5nIGlzIG9rIGFsbCB0aGUgcGF0Y2hlcyBjYW4gZ28gaW4gY29tcGxldGx5IHRoYXQg
-d291bGQKYmUgbmljZS4KClJlZ2FyZHMKQW5keQoKPiA+ID4gU2lnbmVkLW9mZi1ieTogQW5kcmVh
-cyBXZXJuZXIgPGFuZHJlYXMud2VybmVyQG1lbi5kZT4KPiA+ID4gLS0tCj4gPiA+ICBkcml2ZXJz
-L2xlZHMvS2NvbmZpZyAgICAgICAgICB8ICAgOSArKysKPiA+ID4gIGRyaXZlcnMvbGVkcy9NYWtl
-ZmlsZSAgICAgICAgIHwgICAxICsKPiA+ID4gIGRyaXZlcnMvbGVkcy9sZWRzLW1lbmYyMWJtYy5j
-IHwgMTMxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ID4gPiAg
-MyBmaWxlcyBjaGFuZ2VkLCAxNDEgaW5zZXJ0aW9ucygrKQo+ID4gPiAgY3JlYXRlIG1vZGUgMTAw
-NjQ0IGRyaXZlcnMvbGVkcy9sZWRzLW1lbmYyMWJtYy5jCj4gPiA+Cj4gPiA+IGRpZmYgLS1naXQg
-YS9kcml2ZXJzL2xlZHMvS2NvbmZpZyBiL2RyaXZlcnMvbGVkcy9LY29uZmlnCj4gPiA+IGluZGV4
-IDI3Y2YwY2QuLmVjMDM0NTcgMTAwNjQ0Cj4gPiA+IC0tLSBhL2RyaXZlcnMvbGVkcy9LY29uZmln
-Cj4gPiA+ICsrKyBiL2RyaXZlcnMvbGVkcy9LY29uZmlnCj4gPiA+IEBAIC00NTgsNiArNDU4LDE1
-IEBAIGNvbmZpZyBMRURTX09UMjAwCj4gPiA+ICAgICAgICAgICBUaGlzIG9wdGlvbiBlbmFibGVz
-IHN1cHBvcnQgZm9yIHRoZSBMRURzIG9uIHRoZSBCYWNobWFubiBPVDIwMC4KPiA+ID4gICAgICAg
-ICAgIFNheSBZIHRvIGVuYWJsZSBMRURzIG9uIHRoZSBCYWNobWFubiBPVDIwMC4KPiA+ID4KPiA+
-ID4gK2NvbmZpZyBMRURTX01FTkYyMUJNQwo+ID4gPiArICAgICAgIHRyaXN0YXRlICJMRUQgc3Vw
-cG9ydCBmb3IgdGhlIE1FTiAxNEYwMjFQMDAgQk1DIgo+ID4gPiArICAgICAgIGRlcGVuZHMgb24g
-TEVEU19DTEFTUyAmJiBNRkRfTUVORjIxQk1DCj4gPiA+ICsgICAgICAgaGVscAo+ID4gPiArICAg
-ICAgICAgU2F5IFkgaGVyZSB0byBpbmNsdWRlIHN1cHBvcnQgZm9yIHRoZSBNRU4gMTRGMDIxUDAw
-IEJNQyBMRURzLgo+ID4gPiArCj4gPiA+ICsgICAgICAgICBUaGlzIGRyaXZlciBjYW4gYWxzbyBi
-ZSBidWlsdCBhcyBhIG1vZHVsZS4gSWYgc28gdGhlIG1vZHVsZQo+ID4gPiArICAgICAgICAgd2ls
-bCBiZSBjYWxsZWQgbGVkcy1tZW5mMjFibWMuCj4gPiA+ICsKPiA+ID4gIGNvbW1lbnQgIkxFRCBk
-cml2ZXIgZm9yIGJsaW5rKDEpIFVTQiBSR0IgTEVEIGlzIHVuZGVyIFNwZWNpYWwgSElEIGRyaXZl
-cnMgKEhJRF9USElOR00pIgo+ID4gPgo+ID4gPiAgY29uZmlnIExFRFNfQkxJTktNCj4gPiA+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2xlZHMvTWFrZWZpbGUgYi9kcml2ZXJzL2xlZHMvTWFrZWZpbGUK
-PiA+ID4gaW5kZXggM2MwMzY2Ni4uY2FkYzQzMyAxMDA2NDQKPiA+ID4gLS0tIGEvZHJpdmVycy9s
-ZWRzL01ha2VmaWxlCj4gPiA+ICsrKyBiL2RyaXZlcnMvbGVkcy9NYWtlZmlsZQo+ID4gPiBAQCAt
-NTMsNiArNTMsNyBAQCBvYmotJChDT05GSUdfTEVEU19NQVg4OTk3KSAgICAgICAgICAgICs9IGxl
-ZHMtbWF4ODk5Ny5vCj4gPiA+ICBvYmotJChDT05GSUdfTEVEU19MTTM1NXgpICAgICAgICAgICAg
-ICArPSBsZWRzLWxtMzU1eC5vCj4gPiA+ICBvYmotJChDT05GSUdfTEVEU19CTElOS00pICAgICAg
-ICAgICAgICArPSBsZWRzLWJsaW5rbS5vCj4gPiA+ICBvYmotJChDT05GSUdfTEVEU19WRVJTQVRJ
-TEUpICAgICAgICAgICArPSBsZWRzLXZlcnNhdGlsZS5vCj4gPiA+ICtvYmotJChDT05GSUdfTEVE
-U19NRU5GMjFCTUMpICAgICAgICAgICArPSBsZWRzLW1lbmYyMWJtYy5vCj4gPiA+Cj4gPiA+ICAj
-IExFRCBTUEkgRHJpdmVycwo+ID4gPiAgb2JqLSQoQ09ORklHX0xFRFNfREFDMTI0UzA4NSkgICAg
-ICAgICAgKz0gbGVkcy1kYWMxMjRzMDg1Lm8KPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbGVk
-cy9sZWRzLW1lbmYyMWJtYy5jIGIvZHJpdmVycy9sZWRzL2xlZHMtbWVuZjIxYm1jLmMKPiA+ID4g
-bmV3IGZpbGUgbW9kZSAxMDA2NDQKPiA+ID4gaW5kZXggMDAwMDAwMC4uODlkZDU3Nwo+ID4gPiAt
-LS0gL2Rldi9udWxsCj4gPiA+ICsrKyBiL2RyaXZlcnMvbGVkcy9sZWRzLW1lbmYyMWJtYy5jCj4g
-PiA+IEBAIC0wLDAgKzEsMTMxIEBACj4gPiA+ICsvKgo+ID4gPiArICogIE1FTiAxNEYwMjFQMDAg
-Qm9hcmQgTWFuYWdlbWVudCBDb250cm9sbGVyIChCTUMpIExFRHMgRHJpdmVyLgo+ID4gPiArICoK
-PiA+ID4gKyAqICBUaGlzIGlzIHRoZSBjb3JlIExFRCBkcml2ZXIgb2YgdGhlIE1FTiAxNEYwMjFQ
-MDAgQk1DLgo+ID4gPiArICogIFRoZXJlIGFyZSBmb3VyIExFRHMgYXZhaWxhYmxlIHdoaWNoIGNh
-biBiZSBzd2l0Y2hlZCBvbiBhbmQgb2ZmLgo+ID4gPiArICogIFNUQVRVUyBMRUQsIEhPVCBTV0FQ
-IExFRCwgVVNFUiBMRUQgMSwgVVNFUiBMRUQgMgo+ID4gPiArICoKPiA+ID4gKyAqICBDb3B5cmln
-aHQgKEMpIDIwMTQgTUVOIE1pa3JvIEVsZWt0cm9uaWsgTnVlcm5iZXJnIEdtYkgKPiA+ID4gKyAq
-Cj4gPiA+ICsgKiAgVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0
-cmlidXRlICBpdCBhbmQvb3IgbW9kaWZ5IGl0Cj4gPiA+ICsgKiAgdW5kZXIgIHRoZSB0ZXJtcyBv
-ZiAgdGhlIEdOVSBHZW5lcmFsICBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkgdGhlCj4g
-PiA+ICsgKiAgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyAgZWl0aGVyIHZlcnNpb24gMiBvZiB0
-aGUgIExpY2Vuc2UsIG9yIChhdCB5b3VyCj4gPiA+ICsgKiAgb3B0aW9uKSBhbnkgbGF0ZXIgdmVy
-c2lvbi4KPiA+ID4gKyAqLwo+ID4gPiArCj4gPiA+ICsjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+
-Cj4gPiA+ICsjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gPiA+ICsjaW5jbHVkZSA8bGludXgv
-cGxhdGZvcm1fZGV2aWNlLmg+Cj4gPiA+ICsjaW5jbHVkZSA8bGludXgvbGVkcy5oPgo+ID4gPiAr
-I2luY2x1ZGUgPGxpbnV4L2kyYy5oPgo+ID4gPiArCj4gPiA+ICsjZGVmaW5lIEJNQ19DTURfTEVE
-X0dFVF9TRVQgICAgMHhBMAo+ID4gPiArI2RlZmluZSBCTUNfQklUX0xFRF9TVEFUVVMgICAgIEJJ
-VCgwKQo+ID4gPiArI2RlZmluZSBCTUNfQklUX0xFRF9IT1RTV0FQICAgIEJJVCgxKQo+ID4gPiAr
-I2RlZmluZSBCTUNfQklUX0xFRF9VU0VSMSAgICAgIEJJVCgyKQo+ID4gPiArI2RlZmluZSBCTUNf
-QklUX0xFRF9VU0VSMiAgICAgIEJJVCgzKQo+ID4gPiArCj4gPiA+ICtzdHJ1Y3QgbWVuZjIxYm1j
-X2xlZCB7Cj4gPiA+ICsgICAgICAgc3RydWN0IGxlZF9jbGFzc2RldiBjZGV2Owo+ID4gPiArICAg
-ICAgIHU4IGxlZF9iaXQ7Cj4gPiA+ICsgICAgICAgY29uc3QgY2hhciAqbmFtZTsKPiA+ID4gKyAg
-ICAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqaTJjX2NsaWVudDsKPiA+ID4gK307Cj4gPiA+ICsKPiA+
-ID4gK3N0YXRpYyBzdHJ1Y3QgbWVuZjIxYm1jX2xlZCBsZWRzW10gPSB7Cj4gPiA+ICsgICAgICAg
-ewo+ID4gPiArICAgICAgICAgICAgICAgLm5hbWUgPSAibWVuZjIxYm1jOmxlZF9zdGF0dXMiLAo+
-ID4gPiArICAgICAgICAgICAgICAgLmxlZF9iaXQgPSBCTUNfQklUX0xFRF9TVEFUVVMsCj4gPiA+
-ICsgICAgICAgfSwKPiA+ID4gKyAgICAgICB7Cj4gPiA+ICsgICAgICAgICAgICAgICAubmFtZSA9
-ICJtZW5mMjFibWM6bGVkX2hvdHN3YXAiLAo+ID4gPiArICAgICAgICAgICAgICAgLmxlZF9iaXQg
-PSBCTUNfQklUX0xFRF9IT1RTV0FQLAo+ID4gPiArICAgICAgIH0sCj4gPiA+ICsgICAgICAgewo+
-ID4gPiArICAgICAgICAgICAgICAgLm5hbWUgPSAibWVuZjIxYm1jOmxlZF91c2VyMSIsCj4gPiA+
-ICsgICAgICAgICAgICAgICAubGVkX2JpdCA9IEJNQ19CSVRfTEVEX1VTRVIxLAo+ID4gPiArICAg
-ICAgIH0sCj4gPiA+ICsgICAgICAgewo+ID4gPiArICAgICAgICAgICAgICAgLm5hbWUgPSAibWVu
-ZjIxYm1jOmxlZF91c2VyMiIsCj4gPiA+ICsgICAgICAgICAgICAgICAubGVkX2JpdCA9IEJNQ19C
-SVRfTEVEX1VTRVIyLAo+ID4gPiArICAgICAgIH0KPiA+ID4gK307Cj4gPiA+ICsKPiA+ID4gK3N0
-YXRpYyBERUZJTkVfTVVURVgobGVkX2xvY2spOwo+ID4gPiArCj4gPiA+ICtzdGF0aWMgdm9pZAo+
-ID4gPiArbWVuZjIxYm1jX2xlZF9zZXQoc3RydWN0IGxlZF9jbGFzc2RldiAqbGVkX2NkZXYsIGVu
-dW0gbGVkX2JyaWdodG5lc3MgdmFsdWUpCj4gPiA+ICt7Cj4gPiA+ICsgICAgICAgaW50IGxlZF92
-YWw7Cj4gPiA+ICsgICAgICAgc3RydWN0IG1lbmYyMWJtY19sZWQgKmxlZCA9IGNvbnRhaW5lcl9v
-ZihsZWRfY2RldiwKPiA+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHN0cnVjdCBtZW5mMjFibWNfbGVkLCBjZGV2KTsKPiA+ID4gKwo+ID4gPiArICAgICAgIG11dGV4
-X2xvY2soJmxlZF9sb2NrKTsKPiA+ID4gKyAgICAgICBsZWRfdmFsID0gaTJjX3NtYnVzX3JlYWRf
-Ynl0ZV9kYXRhKGxlZC0+aTJjX2NsaWVudCwKPiA+ID4gKyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIEJNQ19DTURfTEVEX0dFVF9TRVQpOwo+ID4gPiArICAgICAgIGlm
-IChsZWRfdmFsIDwgMCkKPiA+ID4gKyAgICAgICAgICAgICAgIGdvdG8gZXJyX291dDsKPiA+ID4g
-Kwo+ID4gPiArICAgICAgIGlmICh2YWx1ZSA9PSBMRURfT0ZGKQo+ID4gPiArICAgICAgICAgICAg
-ICAgbGVkX3ZhbCAmPSB+bGVkLT5sZWRfYml0Owo+ID4gPiArICAgICAgIGVsc2UKPiA+ID4gKyAg
-ICAgICAgICAgICAgIGxlZF92YWwgfD0gbGVkLT5sZWRfYml0Owo+ID4gPiArCj4gPiA+ICsgICAg
-ICAgaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0YShsZWQtPmkyY19jbGllbnQsCj4gPiA+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBCTUNfQ01EX0xFRF9HRVRfU0VULCBsZWRfdmFs
-KTsKPiA+ID4gK2Vycl9vdXQ6Cj4gPiA+ICsgICAgICAgbXV0ZXhfdW5sb2NrKCZsZWRfbG9jayk7
-Cj4gPiA+ICt9Cj4gPiA+ICsKPiA+ID4gK3N0YXRpYyBpbnQgbWVuZjIxYm1jX2xlZF9wcm9iZShz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ID4gPiArewo+ID4gPiArICAgICAgIGludCBp
-Owo+ID4gPiArICAgICAgIGludCByZXQ7Cj4gPiA+ICsgICAgICAgc3RydWN0IGkyY19jbGllbnQg
-KmkyY19jbGllbnQgPSB0b19pMmNfY2xpZW50KHBkZXYtPmRldi5wYXJlbnQpOwo+ID4gPiArCj4g
-PiA+ICsgICAgICAgZm9yIChpID0gMDsgaSA8IEFSUkFZX1NJWkUobGVkcyk7IGkrKykgewo+ID4g
-PiArICAgICAgICAgICAgICAgbGVkc1tpXS5jZGV2Lm5hbWUgPSBsZWRzW2ldLm5hbWU7Cj4gPiA+
-ICsgICAgICAgICAgICAgICBsZWRzW2ldLmNkZXYuYnJpZ2h0bmVzc19zZXQgPSBtZW5mMjFibWNf
-bGVkX3NldDsKPiA+ID4gKyAgICAgICAgICAgICAgIGxlZHNbaV0uaTJjX2NsaWVudCA9IGkyY19j
-bGllbnQ7Cj4gPiA+ICsgICAgICAgICAgICAgICByZXQgPSBsZWRfY2xhc3NkZXZfcmVnaXN0ZXIo
-JnBkZXYtPmRldiwgJmxlZHNbaV0uY2Rldik7Cj4gPiA+ICsgICAgICAgICAgICAgICBpZiAocmV0
-IDwgMCkKPiA+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZ290byBlcnJfZnJlZV9sZWRzOwo+
-ID4gPiArICAgICAgIH0KPiA+ID4gKyAgICAgICBkZXZfaW5mbygmcGRldi0+ZGV2LCAiTUVOIDE0
-MEYyMVAwMCBCTUMgTEVEIGRldmljZSBlbmFibGVkXG4iKTsKPiA+ID4gKwo+ID4gPiArICAgICAg
-IHJldHVybiAwOwo+ID4gPiArCj4gPiA+ICtlcnJfZnJlZV9sZWRzOgo+ID4gPiArICAgICAgIGRl
-dl9lcnIoJnBkZXYtPmRldiwgImZhaWxlZCB0byByZWdpc3RlciBMRUQgZGV2aWNlXG4iKTsKPiA+
-ID4gKwo+ID4gPiArICAgICAgIGZvciAoaSA9IGkgLSAxOyBpID49IDA7IGktLSkKPiA+ID4gKyAg
-ICAgICAgICAgICAgIGxlZF9jbGFzc2Rldl91bnJlZ2lzdGVyKCZsZWRzW2ldLmNkZXYpOwo+ID4g
-PiArCj4gPiA+ICsgICAgICAgcmV0dXJuIHJldDsKPiA+ID4gK30KPiA+ID4gKwo+ID4gPiArc3Rh
-dGljIGludCBtZW5mMjFibWNfbGVkX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2
-KQo+ID4gPiArewo+ID4gPiArICAgICAgIGludCBpOwo+ID4gPiArCj4gPiA+ICsgICAgICAgZm9y
-IChpID0gMDsgaSA8IEFSUkFZX1NJWkUobGVkcyk7IGkrKykKPiA+ID4gKyAgICAgICAgICAgICAg
-IGxlZF9jbGFzc2Rldl91bnJlZ2lzdGVyKCZsZWRzW2ldLmNkZXYpOwo+ID4gPiArCj4gPiA+ICsg
-ICAgICAgcmV0dXJuIDA7Cj4gPiA+ICt9Cj4gPiA+ICsKPiA+ID4gK3N0YXRpYyBzdHJ1Y3QgcGxh
-dGZvcm1fZHJpdmVyIG1lbmYyMWJtY19sZWQgPSB7Cj4gPiA+ICsgICAgICAgLnByb2JlICAgICAg
-ICAgID0gbWVuZjIxYm1jX2xlZF9wcm9iZSwKPiA+ID4gKyAgICAgICAucmVtb3ZlICAgICAgICAg
-PSBtZW5mMjFibWNfbGVkX3JlbW92ZSwKPiA+ID4gKyAgICAgICAuZHJpdmVyICAgICAgICAgPSB7
-Cj4gPiA+ICsgICAgICAgICAgICAgICAubmFtZSAgICAgICAgICAgPSAibWVuZjIxYm1jX2xlZCIs
-Cj4gPiA+ICsgICAgICAgICAgICAgICAub3duZXIgICAgICAgICAgPSBUSElTX01PRFVMRSwKPiA+
-ID4gKyAgICAgICB9LAo+ID4gPiArfTsKPiA+ID4gKwo+ID4gPiArbW9kdWxlX3BsYXRmb3JtX2Ry
-aXZlcihtZW5mMjFibWNfbGVkKTsKPiA+ID4gKwo+ID4gPiArTU9EVUxFX0FVVEhPUigiQW5kcmVh
-cyBXZXJuZXIgPGFuZHJlYXMud2VybmVyQG1lbi5kZT4iKTsKPiA+ID4gK01PRFVMRV9ERVNDUklQ
-VElPTigiTUVOIDE0RjAyMVAwMCBCTUMgbGVkIGRyaXZlciIpOwo+ID4gPiArTU9EVUxFX0xJQ0VO
-U0UoIkdQTCB2MiIpOwo+ID4gPiArTU9EVUxFX0FMSUFTKCJwbGF0Zm9ybTptZW5mMjFibWNfbGVk
-Iik7Cj4gPiA+Cj4gCj4gLS0gCj4gTGVlIEpvbmVzCj4gTGluYXJvIFNUTWljcm9lbGVjdHJvbmlj
-cyBMYW5kaW5nIFRlYW0gTGVhZAo+IExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJl
-IGZvciBBUk0gU29Dcwo+IEZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdpdHRlciB8IEJsb2cK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
-cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
-LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+The MEN 14F021P00 Board Management Controller provides an
+I2C interface to the host to access the feature implemented in the BMC.
+The BMC is a PIC Microntroller assembled on CPCI Card from MEN Mikroelektronik
+and on a few Box/Display Computer.
+
+Added MFD Core driver, supporting the I2C communication to the device.
+
+The MFD driver currently supports the following features:
+ 	- Watchdog
+ 	- LEDs
+	- Hwmon (voltage monitoring)
+
+Signed-off-by: Andreas Werner <andreas.werner@men.de>
+---
+ drivers/mfd/Kconfig     |  15 ++++++
+ drivers/mfd/Makefile    |   1 +
+ drivers/mfd/menf21bmc.c | 132 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
+ create mode 100644 drivers/mfd/menf21bmc.c
+
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index b8d9ca0..1020725 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -453,6 +453,21 @@ config MFD_MAX8998
+ 	  additional drivers must be enabled in order to use the functionality
+ 	  of the device.
+ 
++config MFD_MENF21BMC
++	tristate "MEN 14F021P00 Board Management Controller Support"
++	depends on I2C
++	select MFD_CORE
++	help
++	  Say yes here to add support for the MEN 14F021P00 BMC
++	  which is a Board Management Controller connected to the I2C bus.
++	  The device supports multiple sub-devices like LED, HWMON and WDT.
++	  This driver provides common support for accessing the devices;
++	  additional drivers must be enabled in order to use the
++	  functionality of the BMC device.
++
++	  This driver can also be built as a module. If so the module
++	  will be called menf21bmc.
++
+ config EZX_PCAP
+ 	bool "Motorola EZXPCAP Support"
+ 	depends on SPI_MASTER
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 4e2bc25..37bf336 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -169,6 +169,7 @@ obj-$(CONFIG_MFD_AS3711)	+= as3711.o
+ obj-$(CONFIG_MFD_AS3722)	+= as3722.o
+ obj-$(CONFIG_MFD_STW481X)	+= stw481x.o
+ obj-$(CONFIG_MFD_IPAQ_MICRO)	+= ipaq-micro.o
++obj-$(CONFIG_MFD_MENF21BMC)	+= menf21bmc.o
+ 
+ intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
+ obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
+diff --git a/drivers/mfd/menf21bmc.c b/drivers/mfd/menf21bmc.c
+new file mode 100644
+index 0000000..1c27434
+--- /dev/null
++++ b/drivers/mfd/menf21bmc.c
+@@ -0,0 +1,132 @@
++/*
++ *  MEN 14F021P00 Board Management Controller (BMC) MFD Core Driver.
++ *
++ *  Copyright (C) 2014 MEN Mikro Elektronik Nuernberg GmbH
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/i2c.h>
++#include <linux/mfd/core.h>
++
++#define BMC_CMD_WDT_EXIT_PROD	0x18
++#define BMC_CMD_WDT_PROD_STAT	0x19
++#define BMC_CMD_REV_MAJOR	0x80
++#define BMC_CMD_REV_MINOR	0x81
++#define BMC_CMD_REV_MAIN	0x82
++
++static struct mfd_cell menf21bmc_cell[] = {
++	{ .name = "menf21bmc_wdt", },
++	{ .name = "menf21bmc_led", },
++	{ .name = "menf21bmc_hwmon", }
++};
++
++static int menf21bmc_wdt_exit_prod_mode(struct i2c_client *client)
++{
++	int val, ret;
++
++	val = i2c_smbus_read_byte_data(client, BMC_CMD_WDT_PROD_STAT);
++	if (val < 0)
++		return val;
++
++	/*
++	 * Production mode should be not active after delivery of the Board.
++	 * To be sure we check it, inform the user and exit the mode
++	 * if active.
++	 */
++	if (val = 0x00) {
++		dev_info(&client->dev,
++			"BMC in production mode. Exit production mode\n");
++
++		ret = i2c_smbus_write_byte(client, BMC_CMD_WDT_EXIT_PROD);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int
++menf21bmc_probe(struct i2c_client *client, const struct i2c_device_id *ids)
++{
++	int rev_major, rev_minor, rev_main;
++	int ret;
++
++	ret = i2c_check_functionality(client->adapter,
++				      I2C_FUNC_SMBUS_BYTE_DATA |
++				      I2C_FUNC_SMBUS_WORD_DATA |
++				      I2C_FUNC_SMBUS_BYTE);
++	if (!ret)
++		return -ENODEV;
++
++	rev_major = i2c_smbus_read_word_data(client, BMC_CMD_REV_MAJOR);
++	if (rev_major < 0) {
++		dev_err(&client->dev, "failed to get BMC major revision\n");
++		return rev_major;
++	}
++
++	rev_minor = i2c_smbus_read_word_data(client, BMC_CMD_REV_MINOR);
++	if (rev_minor < 0) {
++		dev_err(&client->dev, "failed to get BMC minor revision\n");
++		return rev_minor;
++	}
++
++	rev_main = i2c_smbus_read_word_data(client, BMC_CMD_REV_MAIN);
++	if (rev_main < 0) {
++		dev_err(&client->dev, "failed to get BMC main revision\n");
++		return rev_main;
++	}
++
++	dev_info(&client->dev, "FW Revision: %02d.%02d.%02d\n",
++		 rev_major, rev_minor, rev_main);
++
++	/*
++	 * We have to exit the Production Mode of the BMC to activate the
++	 * Watchdog functionality and the BIOS life sign monitoring.
++	 */
++	ret = menf21bmc_wdt_exit_prod_mode(client);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed to leave production mode\n");
++		return ret;
++	}
++
++	ret = mfd_add_devices(&client->dev, 0, menf21bmc_cell,
++			      ARRAY_SIZE(menf21bmc_cell), NULL, 0, NULL);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed to add BMC sub-devices\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static int menf21bmc_remove(struct i2c_client *client)
++{
++	mfd_remove_devices(&client->dev);
++	return 0;
++}
++
++static const struct i2c_device_id menf21bmc_id_table[] = {
++	{ "menf21bmc" },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, menf21bmc_id_table);
++
++static struct i2c_driver menf21bmc_driver = {
++	.driver.name	= "menf21bmc",
++	.id_table	= menf21bmc_id_table,
++	.probe		= menf21bmc_probe,
++	.remove		= menf21bmc_remove,
++};
++
++module_i2c_driver(menf21bmc_driver);
++
++MODULE_DESCRIPTION("MEN 14F021P00 BMC mfd core driver");
++MODULE_AUTHOR("Andreas Werner <andreas.werner@men.de>");
++MODULE_LICENSE("GPL v2");
+-- 
+2.0.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
