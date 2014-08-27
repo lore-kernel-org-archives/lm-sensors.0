@@ -1,71 +1,88 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Tue, 05 Aug 2014 02:43:15 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: (lm92) Prevent overflow problem when writing large limits
-Message-Id: <CAFRkauDuZnP1=JU0ZQRpOVXzD7HZBBVoLuBeC3CRceNdERrRoA@mail.gmail.com>
+From: Andreas Werner <andreas.werner@men.de>
+Date: Wed, 27 Aug 2014 17:51:23 +0000
+Subject: [lm-sensors] [PATCH v6 0/4] Introduce MEN 14F021P00 BMC driver series
+Message-Id: <cover.1409161615.git.andreas.werner@men.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1407204511.20206.3.camel@phoenix>
-In-Reply-To: <1407204511.20206.3.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: sameo@linux.intel.com, lee.jones@linaro.org, linux@roeck-us.net, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org
 
-2014-08-05 10:40 GMT+08:00 Guenter Roeck <linux@roeck-us.net>:
-> On Tue, Aug 05, 2014 at 10:08:31AM +0800, Axel Lin wrote:
->> On platforms with sizeof(int) < sizeof(long), writing a temperature
->> limit larger than MAXINT will result in unpredictable limit values
->> written to the chip. Avoid auto-conversion from long to int to fix
->> the problem.
->>
->> The hysteresis temperature range depends on the value of
->> data->temp[attr->index], since val is subtracted from it.
->> Use a wider clamp, [-120000, 220000] should do to cover the
->> possible range.
->>
->> Also uses clamp_val to simplify the code a bit.
->>
->> Signed-off-by: Axel Lin <axel.lin@ingics.com>
->> ---
->>  drivers/hwmon/lm92.c | 11 +++++------
->>  1 file changed, 5 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
->> index d2060e2..08a261d 100644
->> --- a/drivers/hwmon/lm92.c
->> +++ b/drivers/hwmon/lm92.c
->> @@ -74,12 +74,9 @@ static inline int TEMP_FROM_REG(s16 reg)
->>       return reg / 8 * 625 / 10;
->>  }
->>
->> -static inline s16 TEMP_TO_REG(int val)
->> +static inline s16 TEMP_TO_REG(long val)
->>  {
->> -     if (val <= -60000)
->> -             return -60000 * 10 / 625 * 8;
->> -     if (val >= 160000)
->> -             return 160000 * 10 / 625 * 8;
->> +     val = clamp_val(val, -60000, 160000);
->>       return val * 10 / 625 * 8;
->>  }
->>
->> @@ -206,8 +203,10 @@ static ssize_t set_temp_hyst(struct device *dev,
->>       if (err)
->>               return err;
->>
->> +     val = clamp_val(val, -120000, 220000);
->>       mutex_lock(&data->update_lock);
->> -     data->temp[t_hyst] = TEMP_FROM_REG(data->temp[attr->index]) - val;
->> +      data->temp[t_hyst] >> +             TEMP_TO_REG(TEMP_FROM_REG(data->temp[attr->index]) - val);
->>       i2c_smbus_write_word_swapped(client, LM92_REG_TEMP_HYST,
->>                                    TEMP_TO_REG(data->temp[t_hyst]));
->
-> Hi Axel,
->
-> Almost ... unfortunately, now you've got TEMP_TO_REG() on data->temp[t_hyst]
-> twice. No need to resend, I fixed it up myself.
-Ah, thanks.
+This patch set add support for the MEN 14F021P00 Board Management called BMC.
 
-Axel
+The BMC is a PIC Mikrocontroller which assembled on almost all of our
+3U Compact PCI CPU board and a few Box PCs.
+main part of the BMC is to start and monitor the board, but there are a
+lot more features which can be accessed using an I2C Host interface
+
+Features supported in this Patchset:
+        - Watchdog
+        - LEDs
+        - HWMON
+
+The Patchset includes a MFD Core driver, Watchdog, hwmon  and LEDs driver.
+
+Changes in v6:
+	- fixed some style issues (80 chars, whitespaces, alignment)
+	- fixed error handling in update function of hwmon slave
+	- fixed whitespace error in hwmon documentation
+	- added module name in each of the Kconfigs
+
+Changes in v5:
+        - fixed I2C dependency in MFD Kconfig
+        - added correct error handling in update function of the hwmon slave
+          (Use of ERR_PTR)
+        - add ATTRIBUTE_GROUP Macro in hwmon slave
+          and deleted platform_set_drvdata
+
+Changes in v4:
+        - fixed some style issues
+        - fixed GPL license version
+        - added hwmon voltage monitoring slave driver
+
+Changes in v3:
+        - deleted i2c_smbus wrapper functions and use native one
+        - some cosmentics and variable renaming to be more clear
+        - renamed "leave production" mode to "exit production mode"
+
+Changes in v2:
+        - changed i2c_smbus_read wrapper function to return both, value
+          and error.
+        - moved "leave production mode" from Watchdog driver to mfd core.
+        - fixed some return values in the watchdog driver to return the original
+          error value instead of -EIO.
+
+Andreas Werner (4):
+  drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
+  drivers/watchdog/menf21bmc_wdt: introduce MEN 14F021P00 BMC Watchdog
+    driver
+  drivers/leds/leds-menf21bmc: introduce MEN 14F021P00 BMC LED driver
+  drivers/hwmon/menf21bmc_hwmon: introduce MEN14F021P00 BMC HWMON driver
+
+ Documentation/hwmon/menf21bmc    |  50 +++++++++
+ drivers/hwmon/Kconfig            |  10 ++
+ drivers/hwmon/Makefile           |   1 +
+ drivers/hwmon/menf21bmc_hwmon.c  | 230 +++++++++++++++++++++++++++++++++++++++
+ drivers/leds/Kconfig             |   9 ++
+ drivers/leds/Makefile            |   1 +
+ drivers/leds/leds-menf21bmc.c    | 131 ++++++++++++++++++++++
+ drivers/mfd/Kconfig              |  15 +++
+ drivers/mfd/Makefile             |   1 +
+ drivers/mfd/menf21bmc.c          | 132 ++++++++++++++++++++++
+ drivers/watchdog/Kconfig         |  10 ++
+ drivers/watchdog/Makefile        |   1 +
+ drivers/watchdog/menf21bmc_wdt.c | 203 ++++++++++++++++++++++++++++++++++
+ 13 files changed, 794 insertions(+)
+ create mode 100644 Documentation/hwmon/menf21bmc
+ create mode 100644 drivers/hwmon/menf21bmc_hwmon.c
+ create mode 100644 drivers/leds/leds-menf21bmc.c
+ create mode 100644 drivers/mfd/menf21bmc.c
+ create mode 100644 drivers/watchdog/menf21bmc_wdt.c
+
+-- 
+2.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
