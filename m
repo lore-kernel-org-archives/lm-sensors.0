@@ -1,78 +1,53 @@
-From: Andreas Werner <andreas.werner@men.de>
-Date: Wed, 27 Aug 2014 12:00:55 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 27 Aug 2014 13:37:19 +0000
 Subject: Re: [lm-sensors] [PATCH v5 1/4] drivers/mfd/menf21bmc: introduce MEN 14F021P00 BMC MFD Core driver
-Message-Id: <20140827120054.GA27232@awelinux>
+Message-Id: <53FDDF0F.2080607@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1409074255.git.andreas.werner@men.de>
- <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de>
- <20140827072633.GY26707@lee--X1>
- <20140827105204.GA2083@awelinux>
- <20140827110142.GA6364@lee--X1>
-In-Reply-To: <20140827110142.GA6364@lee--X1>
+References: <cover.1409074255.git.andreas.werner@men.de> <67faa70de03924edc768002df17b02e47256260c.1409074255.git.andreas.werner@men.de> <20140827072633.GY26707@lee--X1>
+In-Reply-To: <20140827072633.GY26707@lee--X1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Andreas Werner <andreas.werner@men.de>, linux-kernel@vger.kernel.org, sameo@linux.intel.com, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
+To: Lee Jones <lee.jones@linaro.org>, Andreas Werner <andreas.werner@men.de>
+Cc: linux-kernel@vger.kernel.org, sameo@linux.intel.com, wim@iguana.be, linux-watchdog@vger.kernel.org, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, jdelvare@suse.de, lm-sensors@lm-sensors.org, johannes.thumshirn@men.de
 
-T24gV2VkLCBBdWcgMjcsIDIwMTQgYXQgMTI6MDE6NDJQTSArMDEwMCwgTGVlIEpvbmVzIHdyb3Rl
-Ogo+IE9uIFdlZCwgMjcgQXVnIDIwMTQsIEFuZHJlYXMgV2VybmVyIHdyb3RlOgo+ID4gT24gV2Vk
-LCBBdWcgMjcsIDIwMTQgYXQgMDg6MjY6MzNBTSArMDEwMCwgTGVlIEpvbmVzIHdyb3RlOgo+ID4g
-PiBPbiBUdWUsIDI2IEF1ZyAyMDE0LCBBbmRyZWFzIFdlcm5lciB3cm90ZToKPiA+ID4gPiBUaGUg
-TUVOIDE0RjAyMVAwMCBCb2FyZCBNYW5hZ2VtZW50IENvbnRyb2xsZXIgcHJvdmlkZXMgYW4KPiA+
-ID4gPiBJMkMgaW50ZXJmYWNlIHRvIHRoZSBob3N0IHRvIGFjY2VzcyB0aGUgZmVhdHVyZSBpbXBs
-ZW1lbnRlZCBpbiB0aGUgQk1DLgo+ID4gPiA+IFRoZSBCTUMgaXMgYSBQSUMgTWljcm9udHJvbGxl
-ciBhc3NlbWJsZWQgb24gQ1BDSSBDYXJkIGZyb20gTUVOIE1pa3JvZWxla3Ryb25pawo+ID4gPiA+
-IGFuZCBvbiBhIGZldyBCb3gvRGlzcGxheSBDb21wdXRlci4KPiA+ID4gPiAKPiA+ID4gPiBBZGRl
-ZCBNRkQgQ29yZSBkcml2ZXIsIHN1cHBvcnRpbmcgdGhlIEkyQyBjb21tdW5pY2F0aW9uIHRvIHRo
-ZSBkZXZpY2UuCj4gPiA+ID4gCj4gPiA+ID4gVGhlIE1GRCBkcml2ZXIgY3VycmVudGx5IHN1cHBv
-cnRzIHRoZSBmb2xsb3dpbmcgZmVhdHVyZXM6Cj4gPiA+ID4gIAktIFdhdGNoZG9nCj4gPiA+ID4g
-IAktIExFRHMKPiA+ID4gPiAJLSBId21vbiAodm9sdGFnZSBtb25pdG9yaW5nKQo+ID4gPiA+IAo+
-ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEFuZHJlYXMgV2VybmVyIDxhbmRyZWFzLndlcm5lckBtZW4u
-ZGU+Cj4gPiA+ID4gQWNrZWQtYnk6IExlZSBKb25lcyA8bGVlLmpvbmVzQGxpbmFyby5vcmc+Cj4g
-PiA+ID4gLS0tCj4gPiA+ID4gIGRyaXZlcnMvbWZkL0tjb25maWcgICAgIHwgIDEyICsrKysrCj4g
-PiA+ID4gIGRyaXZlcnMvbWZkL01ha2VmaWxlICAgIHwgICAxICsKPiA+ID4gPiAgZHJpdmVycy9t
-ZmQvbWVuZjIxYm1jLmMgfCAxMzIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrCj4gPiA+ID4gIDMgZmlsZXMgY2hhbmdlZCwgMTQ1IGluc2VydGlvbnMoKykK
-PiA+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvbWZkL21lbmYyMWJtYy5jCj4gPiA+
-ID4gCj4gPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL0tjb25maWcgYi9kcml2ZXJzL21m
-ZC9LY29uZmlnCj4gPiA+ID4gaW5kZXggYjhkOWNhMC4uNmE5ZjEwMSAxMDA2NDQKPiA+ID4gPiAt
-LS0gYS9kcml2ZXJzL21mZC9LY29uZmlnCj4gPiA+ID4gKysrIGIvZHJpdmVycy9tZmQvS2NvbmZp
-Zwo+ID4gPiA+IEBAIC00NTMsNiArNDUzLDE4IEBAIGNvbmZpZyBNRkRfTUFYODk5OAo+ID4gPiA+
-ICAJICBhZGRpdGlvbmFsIGRyaXZlcnMgbXVzdCBiZSBlbmFibGVkIGluIG9yZGVyIHRvIHVzZSB0
-aGUgZnVuY3Rpb25hbGl0eQo+ID4gPiA+ICAJICBvZiB0aGUgZGV2aWNlLgo+ID4gPiA+ICAKPiA+
-ID4gPiArY29uZmlnIE1GRF9NRU5GMjFCTUMKPiA+ID4gPiArCXRyaXN0YXRlICJNRU4gMTRGMDIx
-UDAwIEJvYXJkIE1hbmFnZW1lbnQgQ29udHJvbGxlciBTdXBwb3J0Igo+ID4gPiA+ICsJZGVwZW5k
-cyBvbiBJMkMKPiA+ID4gPiArCXNlbGVjdCBNRkRfQ09SRQo+ID4gPiA+ICsJaGVscAo+ID4gPiA+
-ICsJICBTYXkgeWVzIGhlcmUgdG8gYWRkIHN1cHBvcnQgZm9yIHRoZSBNRU4gMTRGMDIxUDAwIEJN
-Qwo+ID4gPiA+ICsJICB3aGljaCBpcyBhIEJvYXJkIE1hbmFnZW1lbnQgQ29udHJvbGxlciBjb25u
-ZWN0ZWQgdG8gdGhlIEkyQyBidXMuCj4gPiA+ID4gKwkgIFRoZSBkZXZpY2Ugc3VwcG9ydHMgbXVs
-dGlwbGUgc3ViLWRldmljZXMgbGlrZSBMRUQsIEhXTU9OICBhbmQgV0RULgo+ID4gPiAKPiA+ID4g
-Tml0OiBXaGl0ZXNwYWNlIGVycm9yLgo+ID4gPiAKPiA+IAo+ID4gSSBydW4gY2hlY2twYXRjaCBi
-dXQgZGlkIG5vdCBmaW5kIGFueSB3aGl0ZXNwYWNlIGVycm9yLgo+ID4gV2hlcmUgaXMgaXQ/Cj4g
-Cj4gQWZ0ZXIgJ0hXTU9OJy4KPgoKQWggb2suCiAKPiA+ID4gPiArTU9EVUxFX0RFVklDRV9UQUJM
-RShpMmMsIG1lbmYyMWJtY19pZF90YWJsZSk7Cj4gPiA+ID4gKwo+ID4gPiA+ICtzdGF0aWMgc3Ry
-dWN0IGkyY19kcml2ZXIgbWVuZjIxYm1jX2RyaXZlciA9IHsKPiA+ID4gPiArCS5kcml2ZXIubmFt
-ZQk9ICJtZW5mMjFibWMiLAo+ID4gPiA+ICsJLmlkX3RhYmxlCT0gbWVuZjIxYm1jX2lkX3RhYmxl
-LAo+ID4gPiA+ICsJLnByb2JlCQk9IG1lbmYyMWJtY19wcm9iZSwKPiA+ID4gPiArCS5yZW1vdmUJ
-CT0gbWVuZjIxYm1jX3JlbW92ZSwKPiA+ID4gPiArfTsKPiA+ID4gCj4gPiA+IE5vIERUIHN1cHBv
-cnQ/Cj4gPiA+IAo+ID4gCj4gPiBObyBub3QgYXQgdGhlIG1vbWVudCBiZWNhdXNlIGl0IGlzIHVz
-ZWQgb25seSBvbiB4ODYgc3lzdGVtLgo+IAo+IEFoIG9rYXkuICBTaG91bGRuJ3QgdGhlIEtjb25m
-aWcgZGVwZW5kIG9uIFg4NiB0aGVuPyAgV2hhdCBhYm91dCBBQ1BJPwoKWWVzIGFuZCBuby4gQ291
-bGQgYmUgYWxzbyBpbnN0YW50aWF0ZWQgbWFudWFsbHkgd2l0aG91dGggRFQuIChlLmcuIGkyYyBz
-eXNmcykKU28gZm9yIG1lIGl0IGlzIGJldHRlciB0byBub3QgZGVwZW5kIG9uIHg4NiB0byBoYXZl
-IHRoZSBwb3NzaWJpbGl0eSB0byB1c2UKdGhlIGRyaXZlciB3aXRob3V0IERUIG9uIGFub3RoZXIg
-YXJjaC4KQUNQSSBpcyBubyBvcHRpb24gYmVjYXVzZSB0aGVyZSBhcmUgYSBsb3QgYm9hcmRzIG91
-dCB3aXRob3V0CnRoZSBCTUMgaW4gQUNQSSBUYWJsZS4KCkkgdGhpbmsgaSB3aWxsIGltcGxlbWVu
-dCBEVCBzdXBwb3J0IGlmIHdlIGhhdmUgb24gYm9hcmQgd2hpY2ggaXMgbm90IHg4Ni4KCj4gCj4g
-PiA+ID4gK21vZHVsZV9pMmNfZHJpdmVyKG1lbmYyMWJtY19kcml2ZXIpOwo+ID4gPiA+ICsKPiA+
-ID4gPiArTU9EVUxFX0RFU0NSSVBUSU9OKCJNRU4gMTRGMDIxUDAwIEJNQyBtZmQgY29yZSBkcml2
-ZXIiKTsKPiA+ID4gCj4gPiA+IHMvbWZkL01GRAo+ID4gPiAKPiA+ID4gPiArTU9EVUxFX0FVVEhP
-UigiQW5kcmVhcyBXZXJuZXIgPGFuZHJlYXMud2VybmVyQG1lbi5kZT4iKTsKPiA+ID4gPiArTU9E
-VUxFX0xJQ0VOU0UoIkdQTCB2MiIpOwo+ID4gPiAKPiAKPiAtLSAKPiBMZWUgSm9uZXMKPiBMaW5h
-cm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCj4gTGluYXJvLm9yZyDilIIg
-T3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCj4gRm9sbG93IExpbmFybzogRmFjZWJv
-b2sgfCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
-Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
-b3Jz
+On 08/27/2014 12:26 AM, Lee Jones wrote:
+> On Tue, 26 Aug 2014, Andreas Werner wrote:
+>> The MEN 14F021P00 Board Management Controller provides an
+>> I2C interface to the host to access the feature implemented in the BMC.
+>> The BMC is a PIC Microntroller assembled on CPCI Card from MEN Mikroelektronik
+>> and on a few Box/Display Computer.
+>>
+>> Added MFD Core driver, supporting the I2C communication to the device.
+>>
+>> The MFD driver currently supports the following features:
+>>   	- Watchdog
+>>   	- LEDs
+>> 	- Hwmon (voltage monitoring)
+>>
+
+>> +	{ }
+>> +};
+>> +MODULE_DEVICE_TABLE(i2c, menf21bmc_id_table);
+>> +
+>> +static struct i2c_driver menf21bmc_driver = {
+>> +	.driver.name	= "menf21bmc",
+>> +	.id_table	= menf21bmc_id_table,
+>> +	.probe		= menf21bmc_probe,
+>> +	.remove		= menf21bmc_remove,
+>> +};
+>
+> No DT support?
+>
+i2c devices auto-instantiate from dt entries even if there is no
+explicit devicetree configuration here. The devicetree entry
+would have to be something like "men,menf21bmc", ie it needs
+to match the driver name.
+
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
