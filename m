@@ -1,28 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 06 Aug 2014 02:41:35 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (hih6130) Fix missing hih6130->write_length setting
-Message-Id: <53E195DF.3000103@roeck-us.net>
+From: Robert Coulson <robert.coulson@ericsson.com>
+Date: Thu, 28 Aug 2014 17:45:43 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ds1621) Update zbits after conversion rate change
+Message-Id: <1409247943-31246-1-git-send-email-robert.coulson@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1407283610.4924.3.camel@phoenix>
-In-Reply-To: <1407283610.4924.3.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/05/2014 05:06 PM, Axel Lin wrote:
-> The hih6130->write_length setting was accidently removed by commit
-> ebc6b9383f3e "hwmon: (hih6130) Convert to devm_hwmon_device_register_with_groups",
-> fix it.
->
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
+From: Robert Coulson <rob.coulson@gmail.com>
 
-Applied.
+After the conversion rate is changed, the zbits are not updated,
+but should be, since they are used later in the set_temp function.
 
-Thanks,
-Guenter
+Fixes: a50d9a4d9ad3 ("hwmon: (ds1621) Fix temperature rounding operations")
+Reported-by: Murat Ilsever <murat.ilsever@gmail.com>
+Signed-off-by: Robert Coulson <rob.coulson@gmail.com>
 
+---
+ drivers/hwmon/ds1621.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index 872d767..b96d201 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -309,6 +309,7 @@ static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
+ 	data->conf |= (resol << DS1621_REG_CONFIG_RESOL_SHIFT);
+ 	i2c_smbus_write_byte_data(client, DS1621_REG_CONF, data->conf);
+ 	data->update_interval = ds1721_convrates[resol];
++	data->zbits = 7 - resol;
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+-- 
+1.7.3.1
 
 
 _______________________________________________
