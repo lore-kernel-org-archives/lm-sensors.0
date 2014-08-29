@@ -1,217 +1,142 @@
-From: Bryan Wu <cooloney@gmail.com>
-Date: Thu, 28 Aug 2014 17:54:58 +0000
+From: Lee Jones <lee.jones@linaro.org>
+Date: Fri, 29 Aug 2014 06:59:15 +0000
 Subject: Re: [lm-sensors] [PATCH v6 3/4] drivers/leds/leds-menf21bmc: introduce MEN 14F021P00 BMC LED driver
-Message-Id: <CAK5ve-+zjZBw_HXWm9kGE5Vbv=R2SO4P2dB_0opzLHTAV-BQ0Q@mail.gmail.com>
+Message-Id: <20140829065915.GZ24579@lee--X1>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1409161615.git.andreas.werner@men.de> <e91e4f47cda55c03fa1d0a54c0891341d73adfa6.1409161615.git.andreas.werner@men.de>
-In-Reply-To: <e91e4f47cda55c03fa1d0a54c0891341d73adfa6.1409161615.git.andreas.werner@men.de>
+References: <cover.1409161615.git.andreas.werner@men.de>
+ <e91e4f47cda55c03fa1d0a54c0891341d73adfa6.1409161615.git.andreas.werner@men.de>
+ <CAK5ve-+zjZBw_HXWm9kGE5Vbv=R2SO4P2dB_0opzLHTAV-BQ0Q@mail.gmail.com>
+In-Reply-To: <CAK5ve-+zjZBw_HXWm9kGE5Vbv=R2SO4P2dB_0opzLHTAV-BQ0Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andreas Werner <andreas.werner@men.de>
-Cc: lkml <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux@roeck-us.net, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, Linux LED Subsystem <linux-leds@vger.kernel.org>
+To: Bryan Wu <cooloney@gmail.com>
+Cc: Andreas Werner <andreas.werner@men.de>, lkml <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, linux@roeck-us.net, lm-sensors@lm-sensors.org, wim@iguana.be, linux-watchdog@vger.kernel.org, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, Linux LED Subsystem <linux-leds@vger.kernel.org>
 
-On Wed, Aug 27, 2014 at 10:52 AM, Andreas Werner <andreas.werner@men.de> wrote:
-> Added driver to support the 14F021P00 BMC LEDs.
-> The BMC is a Board Management Controller including four LEDs which
-> can be switched on and off.
->
-
-Please go ahead with my Ack
-Acked-by: Bryan Wu <cooloney@gmail.com>
-
-Lee, will you merge this through your tree? I think we do that in one
-shot is better.
-
-Thanks,
--Bryan
-
-> Signed-off-by: Andreas Werner <andreas.werner@men.de>
-> ---
->  drivers/leds/Kconfig          |   9 +++
->  drivers/leds/Makefile         |   1 +
->  drivers/leds/leds-menf21bmc.c | 131 ++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 141 insertions(+)
->  create mode 100644 drivers/leds/leds-menf21bmc.c
->
-> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> index 27cf0cd..ec03457 100644
-> --- a/drivers/leds/Kconfig
-> +++ b/drivers/leds/Kconfig
-> @@ -458,6 +458,15 @@ config LEDS_OT200
->           This option enables support for the LEDs on the Bachmann OT200.
->           Say Y to enable LEDs on the Bachmann OT200.
->
-> +config LEDS_MENF21BMC
-> +       tristate "LED support for the MEN 14F021P00 BMC"
-> +       depends on LEDS_CLASS && MFD_MENF21BMC
-> +       help
-> +         Say Y here to include support for the MEN 14F021P00 BMC LEDs.
-> +
-> +         This driver can also be built as a module. If so the module
-> +         will be called leds-menf21bmc.
-> +
->  comment "LED driver for blink(1) USB RGB LED is under Special HID drivers (HID_THINGM)"
->
->  config LEDS_BLINKM
-> diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-> index 3c03666..cadc433 100644
-> --- a/drivers/leds/Makefile
-> +++ b/drivers/leds/Makefile
-> @@ -53,6 +53,7 @@ obj-$(CONFIG_LEDS_MAX8997)            += leds-max8997.o
->  obj-$(CONFIG_LEDS_LM355x)              += leds-lm355x.o
->  obj-$(CONFIG_LEDS_BLINKM)              += leds-blinkm.o
->  obj-$(CONFIG_LEDS_VERSATILE)           += leds-versatile.o
-> +obj-$(CONFIG_LEDS_MENF21BMC)           += leds-menf21bmc.o
->
->  # LED SPI Drivers
->  obj-$(CONFIG_LEDS_DAC124S085)          += leds-dac124s085.o
-> diff --git a/drivers/leds/leds-menf21bmc.c b/drivers/leds/leds-menf21bmc.c
-> new file mode 100644
-> index 0000000..89dd577
-> --- /dev/null
-> +++ b/drivers/leds/leds-menf21bmc.c
-> @@ -0,0 +1,131 @@
-> +/*
-> + *  MEN 14F021P00 Board Management Controller (BMC) LEDs Driver.
-> + *
-> + *  This is the core LED driver of the MEN 14F021P00 BMC.
-> + *  There are four LEDs available which can be switched on and off.
-> + *  STATUS LED, HOT SWAP LED, USER LED 1, USER LED 2
-> + *
-> + *  Copyright (C) 2014 MEN Mikro Elektronik Nuernberg GmbH
-> + *
-> + *  This program is free software; you can redistribute  it and/or modify it
-> + *  under  the terms of  the GNU General  Public License as published by the
-> + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> + *  option) any later version.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/leds.h>
-> +#include <linux/i2c.h>
-> +
-> +#define BMC_CMD_LED_GET_SET    0xA0
-> +#define BMC_BIT_LED_STATUS     BIT(0)
-> +#define BMC_BIT_LED_HOTSWAP    BIT(1)
-> +#define BMC_BIT_LED_USER1      BIT(2)
-> +#define BMC_BIT_LED_USER2      BIT(3)
-> +
-> +struct menf21bmc_led {
-> +       struct led_classdev cdev;
-> +       u8 led_bit;
-> +       const char *name;
-> +       struct i2c_client *i2c_client;
-> +};
-> +
-> +static struct menf21bmc_led leds[] = {
-> +       {
-> +               .name = "menf21bmc:led_status",
-> +               .led_bit = BMC_BIT_LED_STATUS,
-> +       },
-> +       {
-> +               .name = "menf21bmc:led_hotswap",
-> +               .led_bit = BMC_BIT_LED_HOTSWAP,
-> +       },
-> +       {
-> +               .name = "menf21bmc:led_user1",
-> +               .led_bit = BMC_BIT_LED_USER1,
-> +       },
-> +       {
-> +               .name = "menf21bmc:led_user2",
-> +               .led_bit = BMC_BIT_LED_USER2,
-> +       }
-> +};
-> +
-> +static DEFINE_MUTEX(led_lock);
-> +
-> +static void
-> +menf21bmc_led_set(struct led_classdev *led_cdev, enum led_brightness value)
-> +{
-> +       int led_val;
-> +       struct menf21bmc_led *led = container_of(led_cdev,
-> +                                       struct menf21bmc_led, cdev);
-> +
-> +       mutex_lock(&led_lock);
-> +       led_val = i2c_smbus_read_byte_data(led->i2c_client,
-> +                                          BMC_CMD_LED_GET_SET);
-> +       if (led_val < 0)
-> +               goto err_out;
-> +
-> +       if (value = LED_OFF)
-> +               led_val &= ~led->led_bit;
-> +       else
-> +               led_val |= led->led_bit;
-> +
-> +       i2c_smbus_write_byte_data(led->i2c_client,
-> +                                 BMC_CMD_LED_GET_SET, led_val);
-> +err_out:
-> +       mutex_unlock(&led_lock);
-> +}
-> +
-> +static int menf21bmc_led_probe(struct platform_device *pdev)
-> +{
-> +       int i;
-> +       int ret;
-> +       struct i2c_client *i2c_client = to_i2c_client(pdev->dev.parent);
-> +
-> +       for (i = 0; i < ARRAY_SIZE(leds); i++) {
-> +               leds[i].cdev.name = leds[i].name;
-> +               leds[i].cdev.brightness_set = menf21bmc_led_set;
-> +               leds[i].i2c_client = i2c_client;
-> +               ret = led_classdev_register(&pdev->dev, &leds[i].cdev);
-> +               if (ret < 0)
-> +                       goto err_free_leds;
-> +       }
-> +       dev_info(&pdev->dev, "MEN 140F21P00 BMC LED device enabled\n");
-> +
-> +       return 0;
-> +
-> +err_free_leds:
-> +       dev_err(&pdev->dev, "failed to register LED device\n");
-> +
-> +       for (i = i - 1; i >= 0; i--)
-> +               led_classdev_unregister(&leds[i].cdev);
-> +
-> +       return ret;
-> +}
-> +
-> +static int menf21bmc_led_remove(struct platform_device *pdev)
-> +{
-> +       int i;
-> +
-> +       for (i = 0; i < ARRAY_SIZE(leds); i++)
-> +               led_classdev_unregister(&leds[i].cdev);
-> +
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver menf21bmc_led = {
-> +       .probe          = menf21bmc_led_probe,
-> +       .remove         = menf21bmc_led_remove,
-> +       .driver         = {
-> +               .name           = "menf21bmc_led",
-> +               .owner          = THIS_MODULE,
-> +       },
-> +};
-> +
-> +module_platform_driver(menf21bmc_led);
-> +
-> +MODULE_AUTHOR("Andreas Werner <andreas.werner@men.de>");
-> +MODULE_DESCRIPTION("MEN 14F021P00 BMC led driver");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_ALIAS("platform:menf21bmc_led");
-> --
-> 2.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-leds" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVGh1LCAyOCBBdWcgMjAxNCwgQnJ5YW4gV3Ugd3JvdGU6Cgo+IE9uIFdlZCwgQXVnIDI3LCAy
+MDE0IGF0IDEwOjUyIEFNLCBBbmRyZWFzIFdlcm5lciA8YW5kcmVhcy53ZXJuZXJAbWVuLmRlPiB3
+cm90ZToKPiA+IEFkZGVkIGRyaXZlciB0byBzdXBwb3J0IHRoZSAxNEYwMjFQMDAgQk1DIExFRHMu
+Cj4gPiBUaGUgQk1DIGlzIGEgQm9hcmQgTWFuYWdlbWVudCBDb250cm9sbGVyIGluY2x1ZGluZyBm
+b3VyIExFRHMgd2hpY2gKPiA+IGNhbiBiZSBzd2l0Y2hlZCBvbiBhbmQgb2ZmLgo+ID4KPiAKPiBQ
+bGVhc2UgZ28gYWhlYWQgd2l0aCBteSBBY2sKPiBBY2tlZC1ieTogQnJ5YW4gV3UgPGNvb2xvbmV5
+QGdtYWlsLmNvbT4KPiAKPiBMZWUsIHdpbGwgeW91IG1lcmdlIHRoaXMgdGhyb3VnaCB5b3VyIHRy
+ZWU/IEkgdGhpbmsgd2UgZG8gdGhhdCBpbiBvbmUKPiBzaG90IGlzIGJldHRlci4KClllcywgdGhh
+dCdzIGZpbmUuICBQdWxsLXJlcXVlc3QgdG8gZm9sbG93LgoKPiA+IFNpZ25lZC1vZmYtYnk6IEFu
+ZHJlYXMgV2VybmVyIDxhbmRyZWFzLndlcm5lckBtZW4uZGU+Cj4gPiAtLS0KPiA+ICBkcml2ZXJz
+L2xlZHMvS2NvbmZpZyAgICAgICAgICB8ICAgOSArKysKPiA+ICBkcml2ZXJzL2xlZHMvTWFrZWZp
+bGUgICAgICAgICB8ICAgMSArCj4gPiAgZHJpdmVycy9sZWRzL2xlZHMtbWVuZjIxYm1jLmMgfCAx
+MzEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gPiAgMyBmaWxl
+cyBjaGFuZ2VkLCAxNDEgaW5zZXJ0aW9ucygrKQo+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2
+ZXJzL2xlZHMvbGVkcy1tZW5mMjFibWMuYwo+ID4KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2xl
+ZHMvS2NvbmZpZyBiL2RyaXZlcnMvbGVkcy9LY29uZmlnCj4gPiBpbmRleCAyN2NmMGNkLi5lYzAz
+NDU3IDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9sZWRzL0tjb25maWcKPiA+ICsrKyBiL2RyaXZl
+cnMvbGVkcy9LY29uZmlnCj4gPiBAQCAtNDU4LDYgKzQ1OCwxNSBAQCBjb25maWcgTEVEU19PVDIw
+MAo+ID4gICAgICAgICAgIFRoaXMgb3B0aW9uIGVuYWJsZXMgc3VwcG9ydCBmb3IgdGhlIExFRHMg
+b24gdGhlIEJhY2htYW5uIE9UMjAwLgo+ID4gICAgICAgICAgIFNheSBZIHRvIGVuYWJsZSBMRURz
+IG9uIHRoZSBCYWNobWFubiBPVDIwMC4KPiA+Cj4gPiArY29uZmlnIExFRFNfTUVORjIxQk1DCj4g
+PiArICAgICAgIHRyaXN0YXRlICJMRUQgc3VwcG9ydCBmb3IgdGhlIE1FTiAxNEYwMjFQMDAgQk1D
+Igo+ID4gKyAgICAgICBkZXBlbmRzIG9uIExFRFNfQ0xBU1MgJiYgTUZEX01FTkYyMUJNQwo+ID4g
+KyAgICAgICBoZWxwCj4gPiArICAgICAgICAgU2F5IFkgaGVyZSB0byBpbmNsdWRlIHN1cHBvcnQg
+Zm9yIHRoZSBNRU4gMTRGMDIxUDAwIEJNQyBMRURzLgo+ID4gKwo+ID4gKyAgICAgICAgIFRoaXMg
+ZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEgbW9kdWxlLiBJZiBzbyB0aGUgbW9kdWxlCj4g
+PiArICAgICAgICAgd2lsbCBiZSBjYWxsZWQgbGVkcy1tZW5mMjFibWMuCj4gPiArCj4gPiAgY29t
+bWVudCAiTEVEIGRyaXZlciBmb3IgYmxpbmsoMSkgVVNCIFJHQiBMRUQgaXMgdW5kZXIgU3BlY2lh
+bCBISUQgZHJpdmVycyAoSElEX1RISU5HTSkiCj4gPgo+ID4gIGNvbmZpZyBMRURTX0JMSU5LTQo+
+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbGVkcy9NYWtlZmlsZSBiL2RyaXZlcnMvbGVkcy9NYWtl
+ZmlsZQo+ID4gaW5kZXggM2MwMzY2Ni4uY2FkYzQzMyAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMv
+bGVkcy9NYWtlZmlsZQo+ID4gKysrIGIvZHJpdmVycy9sZWRzL01ha2VmaWxlCj4gPiBAQCAtNTMs
+NiArNTMsNyBAQCBvYmotJChDT05GSUdfTEVEU19NQVg4OTk3KSAgICAgICAgICAgICs9IGxlZHMt
+bWF4ODk5Ny5vCj4gPiAgb2JqLSQoQ09ORklHX0xFRFNfTE0zNTV4KSAgICAgICAgICAgICAgKz0g
+bGVkcy1sbTM1NXgubwo+ID4gIG9iai0kKENPTkZJR19MRURTX0JMSU5LTSkgICAgICAgICAgICAg
+ICs9IGxlZHMtYmxpbmttLm8KPiA+ICBvYmotJChDT05GSUdfTEVEU19WRVJTQVRJTEUpICAgICAg
+ICAgICArPSBsZWRzLXZlcnNhdGlsZS5vCj4gPiArb2JqLSQoQ09ORklHX0xFRFNfTUVORjIxQk1D
+KSAgICAgICAgICAgKz0gbGVkcy1tZW5mMjFibWMubwo+ID4KPiA+ICAjIExFRCBTUEkgRHJpdmVy
+cwo+ID4gIG9iai0kKENPTkZJR19MRURTX0RBQzEyNFMwODUpICAgICAgICAgICs9IGxlZHMtZGFj
+MTI0czA4NS5vCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9sZWRzL2xlZHMtbWVuZjIxYm1jLmMg
+Yi9kcml2ZXJzL2xlZHMvbGVkcy1tZW5mMjFibWMuYwo+ID4gbmV3IGZpbGUgbW9kZSAxMDA2NDQK
+PiA+IGluZGV4IDAwMDAwMDAuLjg5ZGQ1NzcKPiA+IC0tLSAvZGV2L251bGwKPiA+ICsrKyBiL2Ry
+aXZlcnMvbGVkcy9sZWRzLW1lbmYyMWJtYy5jCj4gPiBAQCAtMCwwICsxLDEzMSBAQAo+ID4gKy8q
+Cj4gPiArICogIE1FTiAxNEYwMjFQMDAgQm9hcmQgTWFuYWdlbWVudCBDb250cm9sbGVyIChCTUMp
+IExFRHMgRHJpdmVyLgo+ID4gKyAqCj4gPiArICogIFRoaXMgaXMgdGhlIGNvcmUgTEVEIGRyaXZl
+ciBvZiB0aGUgTUVOIDE0RjAyMVAwMCBCTUMuCj4gPiArICogIFRoZXJlIGFyZSBmb3VyIExFRHMg
+YXZhaWxhYmxlIHdoaWNoIGNhbiBiZSBzd2l0Y2hlZCBvbiBhbmQgb2ZmLgo+ID4gKyAqICBTVEFU
+VVMgTEVELCBIT1QgU1dBUCBMRUQsIFVTRVIgTEVEIDEsIFVTRVIgTEVEIDIKPiA+ICsgKgo+ID4g
+KyAqICBDb3B5cmlnaHQgKEMpIDIwMTQgTUVOIE1pa3JvIEVsZWt0cm9uaWsgTnVlcm5iZXJnIEdt
+YkgKPiA+ICsgKgo+ID4gKyAqICBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNh
+biByZWRpc3RyaWJ1dGUgIGl0IGFuZC9vciBtb2RpZnkgaXQKPiA+ICsgKiAgdW5kZXIgIHRoZSB0
+ZXJtcyBvZiAgdGhlIEdOVSBHZW5lcmFsICBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkg
+dGhlCj4gPiArICogIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgIGVpdGhlciB2ZXJzaW9uIDIg
+b2YgdGhlICBMaWNlbnNlLCBvciAoYXQgeW91cgo+ID4gKyAqICBvcHRpb24pIGFueSBsYXRlciB2
+ZXJzaW9uLgo+ID4gKyAqLwo+ID4gKwo+ID4gKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KPiA+
+ICsjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gPiArI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3Jt
+X2RldmljZS5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC9sZWRzLmg+Cj4gPiArI2luY2x1ZGUgPGxp
+bnV4L2kyYy5oPgo+ID4gKwo+ID4gKyNkZWZpbmUgQk1DX0NNRF9MRURfR0VUX1NFVCAgICAweEEw
+Cj4gPiArI2RlZmluZSBCTUNfQklUX0xFRF9TVEFUVVMgICAgIEJJVCgwKQo+ID4gKyNkZWZpbmUg
+Qk1DX0JJVF9MRURfSE9UU1dBUCAgICBCSVQoMSkKPiA+ICsjZGVmaW5lIEJNQ19CSVRfTEVEX1VT
+RVIxICAgICAgQklUKDIpCj4gPiArI2RlZmluZSBCTUNfQklUX0xFRF9VU0VSMiAgICAgIEJJVCgz
+KQo+ID4gKwo+ID4gK3N0cnVjdCBtZW5mMjFibWNfbGVkIHsKPiA+ICsgICAgICAgc3RydWN0IGxl
+ZF9jbGFzc2RldiBjZGV2Owo+ID4gKyAgICAgICB1OCBsZWRfYml0Owo+ID4gKyAgICAgICBjb25z
+dCBjaGFyICpuYW1lOwo+ID4gKyAgICAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqaTJjX2NsaWVudDsK
+PiA+ICt9Owo+ID4gKwo+ID4gK3N0YXRpYyBzdHJ1Y3QgbWVuZjIxYm1jX2xlZCBsZWRzW10gPSB7
+Cj4gPiArICAgICAgIHsKPiA+ICsgICAgICAgICAgICAgICAubmFtZSA9ICJtZW5mMjFibWM6bGVk
+X3N0YXR1cyIsCj4gPiArICAgICAgICAgICAgICAgLmxlZF9iaXQgPSBCTUNfQklUX0xFRF9TVEFU
+VVMsCj4gPiArICAgICAgIH0sCj4gPiArICAgICAgIHsKPiA+ICsgICAgICAgICAgICAgICAubmFt
+ZSA9ICJtZW5mMjFibWM6bGVkX2hvdHN3YXAiLAo+ID4gKyAgICAgICAgICAgICAgIC5sZWRfYml0
+ID0gQk1DX0JJVF9MRURfSE9UU1dBUCwKPiA+ICsgICAgICAgfSwKPiA+ICsgICAgICAgewo+ID4g
+KyAgICAgICAgICAgICAgIC5uYW1lID0gIm1lbmYyMWJtYzpsZWRfdXNlcjEiLAo+ID4gKyAgICAg
+ICAgICAgICAgIC5sZWRfYml0ID0gQk1DX0JJVF9MRURfVVNFUjEsCj4gPiArICAgICAgIH0sCj4g
+PiArICAgICAgIHsKPiA+ICsgICAgICAgICAgICAgICAubmFtZSA9ICJtZW5mMjFibWM6bGVkX3Vz
+ZXIyIiwKPiA+ICsgICAgICAgICAgICAgICAubGVkX2JpdCA9IEJNQ19CSVRfTEVEX1VTRVIyLAo+
+ID4gKyAgICAgICB9Cj4gPiArfTsKPiA+ICsKPiA+ICtzdGF0aWMgREVGSU5FX01VVEVYKGxlZF9s
+b2NrKTsKPiA+ICsKPiA+ICtzdGF0aWMgdm9pZAo+ID4gK21lbmYyMWJtY19sZWRfc2V0KHN0cnVj
+dCBsZWRfY2xhc3NkZXYgKmxlZF9jZGV2LCBlbnVtIGxlZF9icmlnaHRuZXNzIHZhbHVlKQo+ID4g
+K3sKPiA+ICsgICAgICAgaW50IGxlZF92YWw7Cj4gPiArICAgICAgIHN0cnVjdCBtZW5mMjFibWNf
+bGVkICpsZWQgPSBjb250YWluZXJfb2YobGVkX2NkZXYsCj4gPiArICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgc3RydWN0IG1lbmYyMWJtY19sZWQsIGNkZXYpOwo+ID4gKwo+
+ID4gKyAgICAgICBtdXRleF9sb2NrKCZsZWRfbG9jayk7Cj4gPiArICAgICAgIGxlZF92YWwgPSBp
+MmNfc21idXNfcmVhZF9ieXRlX2RhdGEobGVkLT5pMmNfY2xpZW50LAo+ID4gKyAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEJNQ19DTURfTEVEX0dFVF9TRVQpOwo+ID4g
+KyAgICAgICBpZiAobGVkX3ZhbCA8IDApCj4gPiArICAgICAgICAgICAgICAgZ290byBlcnJfb3V0
+Owo+ID4gKwo+ID4gKyAgICAgICBpZiAodmFsdWUgPT0gTEVEX09GRikKPiA+ICsgICAgICAgICAg
+ICAgICBsZWRfdmFsICY9IH5sZWQtPmxlZF9iaXQ7Cj4gPiArICAgICAgIGVsc2UKPiA+ICsgICAg
+ICAgICAgICAgICBsZWRfdmFsIHw9IGxlZC0+bGVkX2JpdDsKPiA+ICsKPiA+ICsgICAgICAgaTJj
+X3NtYnVzX3dyaXRlX2J5dGVfZGF0YShsZWQtPmkyY19jbGllbnQsCj4gPiArICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgQk1DX0NNRF9MRURfR0VUX1NFVCwgbGVkX3ZhbCk7Cj4gPiAr
+ZXJyX291dDoKPiA+ICsgICAgICAgbXV0ZXhfdW5sb2NrKCZsZWRfbG9jayk7Cj4gPiArfQo+ID4g
+Kwo+ID4gK3N0YXRpYyBpbnQgbWVuZjIxYm1jX2xlZF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2
+aWNlICpwZGV2KQo+ID4gK3sKPiA+ICsgICAgICAgaW50IGk7Cj4gPiArICAgICAgIGludCByZXQ7
+Cj4gPiArICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICppMmNfY2xpZW50ID0gdG9faTJjX2NsaWVu
+dChwZGV2LT5kZXYucGFyZW50KTsKPiA+ICsKPiA+ICsgICAgICAgZm9yIChpID0gMDsgaSA8IEFS
+UkFZX1NJWkUobGVkcyk7IGkrKykgewo+ID4gKyAgICAgICAgICAgICAgIGxlZHNbaV0uY2Rldi5u
+YW1lID0gbGVkc1tpXS5uYW1lOwo+ID4gKyAgICAgICAgICAgICAgIGxlZHNbaV0uY2Rldi5icmln
+aHRuZXNzX3NldCA9IG1lbmYyMWJtY19sZWRfc2V0Owo+ID4gKyAgICAgICAgICAgICAgIGxlZHNb
+aV0uaTJjX2NsaWVudCA9IGkyY19jbGllbnQ7Cj4gPiArICAgICAgICAgICAgICAgcmV0ID0gbGVk
+X2NsYXNzZGV2X3JlZ2lzdGVyKCZwZGV2LT5kZXYsICZsZWRzW2ldLmNkZXYpOwo+ID4gKyAgICAg
+ICAgICAgICAgIGlmIChyZXQgPCAwKQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZ290byBl
+cnJfZnJlZV9sZWRzOwo+ID4gKyAgICAgICB9Cj4gPiArICAgICAgIGRldl9pbmZvKCZwZGV2LT5k
+ZXYsICJNRU4gMTQwRjIxUDAwIEJNQyBMRUQgZGV2aWNlIGVuYWJsZWRcbiIpOwo+ID4gKwo+ID4g
+KyAgICAgICByZXR1cm4gMDsKPiA+ICsKPiA+ICtlcnJfZnJlZV9sZWRzOgo+ID4gKyAgICAgICBk
+ZXZfZXJyKCZwZGV2LT5kZXYsICJmYWlsZWQgdG8gcmVnaXN0ZXIgTEVEIGRldmljZVxuIik7Cj4g
+PiArCj4gPiArICAgICAgIGZvciAoaSA9IGkgLSAxOyBpID49IDA7IGktLSkKPiA+ICsgICAgICAg
+ICAgICAgICBsZWRfY2xhc3NkZXZfdW5yZWdpc3RlcigmbGVkc1tpXS5jZGV2KTsKPiA+ICsKPiA+
+ICsgICAgICAgcmV0dXJuIHJldDsKPiA+ICt9Cj4gPiArCj4gPiArc3RhdGljIGludCBtZW5mMjFi
+bWNfbGVkX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ID4gK3sKPiA+ICsg
+ICAgICAgaW50IGk7Cj4gPiArCj4gPiArICAgICAgIGZvciAoaSA9IDA7IGkgPCBBUlJBWV9TSVpF
+KGxlZHMpOyBpKyspCj4gPiArICAgICAgICAgICAgICAgbGVkX2NsYXNzZGV2X3VucmVnaXN0ZXIo
+JmxlZHNbaV0uY2Rldik7Cj4gPiArCj4gPiArICAgICAgIHJldHVybiAwOwo+ID4gK30KPiA+ICsK
+PiA+ICtzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RyaXZlciBtZW5mMjFibWNfbGVkID0gewo+ID4g
+KyAgICAgICAucHJvYmUgICAgICAgICAgPSBtZW5mMjFibWNfbGVkX3Byb2JlLAo+ID4gKyAgICAg
+ICAucmVtb3ZlICAgICAgICAgPSBtZW5mMjFibWNfbGVkX3JlbW92ZSwKPiA+ICsgICAgICAgLmRy
+aXZlciAgICAgICAgID0gewo+ID4gKyAgICAgICAgICAgICAgIC5uYW1lICAgICAgICAgICA9ICJt
+ZW5mMjFibWNfbGVkIiwKPiA+ICsgICAgICAgICAgICAgICAub3duZXIgICAgICAgICAgPSBUSElT
+X01PRFVMRSwKPiA+ICsgICAgICAgfSwKPiA+ICt9Owo+ID4gKwo+ID4gK21vZHVsZV9wbGF0Zm9y
+bV9kcml2ZXIobWVuZjIxYm1jX2xlZCk7Cj4gPiArCj4gPiArTU9EVUxFX0FVVEhPUigiQW5kcmVh
+cyBXZXJuZXIgPGFuZHJlYXMud2VybmVyQG1lbi5kZT4iKTsKPiA+ICtNT0RVTEVfREVTQ1JJUFRJ
+T04oIk1FTiAxNEYwMjFQMDAgQk1DIGxlZCBkcml2ZXIiKTsKPiA+ICtNT0RVTEVfTElDRU5TRSgi
+R1BMIHYyIik7Cj4gPiArTU9EVUxFX0FMSUFTKCJwbGF0Zm9ybTptZW5mMjFibWNfbGVkIik7Cj4g
+PgoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBM
+ZWFkCkxpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xs
+b3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1z
+ZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xtLXNlbnNvcnM
