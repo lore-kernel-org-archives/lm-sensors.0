@@ -1,88 +1,235 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 04 Sep 2014 08:08:02 +0000
-Subject: Re: [lm-sensors] How to compute a voltage that may be positive or negative
-Message-Id: <20140904100802.38a74b5d@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 01 Sep 2014 10:26:04 +0000
+Subject: Re: [lm-sensors] [PATCH v3 3/4] thermal: add more description for thermal-zones
+Message-Id: <540449BC.2050807@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAF_O4Js3aRF7iofSey0w+F8azTGbawX5vEe9cmHqybk9Qj=yvg@mail.gmail.com>
-In-Reply-To: <CAF_O4Js3aRF7iofSey0w+F8azTGbawX5vEe9cmHqybk9Qj=yvg@mail.gmail.com>
+References: <1408948188-4181-1-git-send-email-wni@nvidia.com>	<1408948188-4181-4-git-send-email-wni@nvidia.com>	<20140825110711.GA12349@developer>	<53FBEE39.2020001@nvidia.com>	<20140826121210.GB15219@developer>	<53FD484F.7030504@nvidia.com>	<20140827133217.GB15875@developer>	<53FE8AC9.2070907@nvidia.com>	<20140828132135.GA17074@developer>	<53FFED7B.6010508@nvidia.com> <CAC-25o-9OQ-wfpCJmgDGB0kqDHwUc15XX7Ay7Pes6UmpJakUkQ@mail.gmail.com>
+In-Reply-To: <CAC-25o-9OQ-wfpCJmgDGB0kqDHwUc15XX7Ay7Pes6UmpJakUkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 
-Hi Christopher,
-
-On Wed, 3 Sep 2014 23:19:40 -0400, Christopher Cordahi wrote:
-> > Well, 1.142 * 9.72340425532 - 9.95823902214 is 1.145. So I think the
-> > value is properly scaled, just it happens that for your specific value,
-> > the scaled value is almost the same as the original value, and that
-> > confused you.
+On 08/29/2014 07:32 PM, edubezval@gmail.com wrote:
+> Hello Wei,
 > 
-> Thank you very much Jean, that explains everything.
+> On Thu, Aug 28, 2014 at 11:03 PM, Wei Ni <wni@nvidia.com> wrote:
+>> On 08/28/2014 09:21 PM, Eduardo Valentin wrote:
+>>> Hello Wei,
+>>>
+>>> On Thu, Aug 28, 2014 at 09:50:01AM +0800, Wei Ni wrote:
+>>>> On 08/27/2014 09:32 PM, Eduardo Valentin wrote:
+>>>>> Hello Wei,
+>>>>>
+>>>>> On Wed, Aug 27, 2014 at 10:54:07AM +0800, Wei Ni wrote:
+>>>>>> On 08/26/2014 08:12 PM, Eduardo Valentin wrote:
+>>>>>>> On Tue, Aug 26, 2014 at 10:17:29AM +0800, Wei Ni wrote:
+>>>>>>>> On 08/25/2014 07:07 PM, Eduardo Valentin wrote:
+>>>>>>>>> Hello Wei Ni,
+>>>>>>>>>
+>>>>>>>>> On Mon, Aug 25, 2014 at 02:29:47PM +0800, Wei Ni wrote:
+>>>>>>>>>> Add more description for the "polling-delay" property.
+>>>>>>>>>> Set "trips" and "cooling maps" as optional property, because
+>>>>>>>>>> if missing these two sub-nodes, the thermal zone device still
+>>>>>>>>>> work properly.
+>>>>>>>>>>
+>>>>>>>>>> Signed-off-by: Wei Ni <wni@nvidia.com>
+>>>>>>>>>> ---
+>>>>>>>>>>  Documentation/devicetree/bindings/thermal/thermal.txt | 10 ++++++----
+>>>>>>>>>>  1 file changed, 6 insertions(+), 4 deletions(-)
+>>>>>>>>>>
+>>>>>>>>>> diff --git a/Documentation/devicetree/bindings/thermal/thermal.txt b/Documentation/devicetree/bindings/thermal/thermal.txt
+>>>>>>>>>> index f5db6b7..e3d3ed9 100644
+>>>>>>>>>> --- a/Documentation/devicetree/bindings/thermal/thermal.txt
+>>>>>>>>>> +++ b/Documentation/devicetree/bindings/thermal/thermal.txt
+>>>>>>>>>> @@ -136,8 +136,8 @@ containing trip nodes and one sub-node containing all the zone cooling maps.
+>>>>>>>>>>
+>>>>>>>>>>  Required properties:
+>>>>>>>>>>  - polling-delay:      The maximum number of milliseconds to wait between polls
+>>>>>>>>>> -  Type: unsigned      when checking this thermal zone.
+>>>>>>>>>> -  Size: one cell
+>>>>>>>>>> +  Type: unsigned      when checking this thermal zone. If this value is 0, the
+>>>>>>>>>> +  Size: one cell      driver will not run polling queue, but just cancel it.
+>>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> The description above is specific to Linux kernel implementation
+>>>>>>>>> nomenclature. DT description needs to be OS agnostic.
+>>>>>>>>>
+>>>>>>>>>>  - polling-delay-passive: The maximum number of milliseconds to wait
+>>>>>>>>>>    Type: unsigned      between polls when performing passive cooling.
+>>>>>>>>>> @@ -148,14 +148,16 @@ Required properties:
+>>>>>>>>>>    phandles + sensor
+>>>>>>>>>>    specifier
+>>>>>>>>>>
+>>>>>>>>>> +Optional property:
+>>>>>>>>>>  - trips:              A sub-node which is a container of only trip point nodes
+>>>>>>>>>>    Type: sub-node      required to describe the thermal zone.
+>>>>>>>>>>
+>>>>>>>>>>  - cooling-maps:               A sub-node which is a container of only cooling device
+>>>>>>>>>>    Type: sub-node      map nodes, used to describe the relation between trips
+>>>>>>>>>> -                      and cooling devices.
+>>>>>>>>>> +                      and cooling devices. If missing the "trips" property,
+>>>>>>>>>> +                      This sub-node will not be parsed, because no trips can
+>>>>>>>>>> +                      be bound to cooling devices.
+>>>>>>>>>
+>>>>>>>>> Do you mean if the thermal zone misses the "trips" property? Actually,
+>>>>>>>>> the binding describes both, cooling-maps and trips, as required
+>>>>>>>>> properties. Thus, both needs to be in place to consider the thermal zone
+>>>>>>>>> as a proper described zone.
+>>>>>>>>
+>>>>>>>> I moved the "trips" and "cooling-maps" to optional property, because if
+>>>>>>>> missing these two properties, the thermal zone devices still can be
+>>>>>>>> registered, and the driver can work properly, it has the basic function,
+>>>>>>>> can read temperature from thermal sysfs, although it doesn't have trips
+>>>>>>>> and bind with cooling devices.
+>>>>>>>
+>>>>>>>
+>>>>>>> If a thermal zone is used only for monitoring, then I believe it lost
+>>>>>>> its purpose. As  Maybe a different framework shall be used, such as hwmon,
+>>>>>>> for instance?
+>>>>>>
+>>>>>> Yes, if we only use it for monitoring, we can use hwmon. But we have
+>>>>>> more functions base on these two thermal zone devices. We have a
+>>>>>> skin-temperature driver, which used nct1008's remote and local
+>>>>>> temperatures to estimator the skin temperature. As you know the thermal
+>>>>>> framework is more powerful, the remote/local sensors can be register as
+>>>>>> thermal zone, then the skin-temp driver can use thermal_zone_get_temp()
+>>>>>> to read their temperatures and then estimator skin's temp. We also will
+>>>>>> set trips and cooling devices for this skin-temp.
+>>>>>
+>>>>> In this case, don't you think it would make sense to create a thermal
+>>>>> zone for the skin temperature and add the required sensors (including
+>>>>> the nct1008) in it?
+>>>>
+>>>> Hi, Eduardo
+>>>> Yes, we will create a thermal zone for the skin-temp driver and add the
+>>>> required sensors in it, but in here we want to register these required
+>>>> sensors as thermal zone devices, then the thermal framework can export
+>>>> functions to read these sensors temperature. If use hwmon framework, it
+>>>> can't export nct1008's internal sensors, such as remote/local sensors,
+>>>> and no exported functions to read these temperatures. If we doesn't use
+>>>> the thermal/of-thermal framework, we have to develop a new framework to
+>>>> parse those sensor nodes, and I think this new one may only have slight
+>>>> difference with current thermal framework.
+>>>> If we set those two properties as optional property, then we can use it
+>>>> in this case simply.
+>>>>
+>>>> The skin-temp nodes will something like this:
+>>>>
+>>>> skin_temp: therm-est {
+>>>>      compatible = "nvidia,tegra124-therm-est";
+>>>>
+>>>>      #thermal-sensor-cells = <0>;
+>>>>
+>>>>      sub-devs {
+>>>>              dev@0 {
+>>>> /* we need to register nct1008_remote as thermal zone devices, so that
+>>>> it's easy to handle it by using thermal framework's exported functions. */
+>>>>                      dev = <&nct1008_remote>;
+>>>>              };
+>>>>              dev@1 {
+>>>>                      dev = <&nct1008_local>;
+>>>>              };
+>>>>      };
+>>>> };
+>>>>
+>>>> thermal-zones {
+>>>>      skin-therm {
+>>>>              polling-delay-passive = <15000>
+>>>>              polling-delay = <0>;
+>>>>
+>>>>              thermal-sensors = <&skin_temp>;
+>>>
+>>> The binding allows you to add several sensors in one thermal zone.
+>>> Please have a look on the example (c) of the thermal.txt binding
+>>> description. It might be that what you want to do is actually:
+>>>               thermal-sensors = <&ntc1008_local>,
+>>>                               <&ntc1008_remote>;
+>>
+>>
+>> Yes, we have considered it, but in current kernel, it only supports 1
+>> sensor per zone. and according to the example (c), it's supposed to only
+>> support simple algorithm, such as:
+>> /* hotspot = 100 * bandgap - 120 * adc + 484 */
+>>  coefficients =          <100    -120    484>;
+>>
+>> but in our skin-temp driver, we will recored 20 history temperatures for
+>> every sensors, and set different coefficients for every history
+>> temperatures, our HW team have private mathematical mode to calculate
+>> these coeffs for different boards. And I think other users may use
+>> different algorithm to calculate thermal zone temperature based on
+>> several sensors.
+>>
+>> So I think it's better to register sensors to thermal zones, not set
+>> trips and binding cooling devices, then user's thermal driver can use
+>> them freely.
+>>
 > 
-> I was incorrectly assuming the hidden least significant digit was 0, i.e.
-> that the input was 1.140 V rather than 1.142 V, so I was expecting the
-> conversion to result in 1.13 (1.1264).
+> In your system, the used governor is userspace, then?
+
+No, we developed a new governor named as "pid governor", it manages
+thermals based on output values of PID controller.
+
+Indeed, our thermal management includes skin-temp, soc-thermal,
+cpu-throttle driver and pid governor. This pach set is prepared for the
+skin-temp driver.
+As you know the tegra soc-therm is in upstreaming, and we will post
+other drivers step by step.
+
+Thanks.
+Wei.
+
 > 
-> I should know better than to rely on tests performed on a Friday evening.
-
-;-) You're welcome.
-
-> > The limited resolution of "sensors" admittedly does not help here, try
-> > "sensors -u" to see the 3rd digit.
+>> Thanks.
+>> Wei.
+>>
+>>>
+>>>
+>>>>
+>>>>              trips {
+>>>>              };
+>>>>              cooling-maps {
+>>>>              };
+>>>>      };
+>>>> };
+>>>>
+>>>> Wei.
+>>>>>
+>>>>>>
+>>>>>> Wei.
+>>>>>>
+>>>>>>>
+>>>>>>> The purpose of a thermal zone is to describe thermal behavior of a
+>>>>>>> hardware. As it is mentioned in the thermal.txt file.
+>>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>> Thanks.
+>>>>>>>> Wei.
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> -Optional property:
+>>>>>>>>>>  - coefficients:               An array of integers (one signed cell) containing
+>>>>>>>>>>    Type: array         coefficients to compose a linear relation between
+>>>>>>>>>>    Elem size: one cell the sensors listed in the thermal-sensors property.
+>>>>>>>>>> --
+>>>>>>>>>> 1.8.1.5
+>>>>>>>>>>
+>>>>>>>>
+>>>>>>> --
+>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
+>>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>>
+>>>>>>
+>>>>
+>>
 > 
-> With my sensors version 3.2.0, the -u option changes the output format, but
-> doesn't provide additional information.
 > 
-> # sensors --no-adapter ads1115-i2c-2-4a
-> ads1115-i2c-2-4a
-> in4:         -3.16 V
-> in5:         +0.70 V
-> in6:         +0.69 V
 > 
-> # sensors -u --no-adapter ads1115-i2c-2-4a
-> ads1115-i2c-2-4a
-> in4:
->   in4_input: -3.16
-> in5:
->   in5_input: 0.70
-> in6:
->   in6_input: 0.69
-> 
-> I assume it is supposed to print the raw information obtained from /sys
 
-That's correct. But the 3rd decimal place was only added "recently" by:
-
-------------------------------------------------------------------------
-r5877 | khali | 2010-11-03 12:59:55 +0100 (mer. 03 nov. 2010) | 6 lignes
-
-sensors: Display 3 decimal places in raw output.
-
-This will make it easier for us to help users find out correct scaling
-factors when needed. Instead of telling them to go read the raw sysfs
-attributes, they can just report the output of "sensors -u -c /dev/null".
-
-------------------------------------------------------------------------
-
-so you'd need lm-sensors version >= 3.3.0.
-
-> # sensors --help | grep -- -u
->   -u                    Raw output (debugging only)
-> # cat /sys/bus/i2c/devices/2-004a/in?_input
-> 699
-> 696
-> 692
-> 
-> > Note that you have a wrong factor in the second half
-> 
-> Thanks for catching.  When I first read
-> http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling I thought the value
-> was in mV, after using it, I correct its use in first half, but not the
-> second.
-
--- 
-Jean Delvare
-http://jdelvare.nerim.net/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
