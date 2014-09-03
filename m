@@ -1,69 +1,108 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 10 Sep 2014 13:17:25 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Print kernel version and processor info
-Message-Id: <54104F65.8000505@roeck-us.net>
+From: Jonghwa Lee <jonghwa3.lee@samsung.com>
+Date: Wed, 03 Sep 2014 02:39:38 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: ntc_thermistor: Add ntc thermistor to thermal subsystem as a sensor.
+Message-Id: <1409711978-3377-1-git-send-email-jonghwa3.lee@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20140910104841.25a5dda9@endymion.delvare>
-In-Reply-To: <20140910104841.25a5dda9@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: cw00.choi@samsung.com, jdelvare@suse.de, linux@roeck-us.net, Jonghwa Lee <jonghwa3.lee@samsung.com>
 
-On 09/10/2014 01:48 AM, Jean Delvare wrote:
-> Print the kernel version and the processor information, to make user
-> support easier.
-> ---
-> Guenter, what do you think? These are questions we often end up asking
-> to the user, so gathering the answers early should save us some time.
-> If you think any other piece of information should be included too,
-> please let me know.
->
-Makes sense. Go for it.
+To get more comprehensive and integrated thermal management, it adds ntc
+thermistor to thermal framework as a thermal sensor. It's governed thermal
+susbsystem only if it is described in DT node. Otherwise, it just notifies
+temperature to userspace via sysfs as it used to be.
 
-Guenter
+Signed-off-by: Jonghwa Lee <jonghwa3.lee@samsung.com>
+---
+Updates in v2
+ - Remove NULL pointer checking already done by thermal_zone_of_sensor_unregister().
 
->   prog/detect/sensors-detect |   13 +++++++++++++
->   1 file changed, 13 insertions(+)
->
-> --- lm-sensors.orig/prog/detect/sensors-detect	2014-07-20 13:03:04.826633228 +0200
-> +++ lm-sensors/prog/detect/sensors-detect	2014-09-10 09:20:54.530273884 +0200
-> @@ -2731,6 +2731,11 @@ sub initialize_kernel_version
->   	}
->   }
->
-> +sub print_kernel_version
-> +{
-> +	printf "# Kernel: \%d.\%d.\%d\%s \%s\n", @kernel_version, $kernel_arch;
-> +}
-> +
->   sub kernel_version_at_least
->   {
->   	my ($vers, $plvl, $slvl) = @_;
-> @@ -2775,6 +2780,12 @@ sub initialize_cpu_list
->   	push @cpu, $entry if scalar keys(%{$entry}); # Last entry
->   }
->
-> +sub print_cpu_info
-> +{
-> +	my $cpu = $cpu[0];
-> +	print "# Processor: $cpu->{'model name'} ($cpu->{'cpu family'}/$cpu->{model}/$cpu->{stepping})\n";
-> +}
-> +
->   # @i2c_adapters is a list of references to hashes, one hash per I2C/SMBus
->   # adapter present on the system. Each entry has the following keys: path,
->   # parent, name (directly taken from sysfs), driver and autoload.
-> @@ -7027,6 +7038,8 @@ sub main
->   	print "# sensors-detect revision $revision\n";
->   	initialize_dmi_data();
->   	print_dmi_summary();
-> +	print_kernel_version();
-> +	print_cpu_info();
->   	print "\n";
->
->   	if ($opt{auto}) {
->
->
+ .../devicetree/bindings/hwmon/ntc_thermistor.txt   |    3 +++
+ drivers/hwmon/ntc_thermistor.c                     |   25 ++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt b/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
+index 2391e5c..fcca8e7 100644
+--- a/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
++++ b/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
+@@ -25,6 +25,9 @@ Requires node properties:
+ - "io-channels"	Channel node of ADC to be used for
+ 		conversion.
+ 
++Optional node properties:
++- "#thermal-sensor-cells" Used to expose itself to thermal fw.
++
+ Read more about iio bindings at
+ 	Documentation/devicetree/bindings/iio/iio-bindings.txt
+ 
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index bd41072..4ff89b2 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -38,6 +38,7 @@
+ 
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
++#include <linux/thermal.h>
+ 
+ struct ntc_compensation {
+ 	int		temp_c;
+@@ -182,6 +183,7 @@ struct ntc_data {
+ 	struct device *dev;
+ 	int n_comp;
+ 	char name[PLATFORM_NAME_SIZE];
++	struct thermal_zone_device *tz;
+ };
+ 
+ #if defined(CONFIG_OF) && IS_ENABLED(CONFIG_IIO)
+@@ -428,6 +430,20 @@ static int ntc_thermistor_get_ohm(struct ntc_data *data)
+ 	return -EINVAL;
+ }
+ 
++static int ntc_read_temp(void *dev, long *temp)
++{
++	struct ntc_data *data = dev_get_drvdata(dev);
++	int ohm;
++
++	ohm = ntc_thermistor_get_ohm(data);
++	if (ohm < 0)
++		return ohm;
++
++	*temp = get_temp_mc(data, ohm);
++
++	return 0;
++}
++
+ static ssize_t ntc_show_name(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -562,6 +578,13 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
+ 	dev_info(&pdev->dev, "Thermistor type: %s successfully probed.\n",
+ 								pdev_id->name);
+ 
++	data->tz = thermal_zone_of_sensor_register(data->dev, 0, data->dev,
++						ntc_read_temp, NULL);
++	if (IS_ERR(data->tz)) {
++		dev_dbg(&pdev->dev, "Failed to register to thermal fw.\n");
++		data->tz = NULL;
++	}
++
+ 	return 0;
+ err_after_sysfs:
+ 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+@@ -578,6 +601,8 @@ static int ntc_thermistor_remove(struct platform_device *pdev)
+ 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+ 	ntc_iio_channel_release(pdata);
+ 
++	thermal_zone_of_sensor_unregister(data->dev, data->tz);
++
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
 
 
 _______________________________________________
