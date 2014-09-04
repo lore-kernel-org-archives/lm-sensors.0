@@ -1,40 +1,53 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Wed, 06 Aug 2014 00:24:00 +0000
-Subject: [lm-sensors] [PATCH 05/10] hwmon: (lm87) Fix vrm write operation
-Message-Id: <1407284640.4924.10.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 04 Sep 2014 16:40:03 +0000
+Subject: [lm-sensors] [GIT PULL resend] hwmon fixes for 3.17-rc4
+Message-Id: <1409848803-17893-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org, torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-vrm is an u8, so the written value needs to be limited to [0, 255].
+I know my e-mail service is acting up again, so I don't know if there
+is a problem with linux-foundation.org or with my e-mail service or if I
+should have used linuxfoundation.org all along. Either case, resending to
+both torvalds@linuxfoundation.org and torvalds@linux-foundation.org
+in the hope that one is received. Sorry for the noise.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
 ---
- drivers/hwmon/lm87.c | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
-index ba1d83d..a5e2958 100644
---- a/drivers/hwmon/lm87.c
-+++ b/drivers/hwmon/lm87.c
-@@ -617,6 +617,10 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
- 	err = kstrtoul(buf, 10, &val);
- 	if (err)
- 		return err;
-+
-+	if (val > 255)
-+		return -EINVAL;
-+
- 	data->vrm = val;
- 	return count;
- }
--- 
-1.9.1
+Hi Linus,
 
+Please pull hwmon fixes for Linux 3.17-rc4 from signed tag:
 
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
 
+Thanks,
+Guenter
+------
+
+The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
+
+  Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 39c627a084475e8a690a4a9e7601410ca173ddd2:
+
+  hwmon: (ds1621) Update zbits after conversion rate change (2014-08-28 11:18:47 -0700)
+
+----------------------------------------------------------------
+Fix a bug in the ds1621 driver
+
+----------------------------------------------------------------
+Robert Coulson (1):
+      hwmon: (ds1621) Update zbits after conversion rate change
+
+ drivers/hwmon/ds1621.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 _______________________________________________
 lm-sensors mailing list
