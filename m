@@ -1,44 +1,46 @@
-From: =?UTF-8?B?5aSP5ry+?= <jane@shine-technology.com>
-Date: Mon, 29 Sep 2014 10:06:47 +0000
-Subject: [lm-sensors] IP67 LED Driver and LED Light from shenzhen factory OVER 11 years experience
-Message-Id: <1d883018.a851.148c0e072ba.Coremail.jane@shine-technology.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 04 Sep 2014 15:12:41 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.17-rc4
+Message-Id: <1409843561-9245-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Sir,
-                      
-Waterproof IP67 LED Driver and LED Light from shenzhen factory, with high quality and factory price. Hope to cooperate with you! 
+Hi Linus,
 
-E-catalog will be provided if needed. 
+Please pull hwmon fixes for Linux 3.17-rc4 from signed tag:
 
-If you have interest, pls contact us with no hesitate. We are sure any of your inquiry will get our prompt reply.
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
 
+Thanks,
+Guenter
+------
 
+The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
 
-Wish you have a nice day.
+  Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
 
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
 
-Sincerely Yours, 
+for you to fetch changes up to 39c627a084475e8a690a4a9e7601410ca173ddd2:
 
-Jane       
---
+  hwmon: (ds1621) Update zbits after conversion rate change (2014-08-28 11:18:47 -0700)
 
+----------------------------------------------------------------
+Fix a bug in the ds1621 driver
 
-Shenzhen Shine Technology Limited
+----------------------------------------------------------------
+Robert Coulson (1):
+      hwmon: (ds1621) Update zbits after conversion rate change
 
-Fax: 86-755-84416990
+ drivers/hwmon/ds1621.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Tel: 86-755-89335200
-
-Mail: jane@shinetechnology.com; janesales.trade@hotmail.com 
-
-Website: http://www.shine-technology.com
-
-Skype: hp-jane
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
