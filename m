@@ -1,53 +1,27 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Sep 2014 16:40:03 +0000
-Subject: [lm-sensors] [GIT PULL resend] hwmon fixes for 3.17-rc4
-Message-Id: <1409848803-17893-1-git-send-email-linux@roeck-us.net>
+From: Linus Torvalds <linus@linuxfoundation.org>
+Date: Thu, 04 Sep 2014 16:43:43 +0000
+Subject: Re: [lm-sensors] [GIT PULL resend] hwmon fixes for 3.17-rc4
+Message-Id: <CA+55aFwEDkjkuSfLufqyHhGYxJhXVeh56JXE5Fbo4v29YRcb=A@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1409848803-17893-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1409848803-17893-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-I know my e-mail service is acting up again, so I don't know if there
-is a problem with linux-foundation.org or with my e-mail service or if I
-should have used linuxfoundation.org all along. Either case, resending to
-both torvalds@linuxfoundation.org and torvalds@linux-foundation.org
-in the hope that one is received. Sorry for the noise.
+On Thu, Sep 4, 2014 at 9:40 AM, Guenter Roeck <linux@roeck-us.net> wrote:
+> I know my e-mail service is acting up again, so I don't know if there
+> is a problem with linux-foundation.org or with my e-mail service or if I
+> should have used linuxfoundation.org all along
 
----
+There's some silly DNS problem with "linux-foundation.org" - it's
+*supposed* to alias to the non-dashed version, but somehow that alias
+disappeared. It hopefully gets fixed soon, in the meantime people get
+bounces. Oh well.
 
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.17-rc4 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
-
-  Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 39c627a084475e8a690a4a9e7601410ca173ddd2:
-
-  hwmon: (ds1621) Update zbits after conversion rate change (2014-08-28 11:18:47 -0700)
-
-----------------------------------------------------------------
-Fix a bug in the ds1621 driver
-
-----------------------------------------------------------------
-Robert Coulson (1):
-      hwmon: (ds1621) Update zbits after conversion rate change
-
- drivers/hwmon/ds1621.c | 1 +
- 1 file changed, 1 insertion(+)
+                Linus
 
 _______________________________________________
 lm-sensors mailing list
