@@ -1,157 +1,63 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Wed, 10 Sep 2014 14:10:22 +0000
-Subject: Re: [lm-sensors] [PATCH v3 3/4] thermal: add more description for thermal-zones
-Message-Id: <20140910141019.GA8747@developer>
+From: Bernhard Walle <bernhard@bwalle.de>
+Date: Tue, 09 Sep 2014 08:57:24 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (htu21) Use the nohold mode to read out values
+Message-Id: <1410253044-2354-1-git-send-email-bernhard@bwalle.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53FD484F.7030504@nvidia.com> <20140827133217.GB15875@developer>
-	<53FE8AC9.2070907@nvidia.com> <20140828132135.GA17074@developer>
-	<53FFED7B.6010508@nvidia.com>
-	<CAC-25o-9OQ-wfpCJmgDGB0kqDHwUc15XX7Ay7Pes6UmpJakUkQ@mail.gmail.com>
-	<540449BC.2050807@nvidia.com> <54098538.1000505@nvidia.com>
-	<20140830194318.GA3025@developer> <5410084A.9020302@nvidia.com>
-In-Reply-To: <5410084A.9020302@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wei Ni <wni@nvidia.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: william.markezana@meas-spec.com, linux@roeck-us.net
+Cc: jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Bernhard Walle <bernhard@bwalle.de>
 
-
-Hello Wei,
-
-On Wed, Sep 10, 2014 at 04:14:02PM +0800, Wei Ni wrote:
-
-<big cut>
-
-> > 
-> > Have you tried the patch set from Javi? the power allocator schem 
-> > includes a PID controller governor. Might be worth having a common
-> > solution. I think it is easier if I merge his changes into a branch and
-> > you have try on it. His patch series have already gone through several
-> > reviews. But you are free to comment too.
-> 
-> Oh, it's great, could you show me link of the patch set, so that I can
-> try it.
-
-Sure. Version 5 was posted several weeks ago in here:
-https://lkml.org/lkml/2014/7/10/366
-
-Also, I have merged it into a branch in my personal tree here:
-https://git.kernel.org/cgit/linux/kernel/git/evalenti/linux.git/log/?h=thermal_work/thermal_core/power_allocator
-
-
-> 
-> > 
-> >>>
-> >>> Indeed, our thermal management includes skin-temp, soc-thermal,
-> >>> cpu-throttle driver and pid governor. This pach set is prepared for the
-> >>> skin-temp driver.
-> >>> As you know the tegra soc-therm is in upstreaming, and we will post
-> >>> other drivers step by step.
-> >>
-> >> Will you take this patch, if so i will post skin-temp driver later.
-> >> Looking forward your comments :)
-> >>
-> > 
-> > I am afraid moving the maps and trips properties to optional abuses the
-> > purpose of the thermal DT. The primary goal is to describe hardware, and
-> > in this specific case, the hardware proper thermal operating conditions.
-> > 
-> > DT has to be as agnostic to OS implementation as possible.
-> > 
-> > For the above reason, I do not think this patch is a good idea.
-> 
-> Yes, I understand what you are worrying about, but it seems it's
-> difficult to handle this specific case in current framework or even
-> develop a new framework. How about to still set trips and maps as
-> required properties, but just add description something like "If missing
-> it, the thermal zone only has basic function such as reading temperature"
-
-I believe the right way of compsing a skin temperature zone is already
-documented in the thermal.txt DT descriptor. You must add several
-sensors into a zone. And not add several thermal zones that are used
-only for monitoring.
-
-The DT part description needs to focus on the hardware description. If
-you see something is missing in the Linux kernel implementation, let me
-know, and we can improve it.
-
-Cheers,
-
-> 
-> Thanks.
-> Wei.
-> 
-> > 
-> > 
-> > Cheers,
-> > 
-> >> Thanks.
-> >> Wei.
-> >>
-> >>>
-> >>> Thanks.
-> >>> Wei.
-> >>>
-> >>>>
-> >>>>> Thanks.
-> >>>>> Wei.
-> >>>>>
-> >>>>>>
-> >>>>>>
-> >>>>>>>
-> >>>>>>>              trips {
-> >>>>>>>              };
-> >>>>>>>              cooling-maps {
-> >>>>>>>              };
-> >>>>>>>      };
-> >>>>>>> };
-> >>>>>>>
-> >>>>>>> Wei.
-> >>>>>>>>
-> >>>>>>>>>
-> >>>>>>>>> Wei.
-> >>>>>>>>>
-> >>>>>>>>>>
-> >>>>>>>>>> The purpose of a thermal zone is to describe thermal behavior of a
-> >>>>>>>>>> hardware. As it is mentioned in the thermal.txt file.
-> >>>>>>>>>>
-> >>>>>>>>>>
-> >>>>>>>>>>>
-> >>>>>>>>>>> Thanks.
-> >>>>>>>>>>> Wei.
-> >>>>>>>>>>>
-> >>>>>>>>>>>>
-> >>>>>>>>>>>>>
-> >>>>>>>>>>>>> -Optional property:
-> >>>>>>>>>>>>>  - coefficients:               An array of integers (one signed cell) containing
-> >>>>>>>>>>>>>    Type: array         coefficients to compose a linear relation between
-> >>>>>>>>>>>>>    Elem size: one cell the sensors listed in the thermal-sensors property.
-> >>>>>>>>>>>>> --
-> >>>>>>>>>>>>> 1.8.1.5
-> >>>>>>>>>>>>>
-> >>>>>>>>>>>
-> >>>>>>>>>> --
-> >>>>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
-> >>>>>>>>>> the body of a message to majordomo@vger.kernel.org
-> >>>>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>>>>>>>>
-> >>>>>>>>>
-> >>>>>>>
-> >>>>>
-> >>>>
-> >>>>
-> >>>>
-> >>>
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >>
-> 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gbXkgUmFzcGJlcnJ5IFBpLCB0aGUgZHJpdmVyIGRvZXNuJ3Qgd29yay4gRXZlcnkgcmVhZCBm
+YWlscyB3aXRoIC1FSU8uClJlYWRpbmcgdGhlIGRhdGEgc2hlZXQgYW5kIGV4cGVyaW1lbnRpbmcg
+YSBiaXQgbWFkZSBtZSBmaW5kaW5nIG91dCB0aGF0CnVzaW5nIHRoZSBub2hvbGQgbW9kZSB3b3Jr
+cy4gVGhlIFJhc3BiZXJyeSBQaSBJwrJDIGNoaXAgc2VlbXMgdG8gaGF2ZQpwcm9ibGVtcyB3aXRo
+IHNsYXZlcyBibG9ja2luZyB0aGUgU0NLIGxpbmUuCgpJbiBhbnkgY2FzZSwgZnJlZWluZyB0aGUg
+YnVzIHdoaWxlIHBlcmZvcm1pbmcgdGhlIG1lYXN1cmVtZW50IHNlZW1zIHRvCmJlIHRoZSBiZXR0
+ZXIgd2F5LCBJIHRoaW5rLgoKU2lnbmVkLW9mZi1ieTogQmVybmhhcmQgV2FsbGUgPGJlcm5oYXJk
+QGJ3YWxsZS5kZT4KLS0tCiBkcml2ZXJzL2h3bW9uL2h0dTIxLmMgfCA1MiArKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA0
+NiBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdt
+b24vaHR1MjEuYyBiL2RyaXZlcnMvaHdtb24vaHR1MjEuYwppbmRleCA4MzkwODZlLi43ZGVmYWUy
+IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2h0dTIxLmMKKysrIGIvZHJpdmVycy9od21vbi9o
+dHUyMS5jCkBAIC0yNSwxMCArMjUsMTEgQEAKICNpbmNsdWRlIDxsaW51eC9tdXRleC5oPgogI2lu
+Y2x1ZGUgPGxpbnV4L2RldmljZS5oPgogI2luY2x1ZGUgPGxpbnV4L2ppZmZpZXMuaD4KKyNpbmNs
+dWRlIDxsaW51eC9kZWxheS5oPgogCiAvKiBIVFUyMSBDb21tYW5kcyAqLwotI2RlZmluZSBIVFUy
+MV9UX01FQVNVUkVNRU5UX0hNCTB4RTMKLSNkZWZpbmUgSFRVMjFfUkhfTUVBU1VSRU1FTlRfSE0J
+MHhFNQorI2RlZmluZSBIVFUyMV9UX01FQVNVUkVNRU5UX0hNX05PSE9MRAkweEYzCisjZGVmaW5l
+IEhUVTIxX1JIX01FQVNVUkVNRU5UX0hNX05PSE9MRAkweEY1CiAKIHN0cnVjdCBodHUyMSB7CiAJ
+c3RydWN0IGRldmljZSAqaHdtb25fZGV2OwpAQCAtNTksNiArNjAsNDcgQEAgc3RhdGljIGlubGlu
+ZSBpbnQgaHR1MjFfcmhfdGlja3NfdG9fcGVyX2NlbnRfbWlsbGUoaW50IHRpY2tzKQogCXJldHVy
+biAoKDE1NjI1ICogdGlja3MpID4+IDEzKSAtIDYwMDA7CiB9CiAKKy8qIHJldHJ5IGZvciBvbmUg
+c2Vjb25kLCB0aGVuIGdpdmUgdXAgKi8KKyNkZWZpbmUgTUFYX1JFVFJJRVMgMjAKKworc3RhdGlj
+IGludCBodHUyMV9yZWFkX3dvcmQoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwgdTggY29tbWFu
+ZCkKK3sKKwljaGFyIGRhdGFbMl07CisJaW50IHJldCwgaTsKKworCS8qIHN0YXJ0IHRoZSBtZWFz
+dXJlbWVudCAqLworCXJldCA9IGkyY19tYXN0ZXJfc2VuZChjbGllbnQsICZjb21tYW5kLCBzaXpl
+b2YoY29tbWFuZCkpOworCWlmIChyZXQgPCAwKSB7CisJCWRldl9lcnIoJmNsaWVudC0+ZGV2LCAi
+VW5hYmxlIHRvIHNlbmQgY29tbWFuZCAweCVoaHg6ICVkXG4iLAorCQkJCWNvbW1hbmQsIHJldCk7
+CisJCXJldHVybiByZXQ7CisJfQorCisJLyoKKwkgKiBOb3cgcG9sbCB1bnRpbCB3ZSBnZXQgdGhl
+IGRhdGEuIE9uIEkyQyBsZXZlbCB0aGUgZGV2aWNlIHNlbmRzIGEgTkFLCisJICogdW50aWwgaXQg
+aXMgcmVhZHkKKwkgKi8KKworCW1zbGVlcCg1MCk7CisKKwlmb3IgKGkgPSAwOyBpIDwgTUFYX1JF
+VFJJRVM7IGkrKykgeworCQlyZXQgPSBpMmNfbWFzdGVyX3JlY3YoY2xpZW50LCBkYXRhLCBzaXpl
+b2YoZGF0YSkpOworCQlpZiAocmV0ID09IHNpemVvZihkYXRhKSkKKwkJCWJyZWFrOworCisJCW1z
+bGVlcCg1MCk7CisJfQorCisJaWYgKHJldCA8IDApIHsKKwkJZGV2X2VycigmY2xpZW50LT5kZXYs
+ICJVbmFibGUgdG8gcmVjZWl2ZSByZXN1bHQgZnJvbSBjb21tYW5kIDB4JWhoeDogJWRcbiIsCisJ
+CQkJY29tbWFuZCwgcmV0KTsKKwkJcmV0dXJuIHJldDsKKwl9CisKKwlyZXR1cm4gKGRhdGFbMF0g
+PDwgOCkgfCBkYXRhWzFdOworfQorCisKIHN0YXRpYyBpbnQgaHR1MjFfdXBkYXRlX21lYXN1cmVt
+ZW50cyhzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KQogewogCWludCByZXQgPSAwOwpAQCAtNjgs
+MTMgKzExMCwxMSBAQCBzdGF0aWMgaW50IGh0dTIxX3VwZGF0ZV9tZWFzdXJlbWVudHMoc3RydWN0
+IGkyY19jbGllbnQgKmNsaWVudCkKIAogCWlmICh0aW1lX2FmdGVyKGppZmZpZXMsIGh0dTIxLT5s
+YXN0X3VwZGF0ZSArIEhaIC8gMikgfHwKIAkgICAgIWh0dTIxLT52YWxpZCkgewotCQlyZXQgPSBp
+MmNfc21idXNfcmVhZF93b3JkX3N3YXBwZWQoY2xpZW50LAotCQkJCQkJICBIVFUyMV9UX01FQVNV
+UkVNRU5UX0hNKTsKKwkJcmV0ID0gaHR1MjFfcmVhZF93b3JkKGNsaWVudCwgSFRVMjFfVF9NRUFT
+VVJFTUVOVF9ITV9OT0hPTEQpOwogCQlpZiAocmV0IDwgMCkKIAkJCWdvdG8gb3V0OwogCQlodHUy
+MS0+dGVtcGVyYXR1cmUgPSBodHUyMV90ZW1wX3RpY2tzX3RvX21pbGxpY2Vsc2l1cyhyZXQpOwot
+CQlyZXQgPSBpMmNfc21idXNfcmVhZF93b3JkX3N3YXBwZWQoY2xpZW50LAotCQkJCQkJICBIVFUy
+MV9SSF9NRUFTVVJFTUVOVF9ITSk7CisJCXJldCA9IGh0dTIxX3JlYWRfd29yZChjbGllbnQsIEhU
+VTIxX1JIX01FQVNVUkVNRU5UX0hNX05PSE9MRCk7CiAJCWlmIChyZXQgPCAwKQogCQkJZ290byBv
+dXQ7CiAJCWh0dTIxLT5odW1pZGl0eSA9IGh0dTIxX3JoX3RpY2tzX3RvX3Blcl9jZW50X21pbGxl
+KHJldCk7Ci0tIAoyLjEuMAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw=
