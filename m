@@ -1,84 +1,122 @@
-From: "Markezana, William" <William.Markezana@meas-spec.com>
-Date: Tue, 09 Sep 2014 09:10:59 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (htu21) Use the nohold mode to read out values
-Message-Id: <8B5E2C57A478A447A3ECC506FBF26C03033832@TLSE-SVR-MAIL01.europe.msiusa.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 27 Sep 2014 15:49:45 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (iio_hwmon) Add support for humidity and power sensors
+Message-Id: <1411832985-12619-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1410253044-2354-1-git-send-email-bernhard@bwalle.de>
-In-Reply-To: <1410253044-2354-1-git-send-email-bernhard@bwalle.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bernhard Walle <bernhard@bwalle.de>, "linux@roeck-us.net" <linux@roeck-us.net>
-Cc: "jdelvare@suse.de" <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors <lm-sensors@lm-sensors.org>
+Cc: linux-iio@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Jonathan Cameron <jic23@kernel.org>
 
-SGkgQmVybmhhcmQsDQoNClRoaXMgaXMgYSB3ZWxsLWtub3duIGlzc3VlIG9uIHRoZSBSYXNwYmVy
-cnkgUGkgd2hvc2UgaTJjIHN0cmV0Y2hpbmcgdGltZW91dCBpcyB0b28gc2hvcnQgdG8gYWxsb3cg
-cHJvcGVyIEhUVTIxIGNvbnZlcnNpb24uDQpTZWUgdGhpcyBkaXNjdXNzaW9uIG92ZXIgaGVyZSB3
-aGljaCBwcm92aWRlcyBhIHBhdGNoIHRvIGFsbG93IGhvbGQgbWFzdGVyIG1vZGUgb24gdGhlIFJh
-c3BiZXJyeSBQaTogaHR0cHM6Ly9naXRodWIuY29tL3Jhc3BiZXJyeXBpL2xpbnV4L2lzc3Vlcy8y
-MTEgDQoNCldlIHdpbGwgc29vbiBwdWJsaXNoIGEgbmV3IHZlcnNpb24gb2YgdGhlIEhUVTIxIGRy
-aXZlciB3aGljaCBwcm92aWRlcyBhIGxvdCBvZiBuZXcgZmVhdHVyZXMgaW5jbHVkaW5nIGJvdGgg
-aG9sZCBtYXN0ZXIgYW5kIG5vIGhvbGQgbWVhc3VyZW1lbnQgbW9kZXMgc3VwcG9ydC4NCg0KQmVz
-dCByZWdhcmRzLA0KDQpXaWxsaWFtIE1BUktFWkFOQQ0KQWR2YW5jZWQgRGV2ZWxvcG1lbnQNCk1F
-QVMgRnJhbmNlIA0KSW1wYXNzZSBKZWFubmUgQmVub3p6aQ0KQ1MgODMxNjMNCjMxMDI3IFRvdWxv
-dXNlIENlZGV4IDMNCkRpcmVjdMKgOiArIDMzICgwKSA1ODIgMDgyIDI4Ng0KRmF4IDogKyAzMyAo
-MCkgNTgyIDA4MiAxNTENCndpbGxpYW0ubWFya2V6YW5hQG1lYXMtc3BlYy5jb20NCmh0dHA6Ly93
-d3cubWVhcy1zcGVjLmNvbQ0KDQotLS0tLU1lc3NhZ2UgZCdvcmlnaW5lLS0tLS0NCkRlwqA6IEJl
-cm5oYXJkIFdhbGxlIFttYWlsdG86YmVybmhhcmRAYndhbGxlLmRlXSANCkVudm95w6nCoDogbWFy
-ZGkgOSBzZXB0ZW1icmUgMjAxNCAxMDo1Nw0Kw4DCoDogTWFya2V6YW5hLCBXaWxsaWFtOyBsaW51
-eEByb2Vjay11cy5uZXQNCkNjwqA6IGpkZWx2YXJlQHN1c2UuZGU7IGxtLXNlbnNvcnNAbG0tc2Vu
-c29ycy5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IEJlcm5oYXJkIFdhbGxlDQpP
-YmpldMKgOiBbUEFUQ0hdIGh3bW9uOiAoaHR1MjEpIFVzZSB0aGUgbm9ob2xkIG1vZGUgdG8gcmVh
-ZCBvdXQgdmFsdWVzDQoNCk9uIG15IFJhc3BiZXJyeSBQaSwgdGhlIGRyaXZlciBkb2Vzbid0IHdv
-cmsuIEV2ZXJ5IHJlYWQgZmFpbHMgd2l0aCAtRUlPLg0KUmVhZGluZyB0aGUgZGF0YSBzaGVldCBh
-bmQgZXhwZXJpbWVudGluZyBhIGJpdCBtYWRlIG1lIGZpbmRpbmcgb3V0IHRoYXQgdXNpbmcgdGhl
-IG5vaG9sZCBtb2RlIHdvcmtzLiBUaGUgUmFzcGJlcnJ5IFBpIEnCskMgY2hpcCBzZWVtcyB0byBo
-YXZlIHByb2JsZW1zIHdpdGggc2xhdmVzIGJsb2NraW5nIHRoZSBTQ0sgbGluZS4NCg0KSW4gYW55
-IGNhc2UsIGZyZWVpbmcgdGhlIGJ1cyB3aGlsZSBwZXJmb3JtaW5nIHRoZSBtZWFzdXJlbWVudCBz
-ZWVtcyB0byBiZSB0aGUgYmV0dGVyIHdheSwgSSB0aGluay4NCg0KU2lnbmVkLW9mZi1ieTogQmVy
-bmhhcmQgV2FsbGUgPGJlcm5oYXJkQGJ3YWxsZS5kZT4NCi0tLQ0KIGRyaXZlcnMvaHdtb24vaHR1
-MjEuYyB8IDUyICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0t
-LS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCA0NiBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQ0K
-DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9odHUyMS5jIGIvZHJpdmVycy9od21vbi9odHUy
-MS5jIGluZGV4IDgzOTA4NmUuLjdkZWZhZTIgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2h3bW9uL2h0
-dTIxLmMNCisrKyBiL2RyaXZlcnMvaHdtb24vaHR1MjEuYw0KQEAgLTI1LDEwICsyNSwxMSBAQA0K
-ICNpbmNsdWRlIDxsaW51eC9tdXRleC5oPg0KICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4NCiAj
-aW5jbHVkZSA8bGludXgvamlmZmllcy5oPg0KKyNpbmNsdWRlIDxsaW51eC9kZWxheS5oPg0KIA0K
-IC8qIEhUVTIxIENvbW1hbmRzICovDQotI2RlZmluZSBIVFUyMV9UX01FQVNVUkVNRU5UX0hNCTB4
-RTMNCi0jZGVmaW5lIEhUVTIxX1JIX01FQVNVUkVNRU5UX0hNCTB4RTUNCisjZGVmaW5lIEhUVTIx
-X1RfTUVBU1VSRU1FTlRfSE1fTk9IT0xECTB4RjMNCisjZGVmaW5lIEhUVTIxX1JIX01FQVNVUkVN
-RU5UX0hNX05PSE9MRAkweEY1DQogDQogc3RydWN0IGh0dTIxIHsNCiAJc3RydWN0IGRldmljZSAq
-aHdtb25fZGV2Ow0KQEAgLTU5LDYgKzYwLDQ3IEBAIHN0YXRpYyBpbmxpbmUgaW50IGh0dTIxX3Jo
-X3RpY2tzX3RvX3Blcl9jZW50X21pbGxlKGludCB0aWNrcykNCiAJcmV0dXJuICgoMTU2MjUgKiB0
-aWNrcykgPj4gMTMpIC0gNjAwMDsgIH0NCiANCisvKiByZXRyeSBmb3Igb25lIHNlY29uZCwgdGhl
-biBnaXZlIHVwICovICNkZWZpbmUgTUFYX1JFVFJJRVMgMjANCisNCitzdGF0aWMgaW50IGh0dTIx
-X3JlYWRfd29yZChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCB1OCBjb21tYW5kKSB7DQorCWNo
-YXIgZGF0YVsyXTsNCisJaW50IHJldCwgaTsNCisNCisJLyogc3RhcnQgdGhlIG1lYXN1cmVtZW50
-ICovDQorCXJldCA9IGkyY19tYXN0ZXJfc2VuZChjbGllbnQsICZjb21tYW5kLCBzaXplb2YoY29t
-bWFuZCkpOw0KKwlpZiAocmV0IDwgMCkgew0KKwkJZGV2X2VycigmY2xpZW50LT5kZXYsICJVbmFi
-bGUgdG8gc2VuZCBjb21tYW5kIDB4JWhoeDogJWRcbiIsDQorCQkJCWNvbW1hbmQsIHJldCk7DQor
-CQlyZXR1cm4gcmV0Ow0KKwl9DQorDQorCS8qDQorCSAqIE5vdyBwb2xsIHVudGlsIHdlIGdldCB0
-aGUgZGF0YS4gT24gSTJDIGxldmVsIHRoZSBkZXZpY2Ugc2VuZHMgYSBOQUsNCisJICogdW50aWwg
-aXQgaXMgcmVhZHkNCisJICovDQorDQorCW1zbGVlcCg1MCk7DQorDQorCWZvciAoaSA9IDA7IGkg
-PCBNQVhfUkVUUklFUzsgaSsrKSB7DQorCQlyZXQgPSBpMmNfbWFzdGVyX3JlY3YoY2xpZW50LCBk
-YXRhLCBzaXplb2YoZGF0YSkpOw0KKwkJaWYgKHJldCA9PSBzaXplb2YoZGF0YSkpDQorCQkJYnJl
-YWs7DQorDQorCQltc2xlZXAoNTApOw0KKwl9DQorDQorCWlmIChyZXQgPCAwKSB7DQorCQlkZXZf
-ZXJyKCZjbGllbnQtPmRldiwgIlVuYWJsZSB0byByZWNlaXZlIHJlc3VsdCBmcm9tIGNvbW1hbmQg
-MHglaGh4OiAlZFxuIiwNCisJCQkJY29tbWFuZCwgcmV0KTsNCisJCXJldHVybiByZXQ7DQorCX0N
-CisNCisJcmV0dXJuIChkYXRhWzBdIDw8IDgpIHwgZGF0YVsxXTsNCit9DQorDQorDQogc3RhdGlj
-IGludCBodHUyMV91cGRhdGVfbWVhc3VyZW1lbnRzKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQp
-ICB7DQogCWludCByZXQgPSAwOw0KQEAgLTY4LDEzICsxMTAsMTEgQEAgc3RhdGljIGludCBodHUy
-MV91cGRhdGVfbWVhc3VyZW1lbnRzKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpDQogDQogCWlm
-ICh0aW1lX2FmdGVyKGppZmZpZXMsIGh0dTIxLT5sYXN0X3VwZGF0ZSArIEhaIC8gMikgfHwNCiAJ
-ICAgICFodHUyMS0+dmFsaWQpIHsNCi0JCXJldCA9IGkyY19zbWJ1c19yZWFkX3dvcmRfc3dhcHBl
-ZChjbGllbnQsDQotCQkJCQkJICBIVFUyMV9UX01FQVNVUkVNRU5UX0hNKTsNCisJCXJldCA9IGh0
-dTIxX3JlYWRfd29yZChjbGllbnQsIEhUVTIxX1RfTUVBU1VSRU1FTlRfSE1fTk9IT0xEKTsNCiAJ
-CWlmIChyZXQgPCAwKQ0KIAkJCWdvdG8gb3V0Ow0KIAkJaHR1MjEtPnRlbXBlcmF0dXJlID0gaHR1
-MjFfdGVtcF90aWNrc190b19taWxsaWNlbHNpdXMocmV0KTsNCi0JCXJldCA9IGkyY19zbWJ1c19y
-ZWFkX3dvcmRfc3dhcHBlZChjbGllbnQsDQotCQkJCQkJICBIVFUyMV9SSF9NRUFTVVJFTUVOVF9I
-TSk7DQorCQlyZXQgPSBodHUyMV9yZWFkX3dvcmQoY2xpZW50LCBIVFUyMV9SSF9NRUFTVVJFTUVO
-VF9ITV9OT0hPTEQpOw0KIAkJaWYgKHJldCA8IDApDQogCQkJZ290byBvdXQ7DQogCQlodHUyMS0+
-aHVtaWRpdHkgPSBodHUyMV9yaF90aWNrc190b19wZXJfY2VudF9taWxsZShyZXQpOw0KLS0NCjIu
-MS4wDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
-LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
-c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+The iio subsystem supports power and humidity sensors, so it makes sense
+to support those sensor types in the iio-hwmon bridge as well.
+
+Cc: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Compile tested only.
+
+Question is if I got the scale conversion correct for power measurements.
+I _assume_ that iio always reports processed values in milli-units,
+but I am not entirely sure.
+
+ drivers/hwmon/iio_hwmon.c | 30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/iio_hwmon.c b/drivers/hwmon/iio_hwmon.c
+index 14c82da..efc55a9 100644
+--- a/drivers/hwmon/iio_hwmon.c
++++ b/drivers/hwmon/iio_hwmon.c
+@@ -21,6 +21,8 @@
+ /**
+  * struct iio_hwmon_state - device instance state
+  * @channels:		filled with array of channels from iio
++ * @scale:		array of multipliers to convert from iio to hwmon
++ *			resolution
+  * @num_channels:	number of channels in channels (saves counting twice)
+  * @hwmon_dev:		associated hwmon device
+  * @attr_group:	the group of attributes
+@@ -28,6 +30,7 @@
+  */
+ struct iio_hwmon_state {
+ 	struct iio_channel *channels;
++	int *scale;
+ 	int num_channels;
+ 	struct device *hwmon_dev;
+ 	struct attribute_group attr_group;
+@@ -48,13 +51,16 @@ static ssize_t iio_hwmon_read_val(struct device *dev,
+ 	int ret;
+ 	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
+ 	struct iio_hwmon_state *state = dev_get_drvdata(dev);
++	s64 result_64;
+ 
+ 	ret = iio_read_channel_processed(&state->channels[sattr->index],
+-					&result);
++					 &result);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return sprintf(buf, "%d\n", result);
++	result_64 = (s64)result * state->scale[sattr->index];
++
++	return sprintf(buf, "%lld\n", result_64);
+ }
+ 
+ static int iio_hwmon_probe(struct platform_device *pdev)
+@@ -63,7 +69,7 @@ static int iio_hwmon_probe(struct platform_device *pdev)
+ 	struct iio_hwmon_state *st;
+ 	struct sensor_device_attribute *a;
+ 	int ret, i;
+-	int in_i = 1, temp_i = 1, curr_i = 1;
++	int in_i = 1, temp_i = 1, curr_i = 1, power_i = 1, humidity_i = 1;
+ 	enum iio_chan_type type;
+ 	struct iio_channel *channels;
+ 	const char *name = "iio_hwmon";
+@@ -94,6 +100,12 @@ static int iio_hwmon_probe(struct platform_device *pdev)
+ 		ret = -ENOMEM;
+ 		goto error_release_channels;
+ 	}
++	st->scale = devm_kzalloc(dev, sizeof(*st->scale) * st->num_channels,
++				 GFP_KERNEL);
++	if (st->scale = NULL) {
++		ret = -ENOMEM;
++		goto error_release_channels;
++	}
+ 
+ 	for (i = 0; i < st->num_channels; i++) {
+ 		a = devm_kzalloc(dev, sizeof(*a), GFP_KERNEL);
+@@ -107,6 +119,7 @@ static int iio_hwmon_probe(struct platform_device *pdev)
+ 		if (ret < 0)
+ 			goto error_release_channels;
+ 
++		st->scale[i] = 1;
+ 		switch (type) {
+ 		case IIO_VOLTAGE:
+ 			a->dev_attr.attr.name = kasprintf(GFP_KERNEL,
+@@ -123,6 +136,17 @@ static int iio_hwmon_probe(struct platform_device *pdev)
+ 							  "curr%d_input",
+ 							  curr_i++);
+ 			break;
++		case IIO_POWER:
++			st->scale[i] = 1000;
++			a->dev_attr.attr.name = kasprintf(GFP_KERNEL,
++							  "power%d_input",
++							  power_i++);
++			break;
++		case IIO_HUMIDITYRELATIVE:
++			a->dev_attr.attr.name = kasprintf(GFP_KERNEL,
++							  "humidity%d_input",
++							  humidity_i++);
++			break;
+ 		default:
+ 			ret = -EINVAL;
+ 			goto error_release_channels;
+-- 
+1.9.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
