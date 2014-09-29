@@ -1,110 +1,44 @@
-From: Jonghwa Lee <jonghwa3.lee@samsung.com>
-Date: Wed, 03 Sep 2014 02:39:38 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: ntc_thermistor: Add ntc thermistor to thermal subsystem as a sensor.
-Message-Id: <1409711978-3377-1-git-send-email-jonghwa3.lee@samsung.com>
+From: =?UTF-8?B?5aSP5ry+?= <jane@shine-technology.com>
+Date: Mon, 29 Sep 2014 10:06:47 +0000
+Subject: [lm-sensors] IP67 LED Driver and LED Light from shenzhen factory OVER 11 years experience
+Message-Id: <1d883018.a851.148c0e072ba.Coremail.jane@shine-technology.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: cw00.choi@samsung.com, jdelvare@suse.de, linux@roeck-us.net, Jonghwa Lee <jonghwa3.lee@samsung.com>
+To: lm-sensors@vger.kernel.org
 
-To get more comprehensive and integrated thermal management, it adds ntc
-thermistor to thermal framework as a thermal sensor. It's governed thermal
-susbsystem only if it is described in DT node. Otherwise, it just notifies
-temperature to userspace via sysfs as it used to be.
+Hi Sir,
+                      
+Waterproof IP67 LED Driver and LED Light from shenzhen factory, with high quality and factory price. Hope to cooperate with you! 
 
-Signed-off-by: Jonghwa Lee <jonghwa3.lee@samsung.com>
----
-Updates in v2
- - Remove NULL pointer checking already done by thermal_zone_of_sensor_unregister().
+E-catalog will be provided if needed. 
 
- .../devicetree/bindings/hwmon/ntc_thermistor.txt   |    3 +++
- drivers/hwmon/ntc_thermistor.c                     |   25 ++++++++++++++++++++
- 2 files changed, 28 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt b/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
-index 2391e5c..fcca8e7 100644
---- a/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
-+++ b/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
-@@ -25,6 +25,9 @@ Requires node properties:
- - "io-channels"	Channel node of ADC to be used for
- 		conversion.
- 
-+Optional node properties:
-+- "#thermal-sensor-cells" Used to expose itself to thermal fw.
-+
- Read more about iio bindings at
- 	Documentation/devicetree/bindings/iio/iio-bindings.txt
- 
-diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
-index bd41072..4ff89b2 100644
---- a/drivers/hwmon/ntc_thermistor.c
-+++ b/drivers/hwmon/ntc_thermistor.c
-@@ -38,6 +38,7 @@
- 
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/thermal.h>
- 
- struct ntc_compensation {
- 	int		temp_c;
-@@ -182,6 +183,7 @@ struct ntc_data {
- 	struct device *dev;
- 	int n_comp;
- 	char name[PLATFORM_NAME_SIZE];
-+	struct thermal_zone_device *tz;
- };
- 
- #if defined(CONFIG_OF) && IS_ENABLED(CONFIG_IIO)
-@@ -428,6 +430,20 @@ static int ntc_thermistor_get_ohm(struct ntc_data *data)
- 	return -EINVAL;
- }
- 
-+static int ntc_read_temp(void *dev, long *temp)
-+{
-+	struct ntc_data *data = dev_get_drvdata(dev);
-+	int ohm;
-+
-+	ohm = ntc_thermistor_get_ohm(data);
-+	if (ohm < 0)
-+		return ohm;
-+
-+	*temp = get_temp_mc(data, ohm);
-+
-+	return 0;
-+}
-+
- static ssize_t ntc_show_name(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -562,6 +578,13 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
- 	dev_info(&pdev->dev, "Thermistor type: %s successfully probed.\n",
- 								pdev_id->name);
- 
-+	data->tz = thermal_zone_of_sensor_register(data->dev, 0, data->dev,
-+						ntc_read_temp, NULL);
-+	if (IS_ERR(data->tz)) {
-+		dev_dbg(&pdev->dev, "Failed to register to thermal fw.\n");
-+		data->tz = NULL;
-+	}
-+
- 	return 0;
- err_after_sysfs:
- 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
-@@ -578,6 +601,8 @@ static int ntc_thermistor_remove(struct platform_device *pdev)
- 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
- 	ntc_iio_channel_release(pdata);
- 
-+	thermal_zone_of_sensor_unregister(data->dev, data->tz);
-+
- 	return 0;
- }
- 
--- 
-1.7.9.5
+If you have interest, pls contact us with no hesitate. We are sure any of your inquiry will get our prompt reply.
 
 
+
+Wish you have a nice day.
+
+
+
+Sincerely Yours, 
+
+Jane       
+--
+
+
+Shenzhen Shine Technology Limited
+
+Fax: 86-755-84416990
+
+Tel: 86-755-89335200
+
+Mail: jane@shinetechnology.com; janesales.trade@hotmail.com 
+
+Website: http://www.shine-technology.com
+
+Skype: hp-jane
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
