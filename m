@@ -1,47 +1,79 @@
-From: ael <tommy.ael@gmail.com>
-Date: Sun, 05 Oct 2014 15:45:31 +0000
-Subject: [lm-sensors] IT8620E Report
-Message-Id: <5431679B.5010609@gmail.com>
+From: <atull@opensource.altera.com>
+Date: Wed, 01 Oct 2014 19:05:47 +0000
+Subject: [lm-sensors] [PATCH v4 1/4] hwmon: ltc2978: device tree bindings documentation
+Message-Id: <1412190349-16343-2-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1412190349-16343-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1412190349-16343-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-QWNvb3JkaW5nIHRvIHRoZSB3aWtpIHNlY3Rpb24gIkRldmljZXMiIGFib3V0IGNoaXAgSVQ4NjIw
-RToKCj4gKDIwMTQtMDMtMTYpIE9uZSByZXF1ZXN0IChLZXJ0ZXN6IExhc3psbykuIE5vIGRhdGFz
-aGVldC4gV2UgaGFkIGEgcmVwb3J0IHRoYXQgdGhlIGNoaXAgaXMgc29tZXdoYXQgY29tcGF0aWJs
-ZSB3aXRoIHRoZSBJVDg3MjhGIGZvciB0aGUgaGFyZHdhcmUgbW9uaXRvcmluZyBwYXJ0LiBCZSB2
-ZXJ5IGNhcmVmdWwgd2l0aCBmYW4gY29udHJvbCBhcyBpdCB3YXNuJ3QgdGVzdGVkLiBTbyB5b3Ug
-Y2FuIHRyeSBsb2FkaW5nIHRoZSBpdDg3IGRyaXZlciB3aXRoIGZvcmNlX2lkPTB4ODcyOCBhbmQg
-c2VlIGhvdyBpdCBnb2VzLiBJZiB5b3UgZG8sIHBsZWFzZSByZXBvcnQhIAoKSSB0cmllZCAibW9k
-cHJvYmUgaXQ4NyBmb3JjZV9pZD0weDg3MjgiIGFuZCBJJ3ZlIGdvdCB0aGUgZm9sbG93aW5nCm91
-dHB1dCBmcm9tICJzZW5zb3JzIjoKCj4gY29yZXRlbXAtaXNhLTAwMDAKPiBBZGFwdGVyOiBJU0Eg
-YWRhcHRlcgo+IENvcmUgMDogICAgICAgKzQ0LjDCsEMgIChoaWdoID0gKzEwNS4wwrBDLCBjcml0
-ID0gKzEwNS4wwrBDKQo+IENvcmUgMTogICAgICAgKzQ0LjDCsEMgIChoaWdoID0gKzEwNS4wwrBD
-LCBjcml0ID0gKzEwNS4wwrBDKQo+IENvcmUgMjogICAgICAgKzQ0LjDCsEMgIChoaWdoID0gKzEw
-NS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQo+IENvcmUgMzogICAgICAgKzQ0LjDCsEMgIChoaWdo
-ID0gKzEwNS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQo+IAo+IGl0ODcyOC1pc2EtMGEzMAo+IEFk
-YXB0ZXI6IElTQSBhZGFwdGVyCj4gaW4wOiAgICAgICAgICArMC42OCBWICAobWluID0gICsyLjQ4
-IFYsIG1heCA9ICArMC4zNyBWKQo+IGluMTogICAgICAgICAgKzIuMDIgViAgKG1pbiA9ICArMS41
-NSBWLCBtYXggPSAgKzAuMDAgVikKPiBpbjI6ICAgICAgICAgICsyLjAwIFYgIChtaW4gPSAgKzIu
-ODMgViwgbWF4ID0gICswLjE5IFYpCj4gKzMuM1Y6ICAgICAgICArMy43NCBWICAobWluID0gICsy
-LjY0IFYsIG1heCA9ICArMy4yNiBWKQo+IGluNDogICAgICAgICAgKzAuODQgViAgKG1pbiA9ICAr
-Mi42MiBWLCBtYXggPSAgKzEuODUgVikKPiBpbjU6ICAgICAgICAgICsyLjA0IFYgIChtaW4gPSAg
-KzEuMzggViwgbWF4ID0gICswLjU5IFYpCj4gaW42OiAgICAgICAgICArMS4zNiBWICAobWluID0g
-ICswLjI2IFYsIG1heCA9ICArMi45OSBWKQo+IDNWU0I6ICAgICAgICAgKzMuMzggViAgKG1pbiA9
-ICArNS4zMyBWLCBtYXggPSAgKzIuNDAgVikKPiBWYmF0OiAgICAgICAgICszLjEwIFYgIAo+IGZh
-bjE6ICAgICAgICAxMzIwIFJQTSAgKG1pbiA9ICAgMjUgUlBNKQo+IGZhbjI6ICAgICAgICAgICAw
-IFJQTSAgKG1pbiA9ICAgMTAgUlBNKQo+IGZhbjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAg
-MTEgUlBNKSAgQUxBUk0KPiBmYW40OiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgIC0xIFJQTSkK
-PiBmYW41OiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgIC0xIFJQTSkKPiB0ZW1wMTogICAgICAg
-ICszNS4wwrBDICAobG93ICA9IC0xMDYuMMKwQywgaGlnaCA9ICAtNi4wwrBDKSAgc2Vuc29yID0g
-dGhlcm1pc3Rvcgo+IHRlbXAyOiAgICAgICAgLTU1LjDCsEMgIChsb3cgID0gKzEwNC4wwrBDLCBo
-aWdoID0gKzY0LjDCsEMpICBzZW5zb3IgPSBkaXNhYmxlZAo+IHRlbXAzOiAgICAgICAgLTU1LjDC
-sEMgIChsb3cgID0gKzI3LjDCsEMsIGhpZ2ggPSArOTYuMMKwQykgIHNlbnNvciA9IGRpc2FibGVk
-Cj4gaW50cnVzaW9uMDogIEFMQVJNCgoKInVuYW1lIC1hIiBvdXRwdXQ6Cj4gTGludXggYWVsIDMu
-MTYuMy0xLUFSQ0ggIzEgU01QIFBSRUVNUFQgV2VkIFNlcCAxNyAyMTo1NDoxMyBDRVNUIDIwMTQg
-eDg2XzY0IEdOVS9MaW51eAoKCi0tIAp0b21teS5hZWwKZ3BnIGtleTogMHhFQkQ4QjM2ODJDNEM0
-NjQ1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+From: Alan Tull <atull@opensource.altera.com>
+
+Add device tree bindings documentation for ltc2978.
+
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
+---
+ .../devicetree/bindings/hwmon/ltc2978.txt          |   42 ++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/ltc2978.txt
+
+diff --git a/Documentation/devicetree/bindings/hwmon/ltc2978.txt b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
+new file mode 100644
+index 0000000..60fadc2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
+@@ -0,0 +1,42 @@
++ltc2978
++
++Required properties:
++ - compatible: one of: ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676
++ - reg: I2C address
++
++Optional properties:
++ Name of the optional regulator subnode must be "regulators".
++  - #address-cells must be 1.
++  - #size-cells must be 0.
++
++ For each regulator:
++  - reg: regulator number
++  - regulator-compatible: must be vout_en<regulator number> such as vout_en3
++    valid range is:
++      ltc2977, ltc2978 : vout_en0 - vout_en7
++      ltc2974          : vout_en0 - vout_en3
++      ltc3880, ltm4676 : vout_en0 - vout_en1
++      ltc3883          : vout_en0 only
++  - regulator-name: arbitrary name for regulator
++
++Example:
++ltc2978@5e {
++	compatible = "ltc2978";
++	reg = <0x5e>;
++	regulators {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vdacp0_reg: regulator@0 {
++			reg = <0>;
++			regulator-compatible = "vout_en0";
++			regulator-name = "FPGA-2.5V";
++		};
++		vdacp2_reg: regulator@2 {
++			reg = <2>;
++			regulator-compatible = "vout_en2";
++			regulator-name = "FPGA-1.5V";
++		};
++	};
++};
++
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
