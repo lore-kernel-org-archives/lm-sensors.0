@@ -1,76 +1,72 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 31 Oct 2014 18:12:39 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (ibmpowernv) Quieten when probing finds no device
-Message-Id: <20141031181239.GA9776@roeck-us.net>
+From: <atull@opensource.altera.com>
+Date: Wed, 01 Oct 2014 19:05:48 +0000
+Subject: [lm-sensors] [PATCH v4 2/4] pmbus: core: add helpers for byte write and read modify write
+Message-Id: <1412190349-16343-3-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1414737923-8227-1-git-send-email-mpe@ellerman.id.au>
-In-Reply-To: <1414737923-8227-1-git-send-email-mpe@ellerman.id.au>
+References: <1412190349-16343-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1412190349-16343-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>
-Cc: jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, neelegup@linux.vnet.ibm.com
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-On Fri, Oct 31, 2014 at 05:45:22PM +1100, Michael Ellerman wrote:
-> Because we build kernels with drivers built in for many platforms, it's
-> normal for the ibmpowernv driver to be loaded on systems that don't have
-> the appropriate hardware.
-> 
-> Currently the driver spams the log with:
-> 
->   ibmpowernv ibmpowernv.0: Opal node 'sensors' not found
->   ibmpowernv: Platfrom driver probe failed
-> 
-> But there is no error, this machine is not a powernv and doesn't have
-> the hardware. So change the sensors message to dev_dbg(), and only print
-> an error about the probe failing if it's not ENODEV.
-> 
-> Also fix the spelling of "Platfrom" and print the actual error value.
-> 
-> Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+From: Alan Tull <atull@opensource.altera.com>
 
-Neelesh,
+Add two helper functions:
+ * pmbus_write_byte_data  = paged byte write
+ * pmbus_update_byte_data = paged byte read/modify/write
 
-is there a compatible property in the powernv devicetree which can be
-used to identify the system ?
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
+---
+ drivers/hwmon/pmbus/pmbus_core.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-I am ok with applying this patch for the time being, but it would be better
-if we can change the driver to only instantiate when actually needed.
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 291d11f..d6c3701 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -253,6 +253,37 @@ int pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg)
+ }
+ EXPORT_SYMBOL_GPL(pmbus_read_byte_data);
+ 
++int pmbus_write_byte_data(struct i2c_client *client, int page, u8 reg, u8 value)
++{
++	int rv;
++
++	rv = pmbus_set_page(client, page);
++	if (rv < 0)
++		return rv;
++
++	return i2c_smbus_write_byte_data(client, reg, value);
++}
++EXPORT_SYMBOL_GPL(pmbus_write_byte_data);
++
++int pmbus_update_byte_data(struct i2c_client *client, int page, u8 reg,
++			   u8 mask, u8 value)
++{
++	unsigned int tmp;
++	int rv;
++
++	rv = pmbus_read_byte_data(client, page, reg);
++	if (rv < 0)
++		return rv;
++
++	tmp = (rv & ~mask) | (value & mask);
++
++	if (tmp != rv)
++		rv = pmbus_write_byte_data(client, page, reg, tmp);
++
++	return rv;
++}
++EXPORT_SYMBOL_GPL(pmbus_update_byte_data);
++
+ /*
+  * _pmbus_read_byte_data() is similar to pmbus_read_byte_data(), but checks if
+  * a device specific mapping function exists and calls it if necessary.
+-- 
+1.7.9.5
 
-Thanks,
-Guenter
-
-> ---
->  drivers/hwmon/ibmpowernv.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/hwmon/ibmpowernv.c b/drivers/hwmon/ibmpowernv.c
-> index d2bf2c97ae70..6a30eeea94be 100644
-> --- a/drivers/hwmon/ibmpowernv.c
-> +++ b/drivers/hwmon/ibmpowernv.c
-> @@ -181,7 +181,7 @@ static int __init populate_attr_groups(struct platform_device *pdev)
->  
->  	opal = of_find_node_by_path("/ibm,opal/sensors");
->  	if (!opal) {
-> -		dev_err(&pdev->dev, "Opal node 'sensors' not found\n");
-> +		dev_dbg(&pdev->dev, "Opal node 'sensors' not found\n");
->  		return -ENODEV;
->  	}
->  
-> @@ -335,7 +335,9 @@ static int __init ibmpowernv_init(void)
->  
->  	err = platform_driver_probe(&ibmpowernv_driver, ibmpowernv_probe);
->  	if (err) {
-> -		pr_err("Platfrom driver probe failed\n");
-> +		if (err != -ENODEV)
-> +			pr_err("Platform driver probe failed (%d)\n", err);
-> +
->  		goto exit_device_del;
->  	}
->  
-> -- 
-> 1.9.1
-> 
 
 _______________________________________________
 lm-sensors mailing list
