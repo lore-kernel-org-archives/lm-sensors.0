@@ -1,7 +1,7 @@
 From: atull <atull@opensource.altera.com>
-Date: Wed, 01 Oct 2014 22:09:39 +0000
+Date: Wed, 01 Oct 2014 22:20:14 +0000
 Subject: Re: [lm-sensors] [PATCH v4 4/4] pmbus: ltc2978: add regulator support
-Message-Id: <alpine.DEB.2.02.1410011709160.5194@atx-linux-37>
+Message-Id: <alpine.DEB.2.02.1410011713150.5194@atx-linux-37>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20141001213613.GA29312@roeck-us.net>
 In-Reply-To: <20141001213613.GA29312@roeck-us.net>
@@ -53,7 +53,12 @@ On Wed, 1 Oct 2014, Guenter Roeck wrote:
 > 
 > Guenter
 
-OK
+I will add the whole list to the 'help' sections of SENSORS_LTC2978 and
+SENSORS_LTC2978_REGULATOR.
+
+For the tristate/boolean lines, I can't fit the whole list, so I will
+leave them as they are.  Or I could change to 'LTC2978 and compatibles' as
+many others in this Kconfig have.
 
 Alan
 
@@ -63,75 +68,6 @@ Alan
 > > +	  If you say yes here you get regulator support for Linear
 > > +	  Technology LTC2974, LTC2978, LTC3880, and LTC3883.
 > > +
-> >  config SENSORS_MAX16064
-> >  	tristate "Maxim MAX16064"
-> >  	default n
-> > diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-> > index e24ed52..422712e 100644
-> > --- a/drivers/hwmon/pmbus/ltc2978.c
-> > +++ b/drivers/hwmon/pmbus/ltc2978.c
-> > @@ -22,6 +22,8 @@
-> >  #include <linux/err.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/i2c.h>
-> > +#include <linux/regulator/driver.h>
-> > +#include <linux/regulator/of_regulator.h>
-> >  #include "pmbus.h"
-> >  
-> >  enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676 };
-> > @@ -374,6 +376,30 @@ static const struct i2c_device_id ltc2978_id[] = {
-> >  };
-> >  MODULE_DEVICE_TABLE(i2c, ltc2978_id);
-> >  
-> > +#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
-> > +static const struct regulator_desc ltc2978_reg_desc[] = {
-> > +	PMBUS_REGULATOR("vout_en", 0),
-> > +	PMBUS_REGULATOR("vout_en", 1),
-> > +	PMBUS_REGULATOR("vout_en", 2),
-> > +	PMBUS_REGULATOR("vout_en", 3),
-> > +	PMBUS_REGULATOR("vout_en", 4),
-> > +	PMBUS_REGULATOR("vout_en", 5),
-> > +	PMBUS_REGULATOR("vout_en", 6),
-> > +	PMBUS_REGULATOR("vout_en", 7),
-> > +};
-> > +
-> > +static struct of_regulator_match ltc2978_reg_matches[] = {
-> > +	{ .name = "vout_en0" },
-> > +	{ .name = "vout_en1" },
-> > +	{ .name = "vout_en2" },
-> > +	{ .name = "vout_en3" },
-> > +	{ .name = "vout_en4" },
-> > +	{ .name = "vout_en5" },
-> > +	{ .name = "vout_en6" },
-> > +	{ .name = "vout_en7" },
-> > +};
-> > +#endif /* CONFIG_SENSORS_LTC2978_REGULATOR */
-> > +
-> >  static int ltc2978_probe(struct i2c_client *client,
-> >  			 const struct i2c_device_id *id)
-> >  {
-> > @@ -487,6 +513,17 @@ static int ltc2978_probe(struct i2c_client *client,
-> >  	default:
-> >  		return -ENODEV;
-> >  	}
-> > +
-> > +#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
-> > +	info->num_regulators = info->pages;
-> > +	info->reg_desc = ltc2978_reg_desc;
-> > +	info->reg_matches = ltc2978_reg_matches;
-> > +	if (info->num_regulators > ARRAY_SIZE(ltc2978_reg_desc)) {
-> > +		dev_err(&client->dev, "num_regulators too large!");
-> > +		info->num_regulators = ARRAY_SIZE(ltc2978_reg_desc);
-> > +	}
-> > +#endif
-> > +
-> >  	return pmbus_do_probe(client, id, info);
-> >  }
-> >  
-> > -- 
-> > 1.7.9.5
-> > 
-> 
 
 _______________________________________________
 lm-sensors mailing list
