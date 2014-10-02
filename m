@@ -1,33 +1,89 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 23 Oct 2014 13:43:00 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (i5500_temp) Don't bind to disabled sensors
-Message-Id: <544905E4.7030701@roeck-us.net>
+From: <atull@opensource.altera.com>
+Date: Thu, 02 Oct 2014 18:37:49 +0000
+Subject: [lm-sensors] [PATCH v5 2/4] pmbus: core: add helpers for byte write and read modify write
+Message-Id: <1412275071-6417-3-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141022111321.22ab7122@endymion.delvare>
-In-Reply-To: <20141022111321.22ab7122@endymion.delvare>
+References: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-On 10/23/2014 06:26 AM, Jean Delvare wrote:
-> On Thu, 23 Oct 2014 06:15:50 -0700, Guenter Roeck wrote:
->> On 10/23/2014 01:44 AM, Jean Delvare wrote:
->>> Another interesting register in device 00:14.2 is THRERRCTL. It's set
->>> to 0x5 on the one working board I have access to, and to 0x0 on
->>> non-working ones.
->>
->> Can you set it on the non-working boards ?
->
-> Mind you, I tried that already, but it didn't help :( So either it is a
-> hardware issue (pins not connected as you suggested before) or it takes
-> a combination of changes to get it to work and we did not find all the
-> steps, or didn't apply them all at the same time, or not in the right
-> order... Maybe Romain will have more luck than me.
->
-Should have guessed. Well, you can only do so much.
+From: Alan Tull <atull@opensource.altera.com>
 
-Guenter
+Add two helper functions:
+ * pmbus_write_byte_data  = paged byte write
+ * pmbus_update_byte_data = paged byte read/modify/write
+
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
+---
+v2: add prototypes for the two new functions
+---
+ drivers/hwmon/pmbus/pmbus.h      |    4 ++++
+ drivers/hwmon/pmbus/pmbus_core.c |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index fa9beb3..3ae79a7 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -375,6 +375,10 @@ int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg);
+ int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word);
+ int pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg);
+ int pmbus_write_byte(struct i2c_client *client, int page, u8 value);
++int pmbus_write_byte_data(struct i2c_client *client, int page, u8 reg,
++			  u8 value);
++int pmbus_update_byte_data(struct i2c_client *client, int page, u8 reg,
++			   u8 mask, u8 value);
+ void pmbus_clear_faults(struct i2c_client *client);
+ bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg);
+ bool pmbus_check_word_register(struct i2c_client *client, int page, int reg);
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 291d11f..d6c3701 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -253,6 +253,37 @@ int pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg)
+ }
+ EXPORT_SYMBOL_GPL(pmbus_read_byte_data);
+ 
++int pmbus_write_byte_data(struct i2c_client *client, int page, u8 reg, u8 value)
++{
++	int rv;
++
++	rv = pmbus_set_page(client, page);
++	if (rv < 0)
++		return rv;
++
++	return i2c_smbus_write_byte_data(client, reg, value);
++}
++EXPORT_SYMBOL_GPL(pmbus_write_byte_data);
++
++int pmbus_update_byte_data(struct i2c_client *client, int page, u8 reg,
++			   u8 mask, u8 value)
++{
++	unsigned int tmp;
++	int rv;
++
++	rv = pmbus_read_byte_data(client, page, reg);
++	if (rv < 0)
++		return rv;
++
++	tmp = (rv & ~mask) | (value & mask);
++
++	if (tmp != rv)
++		rv = pmbus_write_byte_data(client, page, reg, tmp);
++
++	return rv;
++}
++EXPORT_SYMBOL_GPL(pmbus_update_byte_data);
++
+ /*
+  * _pmbus_read_byte_data() is similar to pmbus_read_byte_data(), but checks if
+  * a device specific mapping function exists and calls it if necessary.
+-- 
+1.7.9.5
 
 
 _______________________________________________
