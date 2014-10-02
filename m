@@ -1,70 +1,78 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 23 Oct 2014 07:35:20 +0000
-Subject: Re: [lm-sensors] hwmon: (i5500_temp) Convert to module_pci_driver
-Message-Id: <20141023093520.680b6f3a@endymion.delvare>
+From: <atull@opensource.altera.com>
+Date: Thu, 02 Oct 2014 18:37:48 +0000
+Subject: [lm-sensors] [PATCH v5 1/4] hwmon: ltc2978: device tree bindings documentation
+Message-Id: <1412275071-6417-2-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1413984455.15240.1.camel@phoenix>
-In-Reply-To: <1413984455.15240.1.camel@phoenix>
+References: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-On Wed, 22 Oct 2014 09:31:04 -0700, Guenter Roeck wrote:
-> On Wed, Oct 22, 2014 at 09:27:35PM +0800, Axel Lin wrote:
-> > Use module_pci_driver to simplify the code a bit.
-> > 
-> > Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> > ---
-> >  drivers/hwmon/i5500_temp.c | 14 +-------------
-> >  1 file changed, 1 insertion(+), 13 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/i5500_temp.c b/drivers/hwmon/i5500_temp.c
-> > index ee3f6d9..82a6116 100644
-> > --- a/drivers/hwmon/i5500_temp.c
-> > +++ b/drivers/hwmon/i5500_temp.c
-> > @@ -171,7 +171,6 @@ static int i5500_temp_probe(struct pci_dev *pdev,
-> >  							   "intel5500",
-> >  							   data,
-> >  							   i5500_temp_groups);
-> > -
-> 
-> Always those whitespace changes ;-. I'd leave that up to Jean to decide
-> if he wants an empty line at this place or not.
+From: Alan Tull <atull@opensource.altera.com>
 
-What I want is irrelevant, the important thing is that such a white
-space change does not belong to this patch, so I've reverted it.
+Add device tree bindings documentation for ltc2978.
 
-> Otherwise makes sense and looks good.
-> 
-> Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
+---
+v2: clean whitespace
+---
+ .../devicetree/bindings/hwmon/ltc2978.txt          |   41 ++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/ltc2978.txt
 
-Patch applied (without the white space change), thanks Axel and Guenter.
+diff --git a/Documentation/devicetree/bindings/hwmon/ltc2978.txt b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
+new file mode 100644
+index 0000000..b2d9c4d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
+@@ -0,0 +1,41 @@
++ltc2978
++
++Required properties:
++ - compatible: one of: ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676
++ - reg: I2C address
++
++Optional properties:
++ Name of the optional regulator subnode must be "regulators".
++  - #address-cells must be 1.
++  - #size-cells must be 0.
++
++ For each regulator:
++  - reg: regulator number
++  - regulator-compatible: must be vout_en<regulator number> such as vout_en3
++    valid range is:
++      ltc2977, ltc2978 : vout_en0 - vout_en7
++      ltc2974          : vout_en0 - vout_en3
++      ltc3880, ltm4676 : vout_en0 - vout_en1
++      ltc3883          : vout_en0 only
++  - regulator-name: arbitrary name for regulator
++
++Example:
++ltc2978@5e {
++	compatible = "ltc2978";
++	reg = <0x5e>;
++	regulators {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vdacp0_reg: regulator@0 {
++			reg = <0>;
++			regulator-compatible = "vout_en0";
++			regulator-name = "FPGA-2.5V";
++		};
++		vdacp2_reg: regulator@2 {
++			reg = <2>;
++			regulator-compatible = "vout_en2";
++			regulator-name = "FPGA-1.5V";
++		};
++	};
++};
+-- 
+1.7.9.5
 
-> >  	return PTR_ERR_OR_ZERO(hwmon_dev);
-> >  }
-> >  
-> > @@ -181,19 +180,8 @@ static struct pci_driver i5500_temp_driver = {
-> >  	.probe = i5500_temp_probe,
-> >  };
-> >  
-> > -static int __init i5500_temp_init(void)
-> > -{
-> > -	return pci_register_driver(&i5500_temp_driver);
-> > -}
-> > -
-> > -static void __exit i5500_temp_exit(void)
-> > -{
-> > -	pci_unregister_driver(&i5500_temp_driver);
-> > -}
-> > +module_pci_driver(i5500_temp_driver);
-> >  
-> >  MODULE_AUTHOR("Jean Delvare <jdelvare@suse.de>");
-> >  MODULE_DESCRIPTION("Intel 5500/5200/X58 chipset thermal sensor driver");
-> >  MODULE_LICENSE("GPL");
-> > -
-> > -module_init(i5500_temp_init)
-> > -module_exit(i5500_temp_exit)
 
 _______________________________________________
 lm-sensors mailing list
