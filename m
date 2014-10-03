@@ -1,134 +1,89 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 03 Oct 2014 17:28:59 +0000
+From: Mark Brown <broonie@kernel.org>
+Date: Fri, 03 Oct 2014 23:13:34 +0000
 Subject: Re: [lm-sensors] [PATCH v5 1/4] hwmon: ltc2978: device tree bindings documentation
-Message-Id: <542EDCDB.6040406@roeck-us.net>
+Message-Id: <20141003231334.GA4609@sirena.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1295772633380731976=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1412275071-6417-1-git-send-email-atull@opensource.altera.com> <1412275071-6417-2-git-send-email-atull@opensource.altera.com> <20141003122736.GH26643@leverpostej>
-In-Reply-To: <20141003122736.GH26643@leverpostej>
-MIME-Version: 1.0
+References: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
+ <1412275071-6417-2-git-send-email-atull@opensource.altera.com>
+ <20141003122736.GH26643@leverpostej>
+ <542EDCDB.6040406@roeck-us.net>
+In-Reply-To: <542EDCDB.6040406@roeck-us.net>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Mark Rutland <mark.rutland@arm.com>, "atull@opensource.altera.com" <atull@opensource.altera.com>, "jdelvare@suse.de" <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "lgirdwood@gmail.com" <lgirdwood@gmail.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "galak@codeaurora.org" <galak@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "delicious.quinoa@gmail.com" <delicious.quinoa@gmail.com>, "dinguyen@opensource.altera.com" <dinguyen@opensource.altera.com>, "yvanderv@opensource.altera.com" <yvanderv@opensource.altera.com>
+
+
+--===============1295772633380731976==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Content-Disposition: inline
+
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Oct 03, 2014 at 10:28:59AM -0700, Guenter Roeck wrote:
+> On 10/03/2014 05:27 AM, Mark Rutland wrote:
+
+> >>+Optional properties:
+> >>+ Name of the optional regulator subnode must be "regulators".
+> >>+  - #address-cells must be 1.
+
+> >What's the single address cell used for?
+
+> I think this is required by the regulator bindings.
+> Other regulators use the same, though they don't typically
+> mention it in the properties list but only in the examples.
+
+Nope, nothing to do with regulator that I'm aware of and I've not seen
+any examples (but I don't tend to review users too often).
+
+> >Mark, what's the preferred scheme for identifying regulators in a
+> >container node?
+
+> >>+  - regulator-name: arbitrary name for regulator
+
+> >Drop the 'aribtarary'. Either this should be the name of the regulator
+> >on the board, or it shouldn't be necessary.
+
+> Not sure if it even needs to be documented here. It is already documented
+> in Documentation/devicetree/bindings/regulator/regulator.txt.
+
+Document by reference then?  It really should be the name of the supply
+provided by the regulator, that wording is probably good.  Given that
+it's a standard regulator property I'd not document it here at all, just
+refer to the generic bindings and say any suitable properties there can
+be used.
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJULy2dAAoJECTWi3JdVIfQJgUH/iGxSy0sCJT8+tCSidfBjYQA
+zNd9zjqXv89bDKeuWLOCR8TXi3Qx5bLigrgEH/NaC0RBrt+XcfvVOnr2oiXiMwbn
+bDHQV++qynsvScxjJ99FO9GYTyVdnzwDs8ek1XRDDbH39W407uIEHgBkCXzdxj1l
+oyD1tXjkMb+VBOMDi1LKBML2MI4kXcBWybk/yUQkeQTDtCmOi0oEq5slLJKrTvI9
+OsM0/pJ8GnzuxrHpmKisghKsKuALEZKDQq0jBR+5OREelhmZgyg/6wLkiVyw4mt5
+Jas4gNN9z6fMn0E+x1Fl89XgzPcL8ETuKp2gDuvaagBcazUzDb80q+O6/lCJCLA=
+=aDrK
+-----END PGP SIGNATURE-----
+
+--PEIAKu/WMn1b1Hv9--
+
+
+--===============1295772633380731976==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Mark Rutland <mark.rutland@arm.com>, "atull@opensource.altera.com" <atull@opensource.altera.com>, "broonie@kernel.org" <broonie@kernel.org>
-Cc: "jdelvare@suse.de" <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "lgirdwood@gmail.com" <lgirdwood@gmail.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "galak@codeaurora.org" <galak@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "delicious.quinoa@gmail.com" <delicious.quinoa@gmail.com>, "dinguyen@opensource.altera.com" <dinguyen@opensource.altera.com>, "yvanderv@opensource.altera.com" <yvanderv@opensource.altera.com>
-
-On 10/03/2014 05:27 AM, Mark Rutland wrote:
-> On Thu, Oct 02, 2014 at 07:37:48PM +0100, atull@opensource.altera.com wrote:
->> From: Alan Tull <atull@opensource.altera.com>
->>
->> Add device tree bindings documentation for ltc2978.
->>
->> Signed-off-by: Alan Tull <atull@opensource.altera.com>
->> ---
->> v2: clean whitespace
->> ---
->>   .../devicetree/bindings/hwmon/ltc2978.txt          |   41 ++++++++++++++++++++
->>   1 file changed, 41 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/hwmon/ltc2978.txt
->>
->> diff --git a/Documentation/devicetree/bindings/hwmon/ltc2978.txt b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
->> new file mode 100644
->> index 0000000..b2d9c4d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
->> @@ -0,0 +1,41 @@
->> +ltc2978
->> +
->> +Required properties:
->> + - compatible: one of: ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676
->
-> Could we please format this like:
->
-> - compatible: should contain one of:
->    * "ltc2974"
->    * "ltc2977"
->    * "ltc2978"
->    * "ltc3880"
->    * "ltc3883"
->    * "ltm4676"
->
-> Given the file name, are these all variants of ltc2978?
->
->> + - reg: I2C address
->> +
->> +Optional properties:
->> + Name of the optional regulator subnode must be "regulators".
->> +  - #address-cells must be 1.
->
-> What's the single address cell used for?
->
-I think this is required by the regulator bindings.
-Other regulators use the same, though they don't typically
-mention it in the properties list but only in the examples.
-
->> +  - #size-cells must be 0.
->> +
->> + For each regulator:
->> +  - reg: regulator number
->
-> Which can be...?
->
-> What does this correspond to in the HW?
->
-Channel number or index. Pretty much the 0..7 from the name below.
-
->> +  - regulator-compatible: must be vout_en<regulator number> such as vout_en3
->> +    valid range is:
->> +      ltc2977, ltc2978 : vout_en0 - vout_en7
->> +      ltc2974          : vout_en0 - vout_en3
->> +      ltc3880, ltm4676 : vout_en0 - vout_en1
->> +      ltc3883          : vout_en0 only
->
-> In other bindings I believe I've seen the node name used for this.
->
-Seems like per-device names are chosen for other regulators.
-PMBus commonly uses the term "VOUT" for output voltages,
-so vout[0-7] should be ok.
-
-Which reminds me: We had earlier asked to drop the "_en" from the strings
-as unnecessary.
-
-> Mark, what's the preferred scheme for identifying regulators in a
-> container node?
->
->> +  - regulator-name: arbitrary name for regulator
->
-> Drop the 'aribtarary'. Either this should be the name of the regulator
-> on the board, or it shouldn't be necessary.
->
-Not sure if it even needs to be documented here. It is already documented
-in Documentation/devicetree/bindings/regulator/regulator.txt.
-
-> Mark.
->
->> +
->> +Example:
->> +ltc2978@5e {
->> +	compatible = "ltc2978";
->> +	reg = <0x5e>;
->> +	regulators {
->> +		#address-cells = <1>;
->> +		#size-cells = <0>;
->> +
->> +		vdacp0_reg: regulator@0 {
->> +			reg = <0>;
->> +			regulator-compatible = "vout_en0";
->> +			regulator-name = "FPGA-2.5V";
->> +		};
->> +		vdacp2_reg: regulator@2 {
->> +			reg = <2>;
->> +			regulator-compatible = "vout_en2";
->> +			regulator-name = "FPGA-1.5V";
->> +		};
->> +	};
->> +};
->> --
->> 1.7.9.5
->>
->>
->
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1295772633380731976==--
