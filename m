@@ -1,81 +1,57 @@
-From: Felix Schulthess <fsch@truthbox.ch>
-Date: Sun, 12 Oct 2014 16:53:28 +0000
+From: Phil Pokorny <ppokorny@penguincomputing.com>
+Date: Sun, 12 Oct 2014 17:15:39 +0000
 Subject: Re: [lm-sensors] Fan Control on 6027R TRF running Debian Wheezy
-Message-Id: <543AB208.8060305@truthbox.ch>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2996816842309798507=="
+Message-Id: <CAAek22Ft4CD3goCY=wYJOHWAwKLLpAueFV1UQC_uKjgL894DgA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5437E87B.8030206@truthbox.ch>
 In-Reply-To: <5437E87B.8030206@truthbox.ch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---===============2996816842309798507==
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="wati5OurOmB0dckJTSjrWh6UXOsS8KoUw"
+On Sun, Oct 12, 2014 at 9:12 AM, Felix Schulthess <fsch@truthbox.ch> wrote:
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wati5OurOmB0dckJTSjrWh6UXOsS8KoUw
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Dear List,
-
-On 10/12/2014 06:12 PM, Felix Schulthess wrote:
-
->> You cannot control the fan speeds. They are managed by the onboard
->> controller. You can choose one of several profiles in the bios but tha=
-t
->> is it.
->=20
+> > You cannot control the fan speeds. They are managed by the onboard
+> > controller. You can choose one of several profiles in the bios but that
+> > is it.
+>
 > That explains a lot. Thank you for your help, I am going to do some
 > further research in this direction and read up on FreeIPMI.
+>
+> Still, if I can't control the fan speeds but they are instead controlled
+> by some onboard controller, then how could the installation on the
+> fancontrol and lm-sensors mess up the control loop so bad? This still
+> keeps me wondering.
+>
 
-in the meantime, I managed to change the fan settings back to normal
-(i.e. optimized) fan control. For some reason, they were set to full
-speed. What I had to do is connect via a browser to the management LAN
-port and log in.
+You can't control the fan speeds because there is already another device on
+the motherboard that is tasked with the job of controlling them.  As you
+found, you can poke the control chips, but that doesn't mean you can
+control the speeds predictably.  Imagine two cooks in a kitchen trying to
+cook different meals with the same ingredients.  They come and go in the
+kitchen unaware of the others meddling and confused why things are changing
+when they are away.  You end up with no food.  Only one cook in the kitchen.
 
-There is a manual for the IPMI Chip on the 6027R TRF main board.
-
-http://www.supermicro.com/manuals/other/SMT_IPMI_Manual.pdf
-
-It explains the underlying hardware quite well. I am adding this here
-for the sake of completeness. Maybe so. else will appreciate this solutio=
-n.
-
-Best Felix.
-
-
---wati5OurOmB0dckJTSjrWh6UXOsS8KoUw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJUOrIIAAoJEAiVgzBCINKEQ2gIAKl382MLM3NM35E+695wEBo8
-3ZJzSHNeAAF/6f9Xb62DtUSoJNJjbcbvgBPN30CRdiFrlJFwbuH5ddLk5WPQDSnW
-n02gtczhHfKam7qAlNeLRAPfsYNbYOMgiTcLSYMbuwbwDeUz/gOXJW8nAuf6DCl0
-nCysJ20KQFUTC1mF7DYhHdbe/sPw3HFcm0cdzpstOElr6OTdmcvNIp/CbbObKrVf
-7y4MTs4n5UD/4wYMbPudYDolasC767JGD5m4WzxN2CQ+59lqiVh+YPkUIXSgn2Nz
-V5Vjv1tcXDM/3XYIW5WiM3MlNDZDVnJwMjzK2x7zDuw5rBQWb/jEYstzoXL8JBU=
-=SmpE
------END PGP SIGNATURE-----
-
---wati5OurOmB0dckJTSjrWh6UXOsS8KoUw--
+It's also possible that when you ran SDT it's default config was to change
+the BIOS/BMC setting on the fans speeds to full speed.  As you found it was
+a permanent change to the setting, not some strange interaction between
+lm_sensors and sdt and the BMC.
 
 
---===============2996816842309798507==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Maybe, the sensors somehow blocked the CPU temperature readout. This
+> could have caused the superdoctor program to resort to some failsafe
+> behavior (i.e. spinning the fans up to max RPM). Just wondering.
 
+
+Also possible.
+
+Glad you got your system back under control  In addition to the web
+interface, there is a BIOS screen where you can set the fan speed profile
+as well.
+
+Phil P.
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2996816842309798507==--
