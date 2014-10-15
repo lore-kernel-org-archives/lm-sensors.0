@@ -1,39 +1,74 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 24 Oct 2014 07:17:56 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (i5500_temp) Don't bind to disabled sensors
-Message-Id: <20141024091756.6be801f9@endymion.delvare>
+From: <atull@opensource.altera.com>
+Date: Wed, 15 Oct 2014 18:55:06 +0000
+Subject: [lm-sensors] [PATCH v6 0/4] pmbus: ltc2978: add regulator support
+Message-Id: <1413399310-19277-1-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141023114047.3be4ca6b@endymion.delvare>
-In-Reply-To: <20141023114047.3be4ca6b@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-Hi Henrique,
+From: Alan Tull <atull@opensource.altera.com>
 
-On Thu, 23 Oct 2014 21:28:48 -0200, Henrique de Moraes Holschuh wrote:
-> On Thu, 23 Oct 2014, Jean Delvare wrote:
-> > On many motherboards, for an unknown reason, the thermal sensor seems
-> > to be disabled and will return a constant temperature value of 36.5
-> > degrees Celsius. Don't bind to the device in that case, so that we
-> > don't report this bogus value to userspace.
-> 
-> ...
-> 
-> > +	if (tsfsc = 0x7F && tstimer = 0x07D30D40) {
-> > +		dev_warn(&pdev->dev, "Sensor seems to be disabled\n");
-> > +		return -ENODEV;
-> 
-> If this is an autoloadable module, and this sensor is very often disabled,
-> shouldn't this be dev_info() or dev_notice()?
+Each output has individual on/off control.
 
-This is a good point, I've degraded the message to dev_notice(). Thanks
-for the suggestion!
+New in v6:
+  * Much cleanup of the bindings document
+  * s/vout_en/vout/g
+
+Hopefully this is getting closer.  We will still have the potential problem of
+repeated node names on boards on boards that have many regulators of the same
+kind.  If this can be handled in the regulator layer, that might be great.  
+If we handle it here, whatever we come up with will have to keep the same
+name over reboots and be predictable enough to serve as regulator node names
+in the DT.  I'm open for suggestions here.
+
+This patchset now uses "regulator: of: Provide simplified DT parsing method"
+which are in the next-20141014 tag of linux-next.
+
+From PMBus_Specification_Part_II_Rev_1-3_20140318.pdf:
+12.1.1. OPERATION Command Bit [7]
+  Bit [7] controls whether the PMBus device output is on or off.
+   If bit [7] is cleared (equals 0), then the output is off.
+   If bit [7] is set (equals 1), then the output is on.
+
+Patch 1: document device tree bindings for ltc2978
+
+Patch 2: add two helper functions for byte pmbus byte operations
+  * byte write and byte read/modify/write
+
+Patch 3: regulator support added in pmbus_core.c and pmbus.h
+  * regulator_ops functions (is_enabled, enable, and disable)
+  * gets regulator init data from device tree or platform data
+  * registers the regulators
+  * header has a macro for chip drivers to build their
+    regulator_desc data
+
+Patch 4: changes for ltc2978.c
+  * Add Kconfig to enable/disable ltc2978 regulator functionality.
+  * Update list of parts supported in Kconfig.
+  * add regulator_desc info.
+  * use same structs for all parts; set num_regulators appropriately.
+
+Alan Tull (4):
+  hwmon: ltc2978: device tree bindings documentation
+  pmbus: core: add helpers for byte write and read modify write
+  pmbus: add regulator support
+  pmbus: ltc2978: add regulator support
+
+ .../devicetree/bindings/hwmon/ltc2978.txt          |   39 +++++++
+ drivers/hwmon/pmbus/Kconfig                        |   11 +-
+ drivers/hwmon/pmbus/ltc2978.c                      |   39 ++++++-
+ drivers/hwmon/pmbus/pmbus.h                        |   30 +++++
+ drivers/hwmon/pmbus/pmbus_core.c                   |  118 ++++++++++++++++++++
+ include/linux/i2c/pmbus.h                          |    4 +
+ 6 files changed, 238 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/ltc2978.txt
 
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
