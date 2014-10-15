@@ -1,269 +1,151 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 22 Oct 2014 08:57:45 +0000
-Subject: [lm-sensors] [PATCH 1/3 v2] hwmon: (i5500_temp) New driver for the Intel 5500/5520/X58 chipsets
-Message-Id: <20141022105745.1ecdc14a@endymion.delvare>
+From: <atull@opensource.altera.com>
+Date: Wed, 15 Oct 2014 18:55:10 +0000
+Subject: [lm-sensors] [PATCH v6 4/4] pmbus: ltc2978: add regulator support
+Message-Id: <1413399310-19277-5-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1413399310-19277-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1413399310-19277-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.de
+Cc: lm-sensors@lm-sensors.org, lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, delicious.quinoa@gmail.com, dinguyen@opensource.altera.com, yvanderv@opensource.altera.com, Alan Tull <atull@opensource.altera.com>
 
-The Intel 5500, 5520 and X58 chipsets embed a digital thermal sensor.
-This new driver supports it.
+From: Alan Tull <atull@opensource.altera.com>
 
-Note that on many boards the sensor seems to be disabled and reports
-the minimum value (36.5 degrees Celsius) all the time.
+Add simple on/off regulator support for ltc2978 and
+other pmbus parts supported by ltc2978.c
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Tested-by: Romain Dolbeau <romain@dolbeau.org>
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Alan Tull <atull@opensource.altera.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Mark Brown <broonie@kernel.org>
 ---
-Changes since v1:
- * Don't cache register values.
+v2: Remove '#include <linux/regulator/machine.h>'
+    Only one regulator per pmbus device
+    Get regulator_init_data from pdata or device tree
 
- drivers/hwmon/Kconfig      |   10 ++
- drivers/hwmon/Makefile     |    1 
- drivers/hwmon/i5500_temp.c |  201 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 212 insertions(+)
+v3: Support multiple regulators for each chip
+    Move most code to pmbus_core.c
+    fixed values for on/off
 
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-3.17/drivers/hwmon/i5500_temp.c	2014-10-22 10:17:03.102246155 +0200
-@@ -0,0 +1,201 @@
-+/*
-+ * i5500_temp - Driver for Intel 5500/5520/X58 chipset thermal sensor
-+ *
-+ * Copyright (C) 2012, 2014 Jean Delvare <jdelvare@suse.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/jiffies.h>
-+#include <linux/pci.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+
-+/* Register definitions from datasheet */
-+#define REG_TSTHRCATA	0xE2
-+#define REG_TSCTRL	0xE8
-+#define REG_TSTHRRPEX	0xEB
-+#define REG_TSTHRLO	0xEC
-+#define REG_TSTHRHI	0xEE
-+#define REG_CTHINT	0xF0
-+#define REG_TSFSC	0xF3
-+#define REG_CTSTS	0xF4
-+#define REG_TSTHRRQPI	0xF5
-+#define REG_CTCTRL	0xF7
-+#define REG_TSTIMER	0xF8
-+
-+struct i5500_temp_data {
-+	struct device *hwmon_dev;
-+	const char *name;
-+};
-+
-+/*
-+ * Sysfs stuff
-+ */
-+
-+/* Sensor resolution : 0.5 degree C */
-+static ssize_t show_temp(struct device *dev,
-+			 struct device_attribute *devattr, char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	long temp;
-+	u16 tsthrhi;
-+	s8 tsfsc;
-+
-+	pci_read_config_word(pdev, REG_TSTHRHI, &tsthrhi);
-+	pci_read_config_byte(pdev, REG_TSFSC, &tsfsc);
-+	temp = ((long)tsthrhi - tsfsc) * 500;
-+
-+	return sprintf(buf, "%ld\n", temp);
-+}
-+
-+static ssize_t show_thresh(struct device *dev,
-+			   struct device_attribute *devattr, char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	int reg = to_sensor_dev_attr(devattr)->index;
-+	long temp;
-+	u16 tsthr;
-+
-+	pci_read_config_word(pdev, reg, &tsthr);
-+	temp = tsthr * 500;
-+
-+	return sprintf(buf, "%ld\n", temp);
-+}
-+
-+static ssize_t show_alarm(struct device *dev,
-+			  struct device_attribute *devattr, char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	int nr = to_sensor_dev_attr(devattr)->index;
-+	u8 ctsts;
-+
-+	pci_read_config_byte(pdev, REG_CTSTS, &ctsts);
-+	return sprintf(buf, "%u\n", (unsigned int)ctsts & (1 << nr));
-+}
-+
-+static ssize_t show_name(struct device *dev, struct device_attribute
-+			 *devattr, char *buf)
-+{
-+	struct i5500_temp_data *data = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%s\n", data->name);
-+}
-+
-+static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_thresh, NULL, 0xE2);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO, show_thresh, NULL, 0xEC);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_thresh, NULL, 0xEE);
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
-+
-+static struct attribute *i5500_temp_attributes[] = {
-+	&dev_attr_temp1_input.attr,
-+	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-+	&dev_attr_name.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group i5500_temp_group = {
-+	.attrs = i5500_temp_attributes,
-+};
-+
-+static const struct pci_device_id i5500_temp_ids[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x3438) },
-+	{ 0 },
-+};
-+
-+MODULE_DEVICE_TABLE(pci, i5500_temp_ids);
-+
-+static int i5500_temp_probe(struct pci_dev *pdev,
-+			    const struct pci_device_id *id)
-+{
-+	int err;
-+	struct i5500_temp_data *data;
-+
-+	data = kzalloc(sizeof(struct i5500_temp_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	data->name = "intel5500";
-+	dev_set_drvdata(&pdev->dev, data);
-+
-+	err = pci_enable_device(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to enable device\n");
-+		goto exit_free;
-+	}
-+
-+	/* Register sysfs hooks */
-+	err = sysfs_create_group(&pdev->dev.kobj, &i5500_temp_group);
-+	if (err)
-+		goto exit_free;
-+
-+	data->hwmon_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+ exit_remove:
-+	sysfs_remove_group(&pdev->dev.kobj, &i5500_temp_group);
-+ exit_free:
-+	kfree(data);
-+ exit:
-+	return err;
-+}
-+
-+static void i5500_temp_remove(struct pci_dev *pdev)
-+{
-+	struct i5500_temp_data *data = dev_get_drvdata(&pdev->dev);
-+
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&pdev->dev.kobj, &i5500_temp_group);
-+	kfree(data);
-+}
-+
-+static struct pci_driver i5500_temp_driver = {
-+	.name = "i5500_temp",
-+	.id_table = i5500_temp_ids,
-+	.probe = i5500_temp_probe,
-+	.remove = i5500_temp_remove,
-+};
-+
-+static int __init i5500_temp_init(void)
-+{
-+	return pci_register_driver(&i5500_temp_driver);
-+}
-+
-+static void __exit i5500_temp_exit(void)
-+{
-+	pci_unregister_driver(&i5500_temp_driver);
-+}
-+
-+MODULE_AUTHOR("Jean Delvare <jdelvare@suse.de>");
-+MODULE_DESCRIPTION("Intel 5500/5200/X58 chipset thermal sensor driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(i5500_temp_init)
-+module_exit(i5500_temp_exit)
---- linux-3.17.orig/drivers/hwmon/Kconfig	2014-10-21 09:01:37.278969596 +0200
-+++ linux-3.17/drivers/hwmon/Kconfig	2014-10-21 09:01:38.420997013 +0200
-@@ -574,6 +574,16 @@ config SENSORS_IIO_HWMON
- 	  for those channels specified in the map.  This map can be provided
- 	  either via platform data or the device tree bindings.
+v4: fix a #endif comment
+    simplify probe code, remove added switch statement
+    remove BUG_ON(), add error message and fix num_regulators
+
+v5: Kconfig: update list of supported chips
+    use "regulator: of: Provide simplified DT parsing method"
+    remove #include <linux/regulator/of_regulator.h>
+    remove of_regulator_match
+
+v6: add compatible strings with vendor code
+    s/vout_en/vout/
+---
+ drivers/hwmon/pmbus/Kconfig   |   11 +++++++++--
+ drivers/hwmon/pmbus/ltc2978.c |   39 ++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 47 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
+index 6e1e493..a674cd8 100644
+--- a/drivers/hwmon/pmbus/Kconfig
++++ b/drivers/hwmon/pmbus/Kconfig
+@@ -47,15 +47,22 @@ config SENSORS_LM25066
+ 	  be called lm25066.
  
-+config SENSORS_I5500
-+	tristate "Intel 5500/5520/X58 temperature sensor"
-+	depends on X86
+ config SENSORS_LTC2978
+-	tristate "Linear Technologies LTC2974, LTC2978, LTC3880, and LTC3883"
++	tristate "Linear Technologies LTC2978 and compatibles"
+ 	default n
+ 	help
+ 	  If you say yes here you get hardware monitoring support for Linear
+-	  Technology LTC2974, LTC2978, LTC3880, and LTC3883.
++	  Technology LTC2974, LTC2977, LTC2978, LTC3880, LTC3883, and LTM4676.
+ 
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called ltc2978.
+ 
++config SENSORS_LTC2978_REGULATOR
++	boolean "Regulator support for LTC2978 and compatibles"
++	depends on SENSORS_LTC2978 && REGULATOR
 +	help
-+	  If you say yes here you get support for the temperature
-+	  sensor inside the Intel 5500, 5520 and X58 chipsets.
++	  If you say yes here you get regulator support for Linear
++	  Technology LTC2974, LTC2977, LTC2978, LTC3880, LTC3883, and LTM4676.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called i5500_temp.
+ config SENSORS_MAX16064
+ 	tristate "Maxim MAX16064"
+ 	default n
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index e24ed52..0835050 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -22,6 +22,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
++#include <linux/regulator/driver.h>
+ #include "pmbus.h"
+ 
+ enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676 };
+@@ -374,6 +375,19 @@ static const struct i2c_device_id ltc2978_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ltc2978_id);
+ 
++#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
++static const struct regulator_desc ltc2978_reg_desc[] = {
++	PMBUS_REGULATOR("vout", 0),
++	PMBUS_REGULATOR("vout", 1),
++	PMBUS_REGULATOR("vout", 2),
++	PMBUS_REGULATOR("vout", 3),
++	PMBUS_REGULATOR("vout", 4),
++	PMBUS_REGULATOR("vout", 5),
++	PMBUS_REGULATOR("vout", 6),
++	PMBUS_REGULATOR("vout", 7),
++};
++#endif /* CONFIG_SENSORS_LTC2978_REGULATOR */
 +
- config SENSORS_CORETEMP
- 	tristate "Intel Core/Core2/Atom temperature sensor"
- 	depends on X86
---- linux-3.17.orig/drivers/hwmon/Makefile	2014-10-21 09:01:37.278969596 +0200
-+++ linux-3.17/drivers/hwmon/Makefile	2014-10-21 09:01:38.421997037 +0200
-@@ -68,6 +68,7 @@ obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-f
- obj-$(CONFIG_SENSORS_HIH6130)	+= hih6130.o
- obj-$(CONFIG_SENSORS_HTU21)	+= htu21.o
- obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o
-+obj-$(CONFIG_SENSORS_I5500)	+= i5500_temp.o
- obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
- obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
- obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
-
-
+ static int ltc2978_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -487,13 +501,36 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	default:
+ 		return -ENODEV;
+ 	}
++
++#if IS_ENABLED(CONFIG_SENSORS_LTC2978_REGULATOR)
++	info->num_regulators = info->pages;
++	info->reg_desc = ltc2978_reg_desc;
++	if (info->num_regulators > ARRAY_SIZE(ltc2978_reg_desc)) {
++		dev_err(&client->dev, "num_regulators too large!");
++		info->num_regulators = ARRAY_SIZE(ltc2978_reg_desc);
++	}
++#endif
++
+ 	return pmbus_do_probe(client, id, info);
+ }
+ 
+-/* This is the driver that will be inserted */
++#ifdef CONFIG_OF
++static const struct of_device_id ltc2978_of_match[] = {
++	{ .compatible = "lltc,ltc2974" },
++	{ .compatible = "lltc,ltc2977" },
++	{ .compatible = "lltc,ltc2978" },
++	{ .compatible = "lltc,ltc3880" },
++	{ .compatible = "lltc,ltc3883" },
++	{ .compatible = "lltc,ltm4676" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, ltc2978_of_match);
++#endif
++
+ static struct i2c_driver ltc2978_driver = {
+ 	.driver = {
+ 		   .name = "ltc2978",
++		   .of_match_table = of_match_ptr(ltc2978_of_match),
+ 		   },
+ 	.probe = ltc2978_probe,
+ 	.remove = pmbus_do_remove,
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
