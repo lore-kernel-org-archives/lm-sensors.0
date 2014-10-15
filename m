@@ -1,10 +1,10 @@
 From: <atull@opensource.altera.com>
-Date: Thu, 02 Oct 2014 18:37:49 +0000
-Subject: [lm-sensors] [PATCH v5 2/4] pmbus: core: add helpers for byte write and read modify write
-Message-Id: <1412275071-6417-3-git-send-email-atull@opensource.altera.com>
+Date: Wed, 15 Oct 2014 18:55:08 +0000
+Subject: [lm-sensors] [PATCH v6 2/4] pmbus: core: add helpers for byte write and read modify write
+Message-Id: <1413399310-19277-3-git-send-email-atull@opensource.altera.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
-In-Reply-To: <1412275071-6417-1-git-send-email-atull@opensource.altera.com>
+References: <1413399310-19277-1-git-send-email-atull@opensource.altera.com>
+In-Reply-To: <1413399310-19277-1-git-send-email-atull@opensource.altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,6 +18,8 @@ Add two helper functions:
  * pmbus_update_byte_data = paged byte read/modify/write
 
 Signed-off-by: Alan Tull <atull@opensource.altera.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Mark Brown <broonie@kernel.org>
 ---
 v2: add prototypes for the two new functions
 ---
