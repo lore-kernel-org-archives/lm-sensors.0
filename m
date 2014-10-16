@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 16 Oct 2014 19:18:57 +0000
+Date: Thu, 16 Oct 2014 20:20:45 +0000
 Subject: Re: [lm-sensors] [PATCH v6 3/4] pmbus: add regulator support
-Message-Id: <20141016191857.GA22237@roeck-us.net>
+Message-Id: <20141016202045.GA23966@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1413399310-19277-1-git-send-email-atull@opensource.altera.com>
  <1413399310-19277-4-git-send-email-atull@opensource.altera.com>
@@ -63,37 +63,65 @@ On Thu, Oct 16, 2014 at 01:40:23PM -0500, atull wrote:
 > 
 > OK, I will look into it.
 > 
-Hi Alan,
 
-I tracked it down a bit further. It is a regulator core problem after all.
-Turns out the parent device name is not _always_ used when creating
-debugfs directories. The culprit is rdev_init_debugfs, which just takes
-rdev_get_name() to create the name. I am currently playing with it.
+Can you try the following patch ? It may not be perfect, but it does
+the job for me.
 
-Problem is that if I just prepend the parent device name (if available)
-in rdev_init_debugfs, I get something like the following.
+Mark, would that patch be acceptable ?
 
-2-005c-pmb-vout0     5-005d-vout6  5-005f-vout5  5-0061-vout4
-2-005c-pmb-vout1     5-005d-vout7  5-005f-vout6  5-0061-vout5
-2-005c-pmb-vout2     5-005e-vout0  5-005f-vout7  5-0061-vout6
-2-005c-vout3         5-005e-vout1  5-0060-vout0  5-0061-vout7
-2-005c-vout4         5-005e-vout2  5-0060-vout1  5-0062-vout0
-2-005c-vout5         5-005e-vout3  5-0060-vout2  5-0062-vout1
-2-005c-vout6         5-005e-vout4  5-0060-vout3  5-0062-vout2
-2-005c-vout7         5-005e-vout5  5-0060-vout4  5-0062-vout3
-3p3v.11-3P3V         5-005e-vout6  5-0060-vout5  5-0062-vout4
-5-005d-fpc-5d-vout0  5-005e-vout7  5-0060-vout6  5-0062-vout5
-5-005d-fpc-5d-vout1  5-005f-vout0  5-0060-vout7  5-0062-vout6
-5-005d-vout2         5-005f-vout1  5-0061-vout0  5-0062-vout7
-5-005d-vout3         5-005f-vout2  5-0061-vout1  reg-dummy-regulator-dummy
-5-005d-vout4         5-005f-vout3  5-0061-vout2  supply_map
-5-005d-vout5         5-005f-vout4  5-0061-vout3
-
-This is a bit better but creates names such as "3p3v.11-3P3V"
-and "reg-dummy-regulator-dummy" which doesn't make much sense
-either. So I think we'll need something better than that.
-
+Thanks,
 Guenter
+---
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 16 Oct 2014 13:08:35 -0700
+Subject: [PATCH] regulator: Ensure unique regulator debugfs directory names
+
+If multiple regulator devices of the same type exist in a system,
+the regulator driver assigns generic names for the regulators it
+provides, and debugfs is enabled, the regulator subsystem attempts
+to create multiple entries with the same name in the regulator debugfs
+directory. This fails for all but the first regulator, resulting in
+multiple "Failed to create debugfs directory" log entries.
+
+To avoid the problem, prepend the debugfs directory name for a regulator
+with its parent device name if available, but only if no explicit
+regulator name was provided.
+
+Cc: Alan Tull <atull@opensource.altera.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/regulator/core.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index cd87c0c..92f7a53 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -3538,7 +3538,18 @@ static int add_regulator_attributes(struct regulator_dev *rdev)
+ 
+ static void rdev_init_debugfs(struct regulator_dev *rdev)
+ {
+-	rdev->debugfs = debugfs_create_dir(rdev_get_name(rdev), debugfs_root);
++	struct device *parent = rdev->dev.parent;
++	const char *rname = rdev_get_name(rdev);
++	char name[NAME_MAX];
++
++	/* Avoid duplicate debugfs directory names */
++	if (parent && rname = rdev->desc->name) {
++		snprintf(name, sizeof(name), "%s-%s", dev_name(parent),
++			 rname);
++		rname = name;
++	}
++
++	rdev->debugfs = debugfs_create_dir(rname, debugfs_root);
+ 	if (!rdev->debugfs) {
+ 		rdev_warn(rdev, "Failed to create debugfs directory\n");
+ 		return;
+-- 
+1.9.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
