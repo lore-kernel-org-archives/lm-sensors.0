@@ -1,45 +1,269 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 23 Oct 2014 00:10:36 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.18-rc2
-Message-Id: <1414023036-17120-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 22 Oct 2014 08:57:45 +0000
+Subject: [lm-sensors] [PATCH 1/3 v2] hwmon: (i5500_temp) New driver for the Intel 5500/5520/X58 chipsets
+Message-Id: <20141022105745.1ecdc14a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+The Intel 5500, 5520 and X58 chipsets embed a digital thermal sensor.
+This new driver supports it.
 
-Please pull hwmon fixes for Linux 3.18-rc2 from signed tag:
+Note that on many boards the sensor seems to be disabled and reports
+the minimum value (36.5 degrees Celsius) all the time.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v3.18-rc2
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Tested-by: Romain Dolbeau <romain@dolbeau.org>
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+---
+Changes since v1:
+ * Don't cache register values.
 
-Thanks,
-Guenter
-------
+ drivers/hwmon/Kconfig      |   10 ++
+ drivers/hwmon/Makefile     |    1 
+ drivers/hwmon/i5500_temp.c |  201 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 212 insertions(+)
 
-The following changes since commit f114040e3ea6e07372334ade75d1ee0775c355e1:
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-3.17/drivers/hwmon/i5500_temp.c	2014-10-22 10:17:03.102246155 +0200
+@@ -0,0 +1,201 @@
++/*
++ * i5500_temp - Driver for Intel 5500/5520/X58 chipset thermal sensor
++ *
++ * Copyright (C) 2012, 2014 Jean Delvare <jdelvare@suse.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/pci.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++
++/* Register definitions from datasheet */
++#define REG_TSTHRCATA	0xE2
++#define REG_TSCTRL	0xE8
++#define REG_TSTHRRPEX	0xEB
++#define REG_TSTHRLO	0xEC
++#define REG_TSTHRHI	0xEE
++#define REG_CTHINT	0xF0
++#define REG_TSFSC	0xF3
++#define REG_CTSTS	0xF4
++#define REG_TSTHRRQPI	0xF5
++#define REG_CTCTRL	0xF7
++#define REG_TSTIMER	0xF8
++
++struct i5500_temp_data {
++	struct device *hwmon_dev;
++	const char *name;
++};
++
++/*
++ * Sysfs stuff
++ */
++
++/* Sensor resolution : 0.5 degree C */
++static ssize_t show_temp(struct device *dev,
++			 struct device_attribute *devattr, char *buf)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	long temp;
++	u16 tsthrhi;
++	s8 tsfsc;
++
++	pci_read_config_word(pdev, REG_TSTHRHI, &tsthrhi);
++	pci_read_config_byte(pdev, REG_TSFSC, &tsfsc);
++	temp = ((long)tsthrhi - tsfsc) * 500;
++
++	return sprintf(buf, "%ld\n", temp);
++}
++
++static ssize_t show_thresh(struct device *dev,
++			   struct device_attribute *devattr, char *buf)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	int reg = to_sensor_dev_attr(devattr)->index;
++	long temp;
++	u16 tsthr;
++
++	pci_read_config_word(pdev, reg, &tsthr);
++	temp = tsthr * 500;
++
++	return sprintf(buf, "%ld\n", temp);
++}
++
++static ssize_t show_alarm(struct device *dev,
++			  struct device_attribute *devattr, char *buf)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	int nr = to_sensor_dev_attr(devattr)->index;
++	u8 ctsts;
++
++	pci_read_config_byte(pdev, REG_CTSTS, &ctsts);
++	return sprintf(buf, "%u\n", (unsigned int)ctsts & (1 << nr));
++}
++
++static ssize_t show_name(struct device *dev, struct device_attribute
++			 *devattr, char *buf)
++{
++	struct i5500_temp_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", data->name);
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
++static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_thresh, NULL, 0xE2);
++static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO, show_thresh, NULL, 0xEC);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_thresh, NULL, 0xEE);
++static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static struct attribute *i5500_temp_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&dev_attr_name.attr,
++	NULL
++};
++
++static const struct attribute_group i5500_temp_group = {
++	.attrs = i5500_temp_attributes,
++};
++
++static const struct pci_device_id i5500_temp_ids[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x3438) },
++	{ 0 },
++};
++
++MODULE_DEVICE_TABLE(pci, i5500_temp_ids);
++
++static int i5500_temp_probe(struct pci_dev *pdev,
++			    const struct pci_device_id *id)
++{
++	int err;
++	struct i5500_temp_data *data;
++
++	data = kzalloc(sizeof(struct i5500_temp_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	data->name = "intel5500";
++	dev_set_drvdata(&pdev->dev, data);
++
++	err = pci_enable_device(pdev);
++	if (err) {
++		dev_err(&pdev->dev, "Failed to enable device\n");
++		goto exit_free;
++	}
++
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&pdev->dev.kobj, &i5500_temp_group);
++	if (err)
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++ exit_remove:
++	sysfs_remove_group(&pdev->dev.kobj, &i5500_temp_group);
++ exit_free:
++	kfree(data);
++ exit:
++	return err;
++}
++
++static void i5500_temp_remove(struct pci_dev *pdev)
++{
++	struct i5500_temp_data *data = dev_get_drvdata(&pdev->dev);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&pdev->dev.kobj, &i5500_temp_group);
++	kfree(data);
++}
++
++static struct pci_driver i5500_temp_driver = {
++	.name = "i5500_temp",
++	.id_table = i5500_temp_ids,
++	.probe = i5500_temp_probe,
++	.remove = i5500_temp_remove,
++};
++
++static int __init i5500_temp_init(void)
++{
++	return pci_register_driver(&i5500_temp_driver);
++}
++
++static void __exit i5500_temp_exit(void)
++{
++	pci_unregister_driver(&i5500_temp_driver);
++}
++
++MODULE_AUTHOR("Jean Delvare <jdelvare@suse.de>");
++MODULE_DESCRIPTION("Intel 5500/5200/X58 chipset thermal sensor driver");
++MODULE_LICENSE("GPL");
++
++module_init(i5500_temp_init)
++module_exit(i5500_temp_exit)
+--- linux-3.17.orig/drivers/hwmon/Kconfig	2014-10-21 09:01:37.278969596 +0200
++++ linux-3.17/drivers/hwmon/Kconfig	2014-10-21 09:01:38.420997013 +0200
+@@ -574,6 +574,16 @@ config SENSORS_IIO_HWMON
+ 	  for those channels specified in the map.  This map can be provided
+ 	  either via platform data or the device tree bindings.
+ 
++config SENSORS_I5500
++	tristate "Intel 5500/5520/X58 temperature sensor"
++	depends on X86
++	help
++	  If you say yes here you get support for the temperature
++	  sensor inside the Intel 5500, 5520 and X58 chipsets.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called i5500_temp.
++
+ config SENSORS_CORETEMP
+ 	tristate "Intel Core/Core2/Atom temperature sensor"
+ 	depends on X86
+--- linux-3.17.orig/drivers/hwmon/Makefile	2014-10-21 09:01:37.278969596 +0200
++++ linux-3.17/drivers/hwmon/Makefile	2014-10-21 09:01:38.421997037 +0200
+@@ -68,6 +68,7 @@ obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-f
+ obj-$(CONFIG_SENSORS_HIH6130)	+= hih6130.o
+ obj-$(CONFIG_SENSORS_HTU21)	+= htu21.o
+ obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o
++obj-$(CONFIG_SENSORS_I5500)	+= i5500_temp.o
+ obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
+ obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
+ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
 
-  Linux 3.18-rc1 (2014-10-19 18:08:38 -0700)
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v3.18-rc2
-
-for you to fetch changes up to 3d5960472de0a245c56ba55e9a59b8d0f4c69cb4:
-
-  hwmon: (menf21bmc) Include linux/err.h (2014-10-19 18:41:18 -0700)
-
-----------------------------------------------------------------
-Fix potential compile problem for menf21bmc hwmon driver
-
-----------------------------------------------------------------
-Johannes Thumshirn (1):
-      hwmon: (menf21bmc) Include linux/err.h
-
- drivers/hwmon/menf21bmc_hwmon.c | 1 +
- 1 file changed, 1 insertion(+)
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
