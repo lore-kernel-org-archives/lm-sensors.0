@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 22 Oct 2014 16:26:32 +0000
+From: Romain Dolbeau <romain@dolbeau.org>
+Date: Wed, 22 Oct 2014 17:54:49 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (i5500_temp) Don't bind to disabled sensors
-Message-Id: <20141022162632.GB31045@roeck-us.net>
+Message-Id: <CADuzgbrhbW-vbpwz_R7P9mMvWhbCS5zL-VvKHRo+cN5sSscN=Q@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20141022111321.22ab7122@endymion.delvare>
 In-Reply-To: <20141022111321.22ab7122@endymion.delvare>
@@ -10,55 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 22, 2014 at 11:13:21AM +0200, Jean Delvare wrote:
-> On many motherboards, for an unknown reason, the thermal sensor seems
-> to be disabled and will return a constant temperature value of 36.5
-> degrees Celsius. Don't bind to the device in that case, so that we
-> don't report this bogus value to userspace.
-> 
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: Romain Dolbeau <romain@dolbeau.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> ---
-> As suggested by Guenter.
-> 
->  drivers/hwmon/i5500_temp.c |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> --- linux-3.17.orig/drivers/hwmon/i5500_temp.c	2014-10-22 10:22:18.526856485 +0200
-> +++ linux-3.17/drivers/hwmon/i5500_temp.c	2014-10-22 10:55:22.700413828 +0200
-> @@ -121,6 +121,7 @@ static int i5500_temp_probe(struct pci_d
->  {
->  	int err;
->  	struct device *hwmon_dev;
-> +	s8 tsfsc;
->  
->  	err = pci_enable_device(pdev);
->  	if (err) {
-> @@ -128,6 +129,12 @@ static int i5500_temp_probe(struct pci_d
->  		return err;
->  	}
->  
-> +	pci_read_config_byte(pdev, REG_TSFSC, &tsfsc);
-> +	if (tsfsc = 0x7F) {
-> +		dev_warn(&pdev->dev, "Sensor seems to be disabled\n");
-> +		return -ENODEV;
-> +	}
-> +
-Is there really no other register you can use to detect if the sensor is enabled ?
-How about the TSTIMER register ?
+2014-10-22 18:26 GMT+02:00 Guenter Roeck <linux@roeck-us.net>:
+> Is there really no other register you can use to detect if the sensor is enabled ?
+> How about the TSTIMER register ?
 
-Thanks,
-Guenter
+As far as I can tell (but I'm not an expert), all the documented
+registers display "sane" values, so it's hard to tell apart working
+and non-working systems. I tried copying the whole register
+space from the working to the non-working system, and it didn't
+help one bit. Seems there's some undocumented initialization
+missing (or the sensor is just not there).
 
->  	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
->  							   "intel5500", NULL,
->  							   i5500_temp_groups);
-> 
-> 
-> -- 
-> Jean Delvare
-> SUSE L3 Support
+So among the possibilities I see
+
+1) Jean's solution, which I think is the best one. Simply reject
+if TSFSC=0x7F and document why.  In the odd case where a
+cold system won't load, the admin can always load it on a
+warm (literally) system (@reboot in crontab).
+
+2) the variability solution. perhaps a tiny bit more reliable, but
+much more complicated (and how much time does it take
+of TSFSC to react to change in TSTHRHI anyway ?)
+
+3) depends on some undocumented behavior, such as the
+byte @ 0xE4 seemingly containing (TSTHRTHI-TSFSC).
+
+4) the TSTHRCATA register is write-once, and (apparently)
+already written on the "working" system but not on the
+"non-working" system. But that's on a sample of 1 system
+of either kind, so again not very safe.
+
+I think 1) is still the best solution, because it's simple
+and has no side-effect other than not loading in an hypothetical
+scenario unlikely to happen. 5500-based system are 3 to 4
+generations back, it's unlikely chipset temperature is going
+to be a critical factor where the driver just _must_ load :-)
+
+Cordially,
+
+-- 
+Romain Dolbeau
 
 _______________________________________________
 lm-sensors mailing list
