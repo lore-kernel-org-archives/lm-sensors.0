@@ -1,66 +1,57 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Oct 2014 13:14:27 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ab8500) Call kernel_power_off instead of pm_power_off
-Message-Id: <542BFE33.7090405@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 22 Oct 2014 13:27:35 +0000
+Subject: [lm-sensors] hwmon: (i5500_temp) Convert to module_pci_driver
+Message-Id: <1413984455.15240.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1412095533-11301-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1412095533-11301-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 10/01/2014 05:54 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Tue, 30 Sep 2014 09:45:33 -0700, Guenter Roeck wrote:
->> Drivers should not call pm_power_off directly; it is not guaranteed
->> to be non-NULL. Call kernel_power_off instead.
->>
->> Cc: Jean Delvare <jdelvare@suse.de>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/ab8500.c | 5 +++--
->>   1 file changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/hwmon/ab8500.c b/drivers/hwmon/ab8500.c
->> index d844dc8..8b6a4f4 100644
->> --- a/drivers/hwmon/ab8500.c
->> +++ b/drivers/hwmon/ab8500.c
->> @@ -6,7 +6,7 @@
->>    *
->>    * When the AB8500 thermal warning temperature is reached (threshold cannot
->>    * be changed by SW), an interrupt is set, and if no further action is taken
->> - * within a certain time frame, pm_power off will be called.
->> + * within a certain time frame, kernel_power_off will be called.
->>    *
->>    * When AB8500 thermal shutdown temperature is reached a hardware shutdown of
->>    * the AB8500 will occur.
->> @@ -21,6 +21,7 @@
->>   #include <linux/module.h>
->>   #include <linux/platform_device.h>
->>   #include <linux/power/ab8500.h>
->> +#include <linux/reboot.h>
->>   #include <linux/slab.h>
->>   #include <linux/sysfs.h>
->>   #include "abx500.h"
->> @@ -106,7 +107,7 @@ static void ab8500_thermal_power_off(struct work_struct *work)
->>
->>   	dev_warn(&abx500_data->pdev->dev, "Power off due to critical temp\n");
->>
->> -	pm_power_off();
->> +	kernel_power_off();
->>   }
->>
->>   static ssize_t ab8500_show_name(struct device *dev,
->
-> I am no expert on the matter but this looks like a reasonable change.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Thanks!
+Use module_pci_driver to simplify the code a bit.
 
-Guenter
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/i5500_temp.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/i5500_temp.c b/drivers/hwmon/i5500_temp.c
+index ee3f6d9..82a6116 100644
+--- a/drivers/hwmon/i5500_temp.c
++++ b/drivers/hwmon/i5500_temp.c
+@@ -171,7 +171,6 @@ static int i5500_temp_probe(struct pci_dev *pdev,
+ 							   "intel5500",
+ 							   data,
+ 							   i5500_temp_groups);
+-
+ 	return PTR_ERR_OR_ZERO(hwmon_dev);
+ }
+ 
+@@ -181,19 +180,8 @@ static struct pci_driver i5500_temp_driver = {
+ 	.probe = i5500_temp_probe,
+ };
+ 
+-static int __init i5500_temp_init(void)
+-{
+-	return pci_register_driver(&i5500_temp_driver);
+-}
+-
+-static void __exit i5500_temp_exit(void)
+-{
+-	pci_unregister_driver(&i5500_temp_driver);
+-}
++module_pci_driver(i5500_temp_driver);
+ 
+ MODULE_AUTHOR("Jean Delvare <jdelvare@suse.de>");
+ MODULE_DESCRIPTION("Intel 5500/5200/X58 chipset thermal sensor driver");
+ MODULE_LICENSE("GPL");
+-
+-module_init(i5500_temp_init)
+-module_exit(i5500_temp_exit)
+-- 
+1.9.1
+
+
 
 
 _______________________________________________
