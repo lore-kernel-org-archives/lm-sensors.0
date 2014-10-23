@@ -1,59 +1,35 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 23 Oct 2014 09:40:47 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (i5500_temp) Don't bind to disabled sensors
-Message-Id: <20141023114047.3be4ca6b@endymion.delvare>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date: Thu, 23 Oct 2014 23:28:48 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: (i5500_temp) Don't bind to disabled sensors
+Message-Id: <20141023232848.GA23126@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20141023114047.3be4ca6b@endymion.delvare>
+In-Reply-To: <20141023114047.3be4ca6b@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On many motherboards, for an unknown reason, the thermal sensor seems
-to be disabled and will return a constant temperature value of 36.5
-degrees Celsius. Don't bind to the device in that case, so that we
-don't report this bogus value to userspace.
+On Thu, 23 Oct 2014, Jean Delvare wrote:
+> On many motherboards, for an unknown reason, the thermal sensor seems
+> to be disabled and will return a constant temperature value of 36.5
+> degrees Celsius. Don't bind to the device in that case, so that we
+> don't report this bogus value to userspace.
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Romain Dolbeau <romain@dolbeau.org>
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
----
-Changes since v1:
-* Also check the value of register TSTIMER, to improve the reliability
-  of the heuristic.
+...
 
- drivers/hwmon/i5500_temp.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+> +	if (tsfsc = 0x7F && tstimer = 0x07D30D40) {
+> +		dev_warn(&pdev->dev, "Sensor seems to be disabled\n");
+> +		return -ENODEV;
 
---- linux-3.17.orig/drivers/hwmon/i5500_temp.c	2014-10-23 11:21:54.204198524 +0200
-+++ linux-3.17/drivers/hwmon/i5500_temp.c	2014-10-23 11:31:20.376347502 +0200
-@@ -121,6 +121,8 @@ static int i5500_temp_probe(struct pci_d
- {
- 	int err;
- 	struct device *hwmon_dev;
-+	u32 tstimer;
-+	s8 tsfsc;
- 
- 	err = pci_enable_device(pdev);
- 	if (err) {
-@@ -128,6 +130,13 @@ static int i5500_temp_probe(struct pci_d
- 		return err;
- 	}
- 
-+	pci_read_config_byte(pdev, REG_TSFSC, &tsfsc);
-+	pci_read_config_dword(pdev, REG_TSTIMER, &tstimer);
-+	if (tsfsc = 0x7F && tstimer = 0x07D30D40) {
-+		dev_warn(&pdev->dev, "Sensor seems to be disabled\n");
-+		return -ENODEV;
-+	}
-+
- 	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
- 							   "intel5500", NULL,
- 							   i5500_temp_groups);
-
+If this is an autoloadable module, and this sensor is very often disabled,
+shouldn't this be dev_info() or dev_notice()?
 
 -- 
-Jean Delvare
-SUSE L3 Support
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
 _______________________________________________
 lm-sensors mailing list
