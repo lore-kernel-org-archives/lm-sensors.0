@@ -1,102 +1,105 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 08 Oct 2014 23:38:45 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for v3.18
-Message-Id: <1412811525-26992-1-git-send-email-linux@roeck-us.net>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Date: Tue, 28 Oct 2014 14:54:50 +0000
+Subject: Re: [lm-sensors] [PATCH] sensord: do not fail if some sensor does not return data
+Message-Id: <201410281554.50100@pali>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4206308818444681582=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+--===============4206308818444681582==
+Content-Type: multipart/signed;
+  boundary="nextPart1751006.xtzGfzrxpL";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Linus,
+--nextPart1751006.xtzGfzrxpL
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Please pull hwmon updates for Linux v3.18 from signed tag:
+On Monday 09 June 2014 18:23:31 Pali Roh=C3=A1r wrote:
+> On Saturday 17 May 2014 22:02:12 Pali Roh=C3=A1r wrote:
+> > Hello,
+> >=20
+> > I see very annoying bug in sensord. When some hwmon driver
+> > returns -EINVAL (for any reason), sensord daemon will stop
+> > reading next sensors values. This means if first hwmon
+> > device fail to return value, sensord daemon will not log
+> > anything.
+> >=20
+> > Returning -EINVAL from kernel driver is normal (e.g. when
+> > graphic card with has internal temperature sensor is turned
+> > off) and sensord should not fail on this.
+> >=20
+> > Program sensors already handling this problem and will print
+> > N/A if there is reading error.
+> >=20
+> > I'm sending simple patch which just report NaN value when
+> > kernel report error. And also sensord will continue to
+> > reading next hwmon interfaces.
+> >=20
+> > Without this patch I see only these lines logged:
+> >=20
+> > sensord: Chip: radeon-pci-0100
+> > sensord: Adapter: PCI adapter
+> > sensord: Error getting sensor data: radeon/#0: Can't read
+> > sensord: sensor read error (-1)
+> >=20
+> > And all other sensors are ignored and nothing more is
+> > logged.
+> >=20
+> > After my patch all hwmon sensors data are logged:
+> >=20
+> > sensord: Chip: radeon-pci-0100
+> > sensord: Adapter: PCI adapter
+> > sensord:   temp1: nan C
+> > sensord: Chip: i8k-virtual-0
+> > sensord: Adapter: Virtual device
+> > sensord:   Left Fan: 2685 RPM
+> > sensord:   CPU: 49.0 C
+> > sensord:   temp2: 55.0 C
+> > sensord:   temp3: 39.0 C
+> > sensord: Chip: coretemp-isa-0000
+> > sensord: Adapter: ISA adapter
+> > sensord:   Physical id 0: 50.0 C
+> > sensord:   Core 0: 47.0 C
+> > sensord:   Core 1: 50.0 C
+>=20
+> BUMP!
+>=20
+> Can somebody review my patch?
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v3.18
+PING.
 
-Thanks,
-Guenter
-------
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-The following changes since commit 4e66cd13ff9cd7eaae69e2fae0335d8d99d8afdf:
+--nextPart1751006.xtzGfzrxpL
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-  hwmon: (tmp103) Fix resource leak bug in tmp103 temperature sensor driver (2014-09-22 11:11:48 -0700)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-are available in the git repository at:
+iEYEABECAAYFAlRPrjoACgkQi/DJPQPkQ1LF3QCgiXOqoDOSyBQQXComUcPJSzUM
+FFEAnAhU6mMwm0B7vCacvzdhm2u/CY8m
+=PA0G
+-----END PGP SIGNATURE-----
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v3.18
+--nextPart1751006.xtzGfzrxpL--
 
-for you to fetch changes up to 3afb57fa721f94206e642f8fda51f5a89dda3dfb:
 
-  hwmon: (ab8500) Call kernel_power_off instead of pm_power_off (2014-10-03 08:19:02 -0700)
-
-----------------------------------------------------------------
-New driver for menf21bmc.
-Convert k10temp, smsc47b397, da9052, da9055 to new hwmon API.
-Register ntc_thermistor driver with thermal subsystem.
-Add support for F15h M60h to k10temp driver.
-Add driver for MEN14F021P00 BMC HWMON driver; this required a merge
-with tag mfd-hwmon-leds-watchdog-v3.18.
-
-----------------------------------------------------------------
-Andreas Werner (4):
-      mfd: menf21bmc: Introduce MEN 14F021P00 BMC MFD Core driver
-      watchdog: menf21bmc_wdt: Introduce MEN 14F021P00 BMC Watchdog driver
-      leds: leds-menf21bmc: Introduce MEN 14F021P00 BMC LED driver
-      hwmon: (menf21bmc) Introduce MEN14F021P00 BMC HWMON driver
-
-Aravind Gopalakrishnan (1):
-      hwmon: (k10temp) Add support for F15h M60h
-
-Axel Lin (4):
-      hwmon: (ads1015) Use of_property_read_u32 at appropriate places
-      hwmon: (da9055) Convert to devm_hwmon_device_register_with_groups
-      hwmon: (da9052) Convert to devm_hwmon_device_register_with_groups
-      hwmon: (smsc47b397) Convert to devm_hwmon_device_register_with_groups
-
-Guenter Roeck (3):
-      hwmon: (k10temp) Convert to devm_hwmon_device_register_with_groups
-      Merge tag 'mfd-hwmon-leds-watchdog-v3.18' into hwmon-next
-      hwmon: (ab8500) Call kernel_power_off instead of pm_power_off
-
-Jonghwa Lee (1):
-      hwmon: (ntc_thermistor) Add ntc thermistor to thermal subsystem as a sensor.
-
-Kamil Debski (1):
-      MAINTAINERS: add entry for the PWM fan driver
-
- .../devicetree/bindings/hwmon/ntc_thermistor.txt   |   3 +
- Documentation/hwmon/k10temp                        |   2 +-
- Documentation/hwmon/menf21bmc                      |  50 +++++
- MAINTAINERS                                        |   8 +
- drivers/hwmon/Kconfig                              |  15 +-
- drivers/hwmon/Makefile                             |   1 +
- drivers/hwmon/ab8500.c                             |   5 +-
- drivers/hwmon/ads1015.c                            |  21 +-
- drivers/hwmon/da9052-hwmon.c                       |  54 +----
- drivers/hwmon/da9055-hwmon.c                       |  52 +----
- drivers/hwmon/k10temp.c                            | 157 +++++++-------
- drivers/hwmon/menf21bmc_hwmon.c                    | 230 +++++++++++++++++++++
- drivers/hwmon/ntc_thermistor.c                     |  25 +++
- drivers/hwmon/smsc47b397.c                         |  51 +----
- drivers/leds/Kconfig                               |   9 +
- drivers/leds/Makefile                              |   1 +
- drivers/leds/leds-menf21bmc.c                      | 131 ++++++++++++
- drivers/mfd/Kconfig                                |  15 ++
- drivers/mfd/Makefile                               |   1 +
- drivers/mfd/menf21bmc.c                            | 132 ++++++++++++
- drivers/watchdog/Kconfig                           |  10 +
- drivers/watchdog/Makefile                          |   1 +
- drivers/watchdog/menf21bmc_wdt.c                   | 203 ++++++++++++++++++
- 23 files changed, 949 insertions(+), 228 deletions(-)
- create mode 100644 Documentation/hwmon/menf21bmc
- create mode 100644 drivers/hwmon/menf21bmc_hwmon.c
- create mode 100644 drivers/leds/leds-menf21bmc.c
- create mode 100644 drivers/mfd/menf21bmc.c
- create mode 100644 drivers/watchdog/menf21bmc_wdt.c
+--===============4206308818444681582==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4206308818444681582==--
