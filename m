@@ -1,43 +1,88 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 30 Nov 2014 21:00:40 +0000
-Subject: [lm-sensors] [PATCH 3/3] i8k: Add support for Dell XPS 13
-Message-Id: <1417381240-7641-3-git-send-email-linux@roeck-us.net>
+From: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
+Date: Sat, 01 Nov 2014 17:52:48 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (ibmpowernv) Quieten when probing finds no device
+Message-Id: <54551CDB.2090407@linux.vnet.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
+References: <1414737923-8227-1-git-send-email-mpe@ellerman.id.au>
+In-Reply-To: <1414737923-8227-1-git-send-email-mpe@ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-WFBTIDEzIGRvZXMgbm90IHN1cHBvcnQgdHVyYm8gc3BlZWQsIHNvIGl0cyBpbml0aWFsaXphdGlv
-biBkYXRhCm1hdGNoZXMgdGhhdCBvZiBYUFMgTTE0MC4gTWFrZSBYUFMgaW5pdGlhbGl6YXRpb24g
-ZGF0YSBnZW5lcmljLAphbmQgYWRkIHN1cHBvcnQgZm9yIFhQUyAxMy4KCkNjOiBQYWxpIFJvaMOh
-ciA8cGFsaS5yb2hhckBnbWFpbC5jb20+ClNpZ25lZC1vZmYtYnk6IEd1ZW50ZXIgUm9lY2sgPGxp
-bnV4QHJvZWNrLXVzLm5ldD4KLS0tCkFwcGxpZXMgb24gdG9wIG9mIFBhbGkncyBwYXRjaCBzZXJp
-ZXMuIAoKIGRyaXZlcnMvY2hhci9pOGsuYyB8IDE0ICsrKysrKysrKysrLS0tCiAxIGZpbGUgY2hh
-bmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL2NoYXIvaThrLmMgYi9kcml2ZXJzL2NoYXIvaThrLmMKaW5kZXggY2RiMmRjNy4uNmQyY2Fh
-OSAxMDA2NDQKLS0tIGEvZHJpdmVycy9jaGFyL2k4ay5jCisrKyBiL2RyaXZlcnMvY2hhci9pOGsu
-YwpAQCAtNzA1LDcgKzcwNSw3IEBAIGVudW0gaThrX2NvbmZpZ3MgewogCURFTExfTEFUSVRVREVf
-RTY1NDAsCiAJREVMTF9QUkVDSVNJT05fNDkwLAogCURFTExfU1RVRElPLAotCURFTExfWFBTX00x
-NDAsCisJREVMTF9YUFMsCiB9OwogCiBzdGF0aWMgY29uc3Qgc3RydWN0IGk4a19jb25maWdfZGF0
-YSBpOGtfY29uZmlnX2RhdGFbXSA9IHsKQEAgLTcyNSw3ICs3MjUsNyBAQCBzdGF0aWMgY29uc3Qg
-c3RydWN0IGk4a19jb25maWdfZGF0YSBpOGtfY29uZmlnX2RhdGFbXSA9IHsKIAkJLmZhbl9tdWx0
-ID0gMSwKIAkJLmZhbl9tYXggPSBJOEtfRkFOX0hJR0gsCiAJfSwKLQlbREVMTF9YUFNfTTE0MF0g
-PSB7CisJW0RFTExfWFBTXSA9IHsKIAkJLmZhbl9tdWx0ID0gMSwKIAkJLmZhbl9tYXggPSBJOEtf
-RkFOX0hJR0gsCiAJfSwKQEAgLTgyOSwxMiArODI5LDIwIEBAIHN0YXRpYyBzdHJ1Y3QgZG1pX3N5
-c3RlbV9pZCBpOGtfZG1pX3RhYmxlW10gX19pbml0ZGF0YSA9IHsKIAkJLmRyaXZlcl9kYXRhID0g
-KHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfU1RVRElPXSwKIAl9LAogCXsKKwkJLmlkZW50
-ID0gIkRlbGwgWFBTIDEzIiwKKwkJLm1hdGNoZXMgPSB7CisJCQlETUlfTUFUQ0goRE1JX1NZU19W
-RU5ET1IsICJEZWxsIEluYy4iKSwKKwkJCURNSV9NQVRDSChETUlfUFJPRFVDVF9OQU1FLCAiWFBT
-MTMiKSwKKwkJfSwKKwkJLmRyaXZlcl9kYXRhID0gKHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RF
-TExfWFBTXSwKKwl9LAorCXsKIAkJLmlkZW50ID0gIkRlbGwgWFBTIE0xNDAiLAogCQkubWF0Y2hl
-cyA9IHsKIAkJCURNSV9NQVRDSChETUlfU1lTX1ZFTkRPUiwgIkRlbGwgSW5jLiIpLAogCQkJRE1J
-X01BVENIKERNSV9QUk9EVUNUX05BTUUsICJNWEMwNTEiKSwKIAkJfSwKLQkJLmRyaXZlcl9kYXRh
-ID0gKHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfWFBTX00xNDBdLAorCQkuZHJpdmVyX2Rh
-dGEgPSAodm9pZCAqKSZpOGtfY29uZmlnX2RhdGFbREVMTF9YUFNdLAogCX0sCiAJeyB9CiB9Owot
-LSAKMS45LjEKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+
+On 10/31/2014 11:42 PM, Guenter Roeck wrote:
+> On Fri, Oct 31, 2014 at 05:45:22PM +1100, Michael Ellerman wrote:
+>> Because we build kernels with drivers built in for many platforms, it's
+>> normal for the ibmpowernv driver to be loaded on systems that don't have
+>> the appropriate hardware.
+>>
+>> Currently the driver spams the log with:
+>>
+>>    ibmpowernv ibmpowernv.0: Opal node 'sensors' not found
+>>    ibmpowernv: Platfrom driver probe failed
+>>
+>> But there is no error, this machine is not a powernv and doesn't have
+>> the hardware. So change the sensors message to dev_dbg(), and only print
+>> an error about the probe failing if it's not ENODEV.
+>>
+>> Also fix the spelling of "Platfrom" and print the actual error value.
+>>
+>> Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+> Neelesh,
+>
+> is there a compatible property in the powernv devicetree which can be
+> used to identify the system ?
+
+I think the driver should not be loaded at first place on *non* powernv 
+platforms.
+Still, we can improve by introducing 'platform_driver.id_table' and 
+moving the
+platform device creation code in platform init 'opal-sensor.c' using
+of_platform_device_create() and just do driver register in module init.
+
+- Neelesh
+
+>
+> I am ok with applying this patch for the time being, but it would be better
+> if we can change the driver to only instantiate when actually needed.
+>
+> Thanks,
+> Guenter
+>
+>> ---
+>>   drivers/hwmon/ibmpowernv.c | 6 ++++--
+>>   1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/hwmon/ibmpowernv.c b/drivers/hwmon/ibmpowernv.c
+>> index d2bf2c97ae70..6a30eeea94be 100644
+>> --- a/drivers/hwmon/ibmpowernv.c
+>> +++ b/drivers/hwmon/ibmpowernv.c
+>> @@ -181,7 +181,7 @@ static int __init populate_attr_groups(struct platform_device *pdev)
+>>   
+>>   	opal = of_find_node_by_path("/ibm,opal/sensors");
+>>   	if (!opal) {
+>> -		dev_err(&pdev->dev, "Opal node 'sensors' not found\n");
+>> +		dev_dbg(&pdev->dev, "Opal node 'sensors' not found\n");
+>>   		return -ENODEV;
+>>   	}
+>>   
+>> @@ -335,7 +335,9 @@ static int __init ibmpowernv_init(void)
+>>   
+>>   	err = platform_driver_probe(&ibmpowernv_driver, ibmpowernv_probe);
+>>   	if (err) {
+>> -		pr_err("Platfrom driver probe failed\n");
+>> +		if (err != -ENODEV)
+>> +			pr_err("Platform driver probe failed (%d)\n", err);
+>> +
+>>   		goto exit_device_del;
+>>   	}
+>>   
+>> -- 
+>> 1.9.1
+>>
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
