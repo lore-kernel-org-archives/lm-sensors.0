@@ -1,126 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Nov 2014 16:39:53 +0000
-Subject: [lm-sensors] [PATCH v2 2/2] sensors-detect: EMC14xx chip updates
-Message-Id: <1416501593-9141-2-git-send-email-linux@roeck-us.net>
+From: Ashley Arnold <ashonit@gmail.com>
+Date: Sun, 02 Nov 2014 12:56:25 +0000
+Subject: [lm-sensors] Test: IT8620E sensors on Gigabyte Z97X-UD5H
+Message-Id: <CAB7bhDSnMT4m4AyVwhFGQSXowCvA-VsCDrJVNFoAzvWVcCuGOA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Dropped '.' from CHANGES
-
- CHANGES                    |  3 +++
- prog/detect/sensors-detect | 26 +++++++++++++++++---------
- 2 files changed, 20 insertions(+), 9 deletions(-)
-
-diff --git a/CHANGES b/CHANGES
-index 3be3da9..f1676e9 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -20,6 +20,9 @@ SVN HEAD
-                   Add reference to nct6683 driver
-                   Show that NCT6102D/6104D/6106D are supported by nct6775 driver
-                   Show NCT5573D as compatible to NCT6776F with same chip ID
-+                  Document support for EMC1402, EMC1404, and EMC1424
-+                  Detect new revisions of EMC14xx
-+                  Add detection of EMC1422
- 
- 3.3.5 "Happy Birthday Beddy" (2014-01-22)
-   libsensors: Improve documentation of two functions
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 2d9cc04..448cf22 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -1366,7 +1366,7 @@ use vars qw(@i2c_adapter_names);
- 		i2c_detect => sub { emc1403_detect(@_, 10); },
- 	}, {
- 		name => "SMSC EMC1402",
--		driver => "to-be-written",
-+		driver => "emc1403",
- 		i2c_addrs => [0x18, 0x29, 0x4c, 0x4d],
- 		i2c_detect => sub { emc1403_detect(@_, 11); },
- 	}, {
-@@ -1376,17 +1376,22 @@ use vars qw(@i2c_adapter_names);
- 		i2c_detect => sub { emc1403_detect(@_, 0); },
- 	}, {
- 		name => "SMSC EMC1404",
--		driver => "to-be-written", # emc1403
-+		driver => "emc1403",
- 		i2c_addrs => [0x18, 0x29, 0x4c, 0x4d],
- 		i2c_detect => sub { emc1403_detect(@_, 1); },
- 	}, {
-+		name => "SMSC EMC1422",
-+		driver => "emc1403",
-+		i2c_addrs => [0x4c],
-+		i2c_detect => sub { emc1403_detect(@_, 14); },
-+	}, {
- 		name => "SMSC EMC1423",
- 		driver => "emc1403",
- 		i2c_addrs => [0x4c],
- 		i2c_detect => sub { emc1403_detect(@_, 3); },
- 	}, {
- 		name => "SMSC EMC1424",
--		driver => "to-be-written",
-+		driver => "emc1403",
- 		i2c_addrs => [0x4c],
- 		i2c_detect => sub { emc1403_detect(@_, 12); },
- 	}, {
-@@ -6117,7 +6122,7 @@ sub emc1023_detect
- # Chip to detect: 0 = EMC1403, 1 = EMC1404, 2 = EMC2103, 3 = EMC1423,
- #	4 = EMC1002, 5 = EMC1033, 6 = EMC1046, 7 = EMC1047, 8 = EMC1072,
- #	9 = EMC1073, 10 = EMC1074, 11 = EMC1402, 12 = EMC1424,
--#	13 = EMC2104
-+#	13 = EMC2104, 14 = EMC1422
- # Registers used:
- #   0xfd: Device ID register
- #   0xfe: Vendor ID register
-@@ -6133,16 +6138,16 @@ sub emc1403_detect
- 
- 	if ($chip = 0) {		# EMC1403
- 		return unless $dev_id = 0x21;
--		return unless $rev = 0x01;
-+		return unless $rev = 0x01 || $rev = 0x04;
- 	} elsif ($chip = 1) {		# EMC1404
- 		return unless $dev_id = 0x25;
--		return unless $rev = 0x01;
-+		return unless $rev = 0x01 || $rev = 0x04;
- 	} elsif ($chip = 2) {		# EMC2103
- 		return unless ($dev_id = 0x24) || ($dev_id = 0x26);
- 		return unless $rev = 0x01;
- 	} elsif ($chip = 3) {		# EMC1423
- 		return unless $dev_id = 0x23;
--		return unless $rev = 0x01;
-+		return unless $rev = 0x01 || $rev = 0x04;
- 	} elsif ($chip = 4) {		# EMC1002
- 		return unless ($dev_id = 0x02) || ($dev_id = 0x03);
- 		return unless $rev = 0x01;
-@@ -6166,13 +6171,16 @@ sub emc1403_detect
- 		return unless $rev = 0x03;
- 	} elsif ($chip = 11) {		# EMC1402
- 		return unless $dev_id = 0x20;
--		return unless $rev = 0x01;
-+		return unless $rev = 0x01 || $rev = 0x04;
- 	} elsif ($chip = 12) {		# EMC1424
- 		return unless $dev_id = 0x27;
--		return unless $rev = 0x01;
-+		return unless $rev = 0x01 || $rev = 0x04;
- 	} elsif ($chip = 13) {		# EMC2104
- 		return unless $dev_id = 0x1d;
- 		return unless $rev = 0x02;
-+	} elsif ($chip = 14) {		# EMC1422
-+		return unless $dev_id = 0x22;
-+		return unless $rev = 0x01 || $rev = 0x04;
- 	}
- 
- 	return 6;
--- 
-1.9.1
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgYWxsLAoKTmV2ZXIgc3VyZSBpZiBJJ20gZG9pbmcgdGhpcyByaWdodCwgYnV0Li4uCgpJJ3Zl
+IGdvdCBhIEdpZ2FieXRlIFo5N1gtVUQ1SCwgd2hpY2ggcnVucyB0aGUgSVQ4NjIwRSBzZW5zb3Jz
+IGFzIGZhciBhcyBJCmNhbiB3b3JrIG91dC4gQXMgcGVyIGh0dHA6Ly93d3cubG0tc2Vuc29ycy5v
+cmcvd2lraS9EZXZpY2VzLCBJJ3ZlIGRvbmUgYQoiZm9yY2VfaWQ9MHg4NzI4IiB0byBnZXQgaXQg
+dG8gdXNlIHRoZSBJVDg3MjhGIGRyaXZlci4KClRoZSByZXN1bHRzIGxvb2sgcHJvbWlzaW5nLCBz
+ZW5zb3JzIG91dHB1dCBub3cgaW5jbHVkZXMgdm9sdGFnZXMsIGZhbnMgYW5kCmFkZGl0aW9uYWwg
+dGVtcHMuIFNhbXBsZSBvdXRwdXQ6CgppdDg3MjgtaXNhLTBhMzAKQWRhcHRlcjogSVNBIGFkYXB0
+ZXIKaW4wOiAgICAgICAgICArMC4wMiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBW
+KQppbjE6ICAgICAgICAgICsyLjAwIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYp
+CmluMjogICAgICAgICAgKzIuMDMgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikK
+aW4zOiAgICAgICAgICArMi4wMCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQpp
+bjQ6ICAgICAgICAgICswLjAxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCmlu
+NTogICAgICAgICAgKzEuNzYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKaW42
+OiAgICAgICAgICArMS41MCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQozVlNC
+OiAgICAgICAgICszLjM4IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICs2LjEyIFYpClZiYXQ6
+ICAgICAgICAgKzIuOTggVgpmYW4xOiAgICAgICAgMTAzMyBSUE0gIChtaW4gPSAgICAwIFJQTSkK
+ZmFuMjogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCmZhbjM6ICAgICAgICAgICAw
+IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW40OiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAw
+IFJQTSkKZmFuNTogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCnRlbXAxOiAgICAg
+ICAgKzI5LjDCsEMgIChsb3cgID0gKzEyNy4wwrBDLCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29y
+ID0KdGhlcm1pc3Rvcgp0ZW1wMjogICAgICAgICszOS4wwrBDICAobG93ICA9ICsxMjcuMMKwQywg
+aGlnaCA9ICsxMjcuMMKwQykgIHNlbnNvciA9CnRoZXJtaXN0b3IKdGVtcDM6ICAgICAgICArMjUu
+MMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSBJbnRl
+bApQRUNJCmludHJ1c2lvbjA6ICBBTEFSTQoKSG9wZWZ1bGx5IHRoaXMgaXMgb2YgdXNlLgoKQ2hl
+ZXJzLApBc2guCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
