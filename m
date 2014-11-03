@@ -1,25 +1,51 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 18 Nov 2014 18:09:37 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (lm75) Add support for the NXP LM75B
-Message-Id: <20141118180937.GA12854@roeck-us.net>
+From: Kamil Debski <k.debski@samsung.com>
+Date: Mon, 03 Nov 2014 14:42:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (pwm-fan) Fix suspend/resume behavior
+Message-Id: <1415025775-24237-1-git-send-email-k.debski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416326884-22623-1-git-send-email-michael.thalmeier@hale.at>
-In-Reply-To: <1416326884-22623-1-git-send-email-michael.thalmeier@hale.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Thalmeier <michael.thalmeier@hale.at>
-Cc: jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: linux@roeck-us.net, Kamil Debski <k.debski@samsung.com>
 
-On Tue, Nov 18, 2014 at 05:08:04PM +0100, Michael Thalmeier wrote:
-> It is basically a faster lm75 with improved (11 bit) resolution.
-> 
-> Signed-off-by: Michael Thalmeier <michael.thalmeier@hale.at>
+The state of a PWM output is not clearly defined after resume. Some PWM
+drivers do not restore the duty cycle upon resume, thus it is necessary to
+manually restore the correct value.
 
-Applied to -next.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/hwmon/pwm-fan.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index 823c877..1991d903 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -161,10 +161,17 @@ static int pwm_fan_suspend(struct device *dev)
+ static int pwm_fan_resume(struct device *dev)
+ {
+ 	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
++	unsigned long duty;
++	int ret;
+ 
+-	if (ctx->pwm_value)
+-		return pwm_enable(ctx->pwm);
+-	return 0;
++	if (ctx->pwm_value = 0)
++		return 0;
++
++	duty = DIV_ROUND_UP(ctx->pwm_value * (ctx->pwm->period - 1), MAX_PWM);
++	ret = pwm_config(ctx->pwm, duty, ctx->pwm->period);
++	if (ret)
++		return ret;
++	return pwm_enable(ctx->pwm);
+ }
+ #endif
+ 
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
