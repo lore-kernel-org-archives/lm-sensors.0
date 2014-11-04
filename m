@@ -1,45 +1,63 @@
-From: R Kimber <richardkimber@btinternet.com>
-Date: Fri, 17 Oct 2014 12:36:08 +0000
-Subject: [lm-sensors] Can't load it87 module
-Message-Id: <5436E69B010BDEA6@rgout03.bt.lon5.cpcloud.co.uk (added by postmaster@btinternet.com)>
+From: Taz <rastataz@gmail.com>
+Date: Tue, 04 Nov 2014 09:20:42 +0000
+Subject: [lm-sensors] Fwd: Re: Fancontrol memory consumption
+Message-Id: <54589A6A.8010207@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-I'm using Ubuntu 14.04 with 3.13.0-37-generic. MB is Gigabyte Z97X-UD3H
-LGA1150; CPU is i7 4.0GHz.  I have installed 1:3.3.4-2ubuntu1 version of
-lm-sensors. Sensors-detect indicates I have a chip of the ITE family:
-
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor/ITE'...               No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      Yes
-Found unknown chip with ID 0x8620
-
-though sensors-detect does not suggest adding it87 to /etc/modules
-
-I also have:-
-/lib/modules/3.13.0-37-generic/kernel/drivers/hwmon/it87.ko
-
-But when I do:
-sudo modprobe it87
-I get:
-modprobe: ERROR: could not insert 'it87': No such device.
-
-Is there a way of loading this module?  I'd like to monitor my CPU fan
-speed.  lm-sensors is just returning temperature data, presumably using
-coretemp which is loaded.
-
-- Richard.
--- 
-Richard Kimber
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgYWxsLAoKSSdtIHVzaW5nIGZhbmNvbnRyb2wgb24gYSBOZXRHZWFyIFJlYWR5TkFTIFVsdHJh
+IDYwMDAgKFg4NiBhcmNoKSB1c2luZyAKdWJ1bnR1IHNlcnZlciAxNCBhbmQgaXQncyBncmVhdCAh
+CgpCdXQgYXMgeW91IG1heSBzZWUgaW4gdGhlIGZvcndhcmQgKG9yIG5vdCA6IEkgZG9uJ3Qga25v
+dyBpZiB0aGUgcGljIHdpbGwgCmJlIGZpbHRlcmVkLi4uKSwgZmFuY29udHJvbAptZW1vcnkgdXNh
+Z2UsIGFsdGhvdWdoIG5vdCBodWdlLCBpcyB3b3JyeWluZ2x5IGluY3JlYXNpbmcgYXMgdXB0aW1l
+IGdvZXMgb24uCiBGcm9tIDYgTWIgYXQgdGhlIG1vbWVudCBJIHN0YXJ0IHRoZSBkYWVtb24gdG8g
+MjcgTWIgbGVzcyB0aGFuIGEgd2VlayAKbGF0ZXIsIGFuZCBzdGlsbCBncm93aW5nICEKCkhlcmUg
+YXJlIGZldyBzeXN0ZW0gc3RhdHMsIEkgdGhpbmsgcGlucG9pbnRlZCB0aGUgaXNzdWUsIGJ1dCB0
+aGF0J3MgYWxsIApJIGNvdWxkIGRvLi4uCgoKcG1hcCAteCBGQU5DT05UUk9MX1BJRCAoc2VlIDI1
+IE1iIGluIGRpcnR5IGNvbHVtbikKPT09PT0KQWRkcmVzcyAgICAgICAgICAgS2J5dGVzICAgICBS
+U1MgICBEaXJ0eSBNb2RlICBNYXBwaW5nCjAwMDAwMDAwMDA0MDAwMDAgICAgIDk1NiAgICAgNTU2
+ICAgICAgIDAgci14LS0gYmFzaAowMDAwMDAwMDAwNmVmMDAwICAgICAgIDQgICAgICAgNCAgICAg
+ICA0IHItLS0tIGJhc2gKMDAwMDAwMDAwMDZmMDAwMCAgICAgIDM2ICAgICAgMjAgICAgICAyMCBy
+dy0tLSBiYXNoCjAwMDAwMDAwMDA2ZjkwMDAgICAgICAyNCAgICAgIDI0ICAgICAgMjQgcnctLS0g
+ICBbIGFub24gXQowMDAwMDAwMDAxZGQ3MDAwICAgMjU5NDggICAyNTk0OCAgIDI1OTQ4IHJ3LS0t
+ICAgWyBhbm9uIF0KKC4uLikKCmNhdCAvcHJvYy9GQU5DT05UUk9MX1BJRC9zbWFwcyBvdXRwdXQg
+c2FtcGxlIDoKPT09PT09PT0KKC4uLikKMDFkZDcwMDAtMDM3MmMwMDAgcnctcCAwMDAwMDAwMCAw
+MDowMCAwICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIApbaGVhcF0KU2l6ZTogICAg
+ICAgICAgICAgIDI1OTQwIGtCClJzczogICAgICAgICAgICAgICAyNTk0MCBrQgpQc3M6ICAgICAg
+ICAgICAgICAgMjU5NDAga0IKU2hhcmVkX0NsZWFuOiAgICAgICAgICAwIGtCClNoYXJlZF9EaXJ0
+eTogICAgICAgICAgMCBrQgpQcml2YXRlX0NsZWFuOiAgICAgICAgIDAga0IKUHJpdmF0ZV9EaXJ0
+eTogICAgIDI1OTQwIGtCClJlZmVyZW5jZWQ6ICAgICAgICAxNzk1NiBrQgpBbm9ueW1vdXM6ICAg
+ICAgICAgMjU5NDAga0IKQW5vbkh1Z2VQYWdlczogICAgICAgICAwIGtCClN3YXA6ICAgICAgICAg
+ICAgICAgICAgMCBrQgpLZXJuZWxQYWdlU2l6ZTogICAgICAgIDQga0IKTU1VUGFnZVNpemU6ICAg
+ICAgICAgICA0IGtCCkxvY2tlZDogICAgICAgICAgICAgICAgMCBrQgpWbUZsYWdzOiByZCB3ciBt
+ciBtdyBtZSBhYyBzZAooLi4uKQoKTG9vayBsaWtlIGl0J3MgdGhlIGhlYXAgKCBtZW1vcnkgbGVh
+ayBpbiB0aGUgZmFuY29udHJvbCBzaGVsbCBzY3JpcHQgIT8gKQoKY2F0IC9wcm9jL0ZBTkNPTlRS
+T0xfUElEL2lvCj09PT09PT09PT09PT09PQpyY2hhcjogNjg1NDg2MDQyCndjaGFyOiA2MDcyNTY2
+CnN5c2NyOiAyNDI4NTA3CnN5c2N3OiAzNDY5MjEKcmVhZF9ieXRlczogMTk4MDgyNTYKd3JpdGVf
+Ynl0ZXM6IDAKY2FuY2VsbGVkX3dyaXRlX2J5dGVzOiAwCgpJdCBsb29rcyBsaWtlIGV2ZXJ5IGRh
+dGEgcmVhZCBieSB0aGUgcHJvY2VzcyBpcyBrZXB0IGluIG1lbW9yeSAocHdtIApzZW5zb3JzIGRh
+dGEgPykgOiBJdCBkb2Vzbid0IHNlZW1zIE9LIHRvIG1lLi4uCkFtIEkgd3JvbmcgPyBEbyBzb21l
+b25lIGhhdmUgYW55IGNsdWUgb3Igc3VnZ2VzdGlvbiA/CgpUaGFua3MsCgogICAgICAgICBDw6lk
+cmljIEwuTS4KCi0tLS0tLS0tIE1lc3NhZ2UgdHJhbnNmw6lyw6kgLS0tLS0tLS0KU3VqZXQgOiAJ
+UmU6IEZhbmNvbnRyb2wgbWVtb3J5IGNvbnN1bXB0aW9uCkRhdGUgOiAJVHVlLCA0IE5vdiAyMDE0
+IDA4OjIxOjU4ICswMTAwCkRlIDogCU1hcml1cyBSZWluZXIgPG1hcml1cy5yZWFkc0BnbWFpbC5j
+b20+ClBvdXIgOiAJVGF6IDxyYXN0YXRhekBnbWFpbC5jb20+CgoKClNvcnJ5IEkgZG9uJ3QgbWFp
+bnRhaW4gZmFuY29udHJvbCBhbnkgbW9yZSwgcGxlYXNlIGNoZWNrIHRoZSBsbV9zZW5zb3JzIApw
+cm9qZWN0IG1haWxpbmdsaXN0LCB0aG9zZSBndXlzIG1pZ2h0IGJlIGFibGUgdG8gaGVscC4KCkJl
+c3QgcmVnYXJkcwpNYXJpdXMKCk9uIFR1ZSwgTm92IDQsIDIwMTQgYXQgMzowNCBBTSwgVGF6IDxy
+YXN0YXRhekBnbWFpbC5jb20gCjxtYWlsdG86cmFzdGF0YXpAZ21haWwuY29tPj4gd3JvdGU6Cgog
+ICAgSGkgTWFyaXVzLAoKICAgIEZpcnN0IDogVGhhbmtzIGZvciBmYW5jb250cm9sIChJIHN1cHBv
+c2UuLi4gSSBmb3VkIHlvdXIgbWFpbCBpbiB0aGUKICAgIG1hbiBwYWdlKS4gOi0pCgogICAgQXMg
+eW91IGNhbiBzZWUgb24gZm9sbG93aW5nIGdyYXBoIGZhbmNvbnRyb2wgaXMgY29uc3VtaW5nIG1v
+cmUgYW5kCiAgICBtb3JlIG1lbW9yeQogICAgYXMgaXRzIHVwdGltZSBnb2VzIDogYWxtb3N0IDYg
+dGltZXMgbW9yZSB0aGFuIHdoZW4gaXQgc3RhcnRlZCB1cAogICAgbGVzcyB0aGFuIGEgd2VlayBh
+Z28uLi4KCgoKICAgIEdvdCBhbnkgaW5mb3JtYXRpb24gcmVsYXRlZCB0byB0aGF0ID8KICAgICgg
+d2lsbCBpdCBzdG9wcyBncm93aW5nIG9uY2UgYSBjZXJ0YWluIGxldmVsIGlzIHJlYWNoZWQsIGlz
+IGl0CiAgICB0aHJlYXRlbmluZyBmb3IgbXkgc3lzdGVtL2ZhbmNvbnRyb2wgZGFlbW9uIC4uLikK
+CiAgICBUaGFua3MsCiAgICAgICAgICAgICBDw6lkcmljIEwuTS4KCgoKCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
+dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
