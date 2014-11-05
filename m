@@ -1,50 +1,215 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 27 Nov 2014 10:18:56 +0000
-Subject: Re: [lm-sensors] [PATCH 1/5] hwmon: ina2xx: bail-out from ina2xx_probe() in case of configuration er
-Message-Id: <20141127111856.5b6fda60@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 05 Nov 2014 14:21:49 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ibmpowernv) Use platform 'id_table' to probe the device
+Message-Id: <20141105142149.GA23212@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416930423-12179-1-git-send-email-bgolaszewski@baylibre.com>
-	<1416930423-12179-2-git-send-email-bgolaszewski@baylibre.com>
-	<5474A72D.2000309@roeck-us.net>
-	<CAMpxmJUrs-3oXwYyNh26EnuZRH9bpXrmBBLKM7tmKGx=gSwyuQ@mail.gmail.com>
-	<5474B564.9080902@roeck-us.net>
-	<CAMpxmJVGE444t3gE-=u8kuK_B9rJ=0fw9ZYVuYgQRPdswiPj7Q@mail.gmail.com>
-	<5474C36C.1020004@roeck-us.net>
-	<CAMpxmJUhpX+AAmOS2gcgtJGr0dkeQ7YRyae12oRoW2NkT5drBA@mail.gmail.com>
-	<5474CAC6.8030608@roeck-us.net>
-	<54754364.80705@roeck-us.net>
-	<54759F8A.20303@baylibre.com>
-	<54762443.90701@roeck-us.net>
-In-Reply-To: <54762443.90701@roeck-us.net>
+References: <20141105110848.6183.55611.stgit@localhost.localdomain>
+In-Reply-To: <20141105110848.6183.55611.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, LKML <linux-kernel@vger.kernel.org>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
+Cc: jdelvare@suse.de, benh@au1.ibm.com, linux-kernel@vger.kernel.org, michaele@au1.ibm.com, linuxppc-dev@lists.ozlabs.org, lm-sensors@lm-sensors.org
 
-On Wed, 26 Nov 2014 11:04:35 -0800, Guenter Roeck wrote:
-> On 11/26/2014 01:38 AM, Benoit Cousson wrote:
-> > Unfortunately, that's not dynamic enough for all the use cases we need to support with the probes.
-> > In fact, most customers will rather put the shunts on their board and thus use a shunt-less version of the probe to do the measurement. In that case, there is no way we can hard code, even in a DTS, the shunt value.
-> >
-> > That's for that kind of usage that we do need to be able to set the shunt value at runtime. The probe in that case can be pluged dynamically on different board jumpers to do the measurement.
-> >
-> > Later, thanks to the web UI, the user will be able to configure the shunt value based on the way they were plugged to its boards.
-> >
-> > sysfs seems to be the easiest way to do that. I don't think DT overlay can handle that, since it is depend of the targeted system and not on the measurement system.
-> >
+On Wed, Nov 05, 2014 at 04:45:14PM +0530, Neelesh Gupta wrote:
+> The current driver probe() function assumes the sensor device to be
+> alwary present and gets executed every time if the driver is loaded,
+> but the appropriate hardware could not be present.
 > 
-> I just noticed that you did not copy the lm-sensors mailing list.
+> So, move the platform device creation as part of platform init code
+> and use the 'id_table' to check if the device present or not.
 > 
-> I am not really happy with this, and want to get some more feedback
-> from the list before I accept more or less arbitrary attributes.
-> Jean, any comments ?
+> Signed-off-by: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
 
-No opinion on the matter, sorry.
+Looks good. We'll need an ack from one of the powerpc maintainers to proceed.
 
--- 
-Jean Delvare
-SUSE L3 Support
+Guenter
+
+> ---
+> 
+> Changes in v2
+> ======> - Improve readability in error case if 'sensors' not found, also log
+>   the using 'pr_err'.
+> 
+>  arch/powerpc/platforms/powernv/opal-sensor.c |   20 ++++++++
+>  drivers/hwmon/ibmpowernv.c                   |   67 +++++++-------------------
+>  2 files changed, 39 insertions(+), 48 deletions(-)
+> 
+> diff --git a/arch/powerpc/platforms/powernv/opal-sensor.c b/arch/powerpc/platforms/powernv/opal-sensor.c
+> index 10271ad..4ab67ef 100644
+> --- a/arch/powerpc/platforms/powernv/opal-sensor.c
+> +++ b/arch/powerpc/platforms/powernv/opal-sensor.c
+> @@ -20,7 +20,9 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/mutex.h>
+> +#include <linux/of_platform.h>
+>  #include <asm/opal.h>
+> +#include <asm/machdep.h>
+>  
+>  static DEFINE_MUTEX(opal_sensor_mutex);
+>  
+> @@ -64,3 +66,21 @@ out:
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(opal_get_sensor_data);
+> +
+> +static __init int opal_sensor_init(void)
+> +{
+> +	struct platform_device *pdev;
+> +	struct device_node *sensor;
+> +
+> +	sensor = of_find_node_by_path("/ibm,opal/sensors");
+> +	if (!sensor) {
+> +		pr_err("Opal node 'sensors' not found\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	pdev = of_platform_device_create(sensor, "opal-sensor", NULL);
+> +	of_node_put(sensor);
+> +
+> +	return PTR_ERR_OR_ZERO(pdev);
+> +}
+> +machine_subsys_initcall(powernv, opal_sensor_init);
+> diff --git a/drivers/hwmon/ibmpowernv.c b/drivers/hwmon/ibmpowernv.c
+> index 6a30eee..c7577b8 100644
+> --- a/drivers/hwmon/ibmpowernv.c
+> +++ b/drivers/hwmon/ibmpowernv.c
+> @@ -74,9 +74,6 @@ struct platform_data {
+>  	u32 sensors_count; /* Total count of sensors from each group */
+>  };
+>  
+> -/* Platform device representing all the ibmpowernv sensors */
+> -static struct platform_device *pdevice;
+> -
+>  static ssize_t show_sensor(struct device *dev, struct device_attribute *devattr,
+>  			   char *buf)
+>  {
+> @@ -99,7 +96,7 @@ static ssize_t show_sensor(struct device *dev, struct device_attribute *devattr,
+>  	return sprintf(buf, "%u\n", x);
+>  }
+>  
+> -static int __init get_sensor_index_attr(const char *name, u32 *index,
+> +static int get_sensor_index_attr(const char *name, u32 *index,
+>  					char *attr)
+>  {
+>  	char *hash_pos = strchr(name, '#');
+> @@ -136,7 +133,7 @@ static int __init get_sensor_index_attr(const char *name, u32 *index,
+>   * which need to be mapped as fan2_input, temp1_max respectively before
+>   * populating them inside hwmon device class.
+>   */
+> -static int __init create_hwmon_attr_name(struct device *dev, enum sensors type,
+> +static int create_hwmon_attr_name(struct device *dev, enum sensors type,
+>  					 const char *node_name,
+>  					 char *hwmon_attr_name)
+>  {
+> @@ -172,7 +169,7 @@ static int __init create_hwmon_attr_name(struct device *dev, enum sensors type,
+>  	return 0;
+>  }
+>  
+> -static int __init populate_attr_groups(struct platform_device *pdev)
+> +static int populate_attr_groups(struct platform_device *pdev)
+>  {
+>  	struct platform_data *pdata = platform_get_drvdata(pdev);
+>  	const struct attribute_group **pgroups = pdata->attr_groups;
+> @@ -180,11 +177,6 @@ static int __init populate_attr_groups(struct platform_device *pdev)
+>  	enum sensors type;
+>  
+>  	opal = of_find_node_by_path("/ibm,opal/sensors");
+> -	if (!opal) {
+> -		dev_dbg(&pdev->dev, "Opal node 'sensors' not found\n");
+> -		return -ENODEV;
+> -	}
+> -
+>  	for_each_child_of_node(opal, np) {
+>  		if (np->name = NULL)
+>  			continue;
+> @@ -221,7 +213,7 @@ static int __init populate_attr_groups(struct platform_device *pdev)
+>   * to the name required by the higher 'hwmon' driver like fan1_input, temp1_max
+>   * etc..
+>   */
+> -static int __init create_device_attrs(struct platform_device *pdev)
+> +static int create_device_attrs(struct platform_device *pdev)
+>  {
+>  	struct platform_data *pdata = platform_get_drvdata(pdev);
+>  	const struct attribute_group **pgroups = pdata->attr_groups;
+> @@ -280,7 +272,7 @@ exit_put_node:
+>  	return err;
+>  }
+>  
+> -static int __init ibmpowernv_probe(struct platform_device *pdev)
+> +static int ibmpowernv_probe(struct platform_device *pdev)
+>  {
+>  	struct platform_data *pdata;
+>  	struct device *hwmon_dev;
+> @@ -309,52 +301,31 @@ static int __init ibmpowernv_probe(struct platform_device *pdev)
+>  	return PTR_ERR_OR_ZERO(hwmon_dev);
+>  }
+>  
+> +static const struct platform_device_id opal_sensor_driver_ids[] = {
+> +	{
+> +		.name = "opal-sensor",
+> +	},
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(platform, opal_sensor_driver_ids);
+> +
+>  static struct platform_driver ibmpowernv_driver = {
+> -	.driver = {
+> -		.owner = THIS_MODULE,
+> -		.name = DRVNAME,
+> +	.probe		= ibmpowernv_probe,
+> +	.id_table	= opal_sensor_driver_ids,
+> +	.driver		= {
+> +		.owner	= THIS_MODULE,
+> +		.name	= DRVNAME,
+>  	},
+>  };
+>  
+>  static int __init ibmpowernv_init(void)
+>  {
+> -	int err;
+> -
+> -	pdevice = platform_device_alloc(DRVNAME, 0);
+> -	if (!pdevice) {
+> -		pr_err("Device allocation failed\n");
+> -		err = -ENOMEM;
+> -		goto exit;
+> -	}
+> -
+> -	err = platform_device_add(pdevice);
+> -	if (err) {
+> -		pr_err("Device addition failed (%d)\n", err);
+> -		goto exit_device_put;
+> -	}
+> -
+> -	err = platform_driver_probe(&ibmpowernv_driver, ibmpowernv_probe);
+> -	if (err) {
+> -		if (err != -ENODEV)
+> -			pr_err("Platform driver probe failed (%d)\n", err);
+> -
+> -		goto exit_device_del;
+> -	}
+> -
+> -	return 0;
+> -
+> -exit_device_del:
+> -	platform_device_del(pdevice);
+> -exit_device_put:
+> -	platform_device_put(pdevice);
+> -exit:
+> -	return err;
+> +	return platform_driver_register(&ibmpowernv_driver);
+>  }
+>  
+>  static void __exit ibmpowernv_exit(void)
+>  {
+>  	platform_driver_unregister(&ibmpowernv_driver);
+> -	platform_device_unregister(pdevice);
+>  }
+>  
+>  MODULE_AUTHOR("Neelesh Gupta <neelegup@linux.vnet.ibm.com>");
+> 
 
 _______________________________________________
 lm-sensors mailing list
