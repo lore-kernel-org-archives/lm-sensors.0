@@ -1,81 +1,59 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Thu, 20 Nov 2014 13:52:32 +0000
-Subject: Re: [lm-sensors] [PATCHv4 1/1] thermal: of: improve of-thermal sensor registration API
-Message-Id: <20141120135155.GB24778@developer>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5454670088193997135=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 05 Nov 2014 23:21:55 +0000
+Subject: Re: [lm-sensors] Kaveri [and Radeon] temps
+Message-Id: <20141105232155.GA25189@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416321575-18348-1-git-send-email-edubezval@gmail.com>
- <1416321575-18348-2-git-send-email-edubezval@gmail.com>
- <CAAVeFu+aUdpV_hj50TAZDO_5JgRmPH2RtJuP7Qozx4RNEzO-6A@mail.gmail.com>
-In-Reply-To: <CAAVeFu+aUdpV_hj50TAZDO_5JgRmPH2RtJuP7Qozx4RNEzO-6A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-To: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Caesar Wang <caesar.wang-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lukasz Majewski <l.majewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Mikko Perttunen <mikko.perttunen-/1wQRMveznE@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-
---===============5454670088193997135==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="c3bfwLpm8qysLVxt"
-Content-Disposition: inline
-
-
---c3bfwLpm8qysLVxt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Alexander,
-
-On Wed, Nov 19, 2014 at 05:06:24PM +0900, Alexandre Courbot wrote:
-> On Tue, Nov 18, 2014 at 11:39 PM, Eduardo Valentin <edubezval@gmail.com> =
-wrote:
-> > Different drivers request API extensions in of-thermal. For this reason,
-> > additional callbacks are required to fit the new drivers needs.
-> >
-> > The current API implementation expects the registering sensor driver
-> > to provide a get_temp and get_trend callbacks as function parameters.
-> > As the amount of callbacks is growing, this patch changes the existing
-> > implementation to use a .ops field to hold all the of thermal callbacks
-> > to sensor drivers.
-> >
-> > This patch also changes the existing of-thermal users to fit the new
-> > API design. No functional change is introduced in this patch.
->=20
-> A good idea even if no ops were to be added!
->=20
-> Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
-
-Thanks for reviewing.
-
-Eduardo Valentin
-
---c3bfwLpm8qysLVxt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUbfIeAAoJEMLUO4d9pOJWV48H/0hSblonH5J96HEdJgx5O5y9
-NBKK0ulyOQMn5xGoD6cvowht+oF3ViTFDpq0/Uvjg2I5QMMyB8JOGNUPlIS58Eq4
-OlMz4VGEh77l6HFosEeeXDiOslb+sLZi79LBfaCp4vkPuifRnT6WUAc+QYSXUjuc
-5QyL8aXypQr98Vu6YOlnpLNSC0KjkFJcdTviXY7kO3r78MNm1Htt3VGCoW/X5FR9
-jXDZWX/P0bq4Kvu5+j+ADPuZjSkAmEUc6Jm5RPQo0nXtVDHGfLojNYHc2kVIlVH8
-bXYJXik+Wt5KpAWivF3lTvj6NIMhis5oWJHhZARLz/uL30UjX2Im+wVD1jSAtcc=
-=Kf2R
------END PGP SIGNATURE-----
-
---c3bfwLpm8qysLVxt--
-
-
---===============5454670088193997135==
-Content-Type: text/plain; charset="us-ascii"
+References: <m31tph9wmt.fsf@carbon.jhcloos.org>
+In-Reply-To: <m31tph9wmt.fsf@carbon.jhcloos.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: James Cloos <cloos@jhcloos.com>
+Cc: dri-devel@lists.freedesktop.org, lm-sensors@lm-sensors.org
+
+On Wed, Nov 05, 2014 at 04:15:54PM -0500, James Cloos wrote:
+> I'm getting odd temp readings on an A8-7600 with 3.3.4 and Linus'
+> current kernel.
+>=20
+> Eg, the gpu temp shows up when (mostly) idle as:
+>=20
+>  radeon-pci-0008
+>  Adapter: PCI adapter
+>  temp1:         -1.0=B0C  (crit =3D +120.0=B0C, hyst =3D +90.0=B0C)
+>=20
+The driver for the Radeon chips is maintained by the radeon driver
+maintainers, so you might want to ask at dri-devel@lists.freedesktop.org
+(copied with this reply). The driver supports different chips with
+different methods to read the temperature, so it might help to know
+which chip is in your system (lspci -nn should tell you).
+
+> aka:
+>=20
+>  radeon-pci-0008
+>  Adapter: PCI adapter
+>  temp1:        +32.0=B0F  (crit =3D +248.0=B0F, hyst =3D +194.0=B0F)
+>=20
+>=20
+> And the cpu temp is similar:
+>=20
+>  k10temp-pci-00c3
+>  Adapter: PCI adapter
+>  temp1:         +0.0=B0C  (high =3D +70.0=B0C)
+>                         (crit =3D +80.0=B0C, hyst =3D +79.0=B0C)
+> aka:
+>=20
+>  k10temp-pci-00c3
+>  Adapter: PCI adapter
+>  temp1:        +32.0=B0F  (high =3D +158.0=B0F)
+>                         (crit =3D +176.0=B0F, hyst =3D +174.2=B0F)
+>=20
+AMD CPUs are known report wildly off temperatures especially at
+low temperatures. Does the temperature increase with load ?
+
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5454670088193997135==--
