@@ -1,57 +1,36 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 05 Nov 2014 23:21:55 +0000
+From: James Cloos <cloos@jhcloos.com>
+Date: Wed, 05 Nov 2014 23:34:20 +0000
 Subject: Re: [lm-sensors] Kaveri [and Radeon] temps
-Message-Id: <20141105232155.GA25189@roeck-us.net>
+Message-Id: <m3ppd18bnn.fsf@carbon.jhcloos.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m31tph9wmt.fsf@carbon.jhcloos.org>
-In-Reply-To: <m31tph9wmt.fsf@carbon.jhcloos.org>
+	<20141105232155.GA25189@roeck-us.net>
+In-Reply-To: <20141105232155.GA25189@roeck-us.net> (Guenter Roeck's message of
+	"Wed, 5 Nov 2014 15:21:55 -0800")
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: James Cloos <cloos@jhcloos.com>
-Cc: dri-devel@lists.freedesktop.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@lm-sensors.org
+Cc: dri-devel@lists.freedesktop.org
 
-On Wed, Nov 05, 2014 at 04:15:54PM -0500, James Cloos wrote:
-> I'm getting odd temp readings on an A8-7600 with 3.3.4 and Linus'
-> current kernel.
->=20
-> Eg, the gpu temp shows up when (mostly) idle as:
->=20
->  radeon-pci-0008
->  Adapter: PCI adapter
->  temp1:         -1.0=B0C  (crit =3D +120.0=B0C, hyst =3D +90.0=B0C)
->=20
-The driver for the Radeon chips is maintained by the radeon driver
-maintainers, so you might want to ask at dri-devel@lists.freedesktop.org
-(copied with this reply). The driver supports different chips with
-different methods to read the temperature, so it might help to know
-which chip is in your system (lspci -nn should tell you).
+>>>>> "GR" = Guenter Roeck <linux@roeck-us.net> writes:
 
-> aka:
->=20
->  radeon-pci-0008
->  Adapter: PCI adapter
->  temp1:        +32.0=B0F  (crit =3D +248.0=B0F, hyst =3D +194.0=B0F)
->=20
->=20
-> And the cpu temp is similar:
->=20
->  k10temp-pci-00c3
->  Adapter: PCI adapter
->  temp1:         +0.0=B0C  (high =3D +70.0=B0C)
->                         (crit =3D +80.0=B0C, hyst =3D +79.0=B0C)
-> aka:
->=20
->  k10temp-pci-00c3
->  Adapter: PCI adapter
->  temp1:        +32.0=B0F  (high =3D +158.0=B0F)
->                         (crit =3D +176.0=B0F, hyst =3D +174.2=B0F)
->=20
-AMD CPUs are known report wildly off temperatures especially at
-low temperatures. Does the temperature increase with load ?
+...
+GR> AMD CPUs are known report wildly off temperatures especially at
+GR> low temperatures.
 
-Thanks,
-Guenter
+Thanks.  After some further digging, I wonder whether Aravind's recent
+patch might help?  The apu does have both PCI_DEVICE_ID_AMD_16H_M30H_NB_F3
+and PCI_DEVICE_ID_AMD_16H_M30H_NB_F4 and lspci reports no driver for the
+F4 device.
+
+GR>  Does the temperature increase with load ?
+
+It seems to max out w/in a kelvin or two of the room's ambient temp.
+
+-JimC
+-- 
+James Cloos <cloos@jhcloos.com>         OpenPGP: 0x997A9F17ED7DAEA6
 
 _______________________________________________
 lm-sensors mailing list
