@@ -1,87 +1,36 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 06 Nov 2014 14:17:51 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm75) put chip into shutdown mode on shutdown
-Message-Id: <545B830F.2020002@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 05 Nov 2014 16:57:29 +0000
+Subject: Re: [lm-sensors] Fancontrol memory consumption
+Message-Id: <20141105175729.39a88ab1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1415282432-3256-1-git-send-email-michael.thalmeier@hale.at>
-In-Reply-To: <1415282432-3256-1-git-send-email-michael.thalmeier@hale.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Thalmeier <michael.thalmeier@hale.at>, jdelvare@suse.de
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 11/06/2014 06:00 AM, Michael Thalmeier wrote:
-> In addition to going into shutdown mode on suspend also go into shutdown mode
-> on system shutdown. This way we can save a few mA when the main CPU is powered
-> off and the lm75 is still powered but not used any more.
->
-You can do this in a more comprehensive way using SIMPLE_DEV_PM_OPS.
+On Wed, 5 Nov 2014 10:57:48 +0100, Jean Delvare wrote:
+> On Tue, 04 Nov 2014 10:20:42 +0100, Taz wrote:
+> > Am I wrong ? Do someone have any clue or suggestion ?
+> 
+> Most likely the leak is in bash itself and fancontrol is only exposing
+> it.
+> 
+> Which version of bash are you using? Try with different versions and
+> see if they all behave the same.
 
-Guenter
+As I can reproduce the issue, I tried it myself, and my results are as
+follows:
+bash 3.0.16: Memory consumption (RSS) is steady
+bash 3.1.14: Memory consumption (RSS) increases
+bash 4.2.53: Memory consumption (RSS) increases
+bash 4.3.30: Memory consumption (RSS) increases
 
-> Signed-off-by: Michael Thalmeier <michael.thalmeier@hale.at>
-> ---
->   drivers/hwmon/lm75.c | 19 +++++++++++++++++--
->   1 file changed, 17 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-> index 7ec5ccd..d860af9 100644
-> --- a/drivers/hwmon/lm75.c
-> +++ b/drivers/hwmon/lm75.c
-> @@ -433,10 +433,10 @@ static int lm75_detect(struct i2c_client *new_client,
->   }
->
->   #ifdef CONFIG_PM
-> -static int lm75_suspend(struct device *dev)
-> +
-> +static int _lm75_shutdown(struct i2c_client *client)
->   {
->   	int status;
-> -	struct i2c_client *client = to_i2c_client(dev);
->   	status = lm75_read_value(client, LM75_REG_CONF);
->   	if (status < 0) {
->   		dev_dbg(&client->dev, "Can't read config? %d\n", status);
-> @@ -447,6 +447,18 @@ static int lm75_suspend(struct device *dev)
->   	return 0;
->   }
->
-> +static void lm75_shutdown(struct i2c_client *client)
-> +{
-> +	_lm75_shutdown(client);
-> +}
-> +
-> +static int lm75_suspend(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +
-> +	return _lm75_shutdown(client);
-> +}
-> +
->   static int lm75_resume(struct device *dev)
->   {
->   	int status;
-> @@ -466,8 +478,10 @@ static const struct dev_pm_ops lm75_dev_pm_ops = {
->   	.resume		= lm75_resume,
->   };
->   #define LM75_DEV_PM_OPS (&lm75_dev_pm_ops)
-> +#define LM75_SHUTDOWN_OP lm75_shutdown
->   #else
->   #define LM75_DEV_PM_OPS NULL
-> +#define LM75_SHUTDOWN_OP NULL
->   #endif /* CONFIG_PM */
->
->   static struct i2c_driver lm75_driver = {
-> @@ -478,6 +492,7 @@ static struct i2c_driver lm75_driver = {
->   	},
->   	.probe		= lm75_probe,
->   	.remove		= lm75_remove,
-> +	.shutdown	= LM75_SHUTDOWN_OP,
->   	.id_table	= lm75_ids,
->   	.detect		= lm75_detect,
->   	.address_list	= normal_i2c,
->
+So apparently this is a regression introduced in bash 3.1 and not fixed
+yet.
 
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
