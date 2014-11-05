@@ -1,44 +1,47 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 27 Nov 2014 09:59:10 +0000
-Subject: [lm-sensors] [PATCH v2 5/5] hwmon: ina2xx: documentation update for new sysfs attributes
-Message-Id: <1417082350-23470-6-git-send-email-bgolaszewski@baylibre.com>
+From: James Cloos <cloos@jhcloos.com>
+Date: Wed, 05 Nov 2014 21:15:54 +0000
+Subject: [lm-sensors] Kaveri temps
+Message-Id: <m31tph9wmt.fsf@carbon.jhcloos.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <jdelvare@suse.de>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Include the rshunt and avg sysfs attributes for ina2xx in the documentation.
+I'm getting odd temp readings on an A8-7600 with 3.3.4 and Linus'
+current kernel.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- Documentation/hwmon/ina2xx | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+Eg, the gpu temp shows up when (mostly) idle as:
 
-diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
-index 4223c2d..c100c24 100644
---- a/Documentation/hwmon/ina2xx
-+++ b/Documentation/hwmon/ina2xx
-@@ -44,6 +44,10 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
- The INA230 is a high or low side current shunt and power monitor with an I2C
- interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
- 
--The shunt value in micro-ohms can be set via platform data or device tree.
--Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
--if the device tree is used.
-+The shunt value in micro-ohms can be set via platform data or device tree in
-+compile-time or via the shunt_resistor attribute in sysfs in run-time. Please
-+refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings if
-+the device tree is used.
-+
-+The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
-+attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
--- 
-2.1.3
+ radeon-pci-0008
+ Adapter: PCI adapter
+ temp1:         -1.0=B0C  (crit =3D +120.0=B0C, hyst =3D +90.0=B0C)
 
+aka:
+
+ radeon-pci-0008
+ Adapter: PCI adapter
+ temp1:        +32.0=B0F  (crit =3D +248.0=B0F, hyst =3D +194.0=B0F)
+
+
+And the cpu temp is similar:
+
+ k10temp-pci-00c3
+ Adapter: PCI adapter
+ temp1:         +0.0=B0C  (high =3D +70.0=B0C)
+                        (crit =3D +80.0=B0C, hyst =3D +79.0=B0C)
+aka:
+
+ k10temp-pci-00c3
+ Adapter: PCI adapter
+ temp1:        +32.0=B0F  (high =3D +158.0=B0F)
+                        (crit =3D +176.0=B0F, hyst =3D +174.2=B0F)
+
+Is this a known issue?
+
+-JimC
+--=20
+James Cloos <cloos@jhcloos.com>         OpenPGP: 0x997A9F17ED7DAEA6
 
 _______________________________________________
 lm-sensors mailing list
