@@ -1,63 +1,100 @@
-From: Taz <rastataz@gmail.com>
-Date: Tue, 04 Nov 2014 09:20:42 +0000
-Subject: [lm-sensors] Fwd: Re: Fancontrol memory consumption
-Message-Id: <54589A6A.8010207@gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 05 Nov 2014 09:57:48 +0000
+Subject: Re: [lm-sensors] Fwd: Re: Fancontrol memory consumption
+Message-Id: <20141105105748.3db8a3ec@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <54589A6A.8010207@gmail.com>
+In-Reply-To: <54589A6A.8010207@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgYWxsLAoKSSdtIHVzaW5nIGZhbmNvbnRyb2wgb24gYSBOZXRHZWFyIFJlYWR5TkFTIFVsdHJh
-IDYwMDAgKFg4NiBhcmNoKSB1c2luZyAKdWJ1bnR1IHNlcnZlciAxNCBhbmQgaXQncyBncmVhdCAh
-CgpCdXQgYXMgeW91IG1heSBzZWUgaW4gdGhlIGZvcndhcmQgKG9yIG5vdCA6IEkgZG9uJ3Qga25v
-dyBpZiB0aGUgcGljIHdpbGwgCmJlIGZpbHRlcmVkLi4uKSwgZmFuY29udHJvbAptZW1vcnkgdXNh
-Z2UsIGFsdGhvdWdoIG5vdCBodWdlLCBpcyB3b3JyeWluZ2x5IGluY3JlYXNpbmcgYXMgdXB0aW1l
-IGdvZXMgb24uCiBGcm9tIDYgTWIgYXQgdGhlIG1vbWVudCBJIHN0YXJ0IHRoZSBkYWVtb24gdG8g
-MjcgTWIgbGVzcyB0aGFuIGEgd2VlayAKbGF0ZXIsIGFuZCBzdGlsbCBncm93aW5nICEKCkhlcmUg
-YXJlIGZldyBzeXN0ZW0gc3RhdHMsIEkgdGhpbmsgcGlucG9pbnRlZCB0aGUgaXNzdWUsIGJ1dCB0
-aGF0J3MgYWxsIApJIGNvdWxkIGRvLi4uCgoKcG1hcCAteCBGQU5DT05UUk9MX1BJRCAoc2VlIDI1
-IE1iIGluIGRpcnR5IGNvbHVtbikKPT09PT0KQWRkcmVzcyAgICAgICAgICAgS2J5dGVzICAgICBS
-U1MgICBEaXJ0eSBNb2RlICBNYXBwaW5nCjAwMDAwMDAwMDA0MDAwMDAgICAgIDk1NiAgICAgNTU2
-ICAgICAgIDAgci14LS0gYmFzaAowMDAwMDAwMDAwNmVmMDAwICAgICAgIDQgICAgICAgNCAgICAg
-ICA0IHItLS0tIGJhc2gKMDAwMDAwMDAwMDZmMDAwMCAgICAgIDM2ICAgICAgMjAgICAgICAyMCBy
-dy0tLSBiYXNoCjAwMDAwMDAwMDA2ZjkwMDAgICAgICAyNCAgICAgIDI0ICAgICAgMjQgcnctLS0g
-ICBbIGFub24gXQowMDAwMDAwMDAxZGQ3MDAwICAgMjU5NDggICAyNTk0OCAgIDI1OTQ4IHJ3LS0t
-ICAgWyBhbm9uIF0KKC4uLikKCmNhdCAvcHJvYy9GQU5DT05UUk9MX1BJRC9zbWFwcyBvdXRwdXQg
-c2FtcGxlIDoKPT09PT09PT0KKC4uLikKMDFkZDcwMDAtMDM3MmMwMDAgcnctcCAwMDAwMDAwMCAw
-MDowMCAwICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIApbaGVhcF0KU2l6ZTogICAg
-ICAgICAgICAgIDI1OTQwIGtCClJzczogICAgICAgICAgICAgICAyNTk0MCBrQgpQc3M6ICAgICAg
-ICAgICAgICAgMjU5NDAga0IKU2hhcmVkX0NsZWFuOiAgICAgICAgICAwIGtCClNoYXJlZF9EaXJ0
-eTogICAgICAgICAgMCBrQgpQcml2YXRlX0NsZWFuOiAgICAgICAgIDAga0IKUHJpdmF0ZV9EaXJ0
-eTogICAgIDI1OTQwIGtCClJlZmVyZW5jZWQ6ICAgICAgICAxNzk1NiBrQgpBbm9ueW1vdXM6ICAg
-ICAgICAgMjU5NDAga0IKQW5vbkh1Z2VQYWdlczogICAgICAgICAwIGtCClN3YXA6ICAgICAgICAg
-ICAgICAgICAgMCBrQgpLZXJuZWxQYWdlU2l6ZTogICAgICAgIDQga0IKTU1VUGFnZVNpemU6ICAg
-ICAgICAgICA0IGtCCkxvY2tlZDogICAgICAgICAgICAgICAgMCBrQgpWbUZsYWdzOiByZCB3ciBt
-ciBtdyBtZSBhYyBzZAooLi4uKQoKTG9vayBsaWtlIGl0J3MgdGhlIGhlYXAgKCBtZW1vcnkgbGVh
-ayBpbiB0aGUgZmFuY29udHJvbCBzaGVsbCBzY3JpcHQgIT8gKQoKY2F0IC9wcm9jL0ZBTkNPTlRS
-T0xfUElEL2lvCj09PT09PT09PT09PT09PQpyY2hhcjogNjg1NDg2MDQyCndjaGFyOiA2MDcyNTY2
-CnN5c2NyOiAyNDI4NTA3CnN5c2N3OiAzNDY5MjEKcmVhZF9ieXRlczogMTk4MDgyNTYKd3JpdGVf
-Ynl0ZXM6IDAKY2FuY2VsbGVkX3dyaXRlX2J5dGVzOiAwCgpJdCBsb29rcyBsaWtlIGV2ZXJ5IGRh
-dGEgcmVhZCBieSB0aGUgcHJvY2VzcyBpcyBrZXB0IGluIG1lbW9yeSAocHdtIApzZW5zb3JzIGRh
-dGEgPykgOiBJdCBkb2Vzbid0IHNlZW1zIE9LIHRvIG1lLi4uCkFtIEkgd3JvbmcgPyBEbyBzb21l
-b25lIGhhdmUgYW55IGNsdWUgb3Igc3VnZ2VzdGlvbiA/CgpUaGFua3MsCgogICAgICAgICBDw6lk
-cmljIEwuTS4KCi0tLS0tLS0tIE1lc3NhZ2UgdHJhbnNmw6lyw6kgLS0tLS0tLS0KU3VqZXQgOiAJ
-UmU6IEZhbmNvbnRyb2wgbWVtb3J5IGNvbnN1bXB0aW9uCkRhdGUgOiAJVHVlLCA0IE5vdiAyMDE0
-IDA4OjIxOjU4ICswMTAwCkRlIDogCU1hcml1cyBSZWluZXIgPG1hcml1cy5yZWFkc0BnbWFpbC5j
-b20+ClBvdXIgOiAJVGF6IDxyYXN0YXRhekBnbWFpbC5jb20+CgoKClNvcnJ5IEkgZG9uJ3QgbWFp
-bnRhaW4gZmFuY29udHJvbCBhbnkgbW9yZSwgcGxlYXNlIGNoZWNrIHRoZSBsbV9zZW5zb3JzIApw
-cm9qZWN0IG1haWxpbmdsaXN0LCB0aG9zZSBndXlzIG1pZ2h0IGJlIGFibGUgdG8gaGVscC4KCkJl
-c3QgcmVnYXJkcwpNYXJpdXMKCk9uIFR1ZSwgTm92IDQsIDIwMTQgYXQgMzowNCBBTSwgVGF6IDxy
-YXN0YXRhekBnbWFpbC5jb20gCjxtYWlsdG86cmFzdGF0YXpAZ21haWwuY29tPj4gd3JvdGU6Cgog
-ICAgSGkgTWFyaXVzLAoKICAgIEZpcnN0IDogVGhhbmtzIGZvciBmYW5jb250cm9sIChJIHN1cHBv
-c2UuLi4gSSBmb3VkIHlvdXIgbWFpbCBpbiB0aGUKICAgIG1hbiBwYWdlKS4gOi0pCgogICAgQXMg
-eW91IGNhbiBzZWUgb24gZm9sbG93aW5nIGdyYXBoIGZhbmNvbnRyb2wgaXMgY29uc3VtaW5nIG1v
-cmUgYW5kCiAgICBtb3JlIG1lbW9yeQogICAgYXMgaXRzIHVwdGltZSBnb2VzIDogYWxtb3N0IDYg
-dGltZXMgbW9yZSB0aGFuIHdoZW4gaXQgc3RhcnRlZCB1cAogICAgbGVzcyB0aGFuIGEgd2VlayBh
-Z28uLi4KCgoKICAgIEdvdCBhbnkgaW5mb3JtYXRpb24gcmVsYXRlZCB0byB0aGF0ID8KICAgICgg
-d2lsbCBpdCBzdG9wcyBncm93aW5nIG9uY2UgYSBjZXJ0YWluIGxldmVsIGlzIHJlYWNoZWQsIGlz
-IGl0CiAgICB0aHJlYXRlbmluZyBmb3IgbXkgc3lzdGVtL2ZhbmNvbnRyb2wgZGFlbW9uIC4uLikK
-CiAgICBUaGFua3MsCiAgICAgICAgICAgICBDw6lkcmljIEwuTS4KCgoKCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
-dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Tue, 04 Nov 2014 10:20:42 +0100, Taz wrote:
+> I'm using fancontrol on a NetGear ReadyNAS Ultra 6000 (X86 arch) using 
+> ubuntu server 14 and it's great !
+> 
+> But as you may see in the forward (or not : I don't know if the pic will 
+> be filtered...), fancontrol
+
+No picture indeed, although I don't think the list is configured to
+filter them out.
+
+> memory usage, although not huge, is worryingly increasing as uptime goes on.
+>  From 6 Mb at the moment I start the daemon to 27 Mb less than a week 
+> later, and still growing !
+> 
+> Here are few system stats, I think pinpointed the issue, but that's all 
+> I could do...
+> 
+> 
+> pmap -x FANCONTROL_PID (see 25 Mb in dirty column)
+> ==> Address           Kbytes     RSS   Dirty Mode  Mapping
+> 0000000000400000     956     556       0 r-x-- bash
+> 00000000006ef000       4       4       4 r---- bash
+> 00000000006f0000      36      20      20 rw--- bash
+> 00000000006f9000      24      24      24 rw---   [ anon ]
+> 0000000001dd7000   25948   25948   25948 rw---   [ anon ]
+> (...)
+> 
+> cat /proc/FANCONTROL_PID/smaps output sample :
+> ====
+> (...)
+> 01dd7000-0372c000 rw-p 00000000 00:00 0                                  
+> [heap]
+> Size:              25940 kB
+> Rss:               25940 kB
+> Pss:               25940 kB
+> Shared_Clean:          0 kB
+> Shared_Dirty:          0 kB
+> Private_Clean:         0 kB
+> Private_Dirty:     25940 kB
+> Referenced:        17956 kB
+> Anonymous:         25940 kB
+> AnonHugePages:         0 kB
+> Swap:                  0 kB
+> KernelPageSize:        4 kB
+> MMUPageSize:           4 kB
+> Locked:                0 kB
+> VmFlags: rd wr mr mw me ac sd
+> (...)
+> 
+> Look like it's the heap ( memory leak in the fancontrol shell script !? )
+
+You do not explicitly allocate memory in bash, so you are not
+responsible for freeing it either. You can call "unset" to explicitly
+drop references and allow bash to free some memory, but that only makes
+sense in specific cases. I do not think this applies to fancontrol.
+
+> cat /proc/FANCONTROL_PID/io
+> =======> rchar: 685486042
+> wchar: 6072566
+> syscr: 2428507
+> syscw: 346921
+> read_bytes: 19808256
+> write_bytes: 0
+> cancelled_write_bytes: 0
+> 
+> It looks like every data read by the process is kept in memory (pwm 
+> sensors data ?) : It doesn't seems OK to me...
+
+Most variables are local to function UpdateFanSpeeds so they wouldn't
+survive between cycles. The rest would only be read from, not written
+to, so it can't grow.
+
+> Am I wrong ? Do someone have any clue or suggestion ?
+
+Most likely the leak is in bash itself and fancontrol is only exposing
+it.
+
+Which version of bash are you using? Try with different versions and
+see if they all behave the same.
+
+-- 
+Jean Delvare
+SUSE L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
