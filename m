@@ -1,38 +1,55 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 27 Nov 2014 09:59:05 +0000
-Subject: [lm-sensors] [PATCH v2 0/5] hwmon: ina2xx: fixes & extensions
-Message-Id: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 12 Nov 2014 19:43:26 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.18-rc5
+Message-Id: <1415821406-18384-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <jdelvare@suse.de>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-This series fixes an initialization issue we've experienced with the ina2xx
-driver and extends the sysfs interface to make the driver configurable
-at run-time.
+Hi Linus,
 
-The shunt_resistor attribute allows to change the shunt resistance value
-at run-time in cases where ina2xx used to do the measurement isn't integrated
-with the shunt.
+Please pull hwmon fixes for Linux 3.18-rc5 from signed tag:
 
-The avg_rate attribute allows to increase/decrease noise reduction.
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v3.18-rc5
 
-Bartosz Golaszewski (5):
-  hwmon: ina2xx: bail-out from ina2xx_probe() in case of configuration errors
-  hwmon: ina2xx: make shunt resistance configurable at run-time
-  hwmon: ina2xx: allow to change the averaging rate at run-time
-  hwmon: ina2xx: change hex constants to lower-case
-  hwmon: ina2xx: documentation update for new sysfs attributes
+Thanks,
+Guenter
+------
 
- Documentation/hwmon/ina2xx |  10 ++-
- drivers/hwmon/ina2xx.c     | 187 +++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 181 insertions(+), 16 deletions(-)
+The following changes since commit 206c5f60a3d902bc4b56dab2de3e88de5eb06108:
 
--- 
-2.1.3
+  Linux 3.18-rc4 (2014-11-09 14:55:29 -0800)
 
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v3.18-rc5
+
+for you to fetch changes up to 0bd52941586b3b59ab9b6e89e55b2dc9e2680de9:
+
+  hwmon: (fam15h_power) Fix NB device ID for F16h M30h (2014-11-11 10:39:45 -0800)
+
+----------------------------------------------------------------
+Fix PCI device ID in fam15h_power driver
+Fix suspend/resume behavior in pwm-fan driver
+Reduce logging noise created by ibmpowernv driver
+
+----------------------------------------------------------------
+Aravind Gopalakrishnan (1):
+      hwmon: (fam15h_power) Fix NB device ID for F16h M30h
+
+Kamil Debski (1):
+      hwmon: (pwm-fan) Fix suspend/resume behavior
+
+Michael Ellerman (1):
+      hwmon: (ibmpowernv) Quieten when probing finds no device
+
+ drivers/hwmon/fam15h_power.c |  2 +-
+ drivers/hwmon/ibmpowernv.c   |  6 ++++--
+ drivers/hwmon/pwm-fan.c      | 13 ++++++++++---
+ 3 files changed, 15 insertions(+), 6 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
