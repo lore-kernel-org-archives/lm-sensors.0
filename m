@@ -1,71 +1,221 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 30 Nov 2014 21:00:39 +0000
-Subject: [lm-sensors] [PATCH 2/3] i8k: Rework error retries
-Message-Id: <1417381240-7641-2-git-send-email-linux@roeck-us.net>
+Date: Sun, 16 Nov 2014 18:15:13 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (nct6775) Add support for NCT6792D
+Message-Id: <1416161714-23796-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
+References: <1372180172-3159-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1372180172-3159-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-SW5zdGVhZCBvZiByZXR1cm5pbmcgYSBwcmV2aW91cyB2YWx1ZSBpZiB0aGUgU01NIGNvZGUgcmV0
-dXJucwphbiBlcnJvciB3aGVuIHRyeWluZyB0byByZWFkIGEgdGVtcGVyYXR1cmUsIHJldHJ5IG9u
-Y2UuCklmIHRoYXQgZmFpbHMgYWdhaW4sIHJldHVybiAtRU5PREFUQS4gQWxzbyByZXR1cm4gLUVO
-T0RBVEEgaWYgYW4KYXR0ZW1wdCBpcyBtYWRlIHRvIHJlYWQgdGhlIEdQVSB0ZW1wZXJhdHVyZSBi
-dXQgdGhlIEdQVSBpcwpjdXJyZW50bHkgdHVybmVkIG9mZi4KCkRyb3AgdGhlIEk4S19URU1QRVJB
-VFVSRV9CVUcgZGVmaW5pdGlvbiBhbmQgaGFuZGxlIHRoZSByZWxhdGVkIGJ1Zwp1bmNvbmRpdGlv
-bmFsbHkuCgpDYzogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgpTaWduZWQtb2Zm
-LWJ5OiBHdWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Ci0tLQpBcHBsaWVzIG9uIHRv
-cCBvZiBQYWxpJ3MgcGF0Y2ggc2VyaWVzLiAKCiBkcml2ZXJzL2NoYXIvaThrLmMgfCA0NyArKysr
-KysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5n
-ZWQsIDI0IGluc2VydGlvbnMoKyksIDIzIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvY2hhci9pOGsuYyBiL2RyaXZlcnMvY2hhci9pOGsuYwppbmRleCAzNDY0MTkyLi5jZGIyZGM3
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2NoYXIvaThrLmMKKysrIGIvZHJpdmVycy9jaGFyL2k4ay5j
-CkBAIC01LDcgKzUsNyBAQAogICoKICAqIEh3bW9uIGludGVncmF0aW9uOgogICogQ29weXJpZ2h0
-IChDKSAyMDExICBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+Ci0gKiBDb3B5cmlnaHQg
-KEMpIDIwMTMgIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KKyAqIENvcHlyaWdo
-dCAoQykgMjAxMywgMjAxNCAgR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgogICoK
-ICAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBp
-dCBhbmQvb3IgbW9kaWZ5IGl0CiAgKiB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFs
-IFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieSB0aGUKQEAgLTIwLDYgKzIwLDcgQEAKIAog
-I2RlZmluZSBwcl9mbXQoZm10KSBLQlVJTERfTU9ETkFNRSAiOiAiIGZtdAogCisjaW5jbHVkZSA8
-bGludXgvZGVsYXkuaD4KICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KICNpbmNsdWRlIDxsaW51
-eC90eXBlcy5oPgogI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KQEAgLTU5LDggKzYwLDYgQEAKICNk
-ZWZpbmUgSThLX1BPV0VSX0FDCQkweDA1CiAjZGVmaW5lIEk4S19QT1dFUl9CQVRURVJZCTB4MDEK
-IAotI2RlZmluZSBJOEtfVEVNUEVSQVRVUkVfQlVHCTEKLQogc3RhdGljIERFRklORV9NVVRFWChp
-OGtfbXV0ZXgpOwogc3RhdGljIGNoYXIgYmlvc192ZXJzaW9uWzRdOwogc3RhdGljIHN0cnVjdCBk
-ZXZpY2UgKmk4a19od21vbl9kZXY7CkBAIC0zMDAsMzkgKzI5OSw0MSBAQCBzdGF0aWMgaW50IGk4
-a19nZXRfdGVtcF90eXBlKGludCBzZW5zb3IpCiAvKgogICogUmVhZCB0aGUgY3B1IHRlbXBlcmF0
-dXJlLgogICovCi1zdGF0aWMgaW50IGk4a19nZXRfdGVtcChpbnQgc2Vuc29yKQorc3RhdGljIGlu
-dCBfaThrX2dldF90ZW1wKGludCBzZW5zb3IpCiB7Ci0Jc3RydWN0IHNtbV9yZWdzIHJlZ3MgPSB7
-IC5lYXggPSBJOEtfU01NX0dFVF9URU1QLCB9OwotCWludCByYzsKLQlpbnQgdGVtcDsKKwlzdHJ1
-Y3Qgc21tX3JlZ3MgcmVncyA9IHsKKwkJLmVheCA9IEk4S19TTU1fR0VUX1RFTVAsCisJCS5lYngg
-PSBzZW5zb3IgJiAweGZmLAorCX07CiAKLSNpZmRlZiBJOEtfVEVNUEVSQVRVUkVfQlVHCi0Jc3Rh
-dGljIGludCBwcmV2WzRdID0geyBJOEtfTUFYX1RFTVArMSwgSThLX01BWF9URU1QKzEsIEk4S19N
-QVhfVEVNUCsxLCBJOEtfTUFYX1RFTVArMSB9OwotI2VuZGlmCi0JcmVncy5lYnggPSBzZW5zb3Ig
-JiAweGZmOwotCXJjID0gaThrX3NtbSgmcmVncyk7Ci0JaWYgKHJjIDwgMCkKLQkJcmV0dXJuIHJj
-OworCXJldHVybiBpOGtfc21tKCZyZWdzKSA/IDogcmVncy5lYXggJiAweGZmOworfQogCi0JdGVt
-cCA9IHJlZ3MuZWF4ICYgMHhmZjsKK3N0YXRpYyBpbnQgaThrX2dldF90ZW1wKGludCBzZW5zb3Ip
-Cit7CisJaW50IHRlbXAgPSBfaThrX2dldF90ZW1wKHNlbnNvcik7CiAKLSNpZmRlZiBJOEtfVEVN
-UEVSQVRVUkVfQlVHCiAJLyoKIAkgKiBTb21ldGltZXMgdGhlIHRlbXBlcmF0dXJlIHNlbnNvciBy
-ZXR1cm5zIDB4OTksIHdoaWNoIGlzIG91dCBvZiByYW5nZS4KLQkgKiBJbiB0aGlzIGNhc2Ugd2Ug
-cmV0dXJuIChvbmNlKSB0aGUgcHJldmlvdXMgY2FjaGVkIHZhbHVlLiBGb3IgZXhhbXBsZToKKwkg
-KiBJbiB0aGlzIGNhc2Ugd2UgcmV0cnkgKG9uY2UpIGJlZm9yZSByZXR1cm5pbmcgYW4gZXJyb3Iu
-CiAJICMgMTAwMzY1NTEzNyAwMDAwMDA1OCAwMDAwNWE0YgogCSAjIDEwMDM2NTUxMzggMDAwMDAw
-OTkgMDAwMDNhODAgPC0tLSAweDk5ID0gMTUzIGRlZ3JlZXMKIAkgIyAxMDAzNjU1MTM5IDAwMDAw
-MDU0IDAwMDA1YzUyCiAJICovCi0JaWYgKHRlbXAgPiBJOEtfTUFYX1RFTVApIHsKLQkJdGVtcCA9
-IHByZXZbc2Vuc29yXTsKLQkJcHJldltzZW5zb3JdID0gSThLX01BWF9URU1QKzE7Ci0JfSBlbHNl
-IHsKLQkJcHJldltzZW5zb3JdID0gdGVtcDsKKwlpZiAodGVtcCA9PSAweDk5KSB7CisJCW1zbGVl
-cCgxMDApOworCQl0ZW1wID0gX2k4a19nZXRfdGVtcChzZW5zb3IpOwogCX0KKwkvKgorCSAqIFJl
-dHVybiAtRU5PREFUQSBmb3IgYWxsIGludmFsaWQgdGVtcGVyYXR1cmVzLgorCSAqCisJICogS25v
-d24gaW5zdGFuY2VzIGFyZSB0aGUgMHg5OSB2YWx1ZSBhcyBzZWVuIGFib3ZlIGFzIHdlbGwgYXMK
-KwkgKiAweGMxICgxOTMpLCB3aGljaCBtYXkgYmUgcmV0dXJuZWQgd2hlbiB0cnlpbmcgdG8gcmVh
-ZCB0aGUgR1BVCisJICogdGVtcGVyYXR1cmUgaWYgdGhlIHN5c3RlbSBzdXBwb3J0cyBhIEdQVSBh
-bmQgaXQgaXMgY3VycmVudGx5CisJICogdHVybmVkIG9mZi4KKwkgKi8KIAlpZiAodGVtcCA+IEk4
-S19NQVhfVEVNUCkKIAkJcmV0dXJuIC1FTk9EQVRBOwotI2VuZGlmCiAKIAlyZXR1cm4gdGVtcDsK
-IH0KLS0gCjEuOS4xCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpo
-dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+NCT6792D is similar to NCT6791D. Only beep control and temperature
+monitoring registers are different.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6775.c | 47 +++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 37 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 504cbdd..ffe7427 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -38,6 +38,7 @@
+  * nct6776f     9      5       3       6+3    0xc330 0xc1    0x5ca3
+  * nct6779d    15      5       5       2+6    0xc560 0xc1    0x5ca3
+  * nct6791d    15      6       6       2+6    0xc800 0xc1    0x5ca3
++ * nct6792d    15      6       6       2+6    0xc911 0xc1    0x5ca3
+  *
+  * #temp lists the number of monitored temperature sources (first value) plus
+  * the number of directly connectable temperature sensors (second value).
+@@ -61,7 +62,7 @@
+ 
+ #define USE_ALTERNATE
+ 
+-enum kinds { nct6106, nct6775, nct6776, nct6779, nct6791 };
++enum kinds { nct6106, nct6775, nct6776, nct6779, nct6791, nct6792 };
+ 
+ /* used to set data->name = nct6775_device_names[data->sio_kind] */
+ static const char * const nct6775_device_names[] = {
+@@ -70,6 +71,7 @@ static const char * const nct6775_device_names[] = {
+ 	"nct6776",
+ 	"nct6779",
+ 	"nct6791",
++	"nct6792",
+ };
+ 
+ static unsigned short force_id;
+@@ -100,6 +102,7 @@ MODULE_PARM_DESC(fan_debounce, "Enable debouncing for fan RPM signal");
+ #define SIO_NCT6776_ID		0xc330
+ #define SIO_NCT6779_ID		0xc560
+ #define SIO_NCT6791_ID		0xc800
++#define SIO_NCT6792_ID		0xc910
+ #define SIO_ID_MASK		0xFFF0
+ 
+ enum pwm_enable { off, manual, thermal_cruise, speed_cruise, sf3, sf4 };
+@@ -529,6 +532,12 @@ static const s8 NCT6791_ALARM_BITS[] = {
+ 	4, 5, 13, -1, -1, -1,		/* temp1..temp6 */
+ 	12, 9 };			/* intrusion0, intrusion1 */
+ 
++/* NCT6792 specific data */
++
++static const u16 NCT6792_REG_TEMP_MON[] = {
++	0x73, 0x75, 0x77, 0x79, 0x7b, 0x7d };
++static const u16 NCT6792_REG_BEEP[NUM_REG_BEEP] = {
++	0xb2, 0xb3, 0xb4, 0xb5, 0xbf };
+ 
+ /* NCT6102D/NCT6106D specific data */
+ 
+@@ -1043,13 +1052,14 @@ static bool is_word_sized(struct nct6775_data *data, u16 reg)
+ 		  reg = 0x73 || reg = 0x75 || reg = 0x77;
+ 	case nct6779:
+ 	case nct6791:
++	case nct6792:
+ 		return reg = 0x150 || reg = 0x153 || reg = 0x155 ||
+ 		  ((reg & 0xfff0) = 0x4b0 && (reg & 0x000f) < 0x0b) ||
+ 		  reg = 0x402 ||
+ 		  reg = 0x63a || reg = 0x63c || reg = 0x63e ||
+ 		  reg = 0x640 || reg = 0x642 ||
+ 		  reg = 0x73 || reg = 0x75 || reg = 0x77 || reg = 0x79 ||
+-		  reg = 0x7b;
++		  reg = 0x7b || reg = 0x7d;
+ 	}
+ 	return false;
+ }
+@@ -1391,6 +1401,7 @@ static void nct6775_update_pwm_limits(struct device *dev)
+ 		case nct6106:
+ 		case nct6779:
+ 		case nct6791:
++		case nct6792:
+ 			reg = nct6775_read_value(data,
+ 					data->REG_CRITICAL_PWM_ENABLE[i]);
+ 			if (reg & data->CRITICAL_PWM_ENABLE_MASK)
+@@ -2790,6 +2801,7 @@ store_auto_pwm(struct device *dev, struct device_attribute *attr,
+ 		case nct6106:
+ 		case nct6779:
+ 		case nct6791:
++		case nct6792:
+ 			nct6775_write_value(data, data->REG_CRITICAL_PWM[nr],
+ 					    val);
+ 			reg = nct6775_read_value(data,
+@@ -3202,7 +3214,7 @@ nct6775_check_fan_inputs(struct nct6775_data *data)
+ 		pwm4pin = false;
+ 		pwm5pin = false;
+ 		pwm6pin = false;
+-	} else {	/* NCT6779D or NCT6791D */
++	} else {	/* NCT6779D, NCT6791D, or NCT6792D */
+ 		regval = superio_inb(sioreg, 0x1c);
+ 
+ 		fan3pin = !(regval & (1 << 5));
+@@ -3215,7 +3227,7 @@ nct6775_check_fan_inputs(struct nct6775_data *data)
+ 
+ 		fan4min = fan4pin;
+ 
+-		if (data->kind = nct6791) {
++		if (data->kind = nct6791 || data->kind = nct6792) {
+ 			regval = superio_inb(sioreg, 0x2d);
+ 			fan6pin = (regval & (1 << 1));
+ 			pwm6pin = (regval & (1 << 0));
+@@ -3588,6 +3600,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 
+ 		break;
+ 	case nct6791:
++	case nct6792:
+ 		data->in_num = 15;
+ 		data->pwm_num = 6;
+ 		data->auto_pwm_num = 4;
+@@ -3650,12 +3663,20 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->REG_WEIGHT_TEMP[1] = NCT6791_REG_WEIGHT_TEMP_STEP_TOL;
+ 		data->REG_WEIGHT_TEMP[2] = NCT6791_REG_WEIGHT_TEMP_BASE;
+ 		data->REG_ALARM = NCT6791_REG_ALARM;
+-		data->REG_BEEP = NCT6776_REG_BEEP;
++		if (data->kind = nct6791)
++			data->REG_BEEP = NCT6776_REG_BEEP;
++		else
++			data->REG_BEEP = NCT6792_REG_BEEP;
+ 
+ 		reg_temp = NCT6779_REG_TEMP;
+-		reg_temp_mon = NCT6779_REG_TEMP_MON;
+ 		num_reg_temp = ARRAY_SIZE(NCT6779_REG_TEMP);
+-		num_reg_temp_mon = ARRAY_SIZE(NCT6779_REG_TEMP_MON);
++		if (data->kind = nct6791) {
++			reg_temp_mon = NCT6779_REG_TEMP_MON;
++			num_reg_temp_mon = ARRAY_SIZE(NCT6779_REG_TEMP_MON);
++		} else {
++			reg_temp_mon = NCT6792_REG_TEMP_MON;
++			num_reg_temp_mon = ARRAY_SIZE(NCT6792_REG_TEMP_MON);
++		}
+ 		reg_temp_over = NCT6779_REG_TEMP_OVER;
+ 		reg_temp_hyst = NCT6779_REG_TEMP_HYST;
+ 		reg_temp_config = NCT6779_REG_TEMP_CONFIG;
+@@ -3854,6 +3875,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 	case nct6106:
+ 	case nct6779:
+ 	case nct6791:
++	case nct6792:
+ 		break;
+ 	}
+ 
+@@ -3885,6 +3907,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 			tmp |= 0x3e;
+ 			break;
+ 		case nct6791:
++		case nct6792:
+ 			tmp |= 0x7e;
+ 			break;
+ 		}
+@@ -3972,7 +3995,7 @@ static int nct6775_resume(struct device *dev)
+ 	mutex_lock(&data->update_lock);
+ 	data->bank = 0xff;		/* Force initial bank selection */
+ 
+-	if (data->kind = nct6791) {
++	if (data->kind = nct6791 || data->kind = nct6792) {
+ 		err = superio_enter(data->sioreg);
+ 		if (err)
+ 			goto abort;
+@@ -4052,6 +4075,7 @@ static const char * const nct6775_sio_names[] __initconst = {
+ 	"NCT6776D/F",
+ 	"NCT6779D",
+ 	"NCT6791D",
++	"NCT6792D",
+ };
+ 
+ /* nct6775_find() looks for a '627 in the Super-I/O config space */
+@@ -4086,6 +4110,9 @@ static int __init nct6775_find(int sioaddr, struct nct6775_sio_data *sio_data)
+ 	case SIO_NCT6791_ID:
+ 		sio_data->kind = nct6791;
+ 		break;
++	case SIO_NCT6792_ID:
++		sio_data->kind = nct6792;
++		break;
+ 	default:
+ 		if (val != 0xffff)
+ 			pr_debug("unsupported chip ID: 0x%04x\n", val);
+@@ -4111,7 +4138,7 @@ static int __init nct6775_find(int sioaddr, struct nct6775_sio_data *sio_data)
+ 		superio_outb(sioaddr, SIO_REG_ENABLE, val | 0x01);
+ 	}
+ 
+-	if (sio_data->kind = nct6791)
++	if (sio_data->kind = nct6791 || sio_data->kind = nct6792)
+ 		nct6791_enable_io_mapping(sioaddr);
+ 
+ 	superio_exit(sioaddr);
+@@ -4221,7 +4248,7 @@ static void __exit sensors_nct6775_exit(void)
+ }
+ 
+ MODULE_AUTHOR("Guenter Roeck <linux@roeck-us.net>");
+-MODULE_DESCRIPTION("NCT6106D/NCT6775F/NCT6776F/NCT6779D/NCT6791D driver");
++MODULE_DESCRIPTION("NCT6106D/NCT6775F/NCT6776F/NCT6779D/NCT6791D/NCT6792D driver");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(sensors_nct6775_init);
+-- 
+1.9.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
