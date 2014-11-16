@@ -1,283 +1,120 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 30 Nov 2014 21:37:53 +0000
-Subject: [lm-sensors] [PATCH v2 2/2] hwmon: (lm95234) Add support for LM95233
-Message-Id: <1417383473-10328-2-git-send-email-linux@roeck-us.net>
+Date: Sun, 16 Nov 2014 18:23:14 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm95245) Add support for LM95235
+Message-Id: <1416162195-25193-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-LM95233 is similar to LM95234, but it only supports two
-instead of four external temperature sensors.
+LM95235 is register compatible to LM95245.
+
+Also update link to LM95245 data sheet.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-v2: Update Kconfig
-    Improve detection code (add more checks)
-    Update MODULE_DESCRIPTION
+ Documentation/hwmon/lm95245 | 14 +++++++++-----
+ drivers/hwmon/lm95245.c     | 31 ++++++++++++++++++++++++-------
+ 2 files changed, 33 insertions(+), 12 deletions(-)
 
- Documentation/hwmon/lm95234 | 15 +++++---
- drivers/hwmon/Kconfig       |  6 +--
- drivers/hwmon/lm95234.c     | 91 ++++++++++++++++++++++++++++++++-------------
- 3 files changed, 78 insertions(+), 34 deletions(-)
-
-diff --git a/Documentation/hwmon/lm95234 b/Documentation/hwmon/lm95234
-index a0e95dd..32b777e 100644
---- a/Documentation/hwmon/lm95234
-+++ b/Documentation/hwmon/lm95234
-@@ -2,6 +2,10 @@ Kernel driver lm95234
- ========== 
+diff --git a/Documentation/hwmon/lm95245 b/Documentation/hwmon/lm95245
+index 77eaf28..d755901 100644
+--- a/Documentation/hwmon/lm95245
++++ b/Documentation/hwmon/lm95245
+@@ -2,10 +2,14 @@ Kernel driver lm95245
+ =========
+ 
  Supported chips:
-+  * National Semiconductor / Texas Instruments LM95233
-+    Addresses scanned: I2C 0x18, 0x2a, 0x2b
-+    Datasheet: Publicly available at the Texas Instruments website
-+               http://www.ti.com/product/lm95233
-   * National Semiconductor / Texas Instruments LM95234
-     Addresses scanned: I2C 0x18, 0x4d, 0x4e
-     Datasheet: Publicly available at the Texas Instruments website
-@@ -13,11 +17,12 @@ Author: Guenter Roeck <linux@roeck-us.net>
+-  * National Semiconductor LM95245
++  * TI LM95235
++    Addresses scanned: I2C 0x18, 0x29, 0x4c
++    Datasheet: Publicly available at the TI website
++               http://www.ti.com/lit/ds/symlink/lm95235.pdf
++  * TI / National Semiconductor LM95245
+     Addresses scanned: I2C 0x18, 0x19, 0x29, 0x4c, 0x4d
+-    Datasheet: Publicly available at the National Semiconductor website
+-               http://www.national.com/mpf/LM/LM95245.html
++    Datasheet: Publicly available at the TI website
++               http://www.ti.com/lit/ds/symlink/lm95245.pdf
+ 
+ 
+ Author: Alexander Stein <alexander.stein@systec-electronic.com>
+@@ -13,10 +17,10 @@ Author: Alexander Stein <alexander.stein@systec-electronic.com>
  Description
  -----------
  
--LM95234 is an 11-bit digital temperature sensor with a 2-wire System Management
--Bus (SMBus) interface and TrueTherm technology that can very accurately monitor
--the temperature of four remote diodes as well as its own temperature.
--The four remote diodes can be external devices such as microprocessors,
--graphics processors or diode-connected 2N3904s. The LM95234's TruTherm
-+LM95233 and LM95234 are 11-bit digital temperature sensors with a 2-wire
-+System Management Bus (SMBus) interface and TrueTherm technology
-+that can very accurately monitor the temperature of two (LM95233)
-+or four (LM95234) remote diodes as well as its own temperature.
-+The remote diodes can be external devices such as microprocessors,
-+graphics processors or diode-connected 2N3904s. The chip's TruTherm
- beta compensation technology allows sensing of 90 nm or 65 nm process
- thermal diodes accurately.
+-The LM95245 is an 11-bit digital temperature sensor with a 2-wire System
++LM95235 and LM95245 are 11-bit digital temperature sensors with a 2-wire System
+ Management Bus (SMBus) interface and TruTherm technology that can monitor
+ the temperature of a remote diode as well as its own temperature.
+-The LM95245 can be used to very accurately monitor the temperature of
++The chips can be used to very accurately monitor the temperature of
+ external devices such as microprocessors.
  
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 27ef472..cefb7c9 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -1028,11 +1028,11 @@ config SENSORS_LM93
- 	  will be called lm93.
+ All temperature values are given in millidegrees Celsius. Local temperature
+diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
+index 0ae0dfd..a804651 100644
+--- a/drivers/hwmon/lm95245.c
++++ b/drivers/hwmon/lm95245.c
+@@ -98,7 +98,8 @@ static const unsigned short normal_i2c[] = {
+ #define STATUS1_LOC		0x01
  
- config SENSORS_LM95234
--	tristate "National Semiconductor LM95234"
-+	tristate "National Semiconductor LM95234 and compatibles"
- 	depends on I2C
- 	help
--	  If you say yes here you get support for the LM95234 temperature
--	  sensor.
-+	  If you say yes here you get support for the LM95233 and LM95234
-+	  temperature sensor chips.
+ #define MANUFACTURER_ID		0x01
+-#define DEFAULT_REVISION	0xB3
++#define LM95235_REVISION	0xB1
++#define LM95245_REVISION	0xB3
  
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm95234.
-diff --git a/drivers/hwmon/lm95234.c b/drivers/hwmon/lm95234.c
-index 411202b..af8fabd 100644
---- a/drivers/hwmon/lm95234.c
-+++ b/drivers/hwmon/lm95234.c
-@@ -1,7 +1,7 @@
- /*
-  * Driver for Texas Instruments / National Semiconductor LM95234
-  *
-- * Copyright (c) 2013 Guenter Roeck <linux@roeck-us.net>
-+ * Copyright (c) 2013, 2014 Guenter Roeck <linux@roeck-us.net>
-  *
-  * Derived from lm95241.c
-  * Copyright (C) 2008, 2010 Davide Rizzo <elpa.rizzo@gmail.com>
-@@ -30,7 +30,10 @@
- 
- #define DRVNAME "lm95234"
- 
--static const unsigned short normal_i2c[] = { 0x18, 0x4d, 0x4e, I2C_CLIENT_END };
-+enum chips { lm95233, lm95234 };
-+
-+static const unsigned short normal_i2c[] = {
-+	0x18, 0x2a, 0x2b, 0x4d, 0x4e, I2C_CLIENT_END };
- 
- /* LM95234 registers */
- #define LM95234_REG_MAN_ID		0xFE
-@@ -53,11 +56,13 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4d, 0x4e, I2C_CLIENT_END };
- #define LM95234_REG_TCRIT_HYST		0x5a
- 
- #define NATSEMI_MAN_ID			0x01
-+#define LM95233_CHIP_ID			0x89
- #define LM95234_CHIP_ID			0x79
- 
- /* Client data (each client gets its own) */
- struct lm95234_data {
- 	struct i2c_client *client;
-+	const struct attribute_group *groups[3];
- 	struct mutex update_lock;
- 	unsigned long last_updated, interval;	/* in jiffies */
- 	bool valid;		/* false until following fields are valid */
-@@ -564,35 +569,23 @@ static SENSOR_DEVICE_ATTR(temp5_offset, S_IWUSR | S_IRUGO, show_offset,
- static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_interval,
- 		   set_interval);
- 
--static struct attribute *lm95234_attrs[] = {
-+static struct attribute *lm95234_common_attrs[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
--	&sensor_dev_attr_temp4_input.dev_attr.attr,
--	&sensor_dev_attr_temp5_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_fault.dev_attr.attr,
- 	&sensor_dev_attr_temp3_fault.dev_attr.attr,
--	&sensor_dev_attr_temp4_fault.dev_attr.attr,
--	&sensor_dev_attr_temp5_fault.dev_attr.attr,
- 	&sensor_dev_attr_temp2_type.dev_attr.attr,
- 	&sensor_dev_attr_temp3_type.dev_attr.attr,
--	&sensor_dev_attr_temp4_type.dev_attr.attr,
--	&sensor_dev_attr_temp5_type.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
--	&sensor_dev_attr_temp4_max.dev_attr.attr,
--	&sensor_dev_attr_temp5_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
--	&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
--	&sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp4_max_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp5_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp3_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
-@@ -601,18 +594,44 @@ static struct attribute *lm95234_attrs[] = {
- 	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_offset.dev_attr.attr,
- 	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+	&dev_attr_update_interval.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group lm95234_common_group = {
-+	.attrs = lm95234_common_attrs,
-+};
-+
-+static struct attribute *lm95234_attrs[] = {
-+	&sensor_dev_attr_temp4_input.dev_attr.attr,
-+	&sensor_dev_attr_temp5_input.dev_attr.attr,
-+	&sensor_dev_attr_temp4_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp5_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp4_type.dev_attr.attr,
-+	&sensor_dev_attr_temp5_type.dev_attr.attr,
-+	&sensor_dev_attr_temp4_max.dev_attr.attr,
-+	&sensor_dev_attr_temp5_max.dev_attr.attr,
-+	&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp4_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp5_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp4_offset.dev_attr.attr,
- 	&sensor_dev_attr_temp5_offset.dev_attr.attr,
--	&dev_attr_update_interval.attr,
- 	NULL
- };
--ATTRIBUTE_GROUPS(lm95234);
-+
-+static const struct attribute_group lm95234_group = {
-+	.attrs = lm95234_attrs,
-+};
- 
- static int lm95234_detect(struct i2c_client *client,
+ static const u8 lm95245_reg_address[] = {
+ 	LM95245_REG_R_LOCAL_TEMPH_S,
+@@ -427,17 +428,32 @@ static int lm95245_detect(struct i2c_client *new_client,
  			  struct i2c_board_info *info)
  {
- 	struct i2c_adapter *adapter = client->adapter;
-+	int address = client->addr;
-+	u8 config_mask, model_mask;
- 	int mfg_id, chip_id, val;
+ 	struct i2c_adapter *adapter = new_client->adapter;
++	int address = new_client->addr;
 +	const char *name;
++	int rev, id;
  
  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
  		return -ENODEV;
-@@ -622,15 +641,31 @@ static int lm95234_detect(struct i2c_client *client,
+ 
+-	if (i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID)
+-			!= MANUFACTURER_ID
+-		|| i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID)
+-			!= DEFAULT_REVISION)
++	id = i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID);
++	if (id != MANUFACTURER_ID)
  		return -ENODEV;
  
- 	chip_id = i2c_smbus_read_byte_data(client, LM95234_REG_CHIP_ID);
--	if (chip_id != LM95234_CHIP_ID)
-+	switch(chip_id) {
-+	case LM95233_CHIP_ID:
-+		if (address != 0x18 && address != 0x2a && address != 0x2b)
+-	strlcpy(info->type, DEVNAME, I2C_NAME_SIZE);
++	rev = i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID);
++	switch (rev) {
++	case LM95235_REVISION:
++		if (address != 0x18 && address != 0x29 && address != 0x4c)
 +			return -ENODEV;
-+		config_mask = 0xbf;
-+		model_mask = 0xf9;
-+		name = "lm95233";
++		name = "lm95235";
 +		break;
-+	case LM95234_CHIP_ID:
-+		if (address != 0x18 && address != 0x4d && address != 0x4e)
-+			return -ENODEV;
-+		config_mask = 0xbc;
-+		model_mask = 0xe1;
-+		name = "lm95234";
++	case LM95245_REVISION:
++		name = "lm95245";
 +		break;
 +	default:
- 		return -ENODEV;
++		return -ENODEV;
 +	}
- 
- 	val = i2c_smbus_read_byte_data(client, LM95234_REG_STATUS);
- 	if (val & 0x30)
- 		return -ENODEV;
- 
- 	val = i2c_smbus_read_byte_data(client, LM95234_REG_CONFIG);
--	if (val & 0xbc)
-+	if (val & config_mask)
- 		return -ENODEV;
- 
- 	val = i2c_smbus_read_byte_data(client, LM95234_REG_CONVRATE);
-@@ -638,14 +673,14 @@ static int lm95234_detect(struct i2c_client *client,
- 		return -ENODEV;
- 
- 	val = i2c_smbus_read_byte_data(client, LM95234_REG_REM_MODEL);
--	if (val & 0xe1)
-+	if (val & model_mask)
- 		return -ENODEV;
- 
- 	val = i2c_smbus_read_byte_data(client, LM95234_REG_REM_MODEL_STS);
--	if (val & 0xe1)
-+	if (val & model_mask)
- 		return -ENODEV;
- 
--	strlcpy(info->type, "lm95234", I2C_NAME_SIZE);
++
 +	strlcpy(info->type, name, I2C_NAME_SIZE);
  	return 0;
  }
  
-@@ -698,15 +733,19 @@ static int lm95234_probe(struct i2c_client *client,
- 	if (err < 0)
- 		return err;
- 
-+	data->groups[0] = &lm95234_common_group;
-+	if (id->driver_data = lm95234)
-+		data->groups[1] = &lm95234_group;
-+
- 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
--							   data,
--							   lm95234_groups);
-+							   data, data->groups);
- 	return PTR_ERR_OR_ZERO(hwmon_dev);
- }
+@@ -484,7 +500,8 @@ static int lm95245_probe(struct i2c_client *client,
  
  /* Driver data (common to all clients) */
- static const struct i2c_device_id lm95234_id[] = {
--	{ "lm95234", 0 },
-+	{ "lm95233", lm95233 },
-+	{ "lm95234", lm95234 },
+ static const struct i2c_device_id lm95245_id[] = {
+-	{ DEVNAME, 0 },
++	{ "lm95235", 0 },
++	{ "lm95245", 1 },
  	{ }
  };
- MODULE_DEVICE_TABLE(i2c, lm95234_id);
-@@ -725,5 +764,5 @@ static struct i2c_driver lm95234_driver = {
- module_i2c_driver(lm95234_driver);
- 
- MODULE_AUTHOR("Guenter Roeck <linux@roeck-us.net>");
--MODULE_DESCRIPTION("LM95234 sensor driver");
-+MODULE_DESCRIPTION("LM95233/LM95234 sensor driver");
- MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(i2c, lm95245_id);
 -- 
 1.9.1
 
