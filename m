@@ -1,60 +1,48 @@
-From: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Date: Thu, 06 Nov 2014 15:17:52 +0000
-Subject: Re: [lm-sensors] Kaveri [and Radeon] temps
-Message-Id: <545B9120.4080106@amd.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 17 Nov 2014 14:47:53 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct6775) Documentation updates
+Message-Id: <1416235673-26167-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <m31tph9wmt.fsf@carbon.jhcloos.org>
-	<20141105232155.GA25189@roeck-us.net>
-	<m3ppd18bnn.fsf@carbon.jhcloos.org>
-	<20141105235022.GA26085@roeck-us.net>
-In-Reply-To: <20141105235022.GA26085@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, James Cloos <cloos@jhcloos.com>
-Cc: dri-devel@lists.freedesktop.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On 11/5/2014 5:50 PM, Guenter Roeck wrote:
-> On Wed, Nov 05, 2014 at 06:34:20PM -0500, James Cloos wrote:
->>>>>>> "GR" = Guenter Roeck <linux@roeck-us.net> writes:
->> ...
->> GR> AMD CPUs are known report wildly off temperatures especially at
->> GR> low temperatures.
->>
->> Thanks.  After some further digging, I wonder whether Aravind's recent
->> patch might help?  The apu does have both PCI_DEVICE_ID_AMD_16H_M30H_NB_F3
->> and PCI_DEVICE_ID_AMD_16H_M30H_NB_F4 and lspci reports no driver for the
->> F4 device.
->>
-> Aravind would have to comment; my understanding is that the F4 device
-> reports the power, not the temperature. You could try to apply the patch
-> and see if it makes a difference. Worst case there will be no change ;-).
+Document support for NCT6791D.
+Document that NCT5573D is compatible to NCT6775F with the same chip ID.
 
-Right, F4 is for reporting power values.
-The recent patch was a bug fix for fam15h_power, so I don't think that's 
-what you are looking for..
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/nct6775 | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
->> GR>  Does the temperature increase with load ?
->>
->> It seems to max out w/in a kelvin or two of the room's ambient temp.
->>
-> Even under load ? Sounds weird.
+diff --git a/Documentation/hwmon/nct6775 b/Documentation/hwmon/nct6775
+index 4e9ef60..b4cbba4 100644
+--- a/Documentation/hwmon/nct6775
++++ b/Documentation/hwmon/nct6775
+@@ -12,7 +12,7 @@ Supported chips:
+     Prefix: 'nct6775'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: Available from Nuvoton upon request
+-  * Nuvoton NCT5577D/NCT6776D/NCT6776F
++  * Nuvoton NCT5573D/NCT5577D/NCT6776D/NCT6776F
+     Prefix: 'nct6776'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: Available from Nuvoton upon request
+@@ -20,6 +20,10 @@ Supported chips:
+     Prefix: 'nct6779'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: Available from Nuvoton upon request
++  * Nuvoton NCT6791D
++    Prefix: 'nct6791'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: Available from Nuvoton upon request
+ 
+ Authors:
+         Guenter Roeck <linux@roeck-us.net>
+-- 
+1.9.1
 
-Yeah, I have not come across such odd behavior neither. So not able to 
-tell you what might be wrong..
-
-> Question of course is if the chip really
-> reports a useful temperature in the first place; this is something I can
-> not answer, since I have neither a datasheet nor a system with that CPU.
-
-Yes, the values reported are accurate and AFAIK there are folks who are 
-interested to look into temperature/power values reported by hwmon, so I 
-guess it's useful :)
-I shall try and ask around if someone knows anything about incorrect 
-values being exposed in the registers and let you know.
-
-Thanks,
--Aravind
 
 _______________________________________________
 lm-sensors mailing list
