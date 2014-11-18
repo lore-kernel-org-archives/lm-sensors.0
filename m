@@ -1,10 +1,10 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Date: Mon, 17 Nov 2014 22:36:09 +0000
+Date: Tue, 18 Nov 2014 00:05:03 +0000
 Subject: [lm-sensors] [PATCH 1/1] thermal: of: improve of-thermal sensor registration API
-Message-Id: <1416263769-6578-2-git-send-email-edubezval@gmail.com>
+Message-Id: <1416269103-14149-1-git-send-email-edubezval@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416263769-6578-1-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1416263769-6578-1-git-send-email-edubezval@gmail.com>
+References: <1416264255-10083-1-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1416264255-10083-1-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -38,14 +38,19 @@ Cc: Thierry Reding <thierry.reding@gmail.com>
 Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
 ---
+Difference from V2:
+  - Fix wrong assignment in tegra driver.
+Difference from V1:
+  - Fix error handling when .get_trend is not provided.
+---
  drivers/hwmon/lm75.c                               |  9 +++--
  drivers/hwmon/ntc_thermistor.c                     |  6 +++-
  drivers/hwmon/tmp102.c                             |  6 +++-
- drivers/thermal/of-thermal.c                       | 42 +++++++++-------------
+ drivers/thermal/of-thermal.c                       | 41 +++++++++-------------
  drivers/thermal/tegra_soctherm.c                   |  7 ++--
  drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  8 +++--
  include/linux/thermal.h                            | 24 +++++++++----
- 7 files changed, 61 insertions(+), 41 deletions(-)
+ 7 files changed, 62 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
 index d16dbb3..e7c8bf9 100644
@@ -123,7 +128,7 @@ index 5171995..ba9f478 100644
  		tmp102->tz = NULL;
  
 diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-index f8eb625..ba6a755 100644
+index f8eb625..3e025f0 100644
 --- a/drivers/thermal/of-thermal.c
 +++ b/drivers/thermal/of-thermal.c
 @@ -30,6 +30,7 @@
@@ -166,19 +171,20 @@ index f8eb625..ba6a755 100644
  }
  
  static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
-@@ -120,10 +116,7 @@ static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
+@@ -120,10 +116,10 @@ static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
  	long dev_trend;
  	int r;
  
 -	if (!data->get_trend)
--		return -EINVAL;
--
++	if (!data->ops->get_trend)
+ 		return -EINVAL;
+ 
 -	r = data->get_trend(data->sensor_data, &dev_trend);
 +	r = data->ops->get_trend(data->sensor_data, &dev_trend);
  	if (r)
  		return r;
  
-@@ -324,8 +317,7 @@ static struct thermal_zone_device_ops of_thermal_ops = {
+@@ -324,8 +320,7 @@ static struct thermal_zone_device_ops of_thermal_ops = {
  static struct thermal_zone_device *
  thermal_zone_of_add_sensor(struct device_node *zone,
  			   struct device_node *sensor, void *data,
@@ -188,7 +194,7 @@ index f8eb625..ba6a755 100644
  {
  	struct thermal_zone_device *tzd;
  	struct __thermal_zone *tz;
-@@ -336,9 +328,11 @@ thermal_zone_of_add_sensor(struct device_node *zone,
+@@ -336,9 +331,11 @@ thermal_zone_of_add_sensor(struct device_node *zone,
  
  	tz = tzd->devdata;
  
@@ -202,7 +208,7 @@ index f8eb625..ba6a755 100644
  	tz->sensor_data = data;
  
  	tzd->ops->get_temp = of_thermal_get_temp;
-@@ -356,8 +350,8 @@ thermal_zone_of_add_sensor(struct device_node *zone,
+@@ -356,8 +353,8 @@ thermal_zone_of_add_sensor(struct device_node *zone,
   *             than one sensors
   * @data: a private pointer (owned by the caller) that will be passed
   *        back, when a temperature reading is needed.
@@ -213,7 +219,7 @@ index f8eb625..ba6a755 100644
   *
   * This function will search the list of thermal zones described in device
   * tree and look for the zone that refer to the sensor device pointed by
-@@ -382,9 +376,8 @@ thermal_zone_of_add_sensor(struct device_node *zone,
+@@ -382,9 +379,8 @@ thermal_zone_of_add_sensor(struct device_node *zone,
   * check the return value with help of IS_ERR() helper.
   */
  struct thermal_zone_device *
@@ -225,7 +231,7 @@ index f8eb625..ba6a755 100644
  {
  	struct device_node *np, *child, *sensor_np;
  
-@@ -424,9 +417,7 @@ thermal_zone_of_sensor_register(struct device *dev, int sensor_id,
+@@ -424,9 +420,7 @@ thermal_zone_of_sensor_register(struct device *dev, int sensor_id,
  		if (sensor_specs.np = sensor_np && id = sensor_id) {
  			of_node_put(np);
  			return thermal_zone_of_add_sensor(child, sensor_np,
@@ -236,7 +242,7 @@ index f8eb625..ba6a755 100644
  		}
  	}
  	of_node_put(np);
-@@ -468,8 +459,7 @@ void thermal_zone_of_sensor_unregister(struct device *dev,
+@@ -468,8 +462,7 @@ void thermal_zone_of_sensor_unregister(struct device *dev,
  	tzd->ops->get_temp = NULL;
  	tzd->ops->get_trend = NULL;
  
@@ -247,7 +253,7 @@ index f8eb625..ba6a755 100644
  	mutex_unlock(&tzd->lock);
  }
 diff --git a/drivers/thermal/tegra_soctherm.c b/drivers/thermal/tegra_soctherm.c
-index 70f7e9e..893c39c 100644
+index 70f7e9e..9197fc0 100644
 --- a/drivers/thermal/tegra_soctherm.c
 +++ b/drivers/thermal/tegra_soctherm.c
 @@ -317,6 +317,10 @@ static int tegra_thermctl_get_temp(void *data, long *out_temp)
@@ -255,7 +261,7 @@ index 70f7e9e..893c39c 100644
  }
  
 +static const struct thermal_zone_of_device_ops tegra_of_thermal_ops = {
-+	.get_trend = tegra_thermctl_get_temp,
++	.get_temp = tegra_thermctl_get_temp,
 +};
 +
  static const struct of_device_id tegra_soctherm_of_match[] = {
