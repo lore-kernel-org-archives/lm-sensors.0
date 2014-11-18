@@ -1,98 +1,73 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 05 Nov 2014 09:57:48 +0000
-Subject: Re: [lm-sensors] Fwd: Re: Fancontrol memory consumption
-Message-Id: <20141105105748.3db8a3ec@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 18 Nov 2014 17:59:58 +0000
+Subject: [lm-sensors] [PATCH 1/2] sensors-detect: Nuvoton chip updates
+Message-Id: <1416333599-12717-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <54589A6A.8010207@gmail.com>
-In-Reply-To: <54589A6A.8010207@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 04 Nov 2014 10:20:42 +0100, Taz wrote:
-> I'm using fancontrol on a NetGear ReadyNAS Ultra 6000 (X86 arch) using 
-> ubuntu server 14 and it's great !
-> 
-> But as you may see in the forward (or not : I don't know if the pic will 
-> be filtered...), fancontrol
+Add reference to nct6883 driver.
+Show that nct6775 driver supports NCT6792D.
+Show that NCT6102D/6104D/6106D are supported by nct6775 driver
+NCT5573D is compatible to NCT6776F and has the same chip ID.
 
-No picture indeed, although I don't think the list is configured to
-filter them out.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    | 4 ++++
+ prog/detect/sensors-detect | 6 +++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-> memory usage, although not huge, is worryingly increasing as uptime goes on.
->  From 6 Mb at the moment I start the daemon to 27 Mb less than a week 
-> later, and still growing !
-> 
-> Here are few system stats, I think pinpointed the issue, but that's all 
-> I could do...
-> 
-> 
-> pmap -x FANCONTROL_PID (see 25 Mb in dirty column)
-> ==> Address           Kbytes     RSS   Dirty Mode  Mapping
-> 0000000000400000     956     556       0 r-x-- bash
-> 00000000006ef000       4       4       4 r---- bash
-> 00000000006f0000      36      20      20 rw--- bash
-> 00000000006f9000      24      24      24 rw---   [ anon ]
-> 0000000001dd7000   25948   25948   25948 rw---   [ anon ]
-> (...)
-> 
-> cat /proc/FANCONTROL_PID/smaps output sample :
-> ====
-> (...)
-> 01dd7000-0372c000 rw-p 00000000 00:00 0                                  
-> [heap]
-> Size:              25940 kB
-> Rss:               25940 kB
-> Pss:               25940 kB
-> Shared_Clean:          0 kB
-> Shared_Dirty:          0 kB
-> Private_Clean:         0 kB
-> Private_Dirty:     25940 kB
-> Referenced:        17956 kB
-> Anonymous:         25940 kB
-> AnonHugePages:         0 kB
-> Swap:                  0 kB
-> KernelPageSize:        4 kB
-> MMUPageSize:           4 kB
-> Locked:                0 kB
-> VmFlags: rd wr mr mw me ac sd
-> (...)
-> 
-> Look like it's the heap ( memory leak in the fancontrol shell script !? )
-
-You do not explicitly allocate memory in bash, so you are not
-responsible for freeing it either. You can call "unset" to explicitly
-drop references and allow bash to free some memory, but that only makes
-sense in specific cases. I do not think this applies to fancontrol.
-
-> cat /proc/FANCONTROL_PID/io
-> =======> rchar: 685486042
-> wchar: 6072566
-> syscr: 2428507
-> syscw: 346921
-> read_bytes: 19808256
-> write_bytes: 0
-> cancelled_write_bytes: 0
-> 
-> It looks like every data read by the process is kept in memory (pwm 
-> sensors data ?) : It doesn't seems OK to me...
-
-Most variables are local to function UpdateFanSpeeds so they wouldn't
-survive between cycles. The rest would only be read from, not written
-to, so it can't grow.
-
-> Am I wrong ? Do someone have any clue or suggestion ?
-
-Most likely the leak is in bash itself and fancontrol is only exposing
-it.
-
-Which version of bash are you using? Try with different versions and
-see if they all behave the same.
-
+diff --git a/CHANGES b/CHANGES
+index 27cfa4d..62cfd24 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -17,6 +17,10 @@ SVN HEAD
+                   Add detection of NCT7802Y
+                   Print kernel version and processor information
+                   Add detection of NCT6792D 
++                  Add reference to nct6883 driver
++                  Show that NCT6102D/6104D/6106D are supported by nct6775 driver
++                  Show that NCT5573D is compatible to NCT6776F and has the same
++                  chip ID.
+ 
+ 3.3.5 "Happy Birthday Beddy" (2014-01-22)
+   libsensors: Improve documentation of two functions
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index bb233e2..610338b 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -2096,7 +2096,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		driver => "not-a-sensor",
+ 		devid => 0x61,
+ 	}, {
+-		name => "Nuvoton NCT5577D/NCT6776F Super IO Sensors",
++		name => "Nuvoton NCT5573D/NCT5577D/NCT6776F Super IO Sensors",
+ 		driver => "nct6775",
+ 		devid => 0xC330,
+ 		devid_mask => 0xFFF0,
+@@ -2111,7 +2111,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
+ 		name => "Nuvoton NCT6683D eSIO",
+-		driver => "to-be-written",
++		driver => "nct6883",
+ 		devid => 0xC730,
+ 		devid_mask => 0xFFF0,
+ 		logdev => 0x0b,
+@@ -2132,7 +2132,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
+ 		name => "Nuvoton NCT6102D/NCT6104D/NCT6106D Super IO Sensors",
+-		driver => "to-be-written",	# nct6775
++		driver => "nct6775",
+ 		devid => 0xC450,
+ 		devid_mask => 0xFFF0,
+ 		logdev => 0x0b,
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
