@@ -1,48 +1,43 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 27 Nov 2014 17:32:42 +0000
-Subject: Re: [lm-sensors] libsensors license question - GPL or LGPL ?
-Message-Id: <5477603A.70105@roeck-us.net>
+From: Juraj Fiala <doctorjellyface@riseup.net>
+Date: Tue, 18 Nov 2014 16:42:51 +0000
+Subject: [lm-sensors] Support for SMSC EMC1402
+Message-Id: <546B770B.7030204@riseup.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <54762A5A.7030601@roeck-us.net>
-In-Reply-To: <54762A5A.7030601@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
-On 11/27/2014 02:24 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Wed, 26 Nov 2014 11:30:34 -0800, Guenter Roeck wrote:
->> libsensors is supposed to be licensed under LGPL as far as I can see
->> and recall. However, doc/developers/applications reads:
->>
->>      Note that libsensors falls under the GPL, not the LGPL.
->>      In more human language, that means it is FORBIDDEN to link any application
->>      to the library, even to the shared version, if the application itself
->>      does not fall under the GPL. This may or may not be changed in the future.
->>      Contact us if you wish to discuss your application.
->>
->> Is that an oversight from earlier versions or on purpose ?
->> The source refers to LGPL as far as I can see, and the comment in
->> lib/libsensors.3 states that it is distributed under LGPL.
->
-> This is an horrible oversight. libsensors was originally under GPL,
-> but I changed the license to LGPL with the approval of all authors and
-> copyright holders:
-> http://www.lm-sensors.org/wiki/LibsensorsLicense
->
-> So starting with version 3.2.0, the only license for libsensors is LGPL.
->
-> I'll fix the documentation immediately, thanks for pointing out my
-> mistake.
->
-No problem, thanks for the clarification.
+Hiya.
 
-Guenter
+I tried running sensors-detect, and it said that support for SMSC
+EMC1402 is "to be written".
 
+Can I be of any help?
+
+Thanks.
+
+- -- 
+Juraj Fiala <doctorjellyface@riseup.net>
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCgAGBQJUa3bAAAoJEJKYr14OEmsxIfcP/2qIksxIgh3rhMtzSuCBjzTP
+PHOQ/raqtQ2UjNOIpYGULmByc26Y+XJuWADua2+ERFBI0hPFaosLSywkBosqaoXg
+pDXzjQ3gFC746jfpdTwfZ57cygHHs02x13URKyjkZ3G4rsBWkWAIDPjO510zSzEm
+dVo5dho/uBRdW51Zrj1cula0k/ktcS9uLNcaRub64T7WgJq/GBuaio6iAzUPXa8j
+MDUD4J26yVJ/8NAnT8VSAGag3zXXIfJdcqTuo1FBvc6MJg3+tueRKe/yZwnPb4OV
+CTeqUSQsBCbthQyGeQ1yTdyzJRqK/qvtVAtoGOqonPQZJP426qbrs0uO1Kpf0UKA
+MRthO5hnX3KyFp3SnWWF/jwAQ2qXCUJ2QHHRdV0kGCrpVJCI/2+b649lEi21yzar
+05mzHV4/JZxKP0cr7A3BkHGDRdM4REfdIIfSXyb/OyCi7V6uhRWJgfkGgiXkhgIr
+hv0Xs3Lw6Jtw5GL5b3mVvO1eRwGF65m3gXSqDqcvGUh4r4fiYREm1++b+82Z89UY
+UbzsIPUsrYohSyiAfgarlxm79WwZ4WlJs16fVsPLHl9CZpBTLtl4Mg1lEhAQFuIw
+LdGXpsNr8cJcatZOFzCcPgQZRUsQfmodaqxrg2nvlLgquzzytDrA6b991yYC+B0D
+J5+5LYcx/G589P0qfLOV
+=h+DX
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
