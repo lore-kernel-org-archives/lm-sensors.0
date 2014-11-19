@@ -1,40 +1,53 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Nov 2014 18:37:52 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ibmpowernv) Use platform 'id_table' to probe the device
-Message-Id: <20141111183752.GA23539@roeck-us.net>
+From: Arnaud Ebalard <arno@natisbad.org>
+Date: Wed, 19 Nov 2014 21:52:36 +0000
+Subject: [lm-sensors] [PATCHv0] hwmon: g762: fix call to devm_hwmon_device_register_with_groups()
+Message-Id: <3b385cc3fdf1884f8902c015c7fa40b7133fd7b8.1416433516.git.arno@natisbad.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141105110848.6183.55611.stgit@localhost.localdomain>
- <20141105142149.GA23212@roeck-us.net>
- <1415574297.29291.3.camel@concordia>
-In-Reply-To: <1415574297.29291.3.camel@concordia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Neelesh Gupta <neelegup@linux.vnet.ibm.com>, jdelvare@suse.de, benh@au1.ibm.com, linux-kernel@vger.kernel.org, michaele@au1.ibm.com, linuxppc-dev@lists.ozlabs.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, Nov 10, 2014 at 10:04:57AM +1100, Michael Ellerman wrote:
-> On Wed, 2014-11-05 at 06:21 -0800, Guenter Roeck wrote:
-> > On Wed, Nov 05, 2014 at 04:45:14PM +0530, Neelesh Gupta wrote:
-> > > The current driver probe() function assumes the sensor device to be
-> > > alwary present and gets executed every time if the driver is loaded,
-> > > but the appropriate hardware could not be present.
-> > > 
-> > > So, move the platform device creation as part of platform init code
-> > > and use the 'id_table' to check if the device present or not.
-> > > 
-> > > Signed-off-by: Neelesh Gupta <neelegup@linux.vnet.ibm.com>
-> > 
-> > Looks good. We'll need an ack from one of the powerpc maintainers to proceed.
-> 
-> Looks OK to me.
-> 
-> Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-> 
-Applied to -next.
 
-Thanks,
-Guenter
+g762_remove() needs to first call hwmon_device_unregister() and then
+g762_of_clock_disable(). For that reason, it is not possible to
+convert it to devm_hwmon_device_register_with_groups() and the
+the non device managed version must be used.
+
+This is correctly stated in commit message for 398e16db6262 ("hwmon:
+(g762) Convert to hwmon_device_register_with_groups") but the
+associated changes do in fact introduce a call to the device managed
+version of the function.
+
+This patch fixes that typo by switching to the non devm_ version.
+
+Fixes: 398e16db6262 ("hwmon: (g762) Convert to hwmon_device_register_with_groups")
+Cc: stable@vger.kernel.org (3.17+)
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+---
+ drivers/hwmon/g762.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hwmon/g762.c b/drivers/hwmon/g762.c
+index 6aac695b1688..9b55e673b67c 100644
+--- a/drivers/hwmon/g762.c
++++ b/drivers/hwmon/g762.c
+@@ -1084,10 +1084,8 @@ static int g762_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (ret)
+ 		goto clock_dis;
+ 
+-	data->hwmon_dev = devm_hwmon_device_register_with_groups(dev,
+-								 client->name,
+-								 data,
+-								 g762_groups);
++	data->hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
++							    data, g762_groups);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		ret = PTR_ERR(data->hwmon_dev);
+ 		goto clock_dis;
+-- 
+2.1.1
+
 
 _______________________________________________
 lm-sensors mailing list
