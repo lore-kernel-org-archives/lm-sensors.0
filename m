@@ -1,100 +1,86 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Wed, 19 Nov 2014 12:03:22 +0000
+From: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+Date: Wed, 19 Nov 2014 15:41:48 +0000
 Subject: Re: [lm-sensors] [PATCHv4 1/1] thermal: of: improve of-thermal sensor registration API
-Message-Id: <20141119120320.GA10180@developer>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3025729432996991808=="
+Message-Id: <546CBA3C.9020709@kapsi.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416321575-18348-1-git-send-email-edubezval@gmail.com>
- <1416321575-18348-2-git-send-email-edubezval@gmail.com>
- <20141119092139.1965e44e@amdc2363>
-In-Reply-To: <20141119092139.1965e44e@amdc2363>
-To: Lukasz Majewski <l.majewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Caesar Wang <caesar.wang-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mikko Perttunen <mikko.perttunen-/1wQRMveznE@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-
---===============3025729432996991808==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
-Content-Disposition: inline
-
-
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-Hey Lukasz,
-
-On Wed, Nov 19, 2014 at 09:21:39AM +0100, Lukasz Majewski wrote:
-> Hi Eduardo,
->=20
-
-<big cut>=20
-
-> >  }
->=20
-> On which branch should I apply this patch?
->=20
-
-This is based in my -linus branch. That means I will send this for the
-next major window, not rc. The branch -fixes of thermal-soc include
-patches for rc windows.
-
-> I've tried to apply this patch on top of newest linux-soc-thermal/next:
-> git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.=
-git
-> branch: next
-> SHA1:4027494124fd88e5d51127eebba315de5d8d57c8
->=20
-> Unfortunately, it conflicts with:
-> "thermal: fix multiple disbalanced device node counters"
-> c2aad93c Vladimir Zapolskiy
-
-The -next branch is intended to contain patches for linux-next testing.
-I include the content of -linus and -fixes together to be tested in
-linux-next.
-
-However, as this patch has not been merged yet into -linus, I haven't
-rebuilt my -next branch.
-
->=20
->=20
-> --=20
-> Best regards,
->=20
-> Lukasz Majewski
->=20
-> Samsung R&D Institute Poland (SRPOL) | Linux Platform Group
-
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUbIb8AAoJEMLUO4d9pOJWkwgIAJVX3QS2UiIRUV9KeE20LzYW
-cMcbbGVEbqn6Vib/XW9zarPN5djBUTmXU+qTUM6Z4794uRME53/rXtUaCwbocKtZ
-fTjHnVMDHWQ//LDdXkwSgrfhbG8iYklo8MD4T6Er3Joec3BMv1JCo/GcM9n1d2Nr
-1dm6CiKWIbLKAim+3kZhCQmEFLXIWB5lH9ZAPTCLfn9jXN156UHPUc5tKij01S9D
-hIzhFFJ2mx7oQpiW3Ecj2Pq7zxHsvGTibi5RlWA3RcBTqYA3rAi50DTF0HWXvtCq
-ydWgShJxpTGd/oKjyvyEd+6u9PstW8mxFpQ4zG3zcNFlLWMy7HwO85hVBlTfGXc=
-=qst+
------END PGP SIGNATURE-----
-
---YiEDa0DAkWCtVeE4--
-
-
---===============3025729432996991808==
-Content-Type: text/plain; charset="us-ascii"
+References: <1416321575-18348-1-git-send-email-edubezval@gmail.com> <1416321575-18348-2-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1416321575-18348-2-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Eduardo Valentin <edubezval@gmail.com>, Linux PM <linux-pm@vger.kernel.org>
+Cc: Caesar Wang <caesar.wang@rock-chips.com>, Wei Ni <wni@nvidia.com>, Lukasz Majewski <l.majewski@samsung.com>, Alexandre Courbot <gnurou@gmail.com>, devicetree@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, lm-sensors@lm-sensors.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Zhang Rui <rui.zhang@intel.com>
+
+On 11/18/2014 04:39 PM, Eduardo Valentin wrote:
+> Different drivers request API extensions in of-thermal. For this reason,
+> additional callbacks are required to fit the new drivers needs.
+>
+> The current API implementation expects the registering sensor driver
+> to provide a get_temp and get_trend callbacks as function parameters.
+> As the amount of callbacks is growing, this patch changes the existing
+> implementation to use a .ops field to hold all the of thermal callbacks
+> to sensor drivers.
+>
+> This patch also changes the existing of-thermal users to fit the new
+> API design. No functional change is introduced in this patch.
+>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: devicetree@vger.kernel.org
+> Cc: Grant Likely <grant.likely@linaro.org>
+> Cc: Guenter Roeck <linux@roeck-us.net>
+> Cc: Jean Delvare <jdelvare@suse.de>
+> Cc: linux-kernel@vger.kernel.org
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-tegra@vger.kernel.org
+> Cc: lm-sensors@lm-sensors.org
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Stephen Warren <swarren@wwwdotorg.org>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Reviewed-by: Lukasz Majewski <l.majewski@samsung.com>
+> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+> ---
+>   drivers/hwmon/lm75.c                               |  9 +++--
+>   drivers/hwmon/ntc_thermistor.c                     |  6 +++-
+>   drivers/hwmon/tmp102.c                             |  6 +++-
+>   drivers/thermal/of-thermal.c                       | 40 ++++++++++------------
+>   drivers/thermal/tegra_soctherm.c                   |  7 ++--
+>   drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  8 +++--
+>   include/linux/thermal.h                            | 24 +++++++++----
+>   7 files changed, 63 insertions(+), 37 deletions(-)
+> ---
+> Difference from V3:
+>    - Keep the same behavior regarding callback checks.
+>      Change in behavior may be sent in a separate patch.
+> Difference from V2:
+>    - Fix wrong assignment in tegra driver.
+> Difference from V1:
+>    - Fix error handling when .get_trend is not provided.
+>
+> @@ -356,8 +356,8 @@ thermal_zone_of_add_sensor(struct device_node *zone,
+>    *             than one sensors
+>    * @data: a private pointer (owned by the caller) that will be passed
+>    *        back, when a temperature reading is needed.
+> - * @get_temp: a pointer to a function that reads the sensor temperature.
+> - * @get_trend: a pointer to a function that reads the sensor temperature trend.
+> + * @ops: struct thermal_zone_of_device *. Must contain at least .get_trend and
+> + *       .get_temp.
+
+This comment seems to be incorrect, as .get_trend is optional.
+
+>    *
+>    * This function will search the list of thermal zones described in device
+>    * tree and look for the zone that refer to the sensor device pointed by
+
+With that minor one fixed,
+
+Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+Reviewed-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+
+Cheers,
+Mikko
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3025729432996991808==--
