@@ -1,42 +1,57 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 20 Nov 2014 09:19:30 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] sensors-detect: EMC14xx chip updates
-Message-Id: <20141120101930.4a644cc6@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 20 Nov 2014 17:21:12 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (nct6775) Documentation updates
+Message-Id: <1416504072-10596-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416333599-12717-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1416333599-12717-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 18 Nov 2014 09:59:59 -0800, Guenter Roeck wrote:
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  CHANGES                    |  3 +++
->  prog/detect/sensors-detect | 26 +++++++++++++++++---------
->  2 files changed, 20 insertions(+), 9 deletions(-)
-> 
-> diff --git a/CHANGES b/CHANGES
-> index 62cfd24..505257f 100644
-> --- a/CHANGES
-> +++ b/CHANGES
-> @@ -21,6 +21,9 @@ SVN HEAD
->                    Show that NCT6102D/6104D/6106D are supported by nct6775 driver
->                    Show that NCT5573D is compatible to NCT6776F and has the same
->                    chip ID.
-> +                  Document support for EMC1402, EMC1404, and EMC1424.
-> +                  Detect new revisions of EMC14xx.
-> +                  Add detection of EMC1422.
+Document support for NCT6102D/NCT6106D and NCT6791D.
+Document that NCT5573D is compatible to NCT6775F with the same chip ID.
 
-No trailing dots please.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Added NCT6102D/NCT6106D.
 
-Everything else looks good, please commit.
+ Documentation/hwmon/nct6775 | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Thanks,
+diff --git a/Documentation/hwmon/nct6775 b/Documentation/hwmon/nct6775
+index 4e9ef60..b1ad2d3 100644
+--- a/Documentation/hwmon/nct6775
++++ b/Documentation/hwmon/nct6775
+@@ -8,11 +8,15 @@ Kernel driver NCT6775
+ ========== 
+ Supported chips:
++  * Nuvoton NCT6102D/NCT6106D
++    Prefix: 'nct6106'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: Available from the Nuvoton web site
+   * Nuvoton NCT5572D/NCT6771F/NCT6772F/NCT6775F/W83677HG-I
+     Prefix: 'nct6775'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: Available from Nuvoton upon request
+-  * Nuvoton NCT5577D/NCT6776D/NCT6776F
++  * Nuvoton NCT5573D/NCT5577D/NCT6776D/NCT6776F
+     Prefix: 'nct6776'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: Available from Nuvoton upon request
+@@ -20,6 +24,10 @@ Supported chips:
+     Prefix: 'nct6779'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: Available from Nuvoton upon request
++  * Nuvoton NCT6791D
++    Prefix: 'nct6791'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: Available from Nuvoton upon request
+ 
+ Authors:
+         Guenter Roeck <linux@roeck-us.net>
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
