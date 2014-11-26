@@ -1,78 +1,47 @@
-From: Mikko Perttunen <mikko.perttunen@kapsi.fi>
-Date: Tue, 18 Nov 2014 00:11:21 +0000
-Subject: Re: [lm-sensors] [PATCHv2 1/1] thermal: of: improve of-thermal sensor registration API
-Message-Id: <546A8EA9.5070001@kapsi.fi>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 26 Nov 2014 19:04:35 +0000
+Subject: Re: [lm-sensors] [PATCH 1/5] hwmon: ina2xx: bail-out from ina2xx_probe() in case of configuration er
+Message-Id: <54762443.90701@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416263769-6578-2-git-send-email-edubezval@gmail.com> <1416264255-10083-1-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1416264255-10083-1-git-send-email-edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+References: <1416930423-12179-1-git-send-email-bgolaszewski@baylibre.com>	<1416930423-12179-2-git-send-email-bgolaszewski@baylibre.com>	<5474A72D.2000309@roeck-us.net>	<CAMpxmJUrs-3oXwYyNh26EnuZRH9bpXrmBBLKM7tmKGx=gSwyuQ@mail.gmail.com>	<5474B564.9080902@roeck-us.net>	<CAMpxmJVGE444t3gE-=u8kuK_B9rJ=0fw9ZYVuYgQRPdswiPj7Q@mail.gmail.com>	<5474C36C.1020004@roeck-us.net> <CAMpxmJUhpX+AAmOS2gcgtJGr0dkeQ7YRyae12oRoW2NkT5drBA@mail.gmail.com> <5474CAC6.8030608@roeck-us.net> <54754364.80705@roeck-us.net> <54759F8A.20303@baylibre.com>
+In-Reply-To: <54759F8A.20303@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Caesar Wang <caesar.wang-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lukasz Majewski <l.majewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Benoit Cousson <bcousson@baylibre.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <jdelvare@suse.de>
 
-On 11/18/2014 12:44 AM, Eduardo Valentin wrote:
-> Different drivers request API extensions in of-thermal. For this reason,
-> additional callbacks are required to fit the new drivers needs.
+On 11/26/2014 01:38 AM, Benoit Cousson wrote:
+> Hi Guenter,
 >
-> The current API implementation expects the registering sensor driver
-> to provide a get_temp and get_trend callbacks as function parameters.
-> As the amount of callbacks is growing, this patch changes the existing
-> implementation to use a .ops field to hold all the of thermal callbacks
-> to sensor drivers.
+> On 26/11/2014 04:05, Guenter Roeck wrote:
 >
-> This patch also changes the existing of-thermal users to fit the new
-> API design. No functional change is introduced in this patch.
+> [...]
 >
-> Cc: Alexandre Courbot <gnurou@gmail.com>
-> Cc: devicetree@vger.kernel.org
-> Cc: Grant Likely <grant.likely@linaro.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Jean Delvare <jdelvare@suse.de>
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-tegra@vger.kernel.org
-> Cc: lm-sensors@lm-sensors.org
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Stephen Warren <swarren@wwwdotorg.org>
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> ---
+>> Looking into the available documents, I am quite sure that the resistor
+>> is changed by replacing the probe, in other words by pulling the board
+>> with the ina226 and replacing it with another one. Given that, configuring
+>> the shunt resistor value with a sysfs attribute is really the wrong way
+>> to do it; you should use probe specific devicetree overlays instead.
 >
-> Difference from V1:
->   - Fix error handling when .get_trend is not provided.
+> Unfortunately, that's not dynamic enough for all the use cases we need to support with the probes.
+> In fact, most customers will rather put the shunts on their board and thus use a shunt-less version of the probe to do the measurement. In that case, there is no way we can hard code, even in a DTS, the shunt value.
 >
-> ---
->   drivers/hwmon/lm75.c                               |  9 +++--
->   drivers/hwmon/ntc_thermistor.c                     |  6 +++-
->   drivers/hwmon/tmp102.c                             |  6 +++-
->   drivers/thermal/of-thermal.c                       | 41 +++++++++-------------
->   drivers/thermal/tegra_soctherm.c                   |  7 ++--
->   drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  8 +++--
->   include/linux/thermal.h                            | 24 +++++++++----
->   7 files changed, 62 insertions(+), 39 deletions(-)
+> That's for that kind of usage that we do need to be able to set the shunt value at runtime. The probe in that case can be pluged dynamically on different board jumpers to do the measurement.
 >
-> ...
-> diff --git a/drivers/thermal/tegra_soctherm.c b/drivers/thermal/tegra_soctherm.c
-> index 70f7e9e..893c39c 100644
-> --- a/drivers/thermal/tegra_soctherm.c
-> +++ b/drivers/thermal/tegra_soctherm.c
-> @@ -317,6 +317,10 @@ static int tegra_thermctl_get_temp(void *data, long *out_temp)
->   	return 0;
->   }
+> Later, thanks to the web UI, the user will be able to configure the shunt value based on the way they were plugged to its boards.
 >
-> +static const struct thermal_zone_of_device_ops tegra_of_thermal_ops = {
-> +	.get_trend = tegra_thermctl_get_temp,
-> +};
+> sysfs seems to be the easiest way to do that. I don't think DT overlay can handle that, since it is depend of the targeted system and not on the measurement system.
+>
 
-This should probably read ".get_temp = tegra_thermctl_get_temp" instead 
-of .get_trend :)
+I just noticed that you did not copy the lm-sensors mailing list.
 
-> ...
+I am not really happy with this, and want to get some more feedback
+from the list before I accept more or less arbitrary attributes.
+Jean, any comments ?
 
-Cheers,
-Mikko
+Thanks,
+Guenter
 
 
 _______________________________________________
