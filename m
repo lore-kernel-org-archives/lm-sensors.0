@@ -1,80 +1,75 @@
-From: Taz <rastataz@gmail.com>
-Date: Thu, 13 Nov 2014 14:36:32 +0000
-Subject: Re: [lm-sensors] Fancontrol memory consumption
-Message-Id: <5464C1F0.30208@gmail.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 27 Nov 2014 09:59:06 +0000
+Subject: [lm-sensors] [PATCH v2 1/5] hwmon: ina2xx: bail-out from ina2xx_probe() in case of configuration err
+Message-Id: <1417082350-23470-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141105175729.39a88ab1@endymion.delvare>
-In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
+References: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <jdelvare@suse.de>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-(sorry I just saw my reply still was in my drafts, don't know why...)
+The return value of i2c_smbus_write_word_swapped() isn't checked in
+ina2xx_probe(). This leads to devices being registered even if they cannot
+be physically detected (e.g. device is not powered-up at boot-time).
 
-Indeed : my current bash version is 4.3.11
-Although I don't have line 585 in my fancontrol script
-I can apply the the patch (lines 497 & 536 for fancontrol v0.7)
+Even after restoring power to such device, it is left unconfigured as the
+configuration has never been actually written to the register.
 
-I also gave it a try without the wait lines and not sending to=20
-background the previous
-sleep command the wait was waiting for anyway (useless ?)
+Error out in case of write errors in probe and notify the user.
 
-=3D> Mem consumption seems to be the same in all cases, we'll see in the=20
-long run...
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-Thanks !
-
-     C=E9dric L.M.
-
-Le 07/11/2014 10:15, Jean Delvare a =E9crit :
-> On Wed, 5 Nov 2014 17:57:29 +0100, Jean Delvare wrote:
->> As I can reproduce the issue, I tried it myself, and my results are as
->> follows:
->> bash 3.0.16: Memory consumption (RSS) is steady
->> bash 3.1.14: Memory consumption (RSS) increases
->> bash 4.2.53: Memory consumption (RSS) increases
->> bash 4.3.30: Memory consumption (RSS) increases
->>
->> So apparently this is a regression introduced in bash 3.1 and not fixed
->> yet.
-> I have created a ticket to track this issue:
->
-> http://www.lm-sensors.org/ticket/2391
->
-> After discussing the issue with upstream bash maintainer Chet Ramey,
-> this is not a memory leak and works as intended, even though this
-> behavior is undesirable in the case of the fancontrol script.
->
-> Taz, feel free to try the following experimental patch for the time
-> being, I believe it should solve the increasing memory consumption
-> issue:
->
-> ---
->   prog/pwm/fancontrol |    4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> --- lm-sensors.orig/prog/pwm/fancontrol	2014-11-05 22:59:21.823226428 +01=
-00
-> +++ lm-sensors/prog/pwm/fancontrol	2014-11-07 09:52:14.178257104 +0100
-> @@ -546,7 +546,7 @@ function UpdateFanSpeeds
->   		  	echo $minsa > $pwmo
->   			# Sleep while still handling signals
->   			sleep 1 &
-> -			wait $!
-> +			wait
->   		  fi
->   		fi
->   		echo $pwmval > $pwmo # write new value to pwm output
-> @@ -585,5 +585,5 @@ do
->   	UpdateFanSpeeds
->   	# Sleep while still handling signals
->   	sleep $INTERVAL &
-> -	wait $!
-> +	wait
->   done
->
->
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index bfd3f3e..0a6b60f 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -223,6 +223,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	struct device *hwmon_dev;
+ 	long shunt = 10000; /* default shunt value 10mOhms */
+ 	u32 val;
++	int ret;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+@@ -247,12 +248,24 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	data->config = &ina2xx_config[data->kind];
+ 
+ 	/* device configuration */
+-	i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
+-				     data->config->config_default);
+-	/* set current LSB to 1mA, shunt is in uOhms */
+-	/* (equation 13 in datasheet) */
+-	i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
+-				     data->config->calibration_factor / shunt);
++	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
++					   data->config->config_default);
++	if (ret < 0) {
++		dev_err(dev,
++			"error writing to the config register: %d", ret);
++		return -ENODEV;
++	}
++
++	/* Set current LSB to 1mA, shunt is in uOhms
++	 * (equation 13 in datasheet).
++	 */
++	ret = i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
++				data->config->calibration_factor / shunt);
++	if (ret < 0) {
++		dev_err(dev,
++			"error writing to the calibration register: %d", ret);
++		return -ENODEV;
++	}
+ 
+ 	data->client = client;
+ 	mutex_init(&data->update_lock);
+-- 
+2.1.3
 
 
 _______________________________________________
