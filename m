@@ -1,30 +1,44 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 26 Nov 2014 19:30:34 +0000
-Subject: [lm-sensors] libsensors license question - GPL or LGPL ?
-Message-Id: <54762A5A.7030601@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 27 Nov 2014 10:24:48 +0000
+Subject: Re: [lm-sensors] libsensors license question - GPL or LGPL ?
+Message-Id: <20141127112448.5c304856@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <54762A5A.7030601@roeck-us.net>
+In-Reply-To: <54762A5A.7030601@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Guenter,
 
-libsensors is supposed to be licensed under LGPL as far as I can see
-and recall. However, doc/developers/applications reads:
+On Wed, 26 Nov 2014 11:30:34 -0800, Guenter Roeck wrote:
+> libsensors is supposed to be licensed under LGPL as far as I can see
+> and recall. However, doc/developers/applications reads:
+> 
+>     Note that libsensors falls under the GPL, not the LGPL.
+>     In more human language, that means it is FORBIDDEN to link any application
+>     to the library, even to the shared version, if the application itself
+>     does not fall under the GPL. This may or may not be changed in the future.
+>     Contact us if you wish to discuss your application.
+> 
+> Is that an oversight from earlier versions or on purpose ?
+> The source refers to LGPL as far as I can see, and the comment in
+> lib/libsensors.3 states that it is distributed under LGPL.
 
-    Note that libsensors falls under the GPL, not the LGPL.
-    In more human language, that means it is FORBIDDEN to link any application
-    to the library, even to the shared version, if the application itself
-    does not fall under the GPL. This may or may not be changed in the future.
-    Contact us if you wish to discuss your application.
+This is an horrible oversight. libsensors was originally under GPL,
+but I changed the license to LGPL with the approval of all authors and
+copyright holders:
+http://www.lm-sensors.org/wiki/LibsensorsLicense
 
-Is that an oversight from earlier versions or on purpose ?
-The source refers to LGPL as far as I can see, and the comment in
-lib/libsensors.3 states that it is distributed under LGPL.
+So starting with version 3.2.0, the only license for libsensors is LGPL.
 
-Thanks,
-Guenter
+I'll fix the documentation immediately, thanks for pointing out my
+mistake.
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
