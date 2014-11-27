@@ -1,38 +1,59 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Nov 2014 22:07:32 +0000
-Subject: Re: [lm-sensors] [PATCHv0] hwmon: g762: fix call to devm_hwmon_device_register_with_groups()
-Message-Id: <20141119220732.GA10376@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 27 Nov 2014 09:59:09 +0000
+Subject: [lm-sensors] [PATCH v2 4/5] hwmon: ina2xx: change hex constants to lower-case
+Message-Id: <1417082350-23470-5-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3b385cc3fdf1884f8902c015c7fa40b7133fd7b8.1416433516.git.arno@natisbad.org>
-In-Reply-To: <3b385cc3fdf1884f8902c015c7fa40b7133fd7b8.1416433516.git.arno@natisbad.org>
+References: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <jdelvare@suse.de>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On Wed, Nov 19, 2014 at 10:52:36PM +0100, Arnaud Ebalard wrote:
-> 
-> g762_remove() needs to first call hwmon_device_unregister() and then
-> g762_of_clock_disable(). For that reason, it is not possible to
-> convert it to devm_hwmon_device_register_with_groups() and the
-> the non device managed version must be used.
-> 
-> This is correctly stated in commit message for 398e16db6262 ("hwmon:
-> (g762) Convert to hwmon_device_register_with_groups") but the
-> associated changes do in fact introduce a call to the device managed
-> version of the function.
-> 
-> This patch fixes that typo by switching to the non devm_ version.
-> 
-> Fixes: 398e16db6262 ("hwmon: (g762) Convert to hwmon_device_register_with_groups")
-> Cc: stable@vger.kernel.org (3.17+)
-> Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+Make ina2xx uniform with the majority of the kernel code.
 
-Good catch.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Applied, thanks.
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 7fdb586..5095a7a 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -49,7 +49,7 @@
+ /* INA226 register definitions */
+ #define INA226_MASK_ENABLE		0x06
+ #define INA226_ALERT_LIMIT		0x07
+-#define INA226_DIE_ID			0xFF
++#define INA226_DIE_ID			0xff
+ 
+ /* shunt resistor sysfs attribute index */
+ #define INA2XX_RSHUNT			0x8
+@@ -64,7 +64,7 @@
+ #define INA2XX_MAX_REGISTERS		8
+ 
+ /* settings - depend on use case */
+-#define INA219_CONFIG_DEFAULT		0x399F	/* PGA=8 */
++#define INA219_CONFIG_DEFAULT		0x399f	/* PGA=8 */
+ #define INA226_CONFIG_DEFAULT		0x4527	/* averages */
+ 
+ /* worst case is 68.10 ms (~14.6Hz, ina219) */
+@@ -74,8 +74,8 @@
+ #define INA2XX_RSHUNT_DEFAULT		10000
+ 
+ /* bit masks for the averaging setting in the configuration register */
+-#define INA226_AVG_RD_MASK		0x0E00
+-#define INA226_AVG_WR_MASK		0xF1FF
++#define INA226_AVG_RD_MASK		0x0e00
++#define INA226_AVG_WR_MASK		0xf1ff
+ 
+ #define INA226_READ_AVG(reg) ((reg & INA226_AVG_RD_MASK) >> 9)
+ 
+-- 
+2.1.3
 
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
