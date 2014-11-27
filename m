@@ -1,35 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 30 Nov 2014 21:00:38 +0000
-Subject: [lm-sensors] [PATCH 1/3] MAINTAINERS: Fix up entry for Dell laptop SMM driver
-Message-Id: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 27 Nov 2014 09:59:05 +0000
+Subject: [lm-sensors] [PATCH v2 0/5] hwmon: ina2xx: fixes & extensions
+Message-Id: <1417082350-23470-1-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <jdelvare@suse.de>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Mark driver as maintained.
+This series fixes an initialization issue we've experienced with the ina2xx
+driver and extends the sysfs interface to make the driver configurable
+at run-time.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+The shunt_resistor attribute allows to change the shunt resistance value
+at run-time in cases where ina2xx used to do the measurement isn't integrated
+with the shunt.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0ff630d..a67e223 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2918,6 +2918,7 @@ F:	drivers/platform/x86/dell-laptop.c
- 
- DELL LAPTOP SMM DRIVER
- M:	Guenter Roeck <linux@roeck-us.net>
-+S:	Maintained
- F:	drivers/char/i8k.c
- F:	include/uapi/linux/i8k.h
- 
+The avg_rate attribute allows to increase/decrease noise reduction.
+
+Bartosz Golaszewski (5):
+  hwmon: ina2xx: bail-out from ina2xx_probe() in case of configuration errors
+  hwmon: ina2xx: make shunt resistance configurable at run-time
+  hwmon: ina2xx: allow to change the averaging rate at run-time
+  hwmon: ina2xx: change hex constants to lower-case
+  hwmon: ina2xx: documentation update for new sysfs attributes
+
+ Documentation/hwmon/ina2xx |  10 ++-
+ drivers/hwmon/ina2xx.c     | 187 +++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 181 insertions(+), 16 deletions(-)
+
 -- 
-1.9.1
+2.1.3
 
 
 _______________________________________________
