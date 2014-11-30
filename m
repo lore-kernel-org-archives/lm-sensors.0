@@ -1,61 +1,185 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Nov 2014 14:23:29 +0000
-Subject: Re: [lm-sensors] [PATCHv5 1/1] thermal: of: improve of-thermal sensor registration API
-Message-Id: <546DF961.3050509@roeck-us.net>
+Date: Sun, 30 Nov 2014 21:37:52 +0000
+Subject: [lm-sensors] [PATCH v2 1/2] hwmon: (lm95245) Add support for LM95235
+Message-Id: <1417383473-10328-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416492733-1624-1-git-send-email-edubezval@gmail.com> <1416492733-1624-2-git-send-email-edubezval@gmail.com> <20141120141806.GA1746@developer>
-In-Reply-To: <20141120141806.GA1746@developer>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Caesar Wang <caesar.wang-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lukasz Majewski <l.majewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Mikko Perttunen <mikko.perttunen-/1wQRMveznE@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 11/20/2014 06:18 AM, Eduardo Valentin wrote:
-> Hi Guenter,
->
-> On Thu, Nov 20, 2014 at 10:12:13AM -0400, Eduardo Valentin wrote:
->> Different drivers request API extensions in of-thermal. For this reason,
->> additional callbacks are required to fit the new drivers needs.
->>
->> The current API implementation expects the registering sensor driver
->> to provide a get_temp and get_trend callbacks as function parameters.
->> As the amount of callbacks is growing, this patch changes the existing
->> implementation to use a .ops field to hold all the of thermal callbacks
->> to sensor drivers.
->>
->> This patch also changes the existing of-thermal users to fit the new
->> API design. No functional change is introduced in this patch.
->>
->> Cc: Alexandre Courbot <gnurou@gmail.com>
->> Cc: devicetree@vger.kernel.org
->> Cc: Grant Likely <grant.likely@linaro.org>
->> Cc: Guenter Roeck <linux@roeck-us.net>
->> Cc: Jean Delvare <jdelvare@suse.de>
->> Cc: linux-kernel@vger.kernel.org
->> Cc: linux-pm@vger.kernel.org
->> Cc: linux-tegra@vger.kernel.org
->> Cc: lm-sensors@lm-sensors.org
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Stephen Warren <swarren@wwwdotorg.org>
->> Cc: Thierry Reding <thierry.reding@gmail.com>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->> Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
->> Reviewed-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
->> Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
->> Reviewed-by: Lukasz Majewski <l.majewski@samsung.com>
->> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
->> ---
->>   drivers/hwmon/lm75.c                               |  9 +++--
->>   drivers/hwmon/ntc_thermistor.c                     |  6 +++-
->>   drivers/hwmon/tmp102.c                             |  6 +++-
->
-> Do you have objections if I queue this one for 3.19?
->
+LM95235 is register compatible to LM95245.
 
-No.
+Also update link to LM95245 data sheet, and drop the link to the
+datasheet from the driver source to simplify code maintenance.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Drop link to datasheet from driver source.
+    Drop DEVNAME.
+    Update MODULE_DESCRIPTION.
+    Use the same driver_data values for supported chips
+    since the field is not used by the driver.
+
+ Documentation/hwmon/lm95245 | 14 +++++++++-----
+ drivers/hwmon/Kconfig       |  5 +++--
+ drivers/hwmon/lm95245.c     | 41 +++++++++++++++++++++++++++--------------
+ 3 files changed, 39 insertions(+), 21 deletions(-)
+
+diff --git a/Documentation/hwmon/lm95245 b/Documentation/hwmon/lm95245
+index 77eaf28..d755901 100644
+--- a/Documentation/hwmon/lm95245
++++ b/Documentation/hwmon/lm95245
+@@ -2,10 +2,14 @@ Kernel driver lm95245
+ =========
+ 
+ Supported chips:
+-  * National Semiconductor LM95245
++  * TI LM95235
++    Addresses scanned: I2C 0x18, 0x29, 0x4c
++    Datasheet: Publicly available at the TI website
++               http://www.ti.com/lit/ds/symlink/lm95235.pdf
++  * TI / National Semiconductor LM95245
+     Addresses scanned: I2C 0x18, 0x19, 0x29, 0x4c, 0x4d
+-    Datasheet: Publicly available at the National Semiconductor website
+-               http://www.national.com/mpf/LM/LM95245.html
++    Datasheet: Publicly available at the TI website
++               http://www.ti.com/lit/ds/symlink/lm95245.pdf
+ 
+ 
+ Author: Alexander Stein <alexander.stein@systec-electronic.com>
+@@ -13,10 +17,10 @@ Author: Alexander Stein <alexander.stein@systec-electronic.com>
+ Description
+ -----------
+ 
+-The LM95245 is an 11-bit digital temperature sensor with a 2-wire System
++LM95235 and LM95245 are 11-bit digital temperature sensors with a 2-wire System
+ Management Bus (SMBus) interface and TruTherm technology that can monitor
+ the temperature of a remote diode as well as its own temperature.
+-The LM95245 can be used to very accurately monitor the temperature of
++The chips can be used to very accurately monitor the temperature of
+ external devices such as microprocessors.
+ 
+ All temperature values are given in millidegrees Celsius. Local temperature
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index bcd5dad..27ef472 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1048,10 +1048,11 @@ config SENSORS_LM95241
+ 	  will be called lm95241.
+ 
+ config SENSORS_LM95245
+-	tristate "National Semiconductor LM95245 sensor chip"
++	tristate "National Semiconductor LM95245 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for LM95245 sensor chip.
++	  If you say yes here you get support for LM95235 and LM95245
++	  temperature sensor chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm95245.
+diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
+index 0ae0dfd..0680669 100644
+--- a/drivers/hwmon/lm95245.c
++++ b/drivers/hwmon/lm95245.c
+@@ -1,10 +1,8 @@
+ /*
+  * Copyright (C) 2011 Alexander Stein <alexander.stein@systec-electronic.com>
+  *
+- * The LM95245 is a sensor chip made by National Semiconductors.
++ * The LM95245 is a sensor chip made by TI / National Semiconductor.
+  * It reports up to two temperatures (its own plus an external one).
+- * Complete datasheet can be obtained from National's website at:
+- *   http://www.national.com/ds.cgi/LM/LM95245.pdf
+  *
+  * This driver is based on lm95241.c
+  *
+@@ -34,8 +32,6 @@
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
+ 
+-#define DEVNAME "lm95245"
+-
+ static const unsigned short normal_i2c[] = {
+ 	0x18, 0x19, 0x29, 0x4c, 0x4d, I2C_CLIENT_END };
+ 
+@@ -98,7 +94,8 @@ static const unsigned short normal_i2c[] = {
+ #define STATUS1_LOC		0x01
+ 
+ #define MANUFACTURER_ID		0x01
+-#define DEFAULT_REVISION	0xB3
++#define LM95235_REVISION	0xB1
++#define LM95245_REVISION	0xB3
+ 
+ static const u8 lm95245_reg_address[] = {
+ 	LM95245_REG_R_LOCAL_TEMPH_S,
+@@ -427,17 +424,32 @@ static int lm95245_detect(struct i2c_client *new_client,
+ 			  struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = new_client->adapter;
++	int address = new_client->addr;
++	const char *name;
++	int rev, id;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+-	if (i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID)
+-			!= MANUFACTURER_ID
+-		|| i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID)
+-			!= DEFAULT_REVISION)
++	id = i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID);
++	if (id != MANUFACTURER_ID)
+ 		return -ENODEV;
+ 
+-	strlcpy(info->type, DEVNAME, I2C_NAME_SIZE);
++	rev = i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID);
++	switch(rev) {
++	case LM95235_REVISION:
++		if (address != 0x18 && address != 0x29 && address != 0x4c)
++			return -ENODEV;
++		name = "lm95235";
++		break;
++	case LM95245_REVISION:
++		name = "lm95245";
++		break;
++	default:
++		return -ENODEV;
++	}
++
++	strlcpy(info->type, name, I2C_NAME_SIZE);
+ 	return 0;
+ }
+ 
+@@ -484,7 +496,8 @@ static int lm95245_probe(struct i2c_client *client,
+ 
+ /* Driver data (common to all clients) */
+ static const struct i2c_device_id lm95245_id[] = {
+-	{ DEVNAME, 0 },
++	{ "lm95235", 0 },
++	{ "lm95245", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, lm95245_id);
+@@ -492,7 +505,7 @@ MODULE_DEVICE_TABLE(i2c, lm95245_id);
+ static struct i2c_driver lm95245_driver = {
+ 	.class		= I2C_CLASS_HWMON,
+ 	.driver = {
+-		.name	= DEVNAME,
++		.name	= "lm95245",
+ 	},
+ 	.probe		= lm95245_probe,
+ 	.id_table	= lm95245_id,
+@@ -503,5 +516,5 @@ static struct i2c_driver lm95245_driver = {
+ module_i2c_driver(lm95245_driver);
+ 
+ MODULE_AUTHOR("Alexander Stein <alexander.stein@systec-electronic.com>");
+-MODULE_DESCRIPTION("LM95245 sensor driver");
++MODULE_DESCRIPTION("LM95235/LM95245 sensor driver");
+ MODULE_LICENSE("GPL");
+-- 
+1.9.1
 
 
 _______________________________________________
