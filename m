@@ -1,83 +1,43 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 20 Nov 2014 18:54:20 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] sensors-detect: Nuvoton chip updates
-Message-Id: <20141120195420.5a20c5a5@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 30 Nov 2014 21:00:40 +0000
+Subject: [lm-sensors] [PATCH 3/3] i8k: Add support for Dell XPS 13
+Message-Id: <1417381240-7641-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1416501593-9141-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1416501593-9141-1-git-send-email-linux@roeck-us.net>
+References: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 
-On Thu, 20 Nov 2014 08:39:52 -0800, Guenter Roeck wrote:
-> Add reference to nct6683 driver.
-> Show that nct6775 driver supports NCT6792D.
-> Show that NCT6102D/6104D/6106D are supported by nct6775 driver.
-> NCT5573D is compatible to NCT6776F and has the same chip ID.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Dropped '.' from CHANGES and shortened description of changes
->     nct6883 --> nct6683
-> 
->  CHANGES                    | 3 +++
->  prog/detect/sensors-detect | 6 +++---
->  2 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/CHANGES b/CHANGES
-> index 27cfa4d..3be3da9 100644
-> --- a/CHANGES
-> +++ b/CHANGES
-> @@ -17,6 +17,9 @@ SVN HEAD
->                    Add detection of NCT7802Y
->                    Print kernel version and processor information
->                    Add detection of NCT6792D 
-> +                  Add reference to nct6683 driver
-> +                  Show that NCT6102D/6104D/6106D are supported by nct6775 driver
-> +                  Show NCT5573D as compatible to NCT6776F with same chip ID
->  
->  3.3.5 "Happy Birthday Beddy" (2014-01-22)
->    libsensors: Improve documentation of two functions
-> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> index bb233e2..2d9cc04 100755
-> --- a/prog/detect/sensors-detect
-> +++ b/prog/detect/sensors-detect
-> @@ -2096,7 +2096,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
->  		driver => "not-a-sensor",
->  		devid => 0x61,
->  	}, {
-> -		name => "Nuvoton NCT5577D/NCT6776F Super IO Sensors",
-> +		name => "Nuvoton NCT5573D/NCT5577D/NCT6776F Super IO Sensors",
->  		driver => "nct6775",
->  		devid => 0xC330,
->  		devid_mask => 0xFFF0,
-> @@ -2111,7 +2111,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
->  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
->  	}, {
->  		name => "Nuvoton NCT6683D eSIO",
-> -		driver => "to-be-written",
-> +		driver => "nct6683",
->  		devid => 0xC730,
->  		devid_mask => 0xFFF0,
->  		logdev => 0x0b,
-> @@ -2132,7 +2132,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
->  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
->  	}, {
->  		name => "Nuvoton NCT6102D/NCT6104D/NCT6106D Super IO Sensors",
-> -		driver => "to-be-written",	# nct6775
-> +		driver => "nct6775",
->  		devid => 0xC450,
->  		devid_mask => 0xFFF0,
->  		logdev => 0x0b,
-
-Looks good, please commit.
-
--- 
-Jean Delvare
-SUSE L3 Support
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+WFBTIDEzIGRvZXMgbm90IHN1cHBvcnQgdHVyYm8gc3BlZWQsIHNvIGl0cyBpbml0aWFsaXphdGlv
+biBkYXRhCm1hdGNoZXMgdGhhdCBvZiBYUFMgTTE0MC4gTWFrZSBYUFMgaW5pdGlhbGl6YXRpb24g
+ZGF0YSBnZW5lcmljLAphbmQgYWRkIHN1cHBvcnQgZm9yIFhQUyAxMy4KCkNjOiBQYWxpIFJvaMOh
+ciA8cGFsaS5yb2hhckBnbWFpbC5jb20+ClNpZ25lZC1vZmYtYnk6IEd1ZW50ZXIgUm9lY2sgPGxp
+bnV4QHJvZWNrLXVzLm5ldD4KLS0tCkFwcGxpZXMgb24gdG9wIG9mIFBhbGkncyBwYXRjaCBzZXJp
+ZXMuIAoKIGRyaXZlcnMvY2hhci9pOGsuYyB8IDE0ICsrKysrKysrKysrLS0tCiAxIGZpbGUgY2hh
+bmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL2NoYXIvaThrLmMgYi9kcml2ZXJzL2NoYXIvaThrLmMKaW5kZXggY2RiMmRjNy4uNmQyY2Fh
+OSAxMDA2NDQKLS0tIGEvZHJpdmVycy9jaGFyL2k4ay5jCisrKyBiL2RyaXZlcnMvY2hhci9pOGsu
+YwpAQCAtNzA1LDcgKzcwNSw3IEBAIGVudW0gaThrX2NvbmZpZ3MgewogCURFTExfTEFUSVRVREVf
+RTY1NDAsCiAJREVMTF9QUkVDSVNJT05fNDkwLAogCURFTExfU1RVRElPLAotCURFTExfWFBTX00x
+NDAsCisJREVMTF9YUFMsCiB9OwogCiBzdGF0aWMgY29uc3Qgc3RydWN0IGk4a19jb25maWdfZGF0
+YSBpOGtfY29uZmlnX2RhdGFbXSA9IHsKQEAgLTcyNSw3ICs3MjUsNyBAQCBzdGF0aWMgY29uc3Qg
+c3RydWN0IGk4a19jb25maWdfZGF0YSBpOGtfY29uZmlnX2RhdGFbXSA9IHsKIAkJLmZhbl9tdWx0
+ID0gMSwKIAkJLmZhbl9tYXggPSBJOEtfRkFOX0hJR0gsCiAJfSwKLQlbREVMTF9YUFNfTTE0MF0g
+PSB7CisJW0RFTExfWFBTXSA9IHsKIAkJLmZhbl9tdWx0ID0gMSwKIAkJLmZhbl9tYXggPSBJOEtf
+RkFOX0hJR0gsCiAJfSwKQEAgLTgyOSwxMiArODI5LDIwIEBAIHN0YXRpYyBzdHJ1Y3QgZG1pX3N5
+c3RlbV9pZCBpOGtfZG1pX3RhYmxlW10gX19pbml0ZGF0YSA9IHsKIAkJLmRyaXZlcl9kYXRhID0g
+KHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfU1RVRElPXSwKIAl9LAogCXsKKwkJLmlkZW50
+ID0gIkRlbGwgWFBTIDEzIiwKKwkJLm1hdGNoZXMgPSB7CisJCQlETUlfTUFUQ0goRE1JX1NZU19W
+RU5ET1IsICJEZWxsIEluYy4iKSwKKwkJCURNSV9NQVRDSChETUlfUFJPRFVDVF9OQU1FLCAiWFBT
+MTMiKSwKKwkJfSwKKwkJLmRyaXZlcl9kYXRhID0gKHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RF
+TExfWFBTXSwKKwl9LAorCXsKIAkJLmlkZW50ID0gIkRlbGwgWFBTIE0xNDAiLAogCQkubWF0Y2hl
+cyA9IHsKIAkJCURNSV9NQVRDSChETUlfU1lTX1ZFTkRPUiwgIkRlbGwgSW5jLiIpLAogCQkJRE1J
+X01BVENIKERNSV9QUk9EVUNUX05BTUUsICJNWEMwNTEiKSwKIAkJfSwKLQkJLmRyaXZlcl9kYXRh
+ID0gKHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfWFBTX00xNDBdLAorCQkuZHJpdmVyX2Rh
+dGEgPSAodm9pZCAqKSZpOGtfY29uZmlnX2RhdGFbREVMTF9YUFNdLAogCX0sCiAJeyB9CiB9Owot
+LSAKMS45LjEKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
