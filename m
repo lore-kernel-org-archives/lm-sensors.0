@@ -1,44 +1,38 @@
-From: Pavel Rojtberg <mail@rojtberg.net>
-Date: Thu, 27 Nov 2014 20:50:23 +0000
-Subject: [lm-sensors] ITE IT8620E
-Message-Id: <CA+b0ujdyUJ_OWZaDwXfC-a9bW7ee+A9KRqc7481rzc8x-LTFyA@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 30 Nov 2014 21:00:38 +0000
+Subject: [lm-sensors] [PATCH 1/3] MAINTAINERS: Fix up entry for Dell laptop SMM driver
+Message-Id: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-SGVsbG8gV29ybGQsCgpJIGFtIHRyeWluZyB0byByZWFkIHRoZSBzZW5zb3JzIGZyb20gbXkgR2ln
-YWJ5dGUgR0EtSDk3TiBXaWZpLiBBcHBhcmVudGx5Cml0IHVzZXMgYSBJVEUgSVQ4NjIwRSBbMV0u
-CkZvbGxvd2luZyBbMl0gSSBkaWQgYSAibW9kcHJvYmUgaXQ4NyBmb3JjZV9pZD0weDg3MjgiICh1
-bmFtZTogWzNdKSBhbmQgSQpjYW4gZ2V0IHNvbWUgZGF0YSBvdXQgb2YgaXQ6CgppdDg3MjgtaXNh
-LTBhMzAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKaW4wOiAgICAgICAgICArMC4wNCBWICAobWluID0g
-ICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQppbjE6ICAgICAgICAgICsyLjAwIFYgIChtaW4gPSAg
-KzAuMDAgViwgbWF4ID0gICszLjA2IFYpCmluMjogICAgICAgICAgKzIuMDIgViAgKG1pbiA9ICAr
-MC4wMCBWLCBtYXggPSAgKzMuMDYgVikKaW4zOiAgICAgICAgICArMi4wNCBWICAobWluID0gICsw
-LjAwIFYsIG1heCA9ICArMy4wNiBWKQppbjQ6ICAgICAgICAgICswLjAxIFYgIChtaW4gPSAgKzAu
-MDAgViwgbWF4ID0gICszLjA2IFYpCmluNTogICAgICAgICAgKzEuODAgViAgKG1pbiA9ICArMC4w
-MCBWLCBtYXggPSAgKzMuMDYgVikKaW42OiAgICAgICAgICArMS41MSBWICAobWluID0gICswLjAw
-IFYsIG1heCA9ICArMy4wNiBWKQozVlNCOiAgICAgICAgICszLjM2IFYgIChtaW4gPSAgKzAuMDAg
-ViwgbWF4ID0gICs2LjEyIFYpClZiYXQ6ICAgICAgICAgKzMuMDAgVgpmYW4xOiAgICAgICAgIDUy
-OCBSUE0gIChtaW4gPSAgICAwIFJQTSkKZmFuMjogICAgICAgICA2ODMgUlBNICAobWluID0gICAg
-MCBSUE0pCmZhbjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW40OiAgICAg
-ICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkKZmFuNTogICAgICAgICAgIDAgUlBNICAobWlu
-ID0gICAgMCBSUE0pCnRlbXAxOiAgICAgICAgKzM0LjDCsEMgIChsb3cgID0gKzEyNy4wwrBDLCBo
-aWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0KdGhlcm1pc3Rvcgp0ZW1wMjogICAgICAgLTEyOC4w
-wrBDICAobG93ICA9ICsxMjcuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIHNlbnNvciA9IGRpc2Fi
-bGVkCnRlbXAzOiAgICAgICAgKzIyLjDCsEMgIChsb3cgID0gKzEyNy4wwrBDLCBoaWdoID0gKzEy
-Ny4wwrBDKSAgc2Vuc29yID0gSW50ZWwKUEVDSQppbnRydXNpb24wOiAgQUxBUk0KCmZhbjEgPSBD
-UFUsIGZhbjIgPSBTeXN0ZW0uIFNpbWlsYXIgcmVhZGluZ3MgdG8gR2lnYWJ5dGUgU0lWIFRvb2wg
-dXNpbmcKd2luZG93cy4KdGVtcDEgPSBTSVYgVG9vbCBTeXN0ZW0gVGVtcGVyYXR1cmUKdGVtcDMg
-PSBTSVYgVG9vbCAod3JvbmcpIENQVSBUZW1wZXJhdHVyZSAoY29yZXRlbXAgZ2V0cyBpdCByaWdo
-dCkKM1ZTQjogKzMuMyAoUFNVPykgVm9sdGFnZSBhcyBpbiBTSVYgVG9vbAppbjY6IHNlZW1zIHRv
-IGJlIHRoZSBEUkFNIFZvbHRhZ2UKaW41OiBDUFUgVlJJTgppbnRydXNpb24wOiBjb3JyZWN0IHJl
-YWRpbmcuIGRpZCBub3QgcmVzZXQgaXQgaW4gQklPUwoKY2FudCBtYWtlIGFueSBzZW5zZSBvdXQg
-b2YgdGhlIHJlc3QuCgpHcmVldHMgJiBob3BlIHRoaXMgaGVscHMKClBhdmVsCgpbMV0gaHR0cDov
-L3d3dy5lYXN5Y29tLmNvbS51YS9tYm9hcmQvZ2lnYWJ5dGVfZ2EtaDk3bi13aWZpLz9sYW5nPXJ1
-ClsyXSBodHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL3dpa2kvRGV2aWNlcwpbM10gMy4xNi4wLTI1
-LWdlbmVyaWMgIzMzLVVidW50dSBTTVAgRnJpIE5vdiA3IDAxOjUzOjQwIFVUQyAyMDE0IHg4Nl82
-NApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5z
-b3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5s
-bS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Mark driver as maintained.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0ff630d..a67e223 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2918,6 +2918,7 @@ F:	drivers/platform/x86/dell-laptop.c
+ 
+ DELL LAPTOP SMM DRIVER
+ M:	Guenter Roeck <linux@roeck-us.net>
++S:	Maintained
+ F:	drivers/char/i8k.c
+ F:	include/uapi/linux/i8k.h
+ 
+-- 
+1.9.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
