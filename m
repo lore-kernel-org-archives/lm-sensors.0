@@ -1,49 +1,39 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 01 Dec 2014 12:36:45 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 01 Dec 2014 16:22:32 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] i8k: Add support for Dell XPS 13
-Message-Id: <20141201133645.2a423043@endymion.delvare>
+Message-Id: <20141201162232.GA23419@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
-	<1417381240-7641-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1417381240-7641-3-git-send-email-linux@roeck-us.net>
+ <1417381240-7641-3-git-send-email-linux@roeck-us.net>
+ <20141201133645.2a423043@endymion.delvare>
+In-Reply-To: <20141201133645.2a423043@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pali =?UTF-8?B?Um9o?= =?UTF-8?B?w6Fy?= <pali.rohar@gmail.com>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org
 
-T24gU3VuLCAzMCBOb3YgMjAxNCAxMzowMDo0MCAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
-PiBYUFMgMTMgZG9lcyBub3Qgc3VwcG9ydCB0dXJibyBzcGVlZCwgc28gaXRzIGluaXRpYWxpemF0
-aW9uIGRhdGEKPiBtYXRjaGVzIHRoYXQgb2YgWFBTIE0xNDAuIE1ha2UgWFBTIGluaXRpYWxpemF0
-aW9uIGRhdGEgZ2VuZXJpYywKPiBhbmQgYWRkIHN1cHBvcnQgZm9yIFhQUyAxMy4KPiAKPiBDYzog
-UGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgo+IFNpZ25lZC1vZmYtYnk6IEd1ZW50
-ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KPiAtLS0KPiBBcHBsaWVzIG9uIHRvcCBvZiBQ
-YWxpJ3MgcGF0Y2ggc2VyaWVzLiAKPiAKPiAgZHJpdmVycy9jaGFyL2k4ay5jIHwgMTQgKysrKysr
-KysrKystLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25z
-KC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2hhci9pOGsuYyBiL2RyaXZlcnMvY2hhci9p
-OGsuYwo+IGluZGV4IGNkYjJkYzcuLjZkMmNhYTkgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9jaGFy
-L2k4ay5jCj4gKysrIGIvZHJpdmVycy9jaGFyL2k4ay5jCj4gQEAgLTcwNSw3ICs3MDUsNyBAQCBl
-bnVtIGk4a19jb25maWdzIHsKPiAgCURFTExfTEFUSVRVREVfRTY1NDAsCj4gIAlERUxMX1BSRUNJ
-U0lPTl80OTAsCj4gIAlERUxMX1NUVURJTywKPiAtCURFTExfWFBTX00xNDAsCj4gKwlERUxMX1hQ
-UywKPiAgfTsKPiAgCj4gIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaThrX2NvbmZpZ19kYXRhIGk4a19j
-b25maWdfZGF0YVtdID0gewo+IEBAIC03MjUsNyArNzI1LDcgQEAgc3RhdGljIGNvbnN0IHN0cnVj
-dCBpOGtfY29uZmlnX2RhdGEgaThrX2NvbmZpZ19kYXRhW10gPSB7Cj4gIAkJLmZhbl9tdWx0ID0g
-MSwKPiAgCQkuZmFuX21heCA9IEk4S19GQU5fSElHSCwKPiAgCX0sCj4gLQlbREVMTF9YUFNfTTE0
-MF0gPSB7Cj4gKwlbREVMTF9YUFNdID0gewo+ICAJCS5mYW5fbXVsdCA9IDEsCj4gIAkJLmZhbl9t
-YXggPSBJOEtfRkFOX0hJR0gsCj4gIAl9LAo+IEBAIC04MjksMTIgKzgyOSwyMCBAQCBzdGF0aWMg
-c3RydWN0IGRtaV9zeXN0ZW1faWQgaThrX2RtaV90YWJsZVtdIF9faW5pdGRhdGEgPSB7Cj4gIAkJ
-LmRyaXZlcl9kYXRhID0gKHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfU1RVRElPXSwKPiAg
-CX0sCj4gIAl7Cj4gKwkJLmlkZW50ID0gIkRlbGwgWFBTIDEzIiwKPiArCQkubWF0Y2hlcyA9IHsK
-PiArCQkJRE1JX01BVENIKERNSV9TWVNfVkVORE9SLCAiRGVsbCBJbmMuIiksCj4gKwkJCURNSV9N
-QVRDSChETUlfUFJPRFVDVF9OQU1FLCAiWFBTMTMiKSwKPiArCQl9LAo+ICsJCS5kcml2ZXJfZGF0
-YSA9ICh2b2lkICopJmk4a19jb25maWdfZGF0YVtERUxMX1hQU10sCj4gKwl9LAo+ICsJewo+ICAJ
-CS5pZGVudCA9ICJEZWxsIFhQUyBNMTQwIiwKPiAgCQkubWF0Y2hlcyA9IHsKPiAgCQkJRE1JX01B
-VENIKERNSV9TWVNfVkVORE9SLCAiRGVsbCBJbmMuIiksCj4gIAkJCURNSV9NQVRDSChETUlfUFJP
-RFVDVF9OQU1FLCAiTVhDMDUxIiksCj4gIAkJfSwKPiAtCQkuZHJpdmVyX2RhdGEgPSAodm9pZCAq
-KSZpOGtfY29uZmlnX2RhdGFbREVMTF9YUFNfTTE0MF0sCj4gKwkJLmRyaXZlcl9kYXRhID0gKHZv
-aWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfWFBTXSwKPiAgCX0sCj4gIAl7IH0KPiAgfTsKCkxv
-b2tzIHJlYXNvbmFibGUuCgpSZXZpZXdlZC1ieTogSmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBzdXNl
-LmRlPgoKLS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Mon, Dec 01, 2014 at 01:36:45PM +0100, Jean Delvare wrote:
+> On Sun, 30 Nov 2014 13:00:40 -0800, Guenter Roeck wrote:
+> > XPS 13 does not support turbo speed, so its initialization data
+> > matches that of XPS M140. Make XPS initialization data generic,
+> > and add support for XPS 13.
+> >=20
+> > Cc: Pali Roh=E1r <pali.rohar@gmail.com>
+> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > ---
+
+[ ... ]
+>=20
+> Looks reasonable.
+>=20
+> Reviewed-by: Jean Delvare <jdelvare@suse.de>
+>=20
+Thanks a lot for the reviews!
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
