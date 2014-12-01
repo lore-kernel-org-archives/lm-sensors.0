@@ -1,36 +1,49 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 29 Dec 2014 12:52:45 +0000
-Subject: Re: [lm-sensors] [PATCH v2 6/8] hwmon: thermal: Extract __set_pwm() function to only modify PWM duty
-Message-Id: <20141229125245.GB18083@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 01 Dec 2014 12:36:45 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] i8k: Add support for Dell XPS 13
+Message-Id: <20141201133645.2a423043@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-7-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1419265668-32283-7-git-send-email-l.majewski@samsung.com>
+References: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
+	<1417381240-7641-3-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1417381240-7641-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lukasz Majewski <l.majewski@samsung.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pali =?UTF-8?B?Um9o?= =?UTF-8?B?w6Fy?= <pali.rohar@gmail.com>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org
 
-On Mon, Dec 22, 2014 at 05:27:46PM +0100, Lukasz Majewski wrote:
-> It was necessary to decouple code handling writing to sysfs from the one
-> responsible for setting PWM of the fan.
-> Due to that, new __set_pwm() method was extracted, which is responsible for
-> only setting new PWM duty cycle.
-> 
-> Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-> ---
-
-Please provide the affected subsystem and the affected driver in the header.
-While it may make sense to explain that the patch is to prepare the driver for
-thermal use, this should be part of the descriptive text. The patch is,
-however, not not a thermal subsystem related patch. The 'thermal:' in the
-headline is thus misleading, and you should drop it.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU3VuLCAzMCBOb3YgMjAxNCAxMzowMDo0MCAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
+PiBYUFMgMTMgZG9lcyBub3Qgc3VwcG9ydCB0dXJibyBzcGVlZCwgc28gaXRzIGluaXRpYWxpemF0
+aW9uIGRhdGEKPiBtYXRjaGVzIHRoYXQgb2YgWFBTIE0xNDAuIE1ha2UgWFBTIGluaXRpYWxpemF0
+aW9uIGRhdGEgZ2VuZXJpYywKPiBhbmQgYWRkIHN1cHBvcnQgZm9yIFhQUyAxMy4KPiAKPiBDYzog
+UGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgo+IFNpZ25lZC1vZmYtYnk6IEd1ZW50
+ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KPiAtLS0KPiBBcHBsaWVzIG9uIHRvcCBvZiBQ
+YWxpJ3MgcGF0Y2ggc2VyaWVzLiAKPiAKPiAgZHJpdmVycy9jaGFyL2k4ay5jIHwgMTQgKysrKysr
+KysrKystLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25z
+KC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2hhci9pOGsuYyBiL2RyaXZlcnMvY2hhci9p
+OGsuYwo+IGluZGV4IGNkYjJkYzcuLjZkMmNhYTkgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9jaGFy
+L2k4ay5jCj4gKysrIGIvZHJpdmVycy9jaGFyL2k4ay5jCj4gQEAgLTcwNSw3ICs3MDUsNyBAQCBl
+bnVtIGk4a19jb25maWdzIHsKPiAgCURFTExfTEFUSVRVREVfRTY1NDAsCj4gIAlERUxMX1BSRUNJ
+U0lPTl80OTAsCj4gIAlERUxMX1NUVURJTywKPiAtCURFTExfWFBTX00xNDAsCj4gKwlERUxMX1hQ
+UywKPiAgfTsKPiAgCj4gIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaThrX2NvbmZpZ19kYXRhIGk4a19j
+b25maWdfZGF0YVtdID0gewo+IEBAIC03MjUsNyArNzI1LDcgQEAgc3RhdGljIGNvbnN0IHN0cnVj
+dCBpOGtfY29uZmlnX2RhdGEgaThrX2NvbmZpZ19kYXRhW10gPSB7Cj4gIAkJLmZhbl9tdWx0ID0g
+MSwKPiAgCQkuZmFuX21heCA9IEk4S19GQU5fSElHSCwKPiAgCX0sCj4gLQlbREVMTF9YUFNfTTE0
+MF0gPSB7Cj4gKwlbREVMTF9YUFNdID0gewo+ICAJCS5mYW5fbXVsdCA9IDEsCj4gIAkJLmZhbl9t
+YXggPSBJOEtfRkFOX0hJR0gsCj4gIAl9LAo+IEBAIC04MjksMTIgKzgyOSwyMCBAQCBzdGF0aWMg
+c3RydWN0IGRtaV9zeXN0ZW1faWQgaThrX2RtaV90YWJsZVtdIF9faW5pdGRhdGEgPSB7Cj4gIAkJ
+LmRyaXZlcl9kYXRhID0gKHZvaWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfU1RVRElPXSwKPiAg
+CX0sCj4gIAl7Cj4gKwkJLmlkZW50ID0gIkRlbGwgWFBTIDEzIiwKPiArCQkubWF0Y2hlcyA9IHsK
+PiArCQkJRE1JX01BVENIKERNSV9TWVNfVkVORE9SLCAiRGVsbCBJbmMuIiksCj4gKwkJCURNSV9N
+QVRDSChETUlfUFJPRFVDVF9OQU1FLCAiWFBTMTMiKSwKPiArCQl9LAo+ICsJCS5kcml2ZXJfZGF0
+YSA9ICh2b2lkICopJmk4a19jb25maWdfZGF0YVtERUxMX1hQU10sCj4gKwl9LAo+ICsJewo+ICAJ
+CS5pZGVudCA9ICJEZWxsIFhQUyBNMTQwIiwKPiAgCQkubWF0Y2hlcyA9IHsKPiAgCQkJRE1JX01B
+VENIKERNSV9TWVNfVkVORE9SLCAiRGVsbCBJbmMuIiksCj4gIAkJCURNSV9NQVRDSChETUlfUFJP
+RFVDVF9OQU1FLCAiTVhDMDUxIiksCj4gIAkJfSwKPiAtCQkuZHJpdmVyX2RhdGEgPSAodm9pZCAq
+KSZpOGtfY29uZmlnX2RhdGFbREVMTF9YUFNfTTE0MF0sCj4gKwkJLmRyaXZlcl9kYXRhID0gKHZv
+aWQgKikmaThrX2NvbmZpZ19kYXRhW0RFTExfWFBTXSwKPiAgCX0sCj4gIAl7IH0KPiAgfTsKCkxv
+b2tzIHJlYXNvbmFibGUuCgpSZXZpZXdlZC1ieTogSmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBzdXNl
+LmRlPgoKLS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
+YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
