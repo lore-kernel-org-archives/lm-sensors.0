@@ -1,36 +1,49 @@
-From: Richard Llom <richard.llom@gmail.com>
-Date: Sun, 21 Dec 2014 21:22:56 +0000
-Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <m77dng$iks$1@ger.gmane.org>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 02 Dec 2014 12:07:32 +0000
+Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: (lm95234) Add support for LM95233
+Message-Id: <20141202130732.1aaceab8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <m6bv17$gsp$1@ger.gmane.org>
-In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
+References: <1417383473-10328-2-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1417383473-10328-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Guenter Roeck wrote:
-> On 12/19/2014 05:34 AM, Richard Llom wrote:
->> Guenter Roeck wrote:
->>> On 12/18/2014 11:03 AM, Richard Llom wrote:
->>>> Thanks for the input guys!
->>>> I reported this to my distro/packager, lets see what they say (maybe it
->>>> is just an packaging error).
->>>
->>> Did you change the distro version ? I thought you just updated the
->>> kernel.
->>>
->> It's a (half-) rolling distro. The kernel update was major update and
->> came with a new KDE 4 SC release as well.
->>
+On Sun, 30 Nov 2014 13:37:53 -0800, Guenter Roeck wrote:
+> LM95233 is similar to LM95234, but it only supports two
+> instead of four external temperature sensors.
 > 
-> Can you load the older (3.16) kernel with the new version of KDE ?
-> That would tell us if the culprit is the kernel or ksysguard.
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2: Update Kconfig
+>     Improve detection code (add more checks)
+>     Update MODULE_DESCRIPTION
 > 
-Tested on downgrade 3.16 and there are no hardware sensors as well, so its 
-probably related the KDE update / package.
+>  Documentation/hwmon/lm95234 | 15 +++++---
+>  drivers/hwmon/Kconfig       |  6 +--
+>  drivers/hwmon/lm95234.c     | 91 ++++++++++++++++++++++++++++++++-------------
+>  3 files changed, 78 insertions(+), 34 deletions(-)
+> (...)
+> diff --git a/drivers/hwmon/lm95234.c b/drivers/hwmon/lm95234.c
+> index 411202b..af8fabd 100644
+> --- a/drivers/hwmon/lm95234.c
+> +++ b/drivers/hwmon/lm95234.c
+> (...)
+> @@ -622,15 +641,31 @@ static int lm95234_detect(struct i2c_client *client,
+>  		return -ENODEV;
+>  
+>  	chip_id = i2c_smbus_read_byte_data(client, LM95234_REG_CHIP_ID);
+> -	if (chip_id != LM95234_CHIP_ID)
+> +	switch(chip_id) {
 
+Missing space here again. Other than that:
+
+Reviewed-by: Jean Delvare <jdelvare@suse.de>
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
