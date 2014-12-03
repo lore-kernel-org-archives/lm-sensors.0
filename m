@@ -1,78 +1,43 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Mon, 22 Dec 2014 16:27:45 +0000
-Subject: [lm-sensors] [PATCH v2 5/8] hwmon: thermal: dts: Add properties to use pwm-fan device as a cooling d
-Message-Id: <1419265668-32283-6-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bartekgola@gmail.com>
+Date: Wed, 03 Dec 2014 10:54:14 +0000
+Subject: [lm-sensors] [PATCH v3 3/3] hwmon: ina2xx: documentation update for new sysfs attributes
+Message-Id: <1417604054-8694-4-git-send-email-bartekgola@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
+References: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
+In-Reply-To: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bartekgola@gmail.com>
 
-With those bindings it is possible to use pwm-fan device available in
-Odroid U3 as a cooling device.
+Include the rshunt and avg sysfs attributes for ina2xx in the documentation.
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Signed-off-by: Bartosz Golaszewski <bartekgola@gmail.com>
 ---
-Changes for v2:
-- Rename cooling-pwm-values property to cooling-levels
----
- arch/arm/boot/dts/exynos4412-odroidu3.dts | 33 ++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ Documentation/hwmon/ina2xx | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index 60bd1e4..380035d 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -32,11 +32,42 @@
- 		};
- 	};
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 4223c2d..c100c24 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -44,6 +44,10 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
+ The INA230 is a high or low side current shunt and power monitor with an I2C
+ interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
  
--	pwm-fan {
-+	fan0: pwm-fan {
- 		compatible = "pwm-fan";
- 		pwms = <&pwm 0 10000 0>;
-+		cooling-min-state = <0>;
-+		cooling-max-state = <3>;
-+		#cooling-cells = <2>;
-+		cooling-levels = <0 102 170 255>;
- 		status = "okay";
- 	};
+-The shunt value in micro-ohms can be set via platform data or device tree.
+-Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
+-if the device tree is used.
++The shunt value in micro-ohms can be set via platform data or device tree in
++compile-time or via the shunt_resistor attribute in sysfs in run-time. Please
++refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings if
++the device tree is used.
 +
-+	thermal-zones {
-+		cpu_thermal: cpu-thermal {
-+			cooling-maps {
-+				map0 {
-+				     trip = <&cpu_alert1>;
-+				     cooling-device = <&cpu0 7 7>;
-+				};
-+				map1 {
-+				     trip = <&cpu_alert2>;
-+				     cooling-device = <&cpu0 13 13>;
-+				};
-+				map2 {
-+				     trip = <&cpu_alert0>;
-+				     cooling-device = <&fan0 0 1>;
-+				};
-+				map3 {
-+				     trip = <&cpu_alert1>;
-+				     cooling-device = <&fan0 1 2>;
-+				};
-+				map4 {
-+				     trip = <&cpu_alert2>;
-+				     cooling-device = <&fan0 2 3>;
-+				};
-+			};
-+		};
-+	};
- };
- 
- &pwm {
++The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
++attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
 -- 
-2.0.0.rc2
+2.1.3
 
 
 _______________________________________________
