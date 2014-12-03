@@ -1,75 +1,43 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Thu, 18 Dec 2014 10:13:05 +0000
-Subject: [lm-sensors] [PATCH 3/9] ARM: dts: Add pwm-fan node to the Odroid-U3 board
-Message-Id: <1418897591-18332-4-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Wed, 03 Dec 2014 13:06:11 +0000
+Subject: [lm-sensors] [PATCH v4 3/3] hwmon: ina2xx: documentation update for new sysfs attributes
+Message-Id: <1417611971-10360-4-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+References: <1417611971-10360-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417611971-10360-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-From: Kamil Debski <k.debski@samsung.com>
+Include the rshunt and avg sysfs attributes for ina2xx in the documentation.
 
-Add pwm-fan node to the Odroid-U3 board file to enable PWM control of the
-cooling fan. In addition, add the "pwm" label to the pwm@139D0000 node
-in the exynos4412.dtsi.
-
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-[Rebased on the newest mainline by l.majewski@samsung.com]
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
-Changes since v1:
-- added pwm label to the pwm@139D0000 node in exynos4.dtsi
-- use the pwm label in the exynos4412-odroidu3.dts
-- change order or properties in the pwn-fan node, to be sorted
-  in alphabetical order
+ Documentation/hwmon/ina2xx | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
----
- arch/arm/boot/dts/exynos4.dtsi            |  2 +-
- arch/arm/boot/dts/exynos4412-odroidu3.dts | 13 +++++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 1735bb3..f227a39 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -583,7 +583,7 @@
- 		status = "disabled";
- 	};
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 4223c2d..c100c24 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -44,6 +44,10 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
+ The INA230 is a high or low side current shunt and power monitor with an I2C
+ interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
  
--	pwm@139D0000 {
-+	pwm: pwm@139D0000 {
- 		compatible = "samsung,exynos4210-pwm";
- 		reg = <0x139D0000 0x1000>;
- 		interrupts = <0 37 0>, <0 38 0>, <0 39 0>, <0 40 0>, <0 41 0>;
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index c8a64be..60bd1e4 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -31,6 +31,19 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
+-The shunt value in micro-ohms can be set via platform data or device tree.
+-Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
+-if the device tree is used.
++The shunt value in micro-ohms can be set via platform data or device tree in
++compile-time or via the shunt_resistor attribute in sysfs in run-time. Please
++refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings if
++the device tree is used.
 +
-+	pwm-fan {
-+		compatible = "pwm-fan";
-+		pwms = <&pwm 0 10000 0>;
-+		status = "okay";
-+	};
-+};
-+
-+&pwm {
-+	pinctrl-0 = <&pwm0_out>;
-+	pinctrl-names = "default";
-+	samsung,pwm-outputs = <0>;
-+	status = "okay";
- };
- 
- &usb3503 {
++The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
++attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
 -- 
-2.0.0.rc2
+2.1.3
 
 
 _______________________________________________
