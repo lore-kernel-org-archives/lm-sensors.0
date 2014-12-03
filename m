@@ -1,15 +1,15 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Wed, 03 Dec 2014 13:06:10 +0000
-Subject: [lm-sensors] [PATCH v4 2/3] hwmon: ina2xx: allow to change the averaging rate at run-time
-Message-Id: <1417611971-10360-3-git-send-email-bgolaszewski@baylibre.com>
+From: Bartosz Golaszewski <bartekgola@gmail.com>
+Date: Wed, 03 Dec 2014 10:54:13 +0000
+Subject: [lm-sensors] [PATCH v3 2/3] hwmon: ina2xx: allow to change the averaging rate at run-time
+Message-Id: <1417604054-8694-3-git-send-email-bartekgola@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417611971-10360-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1417611971-10360-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
+In-Reply-To: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bartekgola@gmail.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
 The averaging rate of ina226 is hardcoded to 16 in the driver.
 
