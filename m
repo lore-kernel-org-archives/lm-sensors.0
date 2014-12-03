@@ -1,15 +1,17 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Sat, 13 Dec 2014 16:27:20 +0000
-Subject: [lm-sensors] [PATCH v7 4/5] hwmon: ina2xx: make shunt resistance configurable at run-time
-Message-Id: <1418488041-7433-5-git-send-email-bgolaszewski@baylibre.com>
+From: Bartosz Golaszewski <bartekgola@gmail.com>
+Date: Wed, 03 Dec 2014 10:54:12 +0000
+Subject: [lm-sensors] [PATCH v3 1/3] hwmon: ina2xx: make shunt resistance configurable at run-time
+Message-Id: <1417604054-8694-2-git-send-email-bartekgola@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
+In-Reply-To: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
 The shunt resistance can only be set via platform_data or device tree. This
 isn't suitable for devices in which the shunt resistance can change/isn't
@@ -19,52 +21,53 @@ Add a sysfs attribute that allows to read and set the shunt resistance.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- Documentation/hwmon/ina2xx |  5 +++--
- drivers/hwmon/ina2xx.c     | 48 ++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 49 insertions(+), 4 deletions(-)
+ drivers/hwmon/ina2xx.c | 70 +++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 61 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
-index 4223c2d..320dd69 100644
---- a/Documentation/hwmon/ina2xx
-+++ b/Documentation/hwmon/ina2xx
-@@ -44,6 +44,7 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
- The INA230 is a high or low side current shunt and power monitor with an I2C
- interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
- 
--The shunt value in micro-ohms can be set via platform data or device tree.
--Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
-+The shunt value in micro-ohms can be set via platform data or device tree at
-+compile-time or via the shunt_resistor attribute in sysfs at run-time. Please
-+refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
- if the device tree is used.
 diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index 3234e57..49537ea 100644
+index e01feba..309bfdb 100644
 --- a/drivers/hwmon/ina2xx.c
 +++ b/drivers/hwmon/ina2xx.c
-@@ -115,6 +115,12 @@ static const struct ina2xx_config ina2xx_config[] = {
+@@ -51,7 +51,6 @@
+ #define INA226_ALERT_LIMIT		0x07
+ #define INA226_DIE_ID			0xFF
+ 
+-
+ /* register count */
+ #define INA219_REGISTERS		6
+ #define INA226_REGISTERS		8
+@@ -65,6 +64,9 @@
+ /* worst case is 68.10 ms (~14.6Hz, ina219) */
+ #define INA2XX_CONVERSION_RATE		15
+ 
++/* default shunt resistance */
++#define INA2XX_RSHUNT_DEFAULT		10000
++
+ enum ina2xx_ids { ina219, ina226 };
+ 
+ struct ina2xx_config {
+@@ -87,6 +89,8 @@ struct ina2xx_data {
+ 
+ 	int kind;
+ 	u16 regs[INA2XX_MAX_REGISTERS];
++
++	long rshunt;
+ };
+ 
+ static const struct ina2xx_config ina2xx_config[] = {
+@@ -110,6 +114,11 @@ static const struct ina2xx_config ina2xx_config[] = {
  	},
  };
  
-+static int ina2xx_calibrate(struct ina2xx_data *data)
++static u16 ina2xx_calibration_val(const struct ina2xx_data *data)
 +{
-+	return i2c_smbus_write_word_swapped(data->client, INA2XX_CALIBRATION,
-+			data->config->calibration_factor / data->rshunt);
++	return data->config->calibration_factor / data->rshunt;
 +}
 +
- /*
-  * Initialize the configuration and calibration registers.
-  */
-@@ -133,8 +139,7 @@ static int ina2xx_init(struct ina2xx_data *data)
- 	 * Set current LSB to 1mA, shunt is in uOhms
- 	 * (equation 13 in datasheet).
- 	 */
--	return i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
--			data->config->calibration_factor / data->rshunt);
-+	return ina2xx_calibrate(data);
- }
- 
- static int ina2xx_do_update(struct device *dev)
-@@ -231,6 +236,9 @@ static int ina2xx_get_value(struct ina2xx_data *data, u8 reg)
+ static struct ina2xx_data *ina2xx_update_device(struct device *dev)
+ {
+ 	struct ina2xx_data *data = dev_get_drvdata(dev);
+@@ -164,6 +173,9 @@ static int ina2xx_get_value(struct ina2xx_data *data, u8 reg)
  		/* signed register, LSB=1mA (selected), in mA */
  		val = (s16)data->regs[reg];
  		break;
@@ -74,7 +77,7 @@ index 3234e57..49537ea 100644
  	default:
  		/* programmer goofed */
  		WARN_ON_ONCE(1);
-@@ -254,6 +262,36 @@ static ssize_t ina2xx_show_value(struct device *dev,
+@@ -187,6 +199,38 @@ static ssize_t ina2xx_show_value(struct device *dev,
  			ina2xx_get_value(data, attr->index));
  }
  
@@ -95,12 +98,14 @@ index 3234e57..49537ea 100644
 +
 +	if (val = 0 ||
 +	    /* Values greater than the calibration factor make no sense. */
-+	    val > data->config->calibration_factor)
++	    val > data->config->calibration_factor ||
++	    val > LONG_MAX)
 +		return -EINVAL;
 +
 +	mutex_lock(&data->update_lock);
 +	data->rshunt = val;
-+	status = ina2xx_calibrate(data);
++	status = i2c_smbus_write_word_swapped(data->client, INA2XX_CALIBRATION,
++					      ina2xx_calibration_val(data));
 +	mutex_unlock(&data->update_lock);
 +	if (status < 0)
 +		return status;
@@ -111,7 +116,7 @@ index 3234e57..49537ea 100644
  /* shunt voltage */
  static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_value, NULL,
  			  INA2XX_SHUNT_VOLTAGE);
-@@ -270,12 +308,18 @@ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ina2xx_show_value, NULL,
+@@ -203,12 +247,18 @@ static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ina2xx_show_value, NULL,
  static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, ina2xx_show_value, NULL,
  			  INA2XX_POWER);
  
@@ -130,6 +135,60 @@ index 3234e57..49537ea 100644
  	NULL,
  };
  ATTRIBUTE_GROUPS(ina2xx);
+@@ -221,7 +271,6 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	struct device *dev = &client->dev;
+ 	struct ina2xx_data *data;
+ 	struct device *hwmon_dev;
+-	long shunt = 10000; /* default shunt value 10mOhms */
+ 	u32 val;
+ 	int ret;
+ 
+@@ -234,19 +283,22 @@ static int ina2xx_probe(struct i2c_client *client,
+ 
+ 	if (dev_get_platdata(dev)) {
+ 		pdata = dev_get_platdata(dev);
+-		shunt = pdata->shunt_uohms;
++		data->rshunt = pdata->shunt_uohms;
+ 	} else if (!of_property_read_u32(dev->of_node,
+ 					 "shunt-resistor", &val)) {
+-		shunt = val;
++		data->rshunt = val;
++	} else {
++		data->rshunt = INA2XX_RSHUNT_DEFAULT;
+ 	}
+ 
+-	if (shunt <= 0)
+-		return -ENODEV;
+-
+ 	/* set the device type */
+ 	data->kind = id->driver_data;
+ 	data->config = &ina2xx_config[data->kind];
+ 
++	if (data->rshunt <= 0 ||
++	    data->rshunt > data->config->calibration_factor)
++		return -ENODEV;
++
+ 	/* device configuration */
+ 	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
+ 					   data->config->config_default);
+@@ -261,7 +313,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	 * (equation 13 in datasheet).
+ 	 */
+ 	ret = i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
+-				data->config->calibration_factor / shunt);
++					   ina2xx_calibration_val(data));
+ 	if (ret < 0) {
+ 		dev_err(dev,
+ 			"error writing to the calibration register: %d", ret);
+@@ -277,7 +329,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 		return PTR_ERR(hwmon_dev);
+ 
+ 	dev_info(dev, "power monitor %s (Rshunt = %li uOhm)\n",
+-		 id->name, shunt);
++		 id->name, data->rshunt);
+ 
+ 	return 0;
+ }
 -- 
 2.1.3
 
