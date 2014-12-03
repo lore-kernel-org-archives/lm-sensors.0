@@ -1,46 +1,31 @@
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Fri, 19 Dec 2014 09:36:09 +0000
-Subject: [lm-sensors] [RESEND PATCH v7 5/5] hwmon: ina2xx: allow to change the averaging rate at run-time
-Message-Id: <1418981769-11287-6-git-send-email-bgolaszewski@baylibre.com>
+Date: Wed, 03 Dec 2014 13:06:10 +0000
+Subject: [lm-sensors] [PATCH v4 2/3] hwmon: ina2xx: allow to change the averaging rate at run-time
+Message-Id: <1417611971-10360-3-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418981769-11287-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1418981769-11287-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1417611971-10360-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417611971-10360-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-The averaging rate of ina226 is hardcoded to 16 in the driver. Make it
-modifiable at run-time via a new sysfs attribute.
+The averaging rate of ina226 is hardcoded to 16 in the driver.
 
-While we're at it - add an additional variable to ina2xx_data, which holds
-the current configuration settings - this way we'll be able to restore the
-configuration in case of an unexpected chip reset.
+Make it modifiable at run-time via a new sysfs attribute.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- Documentation/hwmon/ina2xx |   3 ++
- drivers/hwmon/ina2xx.c     | 132 +++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 131 insertions(+), 4 deletions(-)
+ drivers/hwmon/ina2xx.c | 125 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 122 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
-index 320dd69..a11256d 100644
---- a/Documentation/hwmon/ina2xx
-+++ b/Documentation/hwmon/ina2xx
-@@ -48,3 +48,6 @@ The shunt value in micro-ohms can be set via platform data or device tree at
- compile-time or via the shunt_resistor attribute in sysfs at run-time. Please
- refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
- if the device tree is used.
-+
-+The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
-+attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
 diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index 49537ea..d6fccad 100644
+index 309bfdb..9826c69 100644
 --- a/drivers/hwmon/ina2xx.c
 +++ b/drivers/hwmon/ina2xx.c
-@@ -68,6 +68,15 @@
- 
+@@ -67,6 +67,15 @@
+ /* default shunt resistance */
  #define INA2XX_RSHUNT_DEFAULT		10000
  
 +/* bit masks for the averaging setting in the configuration register */
@@ -55,22 +40,15 @@ index 49537ea..d6fccad 100644
  enum ina2xx_ids { ina219, ina226 };
  
  struct ina2xx_config {
-@@ -85,12 +94,14 @@ struct ina2xx_data {
- 	const struct ina2xx_config *config;
- 
- 	long rshunt;
-+	u16 curr_config;
- 
- 	struct mutex update_lock;
- 	bool valid;
+@@ -88,6 +97,7 @@ struct ina2xx_data {
  	unsigned long last_updated;
  
  	int kind;
 +	const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
  	u16 regs[INA2XX_MAX_REGISTERS];
- };
  
-@@ -115,6 +126,38 @@ static const struct ina2xx_config ina2xx_config[] = {
+ 	long rshunt;
+@@ -114,11 +124,43 @@ static const struct ina2xx_config ina2xx_config[] = {
  	},
  };
  
@@ -82,6 +60,11 @@ index 49537ea..d6fccad 100644
 + */
 +static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
 +
+ static u16 ina2xx_calibration_val(const struct ina2xx_data *data)
+ {
+ 	return data->config->calibration_factor / data->rshunt;
+ }
+ 
 +static int ina226_avg_bits(int avg)
 +{
 +	int i;
@@ -106,19 +89,10 @@ index 49537ea..d6fccad 100644
 +	return ina226_avg_tab[bits];
 +}
 +
- static int ina2xx_calibrate(struct ina2xx_data *data)
+ static struct ina2xx_data *ina2xx_update_device(struct device *dev)
  {
- 	return i2c_smbus_write_word_swapped(data->client, INA2XX_CALIBRATION,
-@@ -131,7 +174,7 @@ static int ina2xx_init(struct ina2xx_data *data)
- 
- 	/* device configuration */
- 	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
--					   data->config->config_default);
-+					   data->curr_config);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -292,6 +335,66 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
+ 	struct ina2xx_data *data = dev_get_drvdata(dev);
+@@ -231,6 +273,63 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
  	return count;
  }
  
@@ -157,6 +131,7 @@ index 49537ea..d6fccad 100644
 +	struct ina2xx_data *data = ina2xx_update_device(dev);
 +	long val;
 +	int status, avg;
++	u16 conf;
 +
 +	if (IS_ERR(data))
 +		return PTR_ERR(data);
@@ -170,14 +145,10 @@ index 49537ea..d6fccad 100644
 +		return avg;
 +
 +	mutex_lock(&data->update_lock);
-+	data->curr_config = (data->regs[INA2XX_CONFIG] &
-+			     INA226_AVG_WR_MASK) | (avg << 9);
++	conf = (data->regs[INA2XX_CONFIG] & INA226_AVG_WR_MASK) | (avg << 9);
 +	status = i2c_smbus_write_word_swapped(data->client,
-+					      INA2XX_CONFIG,
-+					      data->curr_config);
++					      INA2XX_CONFIG, conf);
 +	mutex_unlock(&data->update_lock);
-+	if (status < 0)
-+		return status;
 +
 +	return count;
 +}
@@ -185,7 +156,7 @@ index 49537ea..d6fccad 100644
  /* shunt voltage */
  static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_value, NULL,
  			  INA2XX_SHUNT_VOLTAGE);
-@@ -313,6 +416,10 @@ static SENSOR_DEVICE_ATTR(shunt_resistor, S_IRUGO | S_IWUSR,
+@@ -252,6 +351,10 @@ static SENSOR_DEVICE_ATTR(shunt_resistor, S_IRUGO | S_IWUSR,
  			  ina2xx_show_value, ina2xx_set_shunt,
  			  INA2XX_CALIBRATION);
  
@@ -196,7 +167,7 @@ index 49537ea..d6fccad 100644
  /* pointers to created device attributes */
  static struct attribute *ina2xx_attrs[] = {
  	&sensor_dev_attr_in0_input.dev_attr.attr,
-@@ -322,7 +429,19 @@ static struct attribute *ina2xx_attrs[] = {
+@@ -261,7 +364,19 @@ static struct attribute *ina2xx_attrs[] = {
  	&sensor_dev_attr_shunt_resistor.dev_attr.attr,
  	NULL,
  };
@@ -217,7 +188,7 @@ index 49537ea..d6fccad 100644
  
  static int ina2xx_probe(struct i2c_client *client,
  			const struct i2c_device_id *id)
-@@ -333,7 +452,7 @@ static int ina2xx_probe(struct i2c_client *client,
+@@ -272,7 +387,7 @@ static int ina2xx_probe(struct i2c_client *client,
  	struct ina2xx_data *data;
  	struct device *hwmon_dev;
  	u32 val;
@@ -226,16 +197,8 @@ index 49537ea..d6fccad 100644
  
  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
  		return -ENODEV;
-@@ -355,6 +474,7 @@ static int ina2xx_probe(struct i2c_client *client,
- 	/* set the device type */
- 	data->kind = id->driver_data;
- 	data->config = &ina2xx_config[data->kind];
-+	data->curr_config = data->config->config_default;
+@@ -323,8 +438,12 @@ static int ina2xx_probe(struct i2c_client *client,
  	data->client = client;
- 
- 	if (data->rshunt <= 0 ||
-@@ -369,8 +489,12 @@ static int ina2xx_probe(struct i2c_client *client,
- 
  	mutex_init(&data->update_lock);
  
 +	data->groups[group++] = &ina2xx_group;
