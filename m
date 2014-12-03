@@ -1,37 +1,45 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 01 Dec 2014 16:22:32 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] i8k: Add support for Dell XPS 13
-Message-Id: <20141201162232.GA23419@roeck-us.net>
+From: Curt Brune <curt@cumulusnetworks.com>
+Date: Wed, 03 Dec 2014 04:12:42 +0000
+Subject: [lm-sensors] adt7475 driver: PWM invert configuration bit
+Message-Id: <20141203041242.GD11971@cumulusnetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417381240-7641-1-git-send-email-linux@roeck-us.net>
- <1417381240-7641-3-git-send-email-linux@roeck-us.net>
- <20141201133645.2a423043@endymion.delvare>
-In-Reply-To: <20141201133645.2a423043@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 01, 2014 at 01:36:45PM +0100, Jean Delvare wrote:
-> On Sun, 30 Nov 2014 13:00:40 -0800, Guenter Roeck wrote:
-> > XPS 13 does not support turbo speed, so its initialization data
-> > matches that of XPS M140. Make XPS initialization data generic,
-> > and add support for XPS 13.
-> >=20
-> > Cc: Pali Roh=E1r <pali.rohar@gmail.com>
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
+Hello,
 
-[ ... ]
->=20
-> Looks reasonable.
->=20
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->=20
-Thanks a lot for the reviews!
+I have a system where I need to change the "PWM invert" bit (bit 4) in
+the PWM configuration register (offset 0x5C).  The description of this
+configuration bit from the data sheet:
 
-Guenter
+  This bit inverts the PWM output. The default is 0, which corresponds
+  to a logic high output for 100% duty cycle. Setting this bit to 1
+  inverts the PWM output, so 100% duty cycle corresponds to a logic
+  low output.
+
+I noticed the adt7475.c driver does not expose this bit in sysfs.
+Before hacking away I am curious to know why this configuration bit is
+not exposed already.  Some reasons I could think of:
+
+- expect the power on default to be correct
+- expect some other software (boot loader or BIOS) has already set it
+- just never needed it
+
+If it was just never needed then I am proposing to add 3 read/write
+files to sysfs:
+
+   pwm1_invert
+   pwm2_invert
+   pwm3_invert
+
+The values of 0 and 1 would have the same meaning as the "PWM invert"
+bit (bit 4) in the PWM configuration register (offset 0x5C).  Any
+other value would be treated as -EINVAL.
+
+Cheers,
+Curt
 
 _______________________________________________
 lm-sensors mailing list
