@@ -1,65 +1,43 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Mon, 22 Dec 2014 16:27:40 +0000
-Subject: [lm-sensors] [PATCH v2 0/8] hwmon: thermal: Odroid U3: Provide support for Odroid U3 fan
-Message-Id: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bartekgola@gmail.com>
+Date: Wed, 03 Dec 2014 10:54:11 +0000
+Subject: [lm-sensors] [PATCH v3 0/3] hwmon: ina2xx: new attributes
+Message-Id: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bartekgola@gmail.com>
 
-Presented patches add support for Odroid's U3 optional CPU FAN, which uses PWM
-subsystem for low level control.
+This series extends the sysfs interface to make the driver configurable
+at run-time.
 
-After successful probe it registers itself as a cooling device for thermal
-subsystem. To preserve the ability to use this fan as a PWM device stubs for
-thermal_of_cooling_device_register() and thermal_cdev_update() have been added.
+The shunt_resistor attribute allows to change the shunt resistance value
+at run-time in cases where ina2xx used to do the measurement isn't integrated
+with the shunt.
 
-Additionally, devices without support for DTS are still supported.
+The avg_rate attribute allows to increase/decrease noise reduction.
 
-To provide correct functionality, new properties to device tree description for 
-Exynos4412 and in particular Odroid U3 have been added.
+v3:
+- avg_rate is now only created for ina226
+- avg_rate displays available averaging rates on read
+- other minor fixes according to the code review
 
-Those patches were tested on Exynos4412 - Odroid U3 board.
+v2: https://www.mail-archive.com/linux-kernel%40vger.kernel.org/msg776942.html
 
-Patches were applied on:
-linux-soc-thermal/next branch
-SHA1: d8c3cd75e77d8033b29470525781befc11b6bf7d
+The following patches have been rebased against the hwmon-next branch.
 
-with following preceding patch series:
-'thermal: exynos: Thermal code rework to use device tree'
-http://www.spinics.net/lists/linux-samsung-soc/msg37719.html
+Bartosz Golaszewski (3):
+  hwmon: ina2xx: make shunt resistance configurable at run-time
+  hwmon: ina2xx: allow to change the averaging rate at run-time
+  hwmon: ina2xx: documentation update for new sysfs attributes
 
-Presented code utilize reworked Exynos thermal subsystem.
-
-Kamil Debski (1):
-  ARM: dts: Add pwm-fan node to the Odroid-U3 board
-
-Lukasz Majewski (7):
-  thermal: Provide stub for thermal_of_cooling_device_register()
-    function
-  thermal: Provide stub for thermal_cdev_update() function
-  hwmon: dts: Doc: Add DTS doc to explain how to use PWM FAN as a
-    cooling device
-  hwmon: thermal: dts: Add properties to use pwm-fan device as a cooling
-    device in Odroid U3
-  hwmon: thermal: Extract __set_pwm() function to only modify PWM duty
-    cycle
-  hwmon: thermal: Read PWM FAN configuration from device tree
-  hwmon: thermal: Code for using PWM FAN as a cooling device
-
- .../devicetree/bindings/hwmon/pwm-fan.txt          |  23 +++
- arch/arm/boot/dts/exynos4.dtsi                     |   2 +-
- arch/arm/boot/dts/exynos4412-odroidu3.dts          |  44 ++++++
- drivers/hwmon/pwm-fan.c                            | 166 +++++++++++++++++++--
- include/linux/thermal.h                            |  20 ++-
- 5 files changed, 235 insertions(+), 20 deletions(-)
+ Documentation/hwmon/ina2xx |  10 ++-
+ drivers/hwmon/ina2xx.c     | 195 ++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 190 insertions(+), 15 deletions(-)
 
 -- 
-2.0.0.rc2
+2.1.3
 
 
 _______________________________________________
