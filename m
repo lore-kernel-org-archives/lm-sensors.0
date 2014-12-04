@@ -1,43 +1,90 @@
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Fri, 19 Dec 2014 09:36:07 +0000
-Subject: [lm-sensors] [RESEND PATCH v7 3/5] hwmon: ina2xx: don't accept shunt values greater than the calibra
-Message-Id: <1418981769-11287-4-git-send-email-bgolaszewski@baylibre.com>
+Date: Thu, 04 Dec 2014 16:45:53 +0000
+Subject: [lm-sensors] [PATCH v3 3/3] hwmon: tmp401: bail-out from tmp401_probe() in case of write errors
+Message-Id: <1417711553-21311-4-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418981769-11287-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1418981769-11287-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Shunt resistance values greater than the chip's calibration factor make no
-sense since the actual value written to the register equals:
+The return value of i2c_smbus_read_byte_data() is checked in
+tmp401_init_client(), but only a warning is printed and the device is
+registered anyway. This leads to devices being registered even if they
+cannot be physically detected.
 
-	<calibration factor> / <shunt>
-
-Bail-out from ina2xx_probe() if the configured value is greater than the
-calibration factor.
+Bail-out from probe in case of write errors and notify the user.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/hwmon/ina2xx.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/hwmon/tmp401.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index 39e017b..3234e57 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -313,7 +313,8 @@ static int ina2xx_probe(struct i2c_client *client,
- 	data->config = &ina2xx_config[data->kind];
- 	data->client = client;
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index ccd9938..f2182ee 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -615,10 +615,10 @@ static const struct attribute_group tmp432_group = {
+  * Begin non sysfs callback code (aka Real code)
+  */
  
--	if (data->rshunt <= 0)
-+	if (data->rshunt <= 0 ||
-+	    data->rshunt > data->config->calibration_factor)
- 		return -ENODEV;
+-static void tmp401_init_client(struct tmp401_data *data,
+-			       struct i2c_client *client)
++static int tmp401_init_client(struct tmp401_data *data,
++			      struct i2c_client *client)
+ {
+-	int config, config_orig;
++	int config, config_orig, status = 0;
  
- 	ret = ina2xx_init(data);
+ 	/* Set the conversion rate to 2 Hz */
+ 	i2c_smbus_write_byte_data(client, TMP401_CONVERSION_RATE_WRITE, 5);
+@@ -626,16 +626,18 @@ static void tmp401_init_client(struct tmp401_data *data,
+ 
+ 	/* Start conversions (disable shutdown if necessary) */
+ 	config = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
+-	if (config < 0) {
+-		dev_warn(&client->dev, "Initialization failed!\n");
+-		return;
+-	}
++	if (config < 0)
++		return config;
+ 
+ 	config_orig = config;
+ 	config &= ~TMP401_CONFIG_SHUTDOWN;
+ 
+ 	if (config != config_orig)
+-		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
++		status = i2c_smbus_write_byte_data(client,
++						   TMP401_CONFIG_WRITE,
++						   config);
++
++	return status;
+ }
+ 
+ static int tmp401_detect(struct i2c_client *client,
+@@ -718,7 +720,7 @@ static int tmp401_probe(struct i2c_client *client,
+ 	struct device *dev = &client->dev;
+ 	struct device *hwmon_dev;
+ 	struct tmp401_data *data;
+-	int groups = 0;
++	int groups = 0, status;
+ 
+ 	data = devm_kzalloc(dev, sizeof(struct tmp401_data), GFP_KERNEL);
+ 	if (!data)
+@@ -729,7 +731,9 @@ static int tmp401_probe(struct i2c_client *client,
+ 	data->kind = id->driver_data;
+ 
+ 	/* Initialize the TMP401 chip */
+-	tmp401_init_client(data, client);
++	status = tmp401_init_client(data, client);
++	if (status < 0)
++		return status;
+ 
+ 	/* Register sysfs hooks */
+ 	data->groups[groups++] = &tmp401_group;
 -- 
 2.1.3
 
