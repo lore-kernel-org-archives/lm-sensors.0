@@ -1,52 +1,87 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 20 Dec 2014 03:23:23 +0000
-Subject: Re: [lm-sensors] [PATCH v7 0/5] hwmon: ina2xx: implement chip reinitialization and add new attribute
-Message-Id: <5494EBAB.5080205@roeck-us.net>
+Date: Thu, 04 Dec 2014 19:14:59 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add code to detect TMP435
+Message-Id: <1417720499-17764-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
+References: <20110406072137.GB23562@ericsson.com>
+In-Reply-To: <20110406072137.GB23562@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On 12/13/2014 08:27 AM, Bartosz Golaszewski wrote:
-> This series implements a mechanism to detect if the chip is in its POR state
-> and reinitialize it if needed. It also extends the sysfs interface to make the
-> driver configurable at run-time.
->
-> The shunt_resistor attribute allows to change the shunt resistance value
-> at run-time in cases where ina2xx used to do the measurement isn't integrated
-> with the shunt.
->
-> The avg_rate attribute allows to increase/decrease noise reduction.
->
-> v7:
-> - implemented a retry counter for the reinitialization procedure
-> - using msleep() (since the sleep is > 20ms) instead of mdelay()
->    when waiting for the chip update
->
-> v6:
-> https://www.mail-archive.com/linux-kernel%40vger.kernel.org/msg787390.html
->
-> Bartosz Golaszewski (5):
->    hwmon: ina2xx: reinitialize the chip in case it's been reset
->    hwmon: ina2xx: remove a stray new line
->    hwmon: ina2xx: don't accept shunt values greater than the calibration factor
->    hwmon: ina2xx: make shunt resistance configurable at run-time
->    hwmon: ina2xx: allow to change the averaging rate at run-time
->
->   Documentation/hwmon/ina2xx |   8 +-
->   drivers/hwmon/ina2xx.c     | 304 +++++++++++++++++++++++++++++++++++++++------
->   2 files changed, 269 insertions(+), 43 deletions(-)
->
+Also update driver support status for TMP431 and TMP432.
 
-I didn't forget those patches; I have been busy in the last couple of weeks.
-Also, I'll be out for the next two weeks. I'll look into the patches after
-I am back.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    |  1 +
+ prog/detect/sensors-detect | 18 +++++++++++++++---
+ 2 files changed, 16 insertions(+), 3 deletions(-)
 
-Guenter
+diff --git a/CHANGES b/CHANGES
+index 638a8bf..534b810 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -24,6 +24,7 @@ SVN HEAD
+                   Document support for EMC1402, EMC1404, and EMC1424
+                   Detect new revisions of EMC14xx
+                   Add detection of EMC1422
++                  Add detection of TMP435
+ 
+ 3.3.5 "Happy Birthday Beddy" (2014-01-22)
+   libsensors: Improve documentation of two functions
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index 448cf22..d169fb9 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -1029,15 +1029,20 @@ use vars qw(@i2c_adapter_names);
+ 		i2c_detect => sub { tmp42x_detect(@_, 2); },
+ 	}, {
+ 		name => "Texas Instruments TMP431",
+-		driver => "to-be-written",		# tmp401
++		driver => "tmp401",
+ 		i2c_addrs => [0x4c, 0x4d],
+ 		i2c_detect => sub { lm90_detect(@_, 16); },
+ 	}, {
+ 		name => "Texas Instruments TMP432",
+-		driver => "to-be-written",		# tmp401
++		driver => "tmp401",
+ 		i2c_addrs => [0x4c, 0x4d],
+ 		i2c_detect => sub { lm90_detect(@_, 17); },
+ 	}, {
++		name => "Texas Instruments TMP435",
++		driver => "tmp401",
++		i2c_addrs => [0x4c],
++		i2c_detect => sub { lm90_detect(@_, 19); },
++	}, {
+ 		name => "Texas Instruments TMP441",
+ 		driver => "tmp421",
+ 		i2c_addrs => [0x1c..0x1f, 0x2a, 0x4c..0x4f],
+@@ -4674,7 +4679,8 @@ sub max6680_95_detect
+ #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
+ #		  11 = W83L771AWG/ASG, 12 = MAX6690,
+ #		  13 = ADT7461A/NCT1008, 14 = SA56004,
+-#		  15 = G781, 16 = TMP431, 17 = TMP432, 18 = TMP451
++#		  15 = G781, 16 = TMP431, 17 = TMP432, 18 = TMP451,
++#		  19 = TMP435
+ # Registers used:
+ #   0x03: Configuration
+ #   0x04: Conversion rate
+@@ -4810,6 +4816,12 @@ sub lm90_detect
+ 		return if $mid != 0x55;		# Texas Instruments
+ 		return 4 if ($cid = 0x00);	# TMP451
+ 	}
++	if ($chip = 19) {
++		return if ($conf & 0x1B) != 0;
++		return if $rate > 0x0F;
++		return if $mid != 0x55;		# Texas Instruments
++		return 6 if ($cid = 0x35);	# TMP435
++	}
+ 	return;
+ }
+ 
+-- 
+1.9.1
 
 
 _______________________________________________
