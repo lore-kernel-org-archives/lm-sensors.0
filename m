@@ -1,84 +1,90 @@
-From: Sean O'Brien <sean451@hotmail.com>
-Date: Wed, 17 Dec 2014 18:31:31 +0000
-Subject: Re: [lm-sensors] Supermicro X7DBU configuration
-Message-Id: <BLU175-W2EF358CABC5146593CFDEE66D0@phx.gbl>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 04 Dec 2014 09:57:27 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: tmp401: add support for TI TMP435
+Message-Id: <1417687048-21455-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLU175-DS1275A243EB8731D1852460E66C0@phx.gbl>
-In-Reply-To: <BLU175-DS1275A243EB8731D1852460E66C0@phx.gbl>
+References: <1417687048-21455-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417687048-21455-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+
+From: Patrick Titiano <ptitiano@baylibre.com>
+
+Signed-off-by: Patrick Titiano <ptitiano@baylibre.com>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/tmp401.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index 7fa6e7d..5a72d7f 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -8,6 +8,9 @@
+  * Cleanup and support for TMP431 and TMP432 by Guenter Roeck
+  * Copyright (c) 2013 Guenter Roeck <linux@roeck-us.net>
+  *
++ * Support for TMP435 by Patrick Titiano
++ * Copyright (c) 2014 Patrick Titiano <ptitiano@baylibre.com>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -46,7 +49,7 @@
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
+ 
+-enum chips { tmp401, tmp411, tmp431, tmp432 };
++enum chips { tmp401, tmp411, tmp431, tmp432, tmp435 };
+ 
+ /*
+  * The TMP401 registers, note some registers have different addresses for
+@@ -136,6 +139,7 @@ static const u8 TMP432_STATUS_REG[] = {
+ #define TMP411C_DEVICE_ID			0x10
+ #define TMP431_DEVICE_ID			0x31
+ #define TMP432_DEVICE_ID			0x32
++#define TMP435_DEVICE_ID			0x35
+ 
+ /*
+  * Driver data (common to all clients)
+@@ -146,6 +150,7 @@ static const struct i2c_device_id tmp401_id[] = {
+ 	{ "tmp411", tmp411 },
+ 	{ "tmp431", tmp431 },
+ 	{ "tmp432", tmp432 },
++	{ "tmp435", tmp435 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, tmp401_id);
+@@ -684,6 +689,11 @@ static int tmp401_detect(struct i2c_client *client,
+ 			return -ENODEV;
+ 		kind = tmp432;
+ 		break;
++	case TMP435_DEVICE_ID:
++		if (client->addr != 0x4c)
++			return -ENODEV;
++		kind = tmp435;
++		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
+@@ -705,7 +715,9 @@ static int tmp401_detect(struct i2c_client *client,
+ static int tmp401_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+-	const char *names[] = { "TMP401", "TMP411", "TMP431", "TMP432" };
++	static const char *names[] = {
++		"TMP401", "TMP411", "TMP431", "TMP432", "TMP435"
++	};
+ 	struct device *dev = &client->dev;
+ 	struct device *hwmon_dev;
+ 	struct tmp401_data *data;
+-- 
+2.1.3
 
 
-
-----------------------------------------
-> Subject: RE: [lm-sensors] Supermicro X7DBU configuration
-> From: jdelvare@suse.de
-> To: sean451@hotmail.com
-> CC: linux@roeck-us.net; lm-sensors@lm-sensors.org
-> Date: Wed, 17 Dec 2014 19:25:45 +0100
->
-> Le Wednesday 17 December 2014 =E0 13:16 -0500, Sean O'Brien a =E9crit :
->> Loading the module produced the following:
->>
->> $ sudo i2cdetect -l
->> i2c-0 i2c Radeon i2c bit bus DVI_DDC I2C adapter
->> i2c-1 i2c Radeon i2c bit bus VGA_DDC I2C adapter
->> i2c-2 i2c Radeon i2c bit bus MONID I2C adapter
->> i2c-3 i2c Radeon i2c bit bus CRT2_DDC I2C adapter
->> i2c-4 smbus SMBus I801 adapter at 1100 SMBus adapter
->
-> And now modprobe w83793 and you should see it in "sensors".
->
-> --
-> Jean Delvare
-> SUSE L3 Support
->
-
-Voila!
-
-w83793-i2c-4-2f
-Adapter: SMBus I801 adapter at 1100
-VcoreA: =A0 =A0 =A0 +1.08 V =A0(min =3D =A0+0.92 V, max =3D =A0+1.49 V)
-VcoreB: =A0 =A0 =A0 +1.08 V =A0(min =3D =A0+0.92 V, max =3D =A0+1.49 V)
-in2: =A0 =A0 =A0 =A0 =A0+1.08 V =A0(min =3D =A0+0.99 V, max =3D =A0+1.33 V)
-in3: =A0 =A0 =A0 =A0 =A0+0.50 V =A0(min =3D =A0+0.38 V, max =3D =A0+0.69 V)
-in4: =A0 =A0 =A0 =A0 =A0+1.49 V =A0(min =3D =A0+1.34 V, max =3D =A0+1.98 V)
-in5: =A0 =A0 =A0 =A0 =A0+3.30 V =A0(min =3D =A0+2.96 V, max =3D =A0+3.63 V)
-in6: =A0 =A0 =A0 =A0 =A0+0.99 V =A0(min =3D =A0+0.90 V, max =3D =A0+1.10 V)
-+5V: =A0 =A0 =A0 =A0 =A0+5.09 V =A0(min =3D =A0+4.64 V, max =3D =A0+5.65 V)
-5VSB: =A0 =A0 =A0 =A0 +5.14 V =A0(min =3D =A0+4.64 V, max =3D =A0+5.65 V)
-Vbat: =A0 =A0 =A0 =A0 +3.34 V =A0(min =3D =A0+2.99 V, max =3D =A0+3.66 V)
-fan1: =A0 =A0 =A0 =A09183 RPM =A0(min =3D =A0712 RPM)
-fan2: =A0 =A0 =A0 =A09375 RPM =A0(min =3D =A0712 RPM)
-fan3: =A0 =A0 =A0 =A09246 RPM =A0(min =3D =A0712 RPM)
-fan4: =A0 =A0 =A0 =A0 =A0 0 RPM =A0(min =3D =A0712 RPM) =A0ALARM
-fan5: =A0 =A0 =A0 =A0 =A0 0 RPM =A0(min =3D =A0712 RPM) =A0ALARM
-fan6: =A0 =A0 =A0 =A0 =A0 0 RPM =A0(min =3D =A0712 RPM) =A0ALARM
-fan7: =A0 =A0 =A0 =A0 =A0 0 RPM =A0(min =3D =A0712 RPM) =A0ALARM
-fan8: =A0 =A0 =A0 =A09782 RPM =A0(min =3D =A0712 RPM)
-fan9: =A0 =A0 =A0 =A0 =A0 0 RPM =A0(min =3D =A0712 RPM) =A0ALARM
-fan10: =A0 =A0 =A0 =A0 =A00 RPM =A0(min =3D =A0712 RPM) =A0ALARM
-temp1: =A0 =A0 =A0 =A0+45.0=B0C =A0(high =3D +89.0=B0C, hyst =3D +84.0=B0C)=
- =A0sensor =3D Intel PECI
-temp2: =A0 =A0 =A0 =A0+40.0=B0C =A0(high =3D +89.0=B0C, hyst =3D +84.0=B0C)=
- =A0sensor =3D Intel PECI
-temp3: =A0 =A0 =A0 -128.0=B0C =A0(high =3D +89.0=B0C, hyst =3D +84.0=B0C) =
-=A0sensor =3D Intel PECI
-temp4: =A0 =A0 =A0 -128.0=B0C =A0(high =3D +89.0=B0C, hyst =3D +84.0=B0C) =
-=A0sensor =3D Intel PECI
-temp5: =A0 =A0 =A0 =A0+26.0=B0C =A0(high =3D +75.0=B0C, hyst =3D +70.0=B0C)=
- =A0sensor =3D thermistor
-intrusion0: =A0OK
-beep_enable: disabled
-
-
-Now to control those noise fans!
-
-Thanks so much for the guidance guys! Very much appreciated.
-
-Sean. 		 	   		 =20
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
