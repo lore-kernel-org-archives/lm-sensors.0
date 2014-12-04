@@ -1,67 +1,92 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Dec 2014 18:42:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: tmp401: add support for TI TMP435
-Message-Id: <20141204184212.GA15458@roeck-us.net>
+From: Nishanth Menon <nm@ti.com>
+Date: Thu, 04 Dec 2014 16:58:47 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (gpio-fan) Allow usage of gpio operations that may sleep
+Message-Id: <1417712328-29831-1-git-send-email-nm@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417687048-21455-1-git-send-email-bgolaszewski@baylibre.com>
- <1417687048-21455-2-git-send-email-bgolaszewski@baylibre.com>
- <54806D6C.7060009@roeck-us.net>
- <CAMpxmJUVQyU_NC=7wByinboM-n9kvQoDALZ3-ZiDmRatKQp8Rg@mail.gmail.com>
- <20141204183228.0b8cbbe3@endymion.delvare>
-In-Reply-To: <20141204183228.0b8cbbe3@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-On Thu, Dec 04, 2014 at 06:32:28PM +0100, Jean Delvare wrote:
-> On Thu, 4 Dec 2014 15:33:47 +0100, Bartosz Golaszewski wrote:
-> > 2014-12-04 15:19 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
-> > > The datasheet claims otherwise (0x31, specifically).
-> > > Is this based on real chip information ?
-> > > Can you send me the output from i2cdump for the chip ?
-> > >
-> > 
-> > This is what I'm reading:
-> > 
-> > # i2cdump -y 1 0x4c
-> > No size specified (using byte-data access)
-> >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> > 00: 1a 1b 00 00 05 55 00 55 00 00 05 55 00 55 00 0d    ??..?U.U..?U.U.?
-> > 10: 70 00 00 00 00 90 00 00 00 55 1c XX XX XX XX 00    p....?...U?XXXX.
-> > 20: 55 0a 70 XX XX 0f XX XX XX XX XX XX XX XX XX XX    U?pXX?XXXXXXXXXX
-> > 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> > f0: XX XX XX XX XX XX XX XX XX XX XX XX 00 35 55 35    XXXXXXXXXXXX.5U5
-> > 
-> > # i2cget -y 1 0x4c 0xff b
-> > 0x35
-> 
-> That makes sense for a chip named TMP435. Looks like TI forgot to
-> update the value when copying the datasheet from TMP431 to TMP435.
-> 
-Guess so.
+Certain I2C based GPIO expanders could be used in sleepable context,
+this results in:
+[  115.890569] ------------[ cut here ]------------
+[  115.895422] WARNING: CPU: 0 PID: 1115 at drivers/gpio/gpiolib.c:1370 gpiod_set_raw_value+0x40/0x4c()
+[  115.905024] Modules linked in:
+[  115.908229] CPU: 0 PID: 1115 Comm: sh Tainted: G        W      3.18.0-rc7-next-20141203-dirty #1
+[  115.917461] Hardware name: Generic DRA74X (Flattened Device Tree)
+[  115.923876] [<c0015368>] (unwind_backtrace) from [<c00119f4>] (show_stack+0x10/0x14)
+[  115.932013] [<c00119f4>] (show_stack) from [<c05b78e8>] (dump_stack+0x78/0x94)
+[  115.939594] [<c05b78e8>] (dump_stack) from [<c003de28>] (warn_slowpath_common+0x7c/0xb4)
+[  115.948094] [<c003de28>] (warn_slowpath_common) from [<c003de7c>] (warn_slowpath_null+0x1c/0x24)
+[  115.957315] [<c003de7c>] (warn_slowpath_null) from [<c03461e8>] (gpiod_set_raw_value+0x40/0x4c)
+[  115.966457] [<c03461e8>] (gpiod_set_raw_value) from [<c04866f4>] (set_fan_speed+0x4c/0x64)
+[  115.975145] [<c04866f4>] (set_fan_speed) from [<c04868a8>] (set_rpm+0x98/0xac)
+[  115.982742] [<c04868a8>] (set_rpm) from [<c039fb4c>] (dev_attr_store+0x18/0x24)
+[  115.990426] [<c039fb4c>] (dev_attr_store) from [<c01b0a28>] (sysfs_kf_write+0x4c/0x50)
+[  115.998742] [<c01b0a28>] (sysfs_kf_write) from [<c01afe1c>] (kernfs_fop_write+0xbc/0x19c)
+[  116.007333] [<c01afe1c>] (kernfs_fop_write) from [<c0148cc4>] (vfs_write+0xb0/0x1a0)
+[  116.015461] [<c0148cc4>] (vfs_write) from [<c0148fbc>] (SyS_write+0x44/0x84)
+[  116.022881] [<c0148fbc>] (SyS_write) from [<c000e5c0>] (ret_fast_syscall+0x0/0x48)
+[  116.030833] ---[ end trace 3a0b636123acab82 ]---
 
-I'll make the necessary updates to sensors-detect and the web page.
+So, switch over to sleepable GPIO operations as there is no mandatory
+need for non-sleepable gpio operations in the fan driver.
 
-> Thanks for the dump, by the way :)
-> 
+This allows the fan driver to be used with i2c based gpio expanders such
+as palmas_gpio.
 
-Same here .. that also helps for writing module test scripts.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+based on next-20141204 , but can rebase to required branch as needed.
+ drivers/hwmon/gpio-fan.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index 4efa173..7802eb2 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -79,7 +79,7 @@ static ssize_t show_fan_alarm(struct device *dev,
+ {
+ 	struct gpio_fan_data *fan_data = dev_get_drvdata(dev);
+ 	struct gpio_fan_alarm *alarm = fan_data->alarm;
+-	int value = gpio_get_value(alarm->gpio);
++	int value = gpio_get_value_cansleep(alarm->gpio);
+ 
+ 	if (alarm->active_low)
+ 		value = !value;
+@@ -131,7 +131,7 @@ static void __set_fan_ctrl(struct gpio_fan_data *fan_data, int ctrl_val)
+ 	int i;
+ 
+ 	for (i = 0; i < fan_data->num_ctrl; i++)
+-		gpio_set_value(fan_data->ctrl[i], (ctrl_val >> i) & 1);
++		gpio_set_value_cansleep(fan_data->ctrl[i], (ctrl_val >> i) & 1);
+ }
+ 
+ static int __get_fan_ctrl(struct gpio_fan_data *fan_data)
+@@ -142,7 +142,7 @@ static int __get_fan_ctrl(struct gpio_fan_data *fan_data)
+ 	for (i = 0; i < fan_data->num_ctrl; i++) {
+ 		int value;
+ 
+-		value = gpio_get_value(fan_data->ctrl[i]);
++		value = gpio_get_value_cansleep(fan_data->ctrl[i]);
+ 		ctrl_val |= (value << i);
+ 	}
+ 	return ctrl_val;
+@@ -369,7 +369,8 @@ static int fan_ctrl_init(struct gpio_fan_data *fan_data,
+ 		if (err)
+ 			return err;
+ 
+-		err = gpio_direction_output(ctrl[i], gpio_get_value(ctrl[i]));
++		err = gpio_direction_output(ctrl[i],
++					    gpio_get_value_cansleep(ctrl[i]));
+ 		if (err)
+ 			return err;
+ 	}
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
