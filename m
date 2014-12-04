@@ -1,179 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 08 Dec 2014 14:11:39 +0000
-Subject: Re: [lm-sensors] [PATCH v2] sensors-detect: Add code to detect TMP435
-Message-Id: <5485B19B.2000208@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 04 Dec 2014 16:45:51 +0000
+Subject: [lm-sensors] [PATCH v3 1/3] hwmon: tmp401: add support for TI TMP435
+Message-Id: <1417711553-21311-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110122171437.GA21444@ericsson.com>
-In-Reply-To: <20110122171437.GA21444@ericsson.com>
+References: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On 12/08/2014 02:40 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sat,  6 Dec 2014 16:25:19 -0800, Guenter Roeck wrote:
->> Also strengthen chip detection for other TMP4xx chips,
->> and update driver support status for TMP431 and TMP432.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->> v2: Detect TMP435 on its entire address range
->>      Strengthen detect function for other TMP4xx chips
->>
->>   CHANGES                    |  1 +
->>   prog/detect/sensors-detect | 42 +++++++++++++++++++++++++++++++++---------
->>   2 files changed, 34 insertions(+), 9 deletions(-)
->>
->> diff --git a/CHANGES b/CHANGES
->> index 638a8bf..534b810 100644
->> --- a/CHANGES
->> +++ b/CHANGES
->> @@ -24,6 +24,7 @@ SVN HEAD
->>                     Document support for EMC1402, EMC1404, and EMC1424
->>                     Detect new revisions of EMC14xx
->>                     Add detection of EMC1422
->> +                  Add detection of TMP435
->>
->>   3.3.5 "Happy Birthday Beddy" (2014-01-22)
->>     libsensors: Improve documentation of two functions
->> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
->> index 448cf22..55b3537 100755
->> --- a/prog/detect/sensors-detect
->> +++ b/prog/detect/sensors-detect
->> @@ -1029,15 +1029,20 @@ use vars qw(@i2c_adapter_names);
->>   		i2c_detect => sub { tmp42x_detect(@_, 2); },
->>   	}, {
->>   		name => "Texas Instruments TMP431",
->> -		driver => "to-be-written",		# tmp401
->> +		driver => "tmp401",
->>   		i2c_addrs => [0x4c, 0x4d],
->>   		i2c_detect => sub { lm90_detect(@_, 16); },
->>   	}, {
->>   		name => "Texas Instruments TMP432",
->> -		driver => "to-be-written",		# tmp401
->> +		driver => "tmp401",
->>   		i2c_addrs => [0x4c, 0x4d],
->>   		i2c_detect => sub { lm90_detect(@_, 17); },
->>   	}, {
->> +		name => "Texas Instruments TMP435",
->> +		driver => "tmp401",
->> +		i2c_addrs => [0x37, 0x48..0x4f],
->> +		i2c_detect => sub { lm90_detect(@_, 19); },
->> +	}, {
->>   		name => "Texas Instruments TMP441",
->>   		driver => "tmp421",
->>   		i2c_addrs => [0x1c..0x1f, 0x2a, 0x4c..0x4f],
->> @@ -4674,11 +4679,13 @@ sub max6680_95_detect
->>   #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
->>   #		  11 = W83L771AWG/ASG, 12 = MAX6690,
->>   #		  13 = ADT7461A/NCT1008, 14 = SA56004,
->> -#		  15 = G781, 16 = TMP431, 17 = TMP432, 18 = TMP451
->> +#		  15 = G781, 16 = TMP431, 17 = TMP432, 18 = TMP451,
->> +#		  19 = TMP435
->>   # Registers used:
->>   #   0x03: Configuration
->>   #   0x04: Conversion rate
->>   #   0xbf: Configuration 2 (National Semiconductor, Winbond, and Philips only)
->> +#   0x1a: Configuration 2 (TI only)
->>   #   0xfe: Manufacturer ID
->>   #   0xff: Chip ID / die revision
->>   sub lm90_detect
->> @@ -4688,7 +4695,13 @@ sub lm90_detect
->>   	my $cid = i2c_smbus_read_byte_data($file, 0xff);
->>   	my $conf = i2c_smbus_read_byte_data($file, 0x03);
->>   	my $rate = i2c_smbus_read_byte_data($file, 0x04);
->> -	my $conf2 = i2c_smbus_read_byte_data($file, 0xbf);
->> +	my $conf2;
->> +
->> +	if ($chip = 9 || $chip = 10 || ($chip >= 16 && $chip <= 19)) {
->> +		$conf2 = i2c_smbus_read_byte_data($file, 0x1a);
->> +	} else {
->> +		$conf2 = i2c_smbus_read_byte_data($file, 0xbf);
->> +	}
->
-> The TMP431/TMP432 datasheet I have claims that Configuration Register 2
-> is at 0x3f for the TMP432 (surprisingly, I have to say.)
->
-You are right; I overlooked the second register table in the datasheet.
-Those chips have weird register addresses.
+From: Patrick Titiano <ptitiano@baylibre.com>
 
-> At this point I am wondering if it wouldn't make more sense to split
-> support for the TI chips to a separate function.
->
-Agreed, makes sense. I'll do that.
+Signed-off-by: Patrick Titiano <ptitiano@baylibre.com>
+[Bartosz Golaszewski: prepared for submission, code review fixes]
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/tmp401.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
->>
->>   	if ($chip = 0) {
->>   		return if ($conf & 0x2a) != 0;
->> @@ -4748,17 +4761,19 @@ sub lm90_detect
->>   	}
->>   	if ($chip = 9) {
->>   		return if ($conf & 0x1B) != 0;
->> +		return if ($conf2 & 0xfc) != 0x1c;
->>   		return if $rate > 0x0F;
->>   		return if $mid != 0x55;		# Texas Instruments
->>   		return 8 if $cid = 0x11;	# TMP401
->>   	}
->>   	if ($chip = 10) {
->>   		return if ($conf & 0x1B) != 0;
->> +		return if ($conf2 & 0xfc) != 0x1c;
->>   		return if $rate > 0x0F;
->>   		return if $mid != 0x55;		# Texas Instruments
->> -		return 6 if ($addr = 0x4c && $cid = 0x12); # TMP411A
->> -		return 6 if ($addr = 0x4d && $cid = 0x13); # TMP411B
->> -		return 6 if ($addr = 0x4e && $cid = 0x10); # TMP411C
->> +		return 8 if ($addr = 0x4c && $cid = 0x12); # TMP411A
->> +		return 8 if ($addr = 0x4d && $cid = 0x13); # TMP411B
->> +		return 8 if ($addr = 0x4e && $cid = 0x10); # TMP411C
->>   	}
->>   	if ($chip = 11) {
->>   		return if ($conf & 0x2a) != 0;
->> @@ -4794,15 +4809,17 @@ sub lm90_detect
->>   	}
->>   	if ($chip = 16) {
->>   		return if ($conf & 0x1B) != 0;
->> +		return if ($conf2 & 0xe3) != 0;
->>   		return if $rate > 0x0F;
->>   		return if $mid != 0x55;		# Texas Instruments
->> -		return 6 if ($cid = 0x31);	# TMP431A/B/C/D
->> +		return 8 if ($cid = 0x31);	# TMP431A/B/C/D
->>   	}
->>   	if ($chip = 17) {
->>   		return if ($conf & 0x1B) != 0;
->> +		return if ($conf2 & 0xe3) != 0;
->
-> With the datasheet I have, the mask should be 0xC3 here.
->
-Yes. Again, looked at wrong table.
-
-Thanks,
-Guenter
-
->>   		return if $rate > 0x0F;
->>   		return if $mid != 0x55;		# Texas Instruments
->> -		return 6 if ($cid = 0x32);	# TMP432A/B
->> +		return 8 if ($cid = 0x32);	# TMP432A/B
->>   	}
->>   	if ($chip = 18) {
->>   		return if ($conf & 0x1B) != 0;
->> @@ -4810,6 +4827,13 @@ sub lm90_detect
->>   		return if $mid != 0x55;		# Texas Instruments
->>   		return 4 if ($cid = 0x00);	# TMP451
->>   	}
->> +	if ($chip = 19) {
->> +		return if ($conf & 0x1B) != 0;
->> +		return if ($conf2 & 0xe3) != 0;
->> +		return if $rate > 0x0F;
->> +		return if $mid != 0x55;		# Texas Instruments
->> +		return 8 if ($cid = 0x35);	# TMP435
->> +	}
->>   	return;
->>   }
->>
->
->
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index 7fa6e7d..ccd9938 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -46,7 +46,7 @@
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
+ 
+-enum chips { tmp401, tmp411, tmp431, tmp432 };
++enum chips { tmp401, tmp411, tmp431, tmp432, tmp435 };
+ 
+ /*
+  * The TMP401 registers, note some registers have different addresses for
+@@ -136,6 +136,7 @@ static const u8 TMP432_STATUS_REG[] = {
+ #define TMP411C_DEVICE_ID			0x10
+ #define TMP431_DEVICE_ID			0x31
+ #define TMP432_DEVICE_ID			0x32
++#define TMP435_DEVICE_ID			0x35
+ 
+ /*
+  * Driver data (common to all clients)
+@@ -146,6 +147,7 @@ static const struct i2c_device_id tmp401_id[] = {
+ 	{ "tmp411", tmp411 },
+ 	{ "tmp431", tmp431 },
+ 	{ "tmp432", tmp432 },
++	{ "tmp435", tmp435 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, tmp401_id);
+@@ -684,6 +686,11 @@ static int tmp401_detect(struct i2c_client *client,
+ 			return -ENODEV;
+ 		kind = tmp432;
+ 		break;
++	case TMP435_DEVICE_ID:
++		if (client->addr != 0x4c)
++			return -ENODEV;
++		kind = tmp435;
++		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
+@@ -705,7 +712,9 @@ static int tmp401_detect(struct i2c_client *client,
+ static int tmp401_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+-	const char *names[] = { "TMP401", "TMP411", "TMP431", "TMP432" };
++	static const char * const names[] = {
++		"TMP401", "TMP411", "TMP431", "TMP432", "TMP435"
++	};
+ 	struct device *dev = &client->dev;
+ 	struct device *hwmon_dev;
+ 	struct tmp401_data *data;
+-- 
+2.1.3
 
 
 _______________________________________________
