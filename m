@@ -1,55 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 12 Nov 2014 19:43:26 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.18-rc5
-Message-Id: <1415821406-18384-1-git-send-email-linux@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 04 Dec 2014 16:45:50 +0000
+Subject: [lm-sensors] [PATCH v3 0/3] hwmon: tmp401: support for TMP435 and fix for a probe issue
+Message-Id: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Hi Linus,
+This series adds support for the TI TMP435 chip and fixes an issue similar
+to the one we observed for ina2xx - ignoring the write errors when probing the
+device.
 
-Please pull hwmon fixes for Linux 3.18-rc5 from signed tag:
+v3:
+- remove the copyright notice from tmp401.c
+- preinitialize status and skip an 'if'
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v3.18-rc5
+v2:
+- changed 'static const char *names' to 'static const char * const names'
+  as checkpatch.pl still complained about this one,
+- updated Documentation and Kconfig on TMP435,
+- added missing error check in tmp401_init_client(),
+- removed the redundant "Initialization failed" string since we'll get
+  'tmp401: probe of X-00XX failed with error -121' anyway in dmesg,
 
-Thanks,
-Guenter
-------
+v1:
+https://www.mail-archive.com/linux-kernel%40vger.kernel.org/msg781930.html
 
-The following changes since commit 206c5f60a3d902bc4b56dab2de3e88de5eb06108:
+Bartosz Golaszewski (2):
+  hwmon: tmp401: add TMP435 to the list of supported chips in docs and Kconfig
+  hwmon: tmp401: bail-out from tmp401_probe() in case of write errors
 
-  Linux 3.18-rc4 (2014-11-09 14:55:29 -0800)
+Patrick Titiano (1):
+  hwmon: tmp401: add support for TI TMP435
 
-are available in the git repository at:
+ Documentation/hwmon/tmp401 |  7 +++++--
+ drivers/hwmon/Kconfig      |  2 +-
+ drivers/hwmon/tmp401.c     | 45 ++++++++++++++++++++++++++++++++-------------
+ 3 files changed, 38 insertions(+), 16 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v3.18-rc5
+-- 
+2.1.3
 
-for you to fetch changes up to 0bd52941586b3b59ab9b6e89e55b2dc9e2680de9:
-
-  hwmon: (fam15h_power) Fix NB device ID for F16h M30h (2014-11-11 10:39:45 -0800)
-
-----------------------------------------------------------------
-Fix PCI device ID in fam15h_power driver
-Fix suspend/resume behavior in pwm-fan driver
-Reduce logging noise created by ibmpowernv driver
-
-----------------------------------------------------------------
-Aravind Gopalakrishnan (1):
-      hwmon: (fam15h_power) Fix NB device ID for F16h M30h
-
-Kamil Debski (1):
-      hwmon: (pwm-fan) Fix suspend/resume behavior
-
-Michael Ellerman (1):
-      hwmon: (ibmpowernv) Quieten when probing finds no device
-
- drivers/hwmon/fam15h_power.c |  2 +-
- drivers/hwmon/ibmpowernv.c   |  6 ++++--
- drivers/hwmon/pwm-fan.c      | 13 ++++++++++---
- 3 files changed, 15 insertions(+), 6 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
