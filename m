@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Dec 2014 21:57:22 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Fri, 05 Dec 2014 09:37:37 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add code to detect TMP435
-Message-Id: <20141204215722.GA30215@roeck-us.net>
+Message-Id: <20141205103737.714939ac@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110406072137.GB23562@ericsson.com>
 In-Reply-To: <20110406072137.GB23562@ericsson.com>
@@ -10,27 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 04, 2014 at 11:14:59AM -0800, Guenter Roeck wrote:
-> Also update driver support status for TMP431 and TMP432.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  CHANGES                    |  1 +
->  prog/detect/sensors-detect | 18 +++++++++++++++---
->  2 files changed, 16 insertions(+), 3 deletions(-)
-> 
-[ ... ]
-
-> +		name => "Texas Instruments TMP435",
-> +		driver => "tmp401",
-> +		i2c_addrs => [0x4c],
-
-I requested samples to figure out if 0x4c is really the only
-supported address.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwKCk9uIFRodSwgNCBEZWMgMjAxNCAxMzo1NzoyMiAtMDgwMCwgR3VlbnRlciBS
+b2VjayB3cm90ZToKPiBPbiBUaHUsIERlYyAwNCwgMjAxNCBhdCAxMToxNDo1OUFNIC0wODAwLCBH
+dWVudGVyIFJvZWNrIHdyb3RlOgo+ID4gQWxzbyB1cGRhdGUgZHJpdmVyIHN1cHBvcnQgc3RhdHVz
+IGZvciBUTVA0MzEgYW5kIFRNUDQzMi4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogR3VlbnRlciBS
+b2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+ID4gLS0tCj4gPiAgQ0hBTkdFUyAgICAgICAgICAg
+ICAgICAgICAgfCAgMSArCj4gPiAgcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRlY3QgfCAxOCArKysr
+KysrKysrKysrKystLS0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDE2IGluc2VydGlvbnMoKyksIDMg
+ZGVsZXRpb25zKC0pCj4gPiAKPiBbIC4uLiBdCj4gCj4gPiArCQluYW1lID0+ICJUZXhhcyBJbnN0
+cnVtZW50cyBUTVA0MzUiLAo+ID4gKwkJZHJpdmVyID0+ICJ0bXA0MDEiLAo+ID4gKwkJaTJjX2Fk
+ZHJzID0+IFsweDRjXSwKPiAKPiBJIHJlcXVlc3RlZCBzYW1wbGVzIHRvIGZpZ3VyZSBvdXQgaWYg
+MHg0YyBpcyByZWFsbHkgdGhlIG9ubHkKPiBzdXBwb3J0ZWQgYWRkcmVzcy4KCkkgdmVyeSBtdWNo
+IGRvdWJ0IHRoYXQgMHg0QyBpcyB0aGUgb25seSBzdXBwb3J0ZWQgYWRkcmVzcy4gVGhlcmUgYXJl
+CmxpdGVyYWxseSBhIGRvemVuIHBsYWNlcyBpbiB0aGUgZGF0YXNoZWV0IHdoaWNoIGluZGljYXRl
+cyB0aGF0IHRoZQphZGRyZXNzIGlzIHByb2dyYW1tYWJsZSwgc3RhcnRpbmcgd2l0aCB0aGUgcHJv
+ZHVjdCBkZXNjcmlwdGlvbiBpdHNlbGY6CiLCsTHCsEMgVEVNUEVSQVRVUkUgU0VOU09SIHdpdGgg
+KC4uLikgYW5kIFByb2dyYW1tYWJsZSBBZGRyZXNzaW5nIi4gQW5kCnlvdSB3b3VsZG4ndCBwdXQg
+MiBhZGRyZXNzaW5nIHBpbnMgb24gYSBjaGlwIHdpdGggYSBmaXhlZCBhZGRyZXNzLgoKLS0gCkpl
+YW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
