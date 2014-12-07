@@ -1,75 +1,62 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Dec 2014 16:25:21 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/3] hwmon: tmp401: bail-out from tmp401_probe() in case of write errors
-Message-Id: <20141204162521.GD7385@roeck-us.net>
+Date: Sun, 07 Dec 2014 00:02:36 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (tmp401) Detect TMP435 on all addresses it supports
+Message-Id: <1417910556-23966-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417706574-1023-1-git-send-email-bgolaszewski@baylibre.com>
- <1417706574-1023-4-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1417706574-1023-4-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 04, 2014 at 04:22:54PM +0100, Bartosz Golaszewski wrote:
-> The return value of i2c_smbus_read_byte_data() is checked in
-> tmp401_init_client(), but only a warning is printed and the device is
-> registered anyway. This leads to devices being registered even if they
-> cannot be physically detected.
-> 
-> Bail-out from probe in case of write errors and notify the user.
-> 
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  drivers/hwmon/tmp401.c | 29 ++++++++++++++++++-----------
->  1 file changed, 18 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-> index a5f0973..ce7e579 100644
-> --- a/drivers/hwmon/tmp401.c
-> +++ b/drivers/hwmon/tmp401.c
-> @@ -618,10 +618,10 @@ static const struct attribute_group tmp432_group = {
->   * Begin non sysfs callback code (aka Real code)
->   */
->  
-> -static void tmp401_init_client(struct tmp401_data *data,
-> -			       struct i2c_client *client)
-> +static int tmp401_init_client(struct tmp401_data *data,
-> +			      struct i2c_client *client)
->  {
-> -	int config, config_orig;
-> +	int config, config_orig, status;
->  
->  	/* Set the conversion rate to 2 Hz */
->  	i2c_smbus_write_byte_data(client, TMP401_CONVERSION_RATE_WRITE, 5);
-> @@ -629,16 +629,21 @@ static void tmp401_init_client(struct tmp401_data *data,
->  
->  	/* Start conversions (disable shutdown if necessary) */
->  	config = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
-> -	if (config < 0) {
-> -		dev_warn(&client->dev, "Initialization failed!\n");
-> -		return;
-> -	}
-> +	if (config < 0)
-> +		return config;
->  
->  	config_orig = config;
->  	config &= ~TMP401_CONFIG_SHUTDOWN;
->  
-> -	if (config != config_orig)
-> -		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
-> +	if (config != config_orig) {
-> +		status = i2c_smbus_write_byte_data(client,
-> +						   TMP401_CONFIG_WRITE,
-> +						   config);
-> +		if (status < 0)
-> +			return status;
+TMP435 supports a range of I2C addresses, not just 0x4c.
 
-Just pre-initialize status to 0 and return status unconditionally.
+Cc: Patrick Titiano <ptitiano@baylibre.com>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Tested with TMP435 at addresses 0x37 and 0x48.
 
-Thanks,
-Guenter
+ drivers/hwmon/tmp401.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
+index f2182ee..99664eb 100644
+--- a/drivers/hwmon/tmp401.c
++++ b/drivers/hwmon/tmp401.c
+@@ -44,7 +44,8 @@
+ #include <linux/sysfs.h>
+ 
+ /* Addresses to scan */
+-static const unsigned short normal_i2c[] = { 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
++static const unsigned short normal_i2c[] = { 0x37, 0x48, 0x49, 0x4a, 0x4c, 0x4d,
++	0x4e, 0x4f, I2C_CLIENT_END };
+ 
+ enum chips { tmp401, tmp411, tmp431, tmp432, tmp435 };
+ 
+@@ -679,18 +680,16 @@ static int tmp401_detect(struct i2c_client *client,
+ 		kind = tmp411;
+ 		break;
+ 	case TMP431_DEVICE_ID:
+-		if (client->addr = 0x4e)
++		if (client->addr != 0x4c && client->addr != 0x4d)
+ 			return -ENODEV;
+ 		kind = tmp431;
+ 		break;
+ 	case TMP432_DEVICE_ID:
+-		if (client->addr = 0x4e)
++		if (client->addr != 0x4c && client->addr != 0x4d)
+ 			return -ENODEV;
+ 		kind = tmp432;
+ 		break;
+ 	case TMP435_DEVICE_ID:
+-		if (client->addr != 0x4c)
+-			return -ENODEV;
+ 		kind = tmp435;
+ 		break;
+ 	default:
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
