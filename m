@@ -1,90 +1,155 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Dec 2014 14:20:57 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: tmp401: bail-out from tmp401_probe() in case of write errors
-Message-Id: <54806DC9.9040704@roeck-us.net>
+Date: Sun, 07 Dec 2014 00:25:19 +0000
+Subject: [lm-sensors] [PATCH v2] sensors-detect: Add code to detect TMP435
+Message-Id: <1417911919-26185-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417687048-21455-1-git-send-email-bgolaszewski@baylibre.com> <1417687048-21455-3-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1417687048-21455-3-git-send-email-bgolaszewski@baylibre.com>
+References: <20110122171437.GA21444@ericsson.com>
+In-Reply-To: <20110122171437.GA21444@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On 12/04/2014 01:57 AM, Bartosz Golaszewski wrote:
-> The return value of i2c_smbus_read_byte_data() is checked in
-> tmp401_init_client(), but only a warning is printed and the device is
-> registered anyway. This leads to devices being registered even if they
-> cannot be physically detected.
->
-> Bail-out from probe in case of write errors and notify the user.
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->   drivers/hwmon/tmp401.c | 16 ++++++++++------
->   1 file changed, 10 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-> index 5a72d7f..75b3210 100644
-> --- a/drivers/hwmon/tmp401.c
-> +++ b/drivers/hwmon/tmp401.c
-> @@ -618,8 +618,8 @@ static const struct attribute_group tmp432_group = {
->    * Begin non sysfs callback code (aka Real code)
->    */
->
-> -static void tmp401_init_client(struct tmp401_data *data,
-> -			       struct i2c_client *client)
-> +static int tmp401_init_client(struct tmp401_data *data,
-> +			      struct i2c_client *client)
->   {
->   	int config, config_orig;
->
-> @@ -630,8 +630,8 @@ static void tmp401_init_client(struct tmp401_data *data,
->   	/* Start conversions (disable shutdown if necessary) */
->   	config = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
->   	if (config < 0) {
-> -		dev_warn(&client->dev, "Initialization failed!\n");
-> -		return;
-> +		dev_err(&client->dev, "Initialization failed!");
-> +		return config;
->   	}
->
->   	config_orig = config;
-> @@ -639,6 +639,8 @@ static void tmp401_init_client(struct tmp401_data *data,
->
->   	if (config != config_orig)
->   		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
+Also strengthen chip detection for other TMP4xx chips,
+and update driver support status for TMP431 and TMP432.
 
-No error check and return here ?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Detect TMP435 on its entire address range
+    Strengthen detect function for other TMP4xx chips
 
-Guenter
+ CHANGES                    |  1 +
+ prog/detect/sensors-detect | 42 +++++++++++++++++++++++++++++++++---------
+ 2 files changed, 34 insertions(+), 9 deletions(-)
 
-> +
-> +	return 0;
->   }
->
->   static int tmp401_detect(struct i2c_client *client,
-> @@ -721,7 +723,7 @@ static int tmp401_probe(struct i2c_client *client,
->   	struct device *dev = &client->dev;
->   	struct device *hwmon_dev;
->   	struct tmp401_data *data;
-> -	int groups = 0;
-> +	int groups = 0, status;
->
->   	data = devm_kzalloc(dev, sizeof(struct tmp401_data), GFP_KERNEL);
->   	if (!data)
-> @@ -732,7 +734,9 @@ static int tmp401_probe(struct i2c_client *client,
->   	data->kind = id->driver_data;
->
->   	/* Initialize the TMP401 chip */
-> -	tmp401_init_client(data, client);
-> +	status = tmp401_init_client(data, client);
-> +	if (status < 0)
-> +		return status;
->
->   	/* Register sysfs hooks */
->   	data->groups[groups++] = &tmp401_group;
->
+diff --git a/CHANGES b/CHANGES
+index 638a8bf..534b810 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -24,6 +24,7 @@ SVN HEAD
+                   Document support for EMC1402, EMC1404, and EMC1424
+                   Detect new revisions of EMC14xx
+                   Add detection of EMC1422
++                  Add detection of TMP435
+ 
+ 3.3.5 "Happy Birthday Beddy" (2014-01-22)
+   libsensors: Improve documentation of two functions
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index 448cf22..55b3537 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -1029,15 +1029,20 @@ use vars qw(@i2c_adapter_names);
+ 		i2c_detect => sub { tmp42x_detect(@_, 2); },
+ 	}, {
+ 		name => "Texas Instruments TMP431",
+-		driver => "to-be-written",		# tmp401
++		driver => "tmp401",
+ 		i2c_addrs => [0x4c, 0x4d],
+ 		i2c_detect => sub { lm90_detect(@_, 16); },
+ 	}, {
+ 		name => "Texas Instruments TMP432",
+-		driver => "to-be-written",		# tmp401
++		driver => "tmp401",
+ 		i2c_addrs => [0x4c, 0x4d],
+ 		i2c_detect => sub { lm90_detect(@_, 17); },
+ 	}, {
++		name => "Texas Instruments TMP435",
++		driver => "tmp401",
++		i2c_addrs => [0x37, 0x48..0x4f],
++		i2c_detect => sub { lm90_detect(@_, 19); },
++	}, {
+ 		name => "Texas Instruments TMP441",
+ 		driver => "tmp421",
+ 		i2c_addrs => [0x1c..0x1f, 0x2a, 0x4c..0x4f],
+@@ -4674,11 +4679,13 @@ sub max6680_95_detect
+ #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
+ #		  11 = W83L771AWG/ASG, 12 = MAX6690,
+ #		  13 = ADT7461A/NCT1008, 14 = SA56004,
+-#		  15 = G781, 16 = TMP431, 17 = TMP432, 18 = TMP451
++#		  15 = G781, 16 = TMP431, 17 = TMP432, 18 = TMP451,
++#		  19 = TMP435
+ # Registers used:
+ #   0x03: Configuration
+ #   0x04: Conversion rate
+ #   0xbf: Configuration 2 (National Semiconductor, Winbond, and Philips only)
++#   0x1a: Configuration 2 (TI only)
+ #   0xfe: Manufacturer ID
+ #   0xff: Chip ID / die revision
+ sub lm90_detect
+@@ -4688,7 +4695,13 @@ sub lm90_detect
+ 	my $cid = i2c_smbus_read_byte_data($file, 0xff);
+ 	my $conf = i2c_smbus_read_byte_data($file, 0x03);
+ 	my $rate = i2c_smbus_read_byte_data($file, 0x04);
+-	my $conf2 = i2c_smbus_read_byte_data($file, 0xbf);
++	my $conf2;
++
++	if ($chip = 9 || $chip = 10 || ($chip >= 16 && $chip <= 19)) {
++		$conf2 = i2c_smbus_read_byte_data($file, 0x1a);
++	} else {
++		$conf2 = i2c_smbus_read_byte_data($file, 0xbf);
++	}
+ 
+ 	if ($chip = 0) {
+ 		return if ($conf & 0x2a) != 0;
+@@ -4748,17 +4761,19 @@ sub lm90_detect
+ 	}
+ 	if ($chip = 9) {
+ 		return if ($conf & 0x1B) != 0;
++		return if ($conf2 & 0xfc) != 0x1c;
+ 		return if $rate > 0x0F;
+ 		return if $mid != 0x55;		# Texas Instruments
+ 		return 8 if $cid = 0x11;	# TMP401
+ 	}
+ 	if ($chip = 10) {
+ 		return if ($conf & 0x1B) != 0;
++		return if ($conf2 & 0xfc) != 0x1c;
+ 		return if $rate > 0x0F;
+ 		return if $mid != 0x55;		# Texas Instruments
+-		return 6 if ($addr = 0x4c && $cid = 0x12); # TMP411A
+-		return 6 if ($addr = 0x4d && $cid = 0x13); # TMP411B
+-		return 6 if ($addr = 0x4e && $cid = 0x10); # TMP411C
++		return 8 if ($addr = 0x4c && $cid = 0x12); # TMP411A
++		return 8 if ($addr = 0x4d && $cid = 0x13); # TMP411B
++		return 8 if ($addr = 0x4e && $cid = 0x10); # TMP411C
+ 	}
+ 	if ($chip = 11) {
+ 		return if ($conf & 0x2a) != 0;
+@@ -4794,15 +4809,17 @@ sub lm90_detect
+ 	}
+ 	if ($chip = 16) {
+ 		return if ($conf & 0x1B) != 0;
++		return if ($conf2 & 0xe3) != 0;
+ 		return if $rate > 0x0F;
+ 		return if $mid != 0x55;		# Texas Instruments
+-		return 6 if ($cid = 0x31);	# TMP431A/B/C/D
++		return 8 if ($cid = 0x31);	# TMP431A/B/C/D
+ 	}
+ 	if ($chip = 17) {
+ 		return if ($conf & 0x1B) != 0;
++		return if ($conf2 & 0xe3) != 0;
+ 		return if $rate > 0x0F;
+ 		return if $mid != 0x55;		# Texas Instruments
+-		return 6 if ($cid = 0x32);	# TMP432A/B
++		return 8 if ($cid = 0x32);	# TMP432A/B
+ 	}
+ 	if ($chip = 18) {
+ 		return if ($conf & 0x1B) != 0;
+@@ -4810,6 +4827,13 @@ sub lm90_detect
+ 		return if $mid != 0x55;		# Texas Instruments
+ 		return 4 if ($cid = 0x00);	# TMP451
+ 	}
++	if ($chip = 19) {
++		return if ($conf & 0x1B) != 0;
++		return if ($conf2 & 0xe3) != 0;
++		return if $rate > 0x0F;
++		return if $mid != 0x55;		# Texas Instruments
++		return 8 if ($cid = 0x35);	# TMP435
++	}
+ 	return;
+ }
+ 
+-- 
+1.9.1
 
 
 _______________________________________________
