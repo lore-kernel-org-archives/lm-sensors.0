@@ -1,68 +1,110 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Dec 2014 20:08:47 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (gpio-fan) Allow usage of gpio operations that may sleep
-Message-Id: <20141204200847.GC16925@roeck-us.net>
+Date: Tue, 09 Dec 2014 04:01:44 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.19
+Message-Id: <1418097704-29232-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417712328-29831-1-git-send-email-nm@ti.com>
- <20141204190528.GA16925@roeck-us.net>
- <20141204194615.GA7975@kahuna>
-In-Reply-To: <20141204194615.GA7975@kahuna>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nishanth Menon <nm@ti.com>
-Cc: Jean Delvare <jdelvare@suse.de>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Thu, Dec 04, 2014 at 01:46:15PM -0600, Nishanth Menon wrote:
-> On 11:05-20141204, Guenter Roeck wrote:
-> > On Thu, Dec 04, 2014 at 10:58:47AM -0600, Nishanth Menon wrote:
-> > > Certain I2C based GPIO expanders could be used in sleepable context,
-> > > this results in:
-> > > [  115.890569] ------------[ cut here ]------------
-> > > [  115.895422] WARNING: CPU: 0 PID: 1115 at drivers/gpio/gpiolib.c:1370 gpiod_set_raw_value+0x40/0x4c()
-> > > [  115.905024] Modules linked in:
-> > > [  115.908229] CPU: 0 PID: 1115 Comm: sh Tainted: G        W      3.18.0-rc7-next-20141203-dirty #1
-> > > [  115.917461] Hardware name: Generic DRA74X (Flattened Device Tree)
-> > > [  115.923876] [<c0015368>] (unwind_backtrace) from [<c00119f4>] (show_stack+0x10/0x14)
-> > > [  115.932013] [<c00119f4>] (show_stack) from [<c05b78e8>] (dump_stack+0x78/0x94)
-> > > [  115.939594] [<c05b78e8>] (dump_stack) from [<c003de28>] (warn_slowpath_common+0x7c/0xb4)
-> > > [  115.948094] [<c003de28>] (warn_slowpath_common) from [<c003de7c>] (warn_slowpath_null+0x1c/0x24)
-> > > [  115.957315] [<c003de7c>] (warn_slowpath_null) from [<c03461e8>] (gpiod_set_raw_value+0x40/0x4c)
-> > > [  115.966457] [<c03461e8>] (gpiod_set_raw_value) from [<c04866f4>] (set_fan_speed+0x4c/0x64)
-> > > [  115.975145] [<c04866f4>] (set_fan_speed) from [<c04868a8>] (set_rpm+0x98/0xac)
-> > > [  115.982742] [<c04868a8>] (set_rpm) from [<c039fb4c>] (dev_attr_store+0x18/0x24)
-> > > [  115.990426] [<c039fb4c>] (dev_attr_store) from [<c01b0a28>] (sysfs_kf_write+0x4c/0x50)
-> > > [  115.998742] [<c01b0a28>] (sysfs_kf_write) from [<c01afe1c>] (kernfs_fop_write+0xbc/0x19c)
-> > > [  116.007333] [<c01afe1c>] (kernfs_fop_write) from [<c0148cc4>] (vfs_write+0xb0/0x1a0)
-> > > [  116.015461] [<c0148cc4>] (vfs_write) from [<c0148fbc>] (SyS_write+0x44/0x84)
-> > > [  116.022881] [<c0148fbc>] (SyS_write) from [<c000e5c0>] (ret_fast_syscall+0x0/0x48)
-> > > [  116.030833] ---[ end trace 3a0b636123acab82 ]---
-> > > 
-> > > So, switch over to sleepable GPIO operations as there is no mandatory
-> > > need for non-sleepable gpio operations in the fan driver.
-> > > 
-> > > This allows the fan driver to be used with i2c based gpio expanders such
-> > > as palmas_gpio.
-> > > 
-> > > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > 
-> > Applied to hwmon-next. Do we need this in older kernels ?
-> 
-> I have'nt had a need for it till recently.. in terms of the sleepable
-> get/set, it seems to have been introduced with
-> 	commit 7560fa60fcdcdb0da662f6a9fad9064b554ef46c
-> 	Author: David Brownell <david-b@pacbell.net>
-> 	Date:   Tue Mar 4 14:28:27 2008 -0800
-> 	gpio: <linux/gpio.h> and "no GPIO support here" stubs
-> 
-> Guessing no one needed it so far.. so probably future should be good
-> enough, I think..
-> 
-Ok.
+Hi Linus,
 
-We can still add it to -stable at a later time if the need arises.
+Please pull hwmon updates for Linux 3.19 from signed tag:
 
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v3.19
+
+Thanks,
 Guenter
+------
+
+The following changes since commit 009d0431c3914de64666bec0d350e54fdd59df6a:
+
+  Linux 3.18-rc7 (2014-11-30 16:42:27 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-3.19
+
+for you to fetch changes up to 907a6d5824599d09e986105a5a880d119a996c4b:
+
+  hwmon: (tmp401) Detect TMP435 on all addresses it supports (2014-12-08 06:48:37 -0800)
+
+----------------------------------------------------------------
+Notable changes:
+New driver for NCT7802Y
+Add support for TMP435, LM95233, LM95235, NCT6792D, and NXP LM75B
+Add regulator support for PMBus chips, specifically LTX2978
+Add support for humidity sensors to iio-hwmon bridge driver
+
+----------------------------------------------------------------
+Alan Tull (4):
+      hwmon: (ltc2978) device tree bindings documentation
+      hwmon: (pmbus) add helpers for byte write and read modify write
+      hwmon: (pmbus) Add regulator support
+      hwmon: (ltc2978) Add regulator support
+
+Axel Lin (1):
+      hwmon: (ibmpowernv) Convert to module_platform_driver
+
+Bartosz Golaszewski (2):
+      hwmon: (ina2xx) bail-out from ina2xx_probe() in case of configuration errors
+      hwmon: (tmp401) Bail out from tmp401_probe() in case of write errors
+
+Guenter Roeck (9):
+      hwmon: (iio_hwmon) Add support for humidity sensors
+      hwmon: Driver for Nuvoton NCT7802Y
+      hwmon: (nct6775) Documentation updates
+      hwmon: (nct6775) Add support for NCT6792D
+      hwmon: (nct6775) Add blank lines after declarations
+      hwmon: (lm95245) Add support for LM95235
+      hwmon: (lm95234) Add support for LM95233
+      hwmon: (lm75) Strengthen detect function
+      hwmon: (tmp401) Detect TMP435 on all addresses it supports
+
+Michael Thalmeier (1):
+      hwmon: (lm75) Add support for the NXP LM75B
+
+Neelesh Gupta (1):
+      hwmon: (ibmpowernv) Use platform 'id_table' to probe the device
+
+Nishanth Menon (2):
+      hwmon: (gpio-fan) Allow usage of gpio operations that may sleep
+      hwmon: (gpio-fan) Add a shutdown handler to poweroff the fans
+
+Patrick Titiano (1):
+      hwmon: (tmp401) Add support for TI TMP435
+
+ .../devicetree/bindings/hwmon/ltc2978.txt          |  39 +
+ Documentation/hwmon/lm75                           |   5 +
+ Documentation/hwmon/lm95234                        |  15 +-
+ Documentation/hwmon/lm95245                        |  14 +-
+ Documentation/hwmon/nct6775                        |  14 +-
+ Documentation/hwmon/nct7802                        |  32 +
+ Documentation/hwmon/tmp401                         |   8 +-
+ arch/powerpc/platforms/powernv/opal-sensor.c       |  20 +
+ drivers/hwmon/Kconfig                              |  28 +-
+ drivers/hwmon/Makefile                             |   1 +
+ drivers/hwmon/gpio-fan.c                           |  18 +-
+ drivers/hwmon/ibmpowernv.c                         |  78 +-
+ drivers/hwmon/iio_hwmon.c                          |   7 +-
+ drivers/hwmon/ina2xx.c                             |  26 +-
+ drivers/hwmon/lm75.c                               |  12 +
+ drivers/hwmon/lm95234.c                            |  91 ++-
+ drivers/hwmon/lm95245.c                            |  41 +-
+ drivers/hwmon/nct6775.c                            |  77 +-
+ drivers/hwmon/nct7802.c                            | 860 +++++++++++++++++++++
+ drivers/hwmon/pmbus/Kconfig                        |  11 +-
+ drivers/hwmon/pmbus/ltc2978.c                      |  39 +-
+ drivers/hwmon/pmbus/pmbus.h                        |  30 +
+ drivers/hwmon/pmbus/pmbus_core.c                   | 118 +++
+ drivers/hwmon/tmp401.c                             |  42 +-
+ include/linux/i2c/pmbus.h                          |   4 +
+ 25 files changed, 1465 insertions(+), 165 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/ltc2978.txt
+ create mode 100644 Documentation/hwmon/nct7802
+ create mode 100644 drivers/hwmon/nct7802.c
 
 _______________________________________________
 lm-sensors mailing list
