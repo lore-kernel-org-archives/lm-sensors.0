@@ -1,60 +1,44 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 10 Dec 2014 18:25:59 +0000
-Subject: Re: [lm-sensors] Is w83627ehf driver working with lm-sensors?
-Message-Id: <20141210182559.GC2821@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Wed, 10 Dec 2014 10:38:57 +0000
+Subject: [lm-sensors] [PATCH v5 3/3] hwmon: ina2xx: documentation update for new sysfs attributes
+Message-Id: <1418207937-11648-4-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <003a01d01492$fe2458c0$fa6d0a40$@es>
-In-Reply-To: <003a01d01492$fe2458c0$fa6d0a40$@es>
+References: <1418207937-11648-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1418207937-11648-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On Wed, Dec 10, 2014 at 05:04:35PM +0100, Pablo Jose Royo wrote:
-> Hi
->=20
-> I have a Nexcom vehicular console running Ubuntu 14.04 LTS (x86_64) with
-> voltage monitoring enabled in BIOS. I=B4m using both 3.13.0-32 and 3.13.1=
-1.10
-> x86_64 kernels, with winbond w83627ehf driver (loaded using modprobe
-> force_id=3D0x8850)=20
->=20
-> I need to check when input voltage is low in order to shutdown the system=
- in
-> proper way. Using lm-sensors from the distribution, or from last source, i
-> always see same values in all voltage sensors (Vcc, CPU,..etc) . I mean,
-> there is no CHANGE in it when I vary input voltage from a variable power
-> supply (with constant current limit to emulate a battery). My
-> /etc/sensor3.conf is Ok for this chip. Temperature sensors seem to work w=
-ith
-> this driver (and with coretemp).=20
->=20
-> Do you know if lm-sensors works with this driver? What more could I check?
-> In sources, I see last date shown is 2012, so it seems quite recent.
->=20
+Include the rshunt and avg sysfs attributes for ina2xx in the documentation.
 
-Since you specify force_id, the chip in your system is obviously not one
-supported by the driver. So, no, you can not assume that it is working at a=
-ll.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ Documentation/hwmon/ina2xx | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Maybe you could help us by letting us know what chip you actually have in y=
-our
-system. Running sensors-detect might give you a hint. Unfortunately the Nex=
-com
-datasheets don't say.
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 4223c2d..c100c24 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -44,6 +44,10 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
+ The INA230 is a high or low side current shunt and power monitor with an I2C
+ interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
+ 
+-The shunt value in micro-ohms can be set via platform data or device tree.
+-Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
+-if the device tree is used.
++The shunt value in micro-ohms can be set via platform data or device tree in
++compile-time or via the shunt_resistor attribute in sysfs in run-time. Please
++refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings if
++the device tree is used.
++
++The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
++attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
+-- 
+2.1.3
 
-In general, the voltages supported and measured by the SuperIO chip are reg=
-ulated
-by circuitry on the board. Modifying the board input voltage doesn't necess=
-arily
-mean that you see any change in a regulated voltage, and the SuperIO chip
-very likely reports only regulated voltages. You would have to get detailed
-technical information to know if it reports any unregulated voltages, or if
-there is some other chip on the board which reports those voltages. Most
-likely you would have to ask the board vendor to give you that information.
-
-Hope this helps,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
