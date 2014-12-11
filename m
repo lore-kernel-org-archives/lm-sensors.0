@@ -1,7 +1,7 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 11 Dec 2014 13:47:00 +0000
+From: Richard Llom <richard.llom@gmail.com>
+Date: Thu, 11 Dec 2014 15:06:02 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <20141211144700.363e2712@endymion.delvare>
+Message-Id: <m6cbsr$9pm$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
@@ -10,42 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Richard,
-
-On Thu, 11 Dec 2014 12:26:30 +0100, Richard Llom wrote:
-> Hi,
-> after a recent kernel update to 3.17.4 in my distro I can't read my sensors 
-> anymore with my beloved ksysguard (/System Monitor). Strange thing is, I can 
-> still see the sensors with "sensors" (see below).
-> 
-> So I was wondering if something changed with this kernel or if there are 
-> known issues?
-
-We are in the process of converting many drivers to have their
-attributes attached to the hwmon class device instead of the physical
-device. Any application not relying on libsensors may get confused by
-this change. We had reports of this happening already. That being said,
-the drivers you are using have not been converted in 3.17. k10temp was
-converted in 3.18, while it87 was not converted yet. So I'm a bit
-confused. Plus I think ksysguard is using libsensors anyway. Which
-verions of ksysguard and libsensors are you using?
-
-> What daemon/service (?) is responsible for providing the sensor data to 
-> programs? How can I check if it is running correctly?
-
-No service is doing that. The information is available in sysfs, and
-libsensors gets it from there and makes it available to applications in
-an easy way.
-
-I'm not too sure how to debug this further. Can you describe the
-symptoms better? Can you run ksysguard from a terminal and see if it's
-spitting any error message (or logging them somewhere maybe?)
-
--- 
-Jean Delvare
-SUSE L3 Support
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSmVhbiwKdGhhbmtzIGZvciB5b3VyIHByb21wdCBhbnN3ZXIhCgpKZWFuIERlbHZhcmUgd3Jv
+dGU6Cj4gT24gVGh1LCAxMSBEZWMgMjAxNCAxMjoyNjozMCArMDEwMCwgUmljaGFyZCBMbG9tIHdy
+b3RlOgo+PiBIaSwKPj4gYWZ0ZXIgYSByZWNlbnQga2VybmVsIHVwZGF0ZSB0byAzLjE3LjQgaW4g
+bXkgZGlzdHJvIEkgY2FuJ3QgcmVhZCBteQo+PiBzZW5zb3JzIGFueW1vcmUgd2l0aCBteSBiZWxv
+dmVkIGtzeXNndWFyZCAoL1N5c3RlbSBNb25pdG9yKS4gU3RyYW5nZQo+PiB0aGluZyBpcywgSSBj
+YW4gc3RpbGwgc2VlIHRoZSBzZW5zb3JzIHdpdGggInNlbnNvcnMiIChzZWUgYmVsb3cpLgo+PiAK
+Pj4gU28gSSB3YXMgd29uZGVyaW5nIGlmIHNvbWV0aGluZyBjaGFuZ2VkIHdpdGggdGhpcyBrZXJu
+ZWwgb3IgaWYgdGhlcmUgYXJlCj4+IGtub3duIGlzc3Vlcz8KPiAKPiBXZSBhcmUgaW4gdGhlIHBy
+b2Nlc3Mgb2YgY29udmVydGluZyBtYW55IGRyaXZlcnMgdG8gaGF2ZSB0aGVpcgo+IGF0dHJpYnV0
+ZXMgYXR0YWNoZWQgdG8gdGhlIGh3bW9uIGNsYXNzIGRldmljZSBpbnN0ZWFkIG9mIHRoZSBwaHlz
+aWNhbAo+IGRldmljZS4gQW55IGFwcGxpY2F0aW9uIG5vdCByZWx5aW5nIG9uIGxpYnNlbnNvcnMg
+bWF5IGdldCBjb25mdXNlZCBieQo+IHRoaXMgY2hhbmdlLiBXZSBoYWQgcmVwb3J0cyBvZiB0aGlz
+IGhhcHBlbmluZyBhbHJlYWR5LiBUaGF0IGJlaW5nIHNhaWQsCj4gdGhlIGRyaXZlcnMgeW91IGFy
+ZSB1c2luZyBoYXZlIG5vdCBiZWVuIGNvbnZlcnRlZCBpbiAzLjE3LiBrMTB0ZW1wIHdhcwo+IGNv
+bnZlcnRlZCBpbiAzLjE4LCB3aGlsZSBpdDg3IHdhcyBub3QgY29udmVydGVkIHlldC4gU28gSSdt
+IGEgYml0Cj4gY29uZnVzZWQuIFBsdXMgSSB0aGluayBrc3lzZ3VhcmQgaXMgdXNpbmcgbGlic2Vu
+c29ycyBhbnl3YXkuIFdoaWNoCj4gdmVyaW9ucyBvZiBrc3lzZ3VhcmQgYW5kIGxpYnNlbnNvcnMg
+YXJlIHlvdSB1c2luZz8KPiAKU3lzdGVtIE1vbml0b3IgVmVyc2lvbiA0LjExLjE0ClVzaW5nIEtE
+RSBEZXZlbG9wbWVudCBQbGF0Zm9ybSA0LjE0LjMKCnBhY21hbiAtUW8gL3Vzci9saWIvbGlic2Vu
+c29ycy5zby40LjMuMgovdXNyL2xpYi9saWJzZW5zb3JzLnNvLjQuMy4yIGlzIG93bmVkIGJ5IGxt
+X3NlbnNvcnMgMy4zLjUtMQoKPj4gV2hhdCBkYWVtb24vc2VydmljZSAoPykgaXMgcmVzcG9uc2li
+bGUgZm9yIHByb3ZpZGluZyB0aGUgc2Vuc29yIGRhdGEgdG8KPj4gcHJvZ3JhbXM/IEhvdyBjYW4g
+SSBjaGVjayBpZiBpdCBpcyBydW5uaW5nIGNvcnJlY3RseT8KPiAKPiBObyBzZXJ2aWNlIGlzIGRv
+aW5nIHRoYXQuIFRoZSBpbmZvcm1hdGlvbiBpcyBhdmFpbGFibGUgaW4gc3lzZnMsIGFuZAo+IGxp
+YnNlbnNvcnMgZ2V0cyBpdCBmcm9tIHRoZXJlIGFuZCBtYWtlcyBpdCBhdmFpbGFibGUgdG8gYXBw
+bGljYXRpb25zIGluCj4gYW4gZWFzeSB3YXkuCj4gCldoZXJlIGV4YWN0bHkgaW4gL3N5cyA/IEJl
+Y2F1c2UgaGVyZSBJIGNhbid0IGZpbmQgYW55dGhpbmcgdGhlcmUgcmVsYXRlZCB0byAKbXkgc2Vu
+c29ycy4uLgoKPiBJJ20gbm90IHRvbyBzdXJlIGhvdyB0byBkZWJ1ZyB0aGlzIGZ1cnRoZXIuIENh
+biB5b3UgZGVzY3JpYmUgdGhlCj4gc3ltcHRvbXMgYmV0dGVyPwo+IApXZWxsLCBrc3lzZ3VhcmQg
+Y29tZXMgd2l0aCBhICJTZW5zb3IgQnJvd3NlciIsIHlvdSBjYW4gZmluZCBpdCBpbiBhIG5ldyB0
+YWIgCihGaWxlIC0+IE5ldyBUYWIpLiBJbiB0aGlzIHNlbnNvciBicm93c2VyIEkgaGFkIHRoZSB2
+ZXJ5IHNhbWUgc2Vuc29ycyAKcHJvdmlkZWQgYnkgInNlbnNvcnMiIGUuZy4Kbm91dmVhdS1wY2kt
+MDEwMAriiJ8gdGVtcDEKazEwdGVtcC1wY2ktMDBjMwriiJ8gdGVtcDEKaXQ4NzIwLWlzYS0wMjI4
+CuKInyBmYW4xCuKInyBmYW4yCuKInyBmYW4zCuKInyBpbjAK4oifIC4uLgpCdXQgbm90IHNvIGFm
+dGVyIHRoZSB1cGRhdGUgYW55bW9yZS4uLgpUaGVyZSBhcmUgc3RpbGwgb3RoZXIgc2Vuc29ycyAo
+Q1BVIExvYWQsIERpc2ssIE5ldHdvcmssIGV0Yy4uLikgd2hpY2ggc3RpbGwgCndvcmsuCgo+IENh
+biB5b3UgcnVuIGtzeXNndWFyZCBmcm9tIGEgdGVybWluYWwgYW5kIHNlZSBpZiBpdCdzCj4gc3Bp
+dHRpbmcgYW55IGVycm9yIG1lc3NhZ2UgKG9yIGxvZ2dpbmcgdGhlbSBzb21ld2hlcmUgbWF5YmU/
+KQo+IApUaGlzIGlzIHRoZSBvdXRwdXQgZnJvbSB0aGUgdGVybWluYWwKa3N5c2d1YXJkKDMxNjgp
+IEtTR1JEOjpTZW5zb3JBZ2VudDo6cHJvY2Vzc0Fuc3dlcjogUmVjZWl2ZWQgVU5LTk9XTiBDT01N
+QU5EIApmb3I6ICAibG1zZW5zb3JzL2sxMHRlbXAtcGNpLTAwYzMvdGVtcDE/Igprc3lzZ3VhcmQo
+MzE2OCkgS1NHUkQ6OlNlbnNvckFnZW50Ojpwcm9jZXNzQW5zd2VyOiBSZWNlaXZlZCBVTktOT1dO
+IENPTU1BTkQgCmZvcjogICJsbXNlbnNvcnMvaXQ4NzIwLWlzYS0wMjI4L3RlbXAxPyIKa3N5c2d1
+YXJkKDMxNjgpIEtTR1JEOjpTZW5zb3JBZ2VudDo6cHJvY2Vzc0Fuc3dlcjogUmVjZWl2ZWQgVU5L
+Tk9XTiBDT01NQU5EIApmb3I6ICAibG1zZW5zb3JzL25vdXZlYXUtcGNpLTAxMDAvdGVtcDE/Igpr
+c3lzZ3VhcmQoMzE2OCkgS1NHUkQ6OlNlbnNvckFnZW50Ojpwcm9jZXNzQW5zd2VyOiBSZWNlaXZl
+ZCBVTktOT1dOIENPTU1BTkQgCmZvcjogICJsbXNlbnNvcnMvaXQ4NzIwLWlzYS0wMjI4L2ZhbjE/
+Igprc3lzZ3VhcmQoMzE2OCkgS1NHUkQ6OlNlbnNvckFnZW50Ojpwcm9jZXNzQW5zd2VyOiBSZWNl
+aXZlZCBVTktOT1dOIENPTU1BTkQgCmZvcjogICJsbXNlbnNvcnMvaXQ4NzIwLWlzYS0wMjI4L2Zh
+bjI/IgouLi4KCgpjaGVlcnMKcmljaGFyZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
