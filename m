@@ -1,77 +1,46 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 11 Dec 2014 16:29:33 +0000
-Subject: Re: [lm-sensors] [PATCH v5 1/3] hwmon: ina2xx: make shunt resistance configurable at run-time
-Message-Id: <20141211162933.GA4769@roeck-us.net>
+From: Richard Llom <richard.llom@gmail.com>
+Date: Thu, 11 Dec 2014 11:26:30 +0000
+Subject: [lm-sensors] System Monitor cannot read sensors anymore
+Message-Id: <m6bv17$gsp$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418207937-11648-1-git-send-email-bgolaszewski@baylibre.com>
- <1418207937-11648-2-git-send-email-bgolaszewski@baylibre.com>
- <548856AF.8090805@roeck-us.net>
- <CAMpxmJXp2NT+rie2d2+Z7hixKMyS+xcRNdKRNZaUSJD-aTUVVg@mail.gmail.com>
- <20141210183146.GA22847@roeck-us.net>
- <CAMpxmJXVPbp+XJQ9oVpAB3ejRx7Czb0KTC0HtfL9zed4Z_rOQA@mail.gmail.com>
-In-Reply-To: <CAMpxmJXVPbp+XJQ9oVpAB3ejRx7Czb0KTC0HtfL9zed4Z_rOQA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 11, 2014 at 11:26:07AM +0100, Bartosz Golaszewski wrote:
-> 2014-12-10 19:31 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
-> > I don't really want it at all ;-). Seems to me all those options are broken
-> > one way or another. The only real solution would be to re-instantiate the
-> > driver if the chip was removed and re-inserted, and to provide parameters
-> > either with platform data or with devicetree data.
-> 
-> I see your point, but as Benoit mentioned in one of the previous
-> messages, in case of our platform it would be impossible to have an
-> exhaustive list of possible shunt values.
-> 
-> > On a side note, data->rshunt is not really needed anymore with your current
-> > code. The only reason for storing it in data is to use it in
-> > ina2xx_calibration_val(), but you could as well pass it in as parameter
-> > to that function. Even better would be to have a function such as
-> > ina2xx_calibrate() and let it handle the write to the calibration register.
-> > Also, I would suggest to move the above code into its own show function.
-> > It is probably not a good idea to have a single function for all those
-> > conversions in the first place, and converting from 'calibration' to
-> > rshunt goes a bit beyond the original intent to convert from one representation
-> > to the other.
-> 
-> I agree about having separate functions for this parameter and about
-> not needing data->rshunt in my current code, but we still aren't clear
-> about whether to read the value from the register or to store it in
-> memory.
-> 
-Let's take the value from the register.
-
-> > That still doesn't really solve the structural problem of having to deal with
-> > an uninitialized chip which doesn't like to be uninitialized. But then on the
-> > other side I guess that is really a problem with your platform, not a driver
-> > problem.
-> 
-> This might be a stupid idea, but what about reading the calibration
-> register first in ina2xx_update_device() and, in case it's value is 0
-> (POR value according to the datasheet), reinitializing the chip?
-> 
-Not that stupid. Without programming the calibration register, the chip
-will not report power and current. Expecting user space to "fix" the
-situation if that happens seems to be at least as stupid as doing it in
-the kernel (and, for example, the 'sensors' command won't be able to fix
-it, nor any other program not running as root).
-
-So it might make sense to move the chip initialization into an _init function,
-call it from _probe, and call it from _update if, as you say, the calibration
-register returns 0. The init function should initialize both the configuration
-register and the calibration register. Make sure you update
-data->reg[INA2XX_CALIBRATION] when you do that. In the latter case (update
-function detects that chip is not initialized), you might also want to add
-a dev_warn() as this is an unexpected situation.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCmFmdGVyIGEgcmVjZW50IGtlcm5lbCB1cGRhdGUgdG8gMy4xNy40IGluIG15IGRpc3RybyBJ
+IGNhbid0IHJlYWQgbXkgc2Vuc29ycyAKYW55bW9yZSB3aXRoIG15IGJlbG92ZWQga3N5c2d1YXJk
+ICgvU3lzdGVtIE1vbml0b3IpLiBTdHJhbmdlIHRoaW5nIGlzLCBJIGNhbiAKc3RpbGwgc2VlIHRo
+ZSBzZW5zb3JzIHdpdGggInNlbnNvcnMiIChzZWUgYmVsb3cpLgoKU28gSSB3YXMgd29uZGVyaW5n
+IGlmIHNvbWV0aGluZyBjaGFuZ2VkIHdpdGggdGhpcyBrZXJuZWwgb3IgaWYgdGhlcmUgYXJlIApr
+bm93biBpc3N1ZXM/CgpXaGF0IGRhZW1vbi9zZXJ2aWNlICg/KSBpcyByZXNwb25zaWJsZSBmb3Ig
+cHJvdmlkaW5nIHRoZSBzZW5zb3IgZGF0YSB0byAKcHJvZ3JhbXM/IEhvdyBjYW4gSSBjaGVjayBp
+ZiBpdCBpcyBydW5uaW5nIGNvcnJlY3RseT8KCgpUSUEKcmljaGFyZAoKClBTOgokIHVuYW1lIC1h
+CkxpbnV4IDMuMTcuNC0xLUNIQUtSQSAjMSBTTVAgUFJFRU1QVCBOb3YgMjQgVVRDIDIwMTQgeDg2
+XzY0IEdOVS9MaW51eAoKJCBzZW5zb3JzCm5vdXZlYXUtcGNpLTAxMDAKQWRhcHRlcjogUENJIGFk
+YXB0ZXIKdGVtcDE6ICAgICAgICArNjcuMMKwQyAgKGhpZ2ggPSArOTUuMMKwQywgaHlzdCA9ICAr
+My4wwrBDKQogICAgICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzEwNS4wwrBDLCBoeXN0ID0g
+ICsyLjDCsEMpCiAgICAgICAgICAgICAgICAgICAgICAgKGVtZXJnID0gKzEzNS4wwrBDLCBoeXN0
+ID0gICs1LjDCsEMpCgprMTB0ZW1wLXBjaS0wMGMzCkFkYXB0ZXI6IFBDSSBhZGFwdGVyCnRlbXAx
+OiAgICAgICAgKzI5LjDCsEMgIChoaWdoID0gKzcwLjDCsEMpCiAgICAgICAgICAgICAgICAgICAg
+ICAgKGNyaXQgPSArNzkuMMKwQywgaHlzdCA9ICs3Ny4wwrBDKQoKaXQ4NzIwLWlzYS0wMjI4CkFk
+YXB0ZXI6IElTQSBhZGFwdGVyCmluMDogICAgICAgICAgKzEuMDEgViAgKG1pbiA9ICArMC4wMCBW
+LCBtYXggPSAgKzQuMDggVikKaW4xOiAgICAgICAgICArMS41OCBWICAobWluID0gICswLjAwIFYs
+IG1heCA9ICArNC4wOCBWKQppbjI6ICAgICAgICAgICszLjM0IFYgIChtaW4gPSAgKzAuMDAgViwg
+bWF4ID0gICs0LjA4IFYpCis1VjogICAgICAgICAgKzMuMDIgViAgKG1pbiA9ICArMC4wMCBWLCBt
+YXggPSAgKzQuMDggVikKaW40OiAgICAgICAgICArMy4wNyBWICAobWluID0gICswLjAwIFYsIG1h
+eCA9ICArNC4wOCBWKQppbjU6ICAgICAgICAgICsxLjk3IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4
+ID0gICs0LjA4IFYpCmluNjogICAgICAgICAgKzQuMDggViAgKG1pbiA9ICArMC4wMCBWLCBtYXgg
+PSAgKzQuMDggVikKNVZTQjogICAgICAgICArMy4wMSBWICAobWluID0gICswLjAwIFYsIG1heCA9
+ICArNC4wOCBWKQpWYmF0OiAgICAgICAgICsyLjg1IFYgIApmYW4xOiAgICAgICAgMTA5NSBSUE0g
+IChtaW4gPSAgIDEwIFJQTSkKZmFuMjogICAgICAgICA4NTYgUlBNICAobWluID0gICAgMCBSUE0p
+CmZhbjM6ICAgICAgICAxMzQxIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW41OiAgICAgICAgICAg
+MCBSUE0gIChtaW4gPSAgICAwIFJQTSkKdGVtcDE6ICAgICAgICArMzMuMMKwQyAgKGxvdyAgPSAr
+MTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSAKdGhlcm1pc3Rvcgp0ZW1wMjog
+ICAgICAgICsyNy4wwrBDICAobG93ICA9ICsxMjcuMMKwQywgaGlnaCA9ICs4MC4wwrBDKSAgc2Vu
+c29yID0gdGhlcm1hbCAKZGlvZGUKdGVtcDM6ICAgICAgICArMjkuMMKwQyAgKGxvdyAgPSArMTI3
+LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSAKdGhlcm1pc3RvcgpjcHUwX3ZpZDog
+ICAgKzEuMjUwIFYKaW50cnVzaW9uMDogIEFMQVJNCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNv
+cnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlz
+dGluZm8vbG0tc2Vuc29ycw=
