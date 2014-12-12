@@ -1,48 +1,33 @@
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Fri, 12 Dec 2014 14:37:50 +0000
-Subject: [lm-sensors] [PATCH v6 0/5] hwmon: ina2xx: implement chip reinitialization and add new attributes
-Message-Id: <1418395075-16850-1-git-send-email-bgolaszewski@baylibre.com>
+Date: Fri, 12 Dec 2014 14:37:52 +0000
+Subject: [lm-sensors] [PATCH v6 2/5] hwmon: ina2xx: remove a stray new line
+Message-Id: <1418395075-16850-3-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1418395075-16850-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1418395075-16850-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-This series implements a mechanism to detect if the chip is in its POR state
-and reinitialize it if needed. It also extends the sysfs interface to make the
-driver configurable at run-time.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-The shunt_resistor attribute allows to change the shunt resistance value
-at run-time in cases where ina2xx used to do the measurement isn't integrated
-with the shunt.
-
-The avg_rate attribute allows to increase/decrease noise reduction.
-
-v6:
-- moved the chip initialization and calibration to a separate function and
-  extended the update_device function to check if the chip hasn't been
-  reset and, if so, reinitialize it,
-- added a new variable to struct ina2xx_data which holds current configuration
-  value in order to be able to restore the config after a reset and reinit,
-- decided to keep the rshunt value in ina2xx_data in order to be able to
-  restore the shunt value when reinitializing the device,
-- other minor fixes and improvements,
-
-v5:
-https://www.mail-archive.com/linux-kernel%40vger.kernel.org/msg785734.html
-
-Bartosz Golaszewski (5):
-  hwmon: ina2xx: reinitialize the chip in case it's been reset
-  hwmon: ina2xx: remove a stray new line
-  hwmon: ina2xx: don't accept shunt values greater than the calibration factor
-  hwmon: ina2xx: make shunt resistance configurable at run-time
-  hwmon: ina2xx: allow to change the averaging rate at run-time
-
- Documentation/hwmon/ina2xx |   8 +-
- drivers/hwmon/ina2xx.c     | 266 ++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 243 insertions(+), 31 deletions(-)
-
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 4c5c9ab..24fce2a 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -52,7 +52,6 @@
+ #define INA226_ALERT_LIMIT		0x07
+ #define INA226_DIE_ID			0xFF
+ 
+-
+ /* register count */
+ #define INA219_REGISTERS		6
+ #define INA226_REGISTERS		8
 -- 
 2.1.3
 
