@@ -1,77 +1,45 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 02 Dec 2014 11:43:43 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] hwmon: (lm95245) Add support for LM95235
-Message-Id: <547DA5EF.2000301@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Sat, 13 Dec 2014 16:27:16 +0000
+Subject: [lm-sensors] [PATCH v7 0/5] hwmon: ina2xx: implement chip reinitialization and add new attributes
+Message-Id: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417383473-10328-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1417383473-10328-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On 12/02/2014 03:39 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun, 30 Nov 2014 13:37:52 -0800, Guenter Roeck wrote:
->> LM95235 is register compatible to LM95245.
->>
->> Also update link to LM95245 data sheet, and drop the link to the
->> datasheet from the driver source to simplify code maintenance.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->> v2: Drop link to datasheet from driver source.
->>      Drop DEVNAME.
->>      Update MODULE_DESCRIPTION.
->>      Use the same driver_data values for supported chips
->>      since the field is not used by the driver.
->>
->>   Documentation/hwmon/lm95245 | 14 +++++++++-----
->>   drivers/hwmon/Kconfig       |  5 +++--
->>   drivers/hwmon/lm95245.c     | 41 +++++++++++++++++++++++++++--------------
->>   3 files changed, 39 insertions(+), 21 deletions(-)
->> (...)
->> diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
->> index 0ae0dfd..0680669 100644
->> --- a/drivers/hwmon/lm95245.c
->> +++ b/drivers/hwmon/lm95245.c
->> (...)
->> @@ -427,17 +424,32 @@ static int lm95245_detect(struct i2c_client *new_client,
->>   			  struct i2c_board_info *info)
->>   {
->>   	struct i2c_adapter *adapter = new_client->adapter;
->> +	int address = new_client->addr;
->> +	const char *name;
->> +	int rev, id;
->>
->>   	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
->>   		return -ENODEV;
->>
->> -	if (i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID)
->> -			!= MANUFACTURER_ID
->> -		|| i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID)
->> -			!= DEFAULT_REVISION)
->> +	id = i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID);
->> +	if (id != MANUFACTURER_ID)
->>   		return -ENODEV;
->>
->> -	strlcpy(info->type, DEVNAME, I2C_NAME_SIZE);
->> +	rev = i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID);
->> +	switch(rev) {
->
-> Missing space before opening parenthesis, checkpatch complains about
-> it. Your original patch had it right, not sure what happened?
->
-Me not either. The other patch has the same problem. Fixed up both.
+This series implements a mechanism to detect if the chip is in its POR state
+and reinitialize it if needed. It also extends the sysfs interface to make the
+driver configurable at run-time.
 
-> Everything else looks OK, so:
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Thanks!
+The shunt_resistor attribute allows to change the shunt resistance value
+at run-time in cases where ina2xx used to do the measurement isn't integrated
+with the shunt.
 
-Guenter
+The avg_rate attribute allows to increase/decrease noise reduction.
+
+v7:
+- implemented a retry counter for the reinitialization procedure
+- using msleep() (since the sleep is > 20ms) instead of mdelay()
+  when waiting for the chip update
+
+v6:
+https://www.mail-archive.com/linux-kernel%40vger.kernel.org/msg787390.html
+
+Bartosz Golaszewski (5):
+  hwmon: ina2xx: reinitialize the chip in case it's been reset
+  hwmon: ina2xx: remove a stray new line
+  hwmon: ina2xx: don't accept shunt values greater than the calibration factor
+  hwmon: ina2xx: make shunt resistance configurable at run-time
+  hwmon: ina2xx: allow to change the averaging rate at run-time
+
+ Documentation/hwmon/ina2xx |   8 +-
+ drivers/hwmon/ina2xx.c     | 304 +++++++++++++++++++++++++++++++++++++++------
+ 2 files changed, 269 insertions(+), 43 deletions(-)
+
+-- 
+2.1.3
 
 
 _______________________________________________
