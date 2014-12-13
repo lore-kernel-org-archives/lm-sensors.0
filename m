@@ -1,164 +1,255 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Mon, 22 Dec 2014 16:27:48 +0000
-Subject: [lm-sensors] [PATCH v2 8/8] hwmon: thermal: Code for using PWM FAN as a cooling device
-Message-Id: <1419265668-32283-9-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Sat, 13 Dec 2014 16:27:21 +0000
+Subject: [lm-sensors] [PATCH v7 5/5] hwmon: ina2xx: allow to change the averaging rate at run-time
+Message-Id: <1418488041-7433-6-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
+References: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-The PWM FAN device can now be used as a thermal cooling device. Necessary
-infrastructure has been added in this commit.
+The averaging rate of ina226 is hardcoded to 16 in the driver. Make it
+modifiable at run-time via a new sysfs attribute.
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+While we're at it - add an additional variable to ina2xx_data, which holds
+the current configuration settings - this way we'll be able to restore the
+configuration in case of an unexpected chip reset.
+
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
-Changes for v2:
-- Replace pwm_fan_cooling_states with pwm_fan_cooling_levels
-- Update ctx->pwm_fan_state when correct data from device tree is available
-- Using therma_cdev_update() when thermal is ready for controlling the fan
----
- drivers/hwmon/pwm-fan.c | 85 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 83 insertions(+), 2 deletions(-)
+ Documentation/hwmon/ina2xx |   3 ++
+ drivers/hwmon/ina2xx.c     | 132 +++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 131 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index 8e68308..a47fc3c 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/pwm.h>
- #include <linux/sysfs.h>
-+#include <linux/thermal.h>
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 320dd69..a11256d 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -48,3 +48,6 @@ The shunt value in micro-ohms can be set via platform data or device tree at
+ compile-time or via the shunt_resistor attribute in sysfs at run-time. Please
+ refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
+ if the device tree is used.
++
++The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
++attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 49537ea..d6fccad 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -68,6 +68,15 @@
  
- #define MAX_PWM 255
+ #define INA2XX_RSHUNT_DEFAULT		10000
  
-@@ -68,6 +69,17 @@ exit_set_pwm_err:
- 	return ret;
- }
++/* bit masks for the averaging setting in the configuration register */
++#define INA226_AVG_RD_MASK		0x0E00
++#define INA226_AVG_WR_MASK		0xF1FF
++
++#define INA226_READ_AVG(reg) ((reg & INA226_AVG_RD_MASK) >> 9)
++
++/* common attrs, ina226 attrs and NULL */
++#define INA2XX_MAX_ATTRIBUTE_GROUPS	3
++
+ enum ina2xx_ids { ina219, ina226 };
  
-+static void pwm_fan_update_state(struct pwm_fan_ctx *ctx, unsigned long pwm)
+ struct ina2xx_config {
+@@ -85,12 +94,14 @@ struct ina2xx_data {
+ 	const struct ina2xx_config *config;
+ 
+ 	long rshunt;
++	u16 curr_config;
+ 
+ 	struct mutex update_lock;
+ 	bool valid;
+ 	unsigned long last_updated;
+ 
+ 	int kind;
++	const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
+ 	u16 regs[INA2XX_MAX_REGISTERS];
+ };
+ 
+@@ -115,6 +126,38 @@ static const struct ina2xx_config ina2xx_config[] = {
+ 	},
+ };
+ 
++/*
++ * Available averaging rates for ina226. The indices correspond with
++ * the bit values expected by the chip (according to the ina226 datasheet,
++ * table 3 AVG bit settings, found at
++ * http://www.ti.com/lit/ds/symlink/ina226.pdf.
++ */
++static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
++
++static int ina226_avg_bits(int avg)
 +{
 +	int i;
 +
-+	for (i = 0; i < ctx->pwm_fan_max_state; ++i)
-+		if (pwm < ctx->pwm_fan_cooling_levels[i + 1])
-+			break;
++	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab); i++) {
++		if (avg = ina226_avg_tab[i])
++			return i;
++	}
 +
-+	ctx->pwm_fan_state = i;
++	return -EINVAL;
 +}
 +
- static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 		       const char *buf, size_t count)
++static int ina226_avg_val(int bits)
++{
++	/*
++	 * Value read from the config register should be correct, but do check
++	 * the boundary just in case.
++	 */
++	if (bits >= ARRAY_SIZE(ina226_avg_tab))
++		return -ENODEV;
++
++	return ina226_avg_tab[bits];
++}
++
+ static int ina2xx_calibrate(struct ina2xx_data *data)
  {
-@@ -82,6 +94,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 	if (ret)
+ 	return i2c_smbus_write_word_swapped(data->client, INA2XX_CALIBRATION,
+@@ -131,7 +174,7 @@ static int ina2xx_init(struct ina2xx_data *data)
+ 
+ 	/* device configuration */
+ 	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
+-					   data->config->config_default);
++					   data->curr_config);
+ 	if (ret < 0)
  		return ret;
  
-+	pwm_fan_update_state(ctx, pwm);
+@@ -292,6 +335,66 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
  	return count;
  }
  
-@@ -103,6 +116,59 @@ static struct attribute *pwm_fan_attrs[] = {
- 
- ATTRIBUTE_GROUPS(pwm_fan);
- 
-+/* thermal cooling device callbacks */
-+static int pwm_fan_get_max_state(struct thermal_cooling_device *cdev,
-+				 unsigned long *state)
++static ssize_t ina226_show_avg(struct device *dev,
++			       struct device_attribute *da, char *buf)
 +{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
++	struct ina2xx_data *data = ina2xx_update_device(dev);
++	int avg, i, written = 0;
++	const char *fmt;
 +
-+	*state = ctx->pwm_fan_max_state;
++	if (IS_ERR(data))
++		return PTR_ERR(data);
 +
-+	return 0;
-+}
++	avg = ina226_avg_val(INA226_READ_AVG(data->regs[INA2XX_CONFIG]));
++	if (avg < 0)
++		return avg;
 +
-+static int pwm_fan_get_cur_state(struct thermal_cooling_device *cdev,
-+				 unsigned long *state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
++	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab); i++) {
++		if (avg = ina226_avg_tab[i])
++			fmt = "\t[%d]";
++		else
++			fmt = "\t%d";
 +
-+	if (!ctx)
-+		return -EINVAL;
-+
-+	*state = ctx->pwm_fan_state;
-+
-+	return 0;
-+}
-+
-+static int
-+pwm_fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+	int ret;
-+
-+	if (!ctx || (state > ctx->pwm_fan_max_state))
-+		return -EINVAL;
-+
-+	if (state = ctx->pwm_fan_state)
-+		return 0;
-+
-+	ret = __set_pwm(ctx, ctx->pwm_fan_cooling_levels[state]);
-+	if (ret) {
-+		dev_err(&cdev->device, "Cannot set pwm!\n");
-+		return ret;
++		written += snprintf(buf + written, PAGE_SIZE - written,
++				    fmt, ina226_avg_tab[i]);
 +	}
++	written += snprintf(buf + written, PAGE_SIZE - written, "\n");
 +
-+	ctx->pwm_fan_state = state;
-+
-+	return ret;
++	return written;
 +}
 +
-+static const struct thermal_cooling_device_ops pwm_fan_cooling_ops = {
-+	.get_max_state = pwm_fan_get_max_state,
-+	.get_cur_state = pwm_fan_get_cur_state,
-+	.set_cur_state = pwm_fan_set_cur_state,
++static ssize_t ina226_set_avg(struct device *dev,
++			      struct device_attribute *da,
++			      const char *buf, size_t count)
++{
++	struct ina2xx_data *data = ina2xx_update_device(dev);
++	long val;
++	int status, avg;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	status = kstrtol(buf, 10, &val);
++	if (status < 0)
++		return status;
++
++	avg = ina226_avg_bits(val);
++	if (avg < 0)
++		return avg;
++
++	mutex_lock(&data->update_lock);
++	data->curr_config = (data->regs[INA2XX_CONFIG] &
++			     INA226_AVG_WR_MASK) | (avg << 9);
++	status = i2c_smbus_write_word_swapped(data->client,
++					      INA2XX_CONFIG,
++					      data->curr_config);
++	mutex_unlock(&data->update_lock);
++	if (status < 0)
++		return status;
++
++	return count;
++}
++
+ /* shunt voltage */
+ static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_value, NULL,
+ 			  INA2XX_SHUNT_VOLTAGE);
+@@ -313,6 +416,10 @@ static SENSOR_DEVICE_ATTR(shunt_resistor, S_IRUGO | S_IWUSR,
+ 			  ina2xx_show_value, ina2xx_set_shunt,
+ 			  INA2XX_CALIBRATION);
+ 
++/* averaging rate */
++static SENSOR_DEVICE_ATTR(avg_rate, S_IRUGO | S_IWUSR,
++			  ina226_show_avg, ina226_set_avg, 0);
++
+ /* pointers to created device attributes */
+ static struct attribute *ina2xx_attrs[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+@@ -322,7 +429,19 @@ static struct attribute *ina2xx_attrs[] = {
+ 	&sensor_dev_attr_shunt_resistor.dev_attr.attr,
+ 	NULL,
+ };
+-ATTRIBUTE_GROUPS(ina2xx);
++
++static const struct attribute_group ina2xx_group = {
++	.attrs = ina2xx_attrs,
 +};
 +
- int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- {
- 	struct device_node *np = dev->of_node;
-@@ -146,8 +212,9 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- 
- static int pwm_fan_probe(struct platform_device *pdev)
- {
--	struct device *hwmon;
-+	struct thermal_cooling_device *cdev;
- 	struct pwm_fan_ctx *ctx;
-+	struct device *hwmon;
- 	int duty_cycle;
- 	int ret;
- 
-@@ -190,7 +257,21 @@ static int pwm_fan_probe(struct platform_device *pdev)
- 		return PTR_ERR(hwmon);
- 	}
- 
--	pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
-+	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
-+	if (!ret) {
-+		ctx->pwm_fan_state = ctx->pwm_fan_max_state;
-+		cdev = thermal_of_cooling_device_register(pdev->dev.of_node,
-+							  "pwm-fan", ctx,
-+							  &pwm_fan_cooling_ops);
-+		if (IS_ERR(cdev)) {
-+			dev_err(&pdev->dev,
-+				"Failed to register pwm-fan as cooling device");
-+			pwm_disable(ctx->pwm);
-+			return PTR_ERR(cdev);
-+		}
-+		thermal_cdev_update(cdev);
-+	}
++static struct attribute *ina226_attrs[] = {
++	&sensor_dev_attr_avg_rate.dev_attr.attr,
++	NULL,
++};
 +
- 	return 0;
- }
++static const struct attribute_group ina226_group = {
++	.attrs = ina226_attrs,
++};
+ 
+ static int ina2xx_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+@@ -333,7 +452,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	struct ina2xx_data *data;
+ 	struct device *hwmon_dev;
+ 	u32 val;
+-	int ret;
++	int ret, group = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+@@ -355,6 +474,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	/* set the device type */
+ 	data->kind = id->driver_data;
+ 	data->config = &ina2xx_config[data->kind];
++	data->curr_config = data->config->config_default;
+ 	data->client = client;
+ 
+ 	if (data->rshunt <= 0 ||
+@@ -369,8 +489,12 @@ static int ina2xx_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&data->update_lock);
+ 
++	data->groups[group++] = &ina2xx_group;
++	if (data->kind = ina226)
++		data->groups[group++] = &ina226_group;
++
+ 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
+-							   data, ina2xx_groups);
++							   data, data->groups);
+ 	if (IS_ERR(hwmon_dev))
+ 		return PTR_ERR(hwmon_dev);
  
 -- 
-2.0.0.rc2
+2.1.3
 
 
 _______________________________________________
