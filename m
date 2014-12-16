@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 12 Dec 2014 16:36:26 +0000
+From: Richard Llom <richard.llom@gmail.com>
+Date: Tue, 16 Dec 2014 23:10:22 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <20141212163626.GD28564@roeck-us.net>
+Message-Id: <m6qe4v$4n6$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
@@ -10,63 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVGh1LCBEZWMgMTEsIDIwMTQgYXQgMDQ6MDY6MDJQTSArMDEwMCwgUmljaGFyZCBMbG9tIHdy
-b3RlOgo+IEhpIEplYW4sCj4gdGhhbmtzIGZvciB5b3VyIHByb21wdCBhbnN3ZXIhCj4gCj4gSmVh
-biBEZWx2YXJlIHdyb3RlOgo+ID4gT24gVGh1LCAxMSBEZWMgMjAxNCAxMjoyNjozMCArMDEwMCwg
-UmljaGFyZCBMbG9tIHdyb3RlOgo+ID4+IEhpLAo+ID4+IGFmdGVyIGEgcmVjZW50IGtlcm5lbCB1
-cGRhdGUgdG8gMy4xNy40IGluIG15IGRpc3RybyBJIGNhbid0IHJlYWQgbXkKPiA+PiBzZW5zb3Jz
-IGFueW1vcmUgd2l0aCBteSBiZWxvdmVkIGtzeXNndWFyZCAoL1N5c3RlbSBNb25pdG9yKS4gU3Ry
-YW5nZQo+ID4+IHRoaW5nIGlzLCBJIGNhbiBzdGlsbCBzZWUgdGhlIHNlbnNvcnMgd2l0aCAic2Vu
-c29ycyIgKHNlZSBiZWxvdykuCj4gPj4gCj4gPj4gU28gSSB3YXMgd29uZGVyaW5nIGlmIHNvbWV0
-aGluZyBjaGFuZ2VkIHdpdGggdGhpcyBrZXJuZWwgb3IgaWYgdGhlcmUgYXJlCj4gPj4ga25vd24g
-aXNzdWVzPwo+ID4gCj4gPiBXZSBhcmUgaW4gdGhlIHByb2Nlc3Mgb2YgY29udmVydGluZyBtYW55
-IGRyaXZlcnMgdG8gaGF2ZSB0aGVpcgo+ID4gYXR0cmlidXRlcyBhdHRhY2hlZCB0byB0aGUgaHdt
-b24gY2xhc3MgZGV2aWNlIGluc3RlYWQgb2YgdGhlIHBoeXNpY2FsCj4gPiBkZXZpY2UuIEFueSBh
-cHBsaWNhdGlvbiBub3QgcmVseWluZyBvbiBsaWJzZW5zb3JzIG1heSBnZXQgY29uZnVzZWQgYnkK
-PiA+IHRoaXMgY2hhbmdlLiBXZSBoYWQgcmVwb3J0cyBvZiB0aGlzIGhhcHBlbmluZyBhbHJlYWR5
-LiBUaGF0IGJlaW5nIHNhaWQsCj4gPiB0aGUgZHJpdmVycyB5b3UgYXJlIHVzaW5nIGhhdmUgbm90
-IGJlZW4gY29udmVydGVkIGluIDMuMTcuIGsxMHRlbXAgd2FzCj4gPiBjb252ZXJ0ZWQgaW4gMy4x
-OCwgd2hpbGUgaXQ4NyB3YXMgbm90IGNvbnZlcnRlZCB5ZXQuIFNvIEknbSBhIGJpdAo+ID4gY29u
-ZnVzZWQuIFBsdXMgSSB0aGluayBrc3lzZ3VhcmQgaXMgdXNpbmcgbGlic2Vuc29ycyBhbnl3YXku
-IFdoaWNoCj4gPiB2ZXJpb25zIG9mIGtzeXNndWFyZCBhbmQgbGlic2Vuc29ycyBhcmUgeW91IHVz
-aW5nPwo+ID4gCj4gU3lzdGVtIE1vbml0b3IgVmVyc2lvbiA0LjExLjE0Cj4gVXNpbmcgS0RFIERl
-dmVsb3BtZW50IFBsYXRmb3JtIDQuMTQuMwo+IAo+IHBhY21hbiAtUW8gL3Vzci9saWIvbGlic2Vu
-c29ycy5zby40LjMuMgo+IC91c3IvbGliL2xpYnNlbnNvcnMuc28uNC4zLjIgaXMgb3duZWQgYnkg
-bG1fc2Vuc29ycyAzLjMuNS0xCj4gCj4gPj4gV2hhdCBkYWVtb24vc2VydmljZSAoPykgaXMgcmVz
-cG9uc2libGUgZm9yIHByb3ZpZGluZyB0aGUgc2Vuc29yIGRhdGEgdG8KPiA+PiBwcm9ncmFtcz8g
-SG93IGNhbiBJIGNoZWNrIGlmIGl0IGlzIHJ1bm5pbmcgY29ycmVjdGx5Pwo+ID4gCj4gPiBObyBz
-ZXJ2aWNlIGlzIGRvaW5nIHRoYXQuIFRoZSBpbmZvcm1hdGlvbiBpcyBhdmFpbGFibGUgaW4gc3lz
-ZnMsIGFuZAo+ID4gbGlic2Vuc29ycyBnZXRzIGl0IGZyb20gdGhlcmUgYW5kIG1ha2VzIGl0IGF2
-YWlsYWJsZSB0byBhcHBsaWNhdGlvbnMgaW4KPiA+IGFuIGVhc3kgd2F5Lgo+ID4gCj4gV2hlcmUg
-ZXhhY3RseSBpbiAvc3lzID8gQmVjYXVzZSBoZXJlIEkgY2FuJ3QgZmluZCBhbnl0aGluZyB0aGVy
-ZSByZWxhdGVkIHRvIAo+IG15IHNlbnNvcnMuLi4KPiAKPiA+IEknbSBub3QgdG9vIHN1cmUgaG93
-IHRvIGRlYnVnIHRoaXMgZnVydGhlci4gQ2FuIHlvdSBkZXNjcmliZSB0aGUKPiA+IHN5bXB0b21z
-IGJldHRlcj8KPiA+IAo+IFdlbGwsIGtzeXNndWFyZCBjb21lcyB3aXRoIGEgIlNlbnNvciBCcm93
-c2VyIiwgeW91IGNhbiBmaW5kIGl0IGluIGEgbmV3IHRhYiAKPiAoRmlsZSAtPiBOZXcgVGFiKS4g
-SW4gdGhpcyBzZW5zb3IgYnJvd3NlciBJIGhhZCB0aGUgdmVyeSBzYW1lIHNlbnNvcnMgCj4gcHJv
-dmlkZWQgYnkgInNlbnNvcnMiIGUuZy4KPiBub3V2ZWF1LXBjaS0wMTAwCj4g4oifIHRlbXAxCj4g
-azEwdGVtcC1wY2ktMDBjMwo+IOKInyB0ZW1wMQo+IGl0ODcyMC1pc2EtMDIyOAo+IOKInyBmYW4x
-Cj4g4oifIGZhbjIKPiDiiJ8gZmFuMwo+IOKInyBpbjAKPiDiiJ8gLi4uCj4gQnV0IG5vdCBzbyBh
-ZnRlciB0aGUgdXBkYXRlIGFueW1vcmUuLi4KPiBUaGVyZSBhcmUgc3RpbGwgb3RoZXIgc2Vuc29y
-cyAoQ1BVIExvYWQsIERpc2ssIE5ldHdvcmssIGV0Yy4uLikgd2hpY2ggc3RpbGwgCj4gd29yay4K
-PiAKPiA+IENhbiB5b3UgcnVuIGtzeXNndWFyZCBmcm9tIGEgdGVybWluYWwgYW5kIHNlZSBpZiBp
-dCdzCj4gPiBzcGl0dGluZyBhbnkgZXJyb3IgbWVzc2FnZSAob3IgbG9nZ2luZyB0aGVtIHNvbWV3
-aGVyZSBtYXliZT8pCj4gPiAKPiBUaGlzIGlzIHRoZSBvdXRwdXQgZnJvbSB0aGUgdGVybWluYWwK
-PiBrc3lzZ3VhcmQoMzE2OCkgS1NHUkQ6OlNlbnNvckFnZW50Ojpwcm9jZXNzQW5zd2VyOiBSZWNl
-aXZlZCBVTktOT1dOIENPTU1BTkQgCj4gZm9yOiAgImxtc2Vuc29ycy9rMTB0ZW1wLXBjaS0wMGMz
-L3RlbXAxPyIKPiBrc3lzZ3VhcmQoMzE2OCkgS1NHUkQ6OlNlbnNvckFnZW50Ojpwcm9jZXNzQW5z
-d2VyOiBSZWNlaXZlZCBVTktOT1dOIENPTU1BTkQgCj4gZm9yOiAgImxtc2Vuc29ycy9pdDg3MjAt
-aXNhLTAyMjgvdGVtcDE/Igo+IGtzeXNndWFyZCgzMTY4KSBLU0dSRDo6U2Vuc29yQWdlbnQ6OnBy
-b2Nlc3NBbnN3ZXI6IFJlY2VpdmVkIFVOS05PV04gQ09NTUFORCAKPiBmb3I6ICAibG1zZW5zb3Jz
-L25vdXZlYXUtcGNpLTAxMDAvdGVtcDE/Igo+IGtzeXNndWFyZCgzMTY4KSBLU0dSRDo6U2Vuc29y
-QWdlbnQ6OnByb2Nlc3NBbnN3ZXI6IFJlY2VpdmVkIFVOS05PV04gQ09NTUFORCAKPiBmb3I6ICAi
-bG1zZW5zb3JzL2l0ODcyMC1pc2EtMDIyOC9mYW4xPyIKPiBrc3lzZ3VhcmQoMzE2OCkgS1NHUkQ6
-OlNlbnNvckFnZW50Ojpwcm9jZXNzQW5zd2VyOiBSZWNlaXZlZCBVTktOT1dOIENPTU1BTkQgCj4g
-Zm9yOiAgImxtc2Vuc29ycy9pdDg3MjAtaXNhLTAyMjgvZmFuMj8iCj4gLi4uCj4gCkZXSVcsIEkg
-dHJpZWQga3N5c2d1YXJkIHdpdGggYSAzLjE4IGtlcm5lbCBhbmQgZGlkIG5vdCBzZWUgYW55IHBy
-b2JsZW1zLgpJIGN1cnJlbnRseSBoYXZlIGFjcGl0ei12aXJ0dWFsLCBjb3JldGVtcCwgbmN0Njc5
-MiwgbWF4NjY5NSwgdG1wNDM1LCBhbmQKdG1wNDUxIGNvbm5lY3RlZCB0byB0aGUgc3lzdGVtLiBJ
-IHRyaWVkIHdpdGggVWJ1bnR1IDE0LjA0IGFuZCAxNC4xMC4gCgpHdWVudGVyCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcg
-bGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Guenter Roeck wrote:
+> On Thu, Dec 11, 2014 at 04:06:02PM +0100, Richard Llom wrote:
+>> Jean Delvare wrote:
+>>> On Thu, 11 Dec 2014 12:26:30 +0100, Richard Llom wrote:
+>>>> after a recent kernel update to 3.17.4 in my distro I can't read my
+>>>> sensors anymore with my beloved ksysguard (/System Monitor). Strange
+>>>> thing is, I can still see the sensors with "sensors" (see below).
+>>>> 
+>>> Can you run ksysguard from a terminal and see if it's
+>>> spitting any error message (or logging them somewhere maybe?)
+>>> 
+>> This is the output from the terminal
+>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
+>> COMMAND for:  "lmsensors/k10temp-pci-00c3/temp1?"
+>> ...
+>> 
+> FWIW, I tried ksysguard with a 3.18 kernel and did not see any problems.
+> I currently have acpitz-virtual, coretemp, nct6792, max6695, tmp435, and
+> tmp451 connected to the system. I tried with Ubuntu 14.04 and 14.10.
+> 
+I tried it with a former kernel (3.16) on a live session of chakra and it 
+works there, too...
+
+
+Is there any information on how to debug this further?
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
