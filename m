@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 17 Dec 2014 03:12:01 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 17 Dec 2014 10:01:31 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <5490F481.5050208@roeck-us.net>
+Message-Id: <20141217110131.3153fb66@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
@@ -10,39 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 12/16/2014 03:10 PM, Richard Llom wrote:
-> Guenter Roeck wrote:
->> On Thu, Dec 11, 2014 at 04:06:02PM +0100, Richard Llom wrote:
->>> Jean Delvare wrote:
->>>> On Thu, 11 Dec 2014 12:26:30 +0100, Richard Llom wrote:
->>>>> after a recent kernel update to 3.17.4 in my distro I can't read my
->>>>> sensors anymore with my beloved ksysguard (/System Monitor). Strange
->>>>> thing is, I can still see the sensors with "sensors" (see below).
->>>>>
->>>> Can you run ksysguard from a terminal and see if it's
->>>> spitting any error message (or logging them somewhere maybe?)
->>>>
->>> This is the output from the terminal
->>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
->>> COMMAND for:  "lmsensors/k10temp-pci-00c3/temp1?"
->>> ...
->>>
->> FWIW, I tried ksysguard with a 3.18 kernel and did not see any problems.
->> I currently have acpitz-virtual, coretemp, nct6792, max6695, tmp435, and
->> tmp451 connected to the system. I tried with Ubuntu 14.04 and 14.10.
->>
-> I tried it with a former kernel (3.16) on a live session of chakra and it
-> works there, too...
->
->
-> Is there any information on how to debug this further?
->
+On Thu, 11 Dec 2014 16:06:02 +0100, Richard Llom wrote:
+> Jean Delvare wrote:
+> > On Thu, 11 Dec 2014 12:26:30 +0100, Richard Llom wrote:
+> System Monitor Version 4.11.14
+> Using KDE Development Platform 4.14.3
+> 
+> pacman -Qo /usr/lib/libsensors.so.4.3.2
+> /usr/lib/libsensors.so.4.3.2 is owned by lm_sensors 3.3.5-1
 
-I downloaded the source, but unfortunately the code is too chaotic for me
-to understand it :-(. I didn't find anything on the web either.
+OK, this is recent enough so I don't think there is any problem with
+the library.
 
-Guenter
+> >> What daemon/service (?) is responsible for providing the sensor data to
+> >> programs? How can I check if it is running correctly?
+> > 
+> > No service is doing that. The information is available in sysfs, and
+> > libsensors gets it from there and makes it available to applications in
+> > an easy way.
+>
+> Where exactly in /sys ? Because here I can't find anything there related to 
+> my sensors...
 
+In /sys/class/hwmon.
+
+> > (...)
+> > Can you run ksysguard from a terminal and see if it's
+> > spitting any error message (or logging them somewhere maybe?)
+>
+> This is the output from the terminal
+> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN COMMAND 
+> for:  "lmsensors/k10temp-pci-00c3/temp1?"
+> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN COMMAND 
+> for:  "lmsensors/it8720-isa-0228/temp1?"
+> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN COMMAND 
+> for:  "lmsensors/nouveau-pci-0100/temp1?"
+> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN COMMAND 
+> for:  "lmsensors/it8720-isa-0228/fan1?"
+> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN COMMAND 
+> for:  "lmsensors/it8720-isa-0228/fan2?"
+
+This should be reported to the maintainers of ksysguardd, this is an
+application error after all.
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
