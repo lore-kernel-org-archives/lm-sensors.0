@@ -1,39 +1,50 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 17 Dec 2014 15:47:58 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 17 Dec 2014 16:27:12 +0000
 Subject: Re: [lm-sensors] Supermicro X7DBU configuration
-Message-Id: <1418831278.4626.3.camel@chaos.site>
+Message-Id: <20141217162712.GA27228@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BLU175-DS1275A243EB8731D1852460E66C0@phx.gbl>
 In-Reply-To: <BLU175-DS1275A243EB8731D1852460E66C0@phx.gbl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-TGUgV2VkbmVzZGF5IDE3IERlY2VtYmVyIDIwMTQgw6AgMDY6NDMgLTA4MDAsIEd1ZW50ZXIgUm9l
-Y2sgYSDDqWNyaXQgOgo+IE9uIDEyLzE3LzIwMTQgMDI6MDggQU0sIEplYW4gRGVsdmFyZSB3cm90
-ZToKPiA+IFRoaXMgY2hpcCBpcyBtaXNzaW5nIGZyb20gdGhlIG91dHB1dCBvZiAic2Vuc29ycyIg
-YmVsb3cuIFlvdSBuZWVkIHRvCj4gPiBmaWd1cmUgb3V0IHdoeS4gSXMgdGhlIHc4Mzc5MyBrZXJu
-ZWwgbW9kdWxlIGF2YWlsYWJsZSBvbiB5b3VyIHN5c3RlbT8KPiA+IElzIGl0IGxvYWRlZD8gSWYg
-bm90LCB3aGF0IGhhcHBlbnMgaWYgeW91IHRyeSB0byBsb2FkIGl0IG1hbnVhbGx5PyBBbnkKPiA+
-IGVycm9yIG1lc3NhZ2UgaW4gdGhlIGtlcm5lbCBsb2c/IFRoZSBmYW5zIGFyZSBjZXJ0YWlubHkg
-Y29ubmVjdGVkIHRvCj4gPiB0aGF0IGNoaXAuCj4gCj4gSGFyZHdhcmUgbW9uaXRvcmluZyBtaWdo
-dCBiZSBkaXNhYmxlZCBmb3IgdGhpcyBjaGlwLiBJIGhhdmUgc2VlbiB0aGlzCj4gd2l0aCBvdGhl
-ciBTdXBlcm1pY3JvIGJvYXJkczsgb24gbWluZSwgZm9yIGV4YW1wbGUsIHRoZXkgdXNlIHRoZSBz
-ZWNvbmQKPiBTdXBlcklPIGNoaXAgb25seSBmb3IgYWRkaXRpb25hbCBzZXJpYWwgcG9ydHMuIFRo
-ZSBrZXJuZWwgbG9nIG1pZ2h0Cj4gZ2l2ZSBhIGhpbnQgaWYgdGhhdCBpcyB0aGUgY2FzZS4KCkkg
-ZG91YnQgdGhpcyBpcyB0aGUgY2FzZSBoZXJlLCBhcyB0aGUgVzgzNzkzRyBpcyBhIGRlZGljYXRl
-ZCBoYXJkd2FyZQptb25pdG9yaW5nIGNoaXAuIFRoZXJlJ3Mgbm8gcG9pbnQgaW4gcHV0dGluZyBp
-dCBvbiB0aGUgYm9hcmQgaWYgdGhleQpkb24ndCB1c2UgdGhlIGZlYXR1cmUuCgo+IEFub3RoZXIg
-b3B0aW9uIG1pZ2h0IGJlIHRoYXQgdGhlIG1pc3NpbmcgY2hpcCBpcyB0aGUgb25lIHVzZWQgZm9y
-IGhhcmR3YXJlCj4gbW9uaXRvcmluZyBidXQgaXRzIHJlZ2lzdGVyIHNwYWNlIGlzIHJlc2VydmVk
-IGJ5IEFDUEkuIFRoYXQgd291bGQgZXhwbGFpbgo+IHdoeSB0aGUgY2hpcCBsaXN0ZWQgYmVsb3cg
-ZG9lc24ndCByZXBvcnQgbXVjaCB1c2VmdWwgZGF0YS4gQWdhaW4sIHRoZQo+IGtlcm5lbCBsb2cg
-c2hvdWxkIGdpdmUgYSBoaW50LgoKSSBkb24ndCB0aGluayB0aGlzIGNhbiBoYXBwZW4gZm9yIGFu
-IFNNQnVzIGRldmljZS4gSWYgdGhlIFNNQnVzCmNvbnRyb2xsZXIgaGFkIGFuIEFDUEkgSS9PIHJl
-c291cmNlIGNvbmZsaWN0LCBzZW5zb3JzLWRldGVjdCB3b3VsZCBub3QKaGF2ZSBiZWVuIGFibGUg
-dG8gc2NhbiBpdC4gQW5kIHRoZXJlIGlzIG5vIG5vdGlvbiBvZiBJMkMvU01CdXMgcmVzb3VyY2UK
-c3BhY2UgaW4gQUNQSS4KCi0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBTdXBwb3J0CgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Wed, Dec 17, 2014 at 04:47:58PM +0100, Jean Delvare wrote:
+> Le Wednesday 17 December 2014 =E0 06:43 -0800, Guenter Roeck a =E9crit :
+> > On 12/17/2014 02:08 AM, Jean Delvare wrote:
+> > > This chip is missing from the output of "sensors" below. You need to
+> > > figure out why. Is the w83793 kernel module available on your system?
+> > > Is it loaded? If not, what happens if you try to load it manually? Any
+> > > error message in the kernel log? The fans are certainly connected to
+> > > that chip.
+> >=20
+> > Hardware monitoring might be disabled for this chip. I have seen this
+> > with other Supermicro boards; on mine, for example, they use the second
+> > SuperIO chip only for additional serial ports. The kernel log might
+> > give a hint if that is the case.
+>=20
+> I doubt this is the case here, as the W83793G is a dedicated hardware
+> monitoring chip. There's no point in putting it on the board if they
+> don't use the feature.
+>=20
+> > Another option might be that the missing chip is the one used for hardw=
+are
+> > monitoring but its register space is reserved by ACPI. That would expla=
+in
+> > why the chip listed below doesn't report much useful data. Again, the
+> > kernel log should give a hint.
+>=20
+> I don't think this can happen for an SMBus device. If the SMBus
+> controller had an ACPI I/O resource conflict, sensors-detect would not
+> have been able to scan it. And there is no notion of I2C/SMBus resource
+> space in ACPI.
+>=20
+Good point. Maybe the w83793 driver is simply not loaded.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
