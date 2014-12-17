@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 17 Dec 2014 03:01:09 +0000
+Date: Wed, 17 Dec 2014 03:12:01 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <5490F1F5.9060307@roeck-us.net>
+Message-Id: <5490F481.5050208@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
@@ -38,7 +38,8 @@ On 12/16/2014 03:10 PM, Richard Llom wrote:
 > Is there any information on how to debug this further?
 >
 
-I for my part have no idea right now :-(.
+I downloaded the source, but unfortunately the code is too chaotic for me
+to understand it :-(. I didn't find anything on the web either.
 
 Guenter
 
