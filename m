@@ -1,78 +1,52 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 18 Dec 2014 18:17:01 +0000
+From: Richard Llom <richard.llom@gmail.com>
+Date: Thu, 18 Dec 2014 19:03:18 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <20141218181701.GA19594@roeck-us.net>
+Message-Id: <m6v8dn$vqu$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 18, 2014 at 05:49:19PM +0100, Jean Delvare wrote:
-> Le Thursday 18 December 2014 =E0 16:33 +0000, Richard Llom a =E9crit :
-> > Jean Delvare wrote:
-> > > Le Thursday 18 December 2014 =E0 12:29 +0000, Richard Llom a =E9crit :
-> > >> Jean Delvare wrote:
-> > >>> On Thu, 11 Dec 2014 16:06:02 +0100, Richard Llom wrote:
-> > >> Or ksysguard actually doesn't use libsensors at all and is looking f=
-or
-> > >> the information in the wrong place?
-> > >=20
-> > > When the libsensors API changed (from lm-sensors 2.x to 3.x), we
-> > > converted ksysguard:
-> > > http://www.lm-sensors.org/wiki/Libsensors4AppSupport
-> > >=20
-> > Aha, good to know.
-> >=20
-> > > So back then they certainly did use libsensors. I checked version 4.3=
-.5,
-> > > which is what's available on my system, and it does link against
-> > > libsensors.so.4. Can you check the output of:
-> > > $ ldd /usr/bin/ksysguardd
-> > > (or whatever the path is on your system)?
-> > >=20
-> > $ ldd /usr/bin/ksysguardd
-> >         linux-vdso.so.1 (0x00007fff49132000)
-> >         libc.so.6 =3D> /usr/lib/libc.so.6 (0x00007f5f72de8000)
-> >         /lib64/ld-linux-x86-64.so.2 (0x00007f5f7318b000)
->=20
-> OK, so apparently they stopped using libsensors at some point. Which was
-> a very bad idea, as you just found out. Please report to them.
->=20
-On my system (Ubuntu 14.10):
-
-ldd /usr/bin/ksysguardd
-        linux-vdso.so.1 =3D>  (0x00007fffc51fe000)
-	libsensors.so.4 =3D> /usr/local/lib/libsensors.so.4 (0x00007f19f8e05000)
-	libc.so.6 =3D> /lib/x86_64-linux-gnu/libc.so.6 (0x00007f19f8a40000)
-	libm.so.6 =3D> /lib/x86_64-linux-gnu/libm.so.6 (0x00007f19f8739000)
-	/lib64/ld-linux-x86-64.so.2 (0x00007f19f903c000)
-
-with
-
-/usr/bin/ksysguardd --version
-ksysguardd 4
-(c) 1999, 2000, 2001, 2002 Chris Schlaeger <cs@kde.org>
-(c) 2001 Tobias Koenig <tokoe@kde.org>
-(c) 2006-2008 Greg Martyn <greg.martyn@gmail.com>
-This program is part of the KDE Project and licensed under
-the GNU GPL version 2. See http://www.kde.org for details.
-Usage: /usr/bin/ksysguardd [-d] [-i] [-p port]
-
-dpkg also shows a dependency of ksysguardd on libsensors.
-
-Package: ksysguardd
-Source: kde-workspace
-Version: 4:4.11.12-0ubuntu1.1
-Depends: libc6 (>=3D 2.15), libsensors4 (>=3D 1:3.0.0)
-
-Maybe there are different versions and/or build options ?
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+R3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiBUaHUsIERlYyAxOCwgMjAxNCBhdCAwNTo0OToxOVBN
+ICswMTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4+IExlIFRodXJzZGF5IDE4IERlY2VtYmVyIDIw
+MTQgw6AgMTY6MzMgKzAwMDAsIFJpY2hhcmQgTGxvbSBhIMOpY3JpdCA6Cj4+PiBKZWFuIERlbHZh
+cmUgd3JvdGU6Cj4+Pj4gTGUgVGh1cnNkYXkgMTggRGVjZW1iZXIgMjAxNCDDoCAxMjoyOSArMDAw
+MCwgUmljaGFyZCBMbG9tIGEgw6ljcml0IDoKPj4+Pj4gSmVhbiBEZWx2YXJlIHdyb3RlOgo+Pj4+
+IFNvIGJhY2sgdGhlbiB0aGV5IGNlcnRhaW5seSBkaWQgdXNlIGxpYnNlbnNvcnMuIEkgY2hlY2tl
+ZCB2ZXJzaW9uCj4+Pj4gNC4zLjUsIHdoaWNoIGlzIHdoYXQncyBhdmFpbGFibGUgb24gbXkgc3lz
+dGVtLCBhbmQgaXQgZG9lcyBsaW5rCj4+Pj4gYWdhaW5zdCBsaWJzZW5zb3JzLnNvLjQuIENhbiB5
+b3UgY2hlY2sgdGhlIG91dHB1dCBvZjoKPj4+PiAkIGxkZCAvdXNyL2Jpbi9rc3lzZ3VhcmRkCj4+
+Pj4gKG9yIHdoYXRldmVyIHRoZSBwYXRoIGlzIG9uIHlvdXIgc3lzdGVtKT8KPj4+PiAKPj4+ICQg
+bGRkIC91c3IvYmluL2tzeXNndWFyZGQKPj4+ICAgICAgICAgbGludXgtdmRzby5zby4xICgweDAw
+MDA3ZmZmNDkxMzIwMDApCj4+PiAgICAgICAgIGxpYmMuc28uNiA9PiAvdXNyL2xpYi9saWJjLnNv
+LjYgKDB4MDAwMDdmNWY3MmRlODAwMCkKPj4+ICAgICAgICAgL2xpYjY0L2xkLWxpbnV4LXg4Ni02
+NC5zby4yICgweDAwMDA3ZjVmNzMxOGIwMDApCj4+IAo+PiBPSywgc28gYXBwYXJlbnRseSB0aGV5
+IHN0b3BwZWQgdXNpbmcgbGlic2Vuc29ycyBhdCBzb21lIHBvaW50LiBXaGljaCB3YXMKPj4gYSB2
+ZXJ5IGJhZCBpZGVhLCBhcyB5b3UganVzdCBmb3VuZCBvdXQuIFBsZWFzZSByZXBvcnQgdG8gdGhl
+bS4KPj4gCj4gT24gbXkgc3lzdGVtIChVYnVudHUgMTQuMTApOgo+IAo+IGxkZCAvdXNyL2Jpbi9r
+c3lzZ3VhcmRkCj4gICAgICAgICBsaW51eC12ZHNvLnNvLjEgPT4gICgweDAwMDA3ZmZmYzUxZmUw
+MDApCj4gbGlic2Vuc29ycy5zby40ID0+IC91c3IvbG9jYWwvbGliL2xpYnNlbnNvcnMuc28uNCAo
+MHgwMDAwN2YxOWY4ZTA1MDAwKQo+IGxpYmMuc28uNiA9PiAvbGliL3g4Nl82NC1saW51eC1nbnUv
+bGliYy5zby42ICgweDAwMDA3ZjE5ZjhhNDAwMDApCj4gbGlibS5zby42ID0+IC9saWIveDg2XzY0
+LWxpbnV4LWdudS9saWJtLnNvLjYgKDB4MDAwMDdmMTlmODczOTAwMCkKPiAvbGliNjQvbGQtbGlu
+dXgteDg2LTY0LnNvLjIgKDB4MDAwMDdmMTlmOTAzYzAwMCkKPiAKPiB3aXRoCj4gCj4gL3Vzci9i
+aW4va3N5c2d1YXJkZCAtLXZlcnNpb24KPiBrc3lzZ3VhcmRkIDQKPiAoYykgMTk5OSwgMjAwMCwg
+MjAwMSwgMjAwMiBDaHJpcyBTY2hsYWVnZXIgPGNzQGtkZS5vcmc+Cj4gKGMpIDIwMDEgVG9iaWFz
+IEtvZW5pZyA8dG9rb2VAa2RlLm9yZz4KPiAoYykgMjAwNi0yMDA4IEdyZWcgTWFydHluIDxncmVn
+Lm1hcnR5bkBnbWFpbC5jb20+Cj4gVGhpcyBwcm9ncmFtIGlzIHBhcnQgb2YgdGhlIEtERSBQcm9q
+ZWN0IGFuZCBsaWNlbnNlZCB1bmRlcgo+IHRoZSBHTlUgR1BMIHZlcnNpb24gMi4gU2VlIGh0dHA6
+Ly93d3cua2RlLm9yZyBmb3IgZGV0YWlscy4KPiBVc2FnZTogL3Vzci9iaW4va3N5c2d1YXJkZCBb
+LWRdIFstaV0gWy1wIHBvcnRdCj4gCj4gZHBrZyBhbHNvIHNob3dzIGEgZGVwZW5kZW5jeSBvZiBr
+c3lzZ3VhcmRkIG9uIGxpYnNlbnNvcnMuCj4gCj4gUGFja2FnZToga3N5c2d1YXJkZAo+IFNvdXJj
+ZToga2RlLXdvcmtzcGFjZQo+IFZlcnNpb246IDQ6NC4xMS4xMi0wdWJ1bnR1MS4xCj4gRGVwZW5k
+czogbGliYzYgKD49IDIuMTUpLCBsaWJzZW5zb3JzNCAoPj0gMTozLjAuMCkKPiAKPiBNYXliZSB0
+aGVyZSBhcmUgZGlmZmVyZW50IHZlcnNpb25zIGFuZC9vciBidWlsZCBvcHRpb25zID8KPiAKVGhh
+bmtzIGZvciB0aGUgaW5wdXQgZ3V5cyEKSSByZXBvcnRlZCB0aGlzIHRvIG15IGRpc3Ryby9wYWNr
+YWdlciwgbGV0cyBzZWUgd2hhdCB0aGV5IHNheSAobWF5YmUgaXQgaXMgCmp1c3QgYW4gcGFja2Fn
+aW5nIGVycm9yKS4KCmNoZWVycwpyaWNoYXJkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
+bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
+by9sbS1zZW5zb3Jz
