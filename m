@@ -1,29 +1,90 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 04 Dec 2014 09:57:26 +0000
-Subject: [lm-sensors] [PATCH 0/2] hwmon: tmp401: support for TMP435 and fix for a probe issue
-Message-Id: <1417687048-21455-1-git-send-email-bgolaszewski@baylibre.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Thu, 18 Dec 2014 10:13:07 +0000
+Subject: [lm-sensors] [PATCH 5/9] hwmon: thermal: Extract __set_pwm() function to only modify PWM duty cycle
+Message-Id: <1418897591-18332-6-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-This series adds support for the TI TMP435 chip and fixes an issue similar
-to the one we observed for ina2xx - ignoring the write errors when probing the
-device.
+It was necessary to decouple code handling writing to sysfs from the one
+responsible for setting PWM of the fan.
+Due to that, new __set_pwm() method was extracted, which is responsible for
+only setting new PWM duty cycle.
 
-Bartosz Golaszewski (1):
-  hwmon: tmp401: bail-out from tmp401_probe() in case of write errors
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+ drivers/hwmon/pwm-fan.c | 35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-Patrick Titiano (1):
-  hwmon: tmp401: add support for TI TMP435
-
- drivers/hwmon/tmp401.c | 32 ++++++++++++++++++++++++--------
- 1 file changed, 24 insertions(+), 8 deletions(-)
-
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index 1991d903..870e100 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -33,21 +33,15 @@ struct pwm_fan_ctx {
+ 	unsigned char pwm_value;
+ };
+ 
+-static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+-		       const char *buf, size_t count)
++static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
+ {
+-	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
+-	unsigned long pwm, duty;
+-	ssize_t ret;
+-
+-	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
+-		return -EINVAL;
+-
+-	mutex_lock(&ctx->lock);
++	unsigned long duty;
++	int ret;
+ 
+ 	if (ctx->pwm_value = pwm)
+-		goto exit_set_pwm_no_change;
++		return 0;
+ 
++	mutex_lock(&ctx->lock);
+ 	if (pwm = 0) {
+ 		pwm_disable(ctx->pwm);
+ 		goto exit_set_pwm;
+@@ -66,13 +60,28 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 
+ exit_set_pwm:
+ 	ctx->pwm_value = pwm;
+-exit_set_pwm_no_change:
+-	ret = count;
+ exit_set_pwm_err:
+ 	mutex_unlock(&ctx->lock);
+ 	return ret;
+ }
+ 
++static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
++		       const char *buf, size_t count)
++{
++	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
++	unsigned long pwm;
++	int ret;
++
++	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
++		return -EINVAL;
++
++	ret = __set_pwm(ctx, pwm);
++	if (ret)
++		return ret;
++
++	return count;
++}
++
+ static ssize_t show_pwm(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
 -- 
-2.1.3
+2.0.0.rc2
 
 
 _______________________________________________
