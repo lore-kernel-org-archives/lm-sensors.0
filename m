@@ -1,73 +1,76 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Dec 2014 21:24:08 +0000
-Subject: Re: [lm-sensors] [PATCH v3 1/3] hwmon: tmp401: add support for TI TMP435
-Message-Id: <20141204212408.GA10390@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Thu, 18 Dec 2014 10:13:05 +0000
+Subject: [lm-sensors] [PATCH 3/9] ARM: dts: Add pwm-fan node to the Odroid-U3 board
+Message-Id: <1418897591-18332-4-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417711553-21311-2-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1417711553-21311-2-git-send-email-bgolaszewski@baylibre.com>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-On Thu, Dec 04, 2014 at 05:45:51PM +0100, Bartosz Golaszewski wrote:
-> From: Patrick Titiano <ptitiano@baylibre.com>
-> 
-> Signed-off-by: Patrick Titiano <ptitiano@baylibre.com>
-> [Bartosz Golaszewski: prepared for submission, code review fixes]
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  drivers/hwmon/tmp401.c | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-> index 7fa6e7d..ccd9938 100644
-> --- a/drivers/hwmon/tmp401.c
-> +++ b/drivers/hwmon/tmp401.c
-> @@ -46,7 +46,7 @@
->  /* Addresses to scan */
->  static const unsigned short normal_i2c[] = { 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
->  
-> -enum chips { tmp401, tmp411, tmp431, tmp432 };
-> +enum chips { tmp401, tmp411, tmp431, tmp432, tmp435 };
->  
->  /*
->   * The TMP401 registers, note some registers have different addresses for
-> @@ -136,6 +136,7 @@ static const u8 TMP432_STATUS_REG[] = {
->  #define TMP411C_DEVICE_ID			0x10
->  #define TMP431_DEVICE_ID			0x31
->  #define TMP432_DEVICE_ID			0x32
-> +#define TMP435_DEVICE_ID			0x35
->  
->  /*
->   * Driver data (common to all clients)
-> @@ -146,6 +147,7 @@ static const struct i2c_device_id tmp401_id[] = {
->  	{ "tmp411", tmp411 },
->  	{ "tmp431", tmp431 },
->  	{ "tmp432", tmp432 },
-> +	{ "tmp435", tmp435 },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(i2c, tmp401_id);
-> @@ -684,6 +686,11 @@ static int tmp401_detect(struct i2c_client *client,
->  			return -ENODEV;
->  		kind = tmp432;
->  		break;
-> +	case TMP435_DEVICE_ID:
-> +		if (client->addr != 0x4c)
-> +			return -ENODEV;
+From: Kamil Debski <k.debski@samsung.com>
 
-On second thought, is this really correct ?
+Add pwm-fan node to the Odroid-U3 board file to enable PWM control of the
+cooling fan. In addition, add the "pwm" label to the pwm@139D0000 node
+in the exynos4412.dtsi.
 
-I had another look into the datasheet. It seems to me that the chip
-may support up to 9 different addresses, though that is a bit vague
-since the datasheet first claims that the address would be 0x4c,
-only to go on and list the 9 addresses (0x48 to 0x4f as well as 0x37)
-in the next paragraph.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+[Rebased on the newest mainline by l.majewski@samsung.com]
+---
+Changes since v1:
+- added pwm label to the pwm@139D0000 node in exynos4.dtsi
+- use the pwm label in the exynos4412-odroidu3.dts
+- change order or properties in the pwn-fan node, to be sorted
+  in alphabetical order
 
-Thanks,
-Guenter
+---
+ arch/arm/boot/dts/exynos4.dtsi            |  2 +-
+ arch/arm/boot/dts/exynos4412-odroidu3.dts | 13 +++++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 1735bb3..f227a39 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -583,7 +583,7 @@
+ 		status = "disabled";
+ 	};
+ 
+-	pwm@139D0000 {
++	pwm: pwm@139D0000 {
+ 		compatible = "samsung,exynos4210-pwm";
+ 		reg = <0x139D0000 0x1000>;
+ 		interrupts = <0 37 0>, <0 38 0>, <0 39 0>, <0 40 0>, <0 41 0>;
+diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+index c8a64be..60bd1e4 100644
+--- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
++++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+@@ -31,6 +31,19 @@
+ 			linux,default-trigger = "heartbeat";
+ 		};
+ 	};
++
++	pwm-fan {
++		compatible = "pwm-fan";
++		pwms = <&pwm 0 10000 0>;
++		status = "okay";
++	};
++};
++
++&pwm {
++	pinctrl-0 = <&pwm0_out>;
++	pinctrl-names = "default";
++	samsung,pwm-outputs = <0>;
++	status = "okay";
+ };
+ 
+ &usb3503 {
+-- 
+2.0.0.rc2
+
 
 _______________________________________________
 lm-sensors mailing list
