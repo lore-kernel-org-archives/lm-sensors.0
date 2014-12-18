@@ -1,239 +1,37 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Sat, 13 Dec 2014 16:27:17 +0000
-Subject: [lm-sensors] [PATCH v7 1/5] hwmon: ina2xx: reinitialize the chip in case it's been reset
-Message-Id: <1418488041-7433-2-git-send-email-bgolaszewski@baylibre.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Thu, 18 Dec 2014 10:13:11 +0000
+Subject: [lm-sensors] [PATCH 9/9] hwmon: thermal: dts: Disable FAN on boot on the Odroid U3
+Message-Id: <1418897591-18332-10-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Chips from the ina family don't like to be uninitialized. In case the power
-is cut-off and restored again the calibration register will be reset
-to 0 and both the power and current registers will remain at 0.
+By specifying default-pulse-width to zero, disable FAN on boot.
 
-Check the calibration register in ina2xx_update_device() and reinitialize
-the chip if needed.
-
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
 ---
- drivers/hwmon/ina2xx.c | 128 +++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 91 insertions(+), 37 deletions(-)
+ arch/arm/boot/dts/exynos4412-odroidu3.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index e01feba..ffbd60f 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -35,6 +35,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/jiffies.h>
- #include <linux/of.h>
-+#include <linux/delay.h>
+diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+index cc50e96..fec063e 100644
+--- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
++++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+@@ -39,6 +39,7 @@
+ 		cooling-max-state = <3>;
+ 		#cooling-cells = <2>;
+ 		cooling-pwm-values = <0 102 170 255>;
++		default-pulse-width = <0>;
+ 		status = "okay";
+ 	};
  
- #include <linux/platform_data/ina2xx.h>
- 
-@@ -64,6 +65,9 @@
- 
- /* worst case is 68.10 ms (~14.6Hz, ina219) */
- #define INA2XX_CONVERSION_RATE		15
-+#define INA2XX_MAX_DELAY		69 /* worst case delay in ms */
-+
-+#define INA2XX_RSHUNT_DEFAULT		10000
- 
- enum ina2xx_ids { ina219, ina226 };
- 
-@@ -81,6 +85,8 @@ struct ina2xx_data {
- 	struct i2c_client *client;
- 	const struct ina2xx_config *config;
- 
-+	long rshunt;
-+
- 	struct mutex update_lock;
- 	bool valid;
- 	unsigned long last_updated;
-@@ -110,34 +116,96 @@ static const struct ina2xx_config ina2xx_config[] = {
- 	},
- };
- 
--static struct ina2xx_data *ina2xx_update_device(struct device *dev)
-+/*
-+ * Initialize the configuration and calibration registers.
-+ */
-+static int ina2xx_init(struct ina2xx_data *data)
- {
--	struct ina2xx_data *data = dev_get_drvdata(dev);
- 	struct i2c_client *client = data->client;
--	struct ina2xx_data *ret = data;
-+	int ret;
- 
--	mutex_lock(&data->update_lock);
-+	/* device configuration */
-+	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
-+					   data->config->config_default);
-+	if (ret < 0)
-+		return ret;
- 
--	if (time_after(jiffies, data->last_updated +
--		       HZ / INA2XX_CONVERSION_RATE) || !data->valid) {
-+	/*
-+	 * Set current LSB to 1mA, shunt is in uOhms
-+	 * (equation 13 in datasheet).
-+	 */
-+	return i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
-+			data->config->calibration_factor / data->rshunt);
-+}
- 
--		int i;
-+static int ina2xx_do_update(struct device *dev)
-+{
-+	struct ina2xx_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
-+	int i, rv, retry;
- 
--		dev_dbg(&client->dev, "Starting ina2xx update\n");
-+	dev_dbg(&client->dev, "Starting ina2xx update\n");
- 
-+	for (retry = 5; retry; retry--) {
- 		/* Read all registers */
- 		for (i = 0; i < data->config->registers; i++) {
--			int rv = i2c_smbus_read_word_swapped(client, i);
--			if (rv < 0) {
--				ret = ERR_PTR(rv);
--				goto abort;
--			}
-+			rv = i2c_smbus_read_word_swapped(client, i);
-+			if (rv < 0)
-+				return rv;
- 			data->regs[i] = rv;
- 		}
-+
-+		/*
-+		 * If the current value in the calibration register is 0, the
-+		 * power and current registers will also remain at 0. In case
-+		 * the chip has been reset let's check the calibration
-+		 * register and reinitialize if needed.
-+		 */
-+		if (data->regs[INA2XX_CALIBRATION] = 0) {
-+			dev_warn(dev, "chip not calibrated, reinitializing\n");
-+
-+			rv = ina2xx_init(data);
-+			if (rv < 0)
-+				return rv;
-+
-+			/*
-+			 * Let's make sure the power and current registers
-+			 * have been updated before trying again.
-+			 */
-+			msleep(INA2XX_MAX_DELAY);
-+			continue;
-+		}
-+
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-+
-+		return 0;
- 	}
--abort:
-+
-+	/*
-+	 * If we're here then although all write operations succeeded, the
-+	 * chip still returns 0 in the calibration register. Nothing more we
-+	 * can do here.
-+	 */
-+	dev_err(dev, "unable to reinitialize the chip\n");
-+	return -ENODEV;
-+}
-+
-+static struct ina2xx_data *ina2xx_update_device(struct device *dev)
-+{
-+	struct ina2xx_data *data = dev_get_drvdata(dev);
-+	struct ina2xx_data *ret = data;
-+	int rv;
-+
-+	mutex_lock(&data->update_lock);
-+
-+	if (time_after(jiffies, data->last_updated +
-+		       HZ / INA2XX_CONVERSION_RATE) || !data->valid) {
-+		rv = ina2xx_do_update(dev);
-+		if (rv < 0)
-+			ret = ERR_PTR(rv);
-+	}
-+
- 	mutex_unlock(&data->update_lock);
- 	return ret;
- }
-@@ -221,7 +289,6 @@ static int ina2xx_probe(struct i2c_client *client,
- 	struct device *dev = &client->dev;
- 	struct ina2xx_data *data;
- 	struct device *hwmon_dev;
--	long shunt = 10000; /* default shunt value 10mOhms */
- 	u32 val;
- 	int ret;
- 
-@@ -234,41 +301,28 @@ static int ina2xx_probe(struct i2c_client *client,
- 
- 	if (dev_get_platdata(dev)) {
- 		pdata = dev_get_platdata(dev);
--		shunt = pdata->shunt_uohms;
-+		data->rshunt = pdata->shunt_uohms;
- 	} else if (!of_property_read_u32(dev->of_node,
- 					 "shunt-resistor", &val)) {
--		shunt = val;
-+		data->rshunt = val;
-+	} else {
-+		data->rshunt = INA2XX_RSHUNT_DEFAULT;
- 	}
- 
--	if (shunt <= 0)
--		return -ENODEV;
--
- 	/* set the device type */
- 	data->kind = id->driver_data;
- 	data->config = &ina2xx_config[data->kind];
-+	data->client = client;
- 
--	/* device configuration */
--	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
--					   data->config->config_default);
--	if (ret < 0) {
--		dev_err(dev,
--			"error writing to the config register: %d", ret);
-+	if (data->rshunt <= 0)
- 		return -ENODEV;
--	}
- 
--	/*
--	 * Set current LSB to 1mA, shunt is in uOhms
--	 * (equation 13 in datasheet).
--	 */
--	ret = i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
--				data->config->calibration_factor / shunt);
-+	ret = ina2xx_init(data);
- 	if (ret < 0) {
--		dev_err(dev,
--			"error writing to the calibration register: %d", ret);
-+		dev_err(dev, "error configuring the device: %d\n", ret);
- 		return -ENODEV;
- 	}
- 
--	data->client = client;
- 	mutex_init(&data->update_lock);
- 
- 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-@@ -277,7 +331,7 @@ static int ina2xx_probe(struct i2c_client *client,
- 		return PTR_ERR(hwmon_dev);
- 
- 	dev_info(dev, "power monitor %s (Rshunt = %li uOhm)\n",
--		 id->name, shunt);
-+		 id->name, data->rshunt);
- 
- 	return 0;
- }
 -- 
-2.1.3
+2.0.0.rc2
 
 
 _______________________________________________
