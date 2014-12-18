@@ -1,7 +1,7 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 18 Dec 2014 15:39:59 +0000
+From: Richard Llom <richard.llom@gmail.com>
+Date: Thu, 18 Dec 2014 15:41:59 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <1418917199.4595.14.camel@chaos.site>
+Message-Id: <m6usk8$isc$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
@@ -10,37 +10,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-TGUgVGh1cnNkYXkgMTggRGVjZW1iZXIgMjAxNCDDoCAxMjoyOSArMDAwMCwgUmljaGFyZCBMbG9t
-IGEgw6ljcml0IDoKPiBKZWFuIERlbHZhcmUgd3JvdGU6Cj4gPiBPbiBUaHUsIDExIERlYyAyMDE0
-IDE2OjA2OjAyICswMTAwLCBSaWNoYXJkIExsb20gd3JvdGU6Cj4gPj4gV2hlcmUgZXhhY3RseSBp
-biAvc3lzID8gQmVjYXVzZSBoZXJlIEkgY2FuJ3QgZmluZCBhbnl0aGluZyB0aGVyZSByZWxhdGVk
-Cj4gPj4gdG8gbXkgc2Vuc29ycy4uLgo+ID4gCj4gPiBJbiAvc3lzL2NsYXNzL2h3bW9uLgo+ID4g
-Cj4gSG1tLCBidXQgZGlkbid0IHlvdSB3cm90ZSBlYXJsaWVyIHRoYXQgazEwdGVtcCBhbmQgaXQ4
-NyBhcmUgbm90ICh5ZXQpIAo+IGNvbnZlcnRlZD8KClRoYXQncyBjb3JyZWN0LCBhbmQgdGhpcyBj
-aGFuZ2VzIHRoZSBsYXlvdXQgdW5kZXIgL3N5cy9jbGFzcy9od21vbiwgYnV0CmVhY2ggaHdtb24g
-ZGV2aWNlIGlzIHN0aWxsIGxpc3RlZCB0aGVyZS4KCj4gVGhpcyBpcyBteSBkaXJlY3RvcnkgbGlz
-dGluZyBmcm9tIFtod21vbl0kIGxzIC1SbAo+IC46Cj4gdG90YWwgMAo+IGxyd3hyd3hyd3ggMSBy
-b290IHJvb3QgMCAxOC4xMi4yMDE0IDA5OjIzIGh3bW9uMCAtPiAKPiAuLi8uLi9kZXZpY2VzL3Bj
-aTAwMDA6MDAvMDAwMDowMDowMi4wLzAwMDA6MDE6MDAuMC9od21vbi9od21vbjAvCj4gbHJ3eHJ3
-eHJ3eCAxIHJvb3Qgcm9vdCAwIDE4LjEyLjIwMTQgMDk6MjMgaHdtb24xIC0+IAo+IC4uLy4uL2Rl
-dmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjE4LjMvaHdtb24vaHdtb24xLwo+IGxyd3hyd3hyd3gg
-MSByb290IHJvb3QgMCAxOC4xMi4yMDE0IDA5OjIzIGh3bW9uMiAtPiAKPiAuLi8uLi9kZXZpY2Vz
-L3BsYXRmb3JtL2l0ODcuNTUyL2h3bW9uL2h3bW9uMi8KPiAKPiBzaG91bGQgdGhlcmUgYmUgYSBk
-aXJlY3RvcnkgbG1zZW5zb3JzPwoKTm8sIGxtLXNlbnNvcnMgaXMgdGhlIG5hbWUgb2YgdGhlIHVz
-ZXItc3BhY2UgcGFydCBvbmx5IChzaW5jZSBrZXJuZWwKMi42LikgImxtc2Vuc29ycyIgc3BlbHQg
-dGhhdCB3YXkgaXMgYSBrc3lzZ3VhcmQgdGhpbmcsIHRoYXQncyBob3cgaXQKbmFtZXMgdGhlIHNl
-bnNvcnMgaW50ZXJuYWxseS4KCj4gPiBUaGlzIHNob3VsZCBiZSByZXBvcnRlZCB0byB0aGUgbWFp
-bnRhaW5lcnMgb2Yga3N5c2d1YXJkZCwgdGhpcyBpcyBhbgo+ID4gYXBwbGljYXRpb24gZXJyb3Ig
-YWZ0ZXIgYWxsLgo+Cj4gT3Iga3N5c2d1YXJkIGFjdHVhbGx5IGRvZXNuJ3QgdXNlIGxpYnNlbnNv
-cnMgYXQgYWxsIGFuZCBpcyBsb29raW5nIGZvciB0aGUgCj4gaW5mb3JtYXRpb24gaW4gdGhlIHdy
-b25nIHBsYWNlPwoKV2hlbiB0aGUgbGlic2Vuc29ycyBBUEkgY2hhbmdlZCAoZnJvbSBsbS1zZW5z
-b3JzIDIueCB0byAzLngpLCB3ZQpjb252ZXJ0ZWQga3N5c2d1YXJkOgpodHRwOi8vd3d3LmxtLXNl
-bnNvcnMub3JnL3dpa2kvTGlic2Vuc29yczRBcHBTdXBwb3J0ClNvIGJhY2sgdGhlbiB0aGV5IGNl
-cnRhaW5seSBkaWQgdXNlIGxpYnNlbnNvcnMuIEkgY2hlY2tlZCB2ZXJzaW9uIDQuMy41LAp3aGlj
-aCBpcyB3aGF0J3MgYXZhaWxhYmxlIG9uIG15IHN5c3RlbSwgYW5kIGl0IGRvZXMgbGluayBhZ2Fp
-bnN0CmxpYnNlbnNvcnMuc28uNC4gQ2FuIHlvdSBjaGVjayB0aGUgb3V0cHV0IG9mOgokIGxkZCAv
-dXNyL2Jpbi9rc3lzZ3VhcmRkCihvciB3aGF0ZXZlciB0aGUgcGF0aCBpcyBvbiB5b3VyIHN5c3Rl
-bSk/CgotLSAKSmVhbiBEZWx2YXJlClNVU0UgTDMgU3VwcG9ydAoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Guenter Roeck wrote:
+> On 12/18/2014 04:29 AM, Richard Llom wrote:
+>> Jean Delvare wrote:
+>>> On Thu, 11 Dec 2014 16:06:02 +0100, Richard Llom wrote:
+>>>> Jean Delvare wrote:
+>>>
+>>> In /sys/class/hwmon.
+>>>
+>> Hmm, but didn't you wrote earlier that k10temp and it87 are not (yet)
+>> converted?
+>>
+>> This is my directory listing from [hwmon]$ ls -Rl
+>> .:
+>> total 0
+>> lrwxrwxrwx 1 root root 0 18.12.2014 09:23 hwmon0 ->
+>> ../../devices/pci0000:00/0000:00:02.0/0000:01:00.0/hwmon/hwmon0/
+>> lrwxrwxrwx 1 root root 0 18.12.2014 09:23 hwmon1 ->
+>> ../../devices/pci0000:00/0000:00:18.3/hwmon/hwmon1/
+>> lrwxrwxrwx 1 root root 0 18.12.2014 09:23 hwmon2 ->
+>> ../../devices/platform/it87.552/hwmon/hwmon2/
+>>
+>> should there be a directory lmsensors?
+>>
+> No.
+> 
+> Look in /sys/class/hwmon/hwmonX/device.
+> 
+Ok, found it. And this is now the state before or after the conversion (Jean 
+"We are in the process of converting many drivers to have their
+attributes attached to the hwmon class device instead of the physical
+device.")?
+And what would be the other case/path?
+
+
+>>>>> (...)
+>>>>> Can you run ksysguard from a terminal and see if it's
+>>>>> spitting any error message (or logging them somewhere maybe?)
+>>>>
+>>>> This is the output from the terminal
+>>>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
+>>>> COMMAND
+>>>> for:  "lmsensors/k10temp-pci-00c3/temp1?"
+>>>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
+>>>> COMMAND
+>>>> for:  "lmsensors/it8720-isa-0228/temp1?"
+>>>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
+>>>> COMMAND
+>>>> for:  "lmsensors/nouveau-pci-0100/temp1?"
+>>>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
+>>>> COMMAND
+>>>> for:  "lmsensors/it8720-isa-0228/fan1?"
+>>>> ksysguard(3168) KSGRD::SensorAgent::processAnswer: Received UNKNOWN
+>>>> COMMAND
+>>>> for:  "lmsensors/it8720-isa-0228/fan2?"
+>>>
+>>> This should be reported to the maintainers of ksysguardd, this is an
+>>> application error after all.
+>>>
+>> Or ksysguard actually doesn't use libsensors at all and is looking for
+>> the information in the wrong place?
+>> 
+The "lmsensors/nouveau-pci-0100/temp1?" output refers then probably to an 
+internal function... 
+
+Still no clue whats the cause is of all this trouble. And there weren't any 
+recent changes in ksysguard.
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
