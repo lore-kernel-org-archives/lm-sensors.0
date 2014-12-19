@@ -1,37 +1,45 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Thu, 18 Dec 2014 10:13:11 +0000
-Subject: [lm-sensors] [PATCH 9/9] hwmon: thermal: dts: Disable FAN on boot on the Odroid U3
-Message-Id: <1418897591-18332-10-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Fri, 19 Dec 2014 09:36:04 +0000
+Subject: [lm-sensors] [RESEND PATCH v7 0/5] hwmon: ina2xx: implement chip reinitialization and add new attrib
+Message-Id: <1418981769-11287-1-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-By specifying default-pulse-width to zero, disable FAN on boot.
+This series implements a mechanism to detect if the chip is in its POR state
+and reinitialize it if needed. It also extends the sysfs interface to make the
+driver configurable at run-time.
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
----
- arch/arm/boot/dts/exynos4412-odroidu3.dts | 1 +
- 1 file changed, 1 insertion(+)
+The shunt_resistor attribute allows to change the shunt resistance value
+at run-time in cases where ina2xx used to do the measurement isn't integrated
+with the shunt.
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index cc50e96..fec063e 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -39,6 +39,7 @@
- 		cooling-max-state = <3>;
- 		#cooling-cells = <2>;
- 		cooling-pwm-values = <0 102 170 255>;
-+		default-pulse-width = <0>;
- 		status = "okay";
- 	};
- 
+The avg_rate attribute allows to increase/decrease noise reduction.
+
+v7:
+- implemented a retry counter for the reinitialization procedure
+- using msleep() (since the sleep is > 20ms) instead of mdelay()
+  when waiting for the chip update
+
+v6:
+https://www.mail-archive.com/linux-kernel%40vger.kernel.org/msg787390.html
+
+Bartosz Golaszewski (5):
+  hwmon: ina2xx: reinitialize the chip in case it's been reset
+  hwmon: ina2xx: remove a stray new line
+  hwmon: ina2xx: don't accept shunt values greater than the calibration factor
+  hwmon: ina2xx: make shunt resistance configurable at run-time
+  hwmon: ina2xx: allow to change the averaging rate at run-time
+
+ Documentation/hwmon/ina2xx |   8 +-
+ drivers/hwmon/ina2xx.c     | 304 +++++++++++++++++++++++++++++++++++++++------
+ 2 files changed, 269 insertions(+), 43 deletions(-)
+
 -- 
-2.0.0.rc2
+2.1.3
 
 
 _______________________________________________
