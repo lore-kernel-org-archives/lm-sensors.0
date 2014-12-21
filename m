@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 19 Dec 2014 14:03:18 +0000
+From: Richard Llom <richard.llom@gmail.com>
+Date: Sun, 21 Dec 2014 21:22:56 +0000
 Subject: Re: [lm-sensors] System Monitor cannot read sensors anymore
-Message-Id: <54943026.60809@roeck-us.net>
+Message-Id: <m77dng$iks$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m6bv17$gsp$1@ger.gmane.org>
 In-Reply-To: <m6bv17$gsp$1@ger.gmane.org>
@@ -10,43 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMTIvMTkvMjAxNCAwNTozNCBBTSwgUmljaGFyZCBMbG9tIHdyb3RlOgo+IEd1ZW50ZXIgUm9l
-Y2sgd3JvdGU6Cj4+IE9uIDEyLzE4LzIwMTQgMTE6MDMgQU0sIFJpY2hhcmQgTGxvbSB3cm90ZToK
-Pj4+IEd1ZW50ZXIgUm9lY2sgd3JvdGU6Cj4+Pj4gT24gVGh1LCBEZWMgMTgsIDIwMTQgYXQgMDU6
-NDk6MTlQTSArMDEwMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+Pj4+PiBMZSBUaHVyc2RheSAxOCBE
-ZWNlbWJlciAyMDE0IMOgIDE2OjMzICswMDAwLCBSaWNoYXJkIExsb20gYSDDqWNyaXQgOgo+Pj4+
-Pj4gJCBsZGQgL3Vzci9iaW4va3N5c2d1YXJkZAo+Pj4+Pj4gICAgICAgICAgIGxpbnV4LXZkc28u
-c28uMSAoMHgwMDAwN2ZmZjQ5MTMyMDAwKQo+Pj4+Pj4gICAgICAgICAgIGxpYmMuc28uNiA9PiAv
-dXNyL2xpYi9saWJjLnNvLjYgKDB4MDAwMDdmNWY3MmRlODAwMCkKPj4+Pj4+ICAgICAgICAgICAv
-bGliNjQvbGQtbGludXgteDg2LTY0LnNvLjIgKDB4MDAwMDdmNWY3MzE4YjAwMCkKPj4+Pgo+Pj4+
-IE9uIG15IHN5c3RlbSAoVWJ1bnR1IDE0LjEwKToKPj4+Pgo+Pj4+IGxkZCAvdXNyL2Jpbi9rc3lz
-Z3VhcmRkCj4+Pj4gICAgICAgICAgIGxpbnV4LXZkc28uc28uMSA9PiAgKDB4MDAwMDdmZmZjNTFm
-ZTAwMCkKPj4+PiBsaWJzZW5zb3JzLnNvLjQgPT4gL3Vzci9sb2NhbC9saWIvbGlic2Vuc29ycy5z
-by40ICgweDAwMDA3ZjE5ZjhlMDUwMDApCj4+Pj4gbGliYy5zby42ID0+IC9saWIveDg2XzY0LWxp
-bnV4LWdudS9saWJjLnNvLjYgKDB4MDAwMDdmMTlmOGE0MDAwMCkKPj4+PiBsaWJtLnNvLjYgPT4g
-L2xpYi94ODZfNjQtbGludXgtZ251L2xpYm0uc28uNiAoMHgwMDAwN2YxOWY4NzM5MDAwKQo+Pj4+
-IC9saWI2NC9sZC1saW51eC14ODYtNjQuc28uMiAoMHgwMDAwN2YxOWY5MDNjMDAwKQo+Pj4+Cj4+
-Pj4gd2l0aAo+Pj4+Cj4+Pj4gL3Vzci9iaW4va3N5c2d1YXJkZCAtLXZlcnNpb24KPj4+PiBrc3lz
-Z3VhcmRkIDQKPj4+PiAoYykgMTk5OSwgMjAwMCwgMjAwMSwgMjAwMiBDaHJpcyBTY2hsYWVnZXIg
-PGNzQGtkZS5vcmc+Cj4+Pj4gKGMpIDIwMDEgVG9iaWFzIEtvZW5pZyA8dG9rb2VAa2RlLm9yZz4K
-Pj4+PiAoYykgMjAwNi0yMDA4IEdyZWcgTWFydHluIDxncmVnLm1hcnR5bkBnbWFpbC5jb20+Cj4+
-Pj4gVGhpcyBwcm9ncmFtIGlzIHBhcnQgb2YgdGhlIEtERSBQcm9qZWN0IGFuZCBsaWNlbnNlZCB1
-bmRlcgo+Pj4+IHRoZSBHTlUgR1BMIHZlcnNpb24gMi4gU2VlIGh0dHA6Ly93d3cua2RlLm9yZyBm
-b3IgZGV0YWlscy4KPj4+PiBVc2FnZTogL3Vzci9iaW4va3N5c2d1YXJkZCBbLWRdIFstaV0gWy1w
-IHBvcnRdCj4+Pj4KPj4+PiBkcGtnIGFsc28gc2hvd3MgYSBkZXBlbmRlbmN5IG9mIGtzeXNndWFy
-ZGQgb24gbGlic2Vuc29ycy4KPj4+Pgo+Pj4+IFBhY2thZ2U6IGtzeXNndWFyZGQKPj4+PiBTb3Vy
-Y2U6IGtkZS13b3Jrc3BhY2UKPj4+PiBWZXJzaW9uOiA0OjQuMTEuMTItMHVidW50dTEuMQo+Pj4+
-IERlcGVuZHM6IGxpYmM2ICg+PSAyLjE1KSwgbGlic2Vuc29yczQgKD49IDE6My4wLjApCj4+Pj4K
-Pj4+PiBNYXliZSB0aGVyZSBhcmUgZGlmZmVyZW50IHZlcnNpb25zIGFuZC9vciBidWlsZCBvcHRp
-b25zID8KPj4+Pgo+Pj4gVGhhbmtzIGZvciB0aGUgaW5wdXQgZ3V5cyEKPj4+IEkgcmVwb3J0ZWQg
-dGhpcyB0byBteSBkaXN0cm8vcGFja2FnZXIsIGxldHMgc2VlIHdoYXQgdGhleSBzYXkgKG1heWJl
-IGl0Cj4+PiBpcyBqdXN0IGFuIHBhY2thZ2luZyBlcnJvcikuCj4+Cj4+IERpZCB5b3UgY2hhbmdl
-IHRoZSBkaXN0cm8gdmVyc2lvbiA/IEkgdGhvdWdodCB5b3UganVzdCB1cGRhdGVkIHRoZSBrZXJu
-ZWwuCj4+Cj4gSXQncyBhIChoYWxmLSkgcm9sbGluZyBkaXN0cm8uIFRoZSBrZXJuZWwgdXBkYXRl
-IHdhcyBtYWpvciB1cGRhdGUgYW5kIGNhbWUKPiB3aXRoIGEgbmV3IEtERSA0IFNDIHJlbGVhc2Ug
-YXMgd2VsbC4KPgoKQ2FuIHlvdSBsb2FkIHRoZSBvbGRlciAoMy4xNikga2VybmVsIHdpdGggdGhl
-IG5ldyB2ZXJzaW9uIG9mIEtERSA/ClRoYXQgd291bGQgdGVsbCB1cyBpZiB0aGUgY3VscHJpdCBp
-cyB0aGUga2VybmVsIG9yIGtzeXNndWFyZC4KCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
-c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
-bi9saXN0aW5mby9sbS1zZW5zb3Jz
+Guenter Roeck wrote:
+> On 12/19/2014 05:34 AM, Richard Llom wrote:
+>> Guenter Roeck wrote:
+>>> On 12/18/2014 11:03 AM, Richard Llom wrote:
+>>>> Thanks for the input guys!
+>>>> I reported this to my distro/packager, lets see what they say (maybe it
+>>>> is just an packaging error).
+>>>
+>>> Did you change the distro version ? I thought you just updated the
+>>> kernel.
+>>>
+>> It's a (half-) rolling distro. The kernel update was major update and
+>> came with a new KDE 4 SC release as well.
+>>
+> 
+> Can you load the older (3.16) kernel with the new version of KDE ?
+> That would tell us if the culprit is the kernel or ksysguard.
+> 
+Tested on downgrade 3.16 and there are no hardware sensors as well, so its 
+probably related the KDE update / package.
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
