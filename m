@@ -1,40 +1,95 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sat, 06 Dec 2014 12:12:31 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm75) Strengthen detect function
-Message-Id: <20141206131231.25f101d1@endymion.delvare>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Mon, 22 Dec 2014 16:27:46 +0000
+Subject: [lm-sensors] [PATCH v2 6/8] hwmon: thermal: Extract __set_pwm() function to only modify PWM duty cyc
+Message-Id: <1419265668-32283-7-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417716250-14598-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1417716250-14598-1-git-send-email-linux@roeck-us.net>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Hi Guenter,
+It was necessary to decouple code handling writing to sysfs from the one
+responsible for setting PWM of the fan.
+Due to that, new __set_pwm() method was extracted, which is responsible for
+only setting new PWM duty cycle.
 
-On Fri, 5 Dec 2014 08:47:24 -0800, Guenter Roeck wrote:
-> I was trying to run a module test for tmp421 while having the lm75 driver
-> loaded. Loading the i2c-stub driver with address 0x4c caused lm75 detection
-> to run, which detected the simulated chip at 0x4c as lm75 (because all
-> registers in i2c-stub are initially set to 0) and instantiated it. This of
-> course was a bit of a bummer when I tried to manually instantiate the tmp421
-> afterwards, causing my module test to fail. So it wasn't a real chip, just
-> an annoying side effect of trying to use i2c-stub while the lm75 driver
-> was loaded.
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes for v2:
+- None
+---
+ drivers/hwmon/pwm-fan.c | 35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-Yes, I had the same problem with i2c-stub in the past while testing
-multiple drivers. I've fixed detection functions each time it happened.
-Feel tree to fix every i2c detection function which trips on all-zeroes.
-
-> (...)
-> Guess I'll apply the patch as-is. If anything I wonder if it would make sense
-> to add the same test to sensors-detect (in addition to the comparison).
-
-As you wish, I'm fine both ways.
-
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index 1991d903..870e100 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -33,21 +33,15 @@ struct pwm_fan_ctx {
+ 	unsigned char pwm_value;
+ };
+ 
+-static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+-		       const char *buf, size_t count)
++static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
+ {
+-	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
+-	unsigned long pwm, duty;
+-	ssize_t ret;
+-
+-	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
+-		return -EINVAL;
+-
+-	mutex_lock(&ctx->lock);
++	unsigned long duty;
++	int ret;
+ 
+ 	if (ctx->pwm_value = pwm)
+-		goto exit_set_pwm_no_change;
++		return 0;
+ 
++	mutex_lock(&ctx->lock);
+ 	if (pwm = 0) {
+ 		pwm_disable(ctx->pwm);
+ 		goto exit_set_pwm;
+@@ -66,13 +60,28 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 
+ exit_set_pwm:
+ 	ctx->pwm_value = pwm;
+-exit_set_pwm_no_change:
+-	ret = count;
+ exit_set_pwm_err:
+ 	mutex_unlock(&ctx->lock);
+ 	return ret;
+ }
+ 
++static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
++		       const char *buf, size_t count)
++{
++	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
++	unsigned long pwm;
++	int ret;
++
++	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
++		return -EINVAL;
++
++	ret = __set_pwm(ctx, pwm);
++	if (ret)
++		return ret;
++
++	return count;
++}
++
+ static ssize_t show_pwm(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
 -- 
-Jean Delvare
-SUSE L3 Support
+2.0.0.rc2
+
 
 _______________________________________________
 lm-sensors mailing list
