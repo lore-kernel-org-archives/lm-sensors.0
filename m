@@ -1,137 +1,75 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 29 Dec 2014 12:50:23 +0000
-Subject: Re: [lm-sensors] [PATCH v2 7/8] hwmon: thermal: Read PWM FAN configuration from device tree
-Message-Id: <20141229125023.GA18083@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Mon, 22 Dec 2014 16:27:41 +0000
+Subject: [lm-sensors] [PATCH v2 1/8] thermal: Provide stub for thermal_of_cooling_device_register() function
+Message-Id: <1419265668-32283-2-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
  <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-8-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1419265668-32283-8-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lukasz Majewski <l.majewski@samsung.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-On Mon, Dec 22, 2014 at 05:27:47PM +0100, Lukasz Majewski wrote:
-> Code for reading PWM FAN configuration data via device tree.
-> 
-> Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-> ---
+Odroid U3 fan can work without being registered as OF cooling device
+(with CONFIG_THERMAL_OF disabled).
+In this situation it can be controlled via PWM entry at
+/sys/class/hwmon/hwmon0/pwm1.
 
-The headline is quite misleading. Please provide the affected subsystem (hwmon)
-and the affected driver (pwm-fan) in the hwmon-customary form
-	hwmon: (pwm-fan) Description
+Therefore, the thermal_of_cooling_device_register() function needs a stub
+to allow clean compilation.
 
-The Description should explain what the patch is about.
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes for v2:
+- None
+---
+ include/linux/thermal.h | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-> Changes for v2:
-> - Rename pwm_fan_max_states to pwm_fan_cooling_levels
-> - Moving pwm_fan_of_get_cooling_data() call after setting end enabling PWM FAN
-> - pwm_fan_of_get_cooling_data() now can fail - preserving old behaviour
-> - Remove unnecessary dev_err() call
-> ---
->  drivers/hwmon/pwm-fan.c | 48 +++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 47 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-> index 870e100..8e68308 100644
-> --- a/drivers/hwmon/pwm-fan.c
-> +++ b/drivers/hwmon/pwm-fan.c
-> @@ -30,7 +30,10 @@
->  struct pwm_fan_ctx {
->  	struct mutex lock;
->  	struct pwm_device *pwm;
-> -	unsigned char pwm_value;
-> +	unsigned int pwm_value;
-> +	unsigned int pwm_fan_state;
-> +	unsigned int pwm_fan_max_state;
-> +	unsigned int *pwm_fan_cooling_levels;
->  };
->  
->  static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
-> @@ -100,6 +103,47 @@ static struct attribute *pwm_fan_attrs[] = {
->  
->  ATTRIBUTE_GROUPS(pwm_fan);
->  
-> +int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
-> +{
-> +	struct device_node *np = dev->of_node;
-> +	struct property *pp;
-> +	int len, num, i;
-> +
-> +	pp = of_find_property(np, "cooling-levels", &len);
-> +	if (!pp) {
-> +		dev_err(dev, "Property: 'cooling-levels' not found\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (len = 0) {
-> +		dev_err(dev, "Length wrong value!\n");
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 2de3d9e..871123c 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -328,6 +328,10 @@ thermal_zone_of_sensor_register(struct device *dev, int id, void *data,
+ 				const struct thermal_zone_of_device_ops *ops);
+ void thermal_zone_of_sensor_unregister(struct device *dev,
+ 				       struct thermal_zone_device *tz);
++struct thermal_cooling_device *
++thermal_of_cooling_device_register(struct device_node *np,
++				   char *type, void *devdata,
++				   const struct thermal_cooling_device_ops *);
+ #else
+ static inline struct thermal_zone_device *
+ thermal_zone_of_sensor_register(struct device *dev, int id, void *data,
+@@ -342,6 +346,13 @@ void thermal_zone_of_sensor_unregister(struct device *dev,
+ {
+ }
+ 
++static inline struct thermal_cooling_device *
++thermal_of_cooling_device_register(struct device_node *np,
++				   char *type, void *devdata,
++				   const struct thermal_cooling_device_ops *ops)
++{
++	return NULL;
++}
+ #endif
+ struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
+ 		void *, struct thermal_zone_device_ops *,
+@@ -357,9 +368,6 @@ void thermal_zone_device_update(struct thermal_zone_device *);
+ 
+ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 		const struct thermal_cooling_device_ops *);
+-struct thermal_cooling_device *
+-thermal_of_cooling_device_register(struct device_node *np, char *, void *,
+-				   const struct thermal_cooling_device_ops *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+ struct thermal_zone_device *thermal_zone_get_zone_by_name(const char *name);
+ int thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned long *temp);
+-- 
+2.0.0.rc2
 
-Semantics. "Wrong length" would be better.
-
-> +		return -EINVAL;
-> +	}
-> +
-
-of_property_count_elems_of_size() might be more appropriate here.
-
-> +	ctx->pwm_fan_cooling_levels = devm_kzalloc(dev, len, GFP_KERNEL);
-> +	if (!ctx->pwm_fan_cooling_levels)
-> +		return -ENOMEM;
-> +
-> +	num = len / sizeof(u32);
-
-What if 'num' is 0 ? Is that guaranteed to never happen ?
-
-> +	if (of_property_read_u32_array(np, pp->name,
-> +				       ctx->pwm_fan_cooling_levels, num)) {
-> +		dev_err(dev, "Property: %s cannot be read!\n", pp->name);
-
-The ':' after 'Property' in those error messages doesn't seem to make much sense
-to me.
-
-> +		return -EINVAL;
-
-of_property_read_u32_array() returns an error code. Please use it.
-
-> +	}
-> +
-> +	for (i = 0; i < num; i++) {
-> +		if (ctx->pwm_fan_cooling_levels[i] > MAX_PWM) {
-> +			dev_err(dev, "PWM fan state[%d]:%d > %d\n", i,
-> +				ctx->pwm_fan_cooling_levels[i], MAX_PWM);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	ctx->pwm_fan_max_state = num - 1;
-> +
-> +	return 0;
-> +}
-> +
->  static int pwm_fan_probe(struct platform_device *pdev)
->  {
->  	struct device *hwmon;
-> @@ -145,6 +189,8 @@ static int pwm_fan_probe(struct platform_device *pdev)
->  		pwm_disable(ctx->pwm);
->  		return PTR_ERR(hwmon);
->  	}
-> +
-> +	pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
-
-Now this is odd. Adding a function to return an error code just to ignore it
-doesn't make much sense. While it makes sense to ignore errors if there is no
-cooling data in the devicetree, errors due to bad devicetree data should not be
-ignored.
-
-I am also a bit concerned that you make this call _after_ instantiating the
-hwmon device; this may potentially result in a race condition. Please ensure
-that this is not the case.
-
-Thanks,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
