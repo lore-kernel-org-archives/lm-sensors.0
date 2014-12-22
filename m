@@ -1,45 +1,69 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Sat, 13 Dec 2014 16:27:19 +0000
-Subject: [lm-sensors] [PATCH v7 3/5] hwmon: ina2xx: don't accept shunt values greater than the calibration fa
-Message-Id: <1418488041-7433-4-git-send-email-bgolaszewski@baylibre.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Mon, 22 Dec 2014 16:27:43 +0000
+Subject: [lm-sensors] [PATCH v2 3/8] hwmon: dts: Doc: Add DTS doc to explain how to use PWM FAN as a cooling 
+Message-Id: <1419265668-32283-4-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1418488041-7433-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Shunt resistance values greater than the chip's calibration factor make no
-sense since the actual value written to the register equals:
+Several new properties to allow PWM fan working as a cooling device have been
+combined into this single commit.
 
-	<calibration factor> / <shunt>
-
-Bail-out from ina2xx_probe() if the configured value is greater than the
-calibration factor.
-
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
 ---
- drivers/hwmon/ina2xx.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Changes for v2:
+- Rename cooling-pwm-values to cooling-levels
+- Remove default-pulse-width property and stick to default hwmon policy
+---
+ .../devicetree/bindings/hwmon/pwm-fan.txt          | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index 39e017b..3234e57 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -313,7 +313,8 @@ static int ina2xx_probe(struct i2c_client *client,
- 	data->config = &ina2xx_config[data->kind];
- 	data->client = client;
+diff --git a/Documentation/devicetree/bindings/hwmon/pwm-fan.txt b/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
+index 610757c..001446a 100644
+--- a/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
++++ b/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
+@@ -3,10 +3,33 @@ Bindings for a fan connected to the PWM lines
+ Required properties:
+ - compatible	: "pwm-fan"
+ - pwms		: the PWM that is used to control the PWM fan
++- cooling-levels      : PWM duty cycle values in a range from 0 to 255
++			which correspond to thermal cooling states
++
++Thorough description of the following bindings:
++		cooling-min-state = <0>;
++		cooling-max-state = <3>;
++		#cooling-cells = <2>;
++		thermal-zone {
++			cpu_thermal: cpu-thermal {
++			cooling-maps {
++				map0 {
++				     trip = <&cpu_alert1>;
++				     cooling-device = <&fan0 0 1>;
++				};
++			};
++		};
++
++for PWM FAN used as cooling device can be found at:
++./Documentation/devicetree/bindings/thermal/thermal.txt
  
--	if (data->rshunt <= 0)
-+	if (data->rshunt <= 0 ||
-+	    data->rshunt > data->config->calibration_factor)
- 		return -ENODEV;
- 
- 	ret = ina2xx_init(data);
+ Example:
+ 	pwm-fan {
+ 		compatible = "pwm-fan";
+ 		status = "okay";
+ 		pwms = <&pwm 0 10000 0>;
++		cooling-min-state = <0>;
++		cooling-max-state = <3>;
++		#cooling-cells = <2>;
++		cooling-levels = <0 102 170 255>;
+ 	};
 -- 
-2.1.3
+2.0.0.rc2
 
 
 _______________________________________________
