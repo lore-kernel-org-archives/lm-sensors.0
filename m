@@ -1,68 +1,61 @@
-From: Pavel Machek <pavel@ucw.cz>
-Date: Tue, 30 Dec 2014 22:46:22 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: Driver for OMAP3 temperature sensor
-Message-Id: <20141230224621.GA26163@amd>
+From: Sebastian Reichel <sre@kernel.org>
+Date: Fri, 26 Dec 2014 12:34:52 +0000
+Subject: [lm-sensors] [PATCH 1/3] DT Binding for omap3 temperature sensor
+Message-Id: <1419597294-21487-2-git-send-email-sre@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20141226102933.GA28778@amd>
  <1419597294-21487-1-git-send-email-sre@kernel.org>
- <1419597294-21487-3-git-send-email-sre@kernel.org>
- <CANOLnON6rAQ2+jJEFDKseH2Htu6bqRkURDioGt7zp1Ze73f8Pw@mail.gmail.com>
- <CAGo_u6qO0ok+GBnm7SQtw6dJuwGN2OuP7CpKDEWawS3V2go4KA@mail.gmail.com>
- <20141229181556.GA26926@amd>
- <20141229190448.GA27124@roeck-us.net>
-In-Reply-To: <20141229190448.GA27124@roeck-us.net>
+In-Reply-To: <1419597294-21487-1-git-send-email-sre@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Nishanth Menon <nm@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, dt list <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Rob Herring <robh+dt@kernel.org>, Jean Delvare <jdelvare@suse.de>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Pali Rohar <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, eduardo.valentin@ti.com
+To: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
 
-On Mon 2014-12-29 11:04:48, Guenter Roeck wrote:
-> On Mon, Dec 29, 2014 at 07:15:56PM +0100, Pavel Machek wrote:
-> > On Mon 2014-12-29 12:01:03, Nishanth Menon wrote:
-> > > On Mon, Dec 29, 2014 at 11:52 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
-> > > > On Fri, Dec 26, 2014 at 2:34 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> > > >> OMAP34xx and OMAP36xx processors contain a register in the syscon area,
-> > > >> which can be used to determine the SoCs temperature. This patch provides
-> > > >> a DT based driver for the temperature sensor based on an older driver
-> > > >> written by Peter De Schrijver for the Nokia N900 and N9.
-> > > >
-> > > > The sensor looks like an earlier iteration of sensors used in newer
-> > > > OMAPs, which are already supported by maybe
-> > > > drivers/thermal/ti-soc-thermal/ , maybe it would make sense to update
-> > > > that driver instead?
-> > > 
-> > > Just to be clear - OMAP4 is the first time that the sensors were
-> > > reliable enough to be used.
-> > 
-> > When testing initial version of the patch, they seem to work very well
-> > in the omap3 case.
-> > 
-> Pavel,
-> 
-> can you look into the omap4 thermal driver to see if it can be used ?
+OMAP34xx and OMAP36xx processors contain a register in the syscon area,
+which can be used to determine the SoCs temperature. This provides a
+DT binding specification for the temperature monitor.
 
-The hardware registers are named the same way...
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ .../bindings/hwmon/omap3-temperature.txt           | 25 ++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
 
-Unfortunately, TI moves registers around with each release, and OMAP4
-stuff is _way_ more complex and maze of ifdefs, too.
-
-static struct temp_sensor_data omap4430_mpu_temp_sensor_data = {
-        .min_freq = OMAP4430_MIN_FREQ,
- 	.max_freq = OMAP4430_MAX_FREQ,
- 	.max_temp = OMAP4430_MAX_TEMP,
-	.min_temp = OMAP4430_MIN_TEMP,
- 	.hyst_val = OMAP4430_HYST_VAL,
-	};
-
-and each define used just once. Would be easier to read and modify if
-the ifdefs were removed...
-	
-Best regards,
-								Pavel
+diff --git a/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt b/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
+new file mode 100644
+index 0000000..99631ad
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
+@@ -0,0 +1,25 @@
++* OMAP3 temperature sensor
++
++The OMAP34xx and OMAP36xx processors contain a register in the syscon area,
++which can be used to determine the SoCs temperature.
++
++Requires node properties:
++- compatible :	should contain one of
++	- "ti,omap34xx-temperature-sensor" for OMAP34xx
++	- "ti,omap36xx-temperature-sensor" for OMAP36xx
++- syscon :	Should be a phandle to system configuration node which
++		encompases the temperature register
++- clocks :	Should contain 32KHz fclk clock specifier
++- clock-names :	Should contain clock names
++	- "fck" for the 32KHz fclk clock specifier
++
++Example for omap34xx:
++
++/ {
++	temperature-sensor {
++		compatible = "ti,omap34xx-temperature-sensor";
++		syscon = <&omap3_scm_general>;
++		clocks = <&ts_fck>;
++		clock-names = "fck";
++	};
++};
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.3
+
 
 _______________________________________________
 lm-sensors mailing list
