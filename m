@@ -1,90 +1,53 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 04 Dec 2014 16:45:53 +0000
-Subject: [lm-sensors] [PATCH v3 3/3] hwmon: tmp401: bail-out from tmp401_probe() in case of write errors
-Message-Id: <1417711553-21311-4-git-send-email-bgolaszewski@baylibre.com>
+From: Sebastian Reichel <sre@kernel.org>
+Date: Fri, 26 Dec 2014 12:34:51 +0000
+Subject: [lm-sensors] [PATCH 0/3] OMAP3 temperature sensor
+Message-Id: <1419597294-21487-1-git-send-email-sre@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1417711553-21311-1-git-send-email-bgolaszewski@baylibre.com>
+References: <20141226102933.GA28778@amd>
+In-Reply-To: <20141226102933.GA28778@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
 
-The return value of i2c_smbus_read_byte_data() is checked in
-tmp401_init_client(), but only a warning is printed and the device is
-registered anyway. This leads to devices being registered even if they
-cannot be physically detected.
+Hi,
 
-Bail-out from probe in case of write errors and notify the user.
+I've prepared an updated variant of the omap34xx temperature monitor driver.
+It's based on the N9 driver instead of the N900 driver (and thus has omap36xx
+support).
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- drivers/hwmon/tmp401.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+The differences compared to the original driver are:
 
-diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-index ccd9938..f2182ee 100644
---- a/drivers/hwmon/tmp401.c
-+++ b/drivers/hwmon/tmp401.c
-@@ -615,10 +615,10 @@ static const struct attribute_group tmp432_group = {
-  * Begin non sysfs callback code (aka Real code)
-  */
- 
--static void tmp401_init_client(struct tmp401_data *data,
--			       struct i2c_client *client)
-+static int tmp401_init_client(struct tmp401_data *data,
-+			      struct i2c_client *client)
- {
--	int config, config_orig;
-+	int config, config_orig, status = 0;
- 
- 	/* Set the conversion rate to 2 Hz */
- 	i2c_smbus_write_byte_data(client, TMP401_CONVERSION_RATE_WRITE, 5);
-@@ -626,16 +626,18 @@ static void tmp401_init_client(struct tmp401_data *data,
- 
- 	/* Start conversions (disable shutdown if necessary) */
- 	config = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
--	if (config < 0) {
--		dev_warn(&client->dev, "Initialization failed!\n");
--		return;
--	}
-+	if (config < 0)
-+		return config;
- 
- 	config_orig = config;
- 	config &= ~TMP401_CONFIG_SHUTDOWN;
- 
- 	if (config != config_orig)
--		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
-+		status = i2c_smbus_write_byte_data(client,
-+						   TMP401_CONFIG_WRITE,
-+						   config);
-+
-+	return status;
- }
- 
- static int tmp401_detect(struct i2c_client *client,
-@@ -718,7 +720,7 @@ static int tmp401_probe(struct i2c_client *client,
- 	struct device *dev = &client->dev;
- 	struct device *hwmon_dev;
- 	struct tmp401_data *data;
--	int groups = 0;
-+	int groups = 0, status;
- 
- 	data = devm_kzalloc(dev, sizeof(struct tmp401_data), GFP_KERNEL);
- 	if (!data)
-@@ -729,7 +731,9 @@ static int tmp401_probe(struct i2c_client *client,
- 	data->kind = id->driver_data;
- 
- 	/* Initialize the TMP401 chip */
--	tmp401_init_client(data, client);
-+	status = tmp401_init_client(data, client);
-+	if (status < 0)
-+		return status;
- 
- 	/* Register sysfs hooks */
- 	data->groups[groups++] = &tmp401_group;
+ * DT based
+ * No includes from arch, instead uses syscon DT node + regmap
+ * Removed support for raw temperature reading
+  - I assume this was used for debugging and regmap can be used
+    instead with newer kernels.
+ * Introduction of managed resources where possible
+ * Usage of module_platform_driver() macro
+ * Added some comments referencing the TRM
+
+So far the patchset is _compile-tested only_. I will test it on my N900 in
+the next days.
+
+-- Sebastian
+
+Sebastian Reichel (3):
+  DT Binding for omap3 temperature sensor
+  hwmon: Driver for OMAP3 temperature sensor
+  ARM: dts: OMAP34xx/36xx: Add temperature sensor
+
+ .../bindings/hwmon/omap3-temperature.txt           |  25 ++
+ arch/arm/boot/dts/omap34xx.dtsi                    |   7 +
+ arch/arm/boot/dts/omap36xx.dtsi                    |   7 +
+ drivers/hwmon/Kconfig                              |   8 +
+ drivers/hwmon/Makefile                             |   1 +
+ drivers/hwmon/omap3-temp.c                         | 307 +++++++++++++++++++++
+ 6 files changed, 355 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
+ create mode 100644 drivers/hwmon/omap3-temp.c
+
 -- 
 2.1.3
 
