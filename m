@@ -1,51 +1,65 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 11 Dec 2014 12:54:50 +0000
-Subject: Re: [lm-sensors] [PATCH v3] sensors-detect: Add code to detect TMP400 and TMP435
-Message-Id: <20141211135450.2218bd14@endymion.delvare>
+From: Sebastian Reichel <sre@kernel.org>
+Date: Fri, 26 Dec 2014 12:34:54 +0000
+Subject: [lm-sensors] [PATCH 3/3] ARM: dts: OMAP34xx/36xx: Add temperature sensor
+Message-Id: <1419597294-21487-4-git-send-email-sre@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418096560-28548-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1418096560-28548-1-git-send-email-linux@roeck-us.net>
+References: <20141226102933.GA28778@amd>
+ <1419597294-21487-1-git-send-email-sre@kernel.org>
+In-Reply-To: <1419597294-21487-1-git-send-email-sre@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
 
-Hi Guenter,
+OMAP34xx and OMAP36xx processors contain a register in the
+syscon area, which can be used to determine the SoCs temperature.
 
-On Tue, 09 Dec 2014 06:46:46 -0800, Guenter Roeck wrote:
-> On 12/09/2014 02:45 AM, Jean Delvare wrote:
-> > On Mon,  8 Dec 2014 19:42:40 -0800, Guenter Roeck wrote:
-> >> +	if ($chip = 8) {			  # TMP451
-> >> +		my $filter = i2c_smbus_read_byte_data($file, 0x24);
-> >> +
-> >> +		return if $cid != 0x00;
-> >>   		return if $rate > 0x09;
-> >> -		return if $mid != 0x55;		# Texas Instruments
-> >> -		return 4 if ($cid = 0x00);	# TMP451
-> >> +		return if $filter & 0xfc;
-> >
-> > If you want to improve reliability further, you could check for 4
-> > unused bits in limit registers 0x12 and 0x15.
->
-> Not sure if that would improve much. I would rather test for some
-> non-zeros. I am going to get one of those chips and check if
-> the consecutive alert register (0x22) has bit 0 set or not
-> (the datasheet contradicts itself, and the bit is set in the
-> register dump I have available).
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ arch/arm/boot/dts/omap34xx.dtsi | 7 +++++++
+ arch/arm/boot/dts/omap36xx.dtsi | 7 +++++++
+ 2 files changed, 14 insertions(+)
 
-Of course, testing for a non-zero bit is more valuable than testing for
-a zero bit. But non-zero bits are rare.
-
-> We could also check if (some of) the limit registers are non-zero.
-> Would that make sense ?
-
-Yes it would. For all chips without a reasonable chip ID register
-value, every trick is welcome. You can also check that the low limit is
-strictly lower than the high temperature limit, for example.
-
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 3819c1e..64679ee 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -38,6 +38,13 @@
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
+ 	};
++
++	omap3_temperature_sensor: temperature-sensor {
++		compatible = "ti,omap34xx-temperature-sensor";
++		syscon = <&omap3_scm_general>;
++		clocks = <&ts_fck>;
++		clock-names = "fck";
++	};
+ };
+ 
+ &ssi {
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 541704a..be9ee1d 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -70,6 +70,13 @@
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
+ 	};
++
++	omap3_temperature_sensor: temperature-sensor {
++		compatible = "ti,omap36xx-temperature-sensor";
++		syscon = <&omap3_scm_general>;
++		clocks = <&ts_fck>;
++		clock-names = "fck";
++	};
+ };
+ 
+ /* OMAP3630 needs dss_96m_fck for VENC */
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.3
+
 
 _______________________________________________
 lm-sensors mailing list
