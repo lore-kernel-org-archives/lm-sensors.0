@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
-Date: Fri, 26 Dec 2014 17:26:27 +0000
+Date: Sat, 27 Dec 2014 19:24:31 +0000
 Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: Driver for OMAP3 temperature sensor
-Message-Id: <20141226172627.GB24756@amd>
+Message-Id: <20141227192431.GC10007@amd>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20141226102933.GA28778@amd>
  <1419597294-21487-1-git-send-email-sre@kernel.org>
@@ -13,7 +13,9 @@ Content-Transfer-Encoding: 7bit
 To: Sebastian Reichel <sre@kernel.org>
 Cc: Pali Rohar <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
 
-On Fri 2014-12-26 13:34:53, Sebastian Reichel wrote:
+Hi!
+
+
 > OMAP34xx and OMAP36xx processors contain a register in the syscon area,
 > which can be used to determine the SoCs temperature. This patch provides
 > a DT based driver for the temperature sensor based on an older driver
@@ -21,38 +23,38 @@ On Fri 2014-12-26 13:34:53, Sebastian Reichel wrote:
 > 
 > Signed-off-by: Sebastian Reichel <sre@kernel.org>
 
-> +	if (!data->valid || time_after(jiffies, data->last_updated + HZ)) {
-> +		clk_enable(data->clk_32k);
+I did clk_enable -> clk_prepare_enable conversion, as described in
+another email.
 
-This needs to be clk_prepare_enable()
+I got occasional error reading:
 
-> +		regmap_update_bits(data->syscon, SYSCON_TEMP_REG,
-> +				   soc_mask, soc_mask);
-> +
-> +		if (!wait_for_eocz(EOCZ_MIN_RISING_DELAY,
-> +		    EOCZ_MAX_RISING_DELAY, 1, data)) {
-> +			e = -EIO;
-> +			goto err;
-> +		}
-> +
-> +		regmap_update_bits(data->syscon, SYSCON_TEMP_REG, soc_mask, 0);
-> +
-> +		if (!wait_for_eocz(EOCZ_MIN_FALLING_DELAY,
-> +		    EOCZ_MAX_FALLING_DELAY, 0, data)) {
-> +			e = -EIO;
-> +			goto err;
-> +		}
-> +
-> +		regmap_read(data->syscon, SYSCON_TEMP_REG, &temp_sensor_reg);
-> +		data->temperature = temp_sensor_reg & ((1<<7) - 1);
-> +		data->last_updated = jiffies;
-> +		data->valid = true;
-> +
-> +err:
-> +		clk_disable(data->clk_32k);
+root@n900:~# cat /sys/class/hwmon/hwmon0/device/temp_input
+20.0
+root@n900:~# cat /sys/class/hwmon/hwmon0/device/temp_input
+cat: /sys/class/hwmon/hwmon0/device/temp_input: Input/output error
+root@n900:~# cat /sys/class/hwmon/hwmon0/device/temp_input
+20.0
 
-And this clk_disable_unprepare().
+Nothing in dmesg. It takes few tries to reproduce..
 
+On other attempt, it hung hard:
+
+root@n900:~# cat /sys/class/hwmon/hwmon0/device/temp_input ; cat
+/sys/class/hwmon/hwmon0/device/temp_input  ;cat
+/sys/class/hwmon/hwmon0/device/temp_input ; cat
+/sys/class/hwmon/hwmon0/device/temp_input
+17.0
+17.0
+^[[A
+
+
+
+^Z
+
+
+^C^C^C
+
+Best regards,
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
