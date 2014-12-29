@@ -1,95 +1,34 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Mon, 22 Dec 2014 16:27:46 +0000
-Subject: [lm-sensors] [PATCH v2 6/8] hwmon: thermal: Extract __set_pwm() function to only modify PWM duty cyc
-Message-Id: <1419265668-32283-7-git-send-email-l.majewski@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 29 Dec 2014 12:52:45 +0000
+Subject: Re: [lm-sensors] [PATCH v2 6/8] hwmon: thermal: Extract __set_pwm() function to only modify PWM duty
+Message-Id: <20141229125245.GB18083@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
  <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
+ <1419265668-32283-7-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1419265668-32283-7-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: Lukasz Majewski <l.majewski@samsung.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
 
-It was necessary to decouple code handling writing to sysfs from the one
-responsible for setting PWM of the fan.
-Due to that, new __set_pwm() method was extracted, which is responsible for
-only setting new PWM duty cycle.
+On Mon, Dec 22, 2014 at 05:27:46PM +0100, Lukasz Majewski wrote:
+> It was necessary to decouple code handling writing to sysfs from the one
+> responsible for setting PWM of the fan.
+> Due to that, new __set_pwm() method was extracted, which is responsible for
+> only setting new PWM duty cycle.
+> 
+> Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+> ---
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
----
-Changes for v2:
-- None
----
- drivers/hwmon/pwm-fan.c | 35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+Please provide the affected subsystem and the affected driver in the header.
+While it may make sense to explain that the patch is to prepare the driver for
+thermal use, this should be part of the descriptive text. The patch is,
+however, not not a thermal subsystem related patch. The 'thermal:' in the
+headline is thus misleading, and you should drop it.
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index 1991d903..870e100 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -33,21 +33,15 @@ struct pwm_fan_ctx {
- 	unsigned char pwm_value;
- };
- 
--static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
--		       const char *buf, size_t count)
-+static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
- {
--	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
--	unsigned long pwm, duty;
--	ssize_t ret;
--
--	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
--		return -EINVAL;
--
--	mutex_lock(&ctx->lock);
-+	unsigned long duty;
-+	int ret;
- 
- 	if (ctx->pwm_value = pwm)
--		goto exit_set_pwm_no_change;
-+		return 0;
- 
-+	mutex_lock(&ctx->lock);
- 	if (pwm = 0) {
- 		pwm_disable(ctx->pwm);
- 		goto exit_set_pwm;
-@@ -66,13 +60,28 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 
- exit_set_pwm:
- 	ctx->pwm_value = pwm;
--exit_set_pwm_no_change:
--	ret = count;
- exit_set_pwm_err:
- 	mutex_unlock(&ctx->lock);
- 	return ret;
- }
- 
-+static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
-+		       const char *buf, size_t count)
-+{
-+	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
-+	unsigned long pwm;
-+	int ret;
-+
-+	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
-+		return -EINVAL;
-+
-+	ret = __set_pwm(ctx, pwm);
-+	if (ret)
-+		return ret;
-+
-+	return count;
-+}
-+
- static ssize_t show_pwm(struct device *dev,
- 			struct device_attribute *attr, char *buf)
- {
--- 
-2.0.0.rc2
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
