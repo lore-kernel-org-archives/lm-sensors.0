@@ -1,46 +1,48 @@
-From: Bartosz Golaszewski <bartekgola@gmail.com>
-Date: Wed, 03 Dec 2014 10:54:14 +0000
-Subject: [lm-sensors] [PATCH v3 3/3] hwmon: ina2xx: documentation update for new sysfs attributes
-Message-Id: <1417604054-8694-4-git-send-email-bartekgola@gmail.com>
+From: Mark Hansen <meh@Winfirst.Com>
+Date: Fri, 02 Jan 2015 00:15:46 +0000
+Subject: [lm-sensors] Trying to get lm_sensors working on an ASUS M5A97 R2.0 motherboard
+Message-Id: <54A5E332.7090000@Winfirst.Com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
-In-Reply-To: <1417604054-8694-1-git-send-email-bartekgola@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bartekgola@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-Include the rshunt and avg sysfs attributes for ina2xx in the documentation.
-
-Signed-off-by: Bartosz Golaszewski <bartekgola@gmail.com>
----
- Documentation/hwmon/ina2xx | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
-index 4223c2d..c100c24 100644
---- a/Documentation/hwmon/ina2xx
-+++ b/Documentation/hwmon/ina2xx
-@@ -44,6 +44,10 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
- The INA230 is a high or low side current shunt and power monitor with an I2C
- interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
- 
--The shunt value in micro-ohms can be set via platform data or device tree.
--Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
--if the device tree is used.
-+The shunt value in micro-ohms can be set via platform data or device tree in
-+compile-time or via the shunt_resistor attribute in sysfs in run-time. Please
-+refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings if
-+the device tree is used.
-+
-+The averaging rate of INA226 and INA230 can be changed via the avg_rate sysfs
-+attribute. The available rates are: 1, 4, 16, 64, 128, 256, 512 and 1024.
--- 
-2.1.3
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SSBoYXZlIGEgbmV3IENlbnRPUyA3LjAgc3lzdGVtIHJ1bm5pbmcgb24gYW4gQVNVUyBNNUE5NyBS
+Mi4wIG1vdGhlcmJvYXJkIGFuZAphbSBoYXZpbmcgYSBoYXJkIHRpbWUgZ2V0dGluZyB0aGUgY29u
+ZmlndXJhdGlvbiBjb3JyZWN0LgoKSSBzdGFydGVkIGJ5IHJ1bm5pbmcgc2Vuc29ycy1kZXRlY3Qs
+IHdoaWNoIHNlZW1lZCB0byB3b3JrLiBJIGRlY2lkZWQgSSBuZWVkCnRoZSAiaXQ4NyIgbW9kdWxl
+IGFuZCBhZGRlZCB0aGF0IHRvIC9ldGMvc3lzY29uZmlnL2xtX3NlbnNvcnMuCgpJIHRoZW4gdG9v
+ayBhIGNvbmZpZ3VyYXRpb24gZnJvbSB0aGUgbG0tc2Vuc29ycyBXaWtpOgoKaHR0cDovL2xtLXNl
+bnNvcnMub3JnL3dpa2kvQ29uZmlndXJhdGlvbnMvQXN1cy9NNUE5Ny1Qcm8KCk5vdGU6IEkgcmVh
+bGl6ZSB0aGlzIGlzIHRoZSBQcm8gYW5kIG5vdCB0aGUgUjIuMC4KCkkgdG9vayB0aGUgdmFsdWVz
+IHNob3duIG9uIHRoZSBCSU9TIG1vbml0b3Jpbmcgc2NyZWVuIGFuZCBhcHBsaWVkIHZhcmlvdXMg
+bGFiZWxzCmFuZCBtaW4vbWF4IHNldHRpbmdzIHRvIHdoYXQgSSB0aG91Z2h0IG1hdGNoZWQgaW4g
+dGhlIHNlbnNvcnMgb3V0cHV0LiBJdCBhbGwgbG9va3MKZ29vZCAoYXNzdW1pbmcgSSBkaWQgdGhp
+bmdzIGNvcnJlY3RseSkgZXhjZXB0IHRoYXQgaXQncyBzaG93aW5nIG9uZSB2b2x0YWdlIG91dHB1
+dAp0aGF0IGlzIG5vdCBvbiB0aGUgQklPUyBzY3JlZW4uIFRoaXMgdmFsdWUgaXMgb3V0c2lkZSB0
+aGUgbWluL21heCByYW5nZSBhbmQgc28gaXQKc2hvd3MgYXMgIkFMQVJNIiBhbmQgSSBjYW4ndCBm
+aWd1cmUgb3V0IGhvdyB0byBnZXQgcmlkIG9mIGl0LgoKVGhlIHNlbnNvcnMgb3V0cHV0IGlzIHNo
+b3duIGJlbG93LiBUaGUgc3BlY2lmaWMgdmFsdWUgSSdtIHRhbGtpbmcgYWJvdXQKaXMgY2FsbGVk
+IDNWU0IuIEhvdyBjYW4gSSByZW1vdmUgdGhpcyBmcm9tIHNlbnNvcnMgb3Igc2V0IHRoZSBtaW4v
+bWF4IHZhbHVlcwpmb3IgaXQ/CgpUaGFua3MsCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KcmFkZW9uLXBj
+aS0wMTAwCkFkYXB0ZXI6IFBDSSBhZGFwdGVyCnRlbXAxOiAgICAgICAgKzUxLjXCsEMKCmZhbTE1
+aF9wb3dlci1wY2ktMDBjNApBZGFwdGVyOiBQQ0kgYWRhcHRlcgpwb3dlcjE6ICAgICAgIDM2Ljgx
+IFcgIChjcml0ID0gIDk0Ljk5IFcpCgprMTB0ZW1wLXBjaS0wMGMzCkFkYXB0ZXI6IFBDSSBhZGFw
+dGVyCkNQVSBUZW1wIChyZWwpOiAgICs3LjjCsEMgIChoaWdoID0gKzcwLjDCsEMpCiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzkwLjDCsEMsIGh5c3QgPSArODcuMMKwQykKCml0
+ODcyMS1pc2EtMDI5MApBZGFwdGVyOiBJU0EgYWRhcHRlcgorMTJWOiAgICAgICAgKzEyLjAwIFYg
+IChtaW4gPSArMTEuODUgViwgbWF4ID0gKzEyLjg4IFYpCis1VjogICAgICAgICAgKzUuMDUgViAg
+KG1pbiA9ICArNC45NCBWLCBtYXggPSAgKzUuMzUgVikKVmNvcmU6ICAgICAgICArMC44MyBWICAo
+bWluID0gICswLjgwIFYsIG1heCA9ICArMC45NSBWKQorMy4zVjogICAgICAgICszLjMxIFYgICht
+aW4gPSAgKzMuMjQgViwgbWF4ID0gICszLjQ2IFYpClZEREEyLjVWOiAgICAgKzIuNTEgViAgKG1p
+biA9ICArMi40MCBWLCBtYXggPSAgKzIuNzAgVikKM1ZTQjogICAgICAgICArMy4xMCBWICAobWlu
+ID0gICs1LjIxIFYsIG1heCA9ICArMC40MSBWKSAgQUxBUk0KVmJhdDogICAgICAgICArMy40MSBW
+CkNQVSBGYW46ICAgICAyMTcwIFJQTSAgKG1pbiA9ICA3OTkgUlBNKQpDaGFzc2lzIEZhbjogMTM0
+NyBSUE0gIChtaW4gPSAxMTk4IFJQTSkKQ1BVIFRlbXA6ICAgICArMjYuMMKwQyAgKGxvdyAgPSAr
+MjAuMMKwQywgaGlnaCA9ICs2MC4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3RvcgpNL0IgVGVtcDog
+ICAgICszMC4wwrBDICAobG93ICA9ICsyMC4wwrBDLCBoaWdoID0gKzgwLjDCsEMpICBzZW5zb3Ig
+PSB0aGVybWlzdG9yCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpo
+dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
