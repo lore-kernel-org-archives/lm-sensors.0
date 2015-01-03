@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
-Date: Thu, 01 Jan 2015 09:11:32 +0000
+Date: Sat, 03 Jan 2015 09:18:58 +0000
 Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: Driver for OMAP3 temperature sensor
-Message-Id: <20150101091132.GB8759@amd>
+Message-Id: <20150103091858.GA30538@amd>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20141226102933.GA28778@amd>
  <1419597294-21487-1-git-send-email-sre@kernel.org>
@@ -42,85 +42,49 @@ On Mon 2014-12-29 11:04:48, Guenter Roeck wrote:
 > 
 > can you look into the omap4 thermal driver to see if it can be used ?
 
-The hardware seems similar, but omap4 has a lot more
-features... Here's a test patch. It compiles and boots, but I'm too
-far away from my working userland at this moment.
+After some fixes... yes, it seems to be same hardware.
 
-Best regards,
-								Pavel
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-commit 116612364f93b165b22166f0043117059eb3118f
-Author: Pavel <pavel@ucw.cz>
-Date:   Wed Dec 31 00:36:40 2014 +0100
-
-    Configure ti-soc-thermal to handle n900's thermal sensor.
-
-diff --git a/.config b/.config
-index b031e7f..4a79672 100644
---- a/.config
-+++ b/.config
-@@ -1671,7 +1671,23 @@ CONFIG_SENSORS_TWL4030_MADC=y
- # CONFIG_SENSORS_W83L786NG is not set
- # CONFIG_SENSORS_W83627HF is not set
- # CONFIG_SENSORS_W83627EHF is not set
--# CONFIG_THERMAL is not set
-+CONFIG_THERMAL=y
-+CONFIG_THERMAL_HWMON=y
-+CONFIG_THERMAL_OF=y
-+CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=y
-+# CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE is not set
-+# CONFIG_THERMAL_DEFAULT_GOV_USER_SPACE is not set
-+# CONFIG_THERMAL_GOV_FAIR_SHARE is not set
-+CONFIG_THERMAL_GOV_STEP_WISE=y
-+# CONFIG_THERMAL_GOV_BANG_BANG is not set
-+# CONFIG_THERMAL_GOV_USER_SPACE is not set
-+# CONFIG_CLOCK_THERMAL is not set
-+# CONFIG_THERMAL_EMULATION is not set
-+
-+#
-+# Texas Instruments thermal drivers
-+#
-+CONFIG_TI_SOC_THERMAL=y
- CONFIG_WATCHDOG=y
- CONFIG_WATCHDOG_CORE=y
- # CONFIG_WATCHDOG_NOWAYOUT is not set
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 55e4928..dcbcaa9 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -29,6 +29,13 @@
- 		};
- 	};
+diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
+index bd4c7be..a49495f 100644
+--- a/drivers/thermal/ti-soc-thermal/Kconfig
++++ b/drivers/thermal/ti-soc-thermal/Kconfig
+@@ -21,6 +21,15 @@ config TI_THERMAL
+ 	  This includes trip points definitions, extrapolation rules and
+ 	  CPU cooling device bindings.
  
-+	bandgap: bandgap {
-+			reg = <0x4a002524 0x4>;
-+			compatible = "ti,omap34xx-bandgap";
++config OMAP3_THERMAL
++	bool "Texas Instruments OMAP3 thermal support"
++	depends on TI_SOC_THERMAL
++	depends on ARCH_OMAP3
++	help
++	  If you say yes here you get thermal support for the Texas Instruments
++	  OMAP3 SoC family. The current chip supported are:
++	   - OMAP3430
 +
-+			#thermal-sensor-cells = <0>;
-+	};
-+
- 	leds {
- 		compatible = "gpio-leds";
- 		heartbeat {
+ config OMAP4_THERMAL
+ 	bool "Texas Instruments OMAP4 thermal support"
+ 	depends on TI_SOC_THERMAL
 diff --git a/drivers/thermal/ti-soc-thermal/Makefile b/drivers/thermal/ti-soc-thermal/Makefile
-index 1226b24..27ff2ed 100644
+index 1226b24..2b5b220 100644
 --- a/drivers/thermal/ti-soc-thermal/Makefile
 +++ b/drivers/thermal/ti-soc-thermal/Makefile
 @@ -2,5 +2,6 @@ obj-$(CONFIG_TI_SOC_THERMAL)		+= ti-soc-thermal.o
  ti-soc-thermal-y			:= ti-bandgap.o
  ti-soc-thermal-$(CONFIG_TI_THERMAL)	+= ti-thermal-common.o
  ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+= dra752-thermal-data.o
-+ti-soc-thermal-y			+= omap3-thermal-data.o
++ti-soc-thermal-$(CONFIG_OMAP3_THERMAL)  += omap3-thermal-data.o
  ti-soc-thermal-$(CONFIG_OMAP4_THERMAL)	+= omap4-thermal-data.o
  ti-soc-thermal-$(CONFIG_OMAP5_THERMAL)	+= omap5-thermal-data.o
 diff --git a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
 new file mode 100644
-index 0000000..7e25ccd
+index 0000000..a79ebf2
 --- /dev/null
 +++ b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,99 @@
 +/*
-+ * OMAP4 thermal driver.
++ * OMAP3 thermal driver.
 + *
 + * Copyright (C) 2011-2012 Texas Instruments Inc.
 + * Copyright (C) 2014 Pavel Machek <pavel@ucw.cz>
@@ -159,8 +123,8 @@ index 0000000..7e25ccd
 +
 +/* Thresholds and limits for OMAP34XX MPU temperature sensor */
 +static struct temp_sensor_data omap34xx_mpu_temp_sensor_data = {
-+	.min_freq = 100000,
-+	.max_freq = 1000000,
++	.min_freq = 32768,
++	.max_freq = 32768,
 +	.max_temp = -99000,
 +	.min_temp = 99000,
 +	.hyst_val = 5000,
@@ -172,23 +136,28 @@ index 0000000..7e25ccd
 + */
 +static const int
 +omap34xx_adc_to_temp[] = {
-+	-38000, -35000, -34000, -32000, -30000, -28000, -26000, -24000, -22000,
-+	-20000, -18000, -17000, -15000, -13000, -12000, -10000, -8000, -6000,
-+	-5000, -3000, -1000, 0, 2000, 3000, 5000, 6000, 8000, 10000, 12000,
-+	13000, 15000, 17000, 19000, 21000, 23000, 25000, 27000, 28000, 30000,
-+	32000, 33000, 35000, 37000, 38000, 40000, 42000, 43000, 45000, 47000,
-+	48000, 50000, 52000, 53000, 55000, 57000, 58000, 60000, 62000, 64000,
-+	66000, 68000, 70000, 71000, 73000, 75000, 77000, 78000, 80000, 82000,
-+	83000, 85000, 87000, 88000, 90000, 92000, 93000, 95000, 97000, 98000,
-+	100000, 102000, 103000, 105000, 107000, 109000, 111000, 113000, 115000,
-+	117000, 118000, 120000, 122000, 123000,
++	-40000, -40000, -40000, -40000, -40000, -39000, -38000, -36000,
++	-34000, -32000, -31000,	-29000, -28000, -26000, -25000, -24000,
++	-22000, -21000, -19000, -18000, -17000, -15000,	-14000, -12000,
++	-11000, -9000, -8000, -7000, -5000, -4000, -2000, -1000, 0000,
++	1000, 3000, 4000, 5000, 7000, 8000, 10000, 11000, 13000, 14000,
++	15000, 17000, 18000, 20000, 21000, 22000, 24000, 25000, 27000,
++	28000, 30000, 31000, 32000, 34000, 35000, 37000, 38000, 39000,
++	41000, 42000, 44000, 45000, 47000, 48000, 49000, 51000, 52000,
++	53000, 55000, 56000, 58000, 59000, 60000, 62000, 63000, 65000,
++	66000, 67000, 69000, 70000, 72000, 73000, 74000, 76000, 77000,
++	79000, 80000, 81000, 83000, 84000, 85000, 87000, 88000, 89000,
++	91000, 92000, 94000, 95000, 96000, 98000, 99000, 100000,
++	102000, 103000, 105000, 106000, 107000, 109000, 110000, 111000,
++	113000, 114000, 116000, 117000, 118000, 120000, 121000, 122000,
++	124000, 124000, 125000, 125000, 125000, 125000,	125000
 +};
 +
 +/* OMAP34XX data */
 +const struct ti_bandgap_data omap34xx_data = {
 +	.features = TI_BANDGAP_FEATURE_CLK_CTRL,
-+	.fclock_name = "ts_fclk",
-+	.div_ck_name = "ts_fclk",
++	.fclock_name = "ts_fck",
++	.div_ck_name = "ts_fck",
 +	.conv_table = omap34xx_adc_to_temp,
 +	.adc_start_val = 0,
 +	.adc_end_val = 127,
@@ -210,14 +179,194 @@ index 0000000..7e25ccd
 +	},
 +	.sensor_count = 1,
 +
-+	.sensor_count = 0,
++//	.sensor_count = 0,
 +};
 +
 diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index 634b6ce..2a72adc 100644
+index 634b6ce..a4180a5 100644
 --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
 +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -856,7 +856,7 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
+@@ -40,6 +40,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_gpio.h>
+ #include <linux/io.h>
++#include <linux/delay.h>
+ 
+ #include "ti-bandgap.h"
+ 
+@@ -103,19 +104,15 @@ do {								\
+  */
+ static int ti_bandgap_power(struct ti_bandgap *bgp, bool on)
+ {
+-	int i, ret = 0;
++	int i;
+ 
+-	if (!TI_BANDGAP_HAS(bgp, POWER_SWITCH)) {
+-		ret = -ENOTSUPP;
+-		goto exit;
+-	}
++	if (!TI_BANDGAP_HAS(bgp, POWER_SWITCH))
++		return -ENOTSUPP;
+ 
+ 	for (i = 0; i < bgp->conf->sensor_count; i++)
+ 		/* active on 0 */
+ 		RMW_BITS(bgp, i, temp_sensor_ctrl, bgap_tempsoff_mask, !on);
+-
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -154,6 +151,7 @@ static u32 ti_bandgap_read_temp(struct ti_bandgap *bgp, int id)
+ 	if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
+ 		RMW_BITS(bgp, id, bgap_mask_ctrl, mask_freeze_mask, 0);
+ 
++	printk("Bandgap: ADC is %d\n", temp);
+ 	return temp;
+ }
+ 
+@@ -263,18 +261,13 @@ static
+ int ti_bandgap_adc_to_mcelsius(struct ti_bandgap *bgp, int adc_val, int *t)
+ {
+ 	const struct ti_bandgap_data *conf = bgp->conf;
+-	int ret = 0;
+ 
+ 	/* look up for temperature in the table and return the temperature */
+-	if (adc_val < conf->adc_start_val || adc_val > conf->adc_end_val) {
+-		ret = -ERANGE;
+-		goto exit;
+-	}
++	if (adc_val < conf->adc_start_val || adc_val > conf->adc_end_val)
++		return -ERANGE;
+ 
+ 	*t = bgp->conf->conv_table[adc_val - conf->adc_start_val];
+-
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -295,16 +288,14 @@ int ti_bandgap_mcelsius_to_adc(struct ti_bandgap *bgp, long temp, int *adc)
+ {
+ 	const struct ti_bandgap_data *conf = bgp->conf;
+ 	const int *conv_table = bgp->conf->conv_table;
+-	int high, low, mid, ret = 0;
++	int high, low, mid;
+ 
+ 	low = 0;
+ 	high = conf->adc_end_val - conf->adc_start_val;
+ 	mid = (high + low) / 2;
+ 
+-	if (temp < conv_table[low] || temp > conv_table[high]) {
+-		ret = -ERANGE;
+-		goto exit;
+-	}
++	if (temp < conv_table[low] || temp > conv_table[high])
++		return -ERANGE;
+ 
+ 	while (low < high) {
+ 		if (temp < conv_table[mid])
+@@ -315,9 +306,7 @@ int ti_bandgap_mcelsius_to_adc(struct ti_bandgap *bgp, long temp, int *adc)
+ 	}
+ 
+ 	*adc = conf->adc_start_val + low;
+-
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -343,13 +332,11 @@ int ti_bandgap_add_hyst(struct ti_bandgap *bgp, int adc_val, int hyst_val,
+ 	 */
+ 	ret = ti_bandgap_adc_to_mcelsius(bgp, adc_val, &temp);
+ 	if (ret < 0)
+-		goto exit;
++		return ret;
+ 
+ 	temp += hyst_val;
+ 
+ 	ret = ti_bandgap_mcelsius_to_adc(bgp, temp, sum);
+-
+-exit:
+ 	return ret;
+ }
+ 
+@@ -468,22 +455,18 @@ exit:
+  */
+ static inline int ti_bandgap_validate(struct ti_bandgap *bgp, int id)
+ {
+-	int ret = 0;
+-
+ 	if (!bgp || IS_ERR(bgp)) {
+ 		pr_err("%s: invalid bandgap pointer\n", __func__);
+-		ret = -EINVAL;
+-		goto exit;
++		return -EINVAL;
+ 	}
+ 
+ 	if ((id < 0) || (id >= bgp->conf->sensor_count)) {
+ 		dev_err(bgp->dev, "%s: sensor id out of range (%d)\n",
+ 			__func__, id);
+-		ret = -ERANGE;
++		return -ERANGE;
+ 	}
+ 
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -511,12 +494,10 @@ static int _ti_bandgap_write_threshold(struct ti_bandgap *bgp, int id, int val,
+ 
+ 	ret = ti_bandgap_validate(bgp, id);
+ 	if (ret)
+-		goto exit;
++		return ret;
+ 
+-	if (!TI_BANDGAP_HAS(bgp, TALERT)) {
+-		ret = -ENOTSUPP;
+-		goto exit;
+-	}
++	if (!TI_BANDGAP_HAS(bgp, TALERT))
++		return -ENOTSUPP;
+ 
+ 	ts_data = bgp->conf->sensors[id].ts_data;
+ 	tsr = bgp->conf->sensors[id].registers;
+@@ -529,17 +510,15 @@ static int _ti_bandgap_write_threshold(struct ti_bandgap *bgp, int id, int val,
+ 	}
+ 
+ 	if (ret)
+-		goto exit;
+-
++		return ret;
++	
+ 	ret = ti_bandgap_mcelsius_to_adc(bgp, val, &adc_val);
+ 	if (ret < 0)
+-		goto exit;
++		return ret;		
+ 
+ 	spin_lock(&bgp->lock);
+ 	ret = ti_bandgap_update_alert_threshold(bgp, id, adc_val, hot);
+ 	spin_unlock(&bgp->lock);
+-
+-exit:
+ 	return ret;
+ }
+ 
+@@ -582,7 +561,7 @@ static int _ti_bandgap_read_threshold(struct ti_bandgap *bgp, int id,
+ 
+ 	temp = ti_bandgap_readl(bgp, tsr->bgap_threshold);
+ 	temp = (temp & mask) >> __ffs(mask);
+-	ret |= ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
++	ret = ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
+ 	if (ret) {
+ 		dev_err(bgp->dev, "failed to read thot\n");
+ 		ret = -EIO;
+@@ -856,10 +835,11 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
  	temp = ti_bandgap_read_temp(bgp, id);
  	spin_unlock(&bgp->lock);
  
@@ -226,14 +375,131 @@ index 634b6ce..2a72adc 100644
  	if (ret)
  		return -EIO;
  
-@@ -1509,6 +1509,10 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
++	printk("Bandgap: temperature is %d\n", temp);
+ 	*temperature = temp;
+ 
+ 	return 0;
+@@ -918,6 +898,7 @@ static int
+ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
+ {
+ 	u32 temp = 0, counter = 1000;
++	struct temp_sensor_registers *tsr;
+ 
+ 	/* Select single conversion mode */
+ 	if (TI_BANDGAP_HAS(bgp, MODE_CONFIG))
+@@ -925,16 +906,26 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
+ 
+ 	/* Start of Conversion = 1 */
+ 	RMW_BITS(bgp, id, temp_sensor_ctrl, bgap_soc_mask, 1);
+-	/* Wait until DTEMP is updated */
+-	temp = ti_bandgap_read_temp(bgp, id);
+ 
+-	while ((temp = 0) && --counter)
+-		temp = ti_bandgap_read_temp(bgp, id);
+-	/* REVISIT: Check correct condition for end of conversion */
++	/* Wait for EOCZ going up */
++	tsr = bgp->conf->sensors[id].registers;
++	
++	while (--counter) {
++		if (ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) & tsr->bgap_eocz_mask)
++			break;
++		printk("@");
++	}
+ 
+ 	/* Start of Conversion = 0 */
+ 	RMW_BITS(bgp, id, temp_sensor_ctrl, bgap_soc_mask, 0);
+ 
++	counter = 1000;
++	while (--counter) {
++		if (!(ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) & tsr->bgap_eocz_mask))
++			break;
++		printk("#");
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1196,6 +1187,8 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 	struct ti_bandgap *bgp;
+ 	int clk_rate, ret = 0, i;
+ 
++	printk("ti_bandgap: probe\n");
++
+ 	bgp = ti_bandgap_build(pdev);
+ 	if (IS_ERR(bgp)) {
+ 		dev_err(&pdev->dev, "failed to fetch platform data\n");
+@@ -1220,11 +1213,10 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 		goto free_irqs;
+ 	}
+ 
+-	bgp->div_clk = clk_get(NULL,  bgp->conf->div_ck_name);
++	bgp->div_clk = clk_get(NULL, bgp->conf->div_ck_name);
+ 	ret = IS_ERR(bgp->div_clk);
+ 	if (ret) {
+-		dev_err(&pdev->dev,
+-			"failed to request div_ts_ck clock ref\n");
++		dev_err(&pdev->dev, "failed to request div_ts_ck clock ref\n");
+ 		ret = PTR_ERR(bgp->div_clk);
+ 		goto free_irqs;
+ 	}
+@@ -1312,6 +1304,8 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 	/* Every thing is good? Then expose the sensors */
+ 	for (i = 0; i < bgp->conf->sensor_count; i++) {
+ 		char *domain;
++		extern int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
++					     char *domain);
+ 
+ 		if (bgp->conf->sensors[i].register_cooling) {
+ 			ret = bgp->conf->sensors[i].register_cooling(bgp, i);
+@@ -1319,12 +1313,29 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 				goto remove_sensors;
+ 		}
+ 
++		printk("bandgap: exposing sensor: %p\n", bgp->conf->expose_sensor);
++		
+ 		if (bgp->conf->expose_sensor) {
++			printk("bandgap: calling %p %p\n", bgp->conf->expose_sensor, ti_thermal_expose_sensor);
+ 			domain = bgp->conf->sensors[i].domain;
+ 			ret = bgp->conf->expose_sensor(bgp, i, domain);
++			printk("bandgap: done\n");
+ 			if (ret)
+ 				goto remove_last_cooling;
+ 		}
++
++		printk("bandgap: exposing sensor\n");
++		{
++			int t;
++
++			ti_bandgap_force_single_read(bgp, 0);
++
++			t = ti_bandgap_read_temp(bgp, 0);
++			printk("Temperature ADC: %d\n", t);			
++			ti_bandgap_read_temperature(bgp, 0, &t);
++			printk("Temperature: %d\n", t);
++			mdelay(1000);
++		}
+ 	}
+ 
+ 	/*
+@@ -1365,6 +1376,8 @@ free_irqs:
+ 		free_irq(gpio_to_irq(bgp->tshut_gpio), NULL);
+ 		gpio_free(bgp->tshut_gpio);
+ 	}
++	printk("ti_bandgap: probe: something failed\n");
++	mdelay(10000);
+ 
+ 	return ret;
+ }
+@@ -1509,6 +1522,12 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
  #endif
  
  static const struct of_device_id of_ti_bandgap_match[] = {
++#ifdef CONFIG_OMAP3_THERMAL
 +	{
 +		.compatible = "ti,omap34xx-bandgap",
 +		.data = (void *)&omap34xx_data,
 +	},
++#endif
  #ifdef CONFIG_OMAP4_THERMAL
  	{
  		.compatible = "ti,omap4430-bandgap",
@@ -250,6 +516,35 @@ index b3adf72..3f05386 100644
  #ifdef CONFIG_OMAP4_THERMAL
  extern const struct ti_bandgap_data omap4430_data;
  extern const struct ti_bandgap_data omap4460_data;
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 5fd0386..f91655f 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -328,18 +328,23 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
+ {
+ 	struct ti_thermal_data *data;
+ 
++	printk("expose_sensor\n");
++
+ 	data = ti_bandgap_get_sensor_data(bgp, id);
+ 
+ 	if (!data || IS_ERR(data))
+ 		data = ti_thermal_build_data(bgp, id);
+ 
+-	if (!data)
++	if (!data) {
++		printk("no data\n");	
+ 		return -EINVAL;
++	}
+ 
+ 	/* in case this is specified by DT */
+ 	data->ti_thermal = thermal_zone_of_sensor_register(bgp->dev, id,
+ 					data, &ti_of_thermal_ops);
+ 	if (IS_ERR(data->ti_thermal)) {
++		printk("of_sensor_register failed\n");
+ 		/* Create thermal zone */
+ 		data->ti_thermal = thermal_zone_device_register(domain,
+ 				OMAP_TRIP_NUMBER, 0, data, &ti_thermal_ops,
 
 
 -- 
