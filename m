@@ -1,48 +1,44 @@
-From: Mark Hansen <meh@Winfirst.Com>
-Date: Fri, 02 Jan 2015 00:15:46 +0000
-Subject: [lm-sensors] Trying to get lm_sensors working on an ASUS M5A97 R2.0 motherboard
-Message-Id: <54A5E332.7090000@Winfirst.Com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 03 Jan 2015 17:43:45 +0000
+Subject: Re: [lm-sensors] Trying to get lm_sensors working on an ASUS M5A97 R2.0 motherboard
+Message-Id: <20150103174345.GA21026@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <54A5E332.7090000@Winfirst.Com>
+In-Reply-To: <54A5E332.7090000@Winfirst.Com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SSBoYXZlIGEgbmV3IENlbnRPUyA3LjAgc3lzdGVtIHJ1bm5pbmcgb24gYW4gQVNVUyBNNUE5NyBS
-Mi4wIG1vdGhlcmJvYXJkIGFuZAphbSBoYXZpbmcgYSBoYXJkIHRpbWUgZ2V0dGluZyB0aGUgY29u
-ZmlndXJhdGlvbiBjb3JyZWN0LgoKSSBzdGFydGVkIGJ5IHJ1bm5pbmcgc2Vuc29ycy1kZXRlY3Qs
-IHdoaWNoIHNlZW1lZCB0byB3b3JrLiBJIGRlY2lkZWQgSSBuZWVkCnRoZSAiaXQ4NyIgbW9kdWxl
-IGFuZCBhZGRlZCB0aGF0IHRvIC9ldGMvc3lzY29uZmlnL2xtX3NlbnNvcnMuCgpJIHRoZW4gdG9v
-ayBhIGNvbmZpZ3VyYXRpb24gZnJvbSB0aGUgbG0tc2Vuc29ycyBXaWtpOgoKaHR0cDovL2xtLXNl
-bnNvcnMub3JnL3dpa2kvQ29uZmlndXJhdGlvbnMvQXN1cy9NNUE5Ny1Qcm8KCk5vdGU6IEkgcmVh
-bGl6ZSB0aGlzIGlzIHRoZSBQcm8gYW5kIG5vdCB0aGUgUjIuMC4KCkkgdG9vayB0aGUgdmFsdWVz
-IHNob3duIG9uIHRoZSBCSU9TIG1vbml0b3Jpbmcgc2NyZWVuIGFuZCBhcHBsaWVkIHZhcmlvdXMg
-bGFiZWxzCmFuZCBtaW4vbWF4IHNldHRpbmdzIHRvIHdoYXQgSSB0aG91Z2h0IG1hdGNoZWQgaW4g
-dGhlIHNlbnNvcnMgb3V0cHV0LiBJdCBhbGwgbG9va3MKZ29vZCAoYXNzdW1pbmcgSSBkaWQgdGhp
-bmdzIGNvcnJlY3RseSkgZXhjZXB0IHRoYXQgaXQncyBzaG93aW5nIG9uZSB2b2x0YWdlIG91dHB1
-dAp0aGF0IGlzIG5vdCBvbiB0aGUgQklPUyBzY3JlZW4uIFRoaXMgdmFsdWUgaXMgb3V0c2lkZSB0
-aGUgbWluL21heCByYW5nZSBhbmQgc28gaXQKc2hvd3MgYXMgIkFMQVJNIiBhbmQgSSBjYW4ndCBm
-aWd1cmUgb3V0IGhvdyB0byBnZXQgcmlkIG9mIGl0LgoKVGhlIHNlbnNvcnMgb3V0cHV0IGlzIHNo
-b3duIGJlbG93LiBUaGUgc3BlY2lmaWMgdmFsdWUgSSdtIHRhbGtpbmcgYWJvdXQKaXMgY2FsbGVk
-IDNWU0IuIEhvdyBjYW4gSSByZW1vdmUgdGhpcyBmcm9tIHNlbnNvcnMgb3Igc2V0IHRoZSBtaW4v
-bWF4IHZhbHVlcwpmb3IgaXQ/CgpUaGFua3MsCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KcmFkZW9uLXBj
-aS0wMTAwCkFkYXB0ZXI6IFBDSSBhZGFwdGVyCnRlbXAxOiAgICAgICAgKzUxLjXCsEMKCmZhbTE1
-aF9wb3dlci1wY2ktMDBjNApBZGFwdGVyOiBQQ0kgYWRhcHRlcgpwb3dlcjE6ICAgICAgIDM2Ljgx
-IFcgIChjcml0ID0gIDk0Ljk5IFcpCgprMTB0ZW1wLXBjaS0wMGMzCkFkYXB0ZXI6IFBDSSBhZGFw
-dGVyCkNQVSBUZW1wIChyZWwpOiAgICs3LjjCsEMgIChoaWdoID0gKzcwLjDCsEMpCiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzkwLjDCsEMsIGh5c3QgPSArODcuMMKwQykKCml0
-ODcyMS1pc2EtMDI5MApBZGFwdGVyOiBJU0EgYWRhcHRlcgorMTJWOiAgICAgICAgKzEyLjAwIFYg
-IChtaW4gPSArMTEuODUgViwgbWF4ID0gKzEyLjg4IFYpCis1VjogICAgICAgICAgKzUuMDUgViAg
-KG1pbiA9ICArNC45NCBWLCBtYXggPSAgKzUuMzUgVikKVmNvcmU6ICAgICAgICArMC44MyBWICAo
-bWluID0gICswLjgwIFYsIG1heCA9ICArMC45NSBWKQorMy4zVjogICAgICAgICszLjMxIFYgICht
-aW4gPSAgKzMuMjQgViwgbWF4ID0gICszLjQ2IFYpClZEREEyLjVWOiAgICAgKzIuNTEgViAgKG1p
-biA9ICArMi40MCBWLCBtYXggPSAgKzIuNzAgVikKM1ZTQjogICAgICAgICArMy4xMCBWICAobWlu
-ID0gICs1LjIxIFYsIG1heCA9ICArMC40MSBWKSAgQUxBUk0KVmJhdDogICAgICAgICArMy40MSBW
-CkNQVSBGYW46ICAgICAyMTcwIFJQTSAgKG1pbiA9ICA3OTkgUlBNKQpDaGFzc2lzIEZhbjogMTM0
-NyBSUE0gIChtaW4gPSAxMTk4IFJQTSkKQ1BVIFRlbXA6ICAgICArMjYuMMKwQyAgKGxvdyAgPSAr
-MjAuMMKwQywgaGlnaCA9ICs2MC4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3RvcgpNL0IgVGVtcDog
-ICAgICszMC4wwrBDICAobG93ICA9ICsyMC4wwrBDLCBoaWdoID0gKzgwLjDCsEMpICBzZW5zb3Ig
-PSB0aGVybWlzdG9yCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpo
-dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Thu, Jan 01, 2015 at 04:15:46PM -0800, Mark Hansen wrote:
+> I have a new CentOS 7.0 system running on an ASUS M5A97 R2.0 motherboard and
+> am having a hard time getting the configuration correct.
+> 
+> I started by running sensors-detect, which seemed to work. I decided I need
+> the "it87" module and added that to /etc/sysconfig/lm_sensors.
+> 
+> I then took a configuration from the lm-sensors Wiki:
+> 
+> http://lm-sensors.org/wiki/Configurations/Asus/M5A97-Pro
+> 
+> Note: I realize this is the Pro and not the R2.0.
+> 
+> I took the values shown on the BIOS monitoring screen and applied various labels
+> and min/max settings to what I thought matched in the sensors output. It all looks
+> good (assuming I did things correctly) except that it's showing one voltage output
+> that is not on the BIOS screen. This value is outside the min/max range and so it
+> shows as "ALARM" and I can't figure out how to get rid of it.
+> 
+> The sensors output is shown below. The specific value I'm talking about
+> is called 3VSB. How can I remove this from sensors or set the min/max values
+> for it?
+> 
+3VSB is in7, so you can either configure "ignore in7" or configure in7_min and
+in7_max.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
