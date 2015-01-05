@@ -1,48 +1,38 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sat, 24 Jan 2015 16:54:27 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.19
-Message-Id: <20150124175427.1c2a25c5@endymion.delvare>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Date: Mon, 05 Jan 2015 08:57:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: nct7802: Constify struct regmap_config
+Message-Id: <1420448275-8154-1-git-send-email-k.kozlowski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-Hi Linus,
+The regmap_config struct may be const because it is not modified by the
+driver and regmap_init() accepts pointer to const.
 
-Please pull hwmon subsystem updates for Linux 3.19 from:
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ drivers/hwmon/nct7802.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
-
-It contains a single thing: a new driver for the temperature sensor
-embedded in the Intel 5500/5520/X58 chipsets. Sorry for the late
-request, it's been so long since I last sent a pull request and I've
-been so busy with other tasks meanwhile that I simply forgot about
-these patches. But given that this is a new driver, it can't introduce
-any regression so I thought it could still be OK. This has been in
-linux-next for months now.
-
- drivers/hwmon/Kconfig      |  10 +++
- drivers/hwmon/Makefile     |   1 +
- drivers/hwmon/i5500_temp.c | 149 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 160 insertions(+)
- create mode 100644 drivers/hwmon/i5500_temp.c
-
----------------
-
-Axel Lin (2):
-      hwmon: (i5500_temp) Convert to module_pci_driver
-      hwmon: (i5500_temp) Convert to use ATTRIBUTE_GROUPS macro
-
-Jean Delvare (3):
-      hwmon: (i5500_temp) New driver for the Intel 5500/5520/X58 chipsets
-      hwmon: (i5500_temp) Convert to devm_hwmon_device_register_with_groups
-      hwmon: (i5500_temp) Don't bind to disabled sensors
-
-Thanks,
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index ec5678289e4a..55765790907b 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -779,7 +779,7 @@ static bool nct7802_regmap_is_volatile(struct device *dev, unsigned int reg)
+ 	return reg != REG_BANK && reg <= 0x20;
+ }
+ 
+-static struct regmap_config nct7802_regmap_config = {
++static const struct regmap_config nct7802_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 	.cache_type = REGCACHE_RBTREE,
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
