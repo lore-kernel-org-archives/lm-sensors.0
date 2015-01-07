@@ -1,142 +1,227 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Wed, 14 Jan 2015 18:28:37 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/8] thermal: Provide stub for thermal_cdev_update() function
-Message-Id: <20150114182835.GA3672@developer>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8207542508126586075=="
+From: Nishanth Menon <nm@ti.com>
+Date: Wed, 07 Jan 2015 18:01:14 +0000
+Subject: [lm-sensors] [PATCH] (gpio-fan): Add thermal control hooks
+Message-Id: <1420653674-23855-1-git-send-email-nm@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-3-git-send-email-l.majewski@samsung.com>
- <20150102184028.GA12371@developer>
- <20150114160753.48f903da@amdc2363>
-In-Reply-To: <20150114160753.48f903da@amdc2363>
-To: Lukasz Majewski <l.majewski@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
-
-
---===============8207542508126586075==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
-Content-Disposition: inline
-
-
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Jan 14, 2015 at 04:07:53PM +0100, Lukasz Majewski wrote:
-> Hi Eduardo,
->=20
-> > On Mon, Dec 22, 2014 at 05:27:42PM +0100, Lukasz Majewski wrote:
-> > > Odroid U3 fan can work without being registered as OF cooling device
-> > > (with CONFIG_THERMAL_OF disabled).
-> > > In this situation it can be controlled via PWM entry at
-> > > /sys/class/hwmon/hwmon0/pwm1.
-> > >=20
-> > > Therefore, the thermal_cdev_update() function needs a stub
-> > > to allow clean compilation.
-> >=20
-> > I am not sure I understand what you are attempting to do here. What is
-> > the relation that you see between CONFIG_OF_THERMAL and
-> > thermal_cdev_update?=20
->=20
-> It should be CONFIG_THERMAL, not CONFIG_OF_THERMAL.
->=20
-> The thermal_cdev_update() is necessary since pwm-fan code can be
-> run without THERMAL subsystem (and such configuration is perfectly
-> valid).
-
-OK. Now I understand. Then, please resend this one using CONFIG_THERMAL.
-
-
-Thanks,
-
-
-Eduardo Valentin
-
->=20
-> >=20
-> > >=20
-> > > Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-> > > ---
-> > > Changes for v2:
-> > > - New patch
-> > > ---
-> > >  include/linux/thermal.h | 6 +++++-
-> > >  1 file changed, 5 insertions(+), 1 deletion(-)
-> > >=20
-> > > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > > index 871123c..b3515b5 100644
-> > > --- a/include/linux/thermal.h
-> > > +++ b/include/linux/thermal.h
-> > > @@ -332,6 +332,7 @@ struct thermal_cooling_device *
-> > >  thermal_of_cooling_device_register(struct device_node *np,
-> > >  				   char *type, void *devdata,
-> > >  				   const struct
-> > > thermal_cooling_device_ops *); +void thermal_cdev_update(struct
-> > > thermal_cooling_device *); #else
-> > >  static inline struct thermal_zone_device *
-> > >  thermal_zone_of_sensor_register(struct device *dev, int id, void
-> > > *data, @@ -353,6 +354,10 @@
-> > > thermal_of_cooling_device_register(struct device_node *np, {
-> > >  	return NULL;
-> > >  }
-> > > +
-> > > +static inline void thermal_cdev_update(struct
-> > > thermal_cooling_device *cdev) +{
-> > > +}
-> > >  #endif
-> > >  struct thermal_zone_device *thermal_zone_device_register(const
-> > > char *, int, int, void *, struct thermal_zone_device_ops *,
-> > > @@ -375,7 +380,6 @@ int thermal_zone_get_temp(struct
-> > > thermal_zone_device *tz, unsigned long *temp); int
-> > > get_tz_trend(struct thermal_zone_device *, int); struct
-> > > thermal_instance *get_thermal_instance(struct thermal_zone_device
-> > > *, struct thermal_cooling_device *, int); -void
-> > > thermal_cdev_update(struct thermal_cooling_device *); void
-> > > thermal_notify_framework(struct thermal_zone_device *, int);=20
-> > >  #ifdef CONFIG_NET
-> > > --=20
-> > > 2.0.0.rc2
-> > >=20
->=20
->=20
-> --=20
-> Best regards,
->=20
-> Lukasz Majewski
->=20
-> Samsung R&D Institute Poland (SRPOL) | Linux Platform Group
-
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUtrVIAAoJEMLUO4d9pOJWQRYH/1A0R6BYwPWkVKEViu3ASgNK
-sHO81csXMk9Z5p9OUpRixD2WuaL1Z8k8vH1bR7mp76bLmBF5V6xBfat2OrSeeWLI
-wfQC4EZIp7OtT2nd80mm2Gb6RocmcjVTecqxex7QY7oM9grDyGRlRmsuYptEDrMg
-Gjco7nwSvbK/R3OyZ1ZwHOlKFAdOIWhT4aqzr56xcOibDoC7gl6PzozTm3M5wzxT
-zqffWgztZ2ccklteYLPbRjCscX++pPGS3089Ti6Nc7ojsOns9cPRy4eJmnwGxL0U
-R4DZ1vlDYmO1dMNh3YgW8BuwoARRGzn03pcPo3VUuaEEhsNtzDTsx45vlO0VW28=
-=rOL+
------END PGP SIGNATURE-----
-
---/04w6evG8XlLl3ft--
-
-
---===============8207542508126586075==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, Eduardo Valentin <edubezval@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Nishanth Menon <nm@ti.com>
+
+Allow gpio-fan to be used as thermal cooling device for platforms that
+use GPIO maps to control fans.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+
+Based on v3.19-rc3
+
+ .../devicetree/bindings/gpio/gpio-fan.txt          |   14 +++
+ drivers/hwmon/gpio-fan.c                           |   93 ++++++++++++++++++--
+ 2 files changed, 100 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/gpio/gpio-fan.txt b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
+index 2dd457a3469a..046f2f400dbb 100644
+--- a/Documentation/devicetree/bindings/gpio/gpio-fan.txt
++++ b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
+@@ -11,6 +11,9 @@ Required properties:
+ Optional properties:
+ - alarm-gpios: This pin going active indicates something is wrong with
+   the fan, and a udev event will be fired.
++- cooling-cells: If used as a cooling device, must be <2>
++  Also see: Documentation/devicetree/bindings/thermal/thermal.txt
++  min and max states are derived from the speed-map of the fan.
+ 
+ Examples:
+ 
+@@ -23,3 +26,14 @@ Examples:
+ 				      6000 2>;
+ 		alarm-gpios = <&gpio1 15 1>;
+ 	};
++
++	gpio_fan_cool: gpio_fan {
++		compatible = "gpio-fan";
++		gpios = <&gpio2 14 1
++			 &gpio2 13 1>;
++		gpio-fan,speed-map = <0    0
++				      3000 1
++				      6000 2>;
++		alarm-gpios = <&gpio1 15 1>;
++		#cooling-cells = <2>; /* min followed by max */
++	};
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index 36abf814b8c7..089914c4f574 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -34,10 +34,14 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_gpio.h>
++#include <linux/thermal.h>
++
+ 
+ struct gpio_fan_data {
+ 	struct platform_device	*pdev;
+ 	struct device		*hwmon_dev;
++	/* Cooling device if any */
++	struct thermal_cooling_device *cdev;
+ 	struct mutex		lock; /* lock GPIOs operations. */
+ 	int			num_ctrl;
+ 	unsigned		*ctrl;
+@@ -387,12 +391,63 @@ static int fan_ctrl_init(struct gpio_fan_data *fan_data,
+ 	return 0;
+ }
+ 
++static int gpio_fan_get_max_state(struct thermal_cooling_device *cdev,
++				  unsigned long *state)
++{
++	struct gpio_fan_data *fan_data = cdev->devdata;
++
++	if (!fan_data)
++		return -EINVAL;
++
++	*state = fan_data->num_speed - 1;
++	return 0;
++}
++
++static int gpio_fan_get_cur_state(struct thermal_cooling_device *cdev,
++				  unsigned long *state)
++{
++	struct gpio_fan_data *fan_data = cdev->devdata;
++	int r;
++
++	if (!fan_data)
++		return -EINVAL;
++
++	r = get_fan_speed_index(fan_data);
++	if (r < 0)
++		return r;
++
++	*state = r;
++	return 0;
++
++}
++
++static int gpio_fan_set_cur_state(struct thermal_cooling_device *cdev,
++				  unsigned long state)
++{
++	struct gpio_fan_data *fan_data = cdev->devdata;
++
++	if (!fan_data)
++		return -EINVAL;
++
++	set_fan_speed(fan_data, state);
++
++	return 0;
++}
++
++static const struct thermal_cooling_device_ops gpio_fan_cooling_ops = {
++	.get_max_state = gpio_fan_get_max_state,
++	.get_cur_state = gpio_fan_get_cur_state,
++	.set_cur_state = gpio_fan_set_cur_state,
++
++};
++
+ #ifdef CONFIG_OF_GPIO
+ /*
+  * Translate OpenFirmware node properties into platform_data
+  */
+ static int gpio_fan_get_of_pdata(struct device *dev,
+-			    struct gpio_fan_platform_data *pdata)
++			         struct gpio_fan_platform_data *pdata,
++				 struct gpio_fan_data *fan_data)
+ {
+ 	struct device_node *node;
+ 	struct gpio_fan_speed *speed;
+@@ -480,6 +535,12 @@ static int gpio_fan_get_of_pdata(struct device *dev,
+ 		pdata->alarm = alarm;
+ 	}
+ 
++	fan_data->cdev = thermal_of_cooling_device_register(node, "gpio-fan",
++							    fan_data,
++						    &gpio_fan_cooling_ops);
++	if (IS_ERR(fan_data->cdev))
++		dev_dbg(dev, "gpio-fan has no valid cooling DT property\n");
++
+ 	return 0;
+ }
+ 
+@@ -495,6 +556,11 @@ static int gpio_fan_probe(struct platform_device *pdev)
+ 	struct gpio_fan_data *fan_data;
+ 	struct gpio_fan_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 
++	fan_data = devm_kzalloc(&pdev->dev, sizeof(struct gpio_fan_data),
++				GFP_KERNEL);
++	if (!fan_data)
++		return -ENOMEM;
++
+ #ifdef CONFIG_OF_GPIO
+ 	if (!pdata) {
+ 		pdata = devm_kzalloc(&pdev->dev,
+@@ -503,20 +569,19 @@ static int gpio_fan_probe(struct platform_device *pdev)
+ 		if (!pdata)
+ 			return -ENOMEM;
+ 
+-		err = gpio_fan_get_of_pdata(&pdev->dev, pdata);
++		err = gpio_fan_get_of_pdata(&pdev->dev, pdata, fan_data);
+ 		if (err)
+ 			return err;
+ 	}
+ #else /* CONFIG_OF_GPIO */
+ 	if (!pdata)
+ 		return -EINVAL;
++	/* Optional cooling device register for non Device tree platforms */
++	fan_data->cdev = thermal_cooling_device_register("gpio-fan",
++							 fan_data,
++							 &gpio_fan_cooling_ops);
+ #endif /* CONFIG_OF_GPIO */
+ 
+-	fan_data = devm_kzalloc(&pdev->dev, sizeof(struct gpio_fan_data),
+-				GFP_KERNEL);
+-	if (!fan_data)
+-		return -ENOMEM;
+-
+ 	fan_data->pdev = pdev;
+ 	platform_set_drvdata(pdev, fan_data);
+ 	mutex_init(&fan_data->lock);
+@@ -550,10 +615,23 @@ static int gpio_fan_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int gpio_fan_remove(struct platform_device *pdev)
++{
++       struct gpio_fan_data *fan_data = platform_get_drvdata(pdev);
++
++	if (!IS_ERR(fan_data->cdev))
++		thermal_cooling_device_unregister(fan_data->cdev);
++
++       return 0;
++}
++
+ static void gpio_fan_shutdown(struct platform_device *pdev)
+ {
+ 	struct gpio_fan_data *fan_data = dev_get_drvdata(&pdev->dev);
+ 
++	if (!IS_ERR(fan_data->cdev))
++		thermal_cooling_device_unregister(fan_data->cdev);
++
+ 	if (fan_data->ctrl)
+ 		set_fan_speed(fan_data, 0);
+ }
+@@ -589,6 +667,7 @@ static SIMPLE_DEV_PM_OPS(gpio_fan_pm, gpio_fan_suspend, gpio_fan_resume);
+ 
+ static struct platform_driver gpio_fan_driver = {
+ 	.probe		= gpio_fan_probe,
++	.remove		= gpio_fan_remove,
+ 	.shutdown	= gpio_fan_shutdown,
+ 	.driver	= {
+ 		.name	= "gpio-fan",
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8207542508126586075==--
