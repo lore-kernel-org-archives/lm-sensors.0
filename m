@@ -1,257 +1,256 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 07 Jan 2015 20:52:33 +0000
-Subject: Re: [lm-sensors] [PATCH] (gpio-fan): Add thermal control hooks
-Message-Id: <20150107205233.GA28564@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 08 Jan 2015 16:25:13 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ina2xx) implement update_interval attribute for ina226
+Message-Id: <1420734313-24546-1-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1420653674-23855-1-git-send-email-nm@ti.com>
-In-Reply-To: <1420653674-23855-1-git-send-email-nm@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nishanth Menon <nm@ti.com>
-Cc: Jean Delvare <jdelvare@suse.de>, Eduardo Valentin <edubezval@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On Wed, Jan 07, 2015 at 12:01:14PM -0600, Nishanth Menon wrote:
-> Allow gpio-fan to be used as thermal cooling device for platforms that
-> use GPIO maps to control fans.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> 
-> Based on v3.19-rc3
-> 
->  .../devicetree/bindings/gpio/gpio-fan.txt          |   14 +++
->  drivers/hwmon/gpio-fan.c                           |   93 ++++++++++++++++++--
->  2 files changed, 100 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-fan.txt b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
-> index 2dd457a3469a..046f2f400dbb 100644
-> --- a/Documentation/devicetree/bindings/gpio/gpio-fan.txt
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
-> @@ -11,6 +11,9 @@ Required properties:
->  Optional properties:
->  - alarm-gpios: This pin going active indicates something is wrong with
->    the fan, and a udev event will be fired.
-> +- cooling-cells: If used as a cooling device, must be <2>
-> +  Also see: Documentation/devicetree/bindings/thermal/thermal.txt
-> +  min and max states are derived from the speed-map of the fan.
->  
->  Examples:
->  
-> @@ -23,3 +26,14 @@ Examples:
->  				      6000 2>;
->  		alarm-gpios = <&gpio1 15 1>;
->  	};
-> +
+This attribute allows to configure the update interval of ina226. Although
+the bus and shunt voltage conversion times remain hardcoded to 1.1 ms, we can
+now modify said interval by changing the averaging rate.
 
-Unnecessary second empty line.
+While we're at it - add an additional variable to ina2xx_data, which holds
+the current configuration settings - this way we'll be able to restore the
+configuration in case of an unexpected chip reset.
 
-> +	gpio_fan_cool: gpio_fan {
-> +		compatible = "gpio-fan";
-> +		gpios = <&gpio2 14 1
-> +			 &gpio2 13 1>;
-> +		gpio-fan,speed-map = <0    0
-> +				      3000 1
-> +				      6000 2>;
-> +		alarm-gpios = <&gpio1 15 1>;
-> +		#cooling-cells = <2>; /* min followed by max */
-> +	};
-> diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-> index 36abf814b8c7..089914c4f574 100644
-> --- a/drivers/hwmon/gpio-fan.c
-> +++ b/drivers/hwmon/gpio-fan.c
-> @@ -34,10 +34,14 @@
->  #include <linux/of.h>
->  #include <linux/of_platform.h>
->  #include <linux/of_gpio.h>
-> +#include <linux/thermal.h>
-> +
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ Documentation/hwmon/ina2xx |   3 +
+ drivers/hwmon/ina2xx.c     | 133 +++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 132 insertions(+), 4 deletions(-)
 
-Unnecessary additional empty line.
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 320dd69..f4f2696 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -48,3 +48,6 @@ The shunt value in micro-ohms can be set via platform data or device tree at
+ compile-time or via the shunt_resistor attribute in sysfs at run-time. Please
+ refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
+ if the device tree is used.
++
++Additionally ina226 supports update_interval attribute as described in
++Documentation/hwmon/sysfs-interface.
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 49537ea..048c229 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -68,6 +68,21 @@
+ 
+ #define INA2XX_RSHUNT_DEFAULT		10000
+ 
++/* bit mask for reading the averaging setting in the configuration register */
++#define INA226_AVG_RD_MASK		0x0E00
++
++#define INA226_READ_AVG(reg)		(((reg) & INA226_AVG_RD_MASK) >> 9)
++#define INA226_SHIFT_AVG(val)		((val) << 9)
++
++/* common attrs, ina226 attrs and NULL */
++#define INA2XX_MAX_ATTRIBUTE_GROUPS	3
++
++/*
++ * Both bus voltage and shunt voltage conversion times for ina226 are set
++ * to 0b0100 on POR, which translates to 1100 microseconds.
++ */
++#define INA226_CONV_TIME_DEFAULT	1100
++
+ enum ina2xx_ids { ina219, ina226 };
+ 
+ struct ina2xx_config {
+@@ -85,12 +100,14 @@ struct ina2xx_data {
+ 	const struct ina2xx_config *config;
+ 
+ 	long rshunt;
++	u16 curr_config;
+ 
+ 	struct mutex update_lock;
+ 	bool valid;
+ 	unsigned long last_updated;
+ 
+ 	int kind;
++	const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
+ 	u16 regs[INA2XX_MAX_REGISTERS];
+ };
+ 
+@@ -115,6 +132,48 @@ static const struct ina2xx_config ina2xx_config[] = {
+ 	},
+ };
+ 
++/*
++ * Available averaging rates for ina226. The indices correspond with
++ * the bit values expected by the chip (according to the ina226 datasheet,
++ * table 3 AVG bit settings, found at
++ * http://www.ti.com/lit/ds/symlink/ina226.pdf.
++ */
++static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
++
++static int ina226_avg_bits(int avg)
++{
++	int i;
++
++	/* Get the closest average from the tab. */
++	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab) - 1; i++) {
++		if (avg <= (ina226_avg_tab[i] + ina226_avg_tab[i + 1]) / 2)
++			break;
++	}
++
++	return i; /* Return 0b0111 for values greater than 1024. */
++}
++
++static int ina226_reg_to_interval(u16 config)
++{
++	int avg = ina226_avg_tab[INA226_READ_AVG(config)];
++
++	/*
++	 * Add bus and shunt voltage conversion times and multiple them
++	 * by the averaging rate. Return the result in milliseconds.
++	 */
++	return (avg * 2 * INA226_CONV_TIME_DEFAULT) / 1000;
++}
++
++static u16 ina226_interval_to_reg(int interval, u16 config)
++{
++	int avg, avg_bits;
++
++	avg = (interval * 1000) / (2 * INA226_CONV_TIME_DEFAULT);
++	avg_bits = ina226_avg_bits(avg);
++
++	return (config & ~INA226_AVG_RD_MASK) | INA226_SHIFT_AVG(avg_bits);
++}
++
+ static int ina2xx_calibrate(struct ina2xx_data *data)
+ {
+ 	return i2c_smbus_write_word_swapped(data->client, INA2XX_CALIBRATION,
+@@ -131,7 +190,7 @@ static int ina2xx_init(struct ina2xx_data *data)
+ 
+ 	/* device configuration */
+ 	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
+-					   data->config->config_default);
++					   data->curr_config);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -292,6 +351,51 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
+ 	return count;
+ }
+ 
++static ssize_t ina226_set_interval(struct device *dev,
++				   struct device_attribute *da,
++				   const char *buf, size_t count)
++{
++	struct ina2xx_data *data = dev_get_drvdata(dev);
++	unsigned long val;
++	int status;
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	status = kstrtoul(buf, 10, &val);
++	if (status < 0)
++		return status;
++
++	if (val > INT_MAX || val = 0)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	data->curr_config = ina226_interval_to_reg(val,
++						   data->regs[INA2XX_CONFIG]);
++	status = i2c_smbus_write_word_swapped(data->client,
++					      INA2XX_CONFIG,
++					      data->curr_config);
++	/* Make sure the next access re-reads all registers. */
++	data->valid = 0;
++	mutex_unlock(&data->update_lock);
++	if (status < 0)
++		return status;
++
++	return count;
++}
++
++static ssize_t ina226_show_interval(struct device *dev,
++				    struct device_attribute *da, char *buf)
++{
++	struct ina2xx_data *data = ina2xx_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return snprintf(buf, PAGE_SIZE, "%d\n",
++			ina226_reg_to_interval(data->regs[INA2XX_CONFIG]));
++}
++
+ /* shunt voltage */
+ static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_value, NULL,
+ 			  INA2XX_SHUNT_VOLTAGE);
+@@ -313,6 +417,10 @@ static SENSOR_DEVICE_ATTR(shunt_resistor, S_IRUGO | S_IWUSR,
+ 			  ina2xx_show_value, ina2xx_set_shunt,
+ 			  INA2XX_CALIBRATION);
+ 
++/* update interval (ina226 only) */
++static SENSOR_DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR,
++			  ina226_show_interval, ina226_set_interval, 0);
++
+ /* pointers to created device attributes */
+ static struct attribute *ina2xx_attrs[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+@@ -322,7 +430,19 @@ static struct attribute *ina2xx_attrs[] = {
+ 	&sensor_dev_attr_shunt_resistor.dev_attr.attr,
+ 	NULL,
+ };
+-ATTRIBUTE_GROUPS(ina2xx);
++
++static const struct attribute_group ina2xx_group = {
++	.attrs = ina2xx_attrs,
++};
++
++static struct attribute *ina226_attrs[] = {
++	&sensor_dev_attr_update_interval.dev_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group ina226_group = {
++	.attrs = ina226_attrs,
++};
+ 
+ static int ina2xx_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+@@ -333,7 +453,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	struct ina2xx_data *data;
+ 	struct device *hwmon_dev;
+ 	u32 val;
+-	int ret;
++	int ret, group = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+@@ -355,6 +475,7 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	/* set the device type */
+ 	data->kind = id->driver_data;
+ 	data->config = &ina2xx_config[data->kind];
++	data->curr_config = data->config->config_default;
+ 	data->client = client;
+ 
+ 	if (data->rshunt <= 0 ||
+@@ -369,8 +490,12 @@ static int ina2xx_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&data->update_lock);
+ 
++	data->groups[group++] = &ina2xx_group;
++	if (data->kind = ina226)
++		data->groups[group++] = &ina226_group;
++
+ 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
+-							   data, ina2xx_groups);
++							   data, data->groups);
+ 	if (IS_ERR(hwmon_dev))
+ 		return PTR_ERR(hwmon_dev);
+ 
+-- 
+2.1.3
 
->  
->  struct gpio_fan_data {
->  	struct platform_device	*pdev;
->  	struct device		*hwmon_dev;
-> +	/* Cooling device if any */
-> +	struct thermal_cooling_device *cdev;
->  	struct mutex		lock; /* lock GPIOs operations. */
->  	int			num_ctrl;
->  	unsigned		*ctrl;
-> @@ -387,12 +391,63 @@ static int fan_ctrl_init(struct gpio_fan_data *fan_data,
->  	return 0;
->  }
->  
-> +static int gpio_fan_get_max_state(struct thermal_cooling_device *cdev,
-> +				  unsigned long *state)
-> +{
-> +	struct gpio_fan_data *fan_data = cdev->devdata;
-> +
-> +	if (!fan_data)
-> +		return -EINVAL;
-> +
-> +	*state = fan_data->num_speed - 1;
-> +	return 0;
-> +}
-> +
-> +static int gpio_fan_get_cur_state(struct thermal_cooling_device *cdev,
-> +				  unsigned long *state)
-> +{
-> +	struct gpio_fan_data *fan_data = cdev->devdata;
-> +	int r;
-> +
-> +	if (!fan_data)
-> +		return -EINVAL;
-> +
-> +	r = get_fan_speed_index(fan_data);
-> +	if (r < 0)
-> +		return r;
-> +
-> +	*state = r;
-> +	return 0;
-> +
-Unnecessary empty line.
-
-> +}
-> +
-> +static int gpio_fan_set_cur_state(struct thermal_cooling_device *cdev,
-> +				  unsigned long state)
-> +{
-> +	struct gpio_fan_data *fan_data = cdev->devdata;
-> +
-> +	if (!fan_data)
-> +		return -EINVAL;
-> +
-> +	set_fan_speed(fan_data, state);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct thermal_cooling_device_ops gpio_fan_cooling_ops = {
-> +	.get_max_state = gpio_fan_get_max_state,
-> +	.get_cur_state = gpio_fan_get_cur_state,
-> +	.set_cur_state = gpio_fan_set_cur_state,
-> +
-Unnecessary empty line (checkpatch!!!)
-
-> +};
-> +
->  #ifdef CONFIG_OF_GPIO
->  /*
->   * Translate OpenFirmware node properties into platform_data
->   */
->  static int gpio_fan_get_of_pdata(struct device *dev,
-> -			    struct gpio_fan_platform_data *pdata)
-> +			         struct gpio_fan_platform_data *pdata,
-> +				 struct gpio_fan_data *fan_data)
->  {
->  	struct device_node *node;
->  	struct gpio_fan_speed *speed;
-> @@ -480,6 +535,12 @@ static int gpio_fan_get_of_pdata(struct device *dev,
->  		pdata->alarm = alarm;
->  	}
->  
-> +	fan_data->cdev = thermal_of_cooling_device_register(node, "gpio-fan",
-> +							    fan_data,
-> +						    &gpio_fan_cooling_ops);
-
-Just use one continuation line here, with no spaces up front but only tabs.
-
-> +	if (IS_ERR(fan_data->cdev))
-> +		dev_dbg(dev, "gpio-fan has no valid cooling DT property\n");
-> +
-The property is optional. Why does this warrant even a debug message ?
-
->  	return 0;
->  }
->  
-> @@ -495,6 +556,11 @@ static int gpio_fan_probe(struct platform_device *pdev)
->  	struct gpio_fan_data *fan_data;
->  	struct gpio_fan_platform_data *pdata = dev_get_platdata(&pdev->dev);
->  
-> +	fan_data = devm_kzalloc(&pdev->dev, sizeof(struct gpio_fan_data),
-> +				GFP_KERNEL);
-> +	if (!fan_data)
-> +		return -ENOMEM;
-> +
->  #ifdef CONFIG_OF_GPIO
->  	if (!pdata) {
->  		pdata = devm_kzalloc(&pdev->dev,
-> @@ -503,20 +569,19 @@ static int gpio_fan_probe(struct platform_device *pdev)
->  		if (!pdata)
->  			return -ENOMEM;
->  
-> -		err = gpio_fan_get_of_pdata(&pdev->dev, pdata);
-> +		err = gpio_fan_get_of_pdata(&pdev->dev, pdata, fan_data);
-
-It is inconsistent with the code below to call
-thermal_of_cooling_device_register in gpio_fan_get_of_pdata
-(and to pass fan_data just for that purpose). Please call it from here. 
-
->  		if (err)
->  			return err;
->  	}
->  #else /* CONFIG_OF_GPIO */
->  	if (!pdata)
->  		return -EINVAL;
-> +	/* Optional cooling device register for non Device tree platforms */
-> +	fan_data->cdev = thermal_cooling_device_register("gpio-fan",
-> +							 fan_data,
-> +							 &gpio_fan_cooling_ops);
->  #endif /* CONFIG_OF_GPIO */
->  
-> -	fan_data = devm_kzalloc(&pdev->dev, sizeof(struct gpio_fan_data),
-> -				GFP_KERNEL);
-> -	if (!fan_data)
-> -		return -ENOMEM;
-> -
->  	fan_data->pdev = pdev;
->  	platform_set_drvdata(pdev, fan_data);
->  	mutex_init(&fan_data->lock);
-> @@ -550,10 +615,23 @@ static int gpio_fan_probe(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +static int gpio_fan_remove(struct platform_device *pdev)
-> +{
-> +       struct gpio_fan_data *fan_data = platform_get_drvdata(pdev);
-
-Indentation is problematic. Actually, checkpatch shows several whitespace
-problems as well as an unnecessary empty line. Please ensure that your patch
-passes checkpatch --strict.
-
-> +
-> +	if (!IS_ERR(fan_data->cdev))
-> +		thermal_cooling_device_unregister(fan_data->cdev);
-> +
-> +       return 0;
-> +}
-> +
->  static void gpio_fan_shutdown(struct platform_device *pdev)
->  {
->  	struct gpio_fan_data *fan_data = dev_get_drvdata(&pdev->dev);
->  
-> +	if (!IS_ERR(fan_data->cdev))
-> +		thermal_cooling_device_unregister(fan_data->cdev);
-> +
-
-Instead of having this conditional call twice, you might as well call
-gpio_fan_remove() from here.
-
->  	if (fan_data->ctrl)
->  		set_fan_speed(fan_data, 0);
->  }
-> @@ -589,6 +667,7 @@ static SIMPLE_DEV_PM_OPS(gpio_fan_pm, gpio_fan_suspend, gpio_fan_resume);
->  
->  static struct platform_driver gpio_fan_driver = {
->  	.probe		= gpio_fan_probe,
-> +	.remove		= gpio_fan_remove,
->  	.shutdown	= gpio_fan_shutdown,
->  	.driver	= {
->  		.name	= "gpio-fan",
-> -- 
-> 1.7.9.5
-> 
 
 _______________________________________________
 lm-sensors mailing list
