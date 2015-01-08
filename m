@@ -1,43 +1,96 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 08 Jan 2015 22:38:44 +0000
+From: Pavel Machek <pavel@ucw.cz>
+Date: Thu, 08 Jan 2015 22:58:25 +0000
 Subject: Re: [lm-sensors] hwmon strangeness, no fan control on w83627dhg
-Message-Id: <1420756724.4340.4.camel@chaos.site>
+Message-Id: <20150108225825.GA5700@amd>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20150108202919.GA25118@amd>
 In-Reply-To: <20150108202919.GA25118@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgUGF2ZWwsCgpMZSBUaHVyc2RheSAwOCBKYW51YXJ5IDIwMTUgw6AgMjE6MjkgKzAxMDAsIFBh
-dmVsIE1hY2hlayBhIMOpY3JpdCA6Cj4gaHdtb24gaXMgcXVpdGUgaW5jb3Npc3RlbnQgb24gbXkg
-bWFjaGluZTogaW4gaHdtb24wIGNhc2UsIHRlbXBlcmF0dXJlCj4gZmlsZXMgYXJlIGluIGRpcmVj
-dGx5IGluIGh3bW9uMCBzdWJkaXJlY3RvcnksIGJ1dCBpbiBod21vbjEgY2FzZSwgdGhleQo+IGFy
-ZSBpbiBod21vbjEvZGV2aWNlLyAuIElzIHRoYXQgZXhwZWN0ZWQ/IFdoeSBpcyBpdCBzbz8KClRo
-aXMgaXMgZm9yIGhpc3RvcmljYWwgcmVhc29ucy4gV2UgYXJlIGluIHRoZSBwcm9jZXNzIG9mIGNs
-ZWFuaW5nIGl0IGFsbAp1cCAoYXR0cmlidXRlcyBzaG91bGQgYWx3YXlzIGJlIGluIHRoZSBod21v
-biBjbGFzcyBkZXZpY2UpIGJ1dCB0aGVyZSBhcmUKbWFueSBkcml2ZXJzIGxlZnQgdG8gY29udmVy
-dC4KCkFueXdheSwgYm90aCBsaWJzZW5zb3JzIGFuZCBwd21jb25maWcvZmFuY29udHJvbCBzdXBw
-b3J0IGJvdGgsIHNvIGlmCnlvdXIgdmVyc2lvbiBvZiBsbS1zZW5zb3JzIGlzIHJlY2VudCBlbm91
-Z2gsIHRoaXMgc2hvdWxkbid0IGJlIGFuIGlzc3VlLgoKPiAoLi4uKQo+IFBsdXMsIG5vIG1hdHRl
-ciB3aGF0IEkgZG8sIEkgY2FuJ3QgY29udHJvbCB0aGUgcHdtMiAob25seSBvbmUgdXNlZCBvbgo+
-IG15IGJvYXJkKToKPiAKPiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uj
-IGNhdCBwd20yCj4gODAKPiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uj
-IGVjaG8gMCA+IHB3bTIKPiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uj
-IGNhdCBwd20yCj4gODAKPiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uj
-Cj4gCj4gSSB0cmllZCBwbGF5aW5nIHdpdGggb3RoZXIgZmlsZXMsIHRvbywgYnV0IG5vIGx1Y2su
-IERvY3VtZW50YXRpb24KPiBtZW50aW9uczoKPiAKPiBOb3RlOiBsYXN0IHNpeCBmdW5jdGlvbnMg
-YXJlIGluZmx1ZW5jZWQgYnkgb3RoZXIgY29udHJvbCBiaXRzLCBub3QgeWV0Cj4gZXhwb3J0ZWQK
-PiAgICAgICBieSB0aGUgZHJpdmVyLCBzbyBhIGNoYW5nZSBtaWdodCBub3QgaGF2ZSBhbnkgZWZm
-ZWN0Lgo+IAo+IAo+IEFueSBpZGVhcyB3aGF0IGJpdHMgdGhvc2UgYXJlLCBhbmQgd2hhdCBuZWVk
-cyB0byBiZSBpbXBsZW1lbnRlZD8gKEknbQo+IGN1cnJlbnRseSByZWFkaW5nIHRocm91Z2ggdGhl
-IGRvY3VtZW50YXRpb24pLgoKQ2hlY2sgdGhlIHZhbHVlIG9mIHB3bTJfZW5hYmxlLiBJZiBhdXRv
-bWF0aWMgbW9kZSBpcyBzZXQgKHB3bTJfZW5hYmxlID49CjIpLCB5b3UgY2FuJ3QgY29udHJvbCB0
-aGUgb3V0cHV0IHZhbHVlIGRpcmVjdGx5LiBTYW1lIGlmIGNvbnRyb2wgaXMKZGlzYWJsZWQgYWx0
-b2dldGhlciAocHdtMl9lbmFibGUgPSAwKSBidXQgSSdtIG5vdCBzdXJlIGlmIHRoZSB3ODM2Mjdl
-aGYKZHJpdmVyIHN1cHBvcnRzIHRoYXQuIFlvdSBjYW4gb25seSBjb250cm9sIGlmIGluIG1hbnVh
-bCBtb2RlCihwd20yX2VuYWJsZSA9IDEuKQoKLS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBv
-cnQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hi!
+
+> Le Thursday 08 January 2015 =E0 21:29 +0100, Pavel Machek a =E9crit :
+> > hwmon is quite incosistent on my machine: in hwmon0 case, temperature
+> > files are in directly in hwmon0 subdirectory, but in hwmon1 case, they
+> > are in hwmon1/device/ . Is that expected? Why is it so?
+>=20
+> This is for historical reasons. We are in the process of cleaning it all
+> up (attributes should always be in the hwmon class device) but there are
+> many drivers left to convert.
+
+So my "hwmon0" is correct and "hwmon1" needs conversion, right?
+
+> Anyway, both libsensors and pwmconfig/fancontrol support both, so if
+> your version of lm-sensors is recent enough, this shouldn't be an
+> issue.
+
+Ok, good to know.
+
+> > I tried playing with other files, too, but no luck. Documentation
+> > mentions:
+> >=20
+> > Note: last six functions are influenced by other control bits, not yet
+> > exported
+> >       by the driver, so a change might not have any effect.
+> >=20
+> >=20
+> > Any ideas what bits those are, and what needs to be implemented? (I'm
+> > currently reading through the documentation).
+>=20
+> Check the value of pwm2_enable. If automatic mode is set (pwm2_enable >=3D
+> 2), you can't control the output value directly. Same if control is
+> disabled altogether (pwm2_enable =3D 0) but I'm not sure if the w83627ehf
+> driver supports that. You can only control if in manual mode
+> (pwm2_enable =3D 1.)
+
+It is in manual mode after boot... (but I think there's some fan
+control going on, weird; I may be imagining it, was not able to
+trigger it on purpose).
+
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2_enable
+1
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
+80
+root@amd:/sys/class/hwmon/hwmon1/device# echo 0 > pwm2
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
+80
+root@amd:/sys/class/hwmon/hwmon1/device#
+
+I even tried to set it to 1, but no luck:
+
+root@amd:/sys/class/hwmon/hwmon1/device# echo 1 > pwm2_enable
+root@amd:/sys/class/hwmon/hwmon1/device# echo 0 > pwm2
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
+80
+root@amd:/sys/class/hwmon/hwmon1/device# echo 2 > pwm2
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
+80
+root@amd:/sys/class/hwmon/hwmon1/device#
+
+...and set it there and back:
+
+root@amd:/sys/class/hwmon/hwmon1/device# echo 2 > pwm2_enable
+root@amd:/sys/class/hwmon/hwmon1/device# echo 1 > pwm2_enable
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
+80
+root@amd:/sys/class/hwmon/hwmon1/device# echo 40 > pwm2
+root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
+80
+root@amd:/sys/class/hwmon/hwmon1/device#
+
+Any other ideas?
+
+Thanks,
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
