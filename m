@@ -1,96 +1,77 @@
-From: Pavel Machek <pavel@ucw.cz>
-Date: Thu, 08 Jan 2015 22:58:25 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 12 Jan 2015 07:22:38 +0000
 Subject: Re: [lm-sensors] hwmon strangeness, no fan control on w83627dhg
-Message-Id: <20150108225825.GA5700@amd>
+Message-Id: <20150112082238.76667be7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20150108202919.GA25118@amd>
 In-Reply-To: <20150108202919.GA25118@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi!
-
-> Le Thursday 08 January 2015 =E0 21:29 +0100, Pavel Machek a =E9crit :
-> > hwmon is quite incosistent on my machine: in hwmon0 case, temperature
-> > files are in directly in hwmon0 subdirectory, but in hwmon1 case, they
-> > are in hwmon1/device/ . Is that expected? Why is it so?
->=20
-> This is for historical reasons. We are in the process of cleaning it all
-> up (attributes should always be in the hwmon class device) but there are
-> many drivers left to convert.
-
-So my "hwmon0" is correct and "hwmon1" needs conversion, right?
-
-> Anyway, both libsensors and pwmconfig/fancontrol support both, so if
-> your version of lm-sensors is recent enough, this shouldn't be an
-> issue.
-
-Ok, good to know.
-
-> > I tried playing with other files, too, but no luck. Documentation
-> > mentions:
-> >=20
-> > Note: last six functions are influenced by other control bits, not yet
-> > exported
-> >       by the driver, so a change might not have any effect.
-> >=20
-> >=20
-> > Any ideas what bits those are, and what needs to be implemented? (I'm
-> > currently reading through the documentation).
->=20
-> Check the value of pwm2_enable. If automatic mode is set (pwm2_enable >=3D
-> 2), you can't control the output value directly. Same if control is
-> disabled altogether (pwm2_enable =3D 0) but I'm not sure if the w83627ehf
-> driver supports that. You can only control if in manual mode
-> (pwm2_enable =3D 1.)
-
-It is in manual mode after boot... (but I think there's some fan
-control going on, weird; I may be imagining it, was not able to
-trigger it on purpose).
-
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2_enable
-1
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
-80
-root@amd:/sys/class/hwmon/hwmon1/device# echo 0 > pwm2
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
-80
-root@amd:/sys/class/hwmon/hwmon1/device#
-
-I even tried to set it to 1, but no luck:
-
-root@amd:/sys/class/hwmon/hwmon1/device# echo 1 > pwm2_enable
-root@amd:/sys/class/hwmon/hwmon1/device# echo 0 > pwm2
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
-80
-root@amd:/sys/class/hwmon/hwmon1/device# echo 2 > pwm2
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
-80
-root@amd:/sys/class/hwmon/hwmon1/device#
-
-...and set it there and back:
-
-root@amd:/sys/class/hwmon/hwmon1/device# echo 2 > pwm2_enable
-root@amd:/sys/class/hwmon/hwmon1/device# echo 1 > pwm2_enable
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
-80
-root@amd:/sys/class/hwmon/hwmon1/device# echo 40 > pwm2
-root@amd:/sys/class/hwmon/hwmon1/device# cat pwm2
-80
-root@amd:/sys/class/hwmon/hwmon1/device#
-
-Any other ideas?
-
-Thanks,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgUGF2ZWwsCgpPbiBUaHUsIDggSmFuIDIwMTUgMjM6NTg6MjUgKzAxMDAsIFBhdmVsIE1hY2hl
+ayB3cm90ZToKPiA+IExlIFRodXJzZGF5IDA4IEphbnVhcnkgMjAxNSDDoCAyMToyOSArMDEwMCwg
+UGF2ZWwgTWFjaGVrIGEgw6ljcml0IDoKPiA+ID4gaHdtb24gaXMgcXVpdGUgaW5jb3Npc3RlbnQg
+b24gbXkgbWFjaGluZTogaW4gaHdtb24wIGNhc2UsIHRlbXBlcmF0dXJlCj4gPiA+IGZpbGVzIGFy
+ZSBpbiBkaXJlY3RseSBpbiBod21vbjAgc3ViZGlyZWN0b3J5LCBidXQgaW4gaHdtb24xIGNhc2Us
+IHRoZXkKPiA+ID4gYXJlIGluIGh3bW9uMS9kZXZpY2UvIC4gSXMgdGhhdCBleHBlY3RlZD8gV2h5
+IGlzIGl0IHNvPwo+ID4gCj4gPiBUaGlzIGlzIGZvciBoaXN0b3JpY2FsIHJlYXNvbnMuIFdlIGFy
+ZSBpbiB0aGUgcHJvY2VzcyBvZiBjbGVhbmluZyBpdCBhbGwKPiA+IHVwIChhdHRyaWJ1dGVzIHNo
+b3VsZCBhbHdheXMgYmUgaW4gdGhlIGh3bW9uIGNsYXNzIGRldmljZSkgYnV0IHRoZXJlIGFyZQo+
+ID4gbWFueSBkcml2ZXJzIGxlZnQgdG8gY29udmVydC4KPiAKPiBTbyBteSAiaHdtb24wIiBpcyBj
+b3JyZWN0IGFuZCAiaHdtb24xIiBuZWVkcyBjb252ZXJzaW9uLCByaWdodD8KCkNvcnJlY3QuIE9y
+IHRvIHB1dCBpdCBpbiBtb3JlIGNvbmNyZXRlIHdvcmRzOiB0aGUgY29yZXRlbXAgZHJpdmVyIHdh
+cwphbHJlYWR5IGNvbnZlcnRlZCAoc2luY2Uga2VybmVsIHYzLjE1KSBidXQgdGhlIHc4MzYyN2Vo
+ZiBkcml2ZXIgd2FzIG5vdC4KCj4gPiBBbnl3YXksIGJvdGggbGlic2Vuc29ycyBhbmQgcHdtY29u
+ZmlnL2ZhbmNvbnRyb2wgc3VwcG9ydCBib3RoLCBzbyBpZgo+ID4geW91ciB2ZXJzaW9uIG9mIGxt
+LXNlbnNvcnMgaXMgcmVjZW50IGVub3VnaCwgdGhpcyBzaG91bGRuJ3QgYmUgYW4KPiA+IGlzc3Vl
+Lgo+IAo+IE9rLCBnb29kIHRvIGtub3cuCj4gCj4gPiA+IEkgdHJpZWQgcGxheWluZyB3aXRoIG90
+aGVyIGZpbGVzLCB0b28sIGJ1dCBubyBsdWNrLiBEb2N1bWVudGF0aW9uCj4gPiA+IG1lbnRpb25z
+Ogo+ID4gPiAKPiA+ID4gTm90ZTogbGFzdCBzaXggZnVuY3Rpb25zIGFyZSBpbmZsdWVuY2VkIGJ5
+IG90aGVyIGNvbnRyb2wgYml0cywgbm90IHlldAo+ID4gPiBleHBvcnRlZAo+ID4gPiAgICAgICBi
+eSB0aGUgZHJpdmVyLCBzbyBhIGNoYW5nZSBtaWdodCBub3QgaGF2ZSBhbnkgZWZmZWN0Lgo+ID4g
+PiAKPiA+ID4gCj4gPiA+IEFueSBpZGVhcyB3aGF0IGJpdHMgdGhvc2UgYXJlLCBhbmQgd2hhdCBu
+ZWVkcyB0byBiZSBpbXBsZW1lbnRlZD8gKEknbQo+ID4gPiBjdXJyZW50bHkgcmVhZGluZyB0aHJv
+dWdoIHRoZSBkb2N1bWVudGF0aW9uKS4KPiA+IAo+ID4gQ2hlY2sgdGhlIHZhbHVlIG9mIHB3bTJf
+ZW5hYmxlLiBJZiBhdXRvbWF0aWMgbW9kZSBpcyBzZXQgKHB3bTJfZW5hYmxlID49Cj4gPiAyKSwg
+eW91IGNhbid0IGNvbnRyb2wgdGhlIG91dHB1dCB2YWx1ZSBkaXJlY3RseS4gU2FtZSBpZiBjb250
+cm9sIGlzCj4gPiBkaXNhYmxlZCBhbHRvZ2V0aGVyIChwd20yX2VuYWJsZSA9IDApIGJ1dCBJJ20g
+bm90IHN1cmUgaWYgdGhlIHc4MzYyN2VoZgo+ID4gZHJpdmVyIHN1cHBvcnRzIHRoYXQuIFlvdSBj
+YW4gb25seSBjb250cm9sIGlmIGluIG1hbnVhbCBtb2RlCj4gPiAocHdtMl9lbmFibGUgPSAxLikK
+PiAKPiBJdCBpcyBpbiBtYW51YWwgbW9kZSBhZnRlciBib290Li4uIChidXQgSSB0aGluayB0aGVy
+ZSdzIHNvbWUgZmFuCj4gY29udHJvbCBnb2luZyBvbiwgd2VpcmQ7IEkgbWF5IGJlIGltYWdpbmlu
+ZyBpdCwgd2FzIG5vdCBhYmxlIHRvCj4gdHJpZ2dlciBpdCBvbiBwdXJwb3NlKS4KClNvbWUgZmFu
+cyBhcmUgc2VsZiByZWd1bGF0aW5nLCBpbmRlcGVuZGVudCBvZiB3aGF0IHRoZSBtb3RoZXJib2Fy
+ZApkb2VzLiBNYXliZSB5b3UgaGF2ZSBvbmUgb2YgdGhlc2U/Cgo+IAo+IHJvb3RAYW1kOi9zeXMv
+Y2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMgY2F0IHB3bTJfZW5hYmxlCj4gMQo+IHJvb3RAYW1k
+Oi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMgY2F0IHB3bTIKPiA4MAo+IHJvb3RAYW1k
+Oi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMgZWNobyAwID4gcHdtMgo+IHJvb3RAYW1k
+Oi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMgY2F0IHB3bTIKPiA4MAo+IHJvb3RAYW1k
+Oi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMKPiAKPiBJIGV2ZW4gdHJpZWQgdG8gc2V0
+IGl0IHRvIDEsIGJ1dCBubyBsdWNrOgo+IAo+IHJvb3RAYW1kOi9zeXMvY2xhc3MvaHdtb24vaHdt
+b24xL2RldmljZSMgZWNobyAxID4gcHdtMl9lbmFibGUKPiByb290QGFtZDovc3lzL2NsYXNzL2h3
+bW9uL2h3bW9uMS9kZXZpY2UjIGVjaG8gMCA+IHB3bTIKPiByb290QGFtZDovc3lzL2NsYXNzL2h3
+bW9uL2h3bW9uMS9kZXZpY2UjIGNhdCBwd20yCj4gODAKPiByb290QGFtZDovc3lzL2NsYXNzL2h3
+bW9uL2h3bW9uMS9kZXZpY2UjIGVjaG8gMiA+IHB3bTIKPiByb290QGFtZDovc3lzL2NsYXNzL2h3
+bW9uL2h3bW9uMS9kZXZpY2UjIGNhdCBwd20yCj4gODAKPiByb290QGFtZDovc3lzL2NsYXNzL2h3
+bW9uL2h3bW9uMS9kZXZpY2UjCj4gCj4gLi4uYW5kIHNldCBpdCB0aGVyZSBhbmQgYmFjazoKPiAK
+PiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2UjIGVjaG8gMiA+IHB3bTJf
+ZW5hYmxlCj4gcm9vdEBhbWQ6L3N5cy9jbGFzcy9od21vbi9od21vbjEvZGV2aWNlIyBlY2hvIDEg
+PiBwd20yX2VuYWJsZQo+IHJvb3RAYW1kOi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMg
+Y2F0IHB3bTIKPiA4MAo+IHJvb3RAYW1kOi9zeXMvY2xhc3MvaHdtb24vaHdtb24xL2RldmljZSMg
+ZWNobyA0MCA+IHB3bTIKPiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uj
+IGNhdCBwd20yCj4gODAKPiByb290QGFtZDovc3lzL2NsYXNzL2h3bW9uL2h3bW9uMS9kZXZpY2Uj
+Cj4gCj4gQW55IG90aGVyIGlkZWFzPwoKVGhhdCB3b3VsZCBiZSBhIGJ1Zy4gV2hpY2gga2VybmVs
+IHZlcnNpb24gYXJlIHlvdSBydW5uaW5nPyBZb3VyIGNoaXAgaXMKdGhlICJQIiBmbGF2b3Igb2Yg
+dGhlIFc4MzYyN0RIRywgaXQgaXMgbW9yZSByZWNlbnQgYW5kIGxlc3MgcG9wdWxhciBzbwppdCBp
+cyBlbnRpcmVseSBwb3NzaWJsZSB0aGF0IGl0IHdhc24ndCBwcm9wZXJseSB0ZXN0ZWQgYW5kIHNv
+bWUKZGlmZmVyZW5jZXMgd2l0aCB0aGUgb3JpZ2luYWwgVzgzNjI3REhHIGFyZSBub3QgaGFuZGxl
+ZCBieSB0aGUgZHJpdmVyLgpSaWdodCBub3cgdGhlIGRyaXZlciBoYW5kbGVzIGJvdGggY2hpcHMg
+YXMgZXF1aXZhbGVudC4KCkkgZG9uJ3QgaGF2ZSBtdWNoIHRpbWUgdG8gc3BlbmQgb24gdGhpcyBy
+aWdodCBub3cgYnV0IHlvdSBzaG91bGQgc3RhcnQKYnkgY29tcGFyaW5nIHRoZSBkYXRhc2hlZXRz
+IG9mIHRoZSBXODM2MjdESEcgYW5kIHRoZSBXODM2MjdESEctUApsb29raW5nIGZvciBkaWZmZXJl
+bmNlcy4KCi0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBTdXBwb3J0CgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
