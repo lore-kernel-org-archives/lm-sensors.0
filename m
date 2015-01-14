@@ -1,29 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 22 Jan 2015 23:16:32 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] drivers/hwmon/adc128d818.c: Do proper sign extension
-Message-Id: <54C184D0.6080509@roeck-us.net>
+From: Kevin Hilman <khilman@kernel.org>
+Date: Wed, 14 Jan 2015 23:57:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ina2xx) Add ina231 compatible string
+Message-Id: <1421279852-27965-1-git-send-email-khilman@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421966655-16188-1-git-send-email-linux@rasmusvillemoes.dk> <1421966655-16188-2-git-send-email-linux@rasmusvillemoes.dk>
-In-Reply-To: <1421966655-16188-2-git-send-email-linux@rasmusvillemoes.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Jean Delvare <jdelvare@suse.de>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+Cc: linux-samsung-soc@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, open list <linux-kernel@vger.kernel.org>
 
-On 01/22/2015 02:44 PM, Rasmus Villemoes wrote:
-> data->temp[index] has type s16. Because of C's promotion rules,
-> (data->temp[index] << 7) >> 7 is exactly the same as
-> data->temp[index]. The intention was to use bit 8 as a sign bit, so do
-> that using the existing API.
->
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> ---
+From: Kevin Hilman <khilman@linaro.org>
 
-Applied.
+Add support for "ina231" as compatible string.
 
-Thanks,
-Guenter
+Tested with the Exynos5422-based odroid-xu3 board which has on-board
+INA231 sensors.
+
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
+---
+ drivers/hwmon/ina2xx.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index e01feba909c3..8c4a29bd2eaf 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -287,6 +287,7 @@ static const struct i2c_device_id ina2xx_id[] = {
+ 	{ "ina220", ina219 },
+ 	{ "ina226", ina226 },
+ 	{ "ina230", ina226 },
++	{ "ina231", ina226 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ina2xx_id);
+-- 
+2.1.3
 
 
 _______________________________________________
