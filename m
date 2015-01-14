@@ -1,90 +1,195 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 14 Jan 2015 15:01:06 +0000
+From: Eduardo Valentin <edubezval@gmail.com>
+Date: Wed, 14 Jan 2015 18:32:13 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/8] thermal: Provide stub for thermal_of_cooling_device_register() funct
-Message-Id: <20150114160106.20aa160b@amdc2363>
+Message-Id: <20150114183211.GB3672@developer>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6949020998265963430=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
  <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
  <1419265668-32283-2-git-send-email-l.majewski@samsung.com>
- <20150102185426.GC12485@developer> <20150102190339.GA22356@developer>
-In-Reply-To: <20150102190339.GA22356@developer>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>
+ <20150102185426.GC12485@developer>
+ <20150102190339.GA22356@developer>
+ <20150114160106.20aa160b@amdc2363>
+In-Reply-To: <20150114160106.20aa160b@amdc2363>
+To: Lukasz Majewski <l.majewski@samsung.com>
 Cc: Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
 
-SGkgRWR1YXJkbywKCj4gT24gRnJpLCBKYW4gMDIsIDIwMTUgYXQgMDI6NTQ6MjhQTSAtMDQwMCwg
-RWR1YXJkbyBWYWxlbnRpbiB3cm90ZToKPiA+IE9uIE1vbiwgRGVjIDIyLCAyMDE0IGF0IDA1OjI3
-OjQxUE0gKzAxMDAsIEx1a2FzeiBNYWpld3NraSB3cm90ZToKPiA+ID4gT2Ryb2lkIFUzIGZhbiBj
-YW4gd29yayB3aXRob3V0IGJlaW5nIHJlZ2lzdGVyZWQgYXMgT0YgY29vbGluZwo+ID4gPiBkZXZp
-Y2UgKHdpdGggQ09ORklHX1RIRVJNQUxfT0YgZGlzYWJsZWQpLgo+ID4gPiBJbiB0aGlzIHNpdHVh
-dGlvbiBpdCBjYW4gYmUgY29udHJvbGxlZCB2aWEgUFdNIGVudHJ5IGF0Cj4gPiA+IC9zeXMvY2xh
-c3MvaHdtb24vaHdtb24wL3B3bTEuCj4gPiA+IAo+ID4gPiBUaGVyZWZvcmUsIHRoZSB0aGVybWFs
-X29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVyKCkgZnVuY3Rpb24KPiA+ID4gbmVlZHMgYSBzdHVi
-IHRvIGFsbG93IGNsZWFuIGNvbXBpbGF0aW9uLgo+ID4gPiAKPiA+ID4gU2lnbmVkLW9mZi1ieTog
-THVrYXN6IE1hamV3c2tpIDxsLm1hamV3c2tpQHNhbXN1bmcuY29tPgo+ID4gCj4gPiBBY2tlZC1i
-eTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YmV6dmFsQGdtYWlsLmNvbT4KPiAKPiBTb3JyeSwgdG9v
-IGZhc3QsCj4gCj4gVGhpcyBpcyBhY3R1YWxseQo+IE5hY2tlZC1ieTogRWR1YXJkbyBWYWxlbnRp
-biA8ZWR1YmV6dmFsQGdtYWlsLmNvbT4KPiAKPiA6LSkKPiAKPiBJIGdldCB0aGlzIGVycm9yOgo+
-IGRyaXZlcnMvdGhlcm1hbC90aGVybWFsX2NvcmUuYzoxMjEwOjE6IGVycm9yOiByZWRlZmluaXRp
-b24gb2YKPiDigJh0aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVy4oCZCj4gIHRoZXJt
-YWxfb2ZfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoc3RydWN0IGRldmljZV9ub2RlICpucCwKPiAg
-IF4KPiAgIEluIGZpbGUgaW5jbHVkZWQgZnJvbSBkcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9jb3Jl
-LmM6MzQ6MDoKPiAgIGluY2x1ZGUvbGludXgvdGhlcm1hbC5oOjMyMToxOiBub3RlOiBwcmV2aW91
-cyBkZWZpbml0aW9uIG9mCj4gICDigJh0aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVy
-4oCZIHdhcyBoZXJlCj4gICAgdGhlcm1hbF9vZl9jb29saW5nX2RldmljZV9yZWdpc3RlcihzdHJ1
-Y3QgZGV2aWNlX25vZGUgKm5wLAo+ICAgICBeCj4gCj4gCj4gV2UgcHJvdmlkZSB0aGUgZnVuY3Rp
-b24gaW4gdGhlcm1hbCBjb3JlIGV2ZW4gaWYgQ09ORklHX1RIRVJNQUxfT0YgaXMKPiBub3Qgc2V0
-LgoKVW5mb3J0dW5hdGVseSB0aGUgUFdNIGZhbiBzdWJzeXN0ZW0gY2FuIHdvcmsgcGVyZmVjdGx5
-IGZpbmUgd2l0aG91dApDT05GSUdfVEhFUk1BTC4KCkkgdGhpbmsgdGhhdCBpdCB3b3VsZCBiZSBl
-bm91Z2ggdG8gbWFrZSBzb21ldGhpbmcgbGlrZSB0aGlzIGluCnRoZSAuL2luY2x1ZGUvbGludXgv
-dGhlcm1hbC5oOgoKI2lmZGVmIENPTkZJR19USEVSTUFMCglzdGF0aWMgaW5saW5lIHN0cnVjdCB0
-aGVybWFsX2Nvb2xpbmdfZGV2aWNlICoKCQl0aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lz
-dGVyKHN0cnVjdCBkZXZpY2Vfbm9kZQoJCSpucCwgY2hhciAqdHlwZSwgdm9pZCAqZGV2ZGF0YSwK
-CQkJCSAgIGNvbnN0IHN0cnVjdAoJCXRoZXJtYWxfY29vbGluZ19kZXZpY2Vfb3BzICpvcHMpIHsK
-CQlyZXR1cm4gTlVMTDsKCX0KI2Vsc2UKCVsgYWxyZWFkeSBwcmVzZW50IGRlY2xhcmF0aW9uIG9m
-Cgl0aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVyKCkgXQojZW5kaWYgLyogQ09ORklH
-X1RIRVJNQUwgKi8KCgoKPiA+IAo+ID4gPiAtLS0KPiA+ID4gQ2hhbmdlcyBmb3IgdjI6Cj4gPiA+
-IC0gTm9uZQo+ID4gPiAtLS0KPiA+ID4gIGluY2x1ZGUvbGludXgvdGhlcm1hbC5oIHwgMTQgKysr
-KysrKysrKystLS0KPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCAzIGRl
-bGV0aW9ucygtKQo+ID4gPiAKPiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvdGhlcm1h
-bC5oIGIvaW5jbHVkZS9saW51eC90aGVybWFsLmgKPiA+ID4gaW5kZXggMmRlM2Q5ZS4uODcxMTIz
-YyAxMDA2NDQKPiA+ID4gLS0tIGEvaW5jbHVkZS9saW51eC90aGVybWFsLmgKPiA+ID4gKysrIGIv
-aW5jbHVkZS9saW51eC90aGVybWFsLmgKPiA+ID4gQEAgLTMyOCw2ICszMjgsMTAgQEAgdGhlcm1h
-bF96b25lX29mX3NlbnNvcl9yZWdpc3RlcihzdHJ1Y3QKPiA+ID4gZGV2aWNlICpkZXYsIGludCBp
-ZCwgdm9pZCAqZGF0YSwgY29uc3Qgc3RydWN0Cj4gPiA+IHRoZXJtYWxfem9uZV9vZl9kZXZpY2Vf
-b3BzICpvcHMpOyB2b2lkCj4gPiA+IHRoZXJtYWxfem9uZV9vZl9zZW5zb3JfdW5yZWdpc3Rlcihz
-dHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdAo+ID4gPiB0aGVybWFsX3pvbmVfZGV2aWNlICp0eik7
-ICtzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqCj4gPiA+ICt0aGVybWFsX29mX2Nvb2xp
-bmdfZGV2aWNlX3JlZ2lzdGVyKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnAsCj4gPiA+ICsJCQkJICAg
-Y2hhciAqdHlwZSwgdm9pZCAqZGV2ZGF0YSwKPiA+ID4gKwkJCQkgICBjb25zdCBzdHJ1Y3QKPiA+
-ID4gdGhlcm1hbF9jb29saW5nX2RldmljZV9vcHMgKik7ICNlbHNlCj4gPiA+ICBzdGF0aWMgaW5s
-aW5lIHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICoKPiA+ID4gIHRoZXJtYWxfem9uZV9vZl9z
-ZW5zb3JfcmVnaXN0ZXIoc3RydWN0IGRldmljZSAqZGV2LCBpbnQgaWQsIHZvaWQKPiA+ID4gKmRh
-dGEsIEBAIC0zNDIsNiArMzQ2LDEzIEBAIHZvaWQKPiA+ID4gdGhlcm1hbF96b25lX29mX3NlbnNv
-cl91bnJlZ2lzdGVyKHN0cnVjdCBkZXZpY2UgKmRldiwgewo+ID4gPiAgfQo+ID4gPiAgCj4gPiA+
-ICtzdGF0aWMgaW5saW5lIHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICoKPiA+ID4gK3Ro
-ZXJtYWxfb2ZfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoc3RydWN0IGRldmljZV9ub2RlICpucCwK
-PiA+ID4gKwkJCQkgICBjaGFyICp0eXBlLCB2b2lkICpkZXZkYXRhLAo+ID4gPiArCQkJCSAgIGNv
-bnN0IHN0cnVjdAo+ID4gPiB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX29wcyAqb3BzKSArewo+ID4g
-PiArCXJldHVybiBOVUxMOwo+ID4gPiArfQo+ID4gPiAgI2VuZGlmCj4gPiA+ICBzdHJ1Y3QgdGhl
-cm1hbF96b25lX2RldmljZSAqdGhlcm1hbF96b25lX2RldmljZV9yZWdpc3Rlcihjb25zdAo+ID4g
-PiBjaGFyICosIGludCwgaW50LCB2b2lkICosIHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlX29w
-cyAqLAo+ID4gPiBAQCAtMzU3LDkgKzM2OCw2IEBAIHZvaWQgdGhlcm1hbF96b25lX2RldmljZV91
-cGRhdGUoc3RydWN0Cj4gPiA+IHRoZXJtYWxfem9uZV9kZXZpY2UgKik7IAo+ID4gPiAgc3RydWN0
-IHRoZXJtYWxfY29vbGluZ19kZXZpY2UKPiA+ID4gKnRoZXJtYWxfY29vbGluZ19kZXZpY2VfcmVn
-aXN0ZXIoY2hhciAqLCB2b2lkICosIGNvbnN0IHN0cnVjdAo+ID4gPiB0aGVybWFsX2Nvb2xpbmdf
-ZGV2aWNlX29wcyAqKTsgLXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICoKPiA+ID4gLXRo
-ZXJtYWxfb2ZfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoc3RydWN0IGRldmljZV9ub2RlICpucCwg
-Y2hhcgo+ID4gPiAqLCB2b2lkICosCj4gPiA+IC0JCQkJICAgY29uc3Qgc3RydWN0Cj4gPiA+IHRo
-ZXJtYWxfY29vbGluZ19kZXZpY2Vfb3BzICopOyB2b2lkCj4gPiA+IHRoZXJtYWxfY29vbGluZ19k
-ZXZpY2VfdW5yZWdpc3RlcihzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZQo+ID4gPiAqKTsg
-c3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UKPiA+ID4gKnRoZXJtYWxfem9uZV9nZXRfem9uZV9i
-eV9uYW1lKGNvbnN0IGNoYXIgKm5hbWUpOyBpbnQKPiA+ID4gdGhlcm1hbF96b25lX2dldF90ZW1w
-KHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwgdW5zaWduZWQKPiA+ID4gbG9uZyAqdGVt
-cCk7IC0tIDIuMC4wLnJjMgo+ID4gPiAKPiAKPiAKCgoKLS0gCkJlc3QgcmVnYXJkcywKCkx1a2Fz
-eiBNYWpld3NraQoKU2Ftc3VuZyBSJkQgSW5zdGl0dXRlIFBvbGFuZCAoU1JQT0wpIHwgTGludXgg
-UGxhdGZvcm0gR3JvdXAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcK
-aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+
+--===============6949020998265963430==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
+Content-Disposition: inline
+
+
+--1UWUbFP1cBYEclgG
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Jan 14, 2015 at 04:01:06PM +0100, Lukasz Majewski wrote:
+> Hi Eduardo,
+>=20
+> > On Fri, Jan 02, 2015 at 02:54:28PM -0400, Eduardo Valentin wrote:
+> > > On Mon, Dec 22, 2014 at 05:27:41PM +0100, Lukasz Majewski wrote:
+> > > > Odroid U3 fan can work without being registered as OF cooling
+> > > > device (with CONFIG_THERMAL_OF disabled).
+> > > > In this situation it can be controlled via PWM entry at
+> > > > /sys/class/hwmon/hwmon0/pwm1.
+> > > >=20
+> > > > Therefore, the thermal_of_cooling_device_register() function
+> > > > needs a stub to allow clean compilation.
+> > > >=20
+> > > > Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+> > >=20
+> > > Acked-by: Eduardo Valentin <edubezval@gmail.com>
+> >=20
+> > Sorry, too fast,
+> >=20
+> > This is actually
+> > Nacked-by: Eduardo Valentin <edubezval@gmail.com>
+> >=20
+> > :-)
+> >=20
+> > I get this error:
+> > drivers/thermal/thermal_core.c:1210:1: error: redefinition of
+> > =E2=80=98thermal_of_cooling_device_register=E2=80=99
+> >  thermal_of_cooling_device_register(struct device_node *np,
+> >   ^
+> >   In file included from drivers/thermal/thermal_core.c:34:0:
+> >   include/linux/thermal.h:321:1: note: previous definition of
+> >   =E2=80=98thermal_of_cooling_device_register=E2=80=99 was here
+> >    thermal_of_cooling_device_register(struct device_node *np,
+> >     ^
+> >=20
+> >=20
+> > We provide the function in thermal core even if CONFIG_THERMAL_OF is
+> > not set.
+>=20
+> Unfortunately the PWM fan subsystem can work perfectly fine without
+> CONFIG_THERMAL.
+>=20
+
+Now I understand what you are trying to do.
+
+> I think that it would be enough to make something like this in
+> the ./include/linux/thermal.h:
+>=20
+> #ifdef CONFIG_THERMAL
+Well, I think it should be the opposite here:
+
+#ifndef CONFIG_THERMAL
+
+that is, if no config thermal, then you provide the stub not the other
+way around.
+
+> 	static inline struct thermal_cooling_device *
+> 		thermal_of_cooling_device_register(struct device_node
+> 		*np, char *type, void *devdata,
+> 				   const struct
+> 		thermal_cooling_device_ops *ops) {
+> 		return NULL;
+> 	}
+> #else
+> 	[ already present declaration of
+> 	thermal_of_cooling_device_register() ]
+> #endif /* CONFIG_THERMAL */
+
+
+>=20
+>=20
+>=20
+> > >=20
+> > > > ---
+> > > > Changes for v2:
+> > > > - None
+> > > > ---
+> > > >  include/linux/thermal.h | 14 +++++++++++---
+> > > >  1 file changed, 11 insertions(+), 3 deletions(-)
+> > > >=20
+> > > > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> > > > index 2de3d9e..871123c 100644
+> > > > --- a/include/linux/thermal.h
+> > > > +++ b/include/linux/thermal.h
+> > > > @@ -328,6 +328,10 @@ thermal_zone_of_sensor_register(struct
+> > > > device *dev, int id, void *data, const struct
+> > > > thermal_zone_of_device_ops *ops); void
+> > > > thermal_zone_of_sensor_unregister(struct device *dev, struct
+> > > > thermal_zone_device *tz); +struct thermal_cooling_device *
+> > > > +thermal_of_cooling_device_register(struct device_node *np,
+> > > > +				   char *type, void *devdata,
+> > > > +				   const struct
+> > > > thermal_cooling_device_ops *); #else
+> > > >  static inline struct thermal_zone_device *
+> > > >  thermal_zone_of_sensor_register(struct device *dev, int id, void
+> > > > *data, @@ -342,6 +346,13 @@ void
+> > > > thermal_zone_of_sensor_unregister(struct device *dev, {
+> > > >  }
+> > > > =20
+> > > > +static inline struct thermal_cooling_device *
+> > > > +thermal_of_cooling_device_register(struct device_node *np,
+> > > > +				   char *type, void *devdata,
+> > > > +				   const struct
+> > > > thermal_cooling_device_ops *ops) +{
+> > > > +	return NULL;
+> > > > +}
+> > > >  #endif
+> > > >  struct thermal_zone_device *thermal_zone_device_register(const
+> > > > char *, int, int, void *, struct thermal_zone_device_ops *,
+> > > > @@ -357,9 +368,6 @@ void thermal_zone_device_update(struct
+> > > > thermal_zone_device *);=20
+> > > >  struct thermal_cooling_device
+> > > > *thermal_cooling_device_register(char *, void *, const struct
+> > > > thermal_cooling_device_ops *); -struct thermal_cooling_device *
+> > > > -thermal_of_cooling_device_register(struct device_node *np, char
+> > > > *, void *,
+> > > > -				   const struct
+> > > > thermal_cooling_device_ops *); void
+> > > > thermal_cooling_device_unregister(struct thermal_cooling_device
+> > > > *); struct thermal_zone_device
+> > > > *thermal_zone_get_zone_by_name(const char *name); int
+> > > > thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned
+> > > > long *temp); -- 2.0.0.rc2
+> > > >=20
+> >=20
+> >=20
+>=20
+>=20
+>=20
+> --=20
+> Best regards,
+>=20
+> Lukasz Majewski
+>=20
+> Samsung R&D Institute Poland (SRPOL) | Linux Platform Group
+
+--1UWUbFP1cBYEclgG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUtrYMAAoJEMLUO4d9pOJW/vAH+wcTwVCWNNUyLqf6XB5rf44Q
+nGW1m48ZjXoHub4us1T5PBvhufYGImK/vAGEXoJOMRzKmu9rHPd58pAqTozLPFWA
+AlqYuwu9u7yxkn1DCQMZtPIKXNoxxvlltbUl+uujE/Qx2/xNl9rVNWEE/MLfIPBR
+VNeb9Bxyk1riq8C8SmUgBCIADX1v06WEZmBKtbwqs67RupPyctIO9MbEOQ4bUC87
+QBIC4WozI/FcmLRPW6viWvX8Gxi0v+g9v4CHkYJwwcFXV9VKXN0HPg4AFQgHSpz7
+P52ne5UG1QRef+Jv/xTlhSNESQTM+njwuHeYpQyE4hNayx3c0P6yObbeOBHABtY=
+=kIs0
+-----END PGP SIGNATURE-----
+
+--1UWUbFP1cBYEclgG--
+
+
+--===============6949020998265963430==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6949020998265963430==--
