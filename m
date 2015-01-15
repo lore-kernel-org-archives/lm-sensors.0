@@ -1,195 +1,108 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Wed, 14 Jan 2015 18:32:13 +0000
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Thu, 15 Jan 2015 08:43:00 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/8] thermal: Provide stub for thermal_of_cooling_device_register() funct
-Message-Id: <20150114183211.GB3672@developer>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6949020998265963430=="
+Message-Id: <20150115094300.7019081d@amdc2363>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
  <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
  <1419265668-32283-2-git-send-email-l.majewski@samsung.com>
- <20150102185426.GC12485@developer>
- <20150102190339.GA22356@developer>
- <20150114160106.20aa160b@amdc2363>
-In-Reply-To: <20150114160106.20aa160b@amdc2363>
-To: Lukasz Majewski <l.majewski@samsung.com>
+ <20150102185426.GC12485@developer> <20150102190339.GA22356@developer>
+ <20150114160106.20aa160b@amdc2363> <20150114183211.GB3672@developer>
+In-Reply-To: <20150114183211.GB3672@developer>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Eduardo Valentin <edubezval@gmail.com>
 Cc: Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
 
-
---===============6949020998265963430==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
-Content-Disposition: inline
-
-
---1UWUbFP1cBYEclgG
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Jan 14, 2015 at 04:01:06PM +0100, Lukasz Majewski wrote:
-> Hi Eduardo,
->=20
-> > On Fri, Jan 02, 2015 at 02:54:28PM -0400, Eduardo Valentin wrote:
-> > > On Mon, Dec 22, 2014 at 05:27:41PM +0100, Lukasz Majewski wrote:
-> > > > Odroid U3 fan can work without being registered as OF cooling
-> > > > device (with CONFIG_THERMAL_OF disabled).
-> > > > In this situation it can be controlled via PWM entry at
-> > > > /sys/class/hwmon/hwmon0/pwm1.
-> > > >=20
-> > > > Therefore, the thermal_of_cooling_device_register() function
-> > > > needs a stub to allow clean compilation.
-> > > >=20
-> > > > Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-> > >=20
-> > > Acked-by: Eduardo Valentin <edubezval@gmail.com>
-> >=20
-> > Sorry, too fast,
-> >=20
-> > This is actually
-> > Nacked-by: Eduardo Valentin <edubezval@gmail.com>
-> >=20
-> > :-)
-> >=20
-> > I get this error:
-> > drivers/thermal/thermal_core.c:1210:1: error: redefinition of
-> > =E2=80=98thermal_of_cooling_device_register=E2=80=99
-> >  thermal_of_cooling_device_register(struct device_node *np,
-> >   ^
-> >   In file included from drivers/thermal/thermal_core.c:34:0:
-> >   include/linux/thermal.h:321:1: note: previous definition of
-> >   =E2=80=98thermal_of_cooling_device_register=E2=80=99 was here
-> >    thermal_of_cooling_device_register(struct device_node *np,
-> >     ^
-> >=20
-> >=20
-> > We provide the function in thermal core even if CONFIG_THERMAL_OF is
-> > not set.
->=20
-> Unfortunately the PWM fan subsystem can work perfectly fine without
-> CONFIG_THERMAL.
->=20
-
-Now I understand what you are trying to do.
-
-> I think that it would be enough to make something like this in
-> the ./include/linux/thermal.h:
->=20
-> #ifdef CONFIG_THERMAL
-Well, I think it should be the opposite here:
-
-#ifndef CONFIG_THERMAL
-
-that is, if no config thermal, then you provide the stub not the other
-way around.
-
-> 	static inline struct thermal_cooling_device *
-> 		thermal_of_cooling_device_register(struct device_node
-> 		*np, char *type, void *devdata,
-> 				   const struct
-> 		thermal_cooling_device_ops *ops) {
-> 		return NULL;
-> 	}
-> #else
-> 	[ already present declaration of
-> 	thermal_of_cooling_device_register() ]
-> #endif /* CONFIG_THERMAL */
-
-
->=20
->=20
->=20
-> > >=20
-> > > > ---
-> > > > Changes for v2:
-> > > > - None
-> > > > ---
-> > > >  include/linux/thermal.h | 14 +++++++++++---
-> > > >  1 file changed, 11 insertions(+), 3 deletions(-)
-> > > >=20
-> > > > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > > > index 2de3d9e..871123c 100644
-> > > > --- a/include/linux/thermal.h
-> > > > +++ b/include/linux/thermal.h
-> > > > @@ -328,6 +328,10 @@ thermal_zone_of_sensor_register(struct
-> > > > device *dev, int id, void *data, const struct
-> > > > thermal_zone_of_device_ops *ops); void
-> > > > thermal_zone_of_sensor_unregister(struct device *dev, struct
-> > > > thermal_zone_device *tz); +struct thermal_cooling_device *
-> > > > +thermal_of_cooling_device_register(struct device_node *np,
-> > > > +				   char *type, void *devdata,
-> > > > +				   const struct
-> > > > thermal_cooling_device_ops *); #else
-> > > >  static inline struct thermal_zone_device *
-> > > >  thermal_zone_of_sensor_register(struct device *dev, int id, void
-> > > > *data, @@ -342,6 +346,13 @@ void
-> > > > thermal_zone_of_sensor_unregister(struct device *dev, {
-> > > >  }
-> > > > =20
-> > > > +static inline struct thermal_cooling_device *
-> > > > +thermal_of_cooling_device_register(struct device_node *np,
-> > > > +				   char *type, void *devdata,
-> > > > +				   const struct
-> > > > thermal_cooling_device_ops *ops) +{
-> > > > +	return NULL;
-> > > > +}
-> > > >  #endif
-> > > >  struct thermal_zone_device *thermal_zone_device_register(const
-> > > > char *, int, int, void *, struct thermal_zone_device_ops *,
-> > > > @@ -357,9 +368,6 @@ void thermal_zone_device_update(struct
-> > > > thermal_zone_device *);=20
-> > > >  struct thermal_cooling_device
-> > > > *thermal_cooling_device_register(char *, void *, const struct
-> > > > thermal_cooling_device_ops *); -struct thermal_cooling_device *
-> > > > -thermal_of_cooling_device_register(struct device_node *np, char
-> > > > *, void *,
-> > > > -				   const struct
-> > > > thermal_cooling_device_ops *); void
-> > > > thermal_cooling_device_unregister(struct thermal_cooling_device
-> > > > *); struct thermal_zone_device
-> > > > *thermal_zone_get_zone_by_name(const char *name); int
-> > > > thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned
-> > > > long *temp); -- 2.0.0.rc2
-> > > >=20
-> >=20
-> >=20
->=20
->=20
->=20
-> --=20
-> Best regards,
->=20
-> Lukasz Majewski
->=20
-> Samsung R&D Institute Poland (SRPOL) | Linux Platform Group
-
---1UWUbFP1cBYEclgG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUtrYMAAoJEMLUO4d9pOJW/vAH+wcTwVCWNNUyLqf6XB5rf44Q
-nGW1m48ZjXoHub4us1T5PBvhufYGImK/vAGEXoJOMRzKmu9rHPd58pAqTozLPFWA
-AlqYuwu9u7yxkn1DCQMZtPIKXNoxxvlltbUl+uujE/Qx2/xNl9rVNWEE/MLfIPBR
-VNeb9Bxyk1riq8C8SmUgBCIADX1v06WEZmBKtbwqs67RupPyctIO9MbEOQ4bUC87
-QBIC4WozI/FcmLRPW6viWvX8Gxi0v+g9v4CHkYJwwcFXV9VKXN0HPg4AFQgHSpz7
-P52ne5UG1QRef+Jv/xTlhSNESQTM+njwuHeYpQyE4hNayx3c0P6yObbeOBHABtY=
-=kIs0
------END PGP SIGNATURE-----
-
---1UWUbFP1cBYEclgG--
-
-
---===============6949020998265963430==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6949020998265963430==--
+SGkgRWR1YXJkbywKCj4gT24gV2VkLCBKYW4gMTQsIDIwMTUgYXQgMDQ6MDE6MDZQTSArMDEwMCwg
+THVrYXN6IE1hamV3c2tpIHdyb3RlOgo+ID4gSGkgRWR1YXJkbywKPiA+IAo+ID4gPiBPbiBGcmks
+IEphbiAwMiwgMjAxNSBhdCAwMjo1NDoyOFBNIC0wNDAwLCBFZHVhcmRvIFZhbGVudGluIHdyb3Rl
+Ogo+ID4gPiA+IE9uIE1vbiwgRGVjIDIyLCAyMDE0IGF0IDA1OjI3OjQxUE0gKzAxMDAsIEx1a2Fz
+eiBNYWpld3NraSB3cm90ZToKPiA+ID4gPiA+IE9kcm9pZCBVMyBmYW4gY2FuIHdvcmsgd2l0aG91
+dCBiZWluZyByZWdpc3RlcmVkIGFzIE9GIGNvb2xpbmcKPiA+ID4gPiA+IGRldmljZSAod2l0aCBD
+T05GSUdfVEhFUk1BTF9PRiBkaXNhYmxlZCkuCj4gPiA+ID4gPiBJbiB0aGlzIHNpdHVhdGlvbiBp
+dCBjYW4gYmUgY29udHJvbGxlZCB2aWEgUFdNIGVudHJ5IGF0Cj4gPiA+ID4gPiAvc3lzL2NsYXNz
+L2h3bW9uL2h3bW9uMC9wd20xLgo+ID4gPiA+ID4gCj4gPiA+ID4gPiBUaGVyZWZvcmUsIHRoZSB0
+aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVyKCkgZnVuY3Rpb24KPiA+ID4gPiA+IG5l
+ZWRzIGEgc3R1YiB0byBhbGxvdyBjbGVhbiBjb21waWxhdGlvbi4KPiA+ID4gPiA+IAo+ID4gPiA+
+ID4gU2lnbmVkLW9mZi1ieTogTHVrYXN6IE1hamV3c2tpIDxsLm1hamV3c2tpQHNhbXN1bmcuY29t
+Pgo+ID4gPiA+IAo+ID4gPiA+IEFja2VkLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHViZXp2YWxA
+Z21haWwuY29tPgo+ID4gPiAKPiA+ID4gU29ycnksIHRvbyBmYXN0LAo+ID4gPiAKPiA+ID4gVGhp
+cyBpcyBhY3R1YWxseQo+ID4gPiBOYWNrZWQtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWJlenZh
+bEBnbWFpbC5jb20+Cj4gPiA+IAo+ID4gPiA6LSkKPiA+ID4gCj4gPiA+IEkgZ2V0IHRoaXMgZXJy
+b3I6Cj4gPiA+IGRyaXZlcnMvdGhlcm1hbC90aGVybWFsX2NvcmUuYzoxMjEwOjE6IGVycm9yOiBy
+ZWRlZmluaXRpb24gb2YKPiA+ID4g4oCYdGhlcm1hbF9vZl9jb29saW5nX2RldmljZV9yZWdpc3Rl
+cuKAmQo+ID4gPiAgdGhlcm1hbF9vZl9jb29saW5nX2RldmljZV9yZWdpc3RlcihzdHJ1Y3QgZGV2
+aWNlX25vZGUgKm5wLAo+ID4gPiAgIF4KPiA+ID4gICBJbiBmaWxlIGluY2x1ZGVkIGZyb20gZHJp
+dmVycy90aGVybWFsL3RoZXJtYWxfY29yZS5jOjM0OjA6Cj4gPiA+ICAgaW5jbHVkZS9saW51eC90
+aGVybWFsLmg6MzIxOjE6IG5vdGU6IHByZXZpb3VzIGRlZmluaXRpb24gb2YKPiA+ID4gICDigJh0
+aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVy4oCZIHdhcyBoZXJlCj4gPiA+ICAgIHRo
+ZXJtYWxfb2ZfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoc3RydWN0IGRldmljZV9ub2RlICpucCwK
+PiA+ID4gICAgIF4KPiA+ID4gCj4gPiA+IAo+ID4gPiBXZSBwcm92aWRlIHRoZSBmdW5jdGlvbiBp
+biB0aGVybWFsIGNvcmUgZXZlbiBpZiBDT05GSUdfVEhFUk1BTF9PRgo+ID4gPiBpcyBub3Qgc2V0
+Lgo+ID4gCj4gPiBVbmZvcnR1bmF0ZWx5IHRoZSBQV00gZmFuIHN1YnN5c3RlbSBjYW4gd29yayBw
+ZXJmZWN0bHkgZmluZSB3aXRob3V0Cj4gPiBDT05GSUdfVEhFUk1BTC4KPiA+IAo+IAo+IE5vdyBJ
+IHVuZGVyc3RhbmQgd2hhdCB5b3UgYXJlIHRyeWluZyB0byBkby4KPiAKPiA+IEkgdGhpbmsgdGhh
+dCBpdCB3b3VsZCBiZSBlbm91Z2ggdG8gbWFrZSBzb21ldGhpbmcgbGlrZSB0aGlzIGluCj4gPiB0
+aGUgLi9pbmNsdWRlL2xpbnV4L3RoZXJtYWwuaDoKPiA+IAo+ID4gI2lmZGVmIENPTkZJR19USEVS
+TUFMCj4gV2VsbCwgSSB0aGluayBpdCBzaG91bGQgYmUgdGhlIG9wcG9zaXRlIGhlcmU6Cj4gCj4g
+I2lmbmRlZiBDT05GSUdfVEhFUk1BTAo+IAo+IHRoYXQgaXMsIGlmIG5vIGNvbmZpZyB0aGVybWFs
+LCB0aGVuIHlvdSBwcm92aWRlIHRoZSBzdHViIG5vdCB0aGUgb3RoZXIKPiB3YXkgYXJvdW5kLgoK
+VGhpcyBzZWVtcyBsaWtlIGEgYmV0dGVyIHNvbHV0aW9uIDotKS4KClRoYW5rcy4KCj4gCj4gPiAJ
+c3RhdGljIGlubGluZSBzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqCj4gPiAJCXRoZXJt
+YWxfb2ZfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoc3RydWN0Cj4gPiBkZXZpY2Vfbm9kZSAqbnAs
+IGNoYXIgKnR5cGUsIHZvaWQgKmRldmRhdGEsCj4gPiAJCQkJICAgY29uc3Qgc3RydWN0Cj4gPiAJ
+CXRoZXJtYWxfY29vbGluZ19kZXZpY2Vfb3BzICpvcHMpIHsKPiA+IAkJcmV0dXJuIE5VTEw7Cj4g
+PiAJfQo+ID4gI2Vsc2UKPiA+IAlbIGFscmVhZHkgcHJlc2VudCBkZWNsYXJhdGlvbiBvZgo+ID4g
+CXRoZXJtYWxfb2ZfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoKSBdCj4gPiAjZW5kaWYgLyogQ09O
+RklHX1RIRVJNQUwgKi8KPiAKPiAKPiA+IAo+ID4gCj4gPiAKPiA+ID4gPiAKPiA+ID4gPiA+IC0t
+LQo+ID4gPiA+ID4gQ2hhbmdlcyBmb3IgdjI6Cj4gPiA+ID4gPiAtIE5vbmUKPiA+ID4gPiA+IC0t
+LQo+ID4gPiA+ID4gIGluY2x1ZGUvbGludXgvdGhlcm1hbC5oIHwgMTQgKysrKysrKysrKystLS0K
+PiA+ID4gPiA+ICAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMo
+LSkKPiA+ID4gPiA+IAo+ID4gPiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvdGhlcm1h
+bC5oIGIvaW5jbHVkZS9saW51eC90aGVybWFsLmgKPiA+ID4gPiA+IGluZGV4IDJkZTNkOWUuLjg3
+MTEyM2MgMTAwNjQ0Cj4gPiA+ID4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L3RoZXJtYWwuaAo+ID4g
+PiA+ID4gKysrIGIvaW5jbHVkZS9saW51eC90aGVybWFsLmgKPiA+ID4gPiA+IEBAIC0zMjgsNiAr
+MzI4LDEwIEBAIHRoZXJtYWxfem9uZV9vZl9zZW5zb3JfcmVnaXN0ZXIoc3RydWN0Cj4gPiA+ID4g
+PiBkZXZpY2UgKmRldiwgaW50IGlkLCB2b2lkICpkYXRhLCBjb25zdCBzdHJ1Y3QKPiA+ID4gPiA+
+IHRoZXJtYWxfem9uZV9vZl9kZXZpY2Vfb3BzICpvcHMpOyB2b2lkCj4gPiA+ID4gPiB0aGVybWFs
+X3pvbmVfb2Zfc2Vuc29yX3VucmVnaXN0ZXIoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QKPiA+
+ID4gPiA+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KTsgK3N0cnVjdCB0aGVybWFsX2Nvb2xpbmdf
+ZGV2aWNlICoKPiA+ID4gPiA+ICt0aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVyKHN0
+cnVjdCBkZXZpY2Vfbm9kZSAqbnAsCj4gPiA+ID4gPiArCQkJCSAgIGNoYXIgKnR5cGUsIHZvaWQg
+KmRldmRhdGEsCj4gPiA+ID4gPiArCQkJCSAgIGNvbnN0IHN0cnVjdAo+ID4gPiA+ID4gdGhlcm1h
+bF9jb29saW5nX2RldmljZV9vcHMgKik7ICNlbHNlCj4gPiA+ID4gPiAgc3RhdGljIGlubGluZSBz
+dHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqCj4gPiA+ID4gPiAgdGhlcm1hbF96b25lX29mX3Nl
+bnNvcl9yZWdpc3RlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIGludCBpZCwKPiA+ID4gPiA+IHZvaWQg
+KmRhdGEsIEBAIC0zNDIsNiArMzQ2LDEzIEBAIHZvaWQKPiA+ID4gPiA+IHRoZXJtYWxfem9uZV9v
+Zl9zZW5zb3JfdW5yZWdpc3RlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIHsKPiA+ID4gPiA+ICB9Cj4g
+PiA+ID4gPiAgCj4gPiA+ID4gPiArc3RhdGljIGlubGluZSBzdHJ1Y3QgdGhlcm1hbF9jb29saW5n
+X2RldmljZSAqCj4gPiA+ID4gPiArdGhlcm1hbF9vZl9jb29saW5nX2RldmljZV9yZWdpc3Rlcihz
+dHJ1Y3QgZGV2aWNlX25vZGUgKm5wLAo+ID4gPiA+ID4gKwkJCQkgICBjaGFyICp0eXBlLCB2b2lk
+ICpkZXZkYXRhLAo+ID4gPiA+ID4gKwkJCQkgICBjb25zdCBzdHJ1Y3QKPiA+ID4gPiA+IHRoZXJt
+YWxfY29vbGluZ19kZXZpY2Vfb3BzICpvcHMpICt7Cj4gPiA+ID4gPiArCXJldHVybiBOVUxMOwo+
+ID4gPiA+ID4gK30KPiA+ID4gPiA+ICAjZW5kaWYKPiA+ID4gPiA+ICBzdHJ1Y3QgdGhlcm1hbF96
+b25lX2RldmljZQo+ID4gPiA+ID4gKnRoZXJtYWxfem9uZV9kZXZpY2VfcmVnaXN0ZXIoY29uc3Qg
+Y2hhciAqLCBpbnQsIGludCwgdm9pZCAqLAo+ID4gPiA+ID4gc3RydWN0IHRoZXJtYWxfem9uZV9k
+ZXZpY2Vfb3BzICosIEBAIC0zNTcsOSArMzY4LDYgQEAgdm9pZAo+ID4gPiA+ID4gdGhlcm1hbF96
+b25lX2RldmljZV91cGRhdGUoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKik7IAo+ID4gPiA+
+ID4gIHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlCj4gPiA+ID4gPiAqdGhlcm1hbF9jb29s
+aW5nX2RldmljZV9yZWdpc3RlcihjaGFyICosIHZvaWQgKiwgY29uc3Qgc3RydWN0Cj4gPiA+ID4g
+PiB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX29wcyAqKTsgLXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdf
+ZGV2aWNlCj4gPiA+ID4gPiAqIC10aGVybWFsX29mX2Nvb2xpbmdfZGV2aWNlX3JlZ2lzdGVyKHN0
+cnVjdCBkZXZpY2Vfbm9kZSAqbnAsCj4gPiA+ID4gPiBjaGFyICosIHZvaWQgKiwKPiA+ID4gPiA+
+IC0JCQkJICAgY29uc3Qgc3RydWN0Cj4gPiA+ID4gPiB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX29w
+cyAqKTsgdm9pZAo+ID4gPiA+ID4gdGhlcm1hbF9jb29saW5nX2RldmljZV91bnJlZ2lzdGVyKHN0
+cnVjdAo+ID4gPiA+ID4gdGhlcm1hbF9jb29saW5nX2RldmljZSAqKTsgc3RydWN0IHRoZXJtYWxf
+em9uZV9kZXZpY2UKPiA+ID4gPiA+ICp0aGVybWFsX3pvbmVfZ2V0X3pvbmVfYnlfbmFtZShjb25z
+dCBjaGFyICpuYW1lKTsgaW50Cj4gPiA+ID4gPiB0aGVybWFsX3pvbmVfZ2V0X3RlbXAoc3RydWN0
+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6LCB1bnNpZ25lZAo+ID4gPiA+ID4gbG9uZyAqdGVtcCk7
+IC0tIDIuMC4wLnJjMgo+ID4gPiA+ID4gCj4gPiA+IAo+ID4gPiAKPiA+IAo+ID4gCj4gPiAKPiA+
+IC0tIAo+ID4gQmVzdCByZWdhcmRzLAo+ID4gCj4gPiBMdWthc3ogTWFqZXdza2kKPiA+IAo+ID4g
+U2Ftc3VuZyBSJkQgSW5zdGl0dXRlIFBvbGFuZCAoU1JQT0wpIHwgTGludXggUGxhdGZvcm0gR3Jv
+dXAKCgoKLS0gCkJlc3QgcmVnYXJkcywKCkx1a2FzeiBNYWpld3NraQoKU2Ftc3VuZyBSJkQgSW5z
+dGl0dXRlIFBvbGFuZCAoU1JQT0wpIHwgTGludXggUGxhdGZvcm0gR3JvdXAKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
+aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
