@@ -1,30 +1,36 @@
-From: Michael Mercier <michael.mercier@inria.fr>
-Date: Mon, 19 Jan 2015 09:05:45 +0000
-Subject: [lm-sensors] Py-smbus for Python 3
-Message-Id: <1421658345.2937.1@smtp.inria.fr>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 15 Jan 2015 00:58:32 +0000
+Subject: [lm-sensors] [notifications@github.com: [it87] Support for ITE8786 (#2)]
+Message-Id: <20150115005832.GB31033@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Forwarding in case someone happens to have access to a datasheet.
 
-I am working on a project that use the py-smbus module. The problem is 
-I am using python 3.x and the py-smbus library is not compatible with 
-this version.
+Guenter
 
-I found a lot of hack to do so, like:
-http://www.raspberrypi.org/forums/viewtopic.php?f2&t"348
-http://procrastinative.ninja/2014/07/21/smbus-for-python34-on-raspberry/
-http://comments.gmane.org/gmane.linux.drivers.i2c/11290
-http://www.spinics.net/lists/linux-i2c/msg08427.html
+----- Forwarded message from Zlika <notifications@github.com> -----
 
-I enventually manage to make it work but this code only wirking with 
-python 3.
+Date: Wed, 14 Jan 2015 03:09:37 -0800
+From: Zlika <notifications@github.com>
+To: groeck/it87 <it87@noreply.github.com>
+Subject: [it87] Support for ITE8786 (#2)
 
-I like distribute it but I do not know where. Is there someone that can 
-merge this upstream properly (with python2 compatibility)
+Hi!
+sensors-detect reports on my computer a chip ITE 0x8786 that is currently not supported by Linux (v3.16 from Debian testing) nor by this driver.
+Do you plan to support it in a future release?
+Best regards,
+Thomas
+
+---
+Reply to this email directly or view it on GitHub:
+https://github.com/groeck/it87/issues/2
+
+----- End forwarded message -----
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
