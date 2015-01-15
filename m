@@ -1,36 +1,85 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 22 Jan 2015 23:16:00 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] drivers/hwmon/ad7314.c: Do proper sign extension
-Message-Id: <54C184B0.7060606@roeck-us.net>
+From: Kevin Hilman <khilman@kernel.org>
+Date: Thu, 15 Jan 2015 01:34:58 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ina2xx) Add ina231 compatible string
+Message-Id: <1421285699-8469-1-git-send-email-khilman@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421966655-16188-1-git-send-email-linux@rasmusvillemoes.dk>
-In-Reply-To: <1421966655-16188-1-git-send-email-linux@rasmusvillemoes.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Jean Delvare <jdelvare@suse.de>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+Cc: linux-samsung-soc@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <jdelvare@suse.de>, Jonathan Corbet <corbet@lwn.net>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-On 01/22/2015 02:44 PM, Rasmus Villemoes wrote:
-> The comment above (data << 2) >> 2 explains what the intention is: To
-> use bit 13 of the 14-bit value data as the sign bit. However, this
-> doesn't work due to C's promotion rules. data has type s16, but data
-> << 2 has type int. To get sign extension, that expression would have
-> to be cast back to an s16 before being shifted (at which point C's
-> promotion rules would then kick in again and promote the left operand
-> to int). As it stands, both expressions are no-ops for any value of
-> data.
->
-> Avoid these subtleties by using the existing API for
-> this. sign_extend32 works equally well for 8 and 16 bit types.
->
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> ---
+From: Kevin Hilman <khilman@linaro.org>
 
-Good catch. Applied.
+Add support for "ina231" as compatible string, and update
+Documentation and Kconfig accordingly.
 
-Thanks,
-Guenter
+Tested with the Exynos5422-based odroid-xu3 board which has on-board
+INA231 sensors.
+
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
+---
+ Documentation/hwmon/ina2xx | 9 +++++++++
+ drivers/hwmon/Kconfig      | 4 ++--
+ drivers/hwmon/ina2xx.c     | 1 +
+ 3 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index 4223c2d3b508..c2f838f65ee4 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -26,6 +26,12 @@ Supported chips:
+     Datasheet: Publicly available at the Texas Instruments website
+                http://www.ti.com/
+ 
++  * Texas Instruments INA231
++    Prefix: 'ina231'
++    Addresses: I2C 0x40 - 0x4f
++    Datasheet: Publicly available at the Texas Instruments website
++               http://www.ti.com/
++
+ Author: Lothar Felten <l-felten@ti.com>
+ 
+ Description
+@@ -44,6 +50,9 @@ The INA226 monitors both a shunt voltage drop and bus supply voltage.
+ The INA230 is a high or low side current shunt and power monitor with an I2C
+ interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
+ 
++The INA231 is a high or low side current shunt and power monitor with an I2C
++interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
++
+ The shunt value in micro-ohms can be set via platform data or device tree.
+ Please refer to the Documentation/devicetree/bindings/i2c/ina2xx.txt for bindings
+ if the device tree is used.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 6529c09c46f0..408fb6f5f055 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1420,8 +1420,8 @@ config SENSORS_INA2XX
+ 	tristate "Texas Instruments INA219 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for INA219, INA220, INA226, and
+-	  INA230 power monitor chips.
++	  If you say yes here you get support for INA219, INA220, INA226,
++	  INA230, and INA231 power monitor chips.
+ 
+ 	  The INA2xx driver is configured for the default configuration of
+ 	  the part as described in the datasheet.
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index e01feba909c3..8c4a29bd2eaf 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -287,6 +287,7 @@ static const struct i2c_device_id ina2xx_id[] = {
+ 	{ "ina220", ina219 },
+ 	{ "ina226", ina226 },
+ 	{ "ina230", ina226 },
++	{ "ina231", ina226 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ina2xx_id);
+-- 
+2.1.3
 
 
 _______________________________________________
