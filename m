@@ -1,118 +1,184 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Fri, 02 Jan 2015 18:51:22 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/8] hwmon: dts: Doc: Add DTS doc to explain how to use PWM FAN as a cool
-Message-Id: <20150102185120.GA12485@developer>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2349091949611557877=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 16 Jan 2015 19:49:00 +0000
+Subject: [lm-sensors] [PATCH v2 1/2] ads2828: Convert to use regmap
+Message-Id: <1421437741-30768-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-1-git-send-email-l.majewski@samsung.com>
- <1419265668-32283-4-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1419265668-32283-4-git-send-email-l.majewski@samsung.com>
-To: Lukasz Majewski <l.majewski@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
-
-
---===============2349091949611557877==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
-Content-Disposition: inline
-
-
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Dec 22, 2014 at 05:27:43PM +0100, Lukasz Majewski wrote:
-> Several new properties to allow PWM fan working as a cooling device have =
-been
-> combined into this single commit.
->=20
-
-Patch prefix should look something like 'dt-bindings: ...', or better
-'Documentation: devicetree: ...', or 'Documentation: bindings: ...'
-
-> Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-> ---
-> Changes for v2:
-> - Rename cooling-pwm-values to cooling-levels
-> - Remove default-pulse-width property and stick to default hwmon policy
-> ---
->  .../devicetree/bindings/hwmon/pwm-fan.txt          | 23 ++++++++++++++++=
-++++++
->  1 file changed, 23 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/hwmon/pwm-fan.txt b/Docume=
-ntation/devicetree/bindings/hwmon/pwm-fan.txt
-> index 610757c..001446a 100644
-> --- a/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
-> +++ b/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
-> @@ -3,10 +3,33 @@ Bindings for a fan connected to the PWM lines
->  Required properties:
->  - compatible	: "pwm-fan"
->  - pwms		: the PWM that is used to control the PWM fan
-> +- cooling-levels      : PWM duty cycle values in a range from 0 to 255
-> +			which correspond to thermal cooling states
-> +
-> +Thorough description of the following bindings:
-> +		cooling-min-state =3D <0>;
-> +		cooling-max-state =3D <3>;
-> +		#cooling-cells =3D <2>;
-> +		thermal-zone {
-> +			cpu_thermal: cpu-thermal {
-> +			cooling-maps {
-> +				map0 {
-> +				     trip =3D <&cpu_alert1>;
-> +				     cooling-device =3D <&fan0 0 1>;
-> +				};
-> +			};
-> +		};
-> +
-> +for PWM FAN used as cooling device can be found at:
-> +./Documentation/devicetree/bindings/thermal/thermal.txt
-> =20
->  Example:
->  	pwm-fan {
->  		compatible =3D "pwm-fan";
->  		status =3D "okay";
->  		pwms =3D <&pwm 0 10000 0>;
-> +		cooling-min-state =3D <0>;
-> +		cooling-max-state =3D <3>;
-> +		#cooling-cells =3D <2>;
-> +		cooling-levels =3D <0 102 170 255>;
->  	};
-> --=20
-> 2.0.0.rc2
->=20
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUpuifAAoJEMLUO4d9pOJWzgEH/34Ba+sq1rZpk2QU+8F0tSbL
-x8ya5ox1Bx+DDezU4fKt0cCLkgzYHdrzCpDs0+ZNKDW2MAJ89DuFbRMNS7245SmI
-XjOb4b3XuU/UTgDOiWaIch2igGEFsCwBiCWyANHUzpszxMz5hektNwAF86ElfHE6
-BbU/qkuXAyTgxYYfrvXTpUOw1aZ9VZG8kXALYuKKvNemDnzrfBjRQbHL5NIlss6g
-RXkOXc1mwJrrigLfU65iMLStVnnbfAMy19/3EN+yn0t5Rq30JBWO5H5vJA5b9H6R
-tCT/GDfFqSFTS82TD1Bs6JLyIbZDlLaA4FZ2JX/yU5UnWz3AP/l4u+EkrwGb814=
-=7fPb
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
-
-
---===============2349091949611557877==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Simplify code and reduce code size by using regmap to access i2c registers.
+
+Cc: Robert Rosengren <robert.rosengren@axis.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: reg_bits reflects the i2c command byte size and must be 8
+    even for 16-bit registers.
+
+Compile tested only.
+
+ drivers/hwmon/Kconfig   |  1 +
+ drivers/hwmon/ads7828.c | 78 +++++++++++++++++++++----------------------------
+ 2 files changed, 34 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index cfe36c6..f26d725 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1379,6 +1379,7 @@ config SENSORS_ADS1015
+ config SENSORS_ADS7828
+ 	tristate "Texas Instruments ADS7828 and compatibles"
+ 	depends on I2C
++	select REGMAP_I2C
+ 	help
+ 	  If you say yes here you get support for Texas Instruments ADS7828 and
+ 	  ADS7830 8-channel A/D converters. ADS7828 resolution is 12-bit, while
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index a622d40..8e60b76 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -30,14 +30,13 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
+-#include <linux/jiffies.h>
+ #include <linux/module.h>
+-#include <linux/mutex.h>
+-#include <linux/platform_data/ads7828.h>
++#include <linux/regmap.h>
+ #include <linux/slab.h>
++#include <linux/swab.h>
++#include <linux/platform_data/ads7828.h>
+ 
+ /* The ADS7828 registers */
+-#define ADS7828_NCH		8	/* 8 channels supported */
+ #define ADS7828_CMD_SD_SE	0x80	/* Single ended inputs */
+ #define ADS7828_CMD_PD1		0x04	/* Internal vref OFF && A/D ON */
+ #define ADS7828_CMD_PD3		0x0C	/* Internal vref ON && A/D ON */
+@@ -50,17 +49,13 @@ enum ads7828_chips { ads7828, ads7830 };
+ 
+ /* Client specific data */
+ struct ads7828_data {
+-	struct i2c_client *client;
+-	struct mutex update_lock;	/* Mutex protecting updates */
+-	unsigned long last_updated;	/* Last updated time (in jiffies) */
+-	u16 adc_input[ADS7828_NCH];	/* ADS7828_NCH samples */
+-	bool valid;			/* Validity flag */
++	struct regmap *regmap;
+ 	bool diff_input;		/* Differential input */
+ 	bool ext_vref;			/* External voltage reference */
+ 	unsigned int vref_mv;		/* voltage reference value */
++	bool byte_swap;			/* true if need to byte swap result */
+ 	u8 cmd_byte;			/* Command byte without channel bits */
+ 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
+-	s32 (*read_channel)(const struct i2c_client *client, u8 command);
+ };
+ 
+ /* Command byte C2,C1,C0 - see datasheet */
+@@ -69,42 +64,25 @@ static inline u8 ads7828_cmd_byte(u8 cmd, int ch)
+ 	return cmd | (((ch >> 1) | (ch & 0x01) << 2) << 4);
+ }
+ 
+-/* Update data for the device (all 8 channels) */
+-static struct ads7828_data *ads7828_update_device(struct device *dev)
+-{
+-	struct ads7828_data *data = dev_get_drvdata(dev);
+-	struct i2c_client *client = data->client;
+-
+-	mutex_lock(&data->update_lock);
+-
+-	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+-			|| !data->valid) {
+-		unsigned int ch;
+-		dev_dbg(&client->dev, "Starting ads7828 update\n");
+-
+-		for (ch = 0; ch < ADS7828_NCH; ch++) {
+-			u8 cmd = ads7828_cmd_byte(data->cmd_byte, ch);
+-			data->adc_input[ch] = data->read_channel(client, cmd);
+-		}
+-		data->last_updated = jiffies;
+-		data->valid = true;
+-	}
+-
+-	mutex_unlock(&data->update_lock);
+-
+-	return data;
+-}
+-
+ /* sysfs callback function */
+ static ssize_t ads7828_show_in(struct device *dev, struct device_attribute *da,
+ 			       char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+-	struct ads7828_data *data = ads7828_update_device(dev);
+-	unsigned int value = DIV_ROUND_CLOSEST(data->adc_input[attr->index] *
+-					       data->lsb_resol, 1000);
++	struct ads7828_data *data = dev_get_drvdata(dev);
++	u8 cmd = ads7828_cmd_byte(data->cmd_byte, attr->index);
++	unsigned int regval;
++	int err;
++
++	err = regmap_read(data->regmap, cmd, &regval);
++	if (err < 0)
++		return err;
++
++	if (data->byte_swap)
++		regval = swab16(regval);
+ 
+-	return sprintf(buf, "%d\n", value);
++	return sprintf(buf, "%d\n",
++		       DIV_ROUND_CLOSEST(regval * data->lsb_resol, 1000));
+ }
+ 
+ static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ads7828_show_in, NULL, 0);
+@@ -130,6 +108,16 @@ static struct attribute *ads7828_attrs[] = {
+ 
+ ATTRIBUTE_GROUPS(ads7828);
+ 
++static const struct regmap_config ads2828_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 16,
++};
++
++static const struct regmap_config ads2830_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++};
++
+ static int ads7828_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -160,19 +148,19 @@ static int ads7828_probe(struct i2c_client *client,
+ 	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
+ 	if (id->driver_data = ads7828) {
+ 		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
+-		data->read_channel = i2c_smbus_read_word_swapped;
++		data->regmap = devm_regmap_init_i2c(client,
++						    &ads2828_regmap_config);
++		data->byte_swap = true;
+ 	} else {
+ 		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 256);
+-		data->read_channel = i2c_smbus_read_byte_data;
++		data->regmap = devm_regmap_init_i2c(client,
++						    &ads2830_regmap_config);
+ 	}
+ 
+ 	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
+ 	if (!data->diff_input)
+ 		data->cmd_byte |= ADS7828_CMD_SD_SE;
+ 
+-	data->client = client;
+-	mutex_init(&data->update_lock);
+-
+ 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
+ 							   data,
+ 							   ads7828_groups);
+-- 
+2.1.0
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2349091949611557877==--
