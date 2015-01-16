@@ -1,38 +1,94 @@
-From: Kevin Hilman <khilman@kernel.org>
-Date: Thu, 15 Jan 2015 01:30:15 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ina2xx) Add ina231 compatible string
-Message-Id: <7hppagq194.fsf@deeprootsystems.com>
+From: Robert Rosengren <robert.rosengren@axis.com>
+Date: Fri, 16 Jan 2015 12:05:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ads7828) Make sample interval configurable
+Message-Id: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421279852-27965-1-git-send-email-khilman@kernel.org>
-	<20150115005642.GA31033@roeck-us.net>
-In-Reply-To: <20150115005642.GA31033@roeck-us.net> (Guenter Roeck's message of
-	"Wed, 14 Jan 2015 16:56:42 -0800")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, linux-samsung-soc@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, open list <linux-kernel@vger.kernel.org>
+To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, Robert Rosengren <robertr@axis.com>, Johan Adolfsson <johana@axis.com>
 
-Guenter Roeck <linux@roeck-us.net> writes:
+The default sample interval may be too slow for certain clients. This
+patch makes it configurable via the platform_data.
 
-> On Wed, Jan 14, 2015 at 03:57:32PM -0800, Kevin Hilman wrote:
->> From: Kevin Hilman <khilman@linaro.org>
->> 
->> Add support for "ina231" as compatible string.
->> 
->> Tested with the Exynos5422-based odroid-xu3 board which has on-board
->> INA231 sensors.
->> 
->> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->
-> Hi Kevin,
->
-> can you also update Documentation/hwmon/ina2xx and Documentation/hwmon/Kconfig ?
->
+Signed-off-by: Robert Rosengren <robert.rosengren@axis.com>
+Signed-off-by: Johan Adolfsson <johan.adolfsson@axis.com>
+---
+ drivers/hwmon/ads7828.c               | 11 ++++++++++-
+ include/linux/platform_data/ads7828.h |  2 ++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-Sure... coming right up.
-
-Kevin
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index a622d40..fd5eabf7 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -45,6 +45,9 @@
+ #define ADS7828_EXT_VREF_MV_MIN	50	/* External vref min value 0.05V */
+ #define ADS7828_EXT_VREF_MV_MAX	5250	/* External vref max value 5.25V */
+ 
++/* Default sample interval */
++#define ADS7828_SAMPLE_INTERVAL (HZ + HZ / 2)
++
+ /* List of supported devices */
+ enum ads7828_chips { ads7828, ads7830 };
+ 
+@@ -58,6 +61,7 @@ struct ads7828_data {
+ 	bool diff_input;		/* Differential input */
+ 	bool ext_vref;			/* External voltage reference */
+ 	unsigned int vref_mv;		/* voltage reference value */
++	unsigned int sample_interval;   /* sample interval */
+ 	u8 cmd_byte;			/* Command byte without channel bits */
+ 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
+ 	s32 (*read_channel)(const struct i2c_client *client, u8 command);
+@@ -77,7 +81,7 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
++	if (time_after(jiffies, data->last_updated + data->sample_interval)
+ 			|| !data->valid) {
+ 		unsigned int ch;
+ 		dev_dbg(&client->dev, "Starting ads7828 update\n");
+@@ -147,6 +151,8 @@ static int ads7828_probe(struct i2c_client *client,
+ 		data->ext_vref = pdata->ext_vref;
+ 		if (data->ext_vref)
+ 			data->vref_mv = pdata->vref_mv;
++		if (pdata->sample_interval)
++			data->sample_interval = pdata->sample_interval;
+ 	}
+ 
+ 	/* Bound Vref with min/max values if it was provided */
+@@ -157,6 +163,9 @@ static int ads7828_probe(struct i2c_client *client,
+ 	else
+ 		data->vref_mv = ADS7828_INT_VREF_MV;
+ 
++	if (!data->sample_interval)
++		data->sample_interval = ADS7828_SAMPLE_INTERVAL;
++
+ 	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
+ 	if (id->driver_data = ads7828) {
+ 		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
+diff --git a/include/linux/platform_data/ads7828.h b/include/linux/platform_data/ads7828.h
+index 3245f45..bdae0bb 100644
+--- a/include/linux/platform_data/ads7828.h
++++ b/include/linux/platform_data/ads7828.h
+@@ -19,11 +19,13 @@
+  * @diff_input:		Differential input mode.
+  * @ext_vref:		Use an external voltage reference.
+  * @vref_mv:		Voltage reference value, if external.
++ * @sample_interval:	Sample interval.
+  */
+ struct ads7828_platform_data {
+ 	bool diff_input;
+ 	bool ext_vref;
+ 	unsigned int vref_mv;
++	unsigned int sample_interval;
+ };
+ 
+ #endif /* _PDATA_ADS7828_H */
+-- 
+2.1.4
 
 
 _______________________________________________
