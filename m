@@ -1,38 +1,36 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Wed, 07 Jan 2015 12:48:40 +0000
-Subject: Re: [lm-sensors] [v8, 5/5] hwmon: ina2xx: allow to change the averaging rate at run-time
-Message-Id: <CAMpxmJUeX1J+wHW_c0NLeOgPcUyv82s9fH+xo8aisdwBYH2hUg@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 19 Jan 2015 01:36:48 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (jc42) Fix integer overflow
+Message-Id: <1421631408-30235-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1420467656-6112-6-git-send-email-bgolaszewski@baylibre.com>
-	<20150106181842.GA618@roeck-us.net>
-In-Reply-To: <20150106181842.GA618@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Patrick Titiano <ptitiano@baylibre.com>, LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-2015-01-06 19:18 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
-> ina226_avg_val() calculates the average value from ina226_avg_tab
-> and then you loop through ina226_avg_tab to find the index into ina226_avg_tab
-> again, only to use the thus calculated index for accessing ina226_avg_tab[]
-> once more. Think about it. A simple
->         avg = ina226_avg_tab[INA226_READ_AVG(data->regs[INA2XX_CONFIG])];
->         return snprintf(buf, PAGE_SIZE, "%d\n", avg);
-> or even
->         return snprintf(buf, PAGE_SIZE, "%d\n",
->                         ina226_avg_tab[INA226_READ_AVG(data->regs[INA2XX_CONFIG])]);
->
-> would accomplish exactly the same.
+Mixed use of long and int caused an integer overflow when writing large limits.
 
-This was stupid, I admit. Fixed in the new version. Hope it's ok now.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/jc42.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> I kind of dislike that attribute name. I don't have a better idea though, so
-> I'll let it pass unless you have a better idea.
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 262d808..f8e3bbb 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -201,7 +201,7 @@ struct jc42_data {
+ #define JC42_TEMP_MIN		0
+ #define JC42_TEMP_MAX		125000
+ 
+-static u16 jc42_temp_to_reg(int temp, bool extended)
++static u16 jc42_temp_to_reg(long temp, bool extended)
+ {
+ 	int ntemp = clamp_val(temp,
+ 			      extended ? JC42_TEMP_MIN_EXTENDED :
+-- 
+2.1.0
 
-I don't really. What's wrong with this one?
-
-Bart
 
 _______________________________________________
 lm-sensors mailing list
