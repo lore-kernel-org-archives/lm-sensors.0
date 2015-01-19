@@ -1,31 +1,41 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 11 Jan 2015 01:25:55 +0000
-Subject: Re: [lm-sensors] [PATCHv3] hwmon: (ina2xx) implement update_interval attribute for ina226
-Message-Id: <54B1D123.2010007@roeck-us.net>
+Date: Mon, 19 Jan 2015 01:36:47 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (jc42) Use sign_extend32 for sign extension
+Message-Id: <1421631408-30235-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1420819422-24784-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1420819422-24784-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On 01/09/2015 08:03 AM, Bartosz Golaszewski wrote:
-> This attribute allows to configure the update interval of ina226. Although
-> the bus and shunt voltage conversion times remain hardcoded to 1.1 ms, we can
-> now modify said interval by changing the averaging rate.
->
-> While we're at it - add an additional variable to ina2xx_data, which holds
-> the current configuration settings - this way we'll be able to restore the
-> configuration in case of an unexpected chip reset.
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Despite the name, sign_extend32 works just fine for 16 bit variables,
+so it is safe to use.
 
-Applied to -next.
+Cc: Martin Kepplinger <martink@posteo.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/jc42.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 388f8bc..262d808 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -213,11 +213,7 @@ static u16 jc42_temp_to_reg(int temp, bool extended)
+ 
+ static int jc42_temp_from_reg(s16 reg)
+ {
+-	reg &= 0x1fff;
+-
+-	/* sign extend register */
+-	if (reg & 0x1000)
+-		reg |= 0xf000;
++	reg = sign_extend32(reg, 12);
+ 
+ 	/* convert from 0.0625 to 0.001 resolution */
+ 	return reg * 125 / 2;
+-- 
+2.1.0
 
 
 _______________________________________________
