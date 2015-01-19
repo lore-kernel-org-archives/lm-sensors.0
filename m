@@ -1,33 +1,38 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 12 Jan 2015 14:23:53 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: (ina2xx) code clean-up and minor fixes
-Message-Id: <54B3D8F9.9030003@roeck-us.net>
+Date: Mon, 19 Jan 2015 17:19:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (jc42) Fix integer overflow when writing hysteresis value
+Message-Id: <1421687992-12168-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421070442-9635-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1421070442-9635-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On 01/12/2015 05:47 AM, Bartosz Golaszewski wrote:
-> This small series fixes two minor issues in the driver after recent
-> implementation of new attributes. The first patch removes an unnecessary
-> result check after calling dev_get_drvdata() and the second one adds
-> calls to DIV_ROUND_CLOSEST() to avoid rounding errors.
->
-> This series is rebased against current hwmon-next.
->
-> Bartosz Golaszewski (2):
->    hwmon: (ina2xx) remove an unnecessary dev_get_drvdata() result check
->    hwmon: (ina2xx) use DIV_ROUND_CLOSEST() to avoid rounding errors
->
-Both applied to -next.
+Subtracting an unsigned long from a signed value causes an overflow with large
+values. Use clamp_val() to reduce the number range prior to subtracting it
+from the temperature limit.
 
-Thanks,
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/jc42.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index f8e3bbb..a46cb65 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -312,7 +312,9 @@ static ssize_t set_temp_crit_hyst(struct device *dev,
+ 	if (kstrtoul(buf, 10, &val) < 0)
+ 		return -EINVAL;
+ 
++	val = clamp_val(val, 0, JC42_TEMP_MAX);
+ 	diff = jc42_temp_from_reg(data->temp[t_crit]) - val;
++
+ 	hyst = 0;
+ 	if (diff > 0) {
+ 		if (diff < 2250)
+-- 
+2.1.0
 
 
 _______________________________________________
