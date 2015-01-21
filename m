@@ -1,52 +1,61 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 23 Jan 2015 09:06:26 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (jc42) Use sign_extend32 for sign extension
-Message-Id: <20150123100626.0efad5c6@endymion.delvare>
+From: Asaf Vertz <asaf.vertz@tandemg.com>
+Date: Wed, 21 Jan 2015 08:03:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: abx500: fix format string warnings
+Message-Id: <20150121080322.GA26811@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421631408-30235-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1421631408-30235-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de
+Cc: linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Guenter,
+Fixed the following warnings (reported by cppcheck):
+[drivers/hwmon/abx500.c:224]: (warning) %ld in format string (no. 1)
+requires 'long' but the argument type is 'unsigned long'.
+[drivers/hwmon/abx500.c:233]: (warning) %ld in format string (no. 1)
+requires 'long' but the argument type is 'unsigned long'.
+[drivers/hwmon/abx500.c:242]: (warning) %ld in format string (no. 1)
+requires 'long' but the argument type is 'unsigned long'.
 
-On Sun, 18 Jan 2015 17:36:47 -0800, Guenter Roeck wrote:
-> Despite the name, sign_extend32 works just fine for 16 bit variables,
-> so it is safe to use.
-> 
-> Cc: Martin Kepplinger <martink@posteo.de>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/jc42.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
-> index 388f8bc..262d808 100644
-> --- a/drivers/hwmon/jc42.c
-> +++ b/drivers/hwmon/jc42.c
-> @@ -213,11 +213,7 @@ static u16 jc42_temp_to_reg(int temp, bool extended)
->  
->  static int jc42_temp_from_reg(s16 reg)
->  {
-> -	reg &= 0x1fff;
-> -
-> -	/* sign extend register */
-> -	if (reg & 0x1000)
-> -		reg |= 0xf000;
-> +	reg = sign_extend32(reg, 12);
->  
->  	/* convert from 0.0625 to 0.001 resolution */
->  	return reg * 125 / 2;
+Signed-off-by: Asaf Vertz <asaf.vertz@tandemg.com>
+---
+ drivers/hwmon/abx500.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Good idea, tested OK.
-
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
-
+diff --git a/drivers/hwmon/abx500.c b/drivers/hwmon/abx500.c
+index 1387596..6cb89c0 100644
+--- a/drivers/hwmon/abx500.c
++++ b/drivers/hwmon/abx500.c
+@@ -221,7 +221,7 @@ static ssize_t show_min(struct device *dev,
+ 	struct abx500_temp *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 
+-	return sprintf(buf, "%ld\n", data->min[attr->index]);
++	return sprintf(buf, "%lu\n", data->min[attr->index]);
+ }
+ 
+ static ssize_t show_max(struct device *dev,
+@@ -230,7 +230,7 @@ static ssize_t show_max(struct device *dev,
+ 	struct abx500_temp *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 
+-	return sprintf(buf, "%ld\n", data->max[attr->index]);
++	return sprintf(buf, "%lu\n", data->max[attr->index]);
+ }
+ 
+ static ssize_t show_max_hyst(struct device *dev,
+@@ -239,7 +239,7 @@ static ssize_t show_max_hyst(struct device *dev,
+ 	struct abx500_temp *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 
+-	return sprintf(buf, "%ld\n", data->max_hyst[attr->index]);
++	return sprintf(buf, "%lu\n", data->max_hyst[attr->index]);
+ }
+ 
+ static ssize_t show_min_alarm(struct device *dev,
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
