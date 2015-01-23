@@ -1,41 +1,41 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 19 Jan 2015 17:19:52 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (jc42) Fix integer overflow when writing hysteresis value
-Message-Id: <1421687992-12168-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Fri, 23 Jan 2015 09:18:50 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (jc42) Fix integer overflow when writing hysteresis value
+Message-Id: <20150123101850.6f7922a7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1421687992-12168-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1421687992-12168-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Subtracting an unsigned long from a signed value causes an overflow with large
-values. Use clamp_val() to reduce the number range prior to subtracting it
-from the temperature limit.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/jc42.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
-index f8e3bbb..a46cb65 100644
---- a/drivers/hwmon/jc42.c
-+++ b/drivers/hwmon/jc42.c
-@@ -312,7 +312,9 @@ static ssize_t set_temp_crit_hyst(struct device *dev,
- 	if (kstrtoul(buf, 10, &val) < 0)
- 		return -EINVAL;
- 
-+	val = clamp_val(val, 0, JC42_TEMP_MAX);
- 	diff = jc42_temp_from_reg(data->temp[t_crit]) - val;
-+
- 	hyst = 0;
- 	if (diff > 0) {
- 		if (diff < 2250)
--- 
-2.1.0
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwKCk9uIE1vbiwgMTkgSmFuIDIwMTUgMDk6MTk6NTIgLTA4MDAsIEd1ZW50ZXIg
+Um9lY2sgd3JvdGU6Cj4gU3VidHJhY3RpbmcgYW4gdW5zaWduZWQgbG9uZyBmcm9tIGEgc2lnbmVk
+IHZhbHVlIGNhdXNlcyBhbiBvdmVyZmxvdyB3aXRoIGxhcmdlCj4gdmFsdWVzLiBVc2UgY2xhbXBf
+dmFsKCkgdG8gcmVkdWNlIHRoZSBudW1iZXIgcmFuZ2UgcHJpb3IgdG8gc3VidHJhY3RpbmcgaXQK
+PiBmcm9tIHRoZSB0ZW1wZXJhdHVyZSBsaW1pdC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBHdWVudGVy
+IFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Cj4gLS0tCj4gIGRyaXZlcnMvaHdtb24vamM0Mi5j
+IHwgMiArKwo+ICAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvaHdtb24vamM0Mi5jIGIvZHJpdmVycy9od21vbi9qYzQyLmMKPiBpbmRleCBm
+OGUzYmJiLi5hNDZjYjY1IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaHdtb24vamM0Mi5jCj4gKysr
+IGIvZHJpdmVycy9od21vbi9qYzQyLmMKPiBAQCAtMzEyLDcgKzMxMiw5IEBAIHN0YXRpYyBzc2l6
+ZV90IHNldF90ZW1wX2NyaXRfaHlzdChzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gIAlpZiAoa3N0cnRv
+dWwoYnVmLCAxMCwgJnZhbCkgPCAwKQo+ICAJCXJldHVybiAtRUlOVkFMOwo+ICAKPiArCXZhbCA9
+IGNsYW1wX3ZhbCh2YWwsIDAsIEpDNDJfVEVNUF9NQVgpOwo+ICAJZGlmZiA9IGpjNDJfdGVtcF9m
+cm9tX3JlZyhkYXRhLT50ZW1wW3RfY3JpdF0pIC0gdmFsOwo+ICsKPiAgCWh5c3QgPSAwOwo+ICAJ
+aWYgKGRpZmYgPiAwKSB7Cj4gIAkJaWYgKGRpZmYgPCAyMjUwKQoKQ29ycmVjdCwgaG93ZXZlciBJ
+IGFtIHdvbmRlcmluZyB3aHkgd2UgcmVqZWN0IG5lZ2F0aXZlIGh5c3RlcmVzaXMKdmFsdWVzIGlu
+IHRoZSBmaXJzdCBwbGFjZT8gTXkgY2hpcHMgaGF2ZSB0aGUgaHlzdGVyZXNpcyBkZWx0YSBhdCAt
+M8KwQwpieSBkZWZhdWx0LCBJIGNhbiBzZXQgdGVtcDFfY3JpdCB0byAtMcKwQyBhbmQgdGVtcDFf
+Y3JpdF9oeXN0IHdpbGwgcmVhZApiYWNrIC00wrBDIGFzIGV4cGVjdGVkLCBob3dldmVyIHRoZSBk
+cml2ZXIgZG9lc24ndCBsZXQgbWUgY2hhbmdlIHRoZQpoeXN0ZXJlc2lzIGFmdGVyIHRoYXQuCgpJ
+IGFncmVlIHRoYXQgSkM0Ml9DQVBfUkFOR0UgKGV4dGVuZGVkIHRlbXBlcmF0dXJlIHJhbmdlKSB3
+YXMgY2VydGFpbmx5Cm1lYW50IGZvciB0ZW1wMV9taW4gcmF0aGVyIHRoYW4gdGVtcDFfbWF4IG9y
+IHRlbXAxX2NyaXQsIGJ1dCBJIHN0aWxsCmJlbGlldmUgdGhlIGRyaXZlciBzaG91bGQgbm90IGxp
+bWl0IHRoZSB1c2VyIHRoYXQgd2F5LiBJJ2xsIHNlbmQgYQpwYXRjaCwgbGV0IG1lIGtub3cgd2hh
+dCB5b3UgdGhpbmsuCgpBbnl3YXkgdGhlIGZpeCBhYm92ZSBpcyBjb3JyZWN0LCBzbzoKClJldmll
+d2VkLWJ5OiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+CgotLSAKSmVhbiBEZWx2YXJl
+ClNVU0UgTDMgU3VwcG9ydAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9y
+ZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
