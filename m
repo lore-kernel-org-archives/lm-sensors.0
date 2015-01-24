@@ -1,26 +1,23 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Fri, 23 Jan 2015 13:51:23 +0000
-Subject: [lm-sensors] Unsubscribing from lm-sensors list, please forward any issues with my drivers directly 
-Message-Id: <54C251DB.7070700@redhat.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sat, 24 Jan 2015 12:32:42 +0000
+Subject: Re: [lm-sensors] Unsubscribing from lm-sensors list, please forward any issues with my drivers direc
+Message-Id: <1422102762.4671.91.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <54C251DB.7070700@redhat.com>
+In-Reply-To: <54C251DB.7070700@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All,
-
-I'm cleaning up the too large list of lists I'm subscribed too,
-so I'm unsubscribing from lm-sensors.
-
-This does not mean that I will no longer be maintaining the
-lm-sensor drivers I maintain though, please forward any issues to me.
-
-Thanks & Regards,
-
-Hans
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSGFucywKCkxlIEZyaWRheSAyMyBKYW51YXJ5IDIwMTUgw6AgMTQ6NTEgKzAxMDAsIEhhbnMg
+ZGUgR29lZGUgYSDDqWNyaXQgOgo+IEknbSBjbGVhbmluZyB1cCB0aGUgdG9vIGxhcmdlIGxpc3Qg
+b2YgbGlzdHMgSSdtIHN1YnNjcmliZWQgdG9vLAo+IHNvIEknbSB1bnN1YnNjcmliaW5nIGZyb20g
+bG0tc2Vuc29ycy4KPiAKPiBUaGlzIGRvZXMgbm90IG1lYW4gdGhhdCBJIHdpbGwgbm8gbG9uZ2Vy
+IGJlIG1haW50YWluaW5nIHRoZQo+IGxtLXNlbnNvciBkcml2ZXJzIEkgbWFpbnRhaW4gdGhvdWdo
+LCBwbGVhc2UgZm9yd2FyZCBhbnkgaXNzdWVzIHRvIG1lLgoKVW5kZXJzdG9vZCwgbm8gcHJvYmxl
+bSwgSSBrbm93IHRoZSBmZWVsaW5nLiBBbmQgdGhhbmtzIGZvciB0aGUKbm90aWZpY2F0aW9uIQoK
+LS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
+b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xtLXNlbnNvcnM
