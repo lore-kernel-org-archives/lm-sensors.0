@@ -1,33 +1,41 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 27 Jan 2015 14:23:19 +0000
+Date: Tue, 27 Jan 2015 14:26:29 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7828) Make sample interval configurable
-Message-Id: <54C79F57.9050902@roeck-us.net>
+Message-Id: <54C7A015.4010001@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com>	 <54B92596.2040206@roeck-us.net> <20150116183020.GA6262@roeck-us.net>	 <54C74567.9020201@axis.com> <1422355070.4499.136.camel@chaos.site>
-In-Reply-To: <1422355070.4499.136.camel@chaos.site>
+References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com> <54B92596.2040206@roeck-us.net> <20150116183020.GA6262@roeck-us.net> <54C74567.9020201@axis.com>
+In-Reply-To: <54C74567.9020201@axis.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>, Robert Rosengren <robert.rosengren@axis.com>
-Cc: lm-sensors <lm-sensors@lm-sensors.org>, Johan Adolfsson <johana@axis.com>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Robert Rosengren <robert.rosengren@axis.com>, Jean Delvare <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Cc: Johan Adolfsson <johana@axis.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-T24gMDEvMjcvMjAxNSAwMjozNyBBTSwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+IEhpIFJvYmVydCwK
-Pgo+IExlIFR1ZXNkYXkgMjcgSmFudWFyeSAyMDE1IMOgIDA4OjU5ICswMTAwLCBSb2JlcnQgUm9z
-ZW5ncmVuIGEgw6ljcml0IDoKPj4gT24gMDEvMTYvMjAxNSAwNzozMCBQTSwgR3VlbnRlciBSb2Vj
-ayB3cm90ZToKPj4+IEkgc2VudCBhIGNvdXBsZSBvZiBwYXRjaGVzIGEgbWludXRlIGFnbyB3aGlj
-aCBzaG91bGQgdGFrZSBjYXJlIG9mIHRoZSBpc3N1ZS4KPj4+IFdvdWxkIGJlIGdyZWF0IGlmIHlv
-dSBjYW4gdGVzdCBpdC4KPj4gSSBhcHBsaWVkIHRoZSB2MiB2ZXJzaW9ucyBvZiB0aGUgcGF0Y2hl
-cyBmb3IgYSBxdWljayB0ZXN0LCBidXQgaXQgd2FzCj4+IG5vdCBzdWNjZXNzZnVsLiBIYXZlbid0
-IGRvbmUgYW55IGZ1cnRoZXIgaW52ZXN0aWdhdGlvbiBvbiB3aGF0IHRoZQo+PiBwcm9ibGVtIG1p
-Z2h0IGJlLCBidXQgd2hlbiB0cnlpbmcgdG8gcmVhZCB0aGUgc3lzZnMgZHJpdmVyIEkgZ2V0ICJy
-ZWFkCj4+IGVycm9yOiBObyBzdWNoIGRldmljZSBvciBhZGRyZXNzIi4KPj4KPj4gVGhlIHN5c2Zz
-IHBhdGggaGF2ZSBtb3ZlZCB3aXRoIHRoZSBSRUdNQVAgc2V0dGluZ3MsIGZyb20KPj4gL3N5cy9i
-dXMvaTJjL2RldmljZXMvPHg+L2luMF9pbnB1dCB0bwo+PiAvc3lzL2J1cy9pMmMvZGV2aWNlcy88
-eD4vaHdtb24vaHdtb24wL2luMF9pbnB1dC4KPgo+IFRoaXMgaXMgZXhwZWN0ZWQsIHNob3VsZG4n
-dCBiZSBhbiBpc3N1ZSBpZiB5b3UgYXJlIHVzaW5nIGEKPiBsaWJzZW5zb3JzLWJhc2VkIGFwcGxp
-Y2F0aW9uIHdpdGggYSByZWNlbnQgZW5vdWdoIHZlcnNpb24gb2YgbGlic2Vuc29ycy4KPgoKT2Rk
-IHRob3VnaCwgdGhpbmtpbmcgYWJvdXQgaXQsIHNpbmNlIHRoZSBtb3ZlIHdhcyBkb25lIHdpdGgg
-YSBzZXBhcmF0ZQpwYXRjaCwgbm90IHdpdGggdGhlIHJlZ21hcCBwYXRjaC4KCkd1ZW50ZXIKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
-IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
-ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On 01/26/2015 11:59 PM, Robert Rosengren wrote:
+> On 01/16/2015 07:30 PM, Guenter Roeck wrote:
+>> I sent a couple of patches a minute ago which should take care of the issue.
+>> Would be great if you can test it.
+> I applied the v2 versions of the patches for a quick test, but it was not successful. Haven't done any further investigation on what the problem might be, but when trying to read the sysfs driver I get "read error: No such device or address".
+>
+> The sysfs path have moved with the REGMAP settings, from /sys/bus/i2c/devices/<x>/in0_input to /sys/bus/i2c/devices/<x>/hwmon/hwmon0/in0_input.
+>
+> Any ideas? Haven't had REGMAP configured in my kernel earlier, might it be some specific configuration I miss?
+>
+
+Robert,
+
+Another thought: What is your kernel version, and what is your i2c controller ?
+
+SMBus support was added to regmap only recently, so if your controller only
+supports SMBus (not raw i2c transactions), and you have an older kernel,
+this might not work. The driver should fail to instantiate in that case,
+though, if I recall correctly.
+
+Thanks,
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
