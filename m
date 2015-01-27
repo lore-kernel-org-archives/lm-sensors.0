@@ -1,35 +1,34 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 27 Jan 2015 10:37:50 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 27 Jan 2015 14:07:03 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7828) Make sample interval configurable
-Message-Id: <1422355070.4499.136.camel@chaos.site>
+Message-Id: <54C79B87.8040607@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com>
-	 <54B92596.2040206@roeck-us.net> <20150116183020.GA6262@roeck-us.net>
-	 <54C74567.9020201@axis.com>
+References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com> <54B92596.2040206@roeck-us.net> <20150116183020.GA6262@roeck-us.net> <54C74567.9020201@axis.com>
 In-Reply-To: <54C74567.9020201@axis.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robert Rosengren <robert.rosengren@axis.com>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Johan Adolfsson <johana@axis.com>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Robert Rosengren <robert.rosengren@axis.com>, Jean Delvare <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Cc: Johan Adolfsson <johana@axis.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGkgUm9iZXJ0LAoKTGUgVHVlc2RheSAyNyBKYW51YXJ5IDIwMTUgw6AgMDg6NTkgKzAxMDAsIFJv
-YmVydCBSb3NlbmdyZW4gYSDDqWNyaXQgOgo+IE9uIDAxLzE2LzIwMTUgMDc6MzAgUE0sIEd1ZW50
-ZXIgUm9lY2sgd3JvdGU6Cj4gPiBJIHNlbnQgYSBjb3VwbGUgb2YgcGF0Y2hlcyBhIG1pbnV0ZSBh
-Z28gd2hpY2ggc2hvdWxkIHRha2UgY2FyZSBvZiB0aGUgaXNzdWUuCj4gPiBXb3VsZCBiZSBncmVh
-dCBpZiB5b3UgY2FuIHRlc3QgaXQuCj4gSSBhcHBsaWVkIHRoZSB2MiB2ZXJzaW9ucyBvZiB0aGUg
-cGF0Y2hlcyBmb3IgYSBxdWljayB0ZXN0LCBidXQgaXQgd2FzIAo+IG5vdCBzdWNjZXNzZnVsLiBI
-YXZlbid0IGRvbmUgYW55IGZ1cnRoZXIgaW52ZXN0aWdhdGlvbiBvbiB3aGF0IHRoZSAKPiBwcm9i
-bGVtIG1pZ2h0IGJlLCBidXQgd2hlbiB0cnlpbmcgdG8gcmVhZCB0aGUgc3lzZnMgZHJpdmVyIEkg
-Z2V0ICJyZWFkIAo+IGVycm9yOiBObyBzdWNoIGRldmljZSBvciBhZGRyZXNzIi4KPiAKPiBUaGUg
-c3lzZnMgcGF0aCBoYXZlIG1vdmVkIHdpdGggdGhlIFJFR01BUCBzZXR0aW5ncywgZnJvbSAKPiAv
-c3lzL2J1cy9pMmMvZGV2aWNlcy88eD4vaW4wX2lucHV0IHRvIAo+IC9zeXMvYnVzL2kyYy9kZXZp
-Y2VzLzx4Pi9od21vbi9od21vbjAvaW4wX2lucHV0LgoKVGhpcyBpcyBleHBlY3RlZCwgc2hvdWxk
-bid0IGJlIGFuIGlzc3VlIGlmIHlvdSBhcmUgdXNpbmcgYQpsaWJzZW5zb3JzLWJhc2VkIGFwcGxp
-Y2F0aW9uIHdpdGggYSByZWNlbnQgZW5vdWdoIHZlcnNpb24gb2YgbGlic2Vuc29ycy4KCj4gQW55
-IGlkZWFzPyBIYXZlbid0IGhhZCBSRUdNQVAgY29uZmlndXJlZCBpbiBteSBrZXJuZWwgZWFybGll
-ciwgbWlnaHQgaXQgCj4gYmUgc29tZSBzcGVjaWZpYyBjb25maWd1cmF0aW9uIEkgbWlzcz8KCkhv
-dyBhcmUgeW91IHRlc3RpbmcvcmVhZGluZyBleGFjdGx5PwoKLS0gCkplYW4gRGVsdmFyZQpTVVNF
-IEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0
-dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On 01/26/2015 11:59 PM, Robert Rosengren wrote:
+> On 01/16/2015 07:30 PM, Guenter Roeck wrote:
+>> I sent a couple of patches a minute ago which should take care of the issue.
+>> Would be great if you can test it.
+> I applied the v2 versions of the patches for a quick test, but it was not successful. Haven't done any further investigation on what the problem might be, but when trying to read the sysfs driver I get "read error: No such device or address".
+>
+> The sysfs path have moved with the REGMAP settings, from /sys/bus/i2c/devices/<x>/in0_input to /sys/bus/i2c/devices/<x>/hwmon/hwmon0/in0_input.
+>
+> Any ideas? Haven't had REGMAP configured in my kernel earlier, might it be some specific configuration I miss?
+>
+
+Did you configure REGMAP ? That would now be necessary.
+The "official" sysfs path would be /sys/class/hwmon/hwmonX (hwmon0 in your case).
+
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
