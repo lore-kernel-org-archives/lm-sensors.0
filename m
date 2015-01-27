@@ -1,44 +1,40 @@
-From: Robert Rosengren <robert.rosengren@axis.com>
-Date: Tue, 27 Jan 2015 19:54:34 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 27 Jan 2015 20:05:53 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7828) Make sample interval configurable
-Message-Id: <4BEA3FF3CAA35E408EA55C7BE2E61D05943B6DD753@xmail3.se.axis.com>
+Message-Id: <20150127200553.GA5689@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com>
- <54B92596.2040206@roeck-us.net> <20150116183020.GA6262@roeck-us.net>
- <54C74567.9020201@axis.com>,<54C79B87.8040607@roeck-us.net>
-In-Reply-To: <54C79B87.8040607@roeck-us.net>
+ <54B92596.2040206@roeck-us.net>
+ <20150116183020.GA6262@roeck-us.net>
+ <54C74567.9020201@axis.com>
+ <54C79B87.8040607@roeck-us.net>
+ <4BEA3FF3CAA35E408EA55C7BE2E61D05943B6DD753@xmail3.se.axis.com>
+In-Reply-To: <4BEA3FF3CAA35E408EA55C7BE2E61D05943B6DD753@xmail3.se.axis.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
-Cc: Johan Adolfsson <johana@axis.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Robert Rosengren <robert.rosengren@axis.com>
+Cc: Jean Delvare <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Johan Adolfsson <johana@axis.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Guenter and Jean, 
+On Tue, Jan 27, 2015 at 08:54:34PM +0100, Robert Rosengren wrote:
+> Guenter and Jean, 
+> 
+> To sum up, my problems was related my kernel and hardware configuration, and it now works. Many thanks for your input!
+> 
+> However, the values retrieved from hwmon sysfs is not the same as before the regmap patch. Guenter, the byte swap for the regval retrieved by regmap_read. In what order is the bits returned from that function, because it seems as if I disabled that code I get values as I expect (i.e. before the regmap patch).
+> 
+Trying to understand. Are you saying everything works as expected
+if you keep byte_swap set to false ?
 
-To sum up, my problems was related my kernel and hardware configuration, and it now works. Many thanks for your input!
+That might well be, though it might mean that regmap has a bug
+in how it treats i2c word read operations. I'll have to look into it 
+some more.
 
-However, the values retrieved from hwmon sysfs is not the same as before the regmap patch. Guenter, the byte swap for the regval retrieved by regmap_read. In what order is the bits returned from that function, because it seems as if I disabled that code I get values as I expect (i.e. before the regmap patch).
+Can you send me your diffs on top of mine to help me understand what
+you changed ?
 
-BR,
-Robert
-
-
-> On 01/26/2015 11:59 PM, Robert Rosengren wrote:
->> On 01/16/2015 07:30 PM, Guenter Roeck wrote:
->>> I sent a couple of patches a minute ago which should take care of the issue.
->>> Would be great if you can test it.
->> I applied the v2 versions of the patches for a quick test, but it was not successful. Haven't done any further investigation on what the problem might be, but when trying to read the sysfs driver I get "read error: No such device or address".
->>
->> The sysfs path have moved with the REGMAP settings, from /sys/bus/i2c/devices/<x>/in0_input to /sys/bus/i2c/devices/<x>/hwmon/hwmon0/in0_input.
->>
->> Any ideas? Haven't had REGMAP configured in my kernel earlier, might it be some specific configuration I miss?
->>
->
-> Did you configure REGMAP ? That would now be necessary.
-> The "official" sysfs path would be /sys/class/hwmon/hwmonX (hwmon0 in your case).
->
-> Guenter
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
