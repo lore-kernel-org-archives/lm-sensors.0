@@ -1,240 +1,89 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Mon, 05 Jan 2015 14:20:52 +0000
-Subject: [lm-sensors] [PATCH v8 1/5] hwmon: ina2xx: reinitialize the chip in case it's been reset
-Message-Id: <1420467656-6112-2-git-send-email-bgolaszewski@baylibre.com>
+From: darxus@chaosreigns.com
+Date: Wed, 28 Jan 2015 17:09:38 +0000
+Subject: [lm-sensors] Making the pwmcontrol UI a little easier, and delays
+Message-Id: <20150128170938.GD31900@chaosreigns.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1420467656-6112-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1420467656-6112-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, LM Sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: lm-sensors@vger.kernel.org
 
-Chips from the ina family don't like to be uninitialized. In case the power
-is cut-off and restored again the calibration register will be reset
-to 0 and both the power and current registers will remain at 0.
+Last night I spent a couple hours fighting with this:
+https://bugs.launchpad.net/ubuntu/+source/lm-sensors/+bug/485899
+The bug is five years old, and six other people took the time to log in and
+click that it affected them.  But the pwmcontrol script was working fine,
+we were all just doing the wrong thing.  After hours of adding echos to
+pwmcontrol to figure out what was going on, I realized the problem was
+here:
 
-Check the calibration register in ina2xx_update_device() and reinitialize
-the chip if needed.
+Select fan output to configure, or other action:
+1) hwmon0/device/pwm3 3) Change INTERVAL 5) Save and quit
+2) hwmon0/device/pwm2 4) Just quit 6) Show configuration
+select (1-n): 5
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+None of the seven of us realized we still needed to hit "1" or "2" and do
+some more configuration.  We thought it was all automatic, and we were
+done, and we just needed to save.
+
+So I'd suggest adding a line of text clearing that up.  Maybe "You need to
+select a PWM control and finish configuring it."  
+
+And maybe even throw an error or something if somebody tries to save the
+config without having done that, to avoid writing a config with all blank
+values.
+
+
+Also, the delays in pwmconfig weren't giving one of my fans enough time to
+adjust.  Mostly because it slowed down (possibly stopped) right at the
+beginning, and then didn't have time to get up to full speed (I think in 2
+seconds?).  I think, in my case, it was worth changing both delays to 10
+seconds:
+
+diff pwmconfig.0 pwmconfig
+64c64
+< DELAY=5 # 3 seconds delay is too short for large fans, thus I increased it to 5
 ---
- drivers/hwmon/ina2xx.c | 128 +++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 91 insertions(+), 37 deletions(-)
+> DELAY # 3 seconds delay is too short for large fans, thus I increased it to 5
+320c320,321
+< PDELAY=2
+---
+> #PDELAY=2
+> PDELAY
 
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index e01feba..ffbd60f 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -35,6 +35,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/jiffies.h>
- #include <linux/of.h>
-+#include <linux/delay.h>
- 
- #include <linux/platform_data/ina2xx.h>
- 
-@@ -64,6 +65,9 @@
- 
- /* worst case is 68.10 ms (~14.6Hz, ina219) */
- #define INA2XX_CONVERSION_RATE		15
-+#define INA2XX_MAX_DELAY		69 /* worst case delay in ms */
-+
-+#define INA2XX_RSHUNT_DEFAULT		10000
- 
- enum ina2xx_ids { ina219, ina226 };
- 
-@@ -81,6 +85,8 @@ struct ina2xx_data {
- 	struct i2c_client *client;
- 	const struct ina2xx_config *config;
- 
-+	long rshunt;
-+
- 	struct mutex update_lock;
- 	bool valid;
- 	unsigned long last_updated;
-@@ -110,34 +116,96 @@ static const struct ina2xx_config ina2xx_config[] = {
- 	},
- };
- 
--static struct ina2xx_data *ina2xx_update_device(struct device *dev)
-+/*
-+ * Initialize the configuration and calibration registers.
-+ */
-+static int ina2xx_init(struct ina2xx_data *data)
- {
--	struct ina2xx_data *data = dev_get_drvdata(dev);
- 	struct i2c_client *client = data->client;
--	struct ina2xx_data *ret = data;
-+	int ret;
- 
--	mutex_lock(&data->update_lock);
-+	/* device configuration */
-+	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
-+					   data->config->config_default);
-+	if (ret < 0)
-+		return ret;
- 
--	if (time_after(jiffies, data->last_updated +
--		       HZ / INA2XX_CONVERSION_RATE) || !data->valid) {
-+	/*
-+	 * Set current LSB to 1mA, shunt is in uOhms
-+	 * (equation 13 in datasheet).
-+	 */
-+	return i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
-+			data->config->calibration_factor / data->rshunt);
-+}
- 
--		int i;
-+static int ina2xx_do_update(struct device *dev)
-+{
-+	struct ina2xx_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
-+	int i, rv, retry;
- 
--		dev_dbg(&client->dev, "Starting ina2xx update\n");
-+	dev_dbg(&client->dev, "Starting ina2xx update\n");
- 
-+	for (retry = 5; retry; retry--) {
- 		/* Read all registers */
- 		for (i = 0; i < data->config->registers; i++) {
--			int rv = i2c_smbus_read_word_swapped(client, i);
--			if (rv < 0) {
--				ret = ERR_PTR(rv);
--				goto abort;
--			}
-+			rv = i2c_smbus_read_word_swapped(client, i);
-+			if (rv < 0)
-+				return rv;
- 			data->regs[i] = rv;
- 		}
-+
-+		/*
-+		 * If the current value in the calibration register is 0, the
-+		 * power and current registers will also remain at 0. In case
-+		 * the chip has been reset let's check the calibration
-+		 * register and reinitialize if needed.
-+		 */
-+		if (data->regs[INA2XX_CALIBRATION] = 0) {
-+			dev_warn(dev, "chip not calibrated, reinitializing\n");
-+
-+			rv = ina2xx_init(data);
-+			if (rv < 0)
-+				return rv;
-+
-+			/*
-+			 * Let's make sure the power and current registers
-+			 * have been updated before trying again.
-+			 */
-+			msleep(INA2XX_MAX_DELAY);
-+			continue;
-+		}
-+
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-+
-+		return 0;
- 	}
--abort:
-+
-+	/*
-+	 * If we're here then although all write operations succeeded, the
-+	 * chip still returns 0 in the calibration register. Nothing more we
-+	 * can do here.
-+	 */
-+	dev_err(dev, "unable to reinitialize the chip\n");
-+	return -ENODEV;
-+}
-+
-+static struct ina2xx_data *ina2xx_update_device(struct device *dev)
-+{
-+	struct ina2xx_data *data = dev_get_drvdata(dev);
-+	struct ina2xx_data *ret = data;
-+	int rv;
-+
-+	mutex_lock(&data->update_lock);
-+
-+	if (time_after(jiffies, data->last_updated +
-+		       HZ / INA2XX_CONVERSION_RATE) || !data->valid) {
-+		rv = ina2xx_do_update(dev);
-+		if (rv < 0)
-+			ret = ERR_PTR(rv);
-+	}
-+
- 	mutex_unlock(&data->update_lock);
- 	return ret;
- }
-@@ -221,7 +289,6 @@ static int ina2xx_probe(struct i2c_client *client,
- 	struct device *dev = &client->dev;
- 	struct ina2xx_data *data;
- 	struct device *hwmon_dev;
--	long shunt = 10000; /* default shunt value 10mOhms */
- 	u32 val;
- 	int ret;
- 
-@@ -234,41 +301,28 @@ static int ina2xx_probe(struct i2c_client *client,
- 
- 	if (dev_get_platdata(dev)) {
- 		pdata = dev_get_platdata(dev);
--		shunt = pdata->shunt_uohms;
-+		data->rshunt = pdata->shunt_uohms;
- 	} else if (!of_property_read_u32(dev->of_node,
- 					 "shunt-resistor", &val)) {
--		shunt = val;
-+		data->rshunt = val;
-+	} else {
-+		data->rshunt = INA2XX_RSHUNT_DEFAULT;
- 	}
- 
--	if (shunt <= 0)
--		return -ENODEV;
--
- 	/* set the device type */
- 	data->kind = id->driver_data;
- 	data->config = &ina2xx_config[data->kind];
-+	data->client = client;
- 
--	/* device configuration */
--	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
--					   data->config->config_default);
--	if (ret < 0) {
--		dev_err(dev,
--			"error writing to the config register: %d", ret);
-+	if (data->rshunt <= 0)
- 		return -ENODEV;
--	}
- 
--	/*
--	 * Set current LSB to 1mA, shunt is in uOhms
--	 * (equation 13 in datasheet).
--	 */
--	ret = i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
--				data->config->calibration_factor / shunt);
-+	ret = ina2xx_init(data);
- 	if (ret < 0) {
--		dev_err(dev,
--			"error writing to the calibration register: %d", ret);
-+		dev_err(dev, "error configuring the device: %d\n", ret);
- 		return -ENODEV;
- 	}
- 
--	data->client = client;
- 	mutex_init(&data->update_lock);
- 
- 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-@@ -277,7 +331,7 @@ static int ina2xx_probe(struct i2c_client *client,
- 		return PTR_ERR(hwmon_dev);
- 
- 	dev_info(dev, "power monitor %s (Rshunt = %li uOhm)\n",
--		 id->name, shunt);
-+		 id->name, data->rshunt);
- 
- 	return 0;
- }
--- 
-2.1.3
 
+With the default delays, I get (with the fan that came with an AMD Phenom
+II X4 965):
+
+Would you like to generate a detailed correlation (y)? 
+Would you like to generate a graphical plot using gnuplot (y)? 
+    PWM 255 FAN 2393
+    PWM 240 FAN 2800
+    PWM 225 FAN 3792 (probably incorrect)
+    PWM 210 FAN 4354 (probably incorrect)
+    PWM 195 FAN 4115 (probably incorrect)
+    PWM 180 FAN 3947 (probably incorrect)
+    PWM 165 FAN 3729 (probably incorrect)
+    PWM 150 FAN 3534 (probably incorrect)
+    PWM 135 FAN 3308
+    PWM 120 FAN 3125
+...
+
+
+With 10 second delays, I get:
+
+Would you like to generate a detailed correlation (y)? 
+Would you like to generate a graphical plot using gnuplot (y)? 
+    PWM 255 FAN 4720
+    PWM 240 FAN 4560
+    PWM 225 FAN 4383
+    PWM 210 FAN 4192
+    PWM 195 FAN 3994
+    PWM 180 FAN 3813
+    PWM 165 FAN 3648
+    PWM 150 FAN 3479
+    PWM 135 FAN 3308
+    PWM 120 FAN 3110
+...
 
 _______________________________________________
 lm-sensors mailing list
