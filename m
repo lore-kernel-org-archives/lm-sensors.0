@@ -1,28 +1,67 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 29 Jan 2015 07:05:57 +0000
+From: Robert Rosengren <robert.rosengren@axis.com>
+Date: Thu, 29 Jan 2015 12:07:10 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7828) Make sample interval configurable
-Message-Id: <54C9DBD5.5030808@roeck-us.net>
+Message-Id: <54CA226E.6080505@axis.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com>	<54B92596.2040206@roeck-us.net>	<20150116183020.GA6262@roeck-us.net>	<54C74567.9020201@axis.com>	<54C79B87.8040607@roeck-us.net>	<4BEA3FF3CAA35E408EA55C7BE2E61D05943B6DD753@xmail3.se.axis.com>	<20150127200553.GA5689@roeck-us.net> <20150127233455.0c62457e@endymion.delvare> <54C86035.9080605@roeck-us.net> <54C87F3C.2020105@axis.com> <54C8F73D.4040808@roeck-us.net> <54C9DA9D.3010802@axis.com>
-In-Reply-To: <54C9DA9D.3010802@axis.com>
+References: <1421409922-28299-1-git-send-email-robert.rosengren@axis.com>	<54B92596.2040206@roeck-us.net>	<20150116183020.GA6262@roeck-us.net>	<54C74567.9020201@axis.com>	<54C79B87.8040607@roeck-us.net>	<4BEA3FF3CAA35E408EA55C7BE2E61D05943B6DD753@xmail3.se.axis.com>	<20150127200553.GA5689@roeck-us.net> <20150127233455.0c62457e@endymion.delvare> <54C86035.9080605@roeck-us.net> <54C87F3C.2020105@axis.com> <54C8F73D.4040808@roeck-us.net> <54C9DA9D.3010802@axis.com> <54C9DBD5.5030808@roeck-us.net>
+In-Reply-To: <54C9DBD5.5030808@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robert Rosengren <robert.rosengren@axis.com>, Jean Delvare <jdelvare@suse.de>
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
 Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Johan Adolfsson <johana@axis.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 01/28/2015 11:00 PM, Robert Rosengren wrote:
-> On 01/28/2015 03:50 PM, Guenter Roeck wrote:
->> Can you possibly send me the output from i2cdump ? That might help figuring out what is going on.
-> I don't have i2cdump (I suppose that you mean the lm-sensors tool) available for my hardware. I'll give it a go to compile it...
+On 01/29/2015 08:05 AM, Guenter Roeck wrote:
+> Ah, don't bother then. I should hopefully get the samples in a couple of days.
+
+i2cdump was easily built, so here is the output:
+      0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
+00: 1301 1301 1301 1301 1301 1301 1301 1301
+08: 4101 6901 6a01 6901 6901 6901 6901 6901
+10: 0200 0100 0100 0100 0100 0100 0100 0100
+18: 0100 0100 0100 0100 0100 0100 0100 0100
+20: 0200 0100 0100 0100 0100 0100 0100 0100
+28: 0100 0100 0100 0100 0100 0100 0100 0100
+30: 0200 0100 0100 0100 0100 0100 0100 0100
+38: 0100 0100 0100 0100 0100 0100 0100 0100
+40: 0000 0000 0000 0000 0000 0000 0000 0000
+48: 0000 0000 0000 0000 0000 0000 0000 0000
+50: 0200 0100 0100 0100 0100 0100 0100 0100
+58: 0100 0100 0100 0100 0100 0100 0200 0100
+60: 0100 0100 0100 0100 0100 0100 0100 0100
+68: 0100 0100 0100 0100 0100 0100 0100 0100
+70: 0200 0100 0100 0100 0100 0100 0100 0100
+78: 0100 0100 0100 0100 0100 0100 0100 0100
+80: 6501 2401 1701 1401 1301 1301 1301 1301
+88: 4201 6901 6901 6901 6901 6901 6901 6901
+90: 0200 0100 0100 0100 0100 0100 0100 0100
+98: 0100 0100 0100 0100 0100 0100 0100 0100
+a0: 6701 2501 1901 1601 1501 1501 1501 1501
+a8: 4401 6c01 6c01 6c01 6c01 6c01 6c01 6c01
+b0: 0200 0100 0100 0100 0100 0100 0100 0100
+b8: 0100 0100 0100 0100 0100 0100 0100 0100
+c0: 0200 0100 0100 0100 0100 0100 0100 0100
+c8: 0100 0100 0100 0100 0100 0100 0100 0100
+d0: 0200 0100 0100 0100 0100 0100 0100 0100
+d8: 0100 0100 0100 0100 0100 0100 0100 0100
+e0: 6701 2801 1b01 1701 1601 1501 1501 1501
+e8: 4401 6c01 6c01 6c01 6c01 6c01 6c01 6c01
+f0: 0200 0100 0100 0100 0100 0100 0100 0100
+f8: 0100 0100 0100 0100 0100 0100 0100 0100
+
+I checked the value at 0x84 (channel 0, and using single-ended and 
+external reference). I got 222 when reading from corresponding sysfs, 
+and 0x131 * lsb_resolution (806) / 1000 is 222 in decimal. So it seems 
+as data above is correct.
+
+Is the data what you expected?
+
 >
+> Is your hardware big endian or little endian ?
+CONFIG_CPU_LITTLE_ENDIAN=y
 
-Ah, don't bother then. I should hopefully get the samples in a couple of days.
-
-Is your hardware big endian or little endian ?
-
-Thanks,
-Guenter
+BR,
+Robert
 
 
 _______________________________________________
