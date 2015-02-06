@@ -1,124 +1,67 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Feb 2015 17:16:19 +0000
-Subject: [lm-sensors] [PATCH v2 3/5] hwmon: (it87) Add feature flag for VID support
-Message-Id: <1424884581-2348-3-git-send-email-linux@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Fri, 06 Feb 2015 16:59:02 +0000
+Subject: [lm-sensors] [PATCH v3 2/8] thermal: Provide stub for thermal_cdev_update() function
+Message-Id: <1423241948-31981-3-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Newer chips don't typically support VID inputs or control.
-Add a feature flag for VID support to simplify adding support for
-new chips.
+Odroid U3 fan can work without being registered as OF cooling device
+(with CONFIG_THERMAL{_OF|} disabled).
+In this situation it can be controlled via PWM entry at
+/sys/class/hwmon/hwmon0/pwm1.
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Therefore, the thermal_cdev_update() function needs a stub
+to allow clean compilation.
+
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
 ---
-v2: Only read VID from SIO data for IT8718F and IT8720F. 
+Changes for v2:
+- New patch
+Changes for v3:
+- thermal_cdev_update() now depends on CONFIG_THERMAL flag
+---
+ include/linux/thermal.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- drivers/hwmon/it87.c | 31 +++++++++++--------------------
- 1 file changed, 11 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 48b4893..9ca10a7 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -254,6 +254,7 @@ struct it87_devices {
- #define FEAT_TEMP_OLD_PECI	(1 << 6)
- #define FEAT_FAN16_CONFIG	(1 << 7)	/* Need to enable 16-bit fans */
- #define FEAT_FIVE_FANS		(1 << 8)	/* Supports five fans */
-+#define FEAT_VID		(1 << 9)	/* Set if chip supports VID */
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index eacf2de..25382e6 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -298,6 +298,7 @@ struct thermal_cooling_device *
+ thermal_of_cooling_device_register(struct device_node *np,
+ 				   char *type, void *devdata,
+ 				   const struct thermal_cooling_device_ops *);
++void thermal_cdev_update(struct thermal_cooling_device *);
+ #else
+ static inline struct thermal_cooling_device *
+ thermal_of_cooling_device_register(struct device_node *np,
+@@ -306,6 +307,9 @@ thermal_of_cooling_device_register(struct device_node *np,
+ {
+ 	return NULL;
+ }
++static inline void thermal_cdev_update(struct thermal_cooling_device *cdev)
++{
++}
+ #endif
+ #ifdef CONFIG_THERMAL_OF
+ struct thermal_zone_device *
+@@ -349,7 +353,6 @@ int thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned long *temp);
+ int get_tz_trend(struct thermal_zone_device *, int);
+ struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
+ 		struct thermal_cooling_device *, int);
+-void thermal_cdev_update(struct thermal_cooling_device *);
+ void thermal_notify_framework(struct thermal_zone_device *, int);
  
- static const struct it87_devices it87_devices[] = {
- 	[it87] = {
-@@ -262,22 +263,23 @@ static const struct it87_devices it87_devices[] = {
- 	},
- 	[it8712] = {
- 		.name = "it8712",
--		.features = FEAT_OLD_AUTOPWM,	/* may need to overwrite */
-+		.features = FEAT_OLD_AUTOPWM | FEAT_VID,
-+						/* may need to overwrite */
- 	},
- 	[it8716] = {
- 		.name = "it8716",
--		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
-+		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
- 		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
- 	},
- 	[it8718] = {
- 		.name = "it8718",
--		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
-+		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
- 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
- 		.old_peci_mask = 0x4,
- 	},
- 	[it8720] = {
- 		.name = "it8720",
--		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
-+		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
- 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
- 		.old_peci_mask = 0x4,
- 	},
-@@ -353,6 +355,7 @@ static const struct it87_devices it87_devices[] = {
- 				 ((data)->old_peci_mask & (1 << nr)))
- #define has_fan16_config(data)	((data)->features & FEAT_FAN16_CONFIG)
- #define has_five_fans(data)	((data)->features & FEAT_FIVE_FANS)
-+#define has_vid(data)		((data)->features & FEAT_VID)
- 
- struct it87_sio_data {
- 	enum chips type;
-@@ -1822,19 +1825,17 @@ static int __init it87_find(unsigned short *address,
- 	if (sio_data->type != it8603)
- 		sio_data->skip_in |= (1 << 9);
- 
--	/* Read GPIO config and VID value from LDN 7 (GPIO) */
--	if (sio_data->type = it87) {
--		/* The IT8705F doesn't have VID pins at all */
-+	if (!(it87_devices[sio_data->type].features & FEAT_VID))
- 		sio_data->skip_vid = 1;
- 
-+	/* Read GPIO config and VID value from LDN 7 (GPIO) */
-+	if (sio_data->type = it87) {
- 		/* The IT8705F has a different LD number for GPIO */
- 		superio_select(5);
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	} else if (sio_data->type = it8783) {
- 		int reg25, reg27, reg2a, reg2c, regef;
- 
--		sio_data->skip_vid = 1;	/* No VID */
--
- 		superio_select(GPIO);
- 
- 		reg25 = superio_inb(IT87_SIO_GPIO1_REG);
-@@ -1900,7 +1901,6 @@ static int __init it87_find(unsigned short *address,
- 	} else if (sio_data->type = it8603) {
- 		int reg27, reg29;
- 
--		sio_data->skip_vid = 1;	/* No VID */
- 		superio_select(GPIO);
- 
- 		reg27 = superio_inb(IT87_SIO_GPIO3_REG);
-@@ -1936,16 +1936,7 @@ static int __init it87_find(unsigned short *address,
- 		superio_select(GPIO);
- 
- 		reg = superio_inb(IT87_SIO_GPIO3_REG);
--		if (sio_data->type = it8721 || sio_data->type = it8728 ||
--		    sio_data->type = it8771 || sio_data->type = it8772 ||
--		    sio_data->type = it8781 || sio_data->type = it8782) {
--			/*
--			 * IT8721F/IT8758E, IT8728F, IT8772F, IT8781F, and
--			 * IT8782F don't have VID pins at all, not sure about
--			 * the IT8771F.
--			 */
--			sio_data->skip_vid = 1;
--		} else {
-+		if (!sio_data->skip_vid) {
- 			/* We need at least 4 VID pins */
- 			if (reg & 0x0f) {
- 				pr_info("VID is disabled (pins used for GPIO)\n");
+ #ifdef CONFIG_NET
 -- 
-2.1.0
+2.0.0.rc2
 
 
 _______________________________________________
