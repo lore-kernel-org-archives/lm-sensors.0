@@ -1,52 +1,123 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 25 Feb 2015 07:24:12 +0000
-Subject: Re: [lm-sensors] Test with Chip IT8620E on a Gigabyte GA-H97M-HD3 version 2
-Message-Id: <20150225082412.0a5e0294@endymion.delvare>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Fri, 06 Feb 2015 16:59:07 +0000
+Subject: [lm-sensors] [PATCH v3 7/8] hwmon: pwm-fan: Read PWM FAN configuration from device tree
+Message-Id: <1423241948-31981-8-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLU436-SMTP1351904A8E5B1CC00D893290240@phx.gbl>
-In-Reply-To: <BLU436-SMTP1351904A8E5B1CC00D893290240@phx.gbl>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-T24gVHVlLCAyNCBGZWIgMjAxNSAxNzo0OTowMCArMDEwMCwgY2VkcmljIHdyb3RlOgo+IExlIDI0
-LzAyLzIwMTUgMTY6MjMsIEplYW4gRGVsdmFyZSBhIMOpY3JpdCA6Cj4gPiBXaGF0J3MgdGhlIENQ
-VSBJRCBvZiB0aGlzIG1vZGVsIChmYW1pbHkvbW9kZWwvc3RlcHBpbmcgaW4gL3Byb2MvY3B1aW5m
-byk/Cj4gCj4gVGhpcyBpcyBhIHBhcnQgb2YgY2F0IC9wcm9jL2NwdWluZm8KPiAKPiBwcm9jZXNz
-b3IgICAgOiAwCj4gdmVuZG9yX2lkICAgIDogR2VudWluZUludGVsCj4gY3B1IGZhbWlseSAgICA6
-IDYKPiBtb2RlbCAgICAgICAgOiA2MAo+IG1vZGVsIG5hbWUgICAgOiBJbnRlbChSKSBQZW50aXVt
-KFIpIENQVSBHMzI1OCBAIDMuMjBHSHoKPiBzdGVwcGluZyAgICA6IDMKPiBtaWNyb2NvZGUgICAg
-OiAweDFjCj4gY3B1IE1IeiAgICAgICAgOiA4MjYuMzc1Cj4gY2FjaGUgc2l6ZSAgICA6IDMwNzIg
-S0IKPiBwaHlzaWNhbCBpZCAgICA6IDAKPiBzaWJsaW5ncyAgICA6IDIKPiBjb3JlIGlkICAgICAg
-ICA6IDAKPiBjcHUgY29yZXMgICAgOiAyCj4gYXBpY2lkICAgICAgICA6IDAKPiBpbml0aWFsIGFw
-aWNpZCAgICA6IDAKPiBmcHUgICAgICAgIDogeWVzCj4gZnB1X2V4Y2VwdGlvbiAgICA6IHllcwo+
-IGNwdWlkIGxldmVsICAgIDogMTMKPiB3cCAgICAgICAgOiB5ZXMKPiBmbGFncyAgICAgICAgOiBm
-cHUgdm1lIGRlIHBzZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSAK
-PiBjbW92IHBhdCBwc2UzNiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0
-IHRtIHBiZSBzeXNjYWxsIAo+IG54IHBkcGUxZ2IgcmR0c2NwIGxtIGNvbnN0YW50X3RzYyBhcmNo
-X3BlcmZtb24gcGVicyBidHMgcmVwX2dvb2Qgbm9wbCAKPiB4dG9wb2xvZ3kgbm9uc3RvcF90c2Mg
-YXBlcmZtcGVyZiBlYWdlcmZwdSBwbmkgcGNsbXVscWRxIGR0ZXM2NCBtb25pdG9yIAo+IGRzX2Nw
-bCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgcGRjbSBwY2lkIHNzZTRfMSBzc2U0XzIgbW92
-YmUgcG9wY250IAo+IHRzY19kZWFkbGluZV90aW1lciB4c2F2ZSByZHJhbmQgbGFoZl9sbSBhYm0g
-aWRhIGFyYXQgeHNhdmVvcHQgcGxuIHB0cyAKPiBkdGhlcm0gdHByX3NoYWRvdyB2bm1pIGZsZXhw
-cmlvcml0eSBlcHQgdnBpZCBmc2dzYmFzZSB0c2NfYWRqdXN0IGVybXMgCj4gaW52cGNpZAo+IGJv
-Z29taXBzICAgIDogNjQwMC41OQo+IGNsZmx1c2ggc2l6ZSAgICA6IDY0Cj4gY2FjaGVfYWxpZ25t
-ZW50ICAgIDogNjQKPiBhZGRyZXNzIHNpemVzICAgIDogMzkgYml0cyBwaHlzaWNhbCwgNDggYml0
-cyB2aXJ0dWFsCj4gcG93ZXIgbWFuYWdlbWVudDoKPiAKPiA+PiBhcmsuaW50ZWwuY29tIDpUY2Fz
-ZV8gICAgIDcywrBDCj4gPiBUaGlzIGlzIFRjYXNlLCBub3QgVGpNYXguIFRoZXkgcmVwcmVzZW50
-IGRpZmZlcmVudCBsaW1pdHMuCj4gPgo+ID4+IGxtLXNlbnNvcnMgZGlzbGF5IHdpdGhvdXQgQ1BV
-IHdvcmsgYW5kIHdpdGggdGhlIG9yaWdpbmFsIAo+ID4+IC9ldGMvc2Vuc29yczMuY29uZgo+ID4+
-Cj4gPj4gY29yZXRlbXAtaXNhLTAwMDAKPiA+PiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+ID4+IFBo
-eXNpY2FsIGlkIDA6ICArMjEuMMKwQyAgKGhpZ2ggPSArODAuMMKwQywgY3JpdCA9ICsxMDAuMMKw
-QykKPiA+PiBDb3JlIDA6ICAgICAgICAgKzIxLjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGNyaXQg
-PSArMTAwLjDCsEMpCj4gPj4gQ29yZSAxOiAgICAgICAgICsyMC4wwrBDICAoaGlnaCA9ICs4MC4w
-wrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+ID4gRG9lcyB0aGUgY29yZXRlbXAgZHJpdmVyIHByaW50
-IGFueSBtZXNzYWdlIHdoZW4gbG9hZGVkPyBDaGVjayB5b3VyCj4gPiBrZXJuZWwgbG9ncy4KPiAK
-PiBJIGZpbmQgdGhpcyBpbiAvdmFyL2xvZy9zeXNsb2cgOgo+IAo+IEphbiAxOCAxODoxOTo1OCBm
-cmFjdGFsIHN5c3RlbWQtbW9kdWxlcy1sb2FkWzE3MV06IEluc2VydGVkIG1vZHVsZSAKPiAnY29y
-ZXRlbXAnCgpNb3N0IGxpa2VseSB0aGUgY3JpdGljYWwgbGltaXQgaXMganVzdCBmaW5lIHRoZW4g
-YW5kIGRvZXNuJ3QgbmVlZCB0byBiZQphZGp1c3RlZC4KCi0tIApKZWFuIERlbHZhcmUKU1VTRSBM
-MyBTdXBwb3J0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+This patch provides code for reading PWM FAN configuration data via
+device tree. The pwm-fan can work with full speed when configuration
+is not provided. However, errors are propagated when wrong DT bindings
+are found.
+Additionally the struct pwm_fan_ctx has been extended.
+
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes for v2:
+- Rename pwm_fan_max_states to pwm_fan_cooling_levels
+- Moving pwm_fan_of_get_cooling_data() call after setting end enabling PWM FAN
+- pwm_fan_of_get_cooling_data() now can fail - preserving old behaviour
+- Remove unnecessary dev_err() call
+Changes for v3:
+- Patch's headline has been reedited
+- pwm_fan_of_get_cooling_data() return code is now being checked.
+- of_property_count_elems_of_size() is now used instead of_find_property()
+- More verbose patch description added
+---
+ drivers/hwmon/pwm-fan.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 53 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index 870e100..f3f5843 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -30,7 +30,10 @@
+ struct pwm_fan_ctx {
+ 	struct mutex lock;
+ 	struct pwm_device *pwm;
+-	unsigned char pwm_value;
++	unsigned int pwm_value;
++	unsigned int pwm_fan_state;
++	unsigned int pwm_fan_max_state;
++	unsigned int *pwm_fan_cooling_levels;
+ };
+ 
+ static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
+@@ -100,6 +103,50 @@ static struct attribute *pwm_fan_attrs[] = {
+ 
+ ATTRIBUTE_GROUPS(pwm_fan);
+ 
++int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
++{
++	struct device_node *np = dev->of_node;
++	int num, i, ret;
++
++	ret = of_property_count_elems_of_size(np, "cooling-levels",
++					      sizeof(u32));
++
++	if (ret = -EINVAL) {
++		dev_err(dev, "Property 'cooling-levels' not found\n");
++		return 0;
++	}
++
++	if (ret <= 0) {
++		dev_err(dev, "Wrong data!\n");
++		return ret;
++	}
++
++	num = ret;
++	ctx->pwm_fan_cooling_levels = devm_kzalloc(dev, num * sizeof(u32),
++						   GFP_KERNEL);
++	if (!ctx->pwm_fan_cooling_levels)
++		return -ENOMEM;
++
++	ret = of_property_read_u32_array(np, "cooling-levels",
++					 ctx->pwm_fan_cooling_levels, num);
++	if (ret) {
++		dev_err(dev, "Property 'cooling-levels' cannot be read!\n");
++		return ret;
++	}
++
++	for (i = 0; i < num; i++) {
++		if (ctx->pwm_fan_cooling_levels[i] > MAX_PWM) {
++			dev_err(dev, "PWM fan state[%d]:%d > %d\n", i,
++				ctx->pwm_fan_cooling_levels[i], MAX_PWM);
++			return -EINVAL;
++		}
++	}
++
++	ctx->pwm_fan_max_state = num - 1;
++
++	return 0;
++}
++
+ static int pwm_fan_probe(struct platform_device *pdev)
+ {
+ 	struct device *hwmon;
+@@ -145,6 +192,11 @@ static int pwm_fan_probe(struct platform_device *pdev)
+ 		pwm_disable(ctx->pwm);
+ 		return PTR_ERR(hwmon);
+ 	}
++
++	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
++	if (ret)
++		return ret;
++
+ 	return 0;
+ }
+ 
+-- 
+2.0.0.rc2
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
