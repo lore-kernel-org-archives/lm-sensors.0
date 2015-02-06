@@ -1,62 +1,178 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 13 Feb 2015 20:44:43 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (nct6775) Enable auxiliary fan monitoring on ASRock Z77 Pro4-M
-Message-Id: <1423860283-3938-3-git-send-email-linux@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Fri, 06 Feb 2015 16:59:08 +0000
+Subject: [lm-sensors] [PATCH v3 8/8] hwmon: pwm-fan: Code for using PWM FAN as a cooling device
+Message-Id: <1423241948-31981-9-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Auxiliary fan monitoring is not enabled on ASRock Z77 Pro4-M
-with BIOS version 2.00 if booted in UEFI Ultra-FastBoot mode.
+The PWM FAN device can now be used as a thermal cooling device. Necessary
+infrastructure has been added in this commit.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
 ---
- drivers/hwmon/nct6775.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+Changes for v2:
+- Replace pwm_fan_cooling_states with pwm_fan_cooling_levels
+- Update ctx->pwm_fan_state when correct data from device tree is available
+- Using therma_cdev_update() when thermal is ready for controlling the fan
+Changes for v3:
+- Rename patch heading
+- pwm_fan_of_get_cooling_data() now returns -EINVAL when no "cooling-levels"
+  property defined
+- register of cooling device only when proper cooling data is present
+---
+ drivers/hwmon/pwm-fan.c | 86 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 83 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 0445a52..4fcb481 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -57,6 +57,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/acpi.h>
-+#include <linux/dmi.h>
- #include <linux/io.h>
- #include "lm75.h"
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index f3f5843..79fe24e 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pwm.h>
+ #include <linux/sysfs.h>
++#include <linux/thermal.h>
  
-@@ -3199,6 +3200,26 @@ nct6775_check_fan_inputs(struct nct6775_data *data)
- 		pwm6pin = false;
- 	} else if (data->kind = nct6776) {
- 		bool gpok = superio_inb(sioreg, 0x27) & 0x80;
-+		const char *board_vendor, *board_name;
+ #define MAX_PWM 255
+ 
+@@ -68,6 +69,17 @@ exit_set_pwm_err:
+ 	return ret;
+ }
+ 
++static void pwm_fan_update_state(struct pwm_fan_ctx *ctx, unsigned long pwm)
++{
++	int i;
 +
-+		board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
-+		board_name = dmi_get_system_info(DMI_BOARD_NAME);
++	for (i = 0; i < ctx->pwm_fan_max_state; ++i)
++		if (pwm < ctx->pwm_fan_cooling_levels[i + 1])
++			break;
 +
-+		if (board_name && board_vendor &&
-+		    !strcmp(board_vendor, "ASRock")) {
-+			/*
-+			 * Auxiliary fan monitoring is not enabled on ASRock
-+			 * Z77 Pro4-M if booted in UEFI Ultra-FastBoot mode.
-+			 * Observed with BIOS version 2.00.
-+			 */
-+			if (!strcmp(board_name, "Z77 Pro4-M")) {
-+				if ((data->sio_reg_enable & 0xe0) != 0xe0) {
-+					data->sio_reg_enable |= 0xe0;
-+					superio_outb(sioreg, SIO_REG_ENABLE,
-+						     data->sio_reg_enable);
-+				}
-+			}
++	ctx->pwm_fan_state = i;
++}
++
+ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 		       const char *buf, size_t count)
+ {
+@@ -82,6 +94,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 	if (ret)
+ 		return ret;
+ 
++	pwm_fan_update_state(ctx, pwm);
+ 	return count;
+ }
+ 
+@@ -103,6 +116,59 @@ static struct attribute *pwm_fan_attrs[] = {
+ 
+ ATTRIBUTE_GROUPS(pwm_fan);
+ 
++/* thermal cooling device callbacks */
++static int pwm_fan_get_max_state(struct thermal_cooling_device *cdev,
++				 unsigned long *state)
++{
++	struct pwm_fan_ctx *ctx = cdev->devdata;
++
++	*state = ctx->pwm_fan_max_state;
++
++	return 0;
++}
++
++static int pwm_fan_get_cur_state(struct thermal_cooling_device *cdev,
++				 unsigned long *state)
++{
++	struct pwm_fan_ctx *ctx = cdev->devdata;
++
++	if (!ctx)
++		return -EINVAL;
++
++	*state = ctx->pwm_fan_state;
++
++	return 0;
++}
++
++static int
++pwm_fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
++{
++	struct pwm_fan_ctx *ctx = cdev->devdata;
++	int ret;
++
++	if (!ctx || (state > ctx->pwm_fan_max_state))
++		return -EINVAL;
++
++	if (state = ctx->pwm_fan_state)
++		return 0;
++
++	ret = __set_pwm(ctx, ctx->pwm_fan_cooling_levels[state]);
++	if (ret) {
++		dev_err(&cdev->device, "Cannot set pwm!\n");
++		return ret;
++	}
++
++	ctx->pwm_fan_state = state;
++
++	return ret;
++}
++
++static const struct thermal_cooling_device_ops pwm_fan_cooling_ops = {
++	.get_max_state = pwm_fan_get_max_state,
++	.get_cur_state = pwm_fan_get_cur_state,
++	.set_cur_state = pwm_fan_set_cur_state,
++};
++
+ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
+ {
+ 	struct device_node *np = dev->of_node;
+@@ -113,7 +179,7 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
+ 
+ 	if (ret = -EINVAL) {
+ 		dev_err(dev, "Property 'cooling-levels' not found\n");
+-		return 0;
++		return ret;
+ 	}
+ 
+ 	if (ret <= 0) {
+@@ -149,8 +215,9 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
+ 
+ static int pwm_fan_probe(struct platform_device *pdev)
+ {
+-	struct device *hwmon;
++	struct thermal_cooling_device *cdev;
+ 	struct pwm_fan_ctx *ctx;
++	struct device *hwmon;
+ 	int duty_cycle;
+ 	int ret;
+ 
+@@ -194,8 +261,21 @@ static int pwm_fan_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
+-	if (ret)
++	if (!ret) {
++		ctx->pwm_fan_state = ctx->pwm_fan_max_state;
++		cdev = thermal_of_cooling_device_register(pdev->dev.of_node,
++							  "pwm-fan", ctx,
++							  &pwm_fan_cooling_ops);
++		if (IS_ERR(cdev)) {
++			dev_err(&pdev->dev,
++				"Failed to register pwm-fan as cooling device");
++			pwm_disable(ctx->pwm);
++			return PTR_ERR(cdev);
 +		}
++		thermal_cdev_update(cdev);
++	} else if (ret != -EINVAL) {
+ 		return ret;
++	}
  
- 		if (data->sio_reg_enable & 0x80)
- 			fan3pin = gpok;
+ 	return 0;
+ }
 -- 
-2.1.0
+2.0.0.rc2
 
 
 _______________________________________________
