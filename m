@@ -1,129 +1,83 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Thu, 26 Feb 2015 13:59:36 +0000
-Subject: [lm-sensors] [PATCH v6 5/6] hwmon: pwm-fan: Read PWM FAN configuration from device tree
-Message-Id: <1424959177-28739-6-git-send-email-l.majewski@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 09 Feb 2015 04:44:46 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.20
+Message-Id: <1423457086-15421-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1424959177-28739-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1424959177-28739-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-This patch provides code for reading PWM FAN configuration data via
-device tree. The pwm-fan can work with full speed when configuration
-is not provided. However, errors are propagated when wrong DT bindings
-are found.
-Additionally the struct pwm_fan_ctx has been extended.
+Hi Linus,
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
----
-Changes for v2:
-- Rename pwm_fan_max_states to pwm_fan_cooling_levels
-- Moving pwm_fan_of_get_cooling_data() call after setting end enabling PWM FAN
-- pwm_fan_of_get_cooling_data() now can fail - preserving old behaviour
-- Remove unnecessary dev_err() call
-Changes for v3:
-- Patch's headline has been reedited
-- pwm_fan_of_get_cooling_data() return code is now being checked.
-- of_property_count_elems_of_size() is now used instead of_find_property()
-- More verbose patch description added
-Changes for v4:
-- dev_err() has been removed from pwm_fan_of_get_cooling_data()
-- Returning -EINVAL when "cooling-levels" are defined in DT, but doesn't
-  have the value
-Changes for v5:
-- Use of of_find_property() to assess if "cooling-levels" was defined in
-  device tree
-- Replace of_property_count_elems_of_size() with of_property_count_u32_elems()
-- Remove ambiguity with returning error code from of_property_count_u32_elems()
-- Return -EINVAL when "cooling-levels" has zero elements
-Changes for v6:
-- None
----
- drivers/hwmon/pwm-fan.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 49 insertions(+), 1 deletion(-)
+Please pull hwmon updates for Linux 3.20 from signed tag:
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index bd42d39..e6ed353 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -30,7 +30,10 @@
- struct pwm_fan_ctx {
- 	struct mutex lock;
- 	struct pwm_device *pwm;
--	unsigned char pwm_value;
-+	unsigned int pwm_value;
-+	unsigned int pwm_fan_state;
-+	unsigned int pwm_fan_max_state;
-+	unsigned int *pwm_fan_cooling_levels;
- };
- 
- static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
-@@ -100,6 +103,46 @@ static struct attribute *pwm_fan_attrs[] = {
- 
- ATTRIBUTE_GROUPS(pwm_fan);
- 
-+int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
-+{
-+	struct device_node *np = dev->of_node;
-+	int num, i, ret;
-+
-+	if (!of_find_property(np, "cooling-levels", NULL))
-+		return 0;
-+
-+	ret = of_property_count_u32_elems(np, "cooling-levels");
-+	if (ret <= 0) {
-+		dev_err(dev, "Wrong data!\n");
-+		return ret ? : -EINVAL;
-+	}
-+
-+	num = ret;
-+	ctx->pwm_fan_cooling_levels = devm_kzalloc(dev, num * sizeof(u32),
-+						   GFP_KERNEL);
-+	if (!ctx->pwm_fan_cooling_levels)
-+		return -ENOMEM;
-+
-+	ret = of_property_read_u32_array(np, "cooling-levels",
-+					 ctx->pwm_fan_cooling_levels, num);
-+	if (ret) {
-+		dev_err(dev, "Property 'cooling-levels' cannot be read!\n");
-+		return ret;
-+	}
-+
-+	for (i = 0; i < num; i++) {
-+		if (ctx->pwm_fan_cooling_levels[i] > MAX_PWM) {
-+			dev_err(dev, "PWM fan state[%d]:%d > %d\n", i,
-+				ctx->pwm_fan_cooling_levels[i], MAX_PWM);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	ctx->pwm_fan_max_state = num - 1;
-+
-+	return 0;
-+}
-+
- static int pwm_fan_probe(struct platform_device *pdev)
- {
- 	struct device *hwmon;
-@@ -145,6 +188,11 @@ static int pwm_fan_probe(struct platform_device *pdev)
- 		pwm_disable(ctx->pwm);
- 		return PTR_ERR(hwmon);
- 	}
-+
-+	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
-+	if (ret)
-+		return ret;
-+
- 	return 0;
- }
- 
--- 
-2.0.0.rc2
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v3.20
 
+Thanks,
+Guenter
+------
+
+The following changes since commit 26bc420b59a38e4e6685a73345a0def461136dce:
+
+  Linux 3.19-rc6 (2015-01-25 20:04:41 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-next
+
+for you to fetch changes up to dd378b1bcaa0ef5b14cca1e52b58ef9a3279fd8b:
+
+  hwmon: (tmp102) add hibernation callbacks (2015-02-03 12:17:12 -0800)
+
+----------------------------------------------------------------
+Asaf Vertz (1):
+      hwmon: (abx500) Fix format string warnings
+
+Bartosz Golaszewski (7):
+      hwmon: (ina2xx) reinitialize the chip in case it's been reset
+      hwmon: (ina2xx) remove a stray new line
+      hwmon: (ina2xx) don't accept shunt values greater than the calibration factor
+      hwmon: (ina2xx) make shunt resistance configurable at run-time
+      hwmon: (ina2xx) implement update_interval attribute for ina226
+      hwmon: (ina2xx) remove an unnecessary dev_get_drvdata() result check
+      hwmon: (ina2xx) use DIV_ROUND_CLOSEST() to avoid rounding errors
+
+Grygorii Strashko (1):
+      hwmon: (tmp102) add hibernation callbacks
+
+Guenter Roeck (5):
+      hwmon: (jc42) Use sign_extend32 for sign extension
+      hwmon: (jc42) Fix integer overflow
+      hwmon: (jc42) Fix integer overflow when writing hysteresis value
+      hwmon: (ads2828) Convert to use regmap
+      hwmon: (ads2828) Only keep data in device data structure if needed
+
+Jean Delvare (1):
+      hwmon: (jc42) Allow negative hysteresis temperatures
+
+Kevin Hilman (1):
+      hwmon: (ina2xx) Add ina231 compatible string
+
+Krzysztof Kozlowski (1):
+      hwmon: (nct7802) Constify struct regmap_config
+
+Rasmus Villemoes (2):
+      hwmon: (ad7314) Do proper sign extension
+      hwmon: (adc128d818) Do proper sign extension
+
+ Documentation/hwmon/ina2xx |  23 +++-
+ drivers/hwmon/Kconfig      |   5 +-
+ drivers/hwmon/abx500.c     |   6 +-
+ drivers/hwmon/ad7314.c     |   5 +-
+ drivers/hwmon/adc128d818.c |   3 +-
+ drivers/hwmon/ads7828.c    | 102 ++++++--------
+ drivers/hwmon/ina2xx.c     | 334 +++++++++++++++++++++++++++++++++++++++------
+ drivers/hwmon/jc42.c       |  15 +-
+ drivers/hwmon/nct7802.c    |   2 +-
+ drivers/hwmon/tmp102.c     |  15 +-
+ 10 files changed, 375 insertions(+), 135 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
