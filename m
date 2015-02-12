@@ -1,114 +1,102 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 24 Feb 2015 21:04:33 +0000
-Subject: Re: [lm-sensors] [RESEND PATCH 3/4] hwmon: (lm85) replace x_TO_REG() functions with find_closest()
-Message-Id: <20150224210433.GB18293@roeck-us.net>
+Date: Thu, 12 Feb 2015 19:26:12 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (jc42) Add support for additional IDT temperature sensors
+Message-Id: <1423769172-13519-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
- <1424800109-2969-4-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1424800109-2969-4-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 24, 2015 at 06:48:28PM +0100, Bartosz Golaszewski wrote:
-> Replace RANGE_TO_REG() and FREQ_TO_REG() functions with calls
-> to find_closest().
-> 
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  drivers/hwmon/lm85.c | 43 ++++++++++++-------------------------------
->  1 file changed, 12 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-> index 2b4b419..4e81c99 100644
-> --- a/drivers/hwmon/lm85.c
-> +++ b/drivers/hwmon/lm85.c
-> @@ -188,18 +188,6 @@ static const int lm85_range_map[] = {
->  	13300, 16000, 20000, 26600, 32000, 40000, 53300, 80000
->  };
->  
-> -static int RANGE_TO_REG(long range)
-> -{
-> -	int i;
-> -
-> -	/* Find the closest match */
-> -	for (i = 0; i < 15; ++i) {
-> -		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
-> -			break;
-> -	}
-> -
-> -	return i;
-> -}
->  #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
->  
->  /* These are the PWM frequency encodings */
-> @@ -209,17 +197,7 @@ static const int lm85_freq_map[8] = { /* 1 Hz */
->  static const int adm1027_freq_map[8] = { /* 1 Hz */
->  	11, 15, 22, 29, 35, 44, 59, 88
->  };
-> -
-> -static int FREQ_TO_REG(const int *map, unsigned long freq)
-> -{
-> -	int i;
-> -
-> -	/* Find the closest match */
-> -	for (i = 0; i < 7; ++i)
-> -		if (freq <= (map[i] + map[i + 1]) / 2)
-> -			break;
-> -	return i;
-> -}
-> +#define FREQ_MAP_SIZE		8
+TS3000GB0 has a new device ID (0x2913). Since IDT's datasheets suggest
+that the upper 8 bit of the device ID reflect the chip ID and the lower
+8 bit reflect the version number, modify the code to accept all chips
+with ID 0x29xx.
 
-If you declare this as a constant, that constant should also be used
-to declare the actual arrays.
+Also add support for TS3001 and TSE2004.
 
->  
->  static int FREQ_FROM_REG(const int *map, u8 reg)
->  {
-> @@ -828,7 +806,8 @@ static ssize_t set_pwm_freq(struct device *dev,
->  		data->cfg5 &= ~ADT7468_HFPWM;
->  		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
->  	} else {					/* Low freq. mode */
-> -		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map, val);
-> +		data->pwm_freq[nr] = find_closest(val, data->freq_map,
-> +						  FREQ_MAP_SIZE - 1);
+Some of the datasheets for older chips are no longer available from
+the IDT web site, so replace explicit links in the documentation with
+a generic note.
 
-Why -1 ?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/jc42 |  8 +++-----
+ drivers/hwmon/Kconfig    |  2 +-
+ drivers/hwmon/jc42.c     | 16 ++++++++++------
+ 3 files changed, 14 insertions(+), 12 deletions(-)
 
->  		lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
->  				 (data->zone[nr].range << 4)
->  				 | data->pwm_freq[nr]);
-> @@ -1186,7 +1165,7 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
->  	int nr = to_sensor_dev_attr(attr)->index;
->  	struct lm85_data *data = dev_get_drvdata(dev);
->  	struct i2c_client *client = data->client;
-> -	long val;
-> +	long val, range;
->  	int err;
->  
->  	err = kstrtol(buf, 10, &val);
-> @@ -1198,10 +1177,12 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
->  	lm85_write_value(client, LM85_REG_AFAN_LIMIT(nr),
->  		data->zone[nr].limit);
->  
-> -/* Update temp_auto_max and temp_auto_range */
-> -	data->zone[nr].range = RANGE_TO_REG(
-> -		TEMP_FROM_REG(data->zone[nr].max_desired) -
-> -		TEMP_FROM_REG(data->zone[nr].limit));
-> +	/* Update temp_auto_max and temp_auto_range */
-> +	range = TEMP_FROM_REG(data->zone[nr].max_desired) -
-> +		TEMP_FROM_REG(data->zone[nr].limit);
-> +	data->zone[nr].range = find_closest(range, lm85_range_map,
-> +					    ARRAY_SIZE(lm85_range_map));
-> +
+diff --git a/Documentation/hwmon/jc42 b/Documentation/hwmon/jc42
+index f3893f7..f7f1830a 100644
+--- a/Documentation/hwmon/jc42
++++ b/Documentation/hwmon/jc42
+@@ -11,12 +11,10 @@ Supported chips:
+ 	http://www.atmel.com/Images/doc8711.pdf
+ 	http://www.atmel.com/Images/Atmel-8852-SEEPROM-AT30TSE002A-Datasheet.pdf
+ 	http://www.atmel.com/Images/Atmel-8868-DTS-AT30TSE004A-Datasheet.pdf
+-  * IDT TSE2002B3, TSE2002GB2, TS3000B3, TS3000GB2
++  * IDT TSE2002B3, TSE2002GB2, TSE2004GB2, TS3000B3, TS3000GB0, TS3000GB2,
++	TS3001GB2
+     Datasheets:
+-	http://www.idt.com/sites/default/files/documents/IDT_TSE2002B3C_DST_20100512_120303152056.pdf
+-	http://www.idt.com/sites/default/files/documents/IDT_TSE2002GB2A1_DST_20111107_120303145914.pdf
+-	http://www.idt.com/sites/default/files/documents/IDT_TS3000B3A_DST_20101129_120303152013.pdf
+-	http://www.idt.com/sites/default/files/documents/IDT_TS3000GB2A1_DST_20111104_120303151012.pdf
++	Available from IDT web site
+   * Maxim MAX6604
+     Datasheets:
+ 	http://datasheets.maxim-ic.com/en/ds/MAX6604.pdf
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 9ea71ea..c80c8a9 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -624,7 +624,7 @@ config SENSORS_JC42
+ 	  mobile devices and servers.  Support will include, but not be limited
+ 	  to, ADT7408, AT30TS00, CAT34TS02, CAT6095, MAX6604, MCP9804, MCP9805,
+ 	  MCP98242, MCP98243, MCP98244, MCP9843, SE97, SE98, STTS424(E),
+-	  STTS2002, STTS3000, TSE2002B3, TSE2002GB2, TS3000B3, and TS3000GB2.
++	  STTS2002, STTS3000, TSE2002, TSE2004, TS3000, and TS3001.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called jc42.
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 996bdfd..9887d32 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -87,11 +87,14 @@ static const unsigned short normal_i2c[] = {
+ #define AT30TSE004_DEVID_MASK	0xffff
+ 
+ /* IDT */
+-#define TS3000B3_DEVID		0x2903  /* Also matches TSE2002B3 */
+-#define TS3000B3_DEVID_MASK	0xffff
++#define TSE2004_DEVID		0x2200
++#define TSE2004_DEVID_MASK	0xff00
+ 
+-#define TS3000GB2_DEVID		0x2912  /* Also matches TSE2002GB2 */
+-#define TS3000GB2_DEVID_MASK	0xffff
++#define TS3000_DEVID		0x2900  /* Also matches TSE2002 */
++#define TS3000_DEVID_MASK	0xff00
++
++#define TS3001_DEVID		0x3000
++#define TS3001_DEVID_MASK	0xff00
+ 
+ /* Maxim */
+ #define MAX6604_DEVID		0x3e00
+@@ -152,8 +155,9 @@ static struct jc42_chips jc42_chips[] = {
+ 	{ ADT_MANID, ADT7408_DEVID, ADT7408_DEVID_MASK },
+ 	{ ATMEL_MANID, AT30TS00_DEVID, AT30TS00_DEVID_MASK },
+ 	{ ATMEL_MANID2, AT30TSE004_DEVID, AT30TSE004_DEVID_MASK },
+-	{ IDT_MANID, TS3000B3_DEVID, TS3000B3_DEVID_MASK },
+-	{ IDT_MANID, TS3000GB2_DEVID, TS3000GB2_DEVID_MASK },
++	{ IDT_MANID, TSE2004_DEVID, TSE2004_DEVID_MASK },
++	{ IDT_MANID, TS3000_DEVID, TS3000_DEVID_MASK },
++	{ IDT_MANID, TS3001_DEVID, TS3001_DEVID_MASK },
+ 	{ MAX_MANID, MAX6604_DEVID, MAX6604_DEVID_MASK },
+ 	{ MCP_MANID, MCP9804_DEVID, MCP9804_DEVID_MASK },
+ 	{ MCP_MANID, MCP98242_DEVID, MCP98242_DEVID_MASK },
+-- 
+2.1.0
 
-Is that really less complex than before ? Also, I wonder if it creates
-more or less code. Can you provide code size comparisons ?
-
-Thanks,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
