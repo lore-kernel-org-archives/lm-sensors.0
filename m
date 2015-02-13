@@ -1,49 +1,88 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Fri, 20 Feb 2015 15:07:36 +0000
-Subject: [lm-sensors] [RFC PATCH 2/3] powerpc/powernv: handle OPAL_SUCCESS return in opal_sensor_read
-Message-Id: <1424444857-13805-3-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 13 Feb 2015 20:44:41 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (nct6775) Convert to use SIMPLE_DEV_PM_OPS
+Message-Id: <1423860283-3938-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@lists.ozlabs.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Guenter Roeck <linux@roeck-us.net>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+To: lm-sensors@vger.kernel.org
 
-Q3VycmVudGx5LCB3aGVuIGEgc2Vuc29yIHZhbHVlIGlzIHJlYWQsIHRoZSBrZXJuZWwgY2FsbHMg
-T1BBTCwgd2hpY2ggaW4KdHVybiBidWlsZHMgYSBtZXNzYWdlIGZvciB0aGUgRlNQLCBhbmQgd2Fp
-dHMgZm9yIGEgbWVzc2FnZSBiYWNrLiBIb3dldmVyLApzb21lIHNlbnNvcnMgY2FuIGJlIHJlYWQg
-c3luY2hyb25vdXNseSAoY29yZSB0ZW1wZXJhdHVyZXMgZm9yIGluc3RhbmNlKQphbmQgZG9uJ3Qg
-bmVlZCB0byB3YWl0IGZvciBhIHJlc3BvbnNlLgoKVGhpcyBwYXRjaCBtb2RpZmllcyB0aGUgb3Bh
-bCBjYWxsIHRvIGFjY2VwdCBhbiBPUEFMX1NVQ0NFU1MgcmV0dXJuIHZhbHVlCmFuZCBub3Qgd2Fp
-dCBmb3IgYSByZXNwb25zZSBpZiB0aGlzIGlzIHRoZSBjYXNlLgoKQnV0LCB3ZSBzdGlsbCB1c2Vs
-ZXNzbHkgcmVzZXJ2ZSBhIHRva2VuIChmb3IgdGhlIHJlc3BvbnNlKSBhbmQgdGFrZSBhCmxvY2ss
-IHdoaWNoIG1pZ2h0IHJhaXNlIHRoZSBuZWVkIG9mIGEgbmV3ICdvcGFsX3NlbnNvcl9yZWFkX3N5
-bmMnIGNhbGwuCgpTaWduZWQtb2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5j
-b20+Ci0tLQogYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMgfCAg
-IDI5ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMTkgaW5zZXJ0
-aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9wb3dlcnBjL3BsYXRm
-b3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMgYi9hcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bvd2Vy
-bnYvb3BhbC1zZW5zb3IuYwppbmRleCA1NDQyOTJmMjAyMGYuLmE0ZWQ4M2E3ZGZiNCAxMDA2NDQK
-LS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMKKysrIGIv
-YXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMKQEAgLTQ2LDE4ICs0
-NiwyNyBAQCBpbnQgb3BhbF9nZXRfc2Vuc29yX2RhdGEodTMyIHNlbnNvcl9obmRsLCB1MzIgKnNl
-bnNvcl9kYXRhKQogCiAJbXV0ZXhfbG9jaygmb3BhbF9zZW5zb3JfbXV0ZXgpOwogCXJldCA9IG9w
-YWxfc2Vuc29yX3JlYWQoc2Vuc29yX2huZGwsIHRva2VuLCAmZGF0YSk7Ci0JaWYgKHJldCAhPSBP
-UEFMX0FTWU5DX0NPTVBMRVRJT04pCi0JCWdvdG8gb3V0X3Rva2VuOworCXN3aXRjaCAocmV0KSB7
-CisJY2FzZSBPUEFMX0FTWU5DX0NPTVBMRVRJT046CisJCXJldCA9IG9wYWxfYXN5bmNfd2FpdF9y
-ZXNwb25zZSh0b2tlbiwgJm1zZyk7CisJCWlmIChyZXQpIHsKKwkJCXByX2VycigiJXM6IEZhaWxl
-ZCB0byB3YWl0IGZvciB0aGUgYXN5bmMgcmVzcG9uc2UsICVkXG4iLAorCQkJICAgICAgIF9fZnVu
-Y19fLCByZXQpOworCQkJZ290byBvdXRfdG9rZW47CisJCX0KIAotCXJldCA9IG9wYWxfYXN5bmNf
-d2FpdF9yZXNwb25zZSh0b2tlbiwgJm1zZyk7Ci0JaWYgKHJldCkgewotCQlwcl9lcnIoIiVzOiBG
-YWlsZWQgdG8gd2FpdCBmb3IgdGhlIGFzeW5jIHJlc3BvbnNlLCAlZFxuIiwKLQkJCQlfX2Z1bmNf
-XywgcmV0KTsKLQkJZ290byBvdXRfdG9rZW47Ci0JfQorCQlyZXQgPSBiZTY0X3RvX2NwdShtc2cu
-cGFyYW1zWzFdKTsKKworCQkqc2Vuc29yX2RhdGEgPSBiZTMyX3RvX2NwdShkYXRhKTsKKwkJYnJl
-YWs7CiAKLQkqc2Vuc29yX2RhdGEgPSBiZTMyX3RvX2NwdShkYXRhKTsKLQlyZXQgPSBiZTY0X3Rv
-X2NwdShtc2cucGFyYW1zWzFdKTsKKwljYXNlIE9QQUxfU1VDQ0VTUzoKKwkJKnNlbnNvcl9kYXRh
-ID0gYmUzMl90b19jcHUoZGF0YSk7CisJCWJyZWFrOworCisJZGVmYXVsdDoKKwkJYnJlYWs7CisJ
-fQogCiBvdXRfdG9rZW46CiAJbXV0ZXhfdW5sb2NrKCZvcGFsX3NlbnNvcl9tdXRleCk7Ci0tIAox
-LjcuMTAuNAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
-L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Get rid of #ifdef CONFIG_PM by using SIMPLE_DEV_PM_OPS and declaring suspend
+and resume functions with __maybe_unused.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6775.c | 22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 1be4117..db6a68e 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -880,12 +880,11 @@ struct nct6775_data {
+ 	u16 have_temp;
+ 	u16 have_temp_fixed;
+ 	u16 have_in;
+-#ifdef CONFIG_PM
++
+ 	/* Remember extra register values over suspend/resume */
+ 	u8 vbat;
+ 	u8 fandiv1;
+ 	u8 fandiv2;
+-#endif
+ };
+ 
+ struct nct6775_sio_data {
+@@ -3989,8 +3988,7 @@ static void nct6791_enable_io_mapping(int sioaddr)
+ 	}
+ }
+ 
+-#ifdef CONFIG_PM
+-static int nct6775_suspend(struct device *dev)
++static int __maybe_unused nct6775_suspend(struct device *dev)
+ {
+ 	struct nct6775_data *data = nct6775_update_device(dev);
+ 
+@@ -4005,7 +4003,7 @@ static int nct6775_suspend(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int nct6775_resume(struct device *dev)
++static int __maybe_unused nct6775_resume(struct device *dev)
+ {
+ 	struct nct6775_data *data = dev_get_drvdata(dev);
+ 	int i, j, err = 0;
+@@ -4066,22 +4064,12 @@ abort:
+ 	return err;
+ }
+ 
+-static const struct dev_pm_ops nct6775_dev_pm_ops = {
+-	.suspend = nct6775_suspend,
+-	.resume = nct6775_resume,
+-	.freeze = nct6775_suspend,
+-	.restore = nct6775_resume,
+-};
+-
+-#define NCT6775_DEV_PM_OPS	(&nct6775_dev_pm_ops)
+-#else
+-#define NCT6775_DEV_PM_OPS	NULL
+-#endif /* CONFIG_PM */
++static SIMPLE_DEV_PM_OPS(nct6775_dev_pm_ops, nct6775_suspend, nct6775_resume);
+ 
+ static struct platform_driver nct6775_driver = {
+ 	.driver = {
+ 		.name	= DRVNAME,
+-		.pm	= NCT6775_DEV_PM_OPS,
++		.pm	= &nct6775_dev_pm_ops,
+ 	},
+ 	.probe		= nct6775_probe,
+ };
+-- 
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
