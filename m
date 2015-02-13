@@ -1,47 +1,132 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Feb 2015 16:20:00 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (gpio-fan) allow to use alarm support alone from DT
-Message-Id: <20150225162000.GA25241@roeck-us.net>
+Date: Fri, 13 Feb 2015 20:13:52 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (it87) Add feature flag for VID support
+Message-Id: <1423858433-1416-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1424696334-14767-1-git-send-email-simon.guinot@sequanux.org>
- <54EB33D4.1000804@roeck-us.net>
- <20150223143416.GT1509@kw.sim.vm.gnt> <54EB3C84.30503@roeck-us.net>
- <20150225111430.GV1509@kw.sim.vm.gnt>
- <20150225135015.GA17992@lunn.ch> <54EDE171.7040403@roeck-us.net>
- <20150225150459.GE17992@lunn.ch>
-In-Reply-To: <20150225150459.GE17992@lunn.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 25, 2015 at 04:04:59PM +0100, Andrew Lunn wrote:
-> > However, we need to state and check in the code that _some_ property
-> > is mandatory. A driver with only optional properties doesn't make
-> > sense.
-> 
-> The patch to the binding documentation said:
-> 
-> Note: At least one the "gpios" and "alarm-gpios" properties should be set.
-> 
-> which i then suggested should be:
-> 
-> Note: At least one of "gpios" or "alarm-gpios" properties should be set.
-> 
-"should" is not "must".
+Newer chips don't typically support VID inputs or control.
+Add a feature flag for VID support to simplify adding support for
+new chips.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 33 +++++++++++----------------------
+ 1 file changed, 11 insertions(+), 22 deletions(-)
 
-> What we could do is move this sentence into the Required Properties of
-> the documentation.
-> 
-> The patch Simon submitted also does check that this condition is
-> fulfilled.
-> 
-> 	Andrew
-> 
-> 
-> 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 0e1758f..1754bef 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -254,6 +254,7 @@ struct it87_devices {
+ #define FEAT_TEMP_OLD_PECI	(1 << 6)
+ #define FEAT_FAN16_CONFIG	(1 << 7)	/* Need to enable 16-bit fans */
+ #define FEAT_FIVE_FANS		(1 << 8)	/* Supports five fans */
++#define FEAT_VID		(1 << 9)	/* Set if chip supports VID */
+ 
+ static const struct it87_devices it87_devices[] = {
+ 	[it87] = {
+@@ -263,23 +264,23 @@ static const struct it87_devices it87_devices[] = {
+ 	},
+ 	[it8712] = {
+ 		.name = "it8712",
+-		.features = FEAT_OLD_AUTOPWM | FEAT_FAN16_CONFIG,
++		.features = FEAT_OLD_AUTOPWM | FEAT_FAN16_CONFIG | FEAT_VID,
+ 						/* may need to overwrite */
+ 	},
+ 	[it8716] = {
+ 		.name = "it8716",
+-		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+ 		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
+ 	},
+ 	[it8718] = {
+ 		.name = "it8718",
+-		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
+ 		.old_peci_mask = 0x4,
+ 	},
+ 	[it8720] = {
+ 		.name = "it8720",
+-		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
+ 		.old_peci_mask = 0x4,
+ 	},
+@@ -356,6 +357,7 @@ static const struct it87_devices it87_devices[] = {
+ #define has_fan16_config(data)	(has_16bit_fans(data) && \
+ 				 ((data)->features & FEAT_FAN16_CONFIG))
+ #define has_five_fans(data)	((data)->features & FEAT_FIVE_FANS)
++#define has_vid(data)		((data)->features & FEAT_VID)
+ 
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -1825,19 +1827,17 @@ static int __init it87_find(unsigned short *address,
+ 	if (sio_data->type != it8603)
+ 		sio_data->skip_in |= (1 << 9);
+ 
+-	/* Read GPIO config and VID value from LDN 7 (GPIO) */
+-	if (sio_data->type = it87) {
+-		/* The IT8705F doesn't have VID pins at all */
++	if (!(it87_devices[sio_data->type].features & FEAT_VID))
+ 		sio_data->skip_vid = 1;
+ 
++	/* Read GPIO config and VID value from LDN 7 (GPIO) */
++	if (sio_data->type = it87) {
+ 		/* The IT8705F has a different LD number for GPIO */
+ 		superio_select(5);
+ 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	} else if (sio_data->type = it8783) {
+ 		int reg25, reg27, reg2a, reg2c, regef;
+ 
+-		sio_data->skip_vid = 1;	/* No VID */
+-
+ 		superio_select(GPIO);
+ 
+ 		reg25 = superio_inb(IT87_SIO_GPIO1_REG);
+@@ -1903,7 +1903,6 @@ static int __init it87_find(unsigned short *address,
+ 	} else if (sio_data->type = it8603) {
+ 		int reg27, reg29;
+ 
+-		sio_data->skip_vid = 1;	/* No VID */
+ 		superio_select(GPIO);
+ 
+ 		reg27 = superio_inb(IT87_SIO_GPIO3_REG);
+@@ -1939,16 +1938,7 @@ static int __init it87_find(unsigned short *address,
+ 		superio_select(GPIO);
+ 
+ 		reg = superio_inb(IT87_SIO_GPIO3_REG);
+-		if (sio_data->type = it8721 || sio_data->type = it8728 ||
+-		    sio_data->type = it8771 || sio_data->type = it8772 ||
+-		    sio_data->type = it8781 || sio_data->type = it8782) {
+-			/*
+-			 * IT8721F/IT8758E, IT8728F, IT8772F, IT8781F, and
+-			 * IT8782F don't have VID pins at all, not sure about
+-			 * the IT8771F.
+-			 */
+-			sio_data->skip_vid = 1;
+-		} else {
++		if (!sio_data->skip_vid) {
+ 			/* We need at least 4 VID pins */
+ 			if (reg & 0x0f) {
+ 				pr_info("VID is disabled (pins used for GPIO)\n");
+@@ -1969,8 +1959,7 @@ static int __init it87_find(unsigned short *address,
+ 		if (reg & (1 << 2))
+ 			sio_data->skip_fan |= (1 << 1);
+ 
+-		if ((sio_data->type = it8718 || sio_data->type = it8720)
+-		 && !(sio_data->skip_vid))
++		if (!sio_data->skip_vid)
+ 			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
+ 
+ 		reg = superio_inb(IT87_SIO_PINX2_REG);
+-- 
+2.1.0
+
 
 _______________________________________________
 lm-sensors mailing list
