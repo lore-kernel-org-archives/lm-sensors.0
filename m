@@ -1,66 +1,58 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Tue, 24 Feb 2015 17:48:26 +0000
-Subject: [lm-sensors] [RESEND PATCH 1/4] kernel.h: add find_closest() macro
-Message-Id: <1424800109-2969-2-git-send-email-bgolaszewski@baylibre.com>
+From: Pavel Rojtberg <mail@rojtberg.net>
+Date: Fri, 13 Feb 2015 21:16:51 +0000
+Subject: [lm-sensors] sensors.conf for Gigabyte GA-H97N Wifi
+Message-Id: <CA+b0ujfkHy7-1MPR2+4EDnFNZ+7Zn+tVnyOVh+mgtPH9dAcmqg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="001a113d5edc5c352f050efec160"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--001a113d5edc5c352f050efec160
+Content-Type: text/plain; charset=UTF-8
+
+Hello,
+
+the sensors3.conf file is attached.
+
+Greets,
+
+Pavel
+
+--001a113d5edc5c352f050efec160
+Content-Type: application/octet-stream; name="sensors3.conf"
+Content-Disposition: attachment; filename="sensors3.conf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: 14b84cbe7448e519538
+
+IyBHaWdhYnl0ZSBHQS1IOTdOIFdpZmkgUmV2IDEuMCBDb25maWd1cmF0aW9uCiMKIyB0aGUgYWN0
+dWFsIGNoaXAgaXMgYSBJVEUgSVQ4NjIwRSwgYnV0IGl0IHdvcmtzIGZpbmUgdXNpbmcgdGhlIDg3
+MjggaW50ZXJmYWNlCiMgeW91IGp1c3QgaGF2ZSB0byB1c2UgZm9yY2VfaWQgd2hlbiBsb2FkaW5n
+IHRoZSBtb2R1bGUgbGtlOgojICAgIG1vZHByb2JlIGl0ODcgZm9yY2VfaWQ9MHg4NzI4CgpjaGlw
+ICJhY3BpdHotdmlydHVhbC0wIgogICAgaWdub3JlIHRlbXAxICMgYWx3YXlzIGF0IDI3LjgKICAg
+IGlnbm9yZSB0ZW1wMiAjIGFsd2F5cyBhdCAyOS44CgpjaGlwICJjb3JldGVtcC0qIgoJbGFiZWwg
+dGVtcDEgIkNQVSBQYWNrYWdlIgoKY2hpcCAiaXQ4NzI4LSoiCiMjIFZvbHRhZ2UKCSMgdGFrZW4g
+ZnJvbSBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xtLXNlbnNvcnMvbXNnNDEwNzIuaHRt
+bAogICAgIyA+IEl0IHNlZW1zIHRoZSB0eXBpY2FsIHNjYWxpbmcgZmFjdG9ycyBmb3IgaXQ4N3h4
+LWNoaXBzIG9uIGdpZ2FieXRlLWJvYXJkcwoJY29tcHV0ZSBpbjEgMS42NDkqQCxALzEuNjQ5Cglj
+b21wdXRlIGluMiA2LjAqQCxALzYuMAoJY29tcHV0ZSBpbjMgMi41KkAsQC8yLjUKCglsYWJlbCBp
+bjAgIkNQVSBDb3JlIiAjIFZfQ29yZQoJbGFiZWwgaW4xICIrMy4zViIKCWxhYmVsIGluMiAiKzEy
+ViIKCWxhYmVsIGluMyAiKzVWIgoJbGFiZWwgaW40ICJDUFUgR3JhcGhpY3MiICMgVl9BWEcKCWxh
+YmVsIGluNSAiQ1BVIElucHV0IiAjIFZSSU4KCWxhYmVsIGluNiAiRFJBTSIKCiMjIFRlbXBlcmF0
+dXJlCglsYWJlbCB0ZW1wMSAiU3lzdGVtIgoJaWdub3JlIHRlbXAyICMgc2Vuc29yIGlzIGRpc2Fi
+bGVkCgoJIyBsYWJlbCB0ZW1wMyA/PwoJIyBubyBpZGVhIHdoYXQgdGhpcyBtaWdodCBiZS4gUmVh
+ZCBvdmVyIEludGVsIFBFQ0kKCSMgZ2VuZXJhbGx5IGxvd2VyIHRoYW4gYWxsIG90aGVyIG1lYXN1
+cmVtZW50cwoJIyBzdGF5cyBhdCAyMMKwQyB3aGVuIHRlbXAxIGlzIGF0IDM2wrBDIGFuZCBjb3Jl
+dGVtcCBpcyBhdCAyOMKwQwkgCgojIyBGYW5zCglsYWJlbCBmYW4xICJDUFUgRmFuIgoJbGFiZWwg
+ZmFuMiAiU3lzdGVtIEZhbiIKCgkjIHRoZXJlIGFyZSBvbmx5IHR3byBmYW4gY29ubmVjdG9ycwoJ
+aWdub3JlIGZhbjMKCWlnbm9yZSBmYW40CglpZ25vcmUgZmFuNQo=
+--001a113d5edc5c352f050efec160
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, lm-sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
-
-Searching for the member of an array closest to 'x' is
-duplicated in several places.
-
-Add two macros that implement this algorithm for arrays
-sorted both in ascending and descending order.
-
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- include/linux/kernel.h | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index d6d630d..f4294da 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -116,6 +116,29 @@
- }							\
- )
- 
-+#define __find_closest(x, a, as, op)(					\
-+{									\
-+	typeof(as) _i, _as = (as) - 1;					\
-+	typeof(x) _x = (x);						\
-+	typeof(*a) *_a = (a);						\
-+	for (_i = 0; _i < _as; _i++) {					\
-+		if (_x op DIV_ROUND_CLOSEST(_a[_i] + _a[_i + 1], 2))	\
-+			break;						\
-+	}								\
-+	(_i);								\
-+}									\
-+)
-+
-+/*
-+ * Given an array 'a' (sorted in ascending order) of size 'as' return
-+ * the index of the element in that array closest to 'x'.
-+ */
-+#define find_closest(x, a, as) __find_closest(x, a, as, <=)
-+/*
-+ * Similar to find_closest(), but 'a' is expected to be sorted
-+ * in descending order.
-+ */
-+#define find_closest_desc(x, a, as) __find_closest(x, a, as, >)
- 
- #define _RET_IP_		(unsigned long)__builtin_return_address(0)
- #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
--- 
-2.1.4
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--001a113d5edc5c352f050efec160--
