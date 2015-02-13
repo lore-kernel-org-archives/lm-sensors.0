@@ -1,78 +1,62 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 25 Feb 2015 15:34:18 +0000
-Subject: [lm-sensors] [PATCH v5 2/6] ARM: dts: Add pwm-fan node to the Odroid-U3 board
-Message-Id: <1424878462-15511-3-git-send-email-l.majewski@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 13 Feb 2015 20:44:43 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (nct6775) Enable auxiliary fan monitoring on ASRock Z77 Pro4-M
+Message-Id: <1423860283-3938-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: lm-sensors@vger.kernel.org
 
-From: Kamil Debski <k.debski@samsung.com>
+Auxiliary fan monitoring is not enabled on ASRock Z77 Pro4-M
+with BIOS version 2.00 if booted in UEFI Ultra-FastBoot mode.
 
-Add pwm-fan node to the Odroid-U3 board file to enable PWM control of the
-cooling fan. In addition, add the "pwm" label to the pwm@139D0000 node
-in the exynos4412.dtsi.
-
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-Changes since v1:
-- added pwm label to the pwm@139D0000 node in exynos4.dtsi
-- use the pwm label in the exynos4412-odroidu3.dts
-- change order or properties in the pwn-fan node, to be sorted
-  in alphabetical order
-Changes for v5:
-- Adding Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-- status = "okay"; dropped from the patch
+ drivers/hwmon/nct6775.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
----
- arch/arm/boot/dts/exynos4.dtsi            |  2 +-
- arch/arm/boot/dts/exynos4412-odroidu3.dts | 12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 690f56c..a93f5ca5 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -599,7 +599,7 @@
- 		status = "disabled";
- 	};
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 0445a52..4fcb481 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -57,6 +57,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/acpi.h>
++#include <linux/dmi.h>
+ #include <linux/io.h>
+ #include "lm75.h"
  
--	pwm@139D0000 {
-+	pwm: pwm@139D0000 {
- 		compatible = "samsung,exynos4210-pwm";
- 		reg = <0x139D0000 0x1000>;
- 		interrupts = <0 37 0>, <0 38 0>, <0 39 0>, <0 40 0>, <0 41 0>;
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index 44684e5..4c04837 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -31,6 +31,18 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
+@@ -3199,6 +3200,26 @@ nct6775_check_fan_inputs(struct nct6775_data *data)
+ 		pwm6pin = false;
+ 	} else if (data->kind = nct6776) {
+ 		bool gpok = superio_inb(sioreg, 0x27) & 0x80;
++		const char *board_vendor, *board_name;
 +
-+	pwm-fan {
-+		compatible = "pwm-fan";
-+		pwms = <&pwm 0 10000 0>;
-+	};
-+};
++		board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
++		board_name = dmi_get_system_info(DMI_BOARD_NAME);
 +
-+&pwm {
-+	pinctrl-0 = <&pwm0_out>;
-+	pinctrl-names = "default";
-+	samsung,pwm-outputs = <0>;
-+	status = "okay";
- };
++		if (board_name && board_vendor &&
++		    !strcmp(board_vendor, "ASRock")) {
++			/*
++			 * Auxiliary fan monitoring is not enabled on ASRock
++			 * Z77 Pro4-M if booted in UEFI Ultra-FastBoot mode.
++			 * Observed with BIOS version 2.00.
++			 */
++			if (!strcmp(board_name, "Z77 Pro4-M")) {
++				if ((data->sio_reg_enable & 0xe0) != 0xe0) {
++					data->sio_reg_enable |= 0xe0;
++					superio_outb(sioreg, SIO_REG_ENABLE,
++						     data->sio_reg_enable);
++				}
++			}
++		}
  
- &usb3503 {
+ 		if (data->sio_reg_enable & 0x80)
+ 			fan3pin = gpok;
 -- 
-2.0.0.rc2
+2.1.0
 
 
 _______________________________________________
