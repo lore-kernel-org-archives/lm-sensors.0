@@ -1,40 +1,125 @@
-From: Cedric Le Goater <clg@fr.ibm.com>
-Date: Wed, 25 Feb 2015 17:28:05 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 1/3] powerpc/powernv: Check OPAL sensor calls exist
-Message-Id: <54EE0625.7050604@fr.ibm.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 18 Feb 2015 10:07:35 +0000
+Subject: [lm-sensors] [PATCH v4 7/8] hwmon: pwm-fan: Read PWM FAN configuration from device tree
+Message-Id: <1424254056-5904-8-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
- <1424444857-13805-2-git-send-email-clg@fr.ibm.com>
- <1424753699.2318.8.camel@ellerman.id.au>
-In-Reply-To: <1424753699.2318.8.camel@ellerman.id.au>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1424254056-5904-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1424254056-5904-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-T24gMDIvMjQvMjAxNSAwNTo1NCBBTSwgTWljaGFlbCBFbGxlcm1hbiB3cm90ZToKPiBPbiBGcmks
-IDIwMTUtMDItMjAgYXQgMTY6MDcgKzAxMDAsIEPDqWRyaWMgTGUgR29hdGVyIHdyb3RlOgo+PiBT
-aWduZWQtb2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Cj4+IC0tLQo+
-PiAgYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMgfCAgICAzICsr
-Kwo+PiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKQo+Pgo+PiBkaWZmIC0tZ2l0IGEv
-YXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMgYi9hcmNoL3Bvd2Vy
-cGMvcGxhdGZvcm1zL3Bvd2VybnYvb3BhbC1zZW5zb3IuYwo+PiBpbmRleCA0YWI2N2VmN2FiYzku
-LjU0NDI5MmYyMDIwZiAxMDA2NDQKPj4gLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dl
-cm52L29wYWwtc2Vuc29yLmMKPj4gKysrIGIvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52
-L29wYWwtc2Vuc29yLmMKPj4gQEAgLTcyLDYgKzcyLDkgQEAgc3RhdGljIF9faW5pdCBpbnQgb3Bh
-bF9zZW5zb3JfaW5pdCh2b2lkKQo+PiAgCXN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXY7Cj4+
-ICAJc3RydWN0IGRldmljZV9ub2RlICpzZW5zb3I7Cj4+ICAKPj4gKwlpZiAoIW9wYWxfY2hlY2tf
-dG9rZW4oT1BBTF9TRU5TT1JfUkVBRCkpCj4+ICsJCXJldHVybiAtRU5PREVWOwo+PiArCj4+ICAJ
-c2Vuc29yID0gb2ZfZmluZF9ub2RlX2J5X3BhdGgoIi9pYm0sb3BhbC9zZW5zb3JzIik7Cj4+ICAJ
-aWYgKCFzZW5zb3IpIHsKPj4gIAkJcHJfZXJyKCJPcGFsIG5vZGUgJ3NlbnNvcnMnIG5vdCBmb3Vu
-ZFxuIik7Cj4gCj4gQXJlIHlvdSBhY3R1YWxseSBzZWVpbmcgdGhpcyBpbiBwcmFjdGljZT8KCk5v
-LiBOb3QgdGhpcyBvbmUuIEkgaGF2ZSBzZWVuIG90aGVycyB0aG91Z2guIEkgd2lsbCBzZW5kIHlv
-dSBwYXRjaGVzLgoKPiBJdCdzIGEgYml0IGFubm95aW5nIHRoYXQgd2UgaGF2ZSB0byBjaGVjayBm
-b3IgdGhlIHRva2VuLCBhbmQgdGhlbiBhbHNvIGNoZWNrCj4gdGhlIGRldmljZSB0cmVlLiBJdCB3
-b3VsZCBiZSBuaWNlIGlmIG9uZSBpbXBsaWVkIHRoZSBwcmVzZW5jZSBvZiB0aGUgb3RoZXIuCgpT
-aG91bGQgd2UgZXhwb3NlIHRoZSBPUEFMIGNhbGwgdG9rZW4gaW4gdGhlIGRldmljZSB0cmVlID8g
-CgpDaGVlcnMsCgpDLiAKIAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
-cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
-cw=
+This patch provides code for reading PWM FAN configuration data via
+device tree. The pwm-fan can work with full speed when configuration
+is not provided. However, errors are propagated when wrong DT bindings
+are found.
+Additionally the struct pwm_fan_ctx has been extended.
+
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes for v2:
+- Rename pwm_fan_max_states to pwm_fan_cooling_levels
+- Moving pwm_fan_of_get_cooling_data() call after setting end enabling PWM FAN
+- pwm_fan_of_get_cooling_data() now can fail - preserving old behaviour
+- Remove unnecessary dev_err() call
+Changes for v3:
+- Patch's headline has been reedited
+- pwm_fan_of_get_cooling_data() return code is now being checked.
+- of_property_count_elems_of_size() is now used instead of_find_property()
+- More verbose patch description added
+Changes for v4:
+- dev_err() has been removed from pwm_fan_of_get_cooling_data()
+- Returning -EINVAL when "cooling-levels" are defined in DT, but doesn't
+  have the value
+---
+ drivers/hwmon/pwm-fan.c | 52 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index bd42d39..82cd06a 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -30,7 +30,10 @@
+ struct pwm_fan_ctx {
+ 	struct mutex lock;
+ 	struct pwm_device *pwm;
+-	unsigned char pwm_value;
++	unsigned int pwm_value;
++	unsigned int pwm_fan_state;
++	unsigned int pwm_fan_max_state;
++	unsigned int *pwm_fan_cooling_levels;
+ };
+ 
+ static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
+@@ -100,6 +103,48 @@ static struct attribute *pwm_fan_attrs[] = {
+ 
+ ATTRIBUTE_GROUPS(pwm_fan);
+ 
++int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
++{
++	struct device_node *np = dev->of_node;
++	int num, i, ret;
++
++	ret = of_property_count_elems_of_size(np, "cooling-levels",
++					      sizeof(u32));
++
++	if (ret = -EINVAL)
++		return 0;
++
++	if (ret <= 0) {
++		dev_err(dev, "Wrong data!\n");
++		return ret ? ret : -EINVAL;
++	}
++
++	num = ret;
++	ctx->pwm_fan_cooling_levels = devm_kzalloc(dev, num * sizeof(u32),
++						   GFP_KERNEL);
++	if (!ctx->pwm_fan_cooling_levels)
++		return -ENOMEM;
++
++	ret = of_property_read_u32_array(np, "cooling-levels",
++					 ctx->pwm_fan_cooling_levels, num);
++	if (ret) {
++		dev_err(dev, "Property 'cooling-levels' cannot be read!\n");
++		return ret;
++	}
++
++	for (i = 0; i < num; i++) {
++		if (ctx->pwm_fan_cooling_levels[i] > MAX_PWM) {
++			dev_err(dev, "PWM fan state[%d]:%d > %d\n", i,
++				ctx->pwm_fan_cooling_levels[i], MAX_PWM);
++			return -EINVAL;
++		}
++	}
++
++	ctx->pwm_fan_max_state = num - 1;
++
++	return 0;
++}
++
+ static int pwm_fan_probe(struct platform_device *pdev)
+ {
+ 	struct device *hwmon;
+@@ -145,6 +190,11 @@ static int pwm_fan_probe(struct platform_device *pdev)
+ 		pwm_disable(ctx->pwm);
+ 		return PTR_ERR(hwmon);
+ 	}
++
++	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
++	if (ret)
++		return ret;
++
+ 	return 0;
+ }
+ 
+-- 
+2.0.0.rc2
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
