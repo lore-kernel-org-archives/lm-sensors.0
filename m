@@ -1,122 +1,75 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 26 Feb 2015 17:32:06 +0000
-Subject: Re: [lm-sensors] [PATCH] Add Nuvoton NCT7904 hwmon driver
-Message-Id: <20150226173206.GA10560@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 18 Feb 2015 10:07:29 +0000
+Subject: [lm-sensors] [PATCH v4 1/8] thermal: Provide stub for thermal_of_cooling_device_register() function
+Message-Id: <1424254056-5904-2-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1424794188.8163.13.camel@vvlasov.dev.rtsoft.ru>
-In-Reply-To: <1424794188.8163.13.camel@vvlasov.dev.rtsoft.ru>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1424254056-5904-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1424254056-5904-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-On Thu, Feb 26, 2015 at 08:16:10PM +0300, Vadim V. Vlasov wrote:
-> On Thu, 2015-02-26 at 08:16 -0800, Guenter Roeck wrote:
-> > On Thu, Feb 26, 2015 at 06:55:18PM +0300, Vadim V. Vlasov wrote:
-> 
-> > 
-> > > > > +static ssize_t
-> > > > > +store_mode(struct device *dev,
-> > > > > +	  struct device_attribute *devattr, const char *buf, size_t count)
-> > > > > +{
-> > > >>[...]
-> > > > > +	ret = nct7904_write_reg(data, BANK_3, FANCTL1_FMR_REG + index, val);
-> > > > > +
-> > > > This is really combining two configurations into one, the fan control mode
-> > > > (manual or automatic), and its association with a temperature source
-> > > > as selected in bank 3 registers 0x09..0x0c. If you want to be able
-> > > > to configure that, it will need to be two separate attributes, one for the
-> > > > mode and one for the temperature source.
-> > > > 
-> > > > Configuring automatic mode without also providing the means to configure
-> > > > registers 0x09..0x0c doesn't really make much sense.
-> > > 
-> > > No, I don't want to be able to configure automatic mode. I presume that
-> > > BIOS would do that better. The only thing I want to provide is
-> > > the ability to turn a fan into manual mode, play with RPM and return
-> > > it back to whatever automatic settings were provided by BIOS.
-> > > 
-> > I seem to be missing something. The mode attribute as you wrote it does
-> > configure manual vs.  automatic mode, and in your code you also associate
-> > the automatic mode with a temperature source. Sorry, I don't see how it
-> > would make sense to let the user configure which temperature source
-> > to use without making sure that this temperature source points to
-> > something useful.
-> 
-> I see the following use scenario:
-> - the user reads fanX_mode which specifies temperature source for
-> automatic mode, and remembers it;
-> - the user writes 0 into the mode to set manual control;
-> - manually increases the fan speed (or decreases it to make the fan
-> silent);
-> - after some time he restores automatic mode to what he has remembered.
-> 
-> Tweaking the values in smartfan configuration is not supposed and is
-> not supported, yet.
-> 
-> Do you think that saving initial mode values and allowing only to set
-> either 0 or the saved value is a better solution?
-> 
-Yes; you can not make assumptions like that. Since you don't let the user
-configure the temperature source itself, you should also reject setting
-automatic mode if it was not originally enabled.
+Odroid U3 fan can work without being registered as OF cooling device
+(with CONFIG_THERMAL_OF disabled).
+In this situation it can be controlled via PWM entry at
+/sys/class/hwmon/hwmon0/pwm1.
 
-> > I don't see what you changed in the patch that follows. Please provide a change
-> > log.
-> 
-> 1. hwmon_dev removed from nct7904_data
-> 2. 4 groups of sensors are registered instead of just one,
->   is_visible() with appropriate masks is used for configuring 3 
->   of the groups
-> 3. bank_lock/release() are separate functions
-> 4. redundant checks of bank number removed
-> 5. nct7904_read_reg16() returns two registers in big-endian format
-> 6. sensor attributes are initialized using common macros
->   (SENSOR_DEVICE_ATTR())
-> 7. local temperature reading is a separate function rather than
->   a special case in voltage reading
-> 8. fixed multi-line function declaration style
-> 9. other minor changes that you suggested.
-> 
+Therefore, the thermal_of_cooling_device_register() function needs a stub
+to allow clean compilation.
 
-Thanks a lot for the information. Please add to changelog for the next
-version of the patch (after the '---' line).
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes for v2:
+- None
+Changes for v3:
+- Provide stub declaration when CONFIG_THERMAL is not set
+Changes for v4:
+- None
+---
+ include/linux/thermal.h | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-> >  I still see
-> > 
-> > total: 0 errors, 1 warnings, 27 checks, 630 lines checked
-> 
-> OK. The warning is:
->    WARNING: added, moved or deleted file(s), does MAINTAINERS need
-> updating?
-> I'm not sure what to do about it.
-> 
-Your call. Ignore it, or if you want to spend the time add yourself as
-maintainer for this driver.
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index fc52e30..eacf2de 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -293,6 +293,20 @@ struct thermal_trip {
+ };
+ 
+ /* Function declarations */
++#ifdef CONFIG_THERMAL
++struct thermal_cooling_device *
++thermal_of_cooling_device_register(struct device_node *np,
++				   char *type, void *devdata,
++				   const struct thermal_cooling_device_ops *);
++#else
++static inline struct thermal_cooling_device *
++thermal_of_cooling_device_register(struct device_node *np,
++				   char *type, void *devdata,
++				   const struct thermal_cooling_device_ops *ops)
++{
++	return NULL;
++}
++#endif
+ #ifdef CONFIG_THERMAL_OF
+ struct thermal_zone_device *
+ thermal_zone_of_sensor_register(struct device *dev, int id, void *data,
+@@ -328,9 +342,6 @@ void thermal_zone_device_update(struct thermal_zone_device *);
+ 
+ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 		const struct thermal_cooling_device_ops *);
+-struct thermal_cooling_device *
+-thermal_of_cooling_device_register(struct device_node *np, char *, void *,
+-				   const struct thermal_cooling_device_ops *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+ struct thermal_zone_device *thermal_zone_get_zone_by_name(const char *name);
+ int thermal_zone_get_temp(struct thermal_zone_device *tz, unsigned long *temp);
+-- 
+2.0.0.rc2
 
-> The checks:
-> 
->    CHECK: Please don't use multiple blank lines (7 instances)
-> Two blank lines separate 'logical sections' of the code. I can fix it
-> if this is considered undesirable.
-> 
-Yes, it is considered undesirable.
-
->    CHECK: Alignment should match open parenthesis (19 instances)
-> The 'CodingStyle' does not require such alignment.
-> You suggested to make multi-line declarations just consistent and
-> I did so.
-> 
-Not in the patch that was attached; that is where majority of the messages
-comes from.
-
->    CHECK: struct mutex definition without comment
-> No idea about this one.
-> 
-Ignore it; I consider this one to be noise.
-
-Thanks,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
