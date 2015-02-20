@@ -1,181 +1,49 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Fri, 06 Feb 2015 16:59:08 +0000
-Subject: [lm-sensors] [PATCH v3 8/8] hwmon: pwm-fan: Code for using PWM FAN as a cooling device
-Message-Id: <1423241948-31981-9-git-send-email-l.majewski@samsung.com>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Fri, 20 Feb 2015 15:07:36 +0000
+Subject: [lm-sensors] [RFC PATCH 2/3] powerpc/powernv: handle OPAL_SUCCESS return in opal_sensor_read
+Message-Id: <1424444857-13805-3-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: linuxppc-dev@lists.ozlabs.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Guenter Roeck <linux@roeck-us.net>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-The PWM FAN device can now be used as a thermal cooling device. Necessary
-infrastructure has been added in this commit.
-
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
----
-Changes for v2:
-- Replace pwm_fan_cooling_states with pwm_fan_cooling_levels
-- Update ctx->pwm_fan_state when correct data from device tree is available
-- Using therma_cdev_update() when thermal is ready for controlling the fan
-Changes for v3:
-- Rename patch heading
-- pwm_fan_of_get_cooling_data() now returns -EINVAL when no "cooling-levels"
-  property defined
-- register of cooling device only when proper cooling data is present
----
- drivers/hwmon/pwm-fan.c | 86 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 83 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index f3f5843..79fe24e 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/pwm.h>
- #include <linux/sysfs.h>
-+#include <linux/thermal.h>
- 
- #define MAX_PWM 255
- 
-@@ -68,6 +69,17 @@ exit_set_pwm_err:
- 	return ret;
- }
- 
-+static void pwm_fan_update_state(struct pwm_fan_ctx *ctx, unsigned long pwm)
-+{
-+	int i;
-+
-+	for (i = 0; i < ctx->pwm_fan_max_state; ++i)
-+		if (pwm < ctx->pwm_fan_cooling_levels[i + 1])
-+			break;
-+
-+	ctx->pwm_fan_state = i;
-+}
-+
- static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 		       const char *buf, size_t count)
- {
-@@ -82,6 +94,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 	if (ret)
- 		return ret;
- 
-+	pwm_fan_update_state(ctx, pwm);
- 	return count;
- }
- 
-@@ -103,6 +116,59 @@ static struct attribute *pwm_fan_attrs[] = {
- 
- ATTRIBUTE_GROUPS(pwm_fan);
- 
-+/* thermal cooling device callbacks */
-+static int pwm_fan_get_max_state(struct thermal_cooling_device *cdev,
-+				 unsigned long *state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+
-+	*state = ctx->pwm_fan_max_state;
-+
-+	return 0;
-+}
-+
-+static int pwm_fan_get_cur_state(struct thermal_cooling_device *cdev,
-+				 unsigned long *state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+
-+	if (!ctx)
-+		return -EINVAL;
-+
-+	*state = ctx->pwm_fan_state;
-+
-+	return 0;
-+}
-+
-+static int
-+pwm_fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+	int ret;
-+
-+	if (!ctx || (state > ctx->pwm_fan_max_state))
-+		return -EINVAL;
-+
-+	if (state = ctx->pwm_fan_state)
-+		return 0;
-+
-+	ret = __set_pwm(ctx, ctx->pwm_fan_cooling_levels[state]);
-+	if (ret) {
-+		dev_err(&cdev->device, "Cannot set pwm!\n");
-+		return ret;
-+	}
-+
-+	ctx->pwm_fan_state = state;
-+
-+	return ret;
-+}
-+
-+static const struct thermal_cooling_device_ops pwm_fan_cooling_ops = {
-+	.get_max_state = pwm_fan_get_max_state,
-+	.get_cur_state = pwm_fan_get_cur_state,
-+	.set_cur_state = pwm_fan_set_cur_state,
-+};
-+
- int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- {
- 	struct device_node *np = dev->of_node;
-@@ -113,7 +179,7 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- 
- 	if (ret = -EINVAL) {
- 		dev_err(dev, "Property 'cooling-levels' not found\n");
--		return 0;
-+		return ret;
- 	}
- 
- 	if (ret <= 0) {
-@@ -149,8 +215,9 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- 
- static int pwm_fan_probe(struct platform_device *pdev)
- {
--	struct device *hwmon;
-+	struct thermal_cooling_device *cdev;
- 	struct pwm_fan_ctx *ctx;
-+	struct device *hwmon;
- 	int duty_cycle;
- 	int ret;
- 
-@@ -194,8 +261,21 @@ static int pwm_fan_probe(struct platform_device *pdev)
- 	}
- 
- 	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
--	if (ret)
-+	if (!ret) {
-+		ctx->pwm_fan_state = ctx->pwm_fan_max_state;
-+		cdev = thermal_of_cooling_device_register(pdev->dev.of_node,
-+							  "pwm-fan", ctx,
-+							  &pwm_fan_cooling_ops);
-+		if (IS_ERR(cdev)) {
-+			dev_err(&pdev->dev,
-+				"Failed to register pwm-fan as cooling device");
-+			pwm_disable(ctx->pwm);
-+			return PTR_ERR(cdev);
-+		}
-+		thermal_cdev_update(cdev);
-+	} else if (ret != -EINVAL) {
- 		return ret;
-+	}
- 
- 	return 0;
- }
--- 
-2.0.0.rc2
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Q3VycmVudGx5LCB3aGVuIGEgc2Vuc29yIHZhbHVlIGlzIHJlYWQsIHRoZSBrZXJuZWwgY2FsbHMg
+T1BBTCwgd2hpY2ggaW4KdHVybiBidWlsZHMgYSBtZXNzYWdlIGZvciB0aGUgRlNQLCBhbmQgd2Fp
+dHMgZm9yIGEgbWVzc2FnZSBiYWNrLiBIb3dldmVyLApzb21lIHNlbnNvcnMgY2FuIGJlIHJlYWQg
+c3luY2hyb25vdXNseSAoY29yZSB0ZW1wZXJhdHVyZXMgZm9yIGluc3RhbmNlKQphbmQgZG9uJ3Qg
+bmVlZCB0byB3YWl0IGZvciBhIHJlc3BvbnNlLgoKVGhpcyBwYXRjaCBtb2RpZmllcyB0aGUgb3Bh
+bCBjYWxsIHRvIGFjY2VwdCBhbiBPUEFMX1NVQ0NFU1MgcmV0dXJuIHZhbHVlCmFuZCBub3Qgd2Fp
+dCBmb3IgYSByZXNwb25zZSBpZiB0aGlzIGlzIHRoZSBjYXNlLgoKQnV0LCB3ZSBzdGlsbCB1c2Vs
+ZXNzbHkgcmVzZXJ2ZSBhIHRva2VuIChmb3IgdGhlIHJlc3BvbnNlKSBhbmQgdGFrZSBhCmxvY2ss
+IHdoaWNoIG1pZ2h0IHJhaXNlIHRoZSBuZWVkIG9mIGEgbmV3ICdvcGFsX3NlbnNvcl9yZWFkX3N5
+bmMnIGNhbGwuCgpTaWduZWQtb2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5j
+b20+Ci0tLQogYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMgfCAg
+IDI5ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMTkgaW5zZXJ0
+aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9wb3dlcnBjL3BsYXRm
+b3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMgYi9hcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bvd2Vy
+bnYvb3BhbC1zZW5zb3IuYwppbmRleCA1NDQyOTJmMjAyMGYuLmE0ZWQ4M2E3ZGZiNCAxMDA2NDQK
+LS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMKKysrIGIv
+YXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29wYWwtc2Vuc29yLmMKQEAgLTQ2LDE4ICs0
+NiwyNyBAQCBpbnQgb3BhbF9nZXRfc2Vuc29yX2RhdGEodTMyIHNlbnNvcl9obmRsLCB1MzIgKnNl
+bnNvcl9kYXRhKQogCiAJbXV0ZXhfbG9jaygmb3BhbF9zZW5zb3JfbXV0ZXgpOwogCXJldCA9IG9w
+YWxfc2Vuc29yX3JlYWQoc2Vuc29yX2huZGwsIHRva2VuLCAmZGF0YSk7Ci0JaWYgKHJldCAhPSBP
+UEFMX0FTWU5DX0NPTVBMRVRJT04pCi0JCWdvdG8gb3V0X3Rva2VuOworCXN3aXRjaCAocmV0KSB7
+CisJY2FzZSBPUEFMX0FTWU5DX0NPTVBMRVRJT046CisJCXJldCA9IG9wYWxfYXN5bmNfd2FpdF9y
+ZXNwb25zZSh0b2tlbiwgJm1zZyk7CisJCWlmIChyZXQpIHsKKwkJCXByX2VycigiJXM6IEZhaWxl
+ZCB0byB3YWl0IGZvciB0aGUgYXN5bmMgcmVzcG9uc2UsICVkXG4iLAorCQkJICAgICAgIF9fZnVu
+Y19fLCByZXQpOworCQkJZ290byBvdXRfdG9rZW47CisJCX0KIAotCXJldCA9IG9wYWxfYXN5bmNf
+d2FpdF9yZXNwb25zZSh0b2tlbiwgJm1zZyk7Ci0JaWYgKHJldCkgewotCQlwcl9lcnIoIiVzOiBG
+YWlsZWQgdG8gd2FpdCBmb3IgdGhlIGFzeW5jIHJlc3BvbnNlLCAlZFxuIiwKLQkJCQlfX2Z1bmNf
+XywgcmV0KTsKLQkJZ290byBvdXRfdG9rZW47Ci0JfQorCQlyZXQgPSBiZTY0X3RvX2NwdShtc2cu
+cGFyYW1zWzFdKTsKKworCQkqc2Vuc29yX2RhdGEgPSBiZTMyX3RvX2NwdShkYXRhKTsKKwkJYnJl
+YWs7CiAKLQkqc2Vuc29yX2RhdGEgPSBiZTMyX3RvX2NwdShkYXRhKTsKLQlyZXQgPSBiZTY0X3Rv
+X2NwdShtc2cucGFyYW1zWzFdKTsKKwljYXNlIE9QQUxfU1VDQ0VTUzoKKwkJKnNlbnNvcl9kYXRh
+ID0gYmUzMl90b19jcHUoZGF0YSk7CisJCWJyZWFrOworCisJZGVmYXVsdDoKKwkJYnJlYWs7CisJ
+fQogCiBvdXRfdG9rZW46CiAJbXV0ZXhfdW5sb2NrKCZvcGFsX3NlbnNvcl9tdXRleCk7Ci0tIAox
+LjcuMTAuNAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
