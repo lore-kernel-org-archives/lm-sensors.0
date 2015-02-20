@@ -1,38 +1,65 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Feb 2015 16:52:12 +0000
+From: Cedric Le Goater <clg@fr.ibm.com>
+Date: Fri, 20 Feb 2015 20:15:54 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 0/3] hwmon: (ibmpowernv) add DTS support
-Message-Id: <20150220165212.GE22752@roeck-us.net>
+Message-Id: <54E795FA.1090005@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
  <1424444857-13805-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1424444857-13805-1-git-send-email-clg@fr.ibm.com>
+ <20150220165212.GE22752@roeck-us.net>
+In-Reply-To: <20150220165212.GE22752@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+To: Guenter Roeck <linux@roeck-us.net>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-On Fri, Feb 20, 2015 at 04:07:34PM +0100, C=E9dric Le Goater wrote:
-> Hello !
->=20
-> These patches rework the ibmpowernv driver to support the new device=20
-> tree as proposed by this patchset on the skiboot mailing list :
->=20
->   https://lists.ozlabs.org/pipermail/skiboot/2015-February/000457.html
->=20
-> They are based on Linux 3.19 and were tested on IBM Power and Open Power =
+On 02/20/2015 05:52 PM, Guenter Roeck wrote:
+> On Fri, Feb 20, 2015 at 04:07:34PM +0100, C=E9dric Le Goater wrote:
+>> Hello !
+>>
+>> These patches rework the ibmpowernv driver to support the new device=20
+>> tree as proposed by this patchset on the skiboot mailing list :
+>>
+>>   https://lists.ozlabs.org/pipermail/skiboot/2015-February/000457.html
+>>
+>> They are based on Linux 3.19 and were tested on IBM Power and Open Power=
+=20
+>> systems running trusty.
+>>
+>> The main issue is that the new device tree is incompatible with the=20
+>> previous ibmpowernv drivers. The consequence is no powernv sensors=20
+>> on systems with such a opal/linux configuration.
+>>
+> I don't think that would be acceptable. There must be lots of such
+> systems out there. Why does it have to be incompatible ?
+> Can't it support both the old and new versions ?
 
-> systems running trusty.
->=20
-> The main issue is that the new device tree is incompatible with the=20
-> previous ibmpowernv drivers. The consequence is no powernv sensors=20
-> on systems with such a opal/linux configuration.
->=20
-I don't think that would be acceptable. There must be lots of such
-systems out there. Why does it have to be incompatible ?
-Can't it support both the old and new versions ?
+I should have provided more explanation in the Linux patchset. Sorry=20
+for that. Here is the rationale behind this brutal code change.
 
-Guenter
+The initial ibmpowernv driver was designed in the early days of the
+powernv platform and the device tree it is using to expose the sensors=20
+has some limitations that makes it difficult to add new ones. The current=20
+layout of the device tree is also tightly coupled to IBM Power systems=20
+and their service processor (FSP). Open Power systems are different and=20
+need a different solution.
+
+It is to get more sensors out the P8 (and there are quite a few) that=20
+the OPAL patchset [1] proposes a new device tree. On the Linux side, it=20
+feels simpler to make a jump forward and break the compatibility than=20
+to maintain multiple branches of code just to keep alive an early v1=20
+of the ibmpowernv driver.   =20
+
+Open Power systems won't be impacted as ibmpowernv does not support them.
+
+
+Cheers,
+
+C.
+
+
+[1] https://lists.ozlabs.org/pipermail/skiboot/2015-February/000457.html
+
 
 _______________________________________________
 lm-sensors mailing list
