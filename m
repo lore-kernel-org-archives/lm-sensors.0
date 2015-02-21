@@ -1,105 +1,62 @@
-From: Taz <rastataz@gmail.com>
-Date: Sat, 28 Feb 2015 13:13:07 +0000
-Subject: Re: [lm-sensors] Fancontrol memory consumption
-Message-Id: <54F1BEE3.2010009@gmail.com>
+From: cedric <cedric321@hotmail.fr>
+Date: Sat, 21 Feb 2015 18:03:18 +0000
+Subject: [lm-sensors] Address Port chip IT8620E
+Message-Id: <BLU436-SMTP13606C23E77219C144F9B1A902B0@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------090100070809040104030404"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141105175729.39a88ab1@endymion.delvare>
-In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+--------------090100070809040104030404
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I had to revert to first patch set : new patch consumes 30%  CPU
-on my system (or 6% global CPU on Atom D510@1.66GHz).
+Hello,
 
-I let it ran a few minutes from 13h56 to 14h00, then when seeing=20
-abnormal CPU consumption, I reverted it.
+I see that lm-sensors.org have no datasheetfor chip IT8620E.
+
+Because in0 and in4, i think, is badly displayed with modeprobe it87 
+option force_id=0x8728
+I contacted gigabyte-support and they gived me a little table.
+
+I'm not qualified to use this table and i hope she can be useful.
+
+Thank you.
+Goodbye.
 
 
+The table:
 
+9.5.2.1    Address Port (Base+05h, Default=00h)
 
+20h    |    R    |    -    |    VIN0 Voltage Reading Register
+21h    |    R    |    -    |    VIN1 Voltage Reading Register
+22h    |    R    |    -    |    VIN2 Voltage Reading Register
+23h    |    R    |    -    |    VIN3 Voltage Reading Register
+24h    |    R    |    -    |    VIN4 Voltage Reading Register
+25h    |    R    |    -    |    VIN5 Voltage Reading Register
+26h    |    R    |    -    |    VIN6 Voltage Reading Register
 
-Taz (C=E9dric L.M.)
+--------------090100070809040104030404
+Content-Type: text/plain; charset="UTF-8"; name="table - IT8620e - h97mhd3"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="table - IT8620e - h97mhd3"
 
-Le 28/02/2015 13:39, Taz a =E9crit :
-> Hi Jean,
->
-> Besides it looked strange, it didn't bother me enough so I stopped=20
-> monitoring and kind of gave it up too...
-> But I'll certainly give the new patch a try (and restart monitoring),=20
-> and give you feedback of course.
->
-> Thanks a lot !
->
->     Taz (C=E9dric L.M.)
->
->
-> Le 28/02/2015 11:14, Jean Delvare a =E9crit :
->> Hi Taz,
->>
->> On Thu, 13 Nov 2014 15:36:32 +0100, Taz wrote:
->>> (sorry I just saw my reply still was in my drafts, don't know why...)
->>>
->>> Indeed : my current bash version is 4.3.11
->>> Although I don't have line 585 in my fancontrol script
->>> I can apply the the patch (lines 497 & 536 for fancontrol v0.7)
->> The "patch" command can apply patch files with offsets just fine.
->>
->>> I also gave it a try without the wait lines and not sending to
->>> background the previous
->>> sleep command the wait was waiting for anyway (useless ?)
->> Not sending sleep in the background reportedly caused delays or
->> undesirable behavior on system suspend or shutdown on some systems. See:
->> http://www.lm-sensors.org/changeset/4443/lm-sensors/branches/lm-sensors-=
-3.0.0/prog/pwm/fancontrol=20
->>
->>
->>> =3D> Mem consumption seems to be the same in all cases, we'll see in the
->>> long run...
->> I discussed the issue with the upstream bash maintainer, but he claims
->> that the implementation is correct and required for Posix compliance.
->> My own tests were confusing (sometimes I could reproduce the issue,
->> sometimes not) so I couldn't reach a definitive conclusion, and
->> ultimately I forgot about it / gave up on it.
->>
->> Meanwhile someone contributed a trick to the healthd script which may
->> work just fine here too. It avoids both the call to an external command
->> and the use of wait. Can you please revert the previous patch and give
->> a try to this one instead?
->>
->> ---
->>   prog/pwm/fancontrol |    6 ++----
->>   1 file changed, 2 insertions(+), 4 deletions(-)
->>
->> --- lm-sensors.orig/prog/pwm/fancontrol    2014-11-17=20
->> 09:16:14.657054963 +0100
->> +++ lm-sensors/prog/pwm/fancontrol    2015-02-28 11:03:32.958562604=20
->> +0100
->> @@ -545,8 +545,7 @@ function UpdateFanSpeeds
->>             then # if fan was stopped start it using a safe value
->>                 echo $minsa > $pwmo
->>               # Sleep while still handling signals
->> -            sleep 1 &
->> -            wait $!
->> +            read -t 1 -N 0
->>             fi
->>           fi
->>           echo $pwmval > $pwmo # write new value to pwm output
->> @@ -584,6 +583,5 @@ while true
->>   do
->>       UpdateFanSpeeds
->>       # Sleep while still handling signals
->> -    sleep $INTERVAL &
->> -    wait $!
->> +    read -t $INTERVAL -N 0
->>   done
->>
->> Thanks,
->
+OS41LjIuMQlBZGRyZXNzIFBvcnQgKEJhc2UrMDVoLCBEZWZhdWx0PTAwaCkKCjIwaAl8CVIJ
+fAktCXwJVklOMCBWb2x0YWdlIFJlYWRpbmcgUmVnaXN0ZXIJCjIxaAl8CVIJfAktCXwJVklO
+MSBWb2x0YWdlIFJlYWRpbmcgUmVnaXN0ZXIKMjJoCXwJUgl8CS0JfAlWSU4yIFZvbHRhZ2Ug
+UmVhZGluZyBSZWdpc3RlcgoyM2gJfAlSCXwJLQl8CVZJTjMgVm9sdGFnZSBSZWFkaW5nIFJl
+Z2lzdGVyCjI0aAl8CVIJfAktCXwJVklONCBWb2x0YWdlIFJlYWRpbmcgUmVnaXN0ZXIKMjVo
+CXwJUgl8CS0JfAlWSU41IFZvbHRhZ2UgUmVhZGluZyBSZWdpc3RlcgoyNmgJfAlSCXwJLQl8
+CVZJTjYgVm9sdGFnZSBSZWFkaW5nIFJlZ2lzdGVyCg==
+--------------090100070809040104030404
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------090100070809040104030404--
