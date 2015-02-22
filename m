@@ -1,46 +1,33 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 22 Feb 2015 18:11:16 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Sun, 22 Feb 2015 22:07:41 +0000
 Subject: Re: [lm-sensors] i8k: move driver from char to hwmon
-Message-Id: <54EA1BC4.9080606@roeck-us.net>
+Message-Id: <20150222230741.051f12b9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201502221250.49466@pali> <54EA12DC.1000403@roeck-us.net> <201502221844.54371@pali>
-In-Reply-To: <201502221844.54371@pali>
+References: <201502221250.49466@pali>
+	<54EA12DC.1000403@roeck-us.net>
+	<201502221844.54371@pali>
+	<54EA1BC4.9080606@roeck-us.net>
+In-Reply-To: <54EA1BC4.9080606@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Steven Honeyman <stevenhoneyman@gmail.com>, Jean Delvare <jdelvare@suse.de>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Pali =?UTF-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-T24gMDIvMjIvMjAxNSAwOTo0NCBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gT24gU3VuZGF5IDIy
-IEZlYnJ1YXJ5IDIwMTUgMTg6MzM6MTYgR3VlbnRlciBSb2VjayB3cm90ZToKPj4KPj4+IDIpIFJl
-bmFtZSBkcml2ZXIgZnJvbSBpOGsgdG8gc29tZXRoaW5nIGxpa2UgZGVsbGRpYWcgb3IKPj4+IGRl
-bGxzbW0KPj4KPj4gTWlnaHQgYmUgcHJvYmxlbWF0aWMsIGFzIGl0IHdvdWxkIGJyZWFrIGV4aXN0
-aW5nCj4+IGNvbmZpZ3VyYXRpb25zIHVubGVzcyB5b3Uga2VlcCB0aGUgQ09ORklHX0k4SyBidXQg
-cmVuYW1lIHRoZQo+PiBkcml2ZXIuIERyaXZlciBuYW1lcyBhcmUgbmV2ZXIgcGVyZmVjdCwgc28g
-SSB3b3VsZCBqdXN0IGxlYXZlCj4+IGl0IGFzIGlzLgo+Pgo+Pj4gMykgQWRkIG5ldyBDT05GSUdf
-IG9wdGlvbiB0byBlbmFibGUvZGlzYWJsZSAvcHJvYy9pOGsgZGV2aWNlCj4+PiBhbmQgY29tcGls
-ZSBvbmx5IGh3bW9uIGludGVyZmFjZSBzdXBwb3J0Cj4+Cj4+IE1ha2VzIHNlbnNlLiBJIHdvdWxk
-IHN1Z2dlc3QgdG8gbWFrZSBod21vbiBzdXBwcG9ydCB0aGUKPj4gZGVmYXVsdCBhbmQgbWFuZGF0
-b3J5IGlmIHRoZSBkcml2ZXIgaXMgZW5hYmxlZCBhbmQgYWRkIGEgbmV3Cj4+IENPTkZJR19JOEtf
-UFJPQ0lGIG9yIHNpbWlsYXIgd2hpY2ggc2hvdWxkIGJlIGVuYWJsZWQgYnkKPj4gZGVmYXVsdC4K
-Pj4KPgo+IFdoYXQgYWJvdXQgQ09ORklHX0RFTExESUFHIChvciBERUxMU01NIG9yIENPTkZJR19T
-RU5TT1JTXyopIGZvcgo+IG1hbmRhdG9yeSBjb3JlICYgaHdtb24gY29kZSBhbmQgKGtlZXAgZXhp
-c3RpbmcpIENPTkZJR19JOEsgZm9yCj4gL3Byb2MvaThrPwo+CgpPbmUgb3B0aW9uIG1pZ2h0IGJl
-IHRvIGxlYXZlIENPTkZJR19JOEsgbW9yZSBvciBsZXNzIGFsb25lCihpdCBpcyBpbiBhcmNoL3g4
-Ni9LY29uZmlnIGFueXdheSwgd2hpY2ggaXMgb2RkIGJ5IGl0c2VsZiksCmJ1dCBhZGQgc29tZXRo
-aW5nIGxpa2UKCXNlbGVjdCBTRU5TT1JTX0RFTEwKCXNlbGVjdCBJOEtfUFJPQwp0byBpdC4gVGhl
-biBhZGQgbmV3IGNvbmZpZyBvcHRpb25zIFNFTlNPUlNfREVMTCBhbmQKSThLX1BST0MgdG8gZHJp
-dmVycy9od21vbi9LY29uZmlnLgoKSSB3b3VsZCBzdGlsbCBsZWF2ZSB0aGUgZHJpdmVyIG5hbWUg
-YWxvbmUsIHRob3VnaDsgdGhlIHByb2JsZW0KaXMgdGhhdCAibW9kcHJvYmUgaThrIiBpcyBtZW50
-aW9uZWQgaW4gcHJldHR5IG11Y2ggYWxsIHJlZmVyZW5jZXMKdG8gdGhlIGRyaXZlci4KCldlIGNv
-dWxkIHRyeSB0byBtYWtlIGl0IHR3byBzZXBhcmF0ZSBkcml2ZXJzLCBvbmUgZm9yIHRoZSBod21v
-bgppbnRlcmZhY2UgYW5kIG9uZSBmb3IgdGhlIHByb2MgaW50ZXJmYWNlICh3aGljaCB3b3VsZCBk
-ZXBlbmQgb24KdGhlIGh3bW9uIGRyaXZlciksIGJ1dCBJIGFtIG5vdCBzdXJlIGlmIHRoYXQgaXMg
-d29ydGggaXQgb3IgZXZlbgpmZWFzaWJsZS4gSXQgd291bGQgc2F2ZSB1cyBhIGJ1bmNoIG9mIGlm
-ZGVmcyBpbiB0aGUgY29kZSwgdGhvdWdoLApzbyBpdCBtaWdodCBiZSB3b3J0aCBsb29raW5nIGlu
-dG8uIEluIHRoYXQgY2FzZSB5b3Ugd291bGQgaGF2ZSBhCmRlbGwgaHdtb24gZHJpdmVyIGFuZCBh
-IGRlbGwgaThrIGRyaXZlciAod2hpY2ggd291bGQgb25seSBleGlzdCBpZgpJOEtfUFJPQyBpcyBj
-b25maWd1cmVkKS4KCkd1ZW50ZXIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
-bnNvcnM
+On Sun, 22 Feb 2015 10:11:16 -0800, Guenter Roeck wrote:
+> I would still leave the driver name alone, though; the problem
+> is that "modprobe i8k" is mentioned in pretty much all references
+> to the driver.
+
+This might be solved with a module alias? You can pass any arbitrary
+string to MODULE_ALIAS(). This would still break insmod but pretty much
+everyone is calling modprobe to load kernel modules anyway.
+
+-- 
+Jean Delvare
+SUSE L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
