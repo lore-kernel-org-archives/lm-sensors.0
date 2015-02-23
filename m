@@ -1,35 +1,121 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sat, 28 Feb 2015 14:45:41 +0000
-Subject: Re: [lm-sensors] Patch and Upstart file for healthd.sh
-Message-Id: <20150228154541.31339f5c@endymion.delvare>
+From: Simon Guinot <simon.guinot@sequanux.org>
+Date: Mon, 23 Feb 2015 12:58:54 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (gpio-fan) allow to use alarm support alone from DT
+Message-Id: <1424696334-14767-1-git-send-email-simon.guinot@sequanux.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20150226233151.GA17731@alpha.somenet.pw>
-In-Reply-To: <20150226233151.GA17731@alpha.somenet.pw>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Sat, 28 Feb 2015 11:00:33 +0100, Jean Delvare wrote:
-> On Fri, 27 Feb 2015 02:31:52 +0300, vbooh wrote:
-> > A patch is for a decreasing of the resource consumption by healthd.sh; it replaces the external commands with the built-in Bash commands. It did not make a huge difference, but it was still useful in my case.
-> 
-> This is a sane goal, in fact we did similar changes to fancontrol some
-> times ago for the same reason. Patch committed, thanks for your
-> contribution. The read trick is very nice, I didn't know about it, I'll
-> probably do the same in fancontrol as well as the current
-> implementation was reported to cause problems.
+On some boards, such as the LaCie 2Big Network v2 or 2Big NAS (based on
+Marvell Kirkwood SoCs), an I2C fan controller is used but the alarm
+signal is wired to a separate GPIO. Unfortunately, the gpio-fan driver
+can't be used to handle GPIO alarm alone from DT: an error is returned
+if the "gpios" DT property is missing.
 
-Err, did you check the CPU consumption after applying your changes? I
-did similar changes to fancontrol and it results in an increased CPU
-consumption (37% of one CPU, compared to 0.3% before the changes) when
-fancontrol is started as a daemon by systemd. Strangely I do not
-observe this when running the script manually. I suppose "read" is
-angry if stdin is closed :(
+This patch allows to use the gpio-fan driver even if the "alarm-gpios"
+DT property is defined alone.
 
+Signed-off-by: Simon Guinot <simon.guinot@sequanux.org>
+---
+ .../devicetree/bindings/gpio/gpio-fan.txt          |  6 ++-
+ drivers/hwmon/gpio-fan.c                           | 44 +++++++++++-----------
+ 2 files changed, 27 insertions(+), 23 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/gpio/gpio-fan.txt b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
+index 2dd457a3469a..a4c5d15b72e6 100644
+--- a/Documentation/devicetree/bindings/gpio/gpio-fan.txt
++++ b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
+@@ -2,16 +2,18 @@ Bindings for fan connected to GPIO lines
+ 
+ Required properties:
+ - compatible : "gpio-fan"
++
++Optional properties:
+ - gpios: Specifies the pins that map to bits in the control value,
+   ordered MSB-->LSB.
+ - gpio-fan,speed-map: A mapping of possible fan RPM speeds and the
+   control value that should be set to achieve them. This array
+   must have the RPM values in ascending order.
+-
+-Optional properties:
+ - alarm-gpios: This pin going active indicates something is wrong with
+   the fan, and a udev event will be fired.
+ 
++Note: At least one the "gpios" and "alarm-gpios" properties should be set.
++
+ Examples:
+ 
+ 	gpio_fan {
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index 36abf814b8c7..c241f5b0b7cf 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -404,10 +404,32 @@ static int gpio_fan_get_of_pdata(struct device *dev,
+ 
+ 	node = dev->of_node;
+ 
++	/* Alarm GPIO if one exists */
++	if (of_gpio_named_count(node, "alarm-gpios") > 0) {
++		struct gpio_fan_alarm *alarm;
++		int val;
++		enum of_gpio_flags flags;
++
++		alarm = devm_kzalloc(dev, sizeof(struct gpio_fan_alarm),
++					GFP_KERNEL);
++		if (!alarm)
++			return -ENOMEM;
++
++		val = of_get_named_gpio_flags(node, "alarm-gpios", 0, &flags);
++		if (val < 0)
++			return val;
++		alarm->gpio = val;
++		alarm->active_low = flags & OF_GPIO_ACTIVE_LOW;
++
++		pdata->alarm = alarm;
++	}
++
+ 	/* Fill GPIO pin array */
+ 	pdata->num_ctrl = of_gpio_count(node);
+ 	if (pdata->num_ctrl <= 0) {
+-		dev_err(dev, "gpios DT property empty / missing");
++		if (pdata->alarm)
++			return 0;
++		dev_err(dev, "DT properties empty / missing");
+ 		return -ENODEV;
+ 	}
+ 	ctrl = devm_kzalloc(dev, pdata->num_ctrl * sizeof(unsigned),
+@@ -460,26 +482,6 @@ static int gpio_fan_get_of_pdata(struct device *dev,
+ 	}
+ 	pdata->speed = speed;
+ 
+-	/* Alarm GPIO if one exists */
+-	if (of_gpio_named_count(node, "alarm-gpios") > 0) {
+-		struct gpio_fan_alarm *alarm;
+-		int val;
+-		enum of_gpio_flags flags;
+-
+-		alarm = devm_kzalloc(dev, sizeof(struct gpio_fan_alarm),
+-					GFP_KERNEL);
+-		if (!alarm)
+-			return -ENOMEM;
+-
+-		val = of_get_named_gpio_flags(node, "alarm-gpios", 0, &flags);
+-		if (val < 0)
+-			return val;
+-		alarm->gpio = val;
+-		alarm->active_low = flags & OF_GPIO_ACTIVE_LOW;
+-
+-		pdata->alarm = alarm;
+-	}
+-
+ 	return 0;
+ }
+ 
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.1
+
 
 _______________________________________________
 lm-sensors mailing list
