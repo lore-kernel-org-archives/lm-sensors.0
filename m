@@ -1,64 +1,45 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Tue, 24 Feb 2015 17:42:11 +0000
-Subject: [lm-sensors] [PATCH 1/4] kernel.h: add find_closest() macro
-Message-Id: <1424799734-2170-2-git-send-email-bgolaszewski@baylibre.com>
+From: Phil Pokorny <ppokorny@penguincomputing.com>
+Date: Tue, 24 Feb 2015 20:33:06 +0000
+Subject: Re: [lm-sensors] [PATCH 1/4] kernel.h: add find_closest() macro
+Message-Id: <CAAek22F3JzWRVqwf=QdaoowjTSkfHAiUP6orpHpcdt_gicaT=A@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1424799734-2170-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1424799734-2170-1-git-send-email-bgolaszewski@baylibre.com>
+	<1424799734-2170-2-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1424799734-2170-2-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, lm-sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Searching for the member of an array closest to 'x' is
-duplicated in several places.
+On Tue, Feb 24, 2015 at 9:42 AM, Bartosz Golaszewski
+<bgolaszewski@baylibre.com> wrote:
+>
+> Searching for the member of an array closest to 'x' is
+> duplicated in several places.
+>
+> Add two macros that implement this algorithm for arrays
+> sorted both in ascending and descending order.
 
-Add two macros that implement this algorithm for arrays
-sorted both in ascending and descending order.
+I don't see the point here.  You're not saving any code because your
+macros create functions at each invocation site.  And your macro is
+more complicated than the code it replaces because it has all the
+syntactic cruft to make it adaptable to the different datatypes and
+sort orders.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- include/linux/kernel.h | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+Certainly it is easy to make an off by one mistake in a loop like this
+so there might be some small value there, but I'm not sure the
+complication is worth that savings for the small number of use points.
+Particularly because you're not saving any code.
 
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index d6d630d..f4294da 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -116,6 +116,29 @@
- }							\
- )
- 
-+#define __find_closest(x, a, as, op)(					\
-+{									\
-+	typeof(as) _i, _as = (as) - 1;					\
-+	typeof(x) _x = (x);						\
-+	typeof(*a) *_a = (a);						\
-+	for (_i = 0; _i < _as; _i++) {					\
-+		if (_x op DIV_ROUND_CLOSEST(_a[_i] + _a[_i + 1], 2))	\
-+			break;						\
-+	}								\
-+	(_i);								\
-+}									\
-+)
-+
-+/*
-+ * Given an array 'a' (sorted in ascending order) of size 'as' return
-+ * the index of the element in that array closest to 'x'.
-+ */
-+#define find_closest(x, a, as) __find_closest(x, a, as, <=)
-+/*
-+ * Similar to find_closest(), but 'a' is expected to be sorted
-+ * in descending order.
-+ */
-+#define find_closest_desc(x, a, as) __find_closest(x, a, as, >)
- 
- #define _RET_IP_		(unsigned long)__builtin_return_address(0)
- #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+
 -- 
-2.1.4
+Philip Pokorny, RHCE
+Chief Technology Officer
+PENGUIN COMPUTING, Inc
+www.penguincomputing.com
 
+Changing the world through technical innovation
 
 _______________________________________________
 lm-sensors mailing list
