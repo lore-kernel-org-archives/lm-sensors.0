@@ -1,103 +1,116 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 25 Feb 2015 12:26:23 +0000
-Subject: Re: [lm-sensors] [PATCH v4 1/8] thermal: Provide stub for thermal_of_cooling_device_register() funct
-Message-Id: <20150225132623.753adaca@amdc2363>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Tue, 24 Feb 2015 17:48:28 +0000
+Subject: [lm-sensors] [RESEND PATCH 3/4] hwmon: (lm85) replace x_TO_REG() functions with find_closest()
+Message-Id: <1424800109-2969-4-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1424254056-5904-1-git-send-email-l.majewski@samsung.com>
- <1424254056-5904-2-git-send-email-l.majewski@samsung.com>
- <20150224192153.GH3448@developer.amazonguestwifi.org>
-In-Reply-To: <20150224192153.GH3448@developer.amazonguestwifi.org>
+References: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>, lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, lm-sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Hi Eduardo,
+Replace RANGE_TO_REG() and FREQ_TO_REG() functions with calls
+to find_closest().
 
-> On Wed, Feb 18, 2015 at 11:07:29AM +0100, Lukasz Majewski wrote:
-> > Odroid U3 fan can work without being registered as OF cooling device
-> > (with CONFIG_THERMAL_OF disabled).
-> > In this situation it can be controlled via PWM entry at
-> > /sys/class/hwmon/hwmon0/pwm1.
-> > 
-> > Therefore, the thermal_of_cooling_device_register() function needs
-> > a stub to allow clean compilation.
-> 
-> 
-> I've just applied a patch on this same matter from Nishanth Menon [1].
-> Can you please check if his patch is enough for you?
-> 
-> [1] -
-> https://git.kernel.org/cgit/linux/kernel/git/evalenti/linux-soc-thermal.git/commit/?h=fixes&idca7188468ee29c4e717f73db4bf43c90954fc7
-> 
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/lm85.c | 43 ++++++++++++-------------------------------
+ 1 file changed, 12 insertions(+), 31 deletions(-)
 
-I will prepare new PWM-FAN patch set with above changes in mind.
-
-
-> 
-> > 
-> > Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-> > ---
-> > Changes for v2:
-> > - None
-> > Changes for v3:
-> > - Provide stub declaration when CONFIG_THERMAL is not set
-> > Changes for v4:
-> > - None
-> > ---
-> >  include/linux/thermal.h | 17 ++++++++++++++---
-> >  1 file changed, 14 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > index fc52e30..eacf2de 100644
-> > --- a/include/linux/thermal.h
-> > +++ b/include/linux/thermal.h
-> > @@ -293,6 +293,20 @@ struct thermal_trip {
-> >  };
-> >  
-> >  /* Function declarations */
-> > +#ifdef CONFIG_THERMAL
-> > +struct thermal_cooling_device *
-> > +thermal_of_cooling_device_register(struct device_node *np,
-> > +				   char *type, void *devdata,
-> > +				   const struct
-> > thermal_cooling_device_ops *); +#else
-> > +static inline struct thermal_cooling_device *
-> > +thermal_of_cooling_device_register(struct device_node *np,
-> > +				   char *type, void *devdata,
-> > +				   const struct
-> > thermal_cooling_device_ops *ops) +{
-> > +	return NULL;
-> > +}
-> > +#endif
-> >  #ifdef CONFIG_THERMAL_OF
-> >  struct thermal_zone_device *
-> >  thermal_zone_of_sensor_register(struct device *dev, int id, void
-> > *data, @@ -328,9 +342,6 @@ void thermal_zone_device_update(struct
-> > thermal_zone_device *); 
-> >  struct thermal_cooling_device
-> > *thermal_cooling_device_register(char *, void *, const struct
-> > thermal_cooling_device_ops *); -struct thermal_cooling_device *
-> > -thermal_of_cooling_device_register(struct device_node *np, char *,
-> > void *,
-> > -				   const struct
-> > thermal_cooling_device_ops *); void
-> > thermal_cooling_device_unregister(struct thermal_cooling_device *);
-> > struct thermal_zone_device *thermal_zone_get_zone_by_name(const
-> > char *name); int thermal_zone_get_temp(struct thermal_zone_device
-> > *tz, unsigned long *temp); -- 2.0.0.rc2
-> > 
-
-
-
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 2b4b419..4e81c99 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -188,18 +188,6 @@ static const int lm85_range_map[] = {
+ 	13300, 16000, 20000, 26600, 32000, 40000, 53300, 80000
+ };
+ 
+-static int RANGE_TO_REG(long range)
+-{
+-	int i;
+-
+-	/* Find the closest match */
+-	for (i = 0; i < 15; ++i) {
+-		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
+-			break;
+-	}
+-
+-	return i;
+-}
+ #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
+ 
+ /* These are the PWM frequency encodings */
+@@ -209,17 +197,7 @@ static const int lm85_freq_map[8] = { /* 1 Hz */
+ static const int adm1027_freq_map[8] = { /* 1 Hz */
+ 	11, 15, 22, 29, 35, 44, 59, 88
+ };
+-
+-static int FREQ_TO_REG(const int *map, unsigned long freq)
+-{
+-	int i;
+-
+-	/* Find the closest match */
+-	for (i = 0; i < 7; ++i)
+-		if (freq <= (map[i] + map[i + 1]) / 2)
+-			break;
+-	return i;
+-}
++#define FREQ_MAP_SIZE		8
+ 
+ static int FREQ_FROM_REG(const int *map, u8 reg)
+ {
+@@ -828,7 +806,8 @@ static ssize_t set_pwm_freq(struct device *dev,
+ 		data->cfg5 &= ~ADT7468_HFPWM;
+ 		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
+ 	} else {					/* Low freq. mode */
+-		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map, val);
++		data->pwm_freq[nr] = find_closest(val, data->freq_map,
++						  FREQ_MAP_SIZE - 1);
+ 		lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
+ 				 (data->zone[nr].range << 4)
+ 				 | data->pwm_freq[nr]);
+@@ -1186,7 +1165,7 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct lm85_data *data = dev_get_drvdata(dev);
+ 	struct i2c_client *client = data->client;
+-	long val;
++	long val, range;
+ 	int err;
+ 
+ 	err = kstrtol(buf, 10, &val);
+@@ -1198,10 +1177,12 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
+ 	lm85_write_value(client, LM85_REG_AFAN_LIMIT(nr),
+ 		data->zone[nr].limit);
+ 
+-/* Update temp_auto_max and temp_auto_range */
+-	data->zone[nr].range = RANGE_TO_REG(
+-		TEMP_FROM_REG(data->zone[nr].max_desired) -
+-		TEMP_FROM_REG(data->zone[nr].limit));
++	/* Update temp_auto_max and temp_auto_range */
++	range = TEMP_FROM_REG(data->zone[nr].max_desired) -
++		TEMP_FROM_REG(data->zone[nr].limit);
++	data->zone[nr].range = find_closest(range, lm85_range_map,
++					    ARRAY_SIZE(lm85_range_map));
++
+ 	lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
+ 		((data->zone[nr].range & 0x0f) << 4)
+ 		| (data->pwm_freq[nr] & 0x07));
+@@ -1236,8 +1217,8 @@ static ssize_t set_temp_auto_temp_max(struct device *dev,
+ 	mutex_lock(&data->update_lock);
+ 	min = TEMP_FROM_REG(data->zone[nr].limit);
+ 	data->zone[nr].max_desired = TEMP_TO_REG(val);
+-	data->zone[nr].range = RANGE_TO_REG(
+-		val - min);
++	data->zone[nr].range = find_closest(val - min, lm85_range_map,
++					    ARRAY_SIZE(lm85_range_map));
+ 	lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
+ 		((data->zone[nr].range & 0x0f) << 4)
+ 		| (data->pwm_freq[nr] & 0x07));
 -- 
-Best regards,
+2.1.4
 
-Lukasz Majewski
-
-Samsung R&D Institute Poland (SRPOL) | Linux Platform Group
 
 _______________________________________________
 lm-sensors mailing list
