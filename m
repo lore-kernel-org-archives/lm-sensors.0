@@ -1,59 +1,35 @@
-From: Cedric Le Goater <clg@fr.ibm.com>
-Date: Fri, 20 Feb 2015 20:18:11 +0000
+From: Michael Ellerman <mpe@ellerman.id.au>
+Date: Tue, 24 Feb 2015 04:54:59 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 1/3] powerpc/powernv: Check OPAL sensor calls exist
-Message-Id: <54E79683.2080605@fr.ibm.com>
+Message-Id: <1424753699.2318.8.camel@ellerman.id.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
  <1424444857-13805-2-git-send-email-clg@fr.ibm.com>
- <20150220165306.GF22752@roeck-us.net>
-In-Reply-To: <20150220165306.GF22752@roeck-us.net>
+In-Reply-To: <1424444857-13805-2-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: =?ISO-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-On 02/20/2015 05:53 PM, Guenter Roeck wrote:
-> On Fri, Feb 20, 2015 at 04:07:35PM +0100, C=E9dric Le Goater wrote:
->=20
-> You should explain here why this patch is needed.
-
-Yes. What it does is to check that the firmware exposes the service
-this driver is using (OPAL_SENSOR_READ). I will fix it.
-
-Thanks,
-
-C.=20
-
-
->=20
->> Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
->> ---
->>  arch/powerpc/platforms/powernv/opal-sensor.c |    3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/arch/powerpc/platforms/powernv/opal-sensor.c b/arch/powerpc=
-/platforms/powernv/opal-sensor.c
->> index 4ab67ef7abc9..544292f2020f 100644
->> --- a/arch/powerpc/platforms/powernv/opal-sensor.c
->> +++ b/arch/powerpc/platforms/powernv/opal-sensor.c
->> @@ -72,6 +72,9 @@ static __init int opal_sensor_init(void)
->>  	struct platform_device *pdev;
->>  	struct device_node *sensor;
->> =20
->> +	if (!opal_check_token(OPAL_SENSOR_READ))
->> +		return -ENODEV;
->> +
->>  	sensor =3D of_find_node_by_path("/ibm,opal/sensors");
->>  	if (!sensor) {
->>  		pr_err("Opal node 'sensors' not found\n");
->> --=20
->> 1.7.10.4
->>
->=20
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAyMDE1LTAyLTIwIGF0IDE2OjA3ICswMTAwLCBDw6lkcmljIExlIEdvYXRlciB3cm90
+ZToKPiBTaWduZWQtb2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Cj4g
+LS0tCj4gIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMvcG93ZXJudi9vcGFsLXNlbnNvci5jIHwgICAg
+MyArKysKPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQg
+YS9hcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bvd2VybnYvb3BhbC1zZW5zb3IuYyBiL2FyY2gvcG93
+ZXJwYy9wbGF0Zm9ybXMvcG93ZXJudi9vcGFsLXNlbnNvci5jCj4gaW5kZXggNGFiNjdlZjdhYmM5
+Li41NDQyOTJmMjAyMGYgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dl
+cm52L29wYWwtc2Vuc29yLmMKPiArKysgYi9hcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bvd2VybnYv
+b3BhbC1zZW5zb3IuYwo+IEBAIC03Miw2ICs3Miw5IEBAIHN0YXRpYyBfX2luaXQgaW50IG9wYWxf
+c2Vuc29yX2luaXQodm9pZCkKPiAgCXN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXY7Cj4gIAlz
+dHJ1Y3QgZGV2aWNlX25vZGUgKnNlbnNvcjsKPiAgCj4gKwlpZiAoIW9wYWxfY2hlY2tfdG9rZW4o
+T1BBTF9TRU5TT1JfUkVBRCkpCj4gKwkJcmV0dXJuIC1FTk9ERVY7Cj4gKwo+ICAJc2Vuc29yID0g
+b2ZfZmluZF9ub2RlX2J5X3BhdGgoIi9pYm0sb3BhbC9zZW5zb3JzIik7Cj4gIAlpZiAoIXNlbnNv
+cikgewo+ICAJCXByX2VycigiT3BhbCBub2RlICdzZW5zb3JzJyBub3QgZm91bmRcbiIpOwoKQXJl
+IHlvdSBhY3R1YWxseSBzZWVpbmcgdGhpcyBpbiBwcmFjdGljZT8KCkl0J3MgYSBiaXQgYW5ub3lp
+bmcgdGhhdCB3ZSBoYXZlIHRvIGNoZWNrIGZvciB0aGUgdG9rZW4sIGFuZCB0aGVuIGFsc28gY2hl
+Y2sKdGhlIGRldmljZSB0cmVlLiBJdCB3b3VsZCBiZSBuaWNlIGlmIG9uZSBpbXBsaWVkIHRoZSBw
+cmVzZW5jZSBvZiB0aGUgb3RoZXIuCgpjaGVlcnMKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
