@@ -1,25 +1,64 @@
-From: eaut <eaut@boehm.org>
-Date: Sat, 07 Feb 2015 12:24:26 +0000
-Subject: Re: [lm-sensors] NCT6776 on ASRock Z77 Pro4-M
-Message-Id: <CAHBhnhdzcfr-b5oT9Zyf+4NTaMoo_kcMUcsdz38_Hh4534240A@mail.gmail.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Tue, 24 Feb 2015 17:42:11 +0000
+Subject: [lm-sensors] [PATCH 1/4] kernel.h: add find_closest() macro
+Message-Id: <1424799734-2170-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAHBhnheRFDe-76vtNWS5B6Nk4sQC7Sz+-CcncKYSsgDOPus1KA@mail.gmail.com>
-In-Reply-To: <CAHBhnheRFDe-76vtNWS5B6Nk4sQC7Sz+-CcncKYSsgDOPus1KA@mail.gmail.com>
+References: <1424799734-2170-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1424799734-2170-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, lm-sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On Sat, Feb 7, 2015 at 4:03 AM, Guenter Roeck <linux@roeck-us.net> wrote:
+Searching for the member of an array closest to 'x' is
+duplicated in several places.
 
->
-> Can you test the out-of-tree driver at https://github.com/groeck/nct6775 ?
->
+Add two macros that implement this algorithm for arrays
+sorted both in ascending and descending order.
 
-the code works. all fans are detected.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ include/linux/kernel.h | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-Thanks,
-Erich
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index d6d630d..f4294da 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -116,6 +116,29 @@
+ }							\
+ )
+ 
++#define __find_closest(x, a, as, op)(					\
++{									\
++	typeof(as) _i, _as = (as) - 1;					\
++	typeof(x) _x = (x);						\
++	typeof(*a) *_a = (a);						\
++	for (_i = 0; _i < _as; _i++) {					\
++		if (_x op DIV_ROUND_CLOSEST(_a[_i] + _a[_i + 1], 2))	\
++			break;						\
++	}								\
++	(_i);								\
++}									\
++)
++
++/*
++ * Given an array 'a' (sorted in ascending order) of size 'as' return
++ * the index of the element in that array closest to 'x'.
++ */
++#define find_closest(x, a, as) __find_closest(x, a, as, <=)
++/*
++ * Similar to find_closest(), but 'a' is expected to be sorted
++ * in descending order.
++ */
++#define find_closest_desc(x, a, as) __find_closest(x, a, as, >)
+ 
+ #define _RET_IP_		(unsigned long)__builtin_return_address(0)
+ #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+-- 
+2.1.4
+
 
 _______________________________________________
 lm-sensors mailing list
