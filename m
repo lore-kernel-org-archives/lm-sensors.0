@@ -1,47 +1,52 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 24 Feb 2015 16:41:08 +0000
+From: cedric <cedric321@hotmail.fr>
+Date: Tue, 24 Feb 2015 16:49:00 +0000
 Subject: Re: [lm-sensors] Test with Chip IT8620E on a Gigabyte GA-H97M-HD3 version 2
-Message-Id: <20150224164108.GA12671@roeck-us.net>
+Message-Id: <BLU436-SMTP124BE7E2C07A9305555138A90160@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BLU436-SMTP1351904A8E5B1CC00D893290240@phx.gbl>
 In-Reply-To: <BLU436-SMTP1351904A8E5B1CC00D893290240@phx.gbl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 24, 2015 at 04:23:01PM +0100, Jean Delvare wrote:
-> On Tue, 24 Feb 2015 16:15:09 +0100, cedric wrote:
-> > Le 24/02/2015 14:21, Jean Delvare a =E9crit
-> > >> chip "coretemp-isa-0000"
-> > >>
-> > >> # ark.intel.com
-> > >> # maxi 72 degrees C
-> > >>
-> > >> label temp1 "CPU Temp"
-> > >> compute temp1  @ + 10, @ / @ - 10
-> > >> compute temp2  @ + 10, @ / @ - 10
-> > >> compute temp3  @ + 10, @ / @ - 10
-> > > Which CPU model is this? If the coretemp driver doesn't get TjMax
-> > > right, it should be fixed.
-> >=20
-> > It's a Intel Pentium G3258.
->=20
-> What's the CPU ID of this model (family/model/stepping
-> in /proc/cpuinfo)?
->=20
-> > ark.intel.com :Tcase_     72=B0C
->=20
-> This is Tcase, not TjMax. They represent different limits.
->=20
-This is a Haswell based chip. It is very unlikely that it doesn't
-support reading TjMax from the CPU. Also, Information available
-online (search for Pentium G3258 tjmax) suggests that TjMax is
-100 degrees C.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TGUgMjQvMDIvMjAxNSAxNjoyMywgSmVhbiBEZWx2YXJlIGEgw6ljcml0IDoKPiBXaGF0J3MgdGhl
+IENQVSBJRCBvZiB0aGlzIG1vZGVsIChmYW1pbHkvbW9kZWwvc3RlcHBpbmcgaW4gL3Byb2MvY3B1
+aW5mbyk/CgpUaGlzIGlzIGEgcGFydCBvZiBjYXQgL3Byb2MvY3B1aW5mbwoKcHJvY2Vzc29yICAg
+IDogMAp2ZW5kb3JfaWQgICAgOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseSAgICA6IDYKbW9kZWwg
+ICAgICAgIDogNjAKbW9kZWwgbmFtZSAgICA6IEludGVsKFIpIFBlbnRpdW0oUikgQ1BVIEczMjU4
+IEAgMy4yMEdIegpzdGVwcGluZyAgICA6IDMKbWljcm9jb2RlICAgIDogMHgxYwpjcHUgTUh6ICAg
+ICAgICA6IDgyNi4zNzUKY2FjaGUgc2l6ZSAgICA6IDMwNzIgS0IKcGh5c2ljYWwgaWQgICAgOiAw
+CnNpYmxpbmdzICAgIDogMgpjb3JlIGlkICAgICAgICA6IDAKY3B1IGNvcmVzICAgIDogMgphcGlj
+aWQgICAgICAgIDogMAppbml0aWFsIGFwaWNpZCAgICA6IDAKZnB1ICAgICAgICA6IHllcwpmcHVf
+ZXhjZXB0aW9uICAgIDogeWVzCmNwdWlkIGxldmVsICAgIDogMTMKd3AgICAgICAgIDogeWVzCmZs
+YWdzICAgICAgICA6IGZwdSB2bWUgZGUgcHNlIHRzYyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAg
+bXRyciBwZ2UgbWNhIApjbW92IHBhdCBwc2UzNiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNz
+ZSBzc2UyIHNzIGh0IHRtIHBiZSBzeXNjYWxsIApueCBwZHBlMWdiIHJkdHNjcCBsbSBjb25zdGFu
+dF90c2MgYXJjaF9wZXJmbW9uIHBlYnMgYnRzIHJlcF9nb29kIG5vcGwgCnh0b3BvbG9neSBub25z
+dG9wX3RzYyBhcGVyZm1wZXJmIGVhZ2VyZnB1IHBuaSBwY2xtdWxxZHEgZHRlczY0IG1vbml0b3Ig
+CmRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgcGRjbSBwY2lkIHNzZTRfMSBzc2U0
+XzIgbW92YmUgcG9wY250IAp0c2NfZGVhZGxpbmVfdGltZXIgeHNhdmUgcmRyYW5kIGxhaGZfbG0g
+YWJtIGlkYSBhcmF0IHhzYXZlb3B0IHBsbiBwdHMgCmR0aGVybSB0cHJfc2hhZG93IHZubWkgZmxl
+eHByaW9yaXR5IGVwdCB2cGlkIGZzZ3NiYXNlIHRzY19hZGp1c3QgZXJtcyAKaW52cGNpZApib2dv
+bWlwcyAgICA6IDY0MDAuNTkKY2xmbHVzaCBzaXplICAgIDogNjQKY2FjaGVfYWxpZ25tZW50ICAg
+IDogNjQKYWRkcmVzcyBzaXplcyAgICA6IDM5IGJpdHMgcGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVh
+bApwb3dlciBtYW5hZ2VtZW50OgoKPj4gYXJrLmludGVsLmNvbSA6VGNhc2VfICAgICA3MsKwQwo+
+IFRoaXMgaXMgVGNhc2UsIG5vdCBUak1heC4gVGhleSByZXByZXNlbnQgZGlmZmVyZW50IGxpbWl0
+cy4KPgo+PiBsbS1zZW5zb3JzIGRpc2xheSB3aXRob3V0IENQVSB3b3JrIGFuZCB3aXRoIHRoZSBv
+cmlnaW5hbCAKPj4gL2V0Yy9zZW5zb3JzMy5jb25mCj4+Cj4+IGNvcmV0ZW1wLWlzYS0wMDAwCj4+
+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4+IFBoeXNpY2FsIGlkIDA6ICArMjEuMMKwQyAgKGhpZ2gg
+PSArODAuMMKwQywgY3JpdCA9ICsxMDAuMMKwQykKPj4gQ29yZSAwOiAgICAgICAgICsyMS4wwrBD
+ICAoaGlnaCA9ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+PiBDb3JlIDE6ICAgICAgICAg
+KzIwLjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCj4gRG9lcyB0aGUg
+Y29yZXRlbXAgZHJpdmVyIHByaW50IGFueSBtZXNzYWdlIHdoZW4gbG9hZGVkPyBDaGVjayB5b3Vy
+Cj4ga2VybmVsIGxvZ3MuCgpJIGZpbmQgdGhpcyBpbiAvdmFyL2xvZy9zeXNsb2cgOgoKSmFuIDE4
+IDE4OjE5OjU4IGZyYWN0YWwgc3lzdGVtZC11ZGV2ZFsxODJdOiBOZXR3b3JrIGludGVyZmFjZSAK
+TmFtZVBvbGljeT0gZGlzYWJsZWQgb24ga2VybmVsIGNvbW1hbmRsaW5lLCBpZ25vcmluZy4KSmFu
+IDE4IDE4OjE5OjU4IGZyYWN0YWwgc3lzdGVtZC1tb2R1bGVzLWxvYWRbMTcxXTogSW5zZXJ0ZWQg
+bW9kdWxlIAonY29yZXRlbXAnCkphbiAxOCAxODoxOTo1OCBmcmFjdGFsIHN5c3RlbWQtZnNja1sx
+NjZdOiAvZGV2L21hcHBlci9ncnAtcm9vdDE6IGNsZWFuLCAKNzIwNi8xMjQ5MjggZmlsZXMsIDI1
+NzgyNy80OTk3MTIgYmxvY2tzCgpDw6lkcmljLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
+bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
+by9sbS1zZW5zb3Jz
