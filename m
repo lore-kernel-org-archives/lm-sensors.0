@@ -1,7 +1,7 @@
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Tue, 24 Feb 2015 17:48:29 +0000
-Subject: [lm-sensors] [RESEND PATCH 4/4] hwmon: (w83795) use find_closest_desc() in pwm_freq_to_reg()
-Message-Id: <1424800109-2969-5-git-send-email-bgolaszewski@baylibre.com>
+Date: Tue, 24 Feb 2015 17:48:26 +0000
+Subject: [lm-sensors] [RESEND PATCH 1/4] kernel.h: add find_closest() macro
+Message-Id: <1424800109-2969-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
 In-Reply-To: <1424800109-2969-1-git-send-email-bgolaszewski@baylibre.com>
@@ -11,32 +11,51 @@ Content-Transfer-Encoding: 7bit
 To: LKML <linux-kernel@vger.kernel.org>
 Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, lm-sensors <lm-sensors@lm-sensors.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Replace the loop iterating over pwm_freq_cksel0 with a call to
-find_closest_desc().
+Searching for the member of an array closest to 'x' is
+duplicated in several places.
+
+Add two macros that implement this algorithm for arrays
+sorted both in ascending and descending order.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/hwmon/w83795.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/linux/kernel.h | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/drivers/hwmon/w83795.c b/drivers/hwmon/w83795.c
-index 2189413..1f0b301 100644
---- a/drivers/hwmon/w83795.c
-+++ b/drivers/hwmon/w83795.c
-@@ -308,11 +308,8 @@ static u8 pwm_freq_to_reg(unsigned long val, u16 clkin)
- 	unsigned long best0, best1;
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index d6d630d..f4294da 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -116,6 +116,29 @@
+ }							\
+ )
  
- 	/* Best fit for cksel = 0 */
--	for (reg0 = 0; reg0 < ARRAY_SIZE(pwm_freq_cksel0) - 1; reg0++) {
--		if (val > (pwm_freq_cksel0[reg0] +
--			   pwm_freq_cksel0[reg0 + 1]) / 2)
--			break;
--	}
-+	reg0 = find_closest_desc(val, pwm_freq_cksel0,
-+				 ARRAY_SIZE(pwm_freq_cksel0));
- 	if (val < 375)	/* cksel = 1 can't beat this */
- 		return reg0;
- 	best0 = pwm_freq_cksel0[reg0];
++#define __find_closest(x, a, as, op)(					\
++{									\
++	typeof(as) _i, _as = (as) - 1;					\
++	typeof(x) _x = (x);						\
++	typeof(*a) *_a = (a);						\
++	for (_i = 0; _i < _as; _i++) {					\
++		if (_x op DIV_ROUND_CLOSEST(_a[_i] + _a[_i + 1], 2))	\
++			break;						\
++	}								\
++	(_i);								\
++}									\
++)
++
++/*
++ * Given an array 'a' (sorted in ascending order) of size 'as' return
++ * the index of the element in that array closest to 'x'.
++ */
++#define find_closest(x, a, as) __find_closest(x, a, as, <=)
++/*
++ * Similar to find_closest(), but 'a' is expected to be sorted
++ * in descending order.
++ */
++#define find_closest_desc(x, a, as) __find_closest(x, a, as, >)
+ 
+ #define _RET_IP_		(unsigned long)__builtin_return_address(0)
+ #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
 -- 
 2.1.4
 
