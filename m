@@ -1,34 +1,47 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 24 Feb 2015 15:23:01 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 24 Feb 2015 16:41:08 +0000
 Subject: Re: [lm-sensors] Test with Chip IT8620E on a Gigabyte GA-H97M-HD3 version 2
-Message-Id: <20150224162301.0080688d@endymion.delvare>
+Message-Id: <20150224164108.GA12671@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BLU436-SMTP1351904A8E5B1CC00D893290240@phx.gbl>
 In-Reply-To: <BLU436-SMTP1351904A8E5B1CC00D893290240@phx.gbl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCAyNCBGZWIgMjAxNSAxNjoxNTowOSArMDEwMCwgY2VkcmljIHdyb3RlOgo+IExlIDI0
-LzAyLzIwMTUgMTQ6MjEsIEplYW4gRGVsdmFyZSBhIMOpY3JpdAo+ID4+IGNoaXAgImNvcmV0ZW1w
-LWlzYS0wMDAwIgo+ID4+Cj4gPj4gIyBhcmsuaW50ZWwuY29tCj4gPj4gIyBtYXhpIDcyIGRlZ3Jl
-ZXMgQwo+ID4+Cj4gPj4gbGFiZWwgdGVtcDEgIkNQVSBUZW1wIgo+ID4+IGNvbXB1dGUgdGVtcDEg
-IEAgKyAxMCwgQCAvIEAgLSAxMAo+ID4+IGNvbXB1dGUgdGVtcDIgIEAgKyAxMCwgQCAvIEAgLSAx
-MAo+ID4+IGNvbXB1dGUgdGVtcDMgIEAgKyAxMCwgQCAvIEAgLSAxMAo+ID4gV2hpY2ggQ1BVIG1v
-ZGVsIGlzIHRoaXM/IElmIHRoZSBjb3JldGVtcCBkcml2ZXIgZG9lc24ndCBnZXQgVGpNYXgKPiA+
-IHJpZ2h0LCBpdCBzaG91bGQgYmUgZml4ZWQuCj4gCj4gSXQncyBhIEludGVsIFBlbnRpdW0gRzMy
-NTguCgpXaGF0J3MgdGhlIENQVSBJRCBvZiB0aGlzIG1vZGVsIChmYW1pbHkvbW9kZWwvc3RlcHBp
-bmcKaW4gL3Byb2MvY3B1aW5mbyk/Cgo+IGFyay5pbnRlbC5jb20gOlRjYXNlXyAgICAgNzLCsEMK
-ClRoaXMgaXMgVGNhc2UsIG5vdCBUak1heC4gVGhleSByZXByZXNlbnQgZGlmZmVyZW50IGxpbWl0
-cy4KCj4gbG0tc2Vuc29ycyBkaXNsYXkgd2l0aG91dCBDUFUgd29yayBhbmQgd2l0aCB0aGUgb3Jp
-Z2luYWwgL2V0Yy9zZW5zb3JzMy5jb25mCj4gCj4gY29yZXRlbXAtaXNhLTAwMDAKPiBBZGFwdGVy
-OiBJU0EgYWRhcHRlcgo+IFBoeXNpY2FsIGlkIDA6ICArMjEuMMKwQyAgKGhpZ2ggPSArODAuMMKw
-QywgY3JpdCA9ICsxMDAuMMKwQykKPiBDb3JlIDA6ICAgICAgICAgKzIxLjDCsEMgIChoaWdoID0g
-KzgwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCj4gQ29yZSAxOiAgICAgICAgICsyMC4wwrBDICAo
-aGlnaCA9ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQoKRG9lcyB0aGUgY29yZXRlbXAgZHJp
-dmVyIHByaW50IGFueSBtZXNzYWdlIHdoZW4gbG9hZGVkPyBDaGVjayB5b3VyCmtlcm5lbCBsb2dz
-LgoKLS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
-bGlzdGluZm8vbG0tc2Vuc29ycw=
+On Tue, Feb 24, 2015 at 04:23:01PM +0100, Jean Delvare wrote:
+> On Tue, 24 Feb 2015 16:15:09 +0100, cedric wrote:
+> > Le 24/02/2015 14:21, Jean Delvare a =E9crit
+> > >> chip "coretemp-isa-0000"
+> > >>
+> > >> # ark.intel.com
+> > >> # maxi 72 degrees C
+> > >>
+> > >> label temp1 "CPU Temp"
+> > >> compute temp1  @ + 10, @ / @ - 10
+> > >> compute temp2  @ + 10, @ / @ - 10
+> > >> compute temp3  @ + 10, @ / @ - 10
+> > > Which CPU model is this? If the coretemp driver doesn't get TjMax
+> > > right, it should be fixed.
+> >=20
+> > It's a Intel Pentium G3258.
+>=20
+> What's the CPU ID of this model (family/model/stepping
+> in /proc/cpuinfo)?
+>=20
+> > ark.intel.com :Tcase_     72=B0C
+>=20
+> This is Tcase, not TjMax. They represent different limits.
+>=20
+This is a Haswell based chip. It is very unlikely that it doesn't
+support reading TjMax from the CPU. Also, Information available
+online (search for Pentium G3258 tjmax) suggests that TjMax is
+100 degrees C.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
