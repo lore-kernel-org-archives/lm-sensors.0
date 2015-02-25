@@ -1,115 +1,124 @@
-From: Jay Foster <jayf0ster@roadrunner.com>
-Date: Tue, 24 Feb 2015 16:26:44 +0000
-Subject: Re: [lm-sensors] ITE 8620E Support
-Message-Id: <54ECA644.4010805@roadrunner.com>
+From: Simon Guinot <simon.guinot@sequanux.org>
+Date: Wed, 25 Feb 2015 17:58:19 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (gpio-fan) allow to use alarm support alone from DT
+Message-Id: <1424887099-26551-1-git-send-email-simon.guinot@sequanux.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <543DD4BE.9000308@roadrunner.com>
-In-Reply-To: <543DD4BE.9000308@roadrunner.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-On 2/24/2015 4:11 AM, Jean Delvare wrote:
-> Hi Jay,
->
-> On Tue, 14 Oct 2014 18:58:22 -0700, Jay Foster wrote:
->> I have a new Gigabyte Z97X-UD5H motherboard that has the ITE 8620E
->> chip.  I see on the wiki/Devices site that there is no driver for it.
->> The notes state that you can try loading the it87 module with the
->> force_id=3D0x8728 option.  I can confirm that this did succeed and senso=
-rs
->> reports voltages and fan speeds.  I don't know if fan speed control work=
-s.
-> Thanks for the report. Can you please share the actual output of
-> "sensors" with us?
->
-I have also included a copy of my /etc/sensors.d/gigabyte.conf file to=20
-apply labels to the fans I have hooked up.  The items commented out are=20
-guesses.
+On some boards, such as the LaCie 2Big Network v2 or 2Big NAS (based on
+Marvell Kirkwood SoCs), an I2C fan controller is used but the alarm
+signal is wired to a separate GPIO. Unfortunately, the gpio-fan driver
+can't be used to handle GPIO alarm alone from DT: an error is returned
+if the "gpios" DT property is missing.
 
-/etc/sensors.d/gigabyte.conf:
-# libsensors configuration file
-# for Gigabyte Z97X-UD5H MB
-# -----------------------------
-#
-# The it87.ko driver does not support the ITE 8620E chip.  The it87.ko
-# driver is force loaded with the force_id=3D0x8728 option.  This is why
-# both the it8728-* and it6820-* chips are listed here.
-#
+This patch allows to use the gpio-fan driver even if the "alarm-gpios"
+DT property is defined alone.
 
-chip "it8728-*" "it8620-*"
+Signed-off-by: Simon Guinot <simon.guinot@sequanux.org>
+---
+ .../devicetree/bindings/gpio/gpio-fan.txt          |  6 ++-
+ drivers/hwmon/gpio-fan.c                           | 44 +++++++++++-----------
+ 2 files changed, 27 insertions(+), 23 deletions(-)
 
-# Fans
-     label fan1 "CPU fan"
-     set fan1_min 700
+v2 change:
+- Fix sentence in binding document about having at least one of the
+  "gpios" or "alarm-gpios" properties set.
 
-     label fan5 "Sys1 fan"
-     set fan5_min 200
-
-#    label fan4 "Sys2 fan"
-#    set fan4_min 200
-
-#    label fan3 "Sys3 fan"
-#    set fan3_min 200
-
-#    label fan2 "Sys4 fan"
-#    set fan2_min 200
-
-### temperatures
-
-#    label temp1 "System temp" # tops at 33 degrees C
-#    set temp1_min 10
-#    set temp1_max 60
-
-#    ignore temp2 # shows always 25 degrees C
-#    set temp2_min 0
-#    set temp2_max 60
-
-#    label temp3 "CPU temp"
-#    set temp3_min 10
-#    set temp3_max 85
-
-sensors output:
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:        +27.8=B0C  (crit =3D +105.0=B0C)
-temp2:        +29.8=B0C  (crit =3D +105.0=B0C)
-
-it8728-isa-0a30
-Adapter: ISA adapter
-in0:          +0.04 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in1:          +2.04 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in2:          +2.02 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in3:          +2.02 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in4:          +0.01 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in5:          +1.76 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in6:          +1.50 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-3VSB:         +3.38 V  (min =3D  +0.00 V, max =3D  +6.12 V)
-Vbat:         +3.02 V
-CPU fan:     2368 RPM  (min =3D  700 RPM)
-fan2:           0 RPM  (min =3D    0 RPM)
-fan3:           0 RPM  (min =3D    0 RPM)
-fan4:           0 RPM  (min =3D    0 RPM)
-Sys1 fan:     543 RPM  (min =3D  200 RPM)
-temp1:        +30.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D=20
-thermistor
-temp2:        +35.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D=20
-thermistor
-temp3:        +21.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D=20
-Intel PECI
-intrusion0:  ALARM
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Physical id 0:  +30.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
-Core 0:         +30.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
-Core 1:         +29.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
-Core 2:         +25.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
-Core 3:         +28.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+diff --git a/Documentation/devicetree/bindings/gpio/gpio-fan.txt b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
+index 2dd457a3469a..f996d428f132 100644
+--- a/Documentation/devicetree/bindings/gpio/gpio-fan.txt
++++ b/Documentation/devicetree/bindings/gpio/gpio-fan.txt
+@@ -2,16 +2,18 @@ Bindings for fan connected to GPIO lines
+ 
+ Required properties:
+ - compatible : "gpio-fan"
++
++Optional properties:
+ - gpios: Specifies the pins that map to bits in the control value,
+   ordered MSB-->LSB.
+ - gpio-fan,speed-map: A mapping of possible fan RPM speeds and the
+   control value that should be set to achieve them. This array
+   must have the RPM values in ascending order.
+-
+-Optional properties:
+ - alarm-gpios: This pin going active indicates something is wrong with
+   the fan, and a udev event will be fired.
+ 
++Note: At least one the "gpios" or "alarm-gpios" properties must be set.
++
+ Examples:
+ 
+ 	gpio_fan {
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index 36abf814b8c7..c241f5b0b7cf 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -404,10 +404,32 @@ static int gpio_fan_get_of_pdata(struct device *dev,
+ 
+ 	node = dev->of_node;
+ 
++	/* Alarm GPIO if one exists */
++	if (of_gpio_named_count(node, "alarm-gpios") > 0) {
++		struct gpio_fan_alarm *alarm;
++		int val;
++		enum of_gpio_flags flags;
++
++		alarm = devm_kzalloc(dev, sizeof(struct gpio_fan_alarm),
++					GFP_KERNEL);
++		if (!alarm)
++			return -ENOMEM;
++
++		val = of_get_named_gpio_flags(node, "alarm-gpios", 0, &flags);
++		if (val < 0)
++			return val;
++		alarm->gpio = val;
++		alarm->active_low = flags & OF_GPIO_ACTIVE_LOW;
++
++		pdata->alarm = alarm;
++	}
++
+ 	/* Fill GPIO pin array */
+ 	pdata->num_ctrl = of_gpio_count(node);
+ 	if (pdata->num_ctrl <= 0) {
+-		dev_err(dev, "gpios DT property empty / missing");
++		if (pdata->alarm)
++			return 0;
++		dev_err(dev, "DT properties empty / missing");
+ 		return -ENODEV;
+ 	}
+ 	ctrl = devm_kzalloc(dev, pdata->num_ctrl * sizeof(unsigned),
+@@ -460,26 +482,6 @@ static int gpio_fan_get_of_pdata(struct device *dev,
+ 	}
+ 	pdata->speed = speed;
+ 
+-	/* Alarm GPIO if one exists */
+-	if (of_gpio_named_count(node, "alarm-gpios") > 0) {
+-		struct gpio_fan_alarm *alarm;
+-		int val;
+-		enum of_gpio_flags flags;
+-
+-		alarm = devm_kzalloc(dev, sizeof(struct gpio_fan_alarm),
+-					GFP_KERNEL);
+-		if (!alarm)
+-			return -ENOMEM;
+-
+-		val = of_get_named_gpio_flags(node, "alarm-gpios", 0, &flags);
+-		if (val < 0)
+-			return val;
+-		alarm->gpio = val;
+-		alarm->active_low = flags & OF_GPIO_ACTIVE_LOW;
+-
+-		pdata->alarm = alarm;
+-	}
+-
+ 	return 0;
+ }
+ 
+-- 
+2.1.1
 
 
 _______________________________________________
