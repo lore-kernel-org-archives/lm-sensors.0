@@ -1,46 +1,80 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 25 Feb 2015 04:18:07 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (jc42) Add support for additional IDT temperature sensors
-Message-Id: <54ED4CFF.8080601@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 25 Feb 2015 15:34:17 +0000
+Subject: [lm-sensors] [PATCH v5 1/6] Documentation: dts: Documentation entry to explain how to use PWM FAN as
+Message-Id: <1424878462-15511-2-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423769172-13519-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1423769172-13519-1-git-send-email-linux@roeck-us.net>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-On 02/24/2015 02:19 PM, Jean Delvare wrote:
-> On Tue, 24 Feb 2015 10:14:04 -0800, Guenter Roeck wrote:
->> On Mon, Feb 23, 2015 at 08:52:47PM +0100, Jean Delvare wrote:
->>> On Thu, 12 Feb 2015 11:26:12 -0800, Guenter Roeck wrote:
->>>> TS3000GB0 has a new device ID (0x2913). Since IDT's datasheets suggest
->>>> that the upper 8 bit of the device ID reflect the chip ID and the lower
->>>> 8 bit reflect the version number, modify the code to accept all chips
->>>> with ID 0x29xx.
->>>
->>> You did that for all other IDT chips as well. While this is in
->>> accordance with the datasheets, this might lead to some false
->>> positives, as the driver probes 8 popular I2C addressed and the
->>> detection code doesn't check for that many bits anymore.
->>>
->>> That being said I don't have a strong feeling about it. We can leave it
->>> this way for now and revisit it later if false positives are actually
->>> reported.
->>
->> We could check some other registers instead; the limit registers
->> have five unused bits. Would it make sense to check those ?
->
-> That makes sense, however every register being read adds up to the
-> probe time, so we have to be reasonable. Which is why I am generally
-> fine with leaving the code as is until actual false positives are
-> reported. But then again I am fine either way so if you prefer to check
-> the limit registers now, just do that.
->
+Explanation of several properties, which allow PWM fan working as a cooling
+device, have been embraced in this commit.
 
-I think I'll leave it as is for now.
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes for v2:
+- Rename cooling-pwm-values to cooling-levels
+- Remove default-pulse-width property and stick to default hwmon policy
+Changes for v3:
+- Changing commit title from "hwmon: dts: Doc:" to "Documentation: dts"
+- Remove unnecessary properties
+- Set maximal cooling level to 230 instead of 255
+Changes for v4:
+- None
+Changes for v5:
+- Move thermal-zones description to example section
+- Extending example section
 
-Guenter
+---
+ .../devicetree/bindings/hwmon/pwm-fan.txt          | 25 +++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/hwmon/pwm-fan.txt b/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
+index 610757c..645251b 100644
+--- a/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
++++ b/Documentation/devicetree/bindings/hwmon/pwm-fan.txt
+@@ -3,10 +3,33 @@ Bindings for a fan connected to the PWM lines
+ Required properties:
+ - compatible	: "pwm-fan"
+ - pwms		: the PWM that is used to control the PWM fan
++- cooling-levels      : PWM duty cycle values in a range from 0 to 255
++			which correspond to thermal cooling states
+ 
+ Example:
+-	pwm-fan {
++	fan0: pwm-fan {
+ 		compatible = "pwm-fan";
+ 		status = "okay";
+ 		pwms = <&pwm 0 10000 0>;
++		cooling-levels = <0 102 170 230>;
++	};
++
++	thermal-zones {
++		cpu_thermal: cpu-thermal {
++		cooling-min-state = <0>;
++		cooling-max-state = <3>;
++		#cooling-cells = <2>;
++		trips {
++			cpu_alert1: cpu-alert1 {
++				temperature = <100000>; /* millicelsius */
++				hysteresis = <2000>; /* millicelsius */
++				type = "passive";
++			};
++		};
++		cooling-maps {
++			map0 {
++			     trip = <&cpu_alert1>;
++			     cooling-device = <&fan0 0 1>;
++			};
++		};
+ 	};
+-- 
+2.0.0.rc2
 
 
 _______________________________________________
