@@ -1,94 +1,54 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 27 Feb 2015 21:38:14 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Nuvoton chip updates
-Message-Id: <1425073094-2084-1-git-send-email-linux@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 25 Feb 2015 15:34:16 +0000
+Subject: [lm-sensors] [PATCH v5 0/6] hwmon: thermal: Odroid U3: Provide support for Odroid U3 fan
+Message-Id: <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1404094141-28146-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1404094141-28146-1-git-send-email-linux@roeck-us.net>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Document driver support for NCT7802Y.
-Add detection of NCT7904D.
+Presented patches add support for Odroid's U3 optional CPU FAN, which uses PWM
+subsystem for low level control.
 
-Cc: Vadim V. Vlasov <vvlasov@dev.rtsoft.ru>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- CHANGES                    |  2 ++
- prog/detect/sensors-detect | 33 ++++++++++++++++++++++++++++++++-
- 2 files changed, 34 insertions(+), 1 deletion(-)
+After successful probe it registers itself as a cooling device for thermal
+subsystem.
 
-diff --git a/CHANGES b/CHANGES
-index 9237506..5db9fa1 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -32,6 +32,8 @@ SVN HEAD
-                   Add detection of Intel 5500/5520/X58
-                   Loosen detection rules for TS3000/TSE2002
-                   Add detection of TSE2004 and TS3001
-+                  Document driver support for NCT7802Y
-+                  Add detection of NCT7904D
- 
- 3.3.5 "Happy Birthday Beddy" (2014-01-22)
-   libsensors: Improve documentation of two functions
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 8fb1ae3..436cf95 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -734,10 +734,15 @@ use vars qw(@i2c_adapter_names);
- 		i2c_detect => sub { w83795_detect(@_); },
- 	}, {
- 		name => "Nuvoton NCT7802Y",
--		driver => "to-be-written",
-+		driver => "nct7802",
- 		i2c_addrs => [0x28..0x2f],
- 		i2c_detect => sub { nct7802_detect(@_); },
- 	}, {
-+		name => "Nuvoton NCT7904D",
-+		driver => "nct7904",
-+		i2c_addrs => [0x2d..0x2e],
-+		i2c_detect => sub { nct7904_detect(@_); },
-+	}, {
- 		name => "Winbond W83627HF",
- 		driver => "use-isa-instead",
- 		i2c_addrs => [0x28..0x2f],
-@@ -5635,6 +5640,32 @@ sub nct7802_detect
- }
- 
- # Registers used:
-+#   0x7a: Vendor ID
-+#   0x7b: Chip ID
-+#   0x7c: Device ID
-+#   0xff: Bank Select
-+#
-+sub nct7904_detect
-+{
-+	my ($reg);
-+	my ($file, $addr) = @_;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0x7a);
-+	return unless $reg = 0x50;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0x7b);
-+	return unless $reg = 0xc5;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0x7c);
-+	return unless ($reg & 0xf0) = 0x50;
-+
-+	$reg = i2c_smbus_read_byte_data($file, 0xff);
-+	return unless ($reg & 0xf8) = 0x00;
-+
-+	return 8;
-+}
-+
-+# Registers used:
- #   0x48: Full I2C Address
- #   0x4e: Vendor ID byte selection
- #   0x4f: Vendor ID
+This driver also supports devices without DTS specified.
+
+To provide correct functionality, new properties to device tree description for
+Exynos4412 and in particular Odroid U3 have been added.
+
+Those patches were tested at Exynos4412 - Odroid U3 board.
+
+Patches were applied on:
+linux-soc-thermal/fixes branch (Linux v4.0-rc1)
+SHA1: b71d399c7f2fe06b60b96155ec0b9ae167334e4a
+
+Kamil Debski (1):
+  ARM: dts: Add pwm-fan node to the Odroid-U3 board
+
+Lukasz Majewski (5):
+  Documentation: dts: Documentation entry to explain how to use PWM FAN
+    as a cooling device
+  ARM: dts: Add properties to use pwm-fan device as a cooling device in
+    Odroid U3
+  hwmon: pwm-fan: Extract __set_pwm() function to only modify PWM duty
+    cycle
+  hwmon: pwm-fan: Read PWM FAN configuration from device tree
+  hwmon: pwm-fan: Code for using PWM FAN as a cooling device
+
+ .../devicetree/bindings/hwmon/pwm-fan.txt          |  25 +++-
+ arch/arm/boot/dts/exynos4.dtsi                     |   2 +-
+ arch/arm/boot/dts/exynos4412-odroidu3.dts          |  43 ++++++
+ drivers/hwmon/pwm-fan.c                            | 166 +++++++++++++++++++--
+ 4 files changed, 220 insertions(+), 16 deletions(-)
+
 -- 
-2.1.0
+2.0.0.rc2
 
 
 _______________________________________________
