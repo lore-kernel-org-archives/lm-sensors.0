@@ -1,94 +1,99 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 01 Feb 2015 23:43:01 +0000
-Subject: [lm-sensors] [PATCH v2 2/2] hwmon: (ads2828) Only keep data in device data structure if needed
-Message-Id: <1422834181-6569-2-git-send-email-linux@roeck-us.net>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 25 Feb 2015 15:34:20 +0000
+Subject: [lm-sensors] [PATCH v5 4/6] hwmon: pwm-fan: Extract __set_pwm() function to only modify PWM duty cyc
+Message-Id: <1424878462-15511-5-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-The variables diff_input, ext_vref, and vref_mv are only used in the probe
-function and therefore don't need to be kept in the device data structure.
+It was necessary to decouple code handling writing to sysfs from the one
+responsible for setting PWM of the fan.
+Due to that, new __set_pwm() method was extracted, which is responsible for
+only setting new PWM duty cycle.
 
-Cc: Robert Rosengren <robert.rosengren@axis.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
 ---
-v2: Rebase to v2 of patch 1/2.
+Changes for v2:
+- None
+Changes for v3:
+- The commit headline has been reedited.
+Changes for v4:
+- Protect "if (ctx->pwm_value = pwm)" with ctx lock
+- Initialize ret with zero
+Changes for v5:
+- None
+---
+ drivers/hwmon/pwm-fan.c | 33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
 
- drivers/hwmon/ads7828.c | 32 ++++++++++++++------------------
- 1 file changed, 14 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
-index 071f779..bce4e9f 100644
---- a/drivers/hwmon/ads7828.c
-+++ b/drivers/hwmon/ads7828.c
-@@ -49,9 +49,6 @@ enum ads7828_chips { ads7828, ads7830 };
- /* Client specific data */
- struct ads7828_data {
- 	struct regmap *regmap;
--	bool diff_input;		/* Differential input */
--	bool ext_vref;			/* External voltage reference */
--	unsigned int vref_mv;		/* voltage reference value */
- 	u8 cmd_byte;			/* Command byte without channel bits */
- 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index 1991d903..bd42d39 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -33,20 +33,14 @@ struct pwm_fan_ctx {
+ 	unsigned char pwm_value;
  };
-@@ -120,39 +117,38 @@ static int ads7828_probe(struct i2c_client *client,
- 	struct ads7828_platform_data *pdata = dev_get_platdata(dev);
- 	struct ads7828_data *data;
- 	struct device *hwmon_dev;
-+	unsigned int vref_mv = ADS7828_INT_VREF_MV;
-+	bool diff_input = false;
-+	bool ext_vref = false;
  
- 	data = devm_kzalloc(dev, sizeof(struct ads7828_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
+-static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+-		       const char *buf, size_t count)
++static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
+ {
+-	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
+-	unsigned long pwm, duty;
+-	ssize_t ret;
+-
+-	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
+-		return -EINVAL;
++	unsigned long duty;
++	int ret = 0;
  
- 	if (pdata) {
--		data->diff_input = pdata->diff_input;
--		data->ext_vref = pdata->ext_vref;
--		if (data->ext_vref)
--			data->vref_mv = pdata->vref_mv;
-+		diff_input = pdata->diff_input;
-+		ext_vref = pdata->ext_vref;
-+		if (ext_vref && pdata->vref_mv)
-+			vref_mv = pdata->vref_mv;
- 	}
+ 	mutex_lock(&ctx->lock);
+-
+ 	if (ctx->pwm_value = pwm)
+-		goto exit_set_pwm_no_change;
++		goto exit_set_pwm_err;
  
--	/* Bound Vref with min/max values if it was provided */
--	if (data->vref_mv)
--		data->vref_mv = clamp_val(data->vref_mv,
--					  ADS7828_EXT_VREF_MV_MIN,
--					  ADS7828_EXT_VREF_MV_MAX);
--	else
--		data->vref_mv = ADS7828_INT_VREF_MV;
-+	/* Bound Vref with min/max values */
-+	vref_mv = clamp_val(vref_mv, ADS7828_EXT_VREF_MV_MIN,
-+			    ADS7828_EXT_VREF_MV_MAX);
+ 	if (pwm = 0) {
+ 		pwm_disable(ctx->pwm);
+@@ -66,13 +60,28 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
  
- 	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
- 	if (id->driver_data = ads7828) {
--		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
-+		data->lsb_resol = DIV_ROUND_CLOSEST(vref_mv * 1000, 4096);
- 		data->regmap = devm_regmap_init_i2c(client,
- 						    &ads2828_regmap_config);
- 	} else {
--		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 256);
-+		data->lsb_resol = DIV_ROUND_CLOSEST(vref_mv * 1000, 256);
- 		data->regmap = devm_regmap_init_i2c(client,
- 						    &ads2830_regmap_config);
- 	}
+ exit_set_pwm:
+ 	ctx->pwm_value = pwm;
+-exit_set_pwm_no_change:
+-	ret = count;
+ exit_set_pwm_err:
+ 	mutex_unlock(&ctx->lock);
+ 	return ret;
+ }
  
--	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
--	if (!data->diff_input)
-+	data->cmd_byte = ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
-+	if (!diff_input)
- 		data->cmd_byte |= ADS7828_CMD_SD_SE;
- 
- 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
++static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
++		       const char *buf, size_t count)
++{
++	struct pwm_fan_ctx *ctx = dev_get_drvdata(dev);
++	unsigned long pwm;
++	int ret;
++
++	if (kstrtoul(buf, 10, &pwm) || pwm > MAX_PWM)
++		return -EINVAL;
++
++	ret = __set_pwm(ctx, pwm);
++	if (ret)
++		return ret;
++
++	return count;
++}
++
+ static ssize_t show_pwm(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
 -- 
-2.1.0
+2.0.0.rc2
 
 
 _______________________________________________
