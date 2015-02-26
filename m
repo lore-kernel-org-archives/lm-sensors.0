@@ -1,32 +1,56 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Date: Tue, 03 Feb 2015 18:53:53 +0000
-Subject: [lm-sensors] [hwmon:hwmon-next 19/19] drivers/hwmon/tmp102.c:284:1: sparse: symbol 'tmp102_dev_pm_op
-Message-Id: <201502040243.7wsydeCr%fengguang.wu@intel.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Thu, 26 Feb 2015 13:59:31 +0000
+Subject: [lm-sensors] [PATCH v6 0/6] hwmon: thermal: Odroid U3: Provide support for Odroid U3 fan
+Message-Id: <1424959177-28739-1-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-next
-head:   8170089e3c31b8b50ef5d2e21bdf20d7b7fa95b7
-commit: 8170089e3c31b8b50ef5d2e21bdf20d7b7fa95b7 [19/19] hwmon: (tmp102) add hibernation callbacks
-reproduce:
-  # apt-get install sparse
-  git checkout 8170089e3c31b8b50ef5d2e21bdf20d7b7fa95b7
-  make ARCH=x86_64 allmodconfig
-  make C=1 CF=-D__CHECK_ENDIAN__
+Presented patches add support for Odroid's U3 optional CPU FAN, which uses PWM
+subsystem for low level control.
+
+After successful probe it registers itself as a cooling device for thermal
+subsystem.
+
+This driver also supports devices without DTS specified.
+
+To provide correct functionality, new properties to device tree description for
+Exynos4412 and in particular Odroid U3 have been added.
+
+Those patches were tested at Exynos4412 - Odroid U3 board.
+
+Patches were applied on:
+linux-soc-thermal/fixes branch (Linux v4.0-rc1)
+SHA1: b71d399c7f2fe06b60b96155ec0b9ae167334e4a
 
 
-sparse warnings: (new ones prefixed by >>)
+Kamil Debski (1):
+  ARM: dts: Add pwm-fan node to the Odroid-U3 board
 
->> drivers/hwmon/tmp102.c:284:1: sparse: symbol 'tmp102_dev_pm_ops' was not declared. Should it be static?
+Lukasz Majewski (5):
+  Documentation: dts: Documentation entry to explain how to use PWM FAN
+    as a cooling device
+  ARM: dts: Add properties to use pwm-fan device as a cooling device in
+    Odroid U3
+  hwmon: pwm-fan: Extract __set_pwm() function to only modify PWM duty
+    cycle
+  hwmon: pwm-fan: Read PWM FAN configuration from device tree
+  hwmon: pwm-fan: Code for using PWM FAN as a cooling device
 
-Please review and possibly fold the followup patch.
+ .../devicetree/bindings/hwmon/pwm-fan.txt          |  29 +++-
+ arch/arm/boot/dts/exynos4.dtsi                     |   2 +-
+ arch/arm/boot/dts/exynos4412-odroidu3.dts          |  43 ++++++
+ drivers/hwmon/pwm-fan.c                            | 172 +++++++++++++++++++--
+ 4 files changed, 229 insertions(+), 17 deletions(-)
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+-- 
+2.0.0.rc2
+
 
 _______________________________________________
 lm-sensors mailing list
