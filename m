@@ -1,56 +1,90 @@
-From: Nishanth Menon <nm@ti.com>
-Date: Tue, 24 Feb 2015 20:06:17 +0000
-Subject: Re: [lm-sensors] [PATCH V2] (gpio-fan): Add thermal control hooks
-Message-Id: <CAGo_u6rwTARKbvQGcrFkhoUFsV4K7tadFXsG_vFpqXN-dO_6jA@mail.gmail.com>
+From: vbooh <vbooh@somenet.pw>
+Date: Thu, 26 Feb 2015 23:31:52 +0000
+Subject: [lm-sensors] Patch and Upstart file for healthd.sh
+Message-Id: <20150226233151.GA17731@alpha.somenet.pw>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="EeQfGwPcQSOJBaQU"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1420740303-12529-1-git-send-email-nm@ti.com>
-	<54AF5DA8.6080408@roeck-us.net>
-	<20150224192933.GJ3448@developer.amazonguestwifi.org>
-	<20150224195457.GA16245@roeck-us.net>
-In-Reply-To: <20150224195457.GA16245@roeck-us.net>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hello.
+
+I want to propose a patch for healthd.sh and also an Upstart init file for it. A patch is for a decreasing of the resource consumption by healthd.sh; it replaces the external commands with the built-in Bash commands. It did not make a huge difference, but it was still useful in my case.
+
+Thank you.
+
+--EeQfGwPcQSOJBaQU
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="healthd.sh.patch"
+
+--- a/healthd.sh	1999-02-15 08:42:01.000000000 +0300
++++ b/healthd.sh	2015-02-25 23:43:48.460431783 +0300
+@@ -25,7 +25,8 @@
+ 
+ ADMIN_EMAIL="root@localhost"
+ 
+-if [ -n "`sensors | grep ALARM`" ]
++sensors_state=$(sensors)
++if [[ "$sensors_state" =~ 'ALARM' ]]
+ then
+         echo "Pending Alarms on start up!  Exiting!"
+         exit
+@@ -33,10 +34,11 @@
+ 
+ while true
+ do
+- sleep 15
+- if [ -n "`sensors | grep ALARM`" ]
++ read -t 15 -N 0
++ sensors_state=$(sensors)
++ if [[ "$sensors_state" =~ 'ALARM' ]]
+  then
+-        sensors | mail -s "**** Hardware Health Warning ****"  $ADMIN_EMAIL
+-        sleep 600
++        echo "$sensors_state" | mail -s '**** Hardware Health Warning ****' $ADMIN_EMAIL
++        read -t 600 -N 0 
+  fi
+ done
+
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="healthd.conf"
+
+# Upstart init file. Installation:
+# cp --interactive --verbose /usr/share/doc/lm-sensors/examples/daemon/healthd.sh /usr/local/sbin/healthd
+# cp --interactive --verbose /usr/share/doc/lm-sensors/examples/daemon/healthd.conf /etc/init/
+# sed --in-place '1,7d' /etc/init/healthd.conf
+# initctl reload-configuration
+# service healthd start
+
+# healthd - shell script daemon, that sends via email alerts of "sensors" utility
+#
+# This is a simple daemon, which can be used to alert you in the
+# event of a hardware health monitoring alarm by sending an
+# email to the root.
+ 
+description	"sends via email alerts of sensors utility"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+
+exec healthd
+
+--EeQfGwPcQSOJBaQU
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, lkml <linux-kernel@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
-
-On Tue, Feb 24, 2015 at 1:55 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> On Tue, Feb 24, 2015 at 03:29:35PM -0400, Eduardo Valentin wrote:
->> Guenter,
->>
->> On Thu, Jan 08, 2015 at 08:48:40PM -0800, Guenter Roeck wrote:
->> > On 01/08/2015 10:05 AM, Nishanth Menon wrote:
->> > > Allow gpio-fan to be used as thermal cooling device for platforms that
->> > > use GPIO maps to control fans.
->> > >
->> > > As part of this change, we make the shutdown and remove logic the same
->> > > as well.
->> > >
->> > > Signed-off-by: Nishanth Menon <nm@ti.com>
->> > > ---
->> >
->> > Applied to -next.
->>
->> What is the target kernel version for this change? It didn't make
->> 4.0-rc1
->>
-> If I recall correctly, I had to pull it because the thermal framework
-> does not provide hooks if disabled. Weird, I am sure I sent an e-mail
-> about this, but I don't find it right now.
->
-> It can't make it in before the hooks are in place, or we'll need
-> another version with ifdefs around the thermal registration code.
-
-I had posted the required hooks.
-https://patchwork.kernel.org/patch/5828261/ -> I think Eduardo picked
-this one up.. So once it hits mainline, we should ideally be clear.
-
--- 
----
-Regards,
-Nishanth Menon
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--EeQfGwPcQSOJBaQU--
