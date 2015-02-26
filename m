@@ -1,77 +1,45 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Fri, 06 Feb 2015 16:59:04 +0000
-Subject: [lm-sensors] [PATCH v3 4/8] ARM: dts: Add pwm-fan node to the Odroid-U3 board
-Message-Id: <1423241948-31981-5-git-send-email-l.majewski@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 26 Feb 2015 21:58:40 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.0-rc2
+Message-Id: <1424987920-17743-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-From: Kamil Debski <k.debski@samsung.com>
+Hi Linus,
 
-Add pwm-fan node to the Odroid-U3 board file to enable PWM control of the
-cooling fan. In addition, add the "pwm" label to the pwm@139D0000 node
-in the exynos4412.dtsi.
+Please pull hwmon fixes for Linux v4.0-rc2 from signed tag:
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-[Rebased on the newest mainline by l.majewski@samsung.com]
----
-Changes since v1:
-- added pwm label to the pwm@139D0000 node in exynos4.dtsi
-- use the pwm label in the exynos4412-odroidu3.dts
-- change order or properties in the pwn-fan node, to be sorted
-  in alphabetical order
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.0-rc2
 
----
- arch/arm/boot/dts/exynos4.dtsi            |  2 +-
- arch/arm/boot/dts/exynos4412-odroidu3.dts | 13 +++++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+Thanks,
+Guenter
+------
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index f18d746..75266e3 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -582,7 +582,7 @@
- 		status = "disabled";
- 	};
- 
--	pwm@139D0000 {
-+	pwm: pwm@139D0000 {
- 		compatible = "samsung,exynos4210-pwm";
- 		reg = <0x139D0000 0x1000>;
- 		interrupts = <0 37 0>, <0 38 0>, <0 39 0>, <0 40 0>, <0 41 0>;
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index c8a64be..60bd1e4 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -31,6 +31,19 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
-+
-+	pwm-fan {
-+		compatible = "pwm-fan";
-+		pwms = <&pwm 0 10000 0>;
-+		status = "okay";
-+	};
-+};
-+
-+&pwm {
-+	pinctrl-0 = <&pwm0_out>;
-+	pinctrl-names = "default";
-+	samsung,pwm-outputs = <0>;
-+	status = "okay";
- };
- 
- &usb3503 {
--- 
-2.0.0.rc2
+The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
 
+  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.0-rc2
+
+for you to fetch changes up to d9ef72cd1c15c2fc1f7131cd78304dd21bc15953:
+
+  hwmon: (ads7828) Check return value of devm_regmap_init_i2c (2015-02-22 20:10:30 -0800)
+
+----------------------------------------------------------------
+- Add missing return value check to ads7828 driver
+
+----------------------------------------------------------------
+Axel Lin (1):
+      hwmon: (ads7828) Check return value of devm_regmap_init_i2c
+
+ drivers/hwmon/ads7828.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 _______________________________________________
 lm-sensors mailing list
