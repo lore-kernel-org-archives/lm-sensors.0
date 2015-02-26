@@ -1,11 +1,11 @@
 From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Fri, 06 Feb 2015 16:59:05 +0000
-Subject: [lm-sensors] [PATCH v3 5/8] ARM: dts: Add properties to use pwm-fan device as a cooling device in Od
-Message-Id: <1423241948-31981-6-git-send-email-l.majewski@samsung.com>
+Date: Thu, 26 Feb 2015 13:59:34 +0000
+Subject: [lm-sensors] [PATCH v6 3/6] ARM: dts: Add properties to use pwm-fan device as a cooling device in Od
+Message-Id: <1424959177-28739-4-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1423241948-31981-1-git-send-email-l.majewski@samsung.com>
+ <1424959177-28739-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1424959177-28739-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,21 +16,28 @@ With those bindings it is possible to use pwm-fan device available in
 Odroid U3 as a cooling device.
 
 Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
 ---
 Changes for v2:
 - Rename cooling-pwm-values property to cooling-levels
 Changes for v3:
 - Change patch's topic to "ARM dts"
 - Reduce maximal cooling-level to 230 from 255
+Changes for v4:
+- None
+Changes for v5:
+- None
+Changes for v6:
+- None
 ---
  arch/arm/boot/dts/exynos4412-odroidu3.dts | 33 ++++++++++++++++++++++++++++++-
  1 file changed, 32 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index 60bd1e4..3e5df3e 100644
+index 4c04837..abcfa3c 100644
 --- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
 +++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -32,11 +32,42 @@
+@@ -32,9 +32,40 @@
  		};
  	};
  
@@ -42,8 +49,7 @@ index 60bd1e4..3e5df3e 100644
 +		cooling-max-state = <3>;
 +		#cooling-cells = <2>;
 +		cooling-levels = <0 102 170 230>;
- 		status = "okay";
- 	};
++	};
 +
 +	thermal-zones {
 +		cpu_thermal: cpu-thermal {
@@ -70,10 +76,9 @@ index 60bd1e4..3e5df3e 100644
 +				};
 +			};
 +		};
-+	};
+ 	};
  };
  
- &pwm {
 -- 
 2.0.0.rc2
 
