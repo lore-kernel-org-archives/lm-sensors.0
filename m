@@ -1,126 +1,158 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 25 Feb 2015 15:34:21 +0000
-Subject: [lm-sensors] [PATCH v5 5/6] hwmon: pwm-fan: Read PWM FAN configuration from device tree
-Message-Id: <1424878462-15511-6-git-send-email-l.majewski@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 28 Feb 2015 15:52:24 +0000
+Subject: [lm-sensors] [RFC PATCH] hwmon: (it87) Add support for IT8620E
+Message-Id: <1425138744-30206-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1424878462-15511-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: lm-sensors@vger.kernel.org
 
-This patch provides code for reading PWM FAN configuration data via
-device tree. The pwm-fan can work with full speed when configuration
-is not provided. However, errors are propagated when wrong DT bindings
-are found.
-Additionally the struct pwm_fan_ctx has been extended.
+IT8620E is widely reported to be compatible to IT7828F.
+Add generic support for it.
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Note that IT8620E is reported to support up to 5 pwm controls.
+This functionality is not currently supported.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-Changes for v2:
-- Rename pwm_fan_max_states to pwm_fan_cooling_levels
-- Moving pwm_fan_of_get_cooling_data() call after setting end enabling PWM FAN
-- pwm_fan_of_get_cooling_data() now can fail - preserving old behaviour
-- Remove unnecessary dev_err() call
-Changes for v3:
-- Patch's headline has been reedited
-- pwm_fan_of_get_cooling_data() return code is now being checked.
-- of_property_count_elems_of_size() is now used instead of_find_property()
-- More verbose patch description added
-Changes for v4:
-- dev_err() has been removed from pwm_fan_of_get_cooling_data()
-- Returning -EINVAL when "cooling-levels" are defined in DT, but doesn't
-  have the value
-Changes for v5:
-- Use of of_find_property() to assess if "cooling-levels" was defined in
-  device tree
-- Replace of_property_count_elems_of_size() with of_property_count_u32_elems()
-- Remove ambiguity with returning error code from of_property_count_u32_elems()
-- Return -EINVAL when "cooling-levels" has zero elements
----
- drivers/hwmon/pwm-fan.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 49 insertions(+), 1 deletion(-)
+Do we know enough about the chip to add support for it ?
+Should we assume that it is closer to IT8603E/IT8623E ?
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index bd42d39..e6ed353 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -30,7 +30,10 @@
- struct pwm_fan_ctx {
- 	struct mutex lock;
- 	struct pwm_device *pwm;
--	unsigned char pwm_value;
-+	unsigned int pwm_value;
-+	unsigned int pwm_fan_state;
-+	unsigned int pwm_fan_max_state;
-+	unsigned int *pwm_fan_cooling_levels;
+ Documentation/hwmon/it87 | 17 ++++++++++++-----
+ drivers/hwmon/Kconfig    |  2 +-
+ drivers/hwmon/it87.c     | 19 ++++++++++++++++---
+ 3 files changed, 29 insertions(+), 9 deletions(-)
+
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 19fbe77..34d654e 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -6,6 +6,10 @@ Supported chips:
+     Prefix: 'it8603'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: Not publicly available
++  * IT8620E
++    Prefix: 'it8620'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
++    Datasheet: Not publicly available
+   * IT8705F
+     Prefix: 'it87'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+@@ -102,9 +106,9 @@ motherboard models.
+ Description
+ -----------
+ 
+-This driver implements support for the IT8603E, IT8623E, IT8705F, IT8712F,
+-IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E, IT8771E,
+-IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, and SiS950 chips.
++This driver implements support for the IT8603E, IT8620E, IT8623E, IT8705F,
++IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E,
++IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, and SiS950 chips.
+ 
+ These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
+ joysticks and other miscellaneous stuff. For hardware monitoring, they
+@@ -142,8 +146,11 @@ The IT8728F, IT8771E, and IT8772E are considered compatible with the IT8721F,
+ until a datasheet becomes available (hopefully.)
+ 
+ The IT8603E/IT8623E is a custom design, hardware monitoring part is similar to
+-IT8728F. It only supports 16-bit fan mode, the full speed mode of the
+-fan is not supported (value 0 of pwmX_enable).
++IT8728F. It only supports three fans, 16-bit fan mode, and the full speed mode
++of the fan is not supported (value 0 of pwmX_enable).
++
++The IT8620E is another custom design, hardware monitoring part is similar to
++IT8728F. It only supports 16-bit fan mode.
+ 
+ Temperatures are measured in degrees Celsius. An alarm is triggered once
+ when the Overtemperature Shutdown limit is crossed.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 018f574..a17c98c 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -600,7 +600,7 @@ config SENSORS_IT87
+ 	  If you say yes here you get support for ITE IT8705F, IT8712F,
+ 	  IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E,
+ 	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E,
+-	  and IT8603E sensor chips, and the SiS950 clone.
++	  IT8603E, IT8620E, and IT8623E sensor chips, and the SiS950 clone.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index ab12dc2..ab9a8be 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -11,6 +11,7 @@
+  *  similar parts.  The other devices are supported by different drivers.
+  *
+  *  Supports: IT8603E  Super I/O chip w/LPC interface
++ *            IT8620E  Super I/O chip w/LPC interface
+  *            IT8623E  Super I/O chip w/LPC interface
+  *            IT8705F  Super I/O chip w/LPC interface
+  *            IT8712F  Super I/O chip w/LPC interface
+@@ -68,7 +69,7 @@
+ #define DRVNAME "it87"
+ 
+ enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8771,
+-	     it8772, it8781, it8782, it8783, it8786, it8603 };
++	     it8772, it8781, it8782, it8783, it8786, it8603, it8620 };
+ 
+ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+@@ -153,6 +154,7 @@ static inline void superio_exit(void)
+ #define IT8783E_DEVID 0x8783
+ #define IT8786E_DEVID 0x8786
+ #define IT8603E_DEVID 0x8603
++#define IT8620E_DEVID 0x8620
+ #define IT8623E_DEVID 0x8623
+ #define IT87_ACT_REG  0x30
+ #define IT87_BASE_REG 0x60
+@@ -349,6 +351,12 @@ static const struct it87_devices it87_devices[] = {
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI,
+ 		.peci_mask = 0x07,
+ 	},
++	[it8620] = {
++		.name = "it8620",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_FIVE_FANS,
++		.peci_mask = 0x07,
++	},
  };
  
- static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
-@@ -100,6 +103,46 @@ static struct attribute *pwm_fan_attrs[] = {
+ #define has_16bit_fans(data)	((data)->features & FEAT_16BIT_FANS)
+@@ -1804,6 +1812,9 @@ static int __init it87_find(unsigned short *address,
+ 	case IT8623E_DEVID:
+ 		sio_data->type = it8603;
+ 		break;
++	case IT8620E_DEVID:
++		sio_data->type = it8620;
++		break;
+ 	case 0xffff:	/* No device at all */
+ 		goto exit;
+ 	default:
+@@ -1827,7 +1838,8 @@ static int __init it87_find(unsigned short *address,
+ 	sio_data->revision = superio_inb(DEVREV) & 0x0f;
+ 	pr_info("Found IT%04x%c chip at 0x%x, revision %d\n", chip_type,
+ 		chip_type = 0x8771 || chip_type = 0x8772 ||
+-		chip_type = 0x8786 || chip_type = 0x8603 ? 'E' : 'F',
++		chip_type = 0x8786 || chip_type = 0x8603 ||
++		chip_type = 0x8620 ? 'E' : 'F',
+ 		*address, sio_data->revision);
  
- ATTRIBUTE_GROUPS(pwm_fan);
- 
-+int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
-+{
-+	struct device_node *np = dev->of_node;
-+	int num, i, ret;
-+
-+	if (!of_find_property(np, "cooling-levels", NULL))
-+		return 0;
-+
-+	ret = of_property_count_u32_elems(np, "cooling-levels");
-+	if (ret <= 0) {
-+		dev_err(dev, "Wrong data!\n");
-+		return ret ? : -EINVAL;
-+	}
-+
-+	num = ret;
-+	ctx->pwm_fan_cooling_levels = devm_kzalloc(dev, num * sizeof(u32),
-+						   GFP_KERNEL);
-+	if (!ctx->pwm_fan_cooling_levels)
-+		return -ENOMEM;
-+
-+	ret = of_property_read_u32_array(np, "cooling-levels",
-+					 ctx->pwm_fan_cooling_levels, num);
-+	if (ret) {
-+		dev_err(dev, "Property 'cooling-levels' cannot be read!\n");
-+		return ret;
-+	}
-+
-+	for (i = 0; i < num; i++) {
-+		if (ctx->pwm_fan_cooling_levels[i] > MAX_PWM) {
-+			dev_err(dev, "PWM fan state[%d]:%d > %d\n", i,
-+				ctx->pwm_fan_cooling_levels[i], MAX_PWM);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	ctx->pwm_fan_max_state = num - 1;
-+
-+	return 0;
-+}
-+
- static int pwm_fan_probe(struct platform_device *pdev)
- {
- 	struct device *hwmon;
-@@ -145,6 +188,11 @@ static int pwm_fan_probe(struct platform_device *pdev)
- 		pwm_disable(ctx->pwm);
- 		return PTR_ERR(hwmon);
- 	}
-+
-+	ret = pwm_fan_of_get_cooling_data(&pdev->dev, ctx);
-+	if (ret)
-+		return ret;
-+
- 	return 0;
- }
- 
+ 	/* in8 (Vbat) is always internal */
+@@ -1993,7 +2005,8 @@ static int __init it87_find(unsigned short *address,
+ 		}
+ 		if (reg & (1 << 0))
+ 			sio_data->internal |= (1 << 0);
+-		if ((reg & (1 << 1)) || sio_data->type = it8721 ||
++		if ((reg & (1 << 1)) ||
++		    sio_data->type = it8620 || sio_data->type = it8721 ||
+ 		    sio_data->type = it8728 || sio_data->type = it8771 ||
+ 		    sio_data->type = it8772 || sio_data->type = it8786)
+ 			sio_data->internal |= (1 << 1);
 -- 
-2.0.0.rc2
+2.1.0
 
 
 _______________________________________________
