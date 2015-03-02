@@ -1,45 +1,64 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Mar 2015 15:27:02 +0000
-Subject: Re: [lm-sensors] [PATCH v2 4/5] hwmon: (ibmpowernv) change create_hwmon_attr_name() prototype
-Message-Id: <20150320152702.GB10749@roeck-us.net>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Date: Mon, 02 Mar 2015 19:28:03 +0000
+Subject: Re: [lm-sensors] [PATCH v2] ARM: Kirkwood: enable GPIO fan alarm support for 2Big Network v2
+Message-Id: <54F4B9C3.8050602@free-electrons.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
- <1426787085-9004-5-git-send-email-clg@fr.ibm.com>
- <550BD50E.2040009@fr.ibm.com>
-In-Reply-To: <550BD50E.2040009@fr.ibm.com>
+References: <1424887219-26652-1-git-send-email-simon.guinot@sequanux.org>
+In-Reply-To: <1424887219-26652-1-git-send-email-simon.guinot@sequanux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Mar 20, 2015 at 09:06:38AM +0100, Cedric Le Goater wrote:
-> [ ... ] 
+Hi Simon,
+
+On 25/02/2015 19:00, Simon Guinot wrote:
+> On the LaCie 2Big Network v2 (net2big_v2) board, the fan alarm is not
+> wired to the I2C fan controller but to a separe GPIO. This GPIO can be
+> controlled by using the gpio-fan driver.
 > 
-> 
-> > @@ -265,10 +261,17 @@ static int create_device_attrs(struct pl
-> > 
-> >  		sdata[count].id = sensor_id;
-> >  		sdata[count].type = type;
-> > -		err = create_hwmon_attr_name(&pdev->dev, type, np->name,
-> > -					     sdata[count].name);
-> > -		if (err)
-> > +
-> > +		attr_name = parse_opal_node_name(np->name, type, &opal_index);
-> > +		if (IS_ERR(attr_name)) {
-> > +			dev_err(&pdev->dev, "Sensor device node name '%s' is invalid\n",
-> > +				np->name);
-> > +			err = IS_ERR(attr_name);
->                               ^^^^^^
-> 
-> Arg. Bad copy/paste. This should be PTR_ERR() ... 
-> 
-> Do you want a full patchset resend or just a resend of this patch ? or a fix maybe.
-> 
-No need to resend; I fixed it up.
+> This patch adds the gpio-fan alarm description in the net2big_v2 DTS.
+
+Now that the driver part had been merged, I applied this patch on
+mvebu/dt.
 
 Thanks,
-Guenter
+
+Gregory
+
+> 
+> Signed-off-by: Simon Guinot <simon.guinot@sequanux.org>
+> ---
+>  arch/arm/boot/dts/kirkwood-net2big.dts | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> v2 change:
+> - Fix node name according to the ePAPR standard.
+> 
+> diff --git a/arch/arm/boot/dts/kirkwood-net2big.dts b/arch/arm/boot/dts/kirkwood-net2big.dts
+> index 53dc37a3b687..13a44773b6df 100644
+> --- a/arch/arm/boot/dts/kirkwood-net2big.dts
+> +++ b/arch/arm/boot/dts/kirkwood-net2big.dts
+> @@ -27,6 +27,11 @@
+>  		device_type = "memory";
+>  		reg = <0x00000000 0x10000000>;
+>  	};
+> +
+> +	fan {
+> +		compatible = "gpio-fan";
+> +		alarm-gpios = <&gpio0 25 GPIO_ACTIVE_LOW>;
+> +	};
+>  };
+>  
+>  &regulators {
+> 
+
+
+-- 
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
 
 _______________________________________________
 lm-sensors mailing list
