@@ -1,66 +1,63 @@
-From: Taz <rastataz@gmail.com>
-Date: Mon, 02 Mar 2015 11:05:09 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 02 Mar 2015 12:26:58 +0000
 Subject: Re: [lm-sensors] Fancontrol memory consumption
-Message-Id: <54F443E5.1040802@gmail.com>
+Message-Id: <20150302132658.38dfcfba@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20141105175729.39a88ab1@endymion.delvare>
 In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le 02/03/2015 11:30, Jean Delvare a =E9crit :
-> On Thu, 13 Nov 2014 15:36:32 +0100, Taz wrote:
->> (sorry I just saw my reply still was in my drafts, don't know why...)
->>
->> Indeed : my current bash version is 4.3.11
->> Although I don't have line 585 in my fancontrol script
->> I can apply the the patch (lines 497 & 536 for fancontrol v0.7)
->>
->> I also gave it a try without the wait lines and not sending to
->> background the previous
->> sleep command the wait was waiting for anyway (useless ?)
->>
->> =3D> Mem consumption seems to be the same in all cases, we'll see in the
->> long run...
-> BTW, can you please tell me
-> * Which architecture this is (x86 or x86-64)?
-> * The value of "ulimit -u" on this system.
-> * The total amount of memory on the system.
->
-> As Chet Ramey explained to me, the memory consumption is bound and the
-> default limit depends on these factors. Assuming an x86-64 system,
-> eating 22 MB of memory as you reported would take about 734000 records
-> of 32 bytes each, and "ulimit -u" would be set to that value by default
-> for a system with about 187 GB of memory. Which I would not expect in a
-> NAS, so something is wrong.
->
-
-The hardware is actually a ReadyNAS ultra 6000 with 2GB RAM.
-I'm running a x86_64 ubuntu server 14.04 with 3.16 SMP kernel
-and fancontrol from standard repos (pkg vers is 1:3.3.4-2ubuntu1).
-
-=3D=3D=3D=3D=3D=3D=3D
-
-=12(root@ReadyNAS:pts/0)=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=
-=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=
-=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=
-=12=12=12=12#=20
-ulimit -u
-     7892
-
-(root@ReadyNAS:pts/0)=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=
-=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=
-=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=12=
-=12=12=12#free
-                  total       used       free     shared buffers     cached
-     Mem:       2039828    1829656     210172        708 4796    1091516
-     -/+ buffers/cache:     733344    1306484
-     Swap:      5242876          0    5242876
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAwMiBNYXIgMjAxNSAxMjowNTowOSArMDEwMCwgVGF6IHdyb3RlOgo+IExlIDAyLzAz
+LzIwMTUgMTE6MzAsIEplYW4gRGVsdmFyZSBhIMOpY3JpdCA6Cj4gPiBPbiBUaHUsIDEzIE5vdiAy
+MDE0IDE1OjM2OjMyICswMTAwLCBUYXogd3JvdGU6Cj4gPj4gKHNvcnJ5IEkganVzdCBzYXcgbXkg
+cmVwbHkgc3RpbGwgd2FzIGluIG15IGRyYWZ0cywgZG9uJ3Qga25vdyB3aHkuLi4pCj4gPj4KPiA+
+PiBJbmRlZWQgOiBteSBjdXJyZW50IGJhc2ggdmVyc2lvbiBpcyA0LjMuMTEKPiA+PiBBbHRob3Vn
+aCBJIGRvbid0IGhhdmUgbGluZSA1ODUgaW4gbXkgZmFuY29udHJvbCBzY3JpcHQKPiA+PiBJIGNh
+biBhcHBseSB0aGUgdGhlIHBhdGNoIChsaW5lcyA0OTcgJiA1MzYgZm9yIGZhbmNvbnRyb2wgdjAu
+NykKPiA+Pgo+ID4+IEkgYWxzbyBnYXZlIGl0IGEgdHJ5IHdpdGhvdXQgdGhlIHdhaXQgbGluZXMg
+YW5kIG5vdCBzZW5kaW5nIHRvCj4gPj4gYmFja2dyb3VuZCB0aGUgcHJldmlvdXMKPiA+PiBzbGVl
+cCBjb21tYW5kIHRoZSB3YWl0IHdhcyB3YWl0aW5nIGZvciBhbnl3YXkgKHVzZWxlc3MgPykKPiA+
+Pgo+ID4+ID0+IE1lbSBjb25zdW1wdGlvbiBzZWVtcyB0byBiZSB0aGUgc2FtZSBpbiBhbGwgY2Fz
+ZXMsIHdlJ2xsIHNlZSBpbiB0aGUKPiA+PiBsb25nIHJ1bi4uLgoKSSBkb24ndCB0aGluayB5b3Ug
+ZXZlciByZXBvcnRlZCB0aGUgcmVzdWx0cyBvZiB0aGF0IHRlc3Q/IFdpdGggdGhlCmZpcnN0IHBh
+dGNoIGFwcGxpZWQsIGRvZXMgZmFuY29udHJvbCBzdGlsbCByZWFjaCAyNSBNQiBvZiBtZW1vcnkg
+b3Zlcgp0aW1lLCBvciBub3Q/Cgo+ID4gQlRXLCBjYW4geW91IHBsZWFzZSB0ZWxsIG1lCj4gPiAq
+IFdoaWNoIGFyY2hpdGVjdHVyZSB0aGlzIGlzICh4ODYgb3IgeDg2LTY0KT8KPiA+ICogVGhlIHZh
+bHVlIG9mICJ1bGltaXQgLXUiIG9uIHRoaXMgc3lzdGVtLgo+ID4gKiBUaGUgdG90YWwgYW1vdW50
+IG9mIG1lbW9yeSBvbiB0aGUgc3lzdGVtLgo+ID4KPiA+IEFzIENoZXQgUmFtZXkgZXhwbGFpbmVk
+IHRvIG1lLCB0aGUgbWVtb3J5IGNvbnN1bXB0aW9uIGlzIGJvdW5kIGFuZCB0aGUKPiA+IGRlZmF1
+bHQgbGltaXQgZGVwZW5kcyBvbiB0aGVzZSBmYWN0b3JzLiBBc3N1bWluZyBhbiB4ODYtNjQgc3lz
+dGVtLAo+ID4gZWF0aW5nIDIyIE1CIG9mIG1lbW9yeSBhcyB5b3UgcmVwb3J0ZWQgd291bGQgdGFr
+ZSBhYm91dCA3MzQwMDAgcmVjb3Jkcwo+ID4gb2YgMzIgYnl0ZXMgZWFjaCwgYW5kICJ1bGltaXQg
+LXUiIHdvdWxkIGJlIHNldCB0byB0aGF0IHZhbHVlIGJ5IGRlZmF1bHQKPiA+IGZvciBhIHN5c3Rl
+bSB3aXRoIGFib3V0IDE4NyBHQiBvZiBtZW1vcnkuIFdoaWNoIEkgd291bGQgbm90IGV4cGVjdCBp
+biBhCj4gPiBOQVMsIHNvIHNvbWV0aGluZyBpcyB3cm9uZy4KPiA+Cj4gCj4gVGhlIGhhcmR3YXJl
+IGlzIGFjdHVhbGx5IGEgUmVhZHlOQVMgdWx0cmEgNjAwMCB3aXRoIDJHQiBSQU0uCj4gSSdtIHJ1
+bm5pbmcgYSB4ODZfNjQgdWJ1bnR1IHNlcnZlciAxNC4wNCB3aXRoIDMuMTYgU01QIGtlcm5lbAo+
+IGFuZCBmYW5jb250cm9sIGZyb20gc3RhbmRhcmQgcmVwb3MgKHBrZyB2ZXJzIGlzIDE6My4zLjQt
+MnVidW50dTEpLgo+IAo+ID09PT09PT0KPiAKPiAocm9vdEBSZWFkeU5BUzpwdHMvMCkgIyB1bGlt
+aXQgLXUKPiAgICAgIDc4OTIKPiAKPiAocm9vdEBSZWFkeU5BUzpwdHMvMCkgI2ZyZWUKPiAgICAg
+ICAgICAgICAgICAgICB0b3RhbCAgICAgICB1c2VkICAgICAgIGZyZWUgICAgIHNoYXJlZCBidWZm
+ZXJzICAgICBjYWNoZWQKPiAgICAgIE1lbTogICAgICAgMjAzOTgyOCAgICAxODI5NjU2ICAgICAy
+MTAxNzIgICAgICAgIDcwOCA0Nzk2ICAgIDEwOTE1MTYKPiAgICAgIC0vKyBidWZmZXJzL2NhY2hl
+OiAgICAgNzMzMzQ0ICAgIDEzMDY0ODQKPiAgICAgIFN3YXA6ICAgICAgNTI0Mjg3NiAgICAgICAg
+ICAwICAgIDUyNDI4NzYKClRoaXMgc2VlbXMgdG90YWxseSByZWFzb25hYmxlLiBXaXRoIHRoZXNl
+cyBzZXR0aW5ncywgYmFzaCBzaG91bGQgbm90CmNvbnN1bWUgbW9yZSB0aGFuIDI0NyBrQiBvZiBt
+ZW1vcnkgdG8gcmVtZW1iZXIgdGhlIHByb2Nlc3Mgc3RhdHVzZXMuClRoaXMgY2FuJ3QgZXhwbGFp
+biB0aGUgMjUgTUIgeW91IHJlcG9ydGVkIGluaXRpYWxseS4KClNvIEkgc3RhcnQgc3VzcGVjdGlu
+ZyB0aGF0IHlvdXIgcHJvYmxlbSBpcyBkaWZmZXJlbnQgZnJvbSB0aGUgIndhaXQgJCEiCmlzc3Vl
+IEkgaGF2ZSBiZWVuIGludmVzdGlnYXRpbmcgc28gZmFyLiBJIGNvdWxkIHJlcHJvZHVjZSB0aGUg
+bWVtb3J5CmluY3JlYXNlIGNhdXNlZCBieSAid2FpdCAkISIsIGJ1dCBJIGNvdWxkIG5ldmVyIGdl
+dCBiYXNoIHRvIHJlYWNoIDI1IE1CCmFzIHlvdSByZXBvcnRlZC4KClNvIG1heWJlIGl0J3MgYSBk
+aWZmZXJlbnQgYnVnLiBiYXNoIDQuMy4xMSBpcyBnZXR0aW5nIG9sZCwgdGhlcmUgaGF2ZQpiZWVu
+IDIyIHVwc3RyZWFtIGZpeGVzIG1lYW53aGlsZSAobGF0ZXN0IHN0YWJsZSB2ZXJzaW9uIGlzIDQu
+My4zMy4pCk1heWJlIGEgbW9yZSByZWNlbnQgdmVyc2lvbiBpcyBhdmFpbGFibGUgZm9yIHlvdXIg
+c3lzdGVtIG5vdz8gVGhpcwpjb3VsZCBhbHNvIGJlIGEgYnVnIHNwZWNpZmljIHRvIHRoZSBVYnVu
+dHUgYmFzaCBwYWNrYWdlIHlvdSdyZSBydW5uaW5nLAp3aG8ga25vd3MuCgotLSAKSmVhbiBEZWx2
+YXJlClNVU0UgTDMgU3VwcG9ydAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3Jz
