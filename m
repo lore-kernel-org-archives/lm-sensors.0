@@ -1,36 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 18:22:56 +0000
-Subject: Re: [lm-sensors] [PATCH 01/15] hwmon: (it87) Fix pwm frequency display for chips with newer pwm cont
-Message-Id: <55199480.2040809@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 02 Mar 2015 07:39:53 +0000
+Subject: Re: [lm-sensors] Fancontrol memory consumption
+Message-Id: <20150302083953.37dd3029@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427697235-23566-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1427697235-23566-2-git-send-email-linux@roeck-us.net>
+References: <20141105175729.39a88ab1@endymion.delvare>
+In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMDMvMzAvMjAxNSAwOTozNSBBTSwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+IExlIE1vbmRheSAz
-MCBNYXJjaCAyMDE1IMOgIDA4OjEwIC0wNzAwLCBHdWVudGVyIFJvZWNrIGEgw6ljcml0IDoKClsg
-Li4uIF0KPj4+Pgo+Pj4+ICsvKgo+Pj4+ICsgKiBwd20gYmFzZSBmcmVxdWVuY2llcy4gVGhlIGZy
-ZXF1ZW5jeSBoYXMgdG8gYmUgZGl2aWRlZCBieSBlaXRoZXIgMTI4IG9yIDI1NiwKPj4+PiArICog
-ZGVwZW5kaW5nIG9uIHRoZSBjaGlwIHR5cGUsIHRvIGNhbGN1bGF0ZSB0aGUgYWN0dWFsIHB3bSBm
-cmVxdWVuY3kuCj4+Pj4gKyAqCj4+Pj4gKyAqIFNvbWUgb2YgdGhlIGNoaXAgZGF0YXNoZWV0cyBz
-dWdnZXN0IGEgYmFzZSBmcmVxdWVuY3kgb2YgNTFrSHogaW5zdGVhZAo+Pj4+ICsgKiBvZiA3NTBr
-SHogZm9yIHRoZSBzbG93ZXN0IGJhc2UgZnJlcXVlbmN5LCByZXN1bHRpbmcgaW4gYSBwd20gZnJl
-cXVlbmN5Cj4+Pj4gKyAqIG9mIDIwMEh6LiBTb21ldGltZXMgYm90aCBwd20gZnJlcXVlbmN5IHNl
-bGVjdCByZWdpc3RlcnMgYXJlIGFmZmVjdGVkLAo+Pj4+ICsgKiBzb21ldGltZXMganVzdCBvbmUu
-IEl0IGlzIHVua25vd24gaWYgdGhpcyBpcyBhIGRhdGFzaGVldCBlcnJvciBvciByZWFsLAo+Pj4+
-ICsgKiBzbyB0aGlzIGlzIGlnbm9yZWQgZm9yIG5vdy4KPj4+Cj4+PiBMZWF2aW5nIGEgc3BhY2Ug
-YmV0d2VlbiB0aGUgbnVtYmVyIGFuZCBrSHogb3IgSHogbWFrZXMgaXQgZWFzaWVyIHRvCj4+PiBy
-ZWFkIElNSE8uIEkgd291bGQgYWxzbyBjYXBpdGFsaXplIFBXTSBldmVyeXdoZXJlLgo+Pj4KPj4+
-IE90aGVyIHRoYW4gdGhlc2UgbWlub3Igc3VnZ2VzdGlvbnMsIHRoaXMgbG9va3MgZ29vZCwgZ29v
-ZCBjYXRjaCEgSSBuZXZlcgo+Pj4gbm90aWNlZCB0aGlzIGRpZmZlcmVuY2UgYmV0d2VlbiB0aGUg
-dmFyaW91cyBjaGlwcy4KPj4+Cj4+Cj4+IEhpIEplYW4sCj4+Cj4+IEkgbWFkZSB0aG9zZSBjaGFu
-Z2VzLiBTaG91bGQgSSByZXN1Ym1pdCwgb3IgZG8gSSBoYXZlIHlvdXIgUmV2aWV3ZWQtYnk6ID8K
-Pgo+IFlvdSBoYXZlIGl0IG9mIGNvdXJzZSwgc29ycnkgSSB0aG91Z2h0IEkgaGFkIHB1dCBpdCBh
-bHJlYWR5IGJ1dCBpdCBzZWVtcwo+IG5vdC4KPgo+IFJldmlld2VkLWJ5OiBKZWFuIERlbHZhcmUg
-PGpkZWx2YXJlQHN1c2UuZGU+Cj4KClRoYW5rcyEKCkd1ZW50ZXIKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hi Taz,
+
+On Sat, 28 Feb 2015 14:13:07 +0100, Taz wrote:
+> 
+> I had to revert to first patch set : new patch consumes 30%  CPU
+> on my system (or 6% global CPU on Atom D510@1.66GHz).
+> 
+> I let it ran a few minutes from 13h56 to 14h00, then when seeing 
+> abnormal CPU consumption, I reverted it.
+
+Yes, I see the same here :( What happens is that there is no stdin to
+read from when the script is run by systemd, so the read command
+returns immediately with an error instead of actually waiting.
+
+I'll revert to the previous solution for now, finish the investigation
+and see if I can come up with something better, report to upstream
+again if needed, and commit the result.
+
+Thanks,
+-- 
+Jean Delvare
+SUSE L3 Support
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
