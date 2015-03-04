@@ -1,67 +1,197 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 19 Mar 2015 14:30:18 +0000
-Subject: [lm-sensors] [PATCH v3 2/4] hwmon: (ina2xx) replace ina226_avg_bits() with find_closest()
-Message-Id: <1426775420-31350-3-git-send-email-bgolaszewski@baylibre.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 04 Mar 2015 12:03:44 +0000
+Subject: [lm-sensors] [PATCH RESEND v6 6/6] hwmon: pwm-fan: Code for using PWM FAN as a cooling device
+Message-Id: <1425470624-25793-7-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Use find_closest() to locate the closest average in ina226_avg_tab.
+The PWM FAN device can now be used as a thermal cooling device. Necessary
+infrastructure has been added in this commit.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/hwmon/ina2xx.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+Changes for v2:
+- Replace pwm_fan_cooling_states with pwm_fan_cooling_levels
+- Update ctx->pwm_fan_state when correct data from device tree is available
+- Using therma_cdev_update() when thermal is ready for controlling the fan
+Changes for v3:
+- Rename patch heading
+- pwm_fan_of_get_cooling_data() now returns -EINVAL when no "cooling-levels"
+  property defined
+- register of cooling device only when proper cooling data is present
+Changes for v4:
+- None
+Changes for v5:
+- Check for IS_ENABLED(CONFIG_THERMAL) has been added to prevent from
+  executing thermal_* specific functions
+Changes for v6:
+- Adding missing ctx = NULL check in pwm_fan_get_max_state()
+- Call to thermal_cooling_device_unregister(ctx->cdev); at pwm_fan_remove()
+- struct thermal_cooling_device *cdev; added to struct pwm_fan_ctx
+---
+ drivers/hwmon/pwm-fan.c | 89 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 88 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index d1542b7..4d28150 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -36,6 +36,7 @@
- #include <linux/jiffies.h>
- #include <linux/of.h>
- #include <linux/delay.h>
-+#include <linux/util_macros.h>
+diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
+index e6ed353..7c83dc4 100644
+--- a/drivers/hwmon/pwm-fan.c
++++ b/drivers/hwmon/pwm-fan.c
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pwm.h>
+ #include <linux/sysfs.h>
++#include <linux/thermal.h>
  
- #include <linux/platform_data/ina2xx.h>
+ #define MAX_PWM 255
  
-@@ -141,19 +142,6 @@ static const struct ina2xx_config ina2xx_config[] = {
-  */
- static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
+@@ -34,6 +35,7 @@ struct pwm_fan_ctx {
+ 	unsigned int pwm_fan_state;
+ 	unsigned int pwm_fan_max_state;
+ 	unsigned int *pwm_fan_cooling_levels;
++	struct thermal_cooling_device *cdev;
+ };
  
--static int ina226_avg_bits(int avg)
--{
--	int i;
--
--	/* Get the closest average from the tab. */
--	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab) - 1; i++) {
--		if (avg <= (ina226_avg_tab[i] + ina226_avg_tab[i + 1]) / 2)
--			break;
--	}
--
--	return i; /* Return 0b0111 for values greater than 1024. */
--}
--
- static int ina226_reg_to_interval(u16 config)
- {
- 	int avg = ina226_avg_tab[INA226_READ_AVG(config)];
-@@ -171,7 +159,8 @@ static u16 ina226_interval_to_reg(int interval, u16 config)
- 
- 	avg = DIV_ROUND_CLOSEST(interval * 1000,
- 				INA226_TOTAL_CONV_TIME_DEFAULT);
--	avg_bits = ina226_avg_bits(avg);
-+	avg_bits = find_closest(avg, ina226_avg_tab,
-+				ARRAY_SIZE(ina226_avg_tab));
- 
- 	return (config & ~INA226_AVG_RD_MASK) | INA226_SHIFT_AVG(avg_bits);
+ static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
+@@ -68,6 +70,17 @@ exit_set_pwm_err:
+ 	return ret;
  }
+ 
++static void pwm_fan_update_state(struct pwm_fan_ctx *ctx, unsigned long pwm)
++{
++	int i;
++
++	for (i = 0; i < ctx->pwm_fan_max_state; ++i)
++		if (pwm < ctx->pwm_fan_cooling_levels[i + 1])
++			break;
++
++	ctx->pwm_fan_state = i;
++}
++
+ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 		       const char *buf, size_t count)
+ {
+@@ -82,6 +95,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 	if (ret)
+ 		return ret;
+ 
++	pwm_fan_update_state(ctx, pwm);
+ 	return count;
+ }
+ 
+@@ -103,6 +117,62 @@ static struct attribute *pwm_fan_attrs[] = {
+ 
+ ATTRIBUTE_GROUPS(pwm_fan);
+ 
++/* thermal cooling device callbacks */
++static int pwm_fan_get_max_state(struct thermal_cooling_device *cdev,
++				 unsigned long *state)
++{
++	struct pwm_fan_ctx *ctx = cdev->devdata;
++
++	if (!ctx)
++		return -EINVAL;
++
++	*state = ctx->pwm_fan_max_state;
++
++	return 0;
++}
++
++static int pwm_fan_get_cur_state(struct thermal_cooling_device *cdev,
++				 unsigned long *state)
++{
++	struct pwm_fan_ctx *ctx = cdev->devdata;
++
++	if (!ctx)
++		return -EINVAL;
++
++	*state = ctx->pwm_fan_state;
++
++	return 0;
++}
++
++static int
++pwm_fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
++{
++	struct pwm_fan_ctx *ctx = cdev->devdata;
++	int ret;
++
++	if (!ctx || (state > ctx->pwm_fan_max_state))
++		return -EINVAL;
++
++	if (state = ctx->pwm_fan_state)
++		return 0;
++
++	ret = __set_pwm(ctx, ctx->pwm_fan_cooling_levels[state]);
++	if (ret) {
++		dev_err(&cdev->device, "Cannot set pwm!\n");
++		return ret;
++	}
++
++	ctx->pwm_fan_state = state;
++
++	return ret;
++}
++
++static const struct thermal_cooling_device_ops pwm_fan_cooling_ops = {
++	.get_max_state = pwm_fan_get_max_state,
++	.get_cur_state = pwm_fan_get_cur_state,
++	.set_cur_state = pwm_fan_set_cur_state,
++};
++
+ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
+ {
+ 	struct device_node *np = dev->of_node;
+@@ -145,8 +215,9 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
+ 
+ static int pwm_fan_probe(struct platform_device *pdev)
+ {
+-	struct device *hwmon;
++	struct thermal_cooling_device *cdev;
+ 	struct pwm_fan_ctx *ctx;
++	struct device *hwmon;
+ 	int duty_cycle;
+ 	int ret;
+ 
+@@ -193,6 +264,21 @@ static int pwm_fan_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	ctx->pwm_fan_state = ctx->pwm_fan_max_state;
++	if (IS_ENABLED(CONFIG_THERMAL)) {
++		cdev = thermal_of_cooling_device_register(pdev->dev.of_node,
++							  "pwm-fan", ctx,
++							  &pwm_fan_cooling_ops);
++		if (IS_ERR(cdev)) {
++			dev_err(&pdev->dev,
++				"Failed to register pwm-fan as cooling device");
++			pwm_disable(ctx->pwm);
++			return PTR_ERR(cdev);
++		}
++		ctx->cdev = cdev;
++		thermal_cdev_update(cdev);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -200,6 +286,7 @@ static int pwm_fan_remove(struct platform_device *pdev)
+ {
+ 	struct pwm_fan_ctx *ctx = platform_get_drvdata(pdev);
+ 
++	thermal_cooling_device_unregister(ctx->cdev);
+ 	if (ctx->pwm_value)
+ 		pwm_disable(ctx->pwm);
+ 	return 0;
 -- 
-2.1.4
+2.0.0.rc2
 
 
 _______________________________________________
