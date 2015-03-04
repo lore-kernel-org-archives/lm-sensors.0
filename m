@@ -1,45 +1,83 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Thu, 19 Mar 2015 17:44:42 +0000
-Subject: [lm-sensors] [PATCH v2 2/5] hwmon: (ibmpowernv) add a get_sensor_type() routine
-Message-Id: <1426787085-9004-3-git-send-email-clg@fr.ibm.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 04 Mar 2015 12:03:40 +0000
+Subject: [lm-sensors] [PATCH RESEND v6 2/6] ARM: dts: Add pwm-fan node to the Odroid-U3 board
+Message-Id: <1425470624-25793-3-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-SXQgd2lsbCBoZWxwIGluIGFkZGluZyBkaWZmZXJlbnQgY29tcGF0aWJsZSBwcm9wZXJ0aWVzLCBj
-b21pbmcgZnJvbSBhCm5ldyBkZXZpY2UgdHJlZSBsYXlvdXQgZm9yIGV4YW1wbGUuCgpTaWduZWQt
-b2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9o
-d21vbi9pYm1wb3dlcm52LmMgfCAgIDI2ICsrKysrKysrKysrKysrKy0tLS0tLS0tLS0tCiAxIGZp
-bGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pCgpJbmRleDogbGlu
-dXguZ2l0L2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCj09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4Lmdp
-dC5vcmlnL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCisrKyBsaW51eC5naXQvZHJpdmVycy9o
-d21vbi9pYm1wb3dlcm52LmMKQEAgLTE2OSw2ICsxNjksMTcgQEAgc3RhdGljIGludCBjcmVhdGVf
-aHdtb25fYXR0cl9uYW1lKHN0cnVjdAogCXJldHVybiAwOwogfQogCitzdGF0aWMgaW50IGdldF9z
-ZW5zb3JfdHlwZShzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wKQoreworCWVudW0gc2Vuc29ycyB0eXBl
-OworCisJZm9yICh0eXBlID0gMDsgdHlwZSA8IE1BWF9TRU5TT1JfVFlQRTsgdHlwZSsrKSB7CisJ
-CWlmIChvZl9kZXZpY2VfaXNfY29tcGF0aWJsZShucCwgc2Vuc29yX2dyb3Vwc1t0eXBlXS5jb21w
-YXRpYmxlKSkKKwkJCXJldHVybiB0eXBlOworCX0KKwlyZXR1cm4gTUFYX1NFTlNPUl9UWVBFOwor
-fQorCiBzdGF0aWMgaW50IHBvcHVsYXRlX2F0dHJfZ3JvdXBzKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
-Y2UgKnBkZXYpCiB7CiAJc3RydWN0IHBsYXRmb3JtX2RhdGEgKnBkYXRhID0gcGxhdGZvcm1fZ2V0
-X2RydmRhdGEocGRldik7CkBAIC0xODEsMTIgKzE5Miw5IEBAIHN0YXRpYyBpbnQgcG9wdWxhdGVf
-YXR0cl9ncm91cHMoc3RydWN0IHAKIAkJaWYgKG5wLT5uYW1lID09IE5VTEwpCiAJCQljb250aW51
-ZTsKIAotCQlmb3IgKHR5cGUgPSAwOyB0eXBlIDwgTUFYX1NFTlNPUl9UWVBFOyB0eXBlKyspCi0J
-CQlpZiAob2ZfZGV2aWNlX2lzX2NvbXBhdGlibGUobnAsCi0JCQkJCXNlbnNvcl9ncm91cHNbdHlw
-ZV0uY29tcGF0aWJsZSkpIHsKLQkJCQlzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrKzsK
-LQkJCQlicmVhazsKLQkJCX0KKwkJdHlwZSA9IGdldF9zZW5zb3JfdHlwZShucCk7CisJCWlmICh0
-eXBlICE9IE1BWF9TRU5TT1JfVFlQRSkKKwkJCXNlbnNvcl9ncm91cHNbdHlwZV0uYXR0cl9jb3Vu
-dCsrOwogCX0KIAogCW9mX25vZGVfcHV0KG9wYWwpOwpAQCAtMjM2LDExICsyNDQsNyBAQCBzdGF0
-aWMgaW50IGNyZWF0ZV9kZXZpY2VfYXR0cnMoc3RydWN0IHBsCiAJCWlmIChucC0+bmFtZSA9PSBO
-VUxMKQogCQkJY29udGludWU7CiAKLQkJZm9yICh0eXBlID0gMDsgdHlwZSA8IE1BWF9TRU5TT1Jf
-VFlQRTsgdHlwZSsrKQotCQkJaWYgKG9mX2RldmljZV9pc19jb21wYXRpYmxlKG5wLAotCQkJCQlz
-ZW5zb3JfZ3JvdXBzW3R5cGVdLmNvbXBhdGlibGUpKQotCQkJCWJyZWFrOwotCisJCXR5cGUgPSBn
-ZXRfc2Vuc29yX3R5cGUobnApOwogCQlpZiAodHlwZSA9PSBNQVhfU0VOU09SX1RZUEUpCiAJCQlj
-b250aW51ZTsKIAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+From: Kamil Debski <k.debski@samsung.com>
+
+Add pwm-fan node to the Odroid-U3 board file to enable PWM control of the
+cooling fan. In addition, add the "pwm" label to the pwm@139D0000 node
+in the exynos4412.dtsi.
+
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+---
+Changes since v1:
+- added pwm label to the pwm@139D0000 node in exynos4.dtsi
+- use the pwm label in the exynos4412-odroidu3.dts
+- change order or properties in the pwn-fan node, to be sorted
+  in alphabetical order
+Changes for v5:
+- Adding Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+- status = "okay"; dropped from the patch
+Changes for v6:
+- None
+
+---
+ arch/arm/boot/dts/exynos4.dtsi            |  2 +-
+ arch/arm/boot/dts/exynos4412-odroidu3.dts | 12 ++++++++++++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 690f56c..a93f5ca5 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -599,7 +599,7 @@
+ 		status = "disabled";
+ 	};
+ 
+-	pwm@139D0000 {
++	pwm: pwm@139D0000 {
+ 		compatible = "samsung,exynos4210-pwm";
+ 		reg = <0x139D0000 0x1000>;
+ 		interrupts = <0 37 0>, <0 38 0>, <0 39 0>, <0 40 0>, <0 41 0>;
+diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+index 44684e5..4c04837 100644
+--- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
++++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+@@ -31,6 +31,18 @@
+ 			linux,default-trigger = "heartbeat";
+ 		};
+ 	};
++
++	pwm-fan {
++		compatible = "pwm-fan";
++		pwms = <&pwm 0 10000 0>;
++	};
++};
++
++&pwm {
++	pinctrl-0 = <&pwm0_out>;
++	pinctrl-names = "default";
++	samsung,pwm-outputs = <0>;
++	status = "okay";
+ };
+ 
+ &usb3503 {
+-- 
+2.0.0.rc2
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
