@@ -1,86 +1,86 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 19 Mar 2015 14:30:19 +0000
-Subject: [lm-sensors] [PATCH v3 3/4] hwmon: (lm85) use find_closest() in x_TO_REG() functions
-Message-Id: <1426775420-31350-4-git-send-email-bgolaszewski@baylibre.com>
+From: Lukasz Majewski <l.majewski@samsung.com>
+Date: Wed, 04 Mar 2015 12:03:41 +0000
+Subject: [lm-sensors] [PATCH RESEND v6 3/6] ARM: dts: Add properties to use pwm-fan device as a cooling devic
+Message-Id: <1425470624-25793-4-git-send-email-l.majewski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+ <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
+In-Reply-To: <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
+Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
 
-Replace RANGE_TO_REG() and FREQ_TO_REG() implementations with
-calls to find_closest().
+With those bindings it is possible to use pwm-fan device available in
+Odroid U3 as a cooling device.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/hwmon/lm85.c | 26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+Changes for v2:
+- Rename cooling-pwm-values property to cooling-levels
+Changes for v3:
+- Change patch's topic to "ARM dts"
+- Reduce maximal cooling-level to 230 from 255
+Changes for v4:
+- None
+Changes for v5:
+- None
+Changes for v6:
+- None
+---
+ arch/arm/boot/dts/exynos4412-odroidu3.dts | 33 ++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-index 2b4b419..6ff773f 100644
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -34,6 +34,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/util_macros.h>
+diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+index 4c04837..abcfa3c 100644
+--- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
++++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
+@@ -32,9 +32,40 @@
+ 		};
+ 	};
  
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
-@@ -190,15 +191,7 @@ static const int lm85_range_map[] = {
- 
- static int RANGE_TO_REG(long range)
- {
--	int i;
--
--	/* Find the closest match */
--	for (i = 0; i < 15; ++i) {
--		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
--			break;
--	}
--
--	return i;
-+	return find_closest(range, lm85_range_map, ARRAY_SIZE(lm85_range_map));
- }
- #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
- 
-@@ -209,16 +202,12 @@ static const int lm85_freq_map[8] = { /* 1 Hz */
- static const int adm1027_freq_map[8] = { /* 1 Hz */
- 	11, 15, 22, 29, 35, 44, 59, 88
+-	pwm-fan {
++	fan0: pwm-fan {
+ 		compatible = "pwm-fan";
+ 		pwms = <&pwm 0 10000 0>;
++		cooling-min-state = <0>;
++		cooling-max-state = <3>;
++		#cooling-cells = <2>;
++		cooling-levels = <0 102 170 230>;
++	};
++
++	thermal-zones {
++		cpu_thermal: cpu-thermal {
++			cooling-maps {
++				map0 {
++				     trip = <&cpu_alert1>;
++				     cooling-device = <&cpu0 7 7>;
++				};
++				map1 {
++				     trip = <&cpu_alert2>;
++				     cooling-device = <&cpu0 13 13>;
++				};
++				map2 {
++				     trip = <&cpu_alert0>;
++				     cooling-device = <&fan0 0 1>;
++				};
++				map3 {
++				     trip = <&cpu_alert1>;
++				     cooling-device = <&fan0 1 2>;
++				};
++				map4 {
++				     trip = <&cpu_alert2>;
++				     cooling-device = <&fan0 2 3>;
++				};
++			};
++		};
+ 	};
  };
-+#define FREQ_MAP_LEN	8
  
--static int FREQ_TO_REG(const int *map, unsigned long freq)
-+static int FREQ_TO_REG(const int *map,
-+		       unsigned int map_size, unsigned long freq)
- {
--	int i;
--
--	/* Find the closest match */
--	for (i = 0; i < 7; ++i)
--		if (freq <= (map[i] + map[i + 1]) / 2)
--			break;
--	return i;
-+	return find_closest(freq, map, map_size);
- }
- 
- static int FREQ_FROM_REG(const int *map, u8 reg)
-@@ -828,7 +817,8 @@ static ssize_t set_pwm_freq(struct device *dev,
- 		data->cfg5 &= ~ADT7468_HFPWM;
- 		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
- 	} else {					/* Low freq. mode */
--		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map, val);
-+		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map,
-+						 FREQ_MAP_LEN, val);
- 		lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
- 				 (data->zone[nr].range << 4)
- 				 | data->pwm_freq[nr]);
 -- 
-2.1.4
+2.0.0.rc2
 
 
 _______________________________________________
