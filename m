@@ -1,111 +1,74 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Mar 2015 18:42:54 +0000
-Subject: Re: [lm-sensors] Problem with IT8620E
-Message-Id: <20150320184254.GB22907@roeck-us.net>
+From: Jon Torrey <jonutorrey@gmail.com>
+Date: Thu, 05 Mar 2015 16:48:48 +0000
+Subject: [lm-sensors] W83627DHG unable to load driver
+Message-Id: <CAP1ifE+haCeVp12UPK9kzMeoEV93PgVnFbjoLED2hePgtfg6gg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <55080544.5020202@alexander-bruns.de>
-In-Reply-To: <55080544.5020202@alexander-bruns.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCBNYXIgMjAsIDIwMTUgYXQgMDU6Mjk6NDZQTSArMDEwMCwgQWxleGFuZGVyIEJydW5z
-IHdyb3RlOgo+IEhpIGxtX3NlbnNvcnMtbGlzdC4KPiAKPiBJIGNvbnRhY3RlZCBHaWdhYnl0ZS1T
-dXBwb3J0IG9uIHRoaXMgdG9waWMgdmlhOgo+IGh0dHA6Ly93d3cuZ2lnYWJ5dGUuZGUvc3VwcG9y
-dC1kb3dubG9hZHMvdGVjaG5pY2FsLXN1cHBvcnQuYXNweAo+IAo+IEkgdGhpbmsgaXQgaXMgd29y
-dGgsIHRoYXQgc29tZSBvZiB0aGUgbG1fc2Vuc29ycy1kZXZlbG9wZXIgd291bGQgYXNrCj4gZGly
-ZWN0bHkgYXQgdGhlIHN1cHBvcnQgZm9yIHN1cHBvcnRpbmcgZGF0YSB0byBkZXZlbG9wZSBhIHdv
-cmtpbmcgZHJpdmVyLgo+IAo+IFRoaXMgaXMgd2hhdCBJIGdvdCBmcm9tIHRoZW06Cj4gCj4gLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIDg8IFNjaG5pcHAgODwgLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tCj4gCj4gRGVhciBNci4gQnJ1bnMsCj4gCj4gVXBkYXRlOgo+IAo+IE91ciBoYXJk
-d2FyZSB0ZWFtIGRpZCByZXBseToKPiBGaXJzdCwgd2UgZG9u4oCZdCBndWFyYW50ZWUgdGhpcmQg
-cGFydHkgUy9XIHBlcmZvcm1hbmNlLgo+IAo+IFNlY29uZCwganVzdCBmb3VuZCBzb21lIGluZm8u
-IG9mIExNIHNlbnNvcnMgb24gb3VyIE1CIHRoYXQgaXMgY29uZmlybWVkCj4gd29ya2luZywgaG9w
-ZSB0aGlzIGNhbiBoZWxwIHRoZSB1c2VyOgo+IAo+IGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlz
-dHMvbG0tc2Vuc29ycy9tc2c0MjQ5My5odG1sCj4gCj4gVGhpcmQsIHdlIGRvbuKAmXQga25vdyB3
-aGF0IGV4YWN0IGluZm8uIG9yIHZhbHVlIExNIHNlbnNvcnMgbmVlZHMsIHNvIHRoZQo+IHJlcXVl
-c3QgaXMgdG9vIHJvdWdoLgo+IAo+IFNvIGlmIHVzZXIgaGFzIHRyb3VibGUgdG8gdXNlIExNIHNl
-bnNvcnMgb24gb3VyIE1CLCBwbGVhc2Ugc3VnZ2VzdCB1c2VyIHRvCj4gY29udGFjdCBMTSBzZW5z
-b3JzIGFuZCBhc2sgdGhlaXIgdGVhbSB0byBjb250YWN0IHVzLgo+IAoKRG8geW91IGhhdmUgYSBj
-b250YWN0IG5hbWUgb3IgY2FzZSBudW1iZXIgPwoKR3VlbnRlcgoKPiBJbiB0aGF0IHdheSB3ZSBj
-YW4gZ2V0IGEgY2xlYXJlciBpbWFnZSBvZiB0aGUgaW5mby4gdGhleSBuZWVkIGZvcgo+IHByb2dy
-YW1taW5nLgo+IAo+IFRoYW5rIHlvdS4KPiAKPiAKPiAKPiBUaGFuayB5b3UgZm9yIGVtYWlsaW5n
-IEdJR0FCWVRFLgo+IFdlIGFyZSBkZWxpZ2h0ZWQgd2l0aCB5b3VyIGludGVyZXN0IGluIG91ciBw
-cm9kdWN0cy4KPiAKPiBXZSBmb3J3YXJkZWQgdG8gb3VyIGhhcmR3YXJlIHRlYW0uCj4gV2lsbCBj
-b21lIGJhY2sgdG8geW91IG9uY2UgdGhleSByZXBseS4KPiAKPiBSZWdhcmRzCj4gCj4gR0lBR0JZ
-VEUgVGVhbQo+IAo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSA4PCBTY2huYXBwIDg8IC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IAo+IEdyZWV0aW5ncwo+IAo+IEFsZXhhbmRlcgo+
-IAo+IEFtIDE3LjAzLjIwMTUgdW0gMTQ6NDQgc2NocmllYiBHdWVudGVyIFJvZWNrOgo+ID5PbiAw
-My8xNy8yMDE1IDAzOjQzIEFNLCBBbGV4YW5kZXIgQnJ1bnMgd3JvdGU6Cj4gPj5IaSwKPiA+Pgo+
-ID4+SSBoYXZlIGEgTWFpbmJvYXJkIGZyb20gR2lnYWJ5dGUgd2hpY2ggaXMgdGhpcyBvbmU6Cj4g
-Pj4KPiA+PkdBLVo5N1gtR2FtaW5nIEcxIFdJRkktQksKPiA+Pgo+ID4+SSBhbSBydW5uaW5nIHRo
-ZSBib2FyZCB3aXRoIGdlbnRvby1saW51eCBhbmQgMy4xOC4zIEtlcm5lbAo+ID4+Cj4gPj4KPiA+
-Pkl0IGhhcyBJVEUgODYyMCBvbmJvYXJkOgo+ID4+Cj4gPlsgLi4uIF0KPiA+Pgo+ID4+SSB0cnkg
-dG8gdXNlIGl0IGxpa2Ugc3RhdGVkIGluIHRoZSBkZXZpY2Ugb3ZlcnZpZXcgYXMgSVRFIDg3MjgK
-PiA+Pgo+ID4+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIDg8IFNjaG5pcHAgODwgLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPj5ob2xvZGVjayB+ICMgY2F0IC9ldGMvbW9kcHJvYmUu
-ZC9sbV9zZW5zb3JzLmNvbmYKPiA+Pm9wdGlvbnMgaXQ4NyBmb3JjZV9pZD0weDg3MjgKPiA+Pi0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSA4PCBTY2huYXBwIDg8IC0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQo+ID4+Cj4gPj4KPiA+Pgo+ID4+Cj4gPj5IZXJlIGlzIG15IE91dHB1dCBvZiBz
-ZW5zb3JzOgo+ID4+Cj4gPj4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gODwgU2NobmlwcCA4
-PCAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiA+PmhvbG9kZWNrIH4gIyBzZW5zb3JzCj4g
-Pj5hY3BpdHotdmlydHVhbC0wCj4gPj5BZGFwdGVyOiBWaXJ0dWFsIGRldmljZQo+ID4+dGVtcDE6
-ICAgICAgICArMjcuOMKwQyAgKGNyaXQgPSArMTA1LjDCsEMpCj4gPj50ZW1wMjogICAgICAgICsy
-OS44wrBDICAoY3JpdCA9ICsxMDUuMMKwQykKPiA+Pgo+ID4+aXQ4NzI4LWlzYS0wYTMwCj4gPj5B
-ZGFwdGVyOiBJU0EgYWRhcHRlcgo+ID4+aW4wOiAgICAgICAgICArMC4wNSBWICAobWluID0gICsw
-LjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+aW4xOiAgICAgICAgICArMi4wMiBWICAobWluID0g
-ICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+aW4yOiAgICAgICAgICArMi4wMyBWICAobWlu
-ID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+aW4zOiAgICAgICAgICArMi4wMCBWICAo
-bWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+aW40OiAgICAgICAgICArMC4wMSBW
-ICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+aW41OiAgICAgICAgICArMS43
-MyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+aW42OiAgICAgICAgICAr
-MS41MSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+ID4+M1ZTQjogICAgICAg
-ICArMy4zOCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNi4xMiBWKQo+ID4+VmJhdDogICAg
-ICAgICArMi45OCBWCj4gPj5mYW4xOiAgICAgICAgIDYyNyBSUE0gIChtaW4gPSAgIDEwIFJQTSkK
-PiA+PmZhbjI6ICAgICAgICAgNjA3IFJQTSAgKG1pbiA9ICAgMTAgUlBNKQo+ID4+ZmFuMzogICAg
-ICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCj4gPj5mYW40OiAgICAgICAgICAgMCBSUE0g
-IChtaW4gPSAgICAwIFJQTSkKPiA+PmZhbjU6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAg
-UlBNKQo+ID4+dGVtcDE6ICAgICAgICArMzQuMMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2gg
-PSArMTI3LjDCsEMpICBzZW5zb3IgPQo+ID4+dGhlcm1pc3Rvcgo+ID4+dGVtcDI6ICAgICAgICAr
-NTEuMMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPQo+
-ID4+dGhlcm1pc3Rvcgo+ID4+dGVtcDM6ICAgICAgIC0xMjguMMKwQyAgKGxvdyAgPSArMTI3LjDC
-sEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPQo+ID4+SW50ZWwgUEVDSQo+ID4+aW50cnVz
-aW9uMDogIEFMQVJNCj4gPj4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gODwgU2NobmFwcCA4
-PCAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiA+Pgo+ID4+Cj4gPj5Ob3cgdGhlIFByb2Js
-ZW06Cj4gPj4KPiA+PlRoZSBCb2FyZCBoYXMgdGhlIHBvc3NpYmlsaXR5IHRvIGNvbm5lY3QgNSBD
-YXNlIEZhbnMgYW5kIDIgQ1BVIEZhbnMKPiA+Pgo+ID4+SSBoYXZlIDEgQ1BVLUZhbiBhbmQgMyBD
-YXNlIEZhbnMuCj4gPj4KPiA+PkNQVS1GYW4gaGFzIDQgcG93ZXItbGFuZXMsIGNhc2UtZmFucyBo
-YXZlIGFsbCAzIHBvd2VyLWxhbmVzCj4gPj53aGVyZSA0IGFyZSBwb3NzaWJsZQo+ID4+Cj4gPj5m
-YW4xIGFib3ZlIGluIHNlbnNvcnMtb3V0cHV0IGlzIHRoZSBzYW1lIGFzIFNZU19GQU4yLCBzbyBh
-IGNhc2UtZmFuCj4gPj5mYW4yIGFib3ZlIGluIHNlbnNvcnMtb3V0cHV0IGlzIHRoZSBzYW1lIGFz
-IFNZU19GQU4zLCBzbyBhIGNhc2UtZmFuLgo+ID4+Cj4gPj5JIHRyaWVkIHRvIHN0b3AgdGhlIGZh
-bnMgdG8gc2VlIHdoaWNoIG9uZSBvZiB0aGUgdHdvIHNob3duIGJ5IHNlbnNvcnMKPiA+PmlzIHdo
-aWNoIG9uZSBpbiB0aGUgaGFyZHdhcmUgSSBoYXZlLgo+ID4+Cj4gPj5TbyBvbmUgY2FzZS1mYW4g
-aXMgbWlzc2luZyBhbmQgISEhIENQVS1GYW4gaXMgbWlzc2luZyBoZXJlLgo+ID4+Cj4gPgo+ID5Z
-b3UgY291bGQgdHJ5IHRvIGNvbm5lY3QgdGhlIGNwdSBmYW4gdG8gdGhlIG90aGVyIGNwdSBmYW4g
-Y29ubmVjdG9yIHRvIHNlZQo+ID5pZiBpdCBzaG93cyB1cC4KPiA+Cj4gPj5JIGFsc28gdHJpZWQg
-dG8gYXBwbHkgdGhpcyBwYXRjaCB0byB0aGUga2VybmVsOgo+ID4+aHR0cDovL3d3dy5zcGluaWNz
-Lm5ldC9saXN0cy9sbS1zZW5zb3JzL21zZzQzMTY3Lmh0bWwKPiA+Pgo+ID4+SSB0aGVuIHNlZSBp
-biBzZW5zb3JzIHRoZSBzYW1lIG91dHB1dCwgYnV0IGluc3RlYWQgb2YKPiA+Pml0ODcyOC1pc2Et
-MGEzMAo+ID4+SSBzZWUKPiA+Pml0ODYyMC1pc2EtMGEzMAo+ID4+Cj4gPlRoZSBvbmx5IHJlYWwg
-ZGlmZmVyZW5jZSBpcyB0byBhZGQgc3VwcG9ydCBmb3IgdGhlIG5ldyBJRCwgc28gdGhpcyBpcwo+
-ID5ub3Qgc3VycHJpc2luZy4KPiA+Cj4gPkJlc2lkZXMgdGhlIGZhbiBwcm9ibGVtLCB0aGUgQ1BV
-IHRlbXBlcmF0dXJlIGRpc3BsYXkgaXMgd3JvbmcgYXMgd2VsbC4KPiA+Cj4gPj5TbyBJIHdvdWxk
-IGxpa2UgdG8gZG8gdGVzdHMgZm9yIHlvdSB0ZSBnZXQgYSB3b3JraW5nCj4gPj5wYXRjaCBmb3Ig
-SVRFIDg2MjBFCj4gPgo+ID4gRnJvbSB0aGUgYWJvdmUsIEkgdGhpbmsgd2UgaGF2ZSB0byBjb25j
-bHVkZSB0aGF0IHRoZSA4NjIwIGlzbid0IGFzIGNsb3NlCj4gPnRvIHRoZSA4NzI4IGFzIHdlIHdv
-dWxkIGxpa2UsIGFuZCB0aGF0IHdlIGRvIG5vdCBoYXZlIGVub3VnaCBpbmZvcm1hdGlvbgo+ID5h
-Ym91dCB0aGUgODYyMCB0byBhZGQgc3VwcG9ydCBmb3IgaXQgdG8gdGhlIGtlcm5lbC4KPiA+Cj4g
-PlVuZm9ydHVuYXRlbHksIHRoZSBjaGlwIHdhcyBtYWRlIGJ5IElURSBzcGVjaWZpY2FsbHkgZm9y
-IEdpZ2FieXRlLAo+ID5hbmQgbmVpdGhlciBJVEUgbm9yIEdpZ2FieXRlIGFyZSBsaWtlbHkgdG8g
-cmVsZWFzZSB0aGUgZGF0YXNoZWV0Lgo+ID5Vbmxlc3Mgc29tZW9uZSBzdGVwcyB1cCBhbmQgcHJv
-dmlkZXMgdGhlIGluZm9ybWF0aW9uIHdlIHdvdWxkIG5lZWQsCj4gPkkgc2VlIGxpdHRsZSBjaGFu
-Y2UgdGhhdCB3ZSB3aWxsIGJlIGFibGUgdG8gbWFrZSB0aGUgbmVjZXNzYXJ5IGNoYW5nZXMKPiA+
-dG8gdGhlIGRyaXZlci4KPiA+Cj4gPkd1ZW50ZXIKPiA+Cj4gCj4gX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+
-IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
-bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnM
+Hi everyone,
+
+I am having some serious problems trying to get a sensor to work under
+Ubuntu 14.04 with kernel 3.13.11
+
+Below is a link of my post with details.  I did not want to spam the
+mailing list with a large message so I am sorry if I broke any rules on
+sharing links or re-directing.
+
+http://ubuntuforums.org/showthread.php?t"67869
+
+In a nutshell - my BIOS sees my Super I/O chip but I have been unable to
+load the driver.
+
+modprobe w83627ehf returns an error with nothing on dmesg  | tail
+
+modprobe w83627hf returns an error with the following on dmesg | tail -
+
+*[  186.231514] usb 1-1.1: SerialNumber: DEMO00000000*
+*[  303.998858] EXT4-fs (sdb2): error count since last fsck: 12*
+*[  303.998882] EXT4-fs (sdb2): initial error at time 1424366987:
+ext4_journal_check_start:56*
+*[  303.998889] EXT4-fs (sdb2): last error at time 1424457489:
+ext4_remount:4819*
+*[ 1056.137920] w83627hf: Base address not set, skipping*
+*[ 1664.413904] ACPI Warning: 0x000000000000f040-0x000000000000f05f
+SystemIO conflicts with Region \_SB_.PCI0.SBUS.SMBI 1
+(20131115/utaddress-251)*
+*[ 1664.413923] ACPI: This conflict may cause random problems and system
+instability*
+*[ 1664.413927] ACPI: If an ACPI driver is available for this device, you
+should use it instead of the native driver*
+*[ 1664.413994] i801_smbus 0000:00:1f.3: SMBus using PCI Interrupt*
+*[ 1664.422417] i2c /dev entries driver*
+
+sensors-detect outputs the following - I will only show the Super I/O
+portion since it is quite long.
+
+*Some Super I/O chips contain embedded sensors. We have to write to*
+*standard I/O ports to probe them. This is usually safe.*
+*Do you want to scan for Super I/O sensors? (YES/no): Probing for Super-I/O
+at 0x2e/0x2f*
+*Trying family `National Semiconductor/ITE'...               No*
+*Trying family `SMSC'...                                     No*
+*Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes*
+*Found `Winbond W83627HF/F/HG/G Super IO Sensors'            *
+*    (but not activated)*
+*Probing for Super-I/O at 0x4e/0x4f*
+*Trying family `National Semiconductor/ITE'...               No*
+*Trying family `SMSC'...                                     No*
+*Trying family `VIA/Winbond/Nuvoton/Fintek'...               No*
+*Trying family `ITE'...                                      No*
+
+I've tried a numerous amount of things, but in the end it seems that nobody
+else has the exact same problem I do.  I haven't ran into any posts that
+say people have the *but not activated *after detecting a sensor.
+
+Anything to debug this would be a fantastic help.  Thanks all.
+
+JT
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
