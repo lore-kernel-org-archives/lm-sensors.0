@@ -1,7 +1,7 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 03 Mar 2015 09:26:22 +0000
+Date: Thu, 05 Mar 2015 08:34:05 +0000
 Subject: Re: [lm-sensors] Patch and Upstart file for healthd.sh
-Message-Id: <20150303102622.46d35d00@endymion.delvare>
+Message-Id: <20150305093405.78aae251@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20150226233151.GA17731@alpha.somenet.pw>
 In-Reply-To: <20150226233151.GA17731@alpha.somenet.pw>
@@ -10,36 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 28 Feb 2015 15:45:41 +0100, Jean Delvare wrote:
-> On Sat, 28 Feb 2015 11:00:33 +0100, Jean Delvare wrote:
-> > On Fri, 27 Feb 2015 02:31:52 +0300, vbooh wrote:
-> > > A patch is for a decreasing of the resource consumption by healthd.sh; it replaces the external commands with the built-in Bash commands. It did not make a huge difference, but it was still useful in my case.
-> > 
-> > This is a sane goal, in fact we did similar changes to fancontrol some
-> > times ago for the same reason. Patch committed, thanks for your
-> > contribution. The read trick is very nice, I didn't know about it, I'll
-> > probably do the same in fancontrol as well as the current
-> > implementation was reported to cause problems.
-> 
-> Err, did you check the CPU consumption after applying your changes? I
-> did similar changes to fancontrol and it results in an increased CPU
-> consumption (37% of one CPU, compared to 0.3% before the changes) when
-> fancontrol is started as a daemon by systemd. Strangely I do not
-> observe this when running the script manually. I suppose "read" is
-> angry if stdin is closed :(
+Hi vbooh,
 
-I reverted to using regular sleep calls. However bash has optional
-builtin functions which can be loaded dynamically, and sleep is one of
-them. So we can try to load it if it is available, which should solve
-your problem. On openSUSE it is available in package bash-loadables, I
-don't know if other distributions package it or not.
+Adding the list back...
 
-The patch is here:
-http://www.lm-sensors.org/changeset/6275
+On Thu, 5 Mar 2015 01:59:29 +0300, vbooh wrote:
+> Yes, I have checked a CPU load after applying the patch, but mostly using a manual launch in a command line('perf stat', 'time' external utility). In a daemon mode in my case it really increased CPU load(from 0.1% to 4.5%), but until you said I just did not notice that, since it is not so much. My bad.
+> You were right, it looks like the 'read' command goes crazy without an attached terminal. I have found a pretty dirty hack around it, it requires some additional external utilities, but they are launched just once, not every 15 seconds, all the changes are in the attached patch. Now in a daemon mode 'healthd.sh' in my case consumes 0.0% of a CPU load.
 
-If you care about minor performance optimizations, you may also be
-interested in this cleanup:
-http://www.lm-sensors.org/changeset/6276
+I've looked around for such hacks and found several of them, including
+this one indeed. I agree it works and is probably the least ugly and
+unreliable, but it's still awkward compared to just calling sleep, and
+in my opinion it's not nice enough to go upstream. We may run in all
+kinds of compatibility and portability issues with that kind of code.
+
+> Yes, the 'sleep' external utility can be compiled in 'bash', it was the very first tought of mine. But in Debian this must be done separately after an installation of an additional packages and in CentOS 7 there are even not all the needed files in the repository, so I have striked out that idea.
+
+As far as I can see, Debian ships the loadable commands as source
+files, not binaries, in package bash-builtins, right?  That doesn't
+seem very useful :(
+
+I agree that the availability of the loadable builtins is limited.
+However I think this is a kind of chicken and egg problem:
+distributions don't care much because there aren't many users of that
+feature, and application authors don't want to use it because
+distributions don't support it.
+
+I'll talk to the upstream maintainers of bash about integrating it
+better in their build system, to get the ball rolling. I really think
+this is the way to go in the long term.
+
+> Anyway thank you for your work.
+
+You're welcome :)
 
 -- 
 Jean Delvare
