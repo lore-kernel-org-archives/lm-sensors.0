@@ -1,67 +1,47 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 18 Mar 2015 15:47:45 +0000
-Subject: [lm-sensors] [PATCH 5/5] hwmon: (ibmpowernv) do not use the OPAL index for hwmon attribute names
-Message-Id: <1426693665-10797-6-git-send-email-clg@fr.ibm.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Tue, 10 Mar 2015 17:27:22 +0000
+Subject: [lm-sensors] [PATCH v2 4/4] hwmon: (w83795) use find_closest_desc() in pwm_freq_to_reg()
+Message-Id: <1426008442-26236-5-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+References: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-VGhlIGN1cnJlbnQgT1BBTCBmaXJtd2FyZSBleHBvc2VzIHRoZSBkaWZmZXJlbnQgc2Vuc29ycyBv
-ZiBhbiBJQk0gUG93ZXIKc3lzdGVtIHVzaW5nIHRoZSBub2RlIG5hbWVzIHN1Y2ggYXMgOgoKCXNl
-bnNvcnMvYW1iLXRlbXAjMS1kYXRhCglzZW5zb3JzL2FtYi10ZW1wIzEtdGhycwoJY29vbGluZy1m
-YW4jMS1kYXRhCgljb29saW5nLWZhbiMxLWZhdWx0ZWQKCWNvb2xpbmctZmFuIzEtdGhycwoJY29v
-bGluZy1mYW4jMi1kYXRhCgkuLi4KClRoZSBpYm1wb3dlcm52IGRyaXZlciwgd2hlbiBsb2FkZWQs
-IHBhcnNlcyB0aGVzZSBuYW1lcyB0byBleHRyYWN0IHRoZQpzZW5zb3IgaW5kZXggYW5kIHRoZSBz
-ZW5zb3IgYXR0cmlidXRlIG5hbWUuIFVuZm9ydHVuYXRlbHksIHRoaXMgc2NoZW1lCm1ha2VzIGl0
-IGRpZmZpY3VsdCB0byBhZGQgc2Vuc29ycyB3aXRoIGEgZGlmZmVyZW50IGxheW91dCAoc3BlY2lh
-bGx5IG9mCnRoZSBzYW1lIHR5cGUsIGxpa2UgdGVtcGVyYXR1cmUpIGFzIHRoZSBzZW5zb3IgaW5k
-ZXggY2FsY3VsYXRlZCBpbiBPUEFMCmlzIGRpcmVjdGx5IHVzZWQgaW4gdGhlIGh3bW9uIHN5c2Zz
-IGludGVyZmFjZS4KCldoYXQgdGhpcyBwYXRjaCBkb2VzIGlzIGFkZCBhIGluZGVwZW5kZW50IGh3
-bW9uIGluZGV4IGZvciBlYWNoIHNlbnNvci4KVGhlIGluY3JlbWVudCBvZiB0aGUgaHdtb24gaW5k
-ZXggKHRlbXAsIGZhbiwgcG93ZXIsIGV0Yy4pIGlzIGtlcHQgcGVyCnNlbnNvciB0eXBlIGluIHRo
-ZSBzZW5zb3JfZ3JvdXAgdGFibGUuIFRoZSBzZW5zb3JfZGF0YSB0YWJsZSBpcyB1c2VkCnRvIHN0
-b3JlIHRoZSBhc3NvY2lhdGlvbiBvZiB0aGUgaHdtb24gYW5kIE9QQUwgaW5kZXhlcywgYXMgd2Ug
-bmVlZCB0bwpoYXZlIHRoZSBzYW1lIGh3bW9uIGluZGV4IGZvciBkaWZmZXJlbnQgYXR0cmlidXRl
-cyBvZiBhIHNhbWUgc2Vuc29yLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNs
-Z0Bmci5pYm0uY29tPgotLS0KIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgICAyMyArKysr
-KysrKysrKysrKysrKysrKysrLQogMSBmaWxlIGNoYW5nZWQsIDIyIGluc2VydGlvbnMoKyksIDEg
-ZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyBiL2Ry
-aXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCmluZGV4IDU3MGQyMzYwYjY5OC4uZmZjZWJjOWQ4YmY1
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYworKysgYi9kcml2ZXJzL2h3
-bW9uL2libXBvd2VybnYuYwpAQCAtNTUsNiArNTUsNyBAQCBzdGF0aWMgc3RydWN0IHNlbnNvcl9n
-cm91cCB7CiAJY29uc3QgY2hhciAqY29tcGF0aWJsZTsKIAlzdHJ1Y3QgYXR0cmlidXRlX2dyb3Vw
-IGdyb3VwOwogCXUzMiBhdHRyX2NvdW50OworCXUzMiBod21vbl9pbmRleDsKIH0gc2Vuc29yX2dy
-b3Vwc1tdID0gewogCXsiZmFuIiwgImlibSxvcGFsLXNlbnNvci1jb29saW5nLWZhbiJ9LAogCXsi
-dGVtcCIsICJpYm0sb3BhbC1zZW5zb3ItYW1iLXRlbXAifSwKQEAgLTY0LDYgKzY1LDggQEAgc3Rh
-dGljIHN0cnVjdCBzZW5zb3JfZ3JvdXAgewogCiBzdHJ1Y3Qgc2Vuc29yX2RhdGEgewogCXUzMiBp
-ZDsgLyogQW4gb3BhcXVlIGlkIG9mIHRoZSBmaXJtd2FyZSBmb3IgZWFjaCBzZW5zb3IgKi8KKwl1
-MzIgaHdtb25faW5kZXg7CisJdTMyIG9wYWxfaW5kZXg7CiAJZW51bSBzZW5zb3JzIHR5cGU7CiAJ
-Y2hhciBuYW1lW01BWF9BVFRSX0xFTl07CiAJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgZGV2X2F0
-dHI7CkBAIC0xODUsNiArMTg4LDE5IEBAIHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl90eXBlKHN0cnVj
-dCBkZXZpY2Vfbm9kZSAqbnApCiAJcmV0dXJuIE1BWF9TRU5TT1JfVFlQRTsKIH0KIAorc3RhdGlj
-IHUzMiBnZXRfc2Vuc29yX2h3bW9uX2luZGV4KHN0cnVjdCBzZW5zb3JfZGF0YSAqc2RhdGEsCisJ
-c3RydWN0IHNlbnNvcl9kYXRhICpzZGF0YV90YWJsZSwgaW50IGNvdW50KQoreworCWludCBpOwor
-CisJZm9yIChpID0gMDsgaSA8IGNvdW50OyBpKyspCisJCWlmIChzZGF0YV90YWJsZVtpXS5vcGFs
-X2luZGV4ID09IHNkYXRhLT5vcGFsX2luZGV4ICYmCisJCSAgICBzZGF0YV90YWJsZVtpXS50eXBl
-ID09IHNkYXRhLT50eXBlKQorCQkJcmV0dXJuIHNkYXRhX3RhYmxlW2ldLmh3bW9uX2luZGV4Owor
-CisJcmV0dXJuICsrc2Vuc29yX2dyb3Vwc1tzZGF0YS0+dHlwZV0uaHdtb25faW5kZXg7Cit9CisK
-IHN0YXRpYyBpbnQgcG9wdWxhdGVfYXR0cl9ncm91cHMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAq
-cGRldikKIHsKIAlzdHJ1Y3QgcGxhdGZvcm1fZGF0YSAqcGRhdGEgPSBwbGF0Zm9ybV9nZXRfZHJ2
-ZGF0YShwZGV2KTsKQEAgLTI3NCw4ICsyOTAsMTMgQEAgc3RhdGljIGludCBjcmVhdGVfZGV2aWNl
-X2F0dHJzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCQlnb3RvIGV4aXRfcHV0X25v
-ZGU7CiAJCX0KIAorCQlzZGF0YVtjb3VudF0ub3BhbF9pbmRleCA9IG9wYWxfaW5kZXg7CisJCXNk
-YXRhW2NvdW50XS5od21vbl9pbmRleCA9CisJCQlnZXRfc2Vuc29yX2h3bW9uX2luZGV4KCZzZGF0
-YVtjb3VudF0sIHNkYXRhLCBjb3VudCk7CisKIAkJc25wcmludGYoc2RhdGFbY291bnRdLm5hbWUs
-IE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAotCQkJIHNlbnNvcl9ncm91cHNbdHlwZV0ubmFtZSwg
-b3BhbF9pbmRleCwgYXR0cl9uYW1lKTsKKwkJCSBzZW5zb3JfZ3JvdXBzW3R5cGVdLm5hbWUsIHNk
-YXRhW2NvdW50XS5od21vbl9pbmRleCwKKwkJCSBhdHRyX25hbWUpOwogCiAJCXN5c2ZzX2F0dHJf
-aW5pdCgmc2RhdGFbY291bnRdLmRldl9hdHRyLmF0dHIpOwogCQlzZGF0YVtjb3VudF0uZGV2X2F0
-dHIuYXR0ci5uYW1lID0gc2RhdGFbY291bnRdLm5hbWU7Ci0tIAoxLjcuMTAuNAoKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
-ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
-b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Replace the loop iterating over pwm_freq_cksel0 with a call to
+find_closest_desc().
+
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/w83795.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/w83795.c b/drivers/hwmon/w83795.c
+index 2189413..1f0b301 100644
+--- a/drivers/hwmon/w83795.c
++++ b/drivers/hwmon/w83795.c
+@@ -308,11 +308,8 @@ static u8 pwm_freq_to_reg(unsigned long val, u16 clkin)
+ 	unsigned long best0, best1;
+ 
+ 	/* Best fit for cksel = 0 */
+-	for (reg0 = 0; reg0 < ARRAY_SIZE(pwm_freq_cksel0) - 1; reg0++) {
+-		if (val > (pwm_freq_cksel0[reg0] +
+-			   pwm_freq_cksel0[reg0 + 1]) / 2)
+-			break;
+-	}
++	reg0 = find_closest_desc(val, pwm_freq_cksel0,
++				 ARRAY_SIZE(pwm_freq_cksel0));
+ 	if (val < 375)	/* cksel = 1 can't beat this */
+ 		return reg0;
+ 	best0 = pwm_freq_cksel0[reg0];
+-- 
+2.1.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
