@@ -1,35 +1,25 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Mar 2015 04:05:23 +0000
-Subject: Re: [lm-sensors] [PATCH 0/5] hwmon: (ibmpowernv) remove dependency on OPAL index
-Message-Id: <550A4B03.5070306@roeck-us.net>
+From: Marcin Nowak <galandilias@gmail.com>
+Date: Wed, 11 Mar 2015 17:00:28 +0000
+Subject: [lm-sensors] SB800 support
+Message-Id: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
- <1426693665-10797-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1426693665-10797-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?Q8OpZHJpYyBMZSBHb2F0ZXI=?= <clg@fr.ibm.com>, lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+To: lm-sensors@vger.kernel.org
 
-T24gMDMvMTgvMjAxNSAwODo0NyBBTSwgQ8OpZHJpYyBMZSBHb2F0ZXIgd3JvdGU6Cj4gSGVsbG8g
-IQo+Cj4gVGhlIGN1cnJlbnQgaW1wbGVtZW50YXRpb24gb2YgdGhlIGRyaXZlciB1c2VzIGFuIGlu
-ZGV4IGZvciB0aGUgaHdtb24KPiBhdHRyaWJ1dGUgd2hpY2ggaXMgZXh0cmFjdGVkIGZyb20gdGhl
-IGRldmljZSBub2RlIG5hbWUuIFRoaXMgaW5kZXgKPiBpcyBjYWxjdWxhdGVkIGJ5IHRoZSBPUEFM
-IGZpcm13YXJlIGFuZCBpdHMgdXNhZ2UgY3JlYXRlcyBhIGRlcGVuZGVuY3kKPiB3aXRoIHRoZSBk
-cml2ZXIgd2hpY2ggbWFrZXMgY2hhbmdlcyBhIGxpdHRsZSBtb3JlIGNvbXBsZXggaW4gT1BBTC4K
-Pgo+IFRoaXMgcGF0Y2hzZXQgY2hhbmdlcyB0aGUgaWJtcG93ZXJudiBjb2RlIHRvIHVzZSBpdHMg
-b3duIGluZGV4LiBJdAo+IHN0YXJ0cyB3aXRoIGEgZmV3IGNsZWFudXBzLCBtb3N0bHkgY29kZSBz
-aHVmZmxpbmcgYXJvdW5kIHRoZSBjcmVhdGlvbgo+IG9mIHRoZSBod21vbiBzeXNmcyBhdHRyaWJ1
-dGVzIGFuZCBjb21wbGV0ZXMgYnkgcmVtb3ZpbmcgdGhlIGRlcGVuZGVuY3kuCj4KPiBJdCBhbHNv
-IHByZXBhcmVzIGdyb3VuZCBmb3IgZnV0dXJlIE9QQUwgY2hhbmdlcyA6Cj4KPiAgICAgaHR0cHM6
-Ly9saXN0cy5vemxhYnMub3JnL3BpcGVybWFpbC9za2lib290LzIwMTUtTWFyY2gvMDAwNjM5Lmh0
-bWwKPgo+IHdoaWNoIHdpbGwgYmUgYWRkcmVzc2VkIGluIGEgb3RoZXIgc21hbGwgcGF0Y2hzZXQu
-Cj4KPgo+IFRoZSBwYXRjaGVzIGFyZSBiYXNlZCBvbiBMaW51eCA0LjAuMC1yYzQgYW5kIHdlcmUg
-dGVzdGVkIG9uIElCTSBQb3dlcgo+IGFuZCBPcGVuIFBvd2VyIHN5c3RlbXMgcnVubmluZyBUcnVz
-dHkuCj4KCkkgY29tbWVudGVkIG9uIHR3byBvZiB0aGUgcGF0Y2hlczsgdGhlIG90aGVycyBhcmUg
-b2suCgpQbGVhc2UgcmUtc2VuZCB0aGUgZW50aXJlIHNlcmllcyBhZnRlciBhZGRyZXNzaW5nIG15
-IGNvbW1lbnRzLgoKVGhhbmtzLApHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+Hi,
+
+Here: http://www.lm-sensors.org/wiki/Devices you have information that as
+for full SB800 support Eddi De Pieri is working on the solution - last
+update of this I have found was nearly three years ago :) (
+http://marc.info/?l=linux-i2c&m4626228005697&w=2) so maybe as the
+anniversary is coming within three days you can post any update on this -
+can you? I am greatly interested in solving this.
+
+Regards,
+Marcin
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
