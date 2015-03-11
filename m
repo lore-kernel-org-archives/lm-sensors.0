@@ -1,66 +1,68 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Mar 2015 04:02:02 +0000
-Subject: Re: [lm-sensors] [PATCH 4/5] hwmon: (ibmpowernv) change create_hwmon_attr_name() prototype
-Message-Id: <550A4A3A.3090406@roeck-us.net>
+From: Craig MacFarlane <camacfarl@gmail.com>
+Date: Wed, 11 Mar 2015 18:36:28 +0000
+Subject: [lm-sensors] 3.x i2c-mux-pca954x vs 2.6.x i2c-pca954x
+Message-Id: <CAPQE1b92dT-MqOBBpNBtCuDYKJE1M5iQSyWO67ZOb7MsXMJD3A@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
- <1426693665-10797-5-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1426693665-10797-5-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?Q8OpZHJpYyBMZSBHb2F0ZXI=?= <clg@fr.ibm.com>, lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+To: lm-sensors@vger.kernel.org
 
-T24gMDMvMTgvMjAxNSAwODo0NyBBTSwgQ8OpZHJpYyBMZSBHb2F0ZXIgd3JvdGU6Cj4gSXQgc2lt
-cGxpZmllcyB0aGUgY3JlYXRpb24gb2YgdGhlIGh3bW9uIGF0dHJpYnV0ZXMgYW5kIHdpbGwgaGVs
-cCB3aGVuCj4gc3VwcG9ydCBmb3IgYSBuZXcgZGV2aWNlIHRyZWUgbGF5b3V0IGlzIGFkZGVkLiBU
-aGUgcGF0Y2ggYWxzbyBjaGFuZ2VzCj4gdGhlIG5hbWUgb2YgdGhlIHJvdXRpbmUgdG8gcGFyc2Vf
-b3BhbF9ub2RlX25hbWUoKS4KPgo+IFNpZ25lZC1vZmYtYnk6IEPDqWRyaWMgTGUgR29hdGVyIDxj
-bGdAZnIuaWJtLmNvbT4KPiAtLS0KPiAgIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgICAz
-MiArKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLQo+ICAgMSBmaWxlIGNoYW5nZWQsIDE4
-IGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-aHdtb24vaWJtcG93ZXJudi5jIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKPiBpbmRleCBl
-ZGNjNGZmYTVhZDAuLjU3MGQyMzYwYjY5OCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2h3bW9uL2li
-bXBvd2VybnYuYwo+ICsrKyBiL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCj4gQEAgLTE1NSwy
-OCArMTU1LDIyIEBAIHN0YXRpYyBjb25zdCBjaGFyICpjb252ZXJ0X29wYWxfYXR0cl9uYW1lKGVu
-dW0gc2Vuc29ycyB0eXBlLAo+ICAgICogd2hpY2ggbmVlZCB0byBiZSBtYXBwZWQgYXMgZmFuMl9p
-bnB1dCwgdGVtcDFfbWF4IHJlc3BlY3RpdmVseSBiZWZvcmUKPiAgICAqIHBvcHVsYXRpbmcgdGhl
-bSBpbnNpZGUgaHdtb24gZGV2aWNlIGNsYXNzLgo+ICAgICovCj4gLXN0YXRpYyBpbnQgY3JlYXRl
-X2h3bW9uX2F0dHJfbmFtZShzdHJ1Y3QgZGV2aWNlICpkZXYsIGVudW0gc2Vuc29ycyB0eXBlLAo+
-IC0JCQkJCSBjb25zdCBjaGFyICpub2RlX25hbWUsCj4gLQkJCQkJIGNoYXIgKmh3bW9uX2F0dHJf
-bmFtZSkKPiArc3RhdGljIGludCBwYXJzZV9vcGFsX25vZGVfbmFtZShjb25zdCBjaGFyICpub2Rl
-X25hbWUsIGVudW0gc2Vuc29ycyB0eXBlLAo+ICsJdTMyICppbmRleCwgY29uc3QgY2hhciAqKmh3
-bW9uX2F0dHJfbmFtZSkKPiAgIHsKClBsZWFzZSBoYXZlIHRoZSBmdW5jdGlvbiByZXR1cm4gY29u
-c3QgY2hhciAqIGFuZCBtZXJnZSB0aGUgZXJyb3IgY29kZSB3aXRoIEVSUl9QVFIuCgo+ICAgCWNo
-YXIgYXR0cl9zdWZmaXhbTUFYX0FUVFJfTEVOXTsKPiAgIAljb25zdCBjaGFyICphdHRyX25hbWU7
-Cj4gLQl1MzIgaW5kZXg7Cj4gICAJaW50IGVycjsKPgo+IC0JZXJyID0gZ2V0X3NlbnNvcl9pbmRl
-eF9hdHRyKG5vZGVfbmFtZSwgJmluZGV4LCBhdHRyX3N1ZmZpeCk7Cj4gLQlpZiAoZXJyKSB7Cj4g
-LQkJZGV2X2VycihkZXYsICJTZW5zb3IgZGV2aWNlIG5vZGUgbmFtZSAnJXMnIGlzIGludmFsaWRc
-biIsCj4gLQkJCW5vZGVfbmFtZSk7Cj4gKwllcnIgPSBnZXRfc2Vuc29yX2luZGV4X2F0dHIobm9k
-ZV9uYW1lLCBpbmRleCwgYXR0cl9zdWZmaXgpOwo+ICsJaWYgKGVycikKPiAgIAkJcmV0dXJuIGVy
-cjsKPiAtCX0KPgo+ICAgCWF0dHJfbmFtZSA9IGNvbnZlcnRfb3BhbF9hdHRyX25hbWUodHlwZSwg
-YXR0cl9zdWZmaXgpOwo+ICAgCWlmICghYXR0cl9uYW1lKQo+ICAgCQlyZXR1cm4gLUVOT0VOVDsK
-Pgo+IC0Jc25wcmludGYoaHdtb25fYXR0cl9uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwK
-PiAtCQkgc2Vuc29yX2dyb3Vwc1t0eXBlXS5uYW1lLCBpbmRleCwgYXR0cl9uYW1lKTsKPiArCSpo
-d21vbl9hdHRyX25hbWUgPSBhdHRyX25hbWU7Cj4gICAJcmV0dXJuIDA7Cj4gICB9Cj4KPiBAQCAt
-MjUyLDYgKzI0Niw5IEBAIHN0YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpwZGV2KQo+ICAgCX0KPgo+ICAgCWZvcl9lYWNoX2NoaWxkX29mX25vZGUo
-b3BhbCwgbnApIHsKPiArCQljb25zdCBjaGFyICphdHRyX25hbWU7Cj4gKwkJdTMyIG9wYWxfaW5k
-ZXg7Cj4gKwo+ICAgCQlpZiAobnAtPm5hbWUgPT0gTlVMTCkKPiAgIAkJCWNvbnRpbnVlOwo+Cj4g
-QEAgLTI2OCwxMCArMjY1LDE3IEBAIHN0YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhzdHJ1
-Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+Cj4gICAJCXNkYXRhW2NvdW50XS5pZCA9IHNlbnNv
-cl9pZDsKPiAgIAkJc2RhdGFbY291bnRdLnR5cGUgPSB0eXBlOwo+IC0JCWVyciA9IGNyZWF0ZV9o
-d21vbl9hdHRyX25hbWUoJnBkZXYtPmRldiwgdHlwZSwgbnAtPm5hbWUsCj4gLQkJCQkJICAgICBz
-ZGF0YVtjb3VudF0ubmFtZSk7Cj4gLQkJaWYgKGVycikKPiArCj4gKwkJZXJyID0gcGFyc2Vfb3Bh
-bF9ub2RlX25hbWUobnAtPm5hbWUsIHR5cGUsICZvcGFsX2luZGV4LAo+ICsJCQkJCSAgICZhdHRy
-X25hbWUpOwo+ICsJCWlmIChlcnIpIHsKPiArCQkJZGV2X2VycigmcGRldi0+ZGV2LCAiU2Vuc29y
-IGRldmljZSBub2RlIG5hbWUgJyVzJyBpcyBpbnZhbGlkXG4iLAo+ICsJCQkJbnAtPm5hbWUpOwo+
-ICAgCQkJZ290byBleGl0X3B1dF9ub2RlOwo+ICsJCX0KPiArCj4gKwkJc25wcmludGYoc2RhdGFb
-Y291bnRdLm5hbWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAo+ICsJCQkgc2Vuc29yX2dyb3Vw
-c1t0eXBlXS5uYW1lLCBvcGFsX2luZGV4LCBhdHRyX25hbWUpOwo+Cj4gICAJCXN5c2ZzX2F0dHJf
-aW5pdCgmc2RhdGFbY291bnRdLmRldl9hdHRyLmF0dHIpOwo+ICAgCQlzZGF0YVtjb3VudF0uZGV2
-X2F0dHIuYXR0ci5uYW1lID0gc2RhdGFbY291bnRdLm5hbWU7Cj4KCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Folks, I'm trying to migrate to the 3.x kernel and I have
+some software that wants to instantiate the virtual
+bus driver for pca954x devices.
+
+I used to do this as so...
+
+  modprobe i2c-pca954x force_pca9548=0,0x77
+
+That no longer works as the force parameter has
+gone away.  Fair enough.  But I can't seem to find
+the magic incantation to make this work in the
+new_device mechanism.
+
+I've tried many variations
+
+  modprobe i2c-mux-pca954x
+  echo i2c-mux-pca954x 0x77 > /sys/bus/i2c/devices/i2c-0/new_device
+
+and
+
+  modprobe i2c-mux-pca954x
+  echo i2c-mux-pca9548 0x77 > /sys/bus/i2c/devices/i2c-0/new_device
+
+and
+
+  echo i2c-mux-pca954x 0x77 > /sys/bus/i2c/devices/i2c-0/new_device
+  modprobe i2c-mux-pca954x
+
+and
+
+  echo i2c-mux-pca9548 0x77 > /sys/bus/i2c/devices/i2c-0/new_device
+  modprobe i2c-mux-pca954x
+
+I do have the i2c-dev module loaded when all of this is attempted.
+
+Example lsmod
+
+[RP_0:~]$ lsmod
+Module                  Size  Used by
+i2c_mux_pca954x         2592  0
+i2c_dev                 6427  0
+i2c_i801                8794  0
+
+Nothing above creates the /dev nodes for i2c-1 through 8.
+
+I have instrumented the i2c_mux_pca954x driver to show if it's probe
+is ever being called and the answer is no and trying to work back through
+the chain of calls from i2c_sysfs_new_device() to an actual device probe
+is eluding me.
+
+Anyone have any idea how to make this work?
+
+Thanks,
+Craig
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
