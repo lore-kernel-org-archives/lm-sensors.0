@@ -1,36 +1,55 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 03 Mar 2015 15:03:38 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Nuvoton chip updates
-Message-Id: <20150303160338.4c8ad310@endymion.delvare>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Wed, 18 Mar 2015 15:47:43 +0000
+Subject: [lm-sensors] [PATCH 3/5] hwmon: (ibmpowernv) add a convert_opal_attr_name() routine
+Message-Id: <1426693665-10797-4-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1404094141-28146-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1404094141-28146-1-git-send-email-linux@roeck-us.net>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-On Tue, 03 Mar 2015 16:10:49 +0300, Vadim V. Vlasov wrote:
-> Hi Jean!
-> 
-> On Tue, 2015-03-03 at 09:15 +0100, Jean Delvare wrote:
-> 
-> > Do you have a full register dump of the NCT7904D that you could share
-> > with me? Or maybe Vadim does?
-> > 
-> 
-> Please find the dump below.
-> The rest of the banks are the same as bank 5 (except for the bank
-> number at 0xff).
-
-Thanks Vadim. FYI you can pass the bank register and value to i2cdump
-so you don't need to call i2cset beforehand.
-
--- 
-Jean Delvare
-SUSE L3 Support
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SXQgc2ltcGxpZmllcyB0aGUgY3JlYXRlX2h3bW9uX2F0dHJfbmFtZSgpIHJvdXRpbmUgYW5kIGl0
+IGNsZWFybHkgaXNvbGF0ZXMKdGhlIGNvbnZlcnNpb24gZG9uZSBiZXR3ZWVuIHRoZSBPUEFMIG5v
+ZGUgbmFtZXMgYW5kIGh3bW9uIGF0dHJpYnV0ZXMgbmFtZXMuCgpTaWduZWQtb2ZmLWJ5OiBDw6lk
+cmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9od21vbi9pYm1wb3dl
+cm52LmMgfCAgIDM5ICsrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLQogMSBm
+aWxlIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52
+LmMKaW5kZXggMDdhODIxOWI3ZjRlLi5lZGNjNGZmYTVhZDAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
+aHdtb24vaWJtcG93ZXJudi5jCisrKyBiL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCkBAIC0x
+MjcsNiArMTI3LDI4IEBAIHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl9pbmRleF9hdHRyKGNvbnN0IGNo
+YXIgKm5hbWUsIHUzMiAqaW5kZXgsCiAJcmV0dXJuIDA7CiB9CiAKK3N0YXRpYyBjb25zdCBjaGFy
+ICpjb252ZXJ0X29wYWxfYXR0cl9uYW1lKGVudW0gc2Vuc29ycyB0eXBlLAorCQkJCQljb25zdCBj
+aGFyICpvcGFsX2F0dHIpCit7CisJY29uc3QgY2hhciAqYXR0cl9uYW1lID0gTlVMTDsKKworCWlm
+ICghc3RyY21wKG9wYWxfYXR0ciwgRFRfRkFVTFRfQVRUUl9TVUZGSVgpKSB7CisJCWF0dHJfbmFt
+ZSA9ICJmYXVsdCI7CisJfSBlbHNlIGlmICghc3RyY21wKG9wYWxfYXR0ciwgRFRfREFUQV9BVFRS
+X1NVRkZJWCkpIHsKKwkJYXR0cl9uYW1lID0gImlucHV0IjsKKwl9IGVsc2UgaWYgKCFzdHJjbXAo
+b3BhbF9hdHRyLCBEVF9USFJFU0hPTERfQVRUUl9TVUZGSVgpKSB7CisJCWlmICh0eXBlID09IFRF
+TVApCisJCQlhdHRyX25hbWUgPSAibWF4IjsKKwkJZWxzZSBpZiAodHlwZSA9PSBGQU4pCisJCQlh
+dHRyX25hbWUgPSAibWluIjsKKwkJZWxzZQorCQkJcmV0dXJuIE5VTEw7CisJfSBlbHNlIHsKKwkJ
+cmV0dXJuIE5VTEw7CisJfQorCXJldHVybiBhdHRyX25hbWU7Cit9CisKIC8qCiAgKiBUaGlzIGZ1
+bmN0aW9uIHRyYW5zbGF0ZXMgdGhlIERUIG5vZGUgbmFtZSBpbnRvIHRoZSAnaHdtb24nIGF0dHJp
+YnV0ZSBuYW1lLgogICogSUJNUE9XRVJOViBkZXZpY2Ugbm9kZSBhcHBlYXIgbGlrZSBjb29saW5n
+LWZhbiMyLWRhdGEsIGFtYi10ZW1wIzEtdGhycyBldGMuCkBAIC0xMzgsNyArMTYwLDcgQEAgc3Rh
+dGljIGludCBjcmVhdGVfaHdtb25fYXR0cl9uYW1lKHN0cnVjdCBkZXZpY2UgKmRldiwgZW51bSBz
+ZW5zb3JzIHR5cGUsCiAJCQkJCSBjaGFyICpod21vbl9hdHRyX25hbWUpCiB7CiAJY2hhciBhdHRy
+X3N1ZmZpeFtNQVhfQVRUUl9MRU5dOwotCWNoYXIgKmF0dHJfbmFtZTsKKwljb25zdCBjaGFyICph
+dHRyX25hbWU7CiAJdTMyIGluZGV4OwogCWludCBlcnI7CiAKQEAgLTE0OSwyMCArMTcxLDkgQEAg
+c3RhdGljIGludCBjcmVhdGVfaHdtb25fYXR0cl9uYW1lKHN0cnVjdCBkZXZpY2UgKmRldiwgZW51
+bSBzZW5zb3JzIHR5cGUsCiAJCXJldHVybiBlcnI7CiAJfQogCi0JaWYgKCFzdHJjbXAoYXR0cl9z
+dWZmaXgsIERUX0ZBVUxUX0FUVFJfU1VGRklYKSkgewotCQlhdHRyX25hbWUgPSAiZmF1bHQiOwot
+CX0gZWxzZSBpZiAoIXN0cmNtcChhdHRyX3N1ZmZpeCwgRFRfREFUQV9BVFRSX1NVRkZJWCkpIHsK
+LQkJYXR0cl9uYW1lID0gImlucHV0IjsKLQl9IGVsc2UgaWYgKCFzdHJjbXAoYXR0cl9zdWZmaXgs
+IERUX1RIUkVTSE9MRF9BVFRSX1NVRkZJWCkpIHsKLQkJaWYgKHR5cGUgPT0gVEVNUCkKLQkJCWF0
+dHJfbmFtZSA9ICJtYXgiOwotCQllbHNlIGlmICh0eXBlID09IEZBTikKLQkJCWF0dHJfbmFtZSA9
+ICJtaW4iOwotCQllbHNlCi0JCQlyZXR1cm4gLUVOT0VOVDsKLQl9IGVsc2UgeworCWF0dHJfbmFt
+ZSA9IGNvbnZlcnRfb3BhbF9hdHRyX25hbWUodHlwZSwgYXR0cl9zdWZmaXgpOworCWlmICghYXR0
+cl9uYW1lKQogCQlyZXR1cm4gLUVOT0VOVDsKLQl9CiAKIAlzbnByaW50Zihod21vbl9hdHRyX25h
+bWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAogCQkgc2Vuc29yX2dyb3Vwc1t0eXBlXS5uYW1l
+LCBpbmRleCwgYXR0cl9uYW1lKTsKLS0gCjEuNy4xMC40CgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
+c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9sbS1zZW5zb3Jz
