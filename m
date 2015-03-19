@@ -1,62 +1,45 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Tue, 10 Mar 2015 17:27:20 +0000
-Subject: [lm-sensors] [PATCH v2 2/4] hwmon: (ina2xx) replace ina226_avg_bits() with find_closest()
-Message-Id: <1426008442-26236-3-git-send-email-bgolaszewski@baylibre.com>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Thu, 19 Mar 2015 17:44:42 +0000
+Subject: [lm-sensors] [PATCH v2 2/5] hwmon: (ibmpowernv) add a get_sensor_type() routine
+Message-Id: <1426787085-9004-3-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Use find_closest() to locate the closest average in ina226_avg_tab.
-
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- drivers/hwmon/ina2xx.c | 16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index d1542b7..fc7f023 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -141,19 +141,6 @@ static const struct ina2xx_config ina2xx_config[] = {
-  */
- static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
- 
--static int ina226_avg_bits(int avg)
--{
--	int i;
--
--	/* Get the closest average from the tab. */
--	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab) - 1; i++) {
--		if (avg <= (ina226_avg_tab[i] + ina226_avg_tab[i + 1]) / 2)
--			break;
--	}
--
--	return i; /* Return 0b0111 for values greater than 1024. */
--}
--
- static int ina226_reg_to_interval(u16 config)
- {
- 	int avg = ina226_avg_tab[INA226_READ_AVG(config)];
-@@ -171,7 +158,8 @@ static u16 ina226_interval_to_reg(int interval, u16 config)
- 
- 	avg = DIV_ROUND_CLOSEST(interval * 1000,
- 				INA226_TOTAL_CONV_TIME_DEFAULT);
--	avg_bits = ina226_avg_bits(avg);
-+	avg_bits = find_closest(avg, ina226_avg_tab,
-+				ARRAY_SIZE(ina226_avg_tab));
- 
- 	return (config & ~INA226_AVG_RD_MASK) | INA226_SHIFT_AVG(avg_bits);
- }
--- 
-2.1.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SXQgd2lsbCBoZWxwIGluIGFkZGluZyBkaWZmZXJlbnQgY29tcGF0aWJsZSBwcm9wZXJ0aWVzLCBj
+b21pbmcgZnJvbSBhCm5ldyBkZXZpY2UgdHJlZSBsYXlvdXQgZm9yIGV4YW1wbGUuCgpTaWduZWQt
+b2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9o
+d21vbi9pYm1wb3dlcm52LmMgfCAgIDI2ICsrKysrKysrKysrKysrKy0tLS0tLS0tLS0tCiAxIGZp
+bGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pCgpJbmRleDogbGlu
+dXguZ2l0L2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCj09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4Lmdp
+dC5vcmlnL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCisrKyBsaW51eC5naXQvZHJpdmVycy9o
+d21vbi9pYm1wb3dlcm52LmMKQEAgLTE2OSw2ICsxNjksMTcgQEAgc3RhdGljIGludCBjcmVhdGVf
+aHdtb25fYXR0cl9uYW1lKHN0cnVjdAogCXJldHVybiAwOwogfQogCitzdGF0aWMgaW50IGdldF9z
+ZW5zb3JfdHlwZShzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wKQoreworCWVudW0gc2Vuc29ycyB0eXBl
+OworCisJZm9yICh0eXBlID0gMDsgdHlwZSA8IE1BWF9TRU5TT1JfVFlQRTsgdHlwZSsrKSB7CisJ
+CWlmIChvZl9kZXZpY2VfaXNfY29tcGF0aWJsZShucCwgc2Vuc29yX2dyb3Vwc1t0eXBlXS5jb21w
+YXRpYmxlKSkKKwkJCXJldHVybiB0eXBlOworCX0KKwlyZXR1cm4gTUFYX1NFTlNPUl9UWVBFOwor
+fQorCiBzdGF0aWMgaW50IHBvcHVsYXRlX2F0dHJfZ3JvdXBzKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
+Y2UgKnBkZXYpCiB7CiAJc3RydWN0IHBsYXRmb3JtX2RhdGEgKnBkYXRhID0gcGxhdGZvcm1fZ2V0
+X2RydmRhdGEocGRldik7CkBAIC0xODEsMTIgKzE5Miw5IEBAIHN0YXRpYyBpbnQgcG9wdWxhdGVf
+YXR0cl9ncm91cHMoc3RydWN0IHAKIAkJaWYgKG5wLT5uYW1lID09IE5VTEwpCiAJCQljb250aW51
+ZTsKIAotCQlmb3IgKHR5cGUgPSAwOyB0eXBlIDwgTUFYX1NFTlNPUl9UWVBFOyB0eXBlKyspCi0J
+CQlpZiAob2ZfZGV2aWNlX2lzX2NvbXBhdGlibGUobnAsCi0JCQkJCXNlbnNvcl9ncm91cHNbdHlw
+ZV0uY29tcGF0aWJsZSkpIHsKLQkJCQlzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrKzsK
+LQkJCQlicmVhazsKLQkJCX0KKwkJdHlwZSA9IGdldF9zZW5zb3JfdHlwZShucCk7CisJCWlmICh0
+eXBlICE9IE1BWF9TRU5TT1JfVFlQRSkKKwkJCXNlbnNvcl9ncm91cHNbdHlwZV0uYXR0cl9jb3Vu
+dCsrOwogCX0KIAogCW9mX25vZGVfcHV0KG9wYWwpOwpAQCAtMjM2LDExICsyNDQsNyBAQCBzdGF0
+aWMgaW50IGNyZWF0ZV9kZXZpY2VfYXR0cnMoc3RydWN0IHBsCiAJCWlmIChucC0+bmFtZSA9PSBO
+VUxMKQogCQkJY29udGludWU7CiAKLQkJZm9yICh0eXBlID0gMDsgdHlwZSA8IE1BWF9TRU5TT1Jf
+VFlQRTsgdHlwZSsrKQotCQkJaWYgKG9mX2RldmljZV9pc19jb21wYXRpYmxlKG5wLAotCQkJCQlz
+ZW5zb3JfZ3JvdXBzW3R5cGVdLmNvbXBhdGlibGUpKQotCQkJCWJyZWFrOwotCisJCXR5cGUgPSBn
+ZXRfc2Vuc29yX3R5cGUobnApOwogCQlpZiAodHlwZSA9PSBNQVhfU0VOU09SX1RZUEUpCiAJCQlj
+b250aW51ZTsKIAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
