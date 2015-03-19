@@ -1,87 +1,76 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 07:53:03 +0000
-Subject: Re: [lm-sensors] Report: fan control for IT8620E
-Message-Id: <551900DF.3030404@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 14:30:17 +0000
+Subject: [lm-sensors] [PATCH v3 1/4] util_macros.h: add find_closest() macro
+Message-Id: <1426775420-31350-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAKkLDw6p8auatr7YNMM5aO0v=qA8bkXpznLPwbh0PBo8Z8dpiQ@mail.gmail.com>
-In-Reply-To: <CAKkLDw6p8auatr7YNMM5aO0v=qA8bkXpznLPwbh0PBo8Z8dpiQ@mail.gmail.com>
+References: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On 03/30/2015 12:25 AM, Jean Delvare wrote:
-> Hi Dan,
->
-> On Thu, 19 Mar 2015 17:44:40 +0200, Dan Moinescu wrote:
->> Here's a report on how I managed to control the CPU fan on a
->> motherboard with the IT8620E chip, as suggested by the lm-sensors
->> wiki: `you can try loading the it87 driver with force_id=0x8728 and
->> see how it goes. If you do, please report, including the output of
->> "sensors"`.
->>
->> First, a quick word on the hardware used. The motherboard is a
->> Gigabyte GA-B85M-DS3H
->> (http://www.gigabyte.com/products/product-page.aspx?pidG31)  and the
->> CPU cooler is an Arctic Cooling Alpine 11 Plus
->> (http://www.arctic.ac/eu_en/alpine-11-plus.html)
->> According to the cooler's technical data, the fan can run at speeds
->> between 500 - 2,000 RPM. However, the BIOS/EFI/UEFI (whatever the
->> proper name is nowadays) would not let me set the PWM value to less
->> than 70, which produces a fan speed of about 1300 RPM (too noisy for
->> my taste).
->> So below is a description of what I did to bring the fan to minimum
->> speed. This was done strictly by trial and error; I do not claim this
->> is the only (or the best) method, it just works for me.
->>
->> sensors-detect reported "Found unknown chip with ID 0x8620".
->> I inserted the it87 module as directed by the wiki page:
->> modprobe it87 force_id=0x8728
->> After this I tried pwmconfig, but it didn't succeed in controlling the
->> fan (it brought it up to full speed and left it in that state). So
->> then I tried a manual approach.
->>
->> Inserting the module creates a directory inside /sys, such as
->> /sys/devices/platform/it87.2608/:
->>      sysdir=$(find /sys/ -name it87.\* -type d)
->> Controlling the fans is possible by modifying various files (mainly
->> pwm1) inside that directory.
->>
->> The first step is to modify the value inside pwm1_enable from 2 to 1.
->> This is needed because if pwm1_enable is left at its initial value
->> (2), pwm1 cannot be changed (attempting to do that produces a "Device
->> or resource busy" error).
->>      echo 1 > $sysdir/pwm1_enable
->
-> This is expected, mode 2 is an automatic (hardware-driven) fan control
-> mode so the pwm1 file is essentially read-only in that mode.
->
->> Next the desired pwm value can be written into $sysdir/pwm1. Anything
->> from 0-8 puts the fan at full speed, and 9 puts it to around 1600 RPM.
->> Values from 10-255 seem to act as actual pwm values. Initial value was
->> 70 (the value set in BIOS).
->>      echo 10 > $sysdir/pwm1
->
-> Now that is weird and this is why pwmconfig got confused. The script
-> typically sets pwmN to 0 and checks if any fan speed wnet down. If
-> setting pwm1 to 0 puts the fan to full speed then the script
-> erroneously concluded that the pwm1 output did not control any fan.
->
-> We do not have a datasheet for this part (although Gigabyte offered to
-> provide some information about it) and from your results it's hard to
-> figure out how the register works. I would understand if values 0-127
-> do something and values 128-255 do something else (high bit has a
-> special meaning) or if odd values do something and even values do
-> something else (low bit has a special meaning) but your findings are
-> nothing like that.
->
+Searching for the member of an array closest to 'x' is
+duplicated in several places.
 
-It might be that this is a fan specialty, ie that the fan acts odd if
-presented with low duty cycles. Another might be that the low pwm values
-are lower than some minimum programmed into the chip, and that this causes
-the odd behavior. No idea which register that might be, though.
+Add a new include - util_macros.h - and two macros that
+implement this algorithm for arrays sorted both in ascending
+and descending order.
 
-Guenter
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ include/linux/util_macros.h | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+ create mode 100644 include/linux/util_macros.h
+
+diff --git a/include/linux/util_macros.h b/include/linux/util_macros.h
+new file mode 100644
+index 0000000..f2097ce
+--- /dev/null
++++ b/include/linux/util_macros.h
+@@ -0,0 +1,39 @@
++#ifndef _LINUX_HELPER_MACROS_H_
++#define _LINUX_HELPER_MACROS_H_
++
++#define __find_closest(x, a, as, op)(					\
++{									\
++	typeof(as) _i, _as = (as) - 1;					\
++	typeof(x) _x = (x);						\
++	typeof(*a) *_a = (a);						\
++	for (_i = 0; _i < _as; _i++) {					\
++		if (_x op DIV_ROUND_CLOSEST(_a[_i] + _a[_i + 1], 2))	\
++			break;						\
++	}								\
++	(_i);								\
++})
++
++/*
++ * find_closest - locate the closest element in a sorted array
++ * @x: The reference value.
++ * @a: The array in which to look for the closest element. Must be sorted
++ *  in ascending order.
++ * @as: Size of 'a'.
++ *
++ * Returns the index of the element closest to 'x'.
++ */
++#define find_closest(x, a, as) __find_closest(x, a, as, <=)
++
++/*
++ * find_closest_descending - locate the closest element in a sorted array
++ * @x: The reference value.
++ * @a: The array in which to look for the closest element. Must be sorted
++ *  in descending order.
++ * @as: Size of 'a'.
++ *
++ * Similar to get_closest() but 'a' is expected to be sorted in descending
++ * order.
++ */
++#define find_closest_descending(x, a, as) __find_closest(x, a, as, >)
++
++#endif
+-- 
+2.1.4
 
 
 _______________________________________________
