@@ -1,55 +1,54 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 19 Mar 2015 17:27:45 +0000
-Subject: [lm-sensors] [PATCH v4 5/5] hwmon: (w83795) use find_closest_descending() in pwm_freq_to_reg()
-Message-Id: <1426786065-9798-6-git-send-email-bgolaszewski@baylibre.com>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Thu, 19 Mar 2015 17:44:43 +0000
+Subject: [lm-sensors] [PATCH v2 3/5] hwmon: (ibmpowernv) add a convert_opal_attr_name() routine
+Message-Id: <1426787085-9004-4-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Replace the loop iterating over pwm_freq_cksel0 with a call to
-find_closest_descending().
-
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- drivers/hwmon/w83795.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/hwmon/w83795.c b/drivers/hwmon/w83795.c
-index 2189413..49276bb 100644
---- a/drivers/hwmon/w83795.c
-+++ b/drivers/hwmon/w83795.c
-@@ -35,6 +35,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/jiffies.h>
-+#include <linux/util_macros.h>
- 
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = {
-@@ -308,11 +309,8 @@ static u8 pwm_freq_to_reg(unsigned long val, u16 clkin)
- 	unsigned long best0, best1;
- 
- 	/* Best fit for cksel = 0 */
--	for (reg0 = 0; reg0 < ARRAY_SIZE(pwm_freq_cksel0) - 1; reg0++) {
--		if (val > (pwm_freq_cksel0[reg0] +
--			   pwm_freq_cksel0[reg0 + 1]) / 2)
--			break;
--	}
-+	reg0 = find_closest_descending(val, pwm_freq_cksel0,
-+				       ARRAY_SIZE(pwm_freq_cksel0));
- 	if (val < 375)	/* cksel = 1 can't beat this */
- 		return reg0;
- 	best0 = pwm_freq_cksel0[reg0];
--- 
-2.1.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SXQgc2ltcGxpZmllcyB0aGUgY3JlYXRlX2h3bW9uX2F0dHJfbmFtZSgpIHJvdXRpbmUgYW5kIGl0
+IGNsZWFybHkgaXNvbGF0ZXMKdGhlIGNvbnZlcnNpb24gZG9uZSBiZXR3ZWVuIHRoZSBPUEFMIG5v
+ZGUgbmFtZXMgYW5kIGh3bW9uIGF0dHJpYnV0ZXMgbmFtZXMuCgpTaWduZWQtb2ZmLWJ5OiBDw6lk
+cmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQoKQ2hhbmdlcyBzaW5jZSB2MToKCiAt
+IGZpeGVkIGFsaWdubWVudAogLSBraWxsZWQgYSBjb3VwbGUgb2YgdXNlbGVzcyAicmV0dXJuIE5V
+TEwiCgogZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgfCAgIDM2ICsrKysrKysrKysrKysrKysr
+KysrKystLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDIyIGluc2VydGlvbnMoKyksIDE0
+IGRlbGV0aW9ucygtKQoKSW5kZXg6IGxpbnV4LmdpdC9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYu
+Ywo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09Ci0tLSBsaW51eC5naXQub3JpZy9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYu
+YworKysgbGludXguZ2l0L2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCkBAIC0xMjcsNiArMTI3
+LDI1IEBAIHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl9pbmRleF9hdHRyKGNvbnN0IGMKIAlyZXR1cm4g
+MDsKIH0KIAorc3RhdGljIGNvbnN0IGNoYXIgKmNvbnZlcnRfb3BhbF9hdHRyX25hbWUoZW51bSBz
+ZW5zb3JzIHR5cGUsCisJCQkJCSAgY29uc3QgY2hhciAqb3BhbF9hdHRyKQoreworCWNvbnN0IGNo
+YXIgKmF0dHJfbmFtZSA9IE5VTEw7CisKKwlpZiAoIXN0cmNtcChvcGFsX2F0dHIsIERUX0ZBVUxU
+X0FUVFJfU1VGRklYKSkgeworCQlhdHRyX25hbWUgPSAiZmF1bHQiOworCX0gZWxzZSBpZiAoIXN0
+cmNtcChvcGFsX2F0dHIsIERUX0RBVEFfQVRUUl9TVUZGSVgpKSB7CisJCWF0dHJfbmFtZSA9ICJp
+bnB1dCI7CisJfSBlbHNlIGlmICghc3RyY21wKG9wYWxfYXR0ciwgRFRfVEhSRVNIT0xEX0FUVFJf
+U1VGRklYKSkgeworCQlpZiAodHlwZSA9PSBURU1QKQorCQkJYXR0cl9uYW1lID0gIm1heCI7CisJ
+CWVsc2UgaWYgKHR5cGUgPT0gRkFOKQorCQkJYXR0cl9uYW1lID0gIm1pbiI7CisJfQorCisJcmV0
+dXJuIGF0dHJfbmFtZTsKK30KKwogLyoKICAqIFRoaXMgZnVuY3Rpb24gdHJhbnNsYXRlcyB0aGUg
+RFQgbm9kZSBuYW1lIGludG8gdGhlICdod21vbicgYXR0cmlidXRlIG5hbWUuCiAgKiBJQk1QT1dF
+Uk5WIGRldmljZSBub2RlIGFwcGVhciBsaWtlIGNvb2xpbmctZmFuIzItZGF0YSwgYW1iLXRlbXAj
+MS10aHJzIGV0Yy4KQEAgLTEzOCw3ICsxNTcsNyBAQCBzdGF0aWMgaW50IGNyZWF0ZV9od21vbl9h
+dHRyX25hbWUoc3RydWN0CiAJCQkJCSBjaGFyICpod21vbl9hdHRyX25hbWUpCiB7CiAJY2hhciBh
+dHRyX3N1ZmZpeFtNQVhfQVRUUl9MRU5dOwotCWNoYXIgKmF0dHJfbmFtZTsKKwljb25zdCBjaGFy
+ICphdHRyX25hbWU7CiAJdTMyIGluZGV4OwogCWludCBlcnI7CiAKQEAgLTE0OSwyMCArMTY4LDkg
+QEAgc3RhdGljIGludCBjcmVhdGVfaHdtb25fYXR0cl9uYW1lKHN0cnVjdAogCQlyZXR1cm4gZXJy
+OwogCX0KIAotCWlmICghc3RyY21wKGF0dHJfc3VmZml4LCBEVF9GQVVMVF9BVFRSX1NVRkZJWCkp
+IHsKLQkJYXR0cl9uYW1lID0gImZhdWx0IjsKLQl9IGVsc2UgaWYgKCFzdHJjbXAoYXR0cl9zdWZm
+aXgsIERUX0RBVEFfQVRUUl9TVUZGSVgpKSB7Ci0JCWF0dHJfbmFtZSA9ICJpbnB1dCI7Ci0JfSBl
+bHNlIGlmICghc3RyY21wKGF0dHJfc3VmZml4LCBEVF9USFJFU0hPTERfQVRUUl9TVUZGSVgpKSB7
+Ci0JCWlmICh0eXBlID09IFRFTVApCi0JCQlhdHRyX25hbWUgPSAibWF4IjsKLQkJZWxzZSBpZiAo
+dHlwZSA9PSBGQU4pCi0JCQlhdHRyX25hbWUgPSAibWluIjsKLQkJZWxzZQotCQkJcmV0dXJuIC1F
+Tk9FTlQ7Ci0JfSBlbHNlIHsKKwlhdHRyX25hbWUgPSBjb252ZXJ0X29wYWxfYXR0cl9uYW1lKHR5
+cGUsIGF0dHJfc3VmZml4KTsKKwlpZiAoIWF0dHJfbmFtZSkKIAkJcmV0dXJuIC1FTk9FTlQ7Ci0J
+fQogCiAJc25wcmludGYoaHdtb25fYXR0cl9uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwK
+IAkJIHNlbnNvcl9ncm91cHNbdHlwZV0ubmFtZSwgaW5kZXgsIGF0dHJfbmFtZSk7CgoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
+aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
+cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
