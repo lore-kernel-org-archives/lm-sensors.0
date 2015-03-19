@@ -1,39 +1,77 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 21:50:37 +0000
-Subject: Re: [lm-sensors] [PATCH 06/15] hwmon: (it87) Add support for IT8620E
-Message-Id: <5519C52D.2060608@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 17:27:41 +0000
+Subject: [lm-sensors] [PATCH v4 1/5] util_macros.h: add find_closest() macro
+Message-Id: <1426786065-9798-2-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427697235-23566-7-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1427697235-23566-7-git-send-email-linux@roeck-us.net>
+References: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-On 03/29/2015 11:33 PM, Guenter Roeck wrote:
-> IT8620E is mostly compatible to IT7828F. Add generic support for it.
->
-> IT8620E supports up to 6 fan tachometers and 6 pwm controls.
-> Support for the 6th tachometer and for the additional pwm controls
-> are addded in separate patches.
->
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
+Searching for the member of an array closest to 'x' is
+duplicated in several places.
 
-[ ... ]
+Add a new include - util_macros.h - and two macros that
+implement this algorithm for arrays sorted both in ascending
+and descending order.
 
-> +	} else if (sio_data->type = it8620) {
-> +		int reg;
-> +
-> +		superio_select(GPIO);
-> +
-> +		/* Check for fan4, fan5 */
-> +		reg = superio_inb(IT87_SIO_GPIO2_REG);
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ include/linux/util_macros.h | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
+ create mode 100644 include/linux/util_macros.h
 
-To safe reviewers some time ... IT87_SIO_GPIO2_REG is only introduced
-in a later patch, breaking ability to bisect. I fixed it up.
-
-Guenter
+diff --git a/include/linux/util_macros.h b/include/linux/util_macros.h
+new file mode 100644
+index 0000000..d5f4fb6
+--- /dev/null
++++ b/include/linux/util_macros.h
+@@ -0,0 +1,40 @@
++#ifndef _LINUX_HELPER_MACROS_H_
++#define _LINUX_HELPER_MACROS_H_
++
++#define __find_closest(x, a, as, op)					\
++({									\
++	typeof(as) __fc_i, __fc_as = (as) - 1;				\
++	typeof(x) __fc_x = (x);						\
++	typeof(*a) *__fc_a = (a);					\
++	for (__fc_i = 0; __fc_i < __fc_as; __fc_i++) {			\
++		if (__fc_x op DIV_ROUND_CLOSEST(__fc_a[__fc_i] +	\
++						__fc_a[__fc_i + 1], 2))	\
++			break;						\
++	}								\
++	(__fc_i);							\
++})
++
++/**
++ * find_closest - locate the closest element in a sorted array
++ * @x: The reference value.
++ * @a: The array in which to look for the closest element. Must be sorted
++ *  in ascending order.
++ * @as: Size of 'a'.
++ *
++ * Returns the index of the element closest to 'x'.
++ */
++#define find_closest(x, a, as) __find_closest(x, a, as, <=)
++
++/**
++ * find_closest_descending - locate the closest element in a sorted array
++ * @x: The reference value.
++ * @a: The array in which to look for the closest element. Must be sorted
++ *  in descending order.
++ * @as: Size of 'a'.
++ *
++ * Similar to find_closest() but 'a' is expected to be sorted in descending
++ * order.
++ */
++#define find_closest_descending(x, a, as) __find_closest(x, a, as, >=)
++
++#endif
+-- 
+2.1.4
 
 
 _______________________________________________
