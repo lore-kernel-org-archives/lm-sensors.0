@@ -1,23 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 06:33:40 +0000
-Subject: [lm-sensors] [PATCH 00/15] hwmon: (it87) Various enhancements and fixes
-Message-Id: <1427697235-23566-1-git-send-email-linux@roeck-us.net>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Thu, 19 Mar 2015 17:44:41 +0000
+Subject: [lm-sensors] [PATCH v2 1/5] hwmon: (ibmpowernv) replace AMBIENT_TEMP by TEMP
+Message-Id: <1426787085-9004-2-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Patch 1 and 2 are bug fixes.
-Patch 3 and 4 are cleanup patches to simplify adding new chips to the driver.
-Patch 5 adds support for IT8790E.
-Patch 6 to 9 add and improve support for IT8620E.
-Patch 10 adds support for the second pwm frequency configuration register
-supported by recent ITE chips.
-Patches 11 to 14 add support for a second Super-IO chip at SIO address 0x4e.
-Patch 15 rearranges the code to avoid forward declarations.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+QW1iaWVudCBpcyB0b28gcmVzdHJpY3RpdmUgYXMgdGhlcmUgY2FuIGJlIG90aGVyIHRlbXBlcmF0
+dXJlIGNoYW5uZWxzIDoKY29yZSwgbWVtb3J5LCBldGMuCgpTaWduZWQtb2ZmLWJ5OiBDw6lkcmlj
+IExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9od21vbi9pYm1wb3dlcm52
+LmMgfCAgICA2ICsrKy0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxl
+dGlvbnMoLSkKCkluZGV4OiBsaW51eC5naXQvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKPT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PQotLS0gbGludXguZ2l0Lm9yaWcvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysr
+IGxpbnV4LmdpdC9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwpAQCAtNDQsNyArNDQsNyBAQAog
+ICovCiBlbnVtIHNlbnNvcnMgewogCUZBTiwKLQlBTUJJRU5UX1RFTVAsCisJVEVNUCwKIAlQT1dF
+Ul9TVVBQTFksCiAJUE9XRVJfSU5QVVQsCiAJTUFYX1NFTlNPUl9UWVBFLApAQCAtODcsNyArODcs
+NyBAQCBzdGF0aWMgc3NpemVfdCBzaG93X3NlbnNvcihzdHJ1Y3QgZGV2aWNlCiAJCXJldHVybiBy
+ZXQ7CiAKIAkvKiBDb252ZXJ0IHRlbXBlcmF0dXJlIHRvIG1pbGxpLWRlZ3JlZXMgKi8KLQlpZiAo
+c2RhdGEtPnR5cGUgPT0gQU1CSUVOVF9URU1QKQorCWlmIChzZGF0YS0+dHlwZSA9PSBURU1QKQog
+CQl4ICo9IDEwMDA7CiAJLyogQ29udmVydCBwb3dlciB0byBtaWNyby13YXR0cyAqLwogCWVsc2Ug
+aWYgKHNkYXRhLT50eXBlID09IFBPV0VSX0lOUFVUKQpAQCAtMTU0LDcgKzE1NCw3IEBAIHN0YXRp
+YyBpbnQgY3JlYXRlX2h3bW9uX2F0dHJfbmFtZShzdHJ1Y3QKIAl9IGVsc2UgaWYgKCFzdHJjbXAo
+YXR0cl9zdWZmaXgsIERUX0RBVEFfQVRUUl9TVUZGSVgpKSB7CiAJCWF0dHJfbmFtZSA9ICJpbnB1
+dCI7CiAJfSBlbHNlIGlmICghc3RyY21wKGF0dHJfc3VmZml4LCBEVF9USFJFU0hPTERfQVRUUl9T
+VUZGSVgpKSB7Ci0JCWlmICh0eXBlID09IEFNQklFTlRfVEVNUCkKKwkJaWYgKHR5cGUgPT0gVEVN
+UCkKIAkJCWF0dHJfbmFtZSA9ICJtYXgiOwogCQllbHNlIGlmICh0eXBlID09IEZBTikKIAkJCWF0
+dHJfbmFtZSA9ICJtaW4iOwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw=
