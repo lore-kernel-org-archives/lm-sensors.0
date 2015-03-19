@@ -1,55 +1,67 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 04 Mar 2015 12:03:38 +0000
-Subject: [lm-sensors] [PATCH RESEND RESEND v6 0/6] hwmon: thermal: Odroid U3: Provide support for Odroid U3 f
-Message-Id: <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 17:27:43 +0000
+Subject: [lm-sensors] [PATCH v4 3/5] hwmon: (ina2xx) replace ina226_avg_bits() with find_closest()
+Message-Id: <1426786065-9798-4-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
+References: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Presented patches add support for Odroid's U3 optional CPU FAN, which uses PWM
-subsystem for low level control.
+Use find_closest() to locate the closest average in ina226_avg_tab.
 
-After successful probe it registers itself as a cooling device for thermal
-subsystem.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-This driver also supports devices without DTS specified.
-
-To provide correct functionality, new properties to device tree description for
-Exynos4412 and in particular Odroid U3 have been added.
-
-Those patches were tested at Exynos4412 - Odroid U3 board.
-
-Patches were applied on:
-linux-soc-thermal/fixes branch (Linux v4.0-rc2)
-SHA1: ad83a2d87bff355750a17dd00aec563eb9f9d388
-
-
-Kamil Debski (1):
-  ARM: dts: Add pwm-fan node to the Odroid-U3 board
-
-Lukasz Majewski (5):
-  Documentation: dts: Documentation entry to explain how to use PWM FAN
-    as a cooling device
-  ARM: dts: Add properties to use pwm-fan device as a cooling device in
-    Odroid U3
-  hwmon: pwm-fan: Extract __set_pwm() function to only modify PWM duty
-    cycle
-  hwmon: pwm-fan: Read PWM FAN configuration from device tree
-  hwmon: pwm-fan: Code for using PWM FAN as a cooling device
-
- .../devicetree/bindings/hwmon/pwm-fan.txt          |  29 +++-
- arch/arm/boot/dts/exynos4.dtsi                     |   2 +-
- arch/arm/boot/dts/exynos4412-odroidu3.dts          |  43 ++++++
- drivers/hwmon/pwm-fan.c                            | 172 +++++++++++++++++++--
- 4 files changed, 229 insertions(+), 17 deletions(-)
-
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index d1542b7..4d28150 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -36,6 +36,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/of.h>
+ #include <linux/delay.h>
++#include <linux/util_macros.h>
+ 
+ #include <linux/platform_data/ina2xx.h>
+ 
+@@ -141,19 +142,6 @@ static const struct ina2xx_config ina2xx_config[] = {
+  */
+ static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
+ 
+-static int ina226_avg_bits(int avg)
+-{
+-	int i;
+-
+-	/* Get the closest average from the tab. */
+-	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab) - 1; i++) {
+-		if (avg <= (ina226_avg_tab[i] + ina226_avg_tab[i + 1]) / 2)
+-			break;
+-	}
+-
+-	return i; /* Return 0b0111 for values greater than 1024. */
+-}
+-
+ static int ina226_reg_to_interval(u16 config)
+ {
+ 	int avg = ina226_avg_tab[INA226_READ_AVG(config)];
+@@ -171,7 +159,8 @@ static u16 ina226_interval_to_reg(int interval, u16 config)
+ 
+ 	avg = DIV_ROUND_CLOSEST(interval * 1000,
+ 				INA226_TOTAL_CONV_TIME_DEFAULT);
+-	avg_bits = ina226_avg_bits(avg);
++	avg_bits = find_closest(avg, ina226_avg_tab,
++				ARRAY_SIZE(ina226_avg_tab));
+ 
+ 	return (config & ~INA226_AVG_RD_MASK) | INA226_SHIFT_AVG(avg_bits);
+ }
 -- 
-2.0.0.rc2
+2.1.4
 
 
 _______________________________________________
