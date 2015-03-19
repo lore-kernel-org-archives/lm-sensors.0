@@ -1,307 +1,86 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 06:33:49 +0000
-Subject: [lm-sensors] [PATCH 09/15] hwmon: (it87) Add support for all pwm channels on IT8620E
-Message-Id: <1427697235-23566-10-git-send-email-linux@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 14:30:19 +0000
+Subject: [lm-sensors] [PATCH v3 3/4] hwmon: (lm85) use find_closest() in x_TO_REG() functions
+Message-Id: <1426775420-31350-4-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-IT8620E supports up to 6 pwm channels. Add support for it.
-Also check if fan tachometers 4..6 are enabled before instantiating
-the respective sysfs attributes.
+Replace RANGE_TO_REG() and FREQ_TO_REG() implementations with
+calls to find_closest().
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/hwmon/it87.c | 110 ++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 92 insertions(+), 18 deletions(-)
+ drivers/hwmon/lm85.c | 26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index a1c0226cac9f..4321accc93d3 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -163,7 +163,9 @@ static inline void superio_exit(void)
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 2b4b419..6ff773f 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -34,6 +34,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/util_macros.h>
  
- /* Logical device 7 registers (IT8712F and later) */
- #define IT87_SIO_GPIO1_REG	0x25
-+#define IT87_SIO_GPIO2_REG	0x26
- #define IT87_SIO_GPIO3_REG	0x27
-+#define IT87_SIO_GPIO4_REG	0x28
- #define IT87_SIO_GPIO5_REG	0x29
- #define IT87_SIO_PINX1_REG	0x2a	/* Pin selection */
- #define IT87_SIO_PINX2_REG	0x2c	/* Pin selection */
-@@ -223,8 +225,8 @@ static const u8 IT87_REG_TEMP_OFFSET[]	= {0x56, 0x57, 0x59};
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+@@ -190,15 +191,7 @@ static const int lm85_range_map[] = {
  
- #define IT87_REG_FAN_MAIN_CTRL 0x13
- #define IT87_REG_FAN_CTL       0x14
--#define IT87_REG_PWM(nr)       (0x15 + (nr))
--#define IT87_REG_PWM_DUTY(nr)  (0x63 + (nr) * 8)
-+static const u8 IT87_REG_PWM[]		= {0x15, 0x16, 0x17, 0x7f, 0xa7, 0xaf};
-+static const u8 IT87_REG_PWM_DUTY[]	= {0x63, 0x6b, 0x73, 0x7b, 0xa3, 0xab};
- 
- #define IT87_REG_VIN(nr)       (0x20 + (nr))
- #define IT87_REG_TEMP(nr)      (0x29 + (nr))
-@@ -267,6 +269,7 @@ struct it87_devices {
- #define FEAT_IN7_INTERNAL	(1 << 10)	/* Set if in7 is internal */
- #define FEAT_SIX_FANS		(1 << 11)	/* Supports six fans */
- #define FEAT_AVCC3		(1 << 12)	/* Chip supports in9/AVCC3 */
-+#define FEAT_SIX_PWM		(1 << 13)	/* Chip supports 6 pwm chn */
- 
- static const struct it87_devices it87_devices[] = {
- 	[it87] = {
-@@ -386,7 +389,7 @@ static const struct it87_devices it87_devices[] = {
- 		.name = "it8620",
- 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
- 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
--		  | FEAT_IN7_INTERNAL | FEAT_AVCC3,
-+		  | FEAT_IN7_INTERNAL | FEAT_AVCC3 | FEAT_SIX_PWM,
- 		.peci_mask = 0x07,
- 		.suffix = "E",
- 	},
-@@ -409,6 +412,7 @@ static const struct it87_devices it87_devices[] = {
- #define has_in7_internal(data)	((data)->features & FEAT_IN7_INTERNAL)
- #define has_six_fans(data)	((data)->features & FEAT_SIX_FANS)
- #define has_avcc3(data)		((data)->features & FEAT_AVCC3)
-+#define has_six_pwm(data)	((data)->features & FEAT_SIX_PWM)
- 
- struct it87_sio_data {
- 	enum chips type;
-@@ -468,9 +472,9 @@ struct it87_data {
- 	 * is no longer needed, but it is still done to keep the driver
- 	 * simple.
- 	 */
--	u8 pwm_ctrl[3];		/* Register value */
--	u8 pwm_duty[3];		/* Manual PWM value set by user */
--	u8 pwm_temp_map[3];	/* PWM to temp. chan. mapping (bits 1-0) */
-+	u8 pwm_ctrl[6];		/* Register value */
-+	u8 pwm_duty[6];		/* Manual PWM value set by user */
-+	u8 pwm_temp_map[6];	/* PWM to temp. chan. mapping (bits 1-0) */
- 
- 	/* Automatic fan speed control registers */
- 	u8 auto_pwm[3][4];	/* [nr][3] is hard-coded */
-@@ -1046,7 +1050,7 @@ static ssize_t set_pwm_enable(struct device *dev,
- 					     data->pwm_duty[nr];
- 		else					/* Automatic mode */
- 			data->pwm_ctrl[nr] = 0x80 | data->pwm_temp_map[nr];
--		it87_write_value(data, IT87_REG_PWM(nr), data->pwm_ctrl[nr]);
-+		it87_write_value(data, IT87_REG_PWM[nr], data->pwm_ctrl[nr]);
- 
- 		if (data->type != it8603) {
- 			/* set SmartGuardian mode */
-@@ -1082,7 +1086,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 			return -EBUSY;
- 		}
- 		data->pwm_duty[nr] = pwm_to_reg(data, val);
--		it87_write_value(data, IT87_REG_PWM_DUTY(nr),
-+		it87_write_value(data, IT87_REG_PWM_DUTY[nr],
- 				 data->pwm_duty[nr]);
- 	} else {
- 		data->pwm_duty[nr] = pwm_to_reg(data, val);
-@@ -1092,7 +1096,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 		 */
- 		if (!(data->pwm_ctrl[nr] & 0x80)) {
- 			data->pwm_ctrl[nr] = data->pwm_duty[nr];
--			it87_write_value(data, IT87_REG_PWM(nr),
-+			it87_write_value(data, IT87_REG_PWM[nr],
- 					 data->pwm_ctrl[nr]);
- 		}
- 	}
-@@ -1185,7 +1189,7 @@ static ssize_t set_pwm_temp_map(struct device *dev,
- 	 */
- 	if (data->pwm_ctrl[nr] & 0x80) {
- 		data->pwm_ctrl[nr] = 0x80 | data->pwm_temp_map[nr];
--		it87_write_value(data, IT87_REG_PWM(nr), data->pwm_ctrl[nr]);
-+		it87_write_value(data, IT87_REG_PWM[nr], data->pwm_ctrl[nr]);
- 	}
- 	mutex_unlock(&data->update_lock);
- 	return count;
-@@ -1363,6 +1367,27 @@ static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_temp, S_IRUGO | S_IWUSR,
- static SENSOR_DEVICE_ATTR_2(pwm3_auto_point4_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 2, 4);
- 
-+static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
-+			  show_pwm_enable, set_pwm_enable, 3);
-+static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 3);
-+static DEVICE_ATTR(pwm4_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IRUGO | S_IWUSR,
-+			  show_pwm_temp_map, set_pwm_temp_map, 3);
-+
-+static SENSOR_DEVICE_ATTR(pwm5_enable, S_IRUGO | S_IWUSR,
-+			  show_pwm_enable, set_pwm_enable, 4);
-+static SENSOR_DEVICE_ATTR(pwm5, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 4);
-+static DEVICE_ATTR(pwm5_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm5_auto_channels_temp, S_IRUGO | S_IWUSR,
-+			  show_pwm_temp_map, set_pwm_temp_map, 4);
-+
-+static SENSOR_DEVICE_ATTR(pwm6_enable, S_IRUGO | S_IWUSR,
-+			  show_pwm_enable, set_pwm_enable, 5);
-+static SENSOR_DEVICE_ATTR(pwm6, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 5);
-+static DEVICE_ATTR(pwm6_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO | S_IWUSR,
-+			  show_pwm_temp_map, set_pwm_temp_map, 5);
-+
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
- 		char *buf)
-@@ -1720,7 +1745,7 @@ static const struct attribute *it87_attributes_fan_div[] = {
- 	&sensor_dev_attr_fan3_div.dev_attr.attr,
- };
- 
--static struct attribute *it87_attributes_pwm[3][4+1] = { {
-+static struct attribute *it87_attributes_pwm[6][4+1] = { {
- 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
- 	&sensor_dev_attr_pwm1.dev_attr.attr,
- 	&dev_attr_pwm1_freq.attr,
-@@ -1738,12 +1763,33 @@ static struct attribute *it87_attributes_pwm[3][4+1] = { {
- 	&dev_attr_pwm3_freq.attr,
- 	&sensor_dev_attr_pwm3_auto_channels_temp.dev_attr.attr,
- 	NULL
-+}, {
-+	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm4.dev_attr.attr,
-+	&dev_attr_pwm4_freq.attr,
-+	&sensor_dev_attr_pwm4_auto_channels_temp.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_pwm5_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm5.dev_attr.attr,
-+	&dev_attr_pwm5_freq.attr,
-+	&sensor_dev_attr_pwm5_auto_channels_temp.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_pwm6_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm6.dev_attr.attr,
-+	&dev_attr_pwm6_freq.attr,
-+	&sensor_dev_attr_pwm6_auto_channels_temp.dev_attr.attr,
-+	NULL
- } };
- 
--static const struct attribute_group it87_group_pwm[3] = {
-+static const struct attribute_group it87_group_pwm[6] = {
- 	{ .attrs = it87_attributes_pwm[0] },
- 	{ .attrs = it87_attributes_pwm[1] },
- 	{ .attrs = it87_attributes_pwm[2] },
-+	{ .attrs = it87_attributes_pwm[3] },
-+	{ .attrs = it87_attributes_pwm[4] },
-+	{ .attrs = it87_attributes_pwm[5] },
- };
- 
- static struct attribute *it87_attributes_autopwm[3][9+1] = { {
-@@ -1922,6 +1968,9 @@ static int __init it87_find(unsigned short *address,
- 	else
- 		sio_data->skip_in |= (1 << 9);
- 
-+	if (!(it87_devices[sio_data->type].features & FEAT_SIX_PWM))
-+		sio_data->skip_pwm |= (1 << 3) | (1 << 4) | (1 << 5);
-+
- 	if (!(it87_devices[sio_data->type].features & FEAT_VID))
- 		sio_data->skip_vid = 1;
- 
-@@ -2024,6 +2073,11 @@ static int __init it87_find(unsigned short *address,
- 
- 		superio_select(GPIO);
- 
-+		/* Check for pwm5 */
-+		reg = superio_inb(IT87_SIO_GPIO1_REG);
-+		if (reg & (1 << 6))
-+			sio_data->skip_pwm |= (1 << 4);
-+
- 		/* Check for fan4, fan5 */
- 		reg = superio_inb(IT87_SIO_GPIO2_REG);
- 		if (!(reg & (1 << 5)))
-@@ -2038,12 +2092,22 @@ static int __init it87_find(unsigned short *address,
- 		if (reg & (1 << 7))
- 			sio_data->skip_fan |= (1 << 2);
- 
-+		/* Check for pwm4 */
-+		reg = superio_inb(IT87_SIO_GPIO4_REG);
-+		if (!(reg & (1 << 4)))
-+			sio_data->skip_pwm |= (1 << 3);
-+
- 		/* Check for pwm2, fan2 */
- 		reg = superio_inb(IT87_SIO_GPIO5_REG);
- 		if (reg & (1 << 1))
- 			sio_data->skip_pwm |= (1 << 1);
- 		if (reg & (1 << 2))
- 			sio_data->skip_fan |= (1 << 1);
-+		/* Check for pwm6, fan6 */
-+		if (!(reg & (1 << 7))) {
-+			sio_data->skip_pwm |= (1 << 5);
-+			sio_data->skip_fan |= (1 << 5);
-+		}
- 
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	} else {
-@@ -2186,7 +2250,7 @@ static void it87_remove_files(struct device *dev)
- 			sysfs_remove_file(&dev->kobj,
- 					  it87_attributes_fan_div[i]);
- 	}
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < 6; i++) {
- 		if (sio_data->skip_pwm & (1 << i))
- 			continue;
- 		sysfs_remove_group(&dev->kobj, &it87_group_pwm[i]);
-@@ -2369,7 +2433,7 @@ static int it87_probe(struct platform_device *pdev)
- 	}
- 
- 	if (enable_pwm_interface) {
--		for (i = 0; i < 3; i++) {
-+		for (i = 0; i < 6; i++) {
- 			if (sio_data->skip_pwm & (1 << i))
- 				continue;
- 			err = sysfs_create_group(&dev->kobj,
-@@ -2472,7 +2536,7 @@ static int it87_check_pwm(struct device *dev)
- 
- 			for (i = 0; i < 3; i++)
- 				pwm[i] = it87_read_value(data,
--							 IT87_REG_PWM(i));
-+							 IT87_REG_PWM[i]);
- 
- 			/*
- 			 * If any fan is in automatic pwm mode, the polarity
-@@ -2487,7 +2551,7 @@ static int it87_check_pwm(struct device *dev)
- 						 tmp | 0x87);
- 				for (i = 0; i < 3; i++)
- 					it87_write_value(data,
--							 IT87_REG_PWM(i),
-+							 IT87_REG_PWM[i],
- 							 0x7f & ~pwm[i]);
- 				return 1;
- 			}
-@@ -2605,6 +2669,16 @@ static void it87_init_device(struct platform_device *pdev)
- 	/* Fan input pins may be used for alternative functions */
- 	data->has_fan &= ~sio_data->skip_fan;
- 
-+	/* Check if pwm5, pwm6 are enabled */
-+	if (has_six_pwm(data)) {
-+		/* The following code may be IT8620E specific */
-+		tmp = it87_read_value(data, IT87_REG_FAN_DIV);
-+		if ((tmp & 0xc0) = 0xc0)
-+			sio_data->skip_pwm |= (1 << 4);
-+		if (!(tmp & (1 << 3)))
-+			sio_data->skip_pwm |= (1 << 5);
-+	}
-+
- 	/* Start monitoring */
- 	it87_write_value(data, IT87_REG_CONFIG,
- 			 (it87_read_value(data, IT87_REG_CONFIG) & 0x3e)
-@@ -2613,11 +2687,11 @@ static void it87_init_device(struct platform_device *pdev)
- 
- static void it87_update_pwm_ctrl(struct it87_data *data, int nr)
+ static int RANGE_TO_REG(long range)
  {
--	data->pwm_ctrl[nr] = it87_read_value(data, IT87_REG_PWM(nr));
-+	data->pwm_ctrl[nr] = it87_read_value(data, IT87_REG_PWM[nr]);
- 	if (has_newer_autopwm(data)) {
- 		data->pwm_temp_map[nr] = data->pwm_ctrl[nr] & 0x03;
- 		data->pwm_duty[nr] = it87_read_value(data,
--						     IT87_REG_PWM_DUTY(nr));
-+						     IT87_REG_PWM_DUTY[nr]);
- 	} else {
- 		if (data->pwm_ctrl[nr] & 0x80)	/* Automatic mode */
- 			data->pwm_temp_map[nr] = data->pwm_ctrl[nr] & 0x03;
+-	int i;
+-
+-	/* Find the closest match */
+-	for (i = 0; i < 15; ++i) {
+-		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
+-			break;
+-	}
+-
+-	return i;
++	return find_closest(range, lm85_range_map, ARRAY_SIZE(lm85_range_map));
+ }
+ #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
+ 
+@@ -209,16 +202,12 @@ static const int lm85_freq_map[8] = { /* 1 Hz */
+ static const int adm1027_freq_map[8] = { /* 1 Hz */
+ 	11, 15, 22, 29, 35, 44, 59, 88
+ };
++#define FREQ_MAP_LEN	8
+ 
+-static int FREQ_TO_REG(const int *map, unsigned long freq)
++static int FREQ_TO_REG(const int *map,
++		       unsigned int map_size, unsigned long freq)
+ {
+-	int i;
+-
+-	/* Find the closest match */
+-	for (i = 0; i < 7; ++i)
+-		if (freq <= (map[i] + map[i + 1]) / 2)
+-			break;
+-	return i;
++	return find_closest(freq, map, map_size);
+ }
+ 
+ static int FREQ_FROM_REG(const int *map, u8 reg)
+@@ -828,7 +817,8 @@ static ssize_t set_pwm_freq(struct device *dev,
+ 		data->cfg5 &= ~ADT7468_HFPWM;
+ 		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
+ 	} else {					/* Low freq. mode */
+-		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map, val);
++		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map,
++						 FREQ_MAP_LEN, val);
+ 		lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
+ 				 (data->zone[nr].range << 4)
+ 				 | data->pwm_freq[nr]);
 -- 
-2.1.0
+2.1.4
 
 
 _______________________________________________
