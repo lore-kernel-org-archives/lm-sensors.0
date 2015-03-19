@@ -1,35 +1,42 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 12 Mar 2015 23:07:00 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/4] kernel.h: add find_closest() macro
-Message-Id: <20150312160700.c0a64288f6726ba517318bc2@linux-foundation.org>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Thu, 19 Mar 2015 17:44:40 +0000
+Subject: [lm-sensors] [PATCH v2 0/5] hwmon: (ibmpowernv) remove dependency on OPAL index
+Message-Id: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
-	<1426008442-26236-2-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1426008442-26236-2-git-send-email-bgolaszewski@baylibre.com>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Steven Rostedt <srostedt@redhat.com>
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-On Tue, 10 Mar 2015 18:27:19 +0100 Bartosz Golaszewski <bgolaszewski@baylibre.com> wrote:
-
-> +/*
-> + * Similar to find_closest(), but 'a' is expected to be sorted
-> + * in descending order.
-> + */
-> +#define find_closest_desc(x, a, as) __find_closest(x, a, as, >)
-
-description?  descriptor? descendent?  oh, it's "descending".  So
-let's use "descending"!
-
-I think it's good to put possibly-useful stuff like this into
-includes/linux, particularly when we already have several usage sites. 
-But we don't _have_ to keep putting things into kernel.h.  Maybe a new
-include/linux/handy-macros.h or include/linux/find_closest.h?
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGVsbG8gIQoKVGhlIGN1cnJlbnQgaW1wbGVtZW50YXRpb24gb2YgdGhlIGRyaXZlciB1c2VzIGFu
+IGluZGV4IGZvciB0aGUgaHdtb24gCmF0dHJpYnV0ZSB3aGljaCBpcyBleHRyYWN0ZWQgZnJvbSB0
+aGUgZGV2aWNlIG5vZGUgbmFtZS4gVGhpcyBpbmRleAppcyBjYWxjdWxhdGVkIGJ5IHRoZSBPUEFM
+IGZpcm13YXJlIGFuZCBpdHMgdXNhZ2UgY3JlYXRlcyBhIGRlcGVuZGVuY3kgCndpdGggdGhlIGRy
+aXZlciB3aGljaCBtYWtlcyBjaGFuZ2VzIGEgbGl0dGxlIG1vcmUgY29tcGxleCBpbiBPUEFMLgoK
+VGhpcyBwYXRjaHNldCBjaGFuZ2VzIHRoZSBpYm1wb3dlcm52IGNvZGUgdG8gdXNlIGl0cyBvd24g
+aW5kZXguIEl0IApzdGFydHMgd2l0aCBhIGZldyBjbGVhbnVwcywgbW9zdGx5IGNvZGUgc2h1ZmZs
+aW5nIGFyb3VuZCB0aGUgY3JlYXRpb24gCm9mIHRoZSBod21vbiBzeXNmcyBhdHRyaWJ1dGVzIGFu
+ZCBjb21wbGV0ZXMgYnkgcmVtb3ZpbmcgdGhlIGRlcGVuZGVuY3kuCgpJdCBhbHNvIHByZXBhcmVz
+IGdyb3VuZCBmb3IgZnV0dXJlIE9QQUwgY2hhbmdlcyA6ICAKCiAgIGh0dHBzOi8vbGlzdHMub3ps
+YWJzLm9yZy9waXBlcm1haWwvc2tpYm9vdC8yMDE1LU1hcmNoLzAwMDYzOS5odG1sCgp3aGljaCB3
+aWxsIGJlIGFkZHJlc3NlZCBpbiBhIG90aGVyIHNtYWxsIHBhdGNoc2V0LgoKClRoZSBwYXRjaGVz
+IGFyZSBiYXNlZCBvbiBMaW51eCA0LjAuMC1yYzQgYW5kIHdlcmUgdGVzdGVkIG9uIElCTSBQb3dl
+ciAKYW5kIE9wZW4gUG93ZXIgc3lzdGVtcyBydW5uaW5nIFRydXN0eS4gCgpDaGVlcnMsCgpDLgoK
+CkNoYW5nZXMgc2luY2UgdjE6CgogLSBmaXhlZCBhbGlnbm1lbnQKIC0ga2lsbGVkIGEgY291cGxl
+IG9mIHVzZWxlc3MgInJldHVybiBOVUxMIgogLSBjaGFuZ2VkIHJldHVybmVkIHZhbHVlIG9mIHBh
+cnNlX29wYWxfbm9kZV9uYW1lKCkKIC0gdXNlZCAqX1BUUiBtYWNyb3MgdG8gY2hlY2sgZm9yIGVy
+cm9ycwoKQ8OpZHJpYyBMZSBHb2F0ZXIgKDUpOgogIGh3bW9uOiAoaWJtcG93ZXJudikgcmVwbGFj
+ZSBBTUJJRU5UX1RFTVAgYnkgVEVNUAogIGh3bW9uOiAoaWJtcG93ZXJudikgYWRkIGEgZ2V0X3Nl
+bnNvcl90eXBlKCkgcm91dGluZQogIGh3bW9uOiAoaWJtcG93ZXJudikgYWRkIGEgY29udmVydF9v
+cGFsX2F0dHJfbmFtZSgpIHJvdXRpbmUKICBod21vbjogKGlibXBvd2VybnYpIGNoYW5nZSBjcmVh
+dGVfaHdtb25fYXR0cl9uYW1lKCkgcHJvdG90eXBlCiAgaHdtb246IChpYm1wb3dlcm52KSBkbyBu
+b3QgdXNlIHRoZSBPUEFMIGluZGV4IGZvciBod21vbiBhdHRyaWJ1dGUKICAgIG5hbWVzCgogZHJp
+dmVycy9od21vbi9pYm1wb3dlcm52LmMgfCAgMTIyICsrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgODEgaW5zZXJ0aW9ucygrKSwgNDEg
+ZGVsZXRpb25zKC0pCgotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
