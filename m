@@ -1,38 +1,70 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 18 Mar 2015 15:47:41 +0000
-Subject: [lm-sensors] [PATCH 1/5] hwmon: (ibmpowernv) replace AMBIENT_TEMP by TEMP
-Message-Id: <1426693665-10797-2-git-send-email-clg@fr.ibm.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 14:30:18 +0000
+Subject: [lm-sensors] [PATCH v3 2/4] hwmon: (ina2xx) replace ina226_avg_bits() with find_closest()
+Message-Id: <1426775420-31350-3-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+References: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426775420-31350-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-QW1iaWVudCBpcyB0b28gcmVzdHJpY3RpdmUgYXMgdGhlcmUgY2FuIGJlIG90aGVyIHRlbXBlcmF0
-dXJlIGNoYW5uZWxzIDoKY29yZSwgbWVtb3J5LCBldGMuCgpTaWduZWQtb2ZmLWJ5OiBDw6lkcmlj
-IExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9od21vbi9pYm1wb3dlcm52
-LmMgfCAgICA2ICsrKy0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxl
-dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyBiL2RyaXZl
-cnMvaHdtb24vaWJtcG93ZXJudi5jCmluZGV4IGZlYmU4MTc1ZDM2Yy4uZjY5MWUxOGRmMTZiIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYworKysgYi9kcml2ZXJzL2h3bW9u
-L2libXBvd2VybnYuYwpAQCAtNDQsNyArNDQsNyBAQAogICovCiBlbnVtIHNlbnNvcnMgewogCUZB
-TiwKLQlBTUJJRU5UX1RFTVAsCisJVEVNUCwKIAlQT1dFUl9TVVBQTFksCiAJUE9XRVJfSU5QVVQs
-CiAJTUFYX1NFTlNPUl9UWVBFLApAQCAtODcsNyArODcsNyBAQCBzdGF0aWMgc3NpemVfdCBzaG93
-X3NlbnNvcihzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZh
-dHRyLAogCQlyZXR1cm4gcmV0OwogCiAJLyogQ29udmVydCB0ZW1wZXJhdHVyZSB0byBtaWxsaS1k
-ZWdyZWVzICovCi0JaWYgKHNkYXRhLT50eXBlID09IEFNQklFTlRfVEVNUCkKKwlpZiAoc2RhdGEt
-PnR5cGUgPT0gVEVNUCkKIAkJeCAqPSAxMDAwOwogCS8qIENvbnZlcnQgcG93ZXIgdG8gbWljcm8t
-d2F0dHMgKi8KIAllbHNlIGlmIChzZGF0YS0+dHlwZSA9PSBQT1dFUl9JTlBVVCkKQEAgLTE1NCw3
-ICsxNTQsNyBAQCBzdGF0aWMgaW50IGNyZWF0ZV9od21vbl9hdHRyX25hbWUoc3RydWN0IGRldmlj
-ZSAqZGV2LCBlbnVtIHNlbnNvcnMgdHlwZSwKIAl9IGVsc2UgaWYgKCFzdHJjbXAoYXR0cl9zdWZm
-aXgsIERUX0RBVEFfQVRUUl9TVUZGSVgpKSB7CiAJCWF0dHJfbmFtZSA9ICJpbnB1dCI7CiAJfSBl
-bHNlIGlmICghc3RyY21wKGF0dHJfc3VmZml4LCBEVF9USFJFU0hPTERfQVRUUl9TVUZGSVgpKSB7
-Ci0JCWlmICh0eXBlID09IEFNQklFTlRfVEVNUCkKKwkJaWYgKHR5cGUgPT0gVEVNUCkKIAkJCWF0
-dHJfbmFtZSA9ICJtYXgiOwogCQllbHNlIGlmICh0eXBlID09IEZBTikKIAkJCWF0dHJfbmFtZSA9
-ICJtaW4iOwotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
-bnNvcnM
+Use find_closest() to locate the closest average in ina226_avg_tab.
+
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index d1542b7..4d28150 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -36,6 +36,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/of.h>
+ #include <linux/delay.h>
++#include <linux/util_macros.h>
+ 
+ #include <linux/platform_data/ina2xx.h>
+ 
+@@ -141,19 +142,6 @@ static const struct ina2xx_config ina2xx_config[] = {
+  */
+ static const int ina226_avg_tab[] = { 1, 4, 16, 64, 128, 256, 512, 1024 };
+ 
+-static int ina226_avg_bits(int avg)
+-{
+-	int i;
+-
+-	/* Get the closest average from the tab. */
+-	for (i = 0; i < ARRAY_SIZE(ina226_avg_tab) - 1; i++) {
+-		if (avg <= (ina226_avg_tab[i] + ina226_avg_tab[i + 1]) / 2)
+-			break;
+-	}
+-
+-	return i; /* Return 0b0111 for values greater than 1024. */
+-}
+-
+ static int ina226_reg_to_interval(u16 config)
+ {
+ 	int avg = ina226_avg_tab[INA226_READ_AVG(config)];
+@@ -171,7 +159,8 @@ static u16 ina226_interval_to_reg(int interval, u16 config)
+ 
+ 	avg = DIV_ROUND_CLOSEST(interval * 1000,
+ 				INA226_TOTAL_CONV_TIME_DEFAULT);
+-	avg_bits = ina226_avg_bits(avg);
++	avg_bits = find_closest(avg, ina226_avg_tab,
++				ARRAY_SIZE(ina226_avg_tab));
+ 
+ 	return (config & ~INA226_AVG_RD_MASK) | INA226_SHIFT_AVG(avg_bits);
+ }
+-- 
+2.1.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
