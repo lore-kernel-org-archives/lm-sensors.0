@@ -1,56 +1,67 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 06:33:51 +0000
-Subject: [lm-sensors] [PATCH 11/15] hwmon: (it87) Simplify error return in it87_device_add
-Message-Id: <1427697235-23566-12-git-send-email-linux@roeck-us.net>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Thu, 19 Mar 2015 17:44:45 +0000
+Subject: [lm-sensors] [PATCH v2 5/5] hwmon: (ibmpowernv) do not use the OPAL index for hwmon attribute names
+Message-Id: <1426787085-9004-6-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Return directly on errors if there is no cleanup necessary.
-Don't create an error message on memory allocation errors.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index b373589c695f..03900d4e71d1 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -2869,14 +2869,11 @@ static int __init it87_device_add(unsigned short address,
- 
- 	err = acpi_check_resource_conflict(&res);
- 	if (err)
--		goto exit;
-+		return err;
- 
- 	pdev = platform_device_alloc(DRVNAME, address);
--	if (!pdev) {
--		err = -ENOMEM;
--		pr_err("Device allocation failed\n");
--		goto exit;
--	}
-+	if (!pdev)
-+		return -ENOMEM;
- 
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
-@@ -2901,7 +2898,6 @@ static int __init it87_device_add(unsigned short address,
- 
- exit_device_put:
- 	platform_device_put(pdev);
--exit:
- 	return err;
- }
- 
--- 
-2.1.0
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIGN1cnJlbnQgT1BBTCBmaXJtd2FyZSBleHBvc2VzIHRoZSBkaWZmZXJlbnQgc2Vuc29ycyBv
+ZiBhbiBJQk0gUG93ZXIKc3lzdGVtIHVzaW5nIG5vZGUgbmFtZXMgc3VjaCBhcyA6CgoJc2Vuc29y
+cy9hbWItdGVtcCMxLWRhdGEKCXNlbnNvcnMvYW1iLXRlbXAjMS10aHJzCgljb29saW5nLWZhbiMx
+LWRhdGEKCWNvb2xpbmctZmFuIzEtZmF1bHRlZAoJY29vbGluZy1mYW4jMS10aHJzCgljb29saW5n
+LWZhbiMyLWRhdGEKCS4uLgoKVGhlIGlibXBvd2VybnYgZHJpdmVyLCB3aGVuIGxvYWRlZCwgcGFy
+c2VzIHRoZXNlIG5hbWVzIHRvIGV4dHJhY3QgdGhlCnNlbnNvciBpbmRleCBhbmQgdGhlIHNlbnNv
+ciBhdHRyaWJ1dGUgbmFtZS4gVW5mb3J0dW5hdGVseSwgdGhpcyBzY2hlbWUKbWFrZXMgaXQgZGlm
+ZmljdWx0IHRvIGFkZCBzZW5zb3JzIHdpdGggYSBkaWZmZXJlbnQgbGF5b3V0IChzcGVjaWFsbHkg
+b2YKdGhlIHNhbWUgdHlwZSwgbGlrZSB0ZW1wZXJhdHVyZSkgYXMgdGhlIHNlbnNvciBpbmRleCBj
+YWxjdWxhdGVkIGluIE9QQUwKaXMgZGlyZWN0bHkgdXNlZCBpbiB0aGUgaHdtb24gc3lzZnMgaW50
+ZXJmYWNlLgoKV2hhdCB0aGlzIHBhdGNoIGRvZXMgaXMgYWRkIGEgaW5kZXBlbmRlbnQgaHdtb24g
+aW5kZXggZm9yIGVhY2ggc2Vuc29yLgpUaGUgaW5jcmVtZW50IG9mIHRoZSBod21vbiBpbmRleCAo
+dGVtcCwgZmFuLCBwb3dlciwgZXRjLikgaXMga2VwdCBwZXIKc2Vuc29yIHR5cGUgaW4gdGhlIHNl
+bnNvcl9ncm91cCB0YWJsZS4gVGhlIHNlbnNvcl9kYXRhIHRhYmxlIGlzIHVzZWQKdG8gc3RvcmUg
+dGhlIGFzc29jaWF0aW9uIG9mIHRoZSBod21vbiBhbmQgT1BBTCBpbmRleGVzLCBhcyB3ZSBuZWVk
+IHRvCmhhdmUgdGhlIHNhbWUgaHdtb24gaW5kZXggZm9yIGRpZmZlcmVudCBhdHRyaWJ1dGVzIG9m
+IGEgc2FtZSBzZW5zb3IuCgpTaWduZWQtb2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZy
+LmlibS5jb20+Ci0tLQogZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgfCAgIDIzICsrKysrKysr
+KysrKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgMjIgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
+dGlvbigtKQoKSW5kZXg6IGxpbnV4LmdpdC9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwo9PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09Ci0tLSBsaW51eC5naXQub3JpZy9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYworKysg
+bGludXguZ2l0L2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCkBAIC01NSw2ICs1NSw3IEBAIHN0
+YXRpYyBzdHJ1Y3Qgc2Vuc29yX2dyb3VwIHsKIAljb25zdCBjaGFyICpjb21wYXRpYmxlOwogCXN0
+cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgZ3JvdXA7CiAJdTMyIGF0dHJfY291bnQ7CisJdTMyIGh3bW9u
+X2luZGV4OwogfSBzZW5zb3JfZ3JvdXBzW10gPSB7CiAJeyJmYW4iLCAiaWJtLG9wYWwtc2Vuc29y
+LWNvb2xpbmctZmFuIn0sCiAJeyJ0ZW1wIiwgImlibSxvcGFsLXNlbnNvci1hbWItdGVtcCJ9LApA
+QCAtNjQsNiArNjUsOCBAQCBzdGF0aWMgc3RydWN0IHNlbnNvcl9ncm91cCB7CiAKIHN0cnVjdCBz
+ZW5zb3JfZGF0YSB7CiAJdTMyIGlkOyAvKiBBbiBvcGFxdWUgaWQgb2YgdGhlIGZpcm13YXJlIGZv
+ciBlYWNoIHNlbnNvciAqLworCXUzMiBod21vbl9pbmRleDsKKwl1MzIgb3BhbF9pbmRleDsKIAll
+bnVtIHNlbnNvcnMgdHlwZTsKIAljaGFyIG5hbWVbTUFYX0FUVFJfTEVOXTsKIAlzdHJ1Y3QgZGV2
+aWNlX2F0dHJpYnV0ZSBkZXZfYXR0cjsKQEAgLTE4MSw2ICsxODQsMTkgQEAgc3RhdGljIGludCBn
+ZXRfc2Vuc29yX3R5cGUoc3RydWN0IGRldmljZQogCXJldHVybiBNQVhfU0VOU09SX1RZUEU7CiB9
+CiAKK3N0YXRpYyB1MzIgZ2V0X3NlbnNvcl9od21vbl9pbmRleChzdHJ1Y3Qgc2Vuc29yX2RhdGEg
+KnNkYXRhLAorCXN0cnVjdCBzZW5zb3JfZGF0YSAqc2RhdGFfdGFibGUsIGludCBjb3VudCkKK3sK
+KwlpbnQgaTsKKworCWZvciAoaSA9IDA7IGkgPCBjb3VudDsgaSsrKQorCQlpZiAoc2RhdGFfdGFi
+bGVbaV0ub3BhbF9pbmRleCA9PSBzZGF0YS0+b3BhbF9pbmRleCAmJgorCQkgICAgc2RhdGFfdGFi
+bGVbaV0udHlwZSA9PSBzZGF0YS0+dHlwZSkKKwkJCXJldHVybiBzZGF0YV90YWJsZVtpXS5od21v
+bl9pbmRleDsKKworCXJldHVybiArK3NlbnNvcl9ncm91cHNbc2RhdGEtPnR5cGVdLmh3bW9uX2lu
+ZGV4OworfQorCiBzdGF0aWMgaW50IHBvcHVsYXRlX2F0dHJfZ3JvdXBzKHN0cnVjdCBwbGF0Zm9y
+bV9kZXZpY2UgKnBkZXYpCiB7CiAJc3RydWN0IHBsYXRmb3JtX2RhdGEgKnBkYXRhID0gcGxhdGZv
+cm1fZ2V0X2RydmRhdGEocGRldik7CkBAIC0yNzAsOCArMjg2LDEzIEBAIHN0YXRpYyBpbnQgY3Jl
+YXRlX2RldmljZV9hdHRycyhzdHJ1Y3QgcGwKIAkJCWdvdG8gZXhpdF9wdXRfbm9kZTsKIAkJfQog
+CisJCXNkYXRhW2NvdW50XS5vcGFsX2luZGV4ID0gb3BhbF9pbmRleDsKKwkJc2RhdGFbY291bnRd
+Lmh3bW9uX2luZGV4ID0KKwkJCWdldF9zZW5zb3JfaHdtb25faW5kZXgoJnNkYXRhW2NvdW50XSwg
+c2RhdGEsIGNvdW50KTsKKwogCQlzbnByaW50ZihzZGF0YVtjb3VudF0ubmFtZSwgTUFYX0FUVFJf
+TEVOLCAiJXMlZF8lcyIsCi0JCQkgc2Vuc29yX2dyb3Vwc1t0eXBlXS5uYW1lLCBvcGFsX2luZGV4
+LCBhdHRyX25hbWUpOworCQkJIHNlbnNvcl9ncm91cHNbdHlwZV0ubmFtZSwgc2RhdGFbY291bnRd
+Lmh3bW9uX2luZGV4LAorCQkJIGF0dHJfbmFtZSk7CiAKIAkJc3lzZnNfYXR0cl9pbml0KCZzZGF0
+YVtjb3VudF0uZGV2X2F0dHIuYXR0cik7CiAJCXNkYXRhW2NvdW50XS5kZXZfYXR0ci5hdHRyLm5h
+bWUgPSBzZGF0YVtjb3VudF0ubmFtZTsKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNl
+bnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xt
+LXNlbnNvcnM
