@@ -1,126 +1,86 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 06:33:54 +0000
-Subject: [lm-sensors] [PATCH 14/15] hwmon: (it87) Add support for second Super-IO chip
-Message-Id: <1427697235-23566-15-git-send-email-linux@roeck-us.net>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 17:27:44 +0000
+Subject: [lm-sensors] [PATCH v4 4/5] hwmon: (lm85) use find_closest() in x_TO_REG() functions
+Message-Id: <1426786065-9798-5-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-The Super-IO chip can also reside at SIO address 0x4e, and there can be
-two Super-IO chips in the system. Add support for it.
+Replace RANGE_TO_REG() and FREQ_TO_REG() implementations with
+calls to find_closest().
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
- drivers/hwmon/it87.c | 49 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 15 deletions(-)
+ drivers/hwmon/lm85.c | 26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index d4b9a87a78f8..1cf03fc9cec5 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -76,9 +76,10 @@ static unsigned short force_id;
- module_param(force_id, ushort, 0);
- MODULE_PARM_DESC(force_id, "Override the detected device ID");
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 2b4b419..6ff773f 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -34,6 +34,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/util_macros.h>
  
--static struct platform_device *it87_pdev;
-+static struct platform_device *it87_pdev[2];
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+@@ -190,15 +191,7 @@ static const int lm85_range_map[] = {
  
- #define	REG_2E	0x2e	/* The register to read/write */
-+#define	REG_4E	0x4e	/* Secondary register to read/write */
- 
- #define	DEV	0x07	/* Register: Logical device select */
- #define PME	0x04	/* The device with the fan registers in it */
-@@ -128,7 +129,7 @@ static inline int superio_enter(int ioreg)
- 	outb(0x87, ioreg);
- 	outb(0x01, ioreg);
- 	outb(0x55, ioreg);
--	outb(0x55, ioreg);
-+	outb(ioreg = REG_4E ? 0xaa : 0x55, ioreg);
- 	return 0;
- }
- 
-@@ -2863,7 +2864,7 @@ static struct it87_data *it87_update_device(struct device *dev)
- 	return data;
- }
- 
--static int __init it87_device_add(unsigned short address,
-+static int __init it87_device_add(int index, unsigned short address,
- 				  const struct it87_sio_data *sio_data)
+ static int RANGE_TO_REG(long range)
  {
- 	struct platform_device *pdev;
-@@ -2902,7 +2903,7 @@ static int __init it87_device_add(unsigned short address,
- 		goto exit_device_put;
- 	}
+-	int i;
+-
+-	/* Find the closest match */
+-	for (i = 0; i < 15; ++i) {
+-		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
+-			break;
+-	}
+-
+-	return i;
++	return find_closest(range, lm85_range_map, ARRAY_SIZE(lm85_range_map));
+ }
+ #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
  
--	it87_pdev = pdev;
-+	it87_pdev[index] = pdev;
- 	return 0;
+@@ -209,16 +202,12 @@ static const int lm85_freq_map[8] = { /* 1 Hz */
+ static const int adm1027_freq_map[8] = { /* 1 Hz */
+ 	11, 15, 22, 29, 35, 44, 59, 88
+ };
++#define FREQ_MAP_LEN	8
  
- exit_device_put:
-@@ -2912,30 +2913,48 @@ exit_device_put:
- 
- static int __init sm_it87_init(void)
+-static int FREQ_TO_REG(const int *map, unsigned long freq)
++static int FREQ_TO_REG(const int *map,
++		       unsigned int map_size, unsigned long freq)
  {
--	int err;
--	unsigned short isa_address = 0;
-+	int sioaddr[2] = { REG_2E, REG_4E };
- 	struct it87_sio_data sio_data;
-+	unsigned short isa_address;
-+	bool found = false;
-+	int i, err;
- 
--	memset(&sio_data, 0, sizeof(struct it87_sio_data));
--	err = it87_find(REG_2E, &isa_address, &sio_data);
--	if (err)
--		return err;
- 	err = platform_driver_register(&it87_driver);
- 	if (err)
- 		return err;
- 
--	err = it87_device_add(isa_address, &sio_data);
--	if (err) {
--		platform_driver_unregister(&it87_driver);
--		return err;
-+	for (i = 0; i < ARRAY_SIZE(sioaddr); i++) {
-+		memset(&sio_data, 0, sizeof(struct it87_sio_data));
-+		isa_address = 0;
-+		err = it87_find(sioaddr[i], &isa_address, &sio_data);
-+		if (err || isa_address = 0)
-+			continue;
-+
-+		err = it87_device_add(i, isa_address, &sio_data);
-+		if (err)
-+			goto exit_dev_unregister;
-+		found = true;
- 	}
- 
-+	if (!found) {
-+		err = -ENODEV;
-+		goto exit_unregister;
-+	}
- 	return 0;
-+
-+exit_dev_unregister:
-+	/* NULL check handled by platform_device_unregister */
-+	platform_device_unregister(it87_pdev[0]);
-+exit_unregister:
-+	platform_driver_unregister(&it87_driver);
-+	return err;
+-	int i;
+-
+-	/* Find the closest match */
+-	for (i = 0; i < 7; ++i)
+-		if (freq <= (map[i] + map[i + 1]) / 2)
+-			break;
+-	return i;
++	return find_closest(freq, map, map_size);
  }
  
- static void __exit sm_it87_exit(void)
- {
--	platform_device_unregister(it87_pdev);
-+	/* NULL check handled by platform_device_unregister */
-+	platform_device_unregister(it87_pdev[1]);
-+	platform_device_unregister(it87_pdev[0]);
- 	platform_driver_unregister(&it87_driver);
- }
- 
+ static int FREQ_FROM_REG(const int *map, u8 reg)
+@@ -828,7 +817,8 @@ static ssize_t set_pwm_freq(struct device *dev,
+ 		data->cfg5 &= ~ADT7468_HFPWM;
+ 		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
+ 	} else {					/* Low freq. mode */
+-		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map, val);
++		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map,
++						 FREQ_MAP_LEN, val);
+ 		lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
+ 				 (data->zone[nr].range << 4)
+ 				 | data->pwm_freq[nr]);
 -- 
-2.1.0
+2.1.4
 
 
 _______________________________________________
