@@ -1,80 +1,52 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 04 Mar 2015 12:03:40 +0000
-Subject: [lm-sensors] [PATCH RESEND v6 2/6] ARM: dts: Add pwm-fan node to the Odroid-U3 board
-Message-Id: <1425470624-25793-3-git-send-email-l.majewski@samsung.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 19 Mar 2015 17:27:45 +0000
+Subject: [lm-sensors] [PATCH v4 5/5] hwmon: (w83795) use find_closest_descending() in pwm_freq_to_reg()
+Message-Id: <1426786065-9798-6-git-send-email-bgolaszewski@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
+References: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1426786065-9798-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-From: Kamil Debski <k.debski@samsung.com>
+Replace the loop iterating over pwm_freq_cksel0 with a call to
+find_closest_descending().
 
-Add pwm-fan node to the Odroid-U3 board file to enable PWM control of the
-cooling fan. In addition, add the "pwm" label to the pwm@139D0000 node
-in the exynos4412.dtsi.
-
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
-Changes since v1:
-- added pwm label to the pwm@139D0000 node in exynos4.dtsi
-- use the pwm label in the exynos4412-odroidu3.dts
-- change order or properties in the pwn-fan node, to be sorted
-  in alphabetical order
-Changes for v5:
-- Adding Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-- status = "okay"; dropped from the patch
-Changes for v6:
-- None
+ drivers/hwmon/w83795.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
----
- arch/arm/boot/dts/exynos4.dtsi            |  2 +-
- arch/arm/boot/dts/exynos4412-odroidu3.dts | 12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 690f56c..a93f5ca5 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -599,7 +599,7 @@
- 		status = "disabled";
- 	};
+diff --git a/drivers/hwmon/w83795.c b/drivers/hwmon/w83795.c
+index 2189413..49276bb 100644
+--- a/drivers/hwmon/w83795.c
++++ b/drivers/hwmon/w83795.c
+@@ -35,6 +35,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/jiffies.h>
++#include <linux/util_macros.h>
  
--	pwm@139D0000 {
-+	pwm: pwm@139D0000 {
- 		compatible = "samsung,exynos4210-pwm";
- 		reg = <0x139D0000 0x1000>;
- 		interrupts = <0 37 0>, <0 38 0>, <0 39 0>, <0 40 0>, <0 41 0>;
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index 44684e5..4c04837 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -31,6 +31,18 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
-+
-+	pwm-fan {
-+		compatible = "pwm-fan";
-+		pwms = <&pwm 0 10000 0>;
-+	};
-+};
-+
-+&pwm {
-+	pinctrl-0 = <&pwm0_out>;
-+	pinctrl-names = "default";
-+	samsung,pwm-outputs = <0>;
-+	status = "okay";
- };
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = {
+@@ -308,11 +309,8 @@ static u8 pwm_freq_to_reg(unsigned long val, u16 clkin)
+ 	unsigned long best0, best1;
  
- &usb3503 {
+ 	/* Best fit for cksel = 0 */
+-	for (reg0 = 0; reg0 < ARRAY_SIZE(pwm_freq_cksel0) - 1; reg0++) {
+-		if (val > (pwm_freq_cksel0[reg0] +
+-			   pwm_freq_cksel0[reg0 + 1]) / 2)
+-			break;
+-	}
++	reg0 = find_closest_descending(val, pwm_freq_cksel0,
++				       ARRAY_SIZE(pwm_freq_cksel0));
+ 	if (val < 375)	/* cksel = 1 can't beat this */
+ 		return reg0;
+ 	best0 = pwm_freq_cksel0[reg0];
 -- 
-2.0.0.rc2
+2.1.4
 
 
 _______________________________________________
