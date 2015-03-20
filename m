@@ -1,42 +1,35 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Thu, 19 Mar 2015 17:44:40 +0000
-Subject: [lm-sensors] [PATCH v2 0/5] hwmon: (ibmpowernv) remove dependency on OPAL index
-Message-Id: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 20 Mar 2015 15:26:11 +0000
+Subject: Re: [lm-sensors] [PATCH v2 0/5] hwmon: (ibmpowernv) remove dependency on OPAL index
+Message-Id: <20150320152611.GA10749@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+ <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-SGVsbG8gIQoKVGhlIGN1cnJlbnQgaW1wbGVtZW50YXRpb24gb2YgdGhlIGRyaXZlciB1c2VzIGFu
-IGluZGV4IGZvciB0aGUgaHdtb24gCmF0dHJpYnV0ZSB3aGljaCBpcyBleHRyYWN0ZWQgZnJvbSB0
-aGUgZGV2aWNlIG5vZGUgbmFtZS4gVGhpcyBpbmRleAppcyBjYWxjdWxhdGVkIGJ5IHRoZSBPUEFM
-IGZpcm13YXJlIGFuZCBpdHMgdXNhZ2UgY3JlYXRlcyBhIGRlcGVuZGVuY3kgCndpdGggdGhlIGRy
-aXZlciB3aGljaCBtYWtlcyBjaGFuZ2VzIGEgbGl0dGxlIG1vcmUgY29tcGxleCBpbiBPUEFMLgoK
-VGhpcyBwYXRjaHNldCBjaGFuZ2VzIHRoZSBpYm1wb3dlcm52IGNvZGUgdG8gdXNlIGl0cyBvd24g
-aW5kZXguIEl0IApzdGFydHMgd2l0aCBhIGZldyBjbGVhbnVwcywgbW9zdGx5IGNvZGUgc2h1ZmZs
-aW5nIGFyb3VuZCB0aGUgY3JlYXRpb24gCm9mIHRoZSBod21vbiBzeXNmcyBhdHRyaWJ1dGVzIGFu
-ZCBjb21wbGV0ZXMgYnkgcmVtb3ZpbmcgdGhlIGRlcGVuZGVuY3kuCgpJdCBhbHNvIHByZXBhcmVz
-IGdyb3VuZCBmb3IgZnV0dXJlIE9QQUwgY2hhbmdlcyA6ICAKCiAgIGh0dHBzOi8vbGlzdHMub3ps
-YWJzLm9yZy9waXBlcm1haWwvc2tpYm9vdC8yMDE1LU1hcmNoLzAwMDYzOS5odG1sCgp3aGljaCB3
-aWxsIGJlIGFkZHJlc3NlZCBpbiBhIG90aGVyIHNtYWxsIHBhdGNoc2V0LgoKClRoZSBwYXRjaGVz
-IGFyZSBiYXNlZCBvbiBMaW51eCA0LjAuMC1yYzQgYW5kIHdlcmUgdGVzdGVkIG9uIElCTSBQb3dl
-ciAKYW5kIE9wZW4gUG93ZXIgc3lzdGVtcyBydW5uaW5nIFRydXN0eS4gCgpDaGVlcnMsCgpDLgoK
-CkNoYW5nZXMgc2luY2UgdjE6CgogLSBmaXhlZCBhbGlnbm1lbnQKIC0ga2lsbGVkIGEgY291cGxl
-IG9mIHVzZWxlc3MgInJldHVybiBOVUxMIgogLSBjaGFuZ2VkIHJldHVybmVkIHZhbHVlIG9mIHBh
-cnNlX29wYWxfbm9kZV9uYW1lKCkKIC0gdXNlZCAqX1BUUiBtYWNyb3MgdG8gY2hlY2sgZm9yIGVy
-cm9ycwoKQ8OpZHJpYyBMZSBHb2F0ZXIgKDUpOgogIGh3bW9uOiAoaWJtcG93ZXJudikgcmVwbGFj
-ZSBBTUJJRU5UX1RFTVAgYnkgVEVNUAogIGh3bW9uOiAoaWJtcG93ZXJudikgYWRkIGEgZ2V0X3Nl
-bnNvcl90eXBlKCkgcm91dGluZQogIGh3bW9uOiAoaWJtcG93ZXJudikgYWRkIGEgY29udmVydF9v
-cGFsX2F0dHJfbmFtZSgpIHJvdXRpbmUKICBod21vbjogKGlibXBvd2VybnYpIGNoYW5nZSBjcmVh
-dGVfaHdtb25fYXR0cl9uYW1lKCkgcHJvdG90eXBlCiAgaHdtb246IChpYm1wb3dlcm52KSBkbyBu
-b3QgdXNlIHRoZSBPUEFMIGluZGV4IGZvciBod21vbiBhdHRyaWJ1dGUKICAgIG5hbWVzCgogZHJp
-dmVycy9od21vbi9pYm1wb3dlcm52LmMgfCAgMTIyICsrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgODEgaW5zZXJ0aW9ucygrKSwgNDEg
-ZGVsZXRpb25zKC0pCgotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnM
+On Thu, Mar 19, 2015 at 06:44:40PM +0100, C=E9dric Le Goater wrote:
+> Hello !
+>=20
+> The current implementation of the driver uses an index for the hwmon=20
+> attribute which is extracted from the device node name. This index
+> is calculated by the OPAL firmware and its usage creates a dependency=20
+> with the driver which makes changes a little more complex in OPAL.
+>=20
+> This patchset changes the ibmpowernv code to use its own index. It=20
+> starts with a few cleanups, mostly code shuffling around the creation=20
+> of the hwmon sysfs attributes and completes by removing the dependency.
+>=20
+Series applied to hwmon-next (with patch #4 fixed up).
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
