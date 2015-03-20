@@ -1,125 +1,101 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 17 Mar 2015 13:44:47 +0000
+From: Alexander Bruns <mailinglisten@alexander-bruns.de>
+Date: Fri, 20 Mar 2015 16:29:46 +0000
 Subject: Re: [lm-sensors] Problem with IT8620E
-Message-Id: <55082FCF.3050805@roeck-us.net>
+Message-Id: <550C4AFA.2030508@alexander-bruns.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <55080544.5020202@alexander-bruns.de>
 In-Reply-To: <55080544.5020202@alexander-bruns.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 03/17/2015 03:43 AM, Alexander Bruns wrote:
-> Hi,
->
-> I have a Mainboard from Gigabyte which is this one:
->
-> GA-Z97X-Gaming G1 WIFI-BK
->
-> I am running the board with gentoo-linux and 3.18.3 Kernel
->
->
-> It has ITE 8620 onboard:
->
-[ ... ]
->
-> I try to use it like stated in the device overview as ITE 8728
->
-> --------------------------- 8< Schnipp 8< ---------------------------
-> holodeck ~ # cat /etc/modprobe.d/lm_sensors.conf
-> options it87 force_id=3D0x8728
-> --------------------------- 8< Schnapp 8< ---------------------------
->
->
->
->
-> Here is my Output of sensors:
->
-> --------------------------- 8< Schnipp 8< ---------------------------
-> holodeck ~ # sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +27.8=B0C  (crit =3D +105.0=B0C)
-> temp2:        +29.8=B0C  (crit =3D +105.0=B0C)
->
-> it8728-isa-0a30
-> Adapter: ISA adapter
-> in0:          +0.05 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> in1:          +2.02 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> in2:          +2.03 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> in3:          +2.00 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> in4:          +0.01 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> in5:          +1.73 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> in6:          +1.51 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-> 3VSB:         +3.38 V  (min =3D  +0.00 V, max =3D  +6.12 V)
-> Vbat:         +2.98 V
-> fan1:         627 RPM  (min =3D   10 RPM)
-> fan2:         607 RPM  (min =3D   10 RPM)
-> fan3:           0 RPM  (min =3D    0 RPM)
-> fan4:           0 RPM  (min =3D    0 RPM)
-> fan5:           0 RPM  (min =3D    0 RPM)
-> temp1:        +34.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sens=
-or =3D thermistor
-> temp2:        +51.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sens=
-or =3D thermistor
-> temp3:       -128.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sens=
-or =3D Intel PECI
-> intrusion0:  ALARM
-> --------------------------- 8< Schnapp 8< ---------------------------
->
->
-> Now the Problem:
->
-> The Board has the possibility to connect 5 Case Fans and 2 CPU Fans
->
-> I have 1 CPU-Fan and 3 Case Fans.
->
-> CPU-Fan has 4 power-lanes, case-fans have all 3 power-lanes
-> where 4 are possible
->
-> fan1 above in sensors-output is the same as SYS_FAN2, so a case-fan
-> fan2 above in sensors-output is the same as SYS_FAN3, so a case-fan.
->
-> I tried to stop the fans to see which one of the two shown by sensors
-> is which one in the hardware I have.
->
-> So one case-fan is missing and !!! CPU-Fan is missing here.
->
-
-You could try to connect the cpu fan to the other cpu fan connector to see
-if it shows up.
-
-> I also tried to apply this patch to the kernel:
-> http://www.spinics.net/lists/lm-sensors/msg43167.html
->
-> I then see in sensors the same output, but instead of
-> it8728-isa-0a30
-> I see
-> it8620-isa-0a30
->
-The only real difference is to add support for the new ID, so this is
-not surprising.
-
-Besides the fan problem, the CPU temperature display is wrong as well.
-
-> So I would like to do tests for you te get a working
-> patch for ITE 8620E
-
- From the above, I think we have to conclude that the 8620 isn't as close
-to the 8728 as we would like, and that we do not have enough information
-about the 8620 to add support for it to the kernel.
-
-Unfortunately, the chip was made by ITE specifically for Gigabyte,
-and neither ITE nor Gigabyte are likely to release the datasheet.
-Unless someone steps up and provides the information we would need,
-I see little chance that we will be able to make the necessary changes
-to the driver.
-
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgbG1fc2Vuc29ycy1saXN0LgoKSSBjb250YWN0ZWQgR2lnYWJ5dGUtU3VwcG9ydCBvbiB0aGlz
+IHRvcGljIHZpYToKaHR0cDovL3d3dy5naWdhYnl0ZS5kZS9zdXBwb3J0LWRvd25sb2Fkcy90ZWNo
+bmljYWwtc3VwcG9ydC5hc3B4CgpJIHRoaW5rIGl0IGlzIHdvcnRoLCB0aGF0IHNvbWUgb2YgdGhl
+IGxtX3NlbnNvcnMtZGV2ZWxvcGVyIHdvdWxkIGFzayAKZGlyZWN0bHkgYXQgdGhlIHN1cHBvcnQg
+Zm9yIHN1cHBvcnRpbmcgZGF0YSB0byBkZXZlbG9wZSBhIHdvcmtpbmcgZHJpdmVyLgoKVGhpcyBp
+cyB3aGF0IEkgZ290IGZyb20gdGhlbToKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSA4PCBT
+Y2huaXBwIDg8IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKRGVhciBNci4gQnJ1bnMsCgpV
+cGRhdGU6CgpPdXIgaGFyZHdhcmUgdGVhbSBkaWQgcmVwbHk6CkZpcnN0LCB3ZSBkb27igJl0IGd1
+YXJhbnRlZSB0aGlyZCBwYXJ0eSBTL1cgcGVyZm9ybWFuY2UuCgpTZWNvbmQsIGp1c3QgZm91bmQg
+c29tZSBpbmZvLiBvZiBMTSBzZW5zb3JzIG9uIG91ciBNQiB0aGF0IGlzIGNvbmZpcm1lZCAKd29y
+a2luZywgaG9wZSB0aGlzIGNhbiBoZWxwIHRoZSB1c2VyOgoKaHR0cDovL3d3dy5zcGluaWNzLm5l
+dC9saXN0cy9sbS1zZW5zb3JzL21zZzQyNDkzLmh0bWwKClRoaXJkLCB3ZSBkb27igJl0IGtub3cg
+d2hhdCBleGFjdCBpbmZvLiBvciB2YWx1ZSBMTSBzZW5zb3JzIG5lZWRzLCBzbyB0aGUgCnJlcXVl
+c3QgaXMgdG9vIHJvdWdoLgoKU28gaWYgdXNlciBoYXMgdHJvdWJsZSB0byB1c2UgTE0gc2Vuc29y
+cyBvbiBvdXIgTUIsIHBsZWFzZSBzdWdnZXN0IHVzZXIgCnRvIGNvbnRhY3QgTE0gc2Vuc29ycyBh
+bmQgYXNrIHRoZWlyIHRlYW0gdG8gY29udGFjdCB1cy4KCkluIHRoYXQgd2F5IHdlIGNhbiBnZXQg
+YSBjbGVhcmVyIGltYWdlIG9mIHRoZSBpbmZvLiB0aGV5IG5lZWQgZm9yIApwcm9ncmFtbWluZy4K
+ClRoYW5rIHlvdS4KCgoKVGhhbmsgeW91IGZvciBlbWFpbGluZyBHSUdBQllURS4KV2UgYXJlIGRl
+bGlnaHRlZCB3aXRoIHlvdXIgaW50ZXJlc3QgaW4gb3VyIHByb2R1Y3RzLgoKV2UgZm9yd2FyZGVk
+IHRvIG91ciBoYXJkd2FyZSB0ZWFtLgpXaWxsIGNvbWUgYmFjayB0byB5b3Ugb25jZSB0aGV5IHJl
+cGx5LgoKUmVnYXJkcwoKR0lBR0JZVEUgVGVhbQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+IDg8IFNjaG5hcHAgODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgpHcmVldGluZ3MKCkFs
+ZXhhbmRlcgoKQW0gMTcuMDMuMjAxNSB1bSAxNDo0NCBzY2hyaWViIEd1ZW50ZXIgUm9lY2s6Cj4g
+T24gMDMvMTcvMjAxNSAwMzo0MyBBTSwgQWxleGFuZGVyIEJydW5zIHdyb3RlOgo+PiBIaSwKPj4K
+Pj4gSSBoYXZlIGEgTWFpbmJvYXJkIGZyb20gR2lnYWJ5dGUgd2hpY2ggaXMgdGhpcyBvbmU6Cj4+
+Cj4+IEdBLVo5N1gtR2FtaW5nIEcxIFdJRkktQksKPj4KPj4gSSBhbSBydW5uaW5nIHRoZSBib2Fy
+ZCB3aXRoIGdlbnRvby1saW51eCBhbmQgMy4xOC4zIEtlcm5lbAo+Pgo+Pgo+PiBJdCBoYXMgSVRF
+IDg2MjAgb25ib2FyZDoKPj4KPiBbIC4uLiBdCj4+Cj4+IEkgdHJ5IHRvIHVzZSBpdCBsaWtlIHN0
+YXRlZCBpbiB0aGUgZGV2aWNlIG92ZXJ2aWV3IGFzIElURSA4NzI4Cj4+Cj4+IC0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLSA4PCBTY2huaXBwIDg8IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQo+PiBob2xvZGVjayB+ICMgY2F0IC9ldGMvbW9kcHJvYmUuZC9sbV9zZW5zb3JzLmNvbmYKPj4g
+b3B0aW9ucyBpdDg3IGZvcmNlX2lkPTB4ODcyOAo+PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0gODwgU2NobmFwcCA4PCAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPj4KPj4KPj4KPj4K
+Pj4gSGVyZSBpcyBteSBPdXRwdXQgb2Ygc2Vuc29yczoKPj4KPj4gLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tIDg8IFNjaG5pcHAgODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4+IGhv
+bG9kZWNrIH4gIyBzZW5zb3JzCj4+IGFjcGl0ei12aXJ0dWFsLTAKPj4gQWRhcHRlcjogVmlydHVh
+bCBkZXZpY2UKPj4gdGVtcDE6ICAgICAgICArMjcuOMKwQyAgKGNyaXQgPSArMTA1LjDCsEMpCj4+
+IHRlbXAyOiAgICAgICAgKzI5LjjCsEMgIChjcml0ID0gKzEwNS4wwrBDKQo+Pgo+PiBpdDg3Mjgt
+aXNhLTBhMzAKPj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPj4gaW4wOiAgICAgICAgICArMC4wNSBW
+ICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+PiBpbjE6ICAgICAgICAgICsyLjAy
+IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCj4+IGluMjogICAgICAgICAgKzIu
+MDMgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKPj4gaW4zOiAgICAgICAgICAr
+Mi4wMCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+PiBpbjQ6ICAgICAgICAg
+ICswLjAxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCj4+IGluNTogICAgICAg
+ICAgKzEuNzMgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKPj4gaW42OiAgICAg
+ICAgICArMS41MSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+PiAzVlNCOiAg
+ICAgICAgICszLjM4IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICs2LjEyIFYpCj4+IFZiYXQ6
+ICAgICAgICAgKzIuOTggVgo+PiBmYW4xOiAgICAgICAgIDYyNyBSUE0gIChtaW4gPSAgIDEwIFJQ
+TSkKPj4gZmFuMjogICAgICAgICA2MDcgUlBNICAobWluID0gICAxMCBSUE0pCj4+IGZhbjM6ICAg
+ICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+PiBmYW40OiAgICAgICAgICAgMCBSUE0g
+IChtaW4gPSAgICAwIFJQTSkKPj4gZmFuNTogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBS
+UE0pCj4+IHRlbXAxOiAgICAgICAgKzM0LjDCsEMgIChsb3cgID0gKzEyNy4wwrBDLCBoaWdoID0g
+KzEyNy4wwrBDKSAgc2Vuc29yID0KPj4gdGhlcm1pc3Rvcgo+PiB0ZW1wMjogICAgICAgICs1MS4w
+wrBDICAobG93ICA9ICsxMjcuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIHNlbnNvciA9Cj4+IHRo
+ZXJtaXN0b3IKPj4gdGVtcDM6ICAgICAgIC0xMjguMMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhp
+Z2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPQo+PiBJbnRlbCBQRUNJCj4+IGludHJ1c2lvbjA6ICBB
+TEFSTQo+PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gODwgU2NobmFwcCA4PCAtLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0KPj4KPj4KPj4gTm93IHRoZSBQcm9ibGVtOgo+Pgo+PiBUaGUg
+Qm9hcmQgaGFzIHRoZSBwb3NzaWJpbGl0eSB0byBjb25uZWN0IDUgQ2FzZSBGYW5zIGFuZCAyIENQ
+VSBGYW5zCj4+Cj4+IEkgaGF2ZSAxIENQVS1GYW4gYW5kIDMgQ2FzZSBGYW5zLgo+Pgo+PiBDUFUt
+RmFuIGhhcyA0IHBvd2VyLWxhbmVzLCBjYXNlLWZhbnMgaGF2ZSBhbGwgMyBwb3dlci1sYW5lcwo+
+PiB3aGVyZSA0IGFyZSBwb3NzaWJsZQo+Pgo+PiBmYW4xIGFib3ZlIGluIHNlbnNvcnMtb3V0cHV0
+IGlzIHRoZSBzYW1lIGFzIFNZU19GQU4yLCBzbyBhIGNhc2UtZmFuCj4+IGZhbjIgYWJvdmUgaW4g
+c2Vuc29ycy1vdXRwdXQgaXMgdGhlIHNhbWUgYXMgU1lTX0ZBTjMsIHNvIGEgY2FzZS1mYW4uCj4+
+Cj4+IEkgdHJpZWQgdG8gc3RvcCB0aGUgZmFucyB0byBzZWUgd2hpY2ggb25lIG9mIHRoZSB0d28g
+c2hvd24gYnkgc2Vuc29ycwo+PiBpcyB3aGljaCBvbmUgaW4gdGhlIGhhcmR3YXJlIEkgaGF2ZS4K
+Pj4KPj4gU28gb25lIGNhc2UtZmFuIGlzIG1pc3NpbmcgYW5kICEhISBDUFUtRmFuIGlzIG1pc3Np
+bmcgaGVyZS4KPj4KPgo+IFlvdSBjb3VsZCB0cnkgdG8gY29ubmVjdCB0aGUgY3B1IGZhbiB0byB0
+aGUgb3RoZXIgY3B1IGZhbiBjb25uZWN0b3IgdG8gc2VlCj4gaWYgaXQgc2hvd3MgdXAuCj4KPj4g
+SSBhbHNvIHRyaWVkIHRvIGFwcGx5IHRoaXMgcGF0Y2ggdG8gdGhlIGtlcm5lbDoKPj4gaHR0cDov
+L3d3dy5zcGluaWNzLm5ldC9saXN0cy9sbS1zZW5zb3JzL21zZzQzMTY3Lmh0bWwKPj4KPj4gSSB0
+aGVuIHNlZSBpbiBzZW5zb3JzIHRoZSBzYW1lIG91dHB1dCwgYnV0IGluc3RlYWQgb2YKPj4gaXQ4
+NzI4LWlzYS0wYTMwCj4+IEkgc2VlCj4+IGl0ODYyMC1pc2EtMGEzMAo+Pgo+IFRoZSBvbmx5IHJl
+YWwgZGlmZmVyZW5jZSBpcyB0byBhZGQgc3VwcG9ydCBmb3IgdGhlIG5ldyBJRCwgc28gdGhpcyBp
+cwo+IG5vdCBzdXJwcmlzaW5nLgo+Cj4gQmVzaWRlcyB0aGUgZmFuIHByb2JsZW0sIHRoZSBDUFUg
+dGVtcGVyYXR1cmUgZGlzcGxheSBpcyB3cm9uZyBhcyB3ZWxsLgo+Cj4+IFNvIEkgd291bGQgbGlr
+ZSB0byBkbyB0ZXN0cyBmb3IgeW91IHRlIGdldCBhIHdvcmtpbmcKPj4gcGF0Y2ggZm9yIElURSA4
+NjIwRQo+Cj4gIEZyb20gdGhlIGFib3ZlLCBJIHRoaW5rIHdlIGhhdmUgdG8gY29uY2x1ZGUgdGhh
+dCB0aGUgODYyMCBpc24ndCBhcyBjbG9zZQo+IHRvIHRoZSA4NzI4IGFzIHdlIHdvdWxkIGxpa2Us
+IGFuZCB0aGF0IHdlIGRvIG5vdCBoYXZlIGVub3VnaCBpbmZvcm1hdGlvbgo+IGFib3V0IHRoZSA4
+NjIwIHRvIGFkZCBzdXBwb3J0IGZvciBpdCB0byB0aGUga2VybmVsLgo+Cj4gVW5mb3J0dW5hdGVs
+eSwgdGhlIGNoaXAgd2FzIG1hZGUgYnkgSVRFIHNwZWNpZmljYWxseSBmb3IgR2lnYWJ5dGUsCj4g
+YW5kIG5laXRoZXIgSVRFIG5vciBHaWdhYnl0ZSBhcmUgbGlrZWx5IHRvIHJlbGVhc2UgdGhlIGRh
+dGFzaGVldC4KPiBVbmxlc3Mgc29tZW9uZSBzdGVwcyB1cCBhbmQgcHJvdmlkZXMgdGhlIGluZm9y
+bWF0aW9uIHdlIHdvdWxkIG5lZWQsCj4gSSBzZWUgbGl0dGxlIGNoYW5jZSB0aGF0IHdlIHdpbGwg
+YmUgYWJsZSB0byBtYWtlIHRoZSBuZWNlc3NhcnkgY2hhbmdlcwo+IHRvIHRoZSBkcml2ZXIuCj4K
+PiBHdWVudGVyCj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
