@@ -1,63 +1,45 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Thu, 19 Mar 2015 17:44:44 +0000
-Subject: [lm-sensors] [PATCH v2 4/5] hwmon: (ibmpowernv) change create_hwmon_attr_name() prototype
-Message-Id: <1426787085-9004-5-git-send-email-clg@fr.ibm.com>
+From: Cedric Le Goater <clg@fr.ibm.com>
+Date: Fri, 20 Mar 2015 08:06:38 +0000
+Subject: Re: [lm-sensors] [PATCH v2 4/5] hwmon: (ibmpowernv) change create_hwmon_attr_name() prototype
+Message-Id: <550BD50E.2040009@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
+ <1426787085-9004-5-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1426787085-9004-5-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-SXQgc2ltcGxpZmllcyB0aGUgY3JlYXRpb24gb2YgdGhlIGh3bW9uIGF0dHJpYnV0ZXMgYW5kIHdp
-bGwgaGVscCB3aGVuCnN1cHBvcnQgZm9yIGEgbmV3IGRldmljZSB0cmVlIGxheW91dCBpcyBhZGRl
-ZC4gVGhlIHBhdGNoIGFsc28gY2hhbmdlcwp0aGUgbmFtZSBvZiB0aGUgcm91dGluZSB0byBwYXJz
-ZV9vcGFsX25vZGVfbmFtZSgpLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNs
-Z0Bmci5pYm0uY29tPgotLS0KCkNoYW5nZXMgc2luY2UgdjE6CgogLSBjaGFuZ2VkIHJldHVybmVk
-IHZhbHVlIG9mIHBhcnNlX29wYWxfbm9kZV9uYW1lKCkKIC0gdXNlZCAqX1BUUiBtYWNyb3MgdG8g
-Y2hlY2sgZm9yIGVycm9ycwoKIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgICAzNyArKysr
-KysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMjAgaW5z
-ZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXguZ2l0L2RyaXZlcnMvaHdt
-b24vaWJtcG93ZXJudi5jCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LmdpdC5vcmlnL2RyaXZlcnMvaHdt
-b24vaWJtcG93ZXJudi5jCisrKyBsaW51eC5naXQvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMK
-QEAgLTE1MiwyOSArMTUyLDIyIEBAIHN0YXRpYyBjb25zdCBjaGFyICpjb252ZXJ0X29wYWxfYXR0
-cl9uYW0KICAqIHdoaWNoIG5lZWQgdG8gYmUgbWFwcGVkIGFzIGZhbjJfaW5wdXQsIHRlbXAxX21h
-eCByZXNwZWN0aXZlbHkgYmVmb3JlCiAgKiBwb3B1bGF0aW5nIHRoZW0gaW5zaWRlIGh3bW9uIGRl
-dmljZSBjbGFzcy4KICAqLwotc3RhdGljIGludCBjcmVhdGVfaHdtb25fYXR0cl9uYW1lKHN0cnVj
-dCBkZXZpY2UgKmRldiwgZW51bSBzZW5zb3JzIHR5cGUsCi0JCQkJCSBjb25zdCBjaGFyICpub2Rl
-X25hbWUsCi0JCQkJCSBjaGFyICpod21vbl9hdHRyX25hbWUpCitzdGF0aWMgY29uc3QgY2hhciAq
-cGFyc2Vfb3BhbF9ub2RlX25hbWUoY29uc3QgY2hhciAqbm9kZV9uYW1lLAorCQkJCQllbnVtIHNl
-bnNvcnMgdHlwZSwgdTMyICppbmRleCkKIHsKIAljaGFyIGF0dHJfc3VmZml4W01BWF9BVFRSX0xF
-Tl07CiAJY29uc3QgY2hhciAqYXR0cl9uYW1lOwotCXUzMiBpbmRleDsKIAlpbnQgZXJyOwogCi0J
-ZXJyID0gZ2V0X3NlbnNvcl9pbmRleF9hdHRyKG5vZGVfbmFtZSwgJmluZGV4LCBhdHRyX3N1ZmZp
-eCk7Ci0JaWYgKGVycikgewotCQlkZXZfZXJyKGRldiwgIlNlbnNvciBkZXZpY2Ugbm9kZSBuYW1l
-ICclcycgaXMgaW52YWxpZFxuIiwKLQkJCW5vZGVfbmFtZSk7Ci0JCXJldHVybiBlcnI7Ci0JfQor
-CWVyciA9IGdldF9zZW5zb3JfaW5kZXhfYXR0cihub2RlX25hbWUsIGluZGV4LCBhdHRyX3N1ZmZp
-eCk7CisJaWYgKGVycikKKwkJcmV0dXJuIEVSUl9QVFIoZXJyKTsKIAogCWF0dHJfbmFtZSA9IGNv
-bnZlcnRfb3BhbF9hdHRyX25hbWUodHlwZSwgYXR0cl9zdWZmaXgpOwogCWlmICghYXR0cl9uYW1l
-KQotCQlyZXR1cm4gLUVOT0VOVDsKKwkJcmV0dXJuIEVSUl9QVFIoLUVOT0VOVCk7CiAKLQlzbnBy
-aW50Zihod21vbl9hdHRyX25hbWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAotCQkgc2Vuc29y
-X2dyb3Vwc1t0eXBlXS5uYW1lLCBpbmRleCwgYXR0cl9uYW1lKTsKLQlyZXR1cm4gMDsKKwlyZXR1
-cm4gYXR0cl9uYW1lOwogfQogCiBzdGF0aWMgaW50IGdldF9zZW5zb3JfdHlwZShzdHJ1Y3QgZGV2
-aWNlX25vZGUgKm5wKQpAQCAtMjQ5LDYgKzI0Miw5IEBAIHN0YXRpYyBpbnQgY3JlYXRlX2Rldmlj
-ZV9hdHRycyhzdHJ1Y3QgcGwKIAl9CiAKIAlmb3JfZWFjaF9jaGlsZF9vZl9ub2RlKG9wYWwsIG5w
-KSB7CisJCWNvbnN0IGNoYXIgKmF0dHJfbmFtZTsKKwkJdTMyIG9wYWxfaW5kZXg7CisKIAkJaWYg
-KG5wLT5uYW1lID09IE5VTEwpCiAJCQljb250aW51ZTsKIApAQCAtMjY1LDEwICsyNjEsMTcgQEAg
-c3RhdGljIGludCBjcmVhdGVfZGV2aWNlX2F0dHJzKHN0cnVjdCBwbAogCiAJCXNkYXRhW2NvdW50
-XS5pZCA9IHNlbnNvcl9pZDsKIAkJc2RhdGFbY291bnRdLnR5cGUgPSB0eXBlOwotCQllcnIgPSBj
-cmVhdGVfaHdtb25fYXR0cl9uYW1lKCZwZGV2LT5kZXYsIHR5cGUsIG5wLT5uYW1lLAotCQkJCQkg
-ICAgIHNkYXRhW2NvdW50XS5uYW1lKTsKLQkJaWYgKGVycikKKworCQlhdHRyX25hbWUgPSBwYXJz
-ZV9vcGFsX25vZGVfbmFtZShucC0+bmFtZSwgdHlwZSwgJm9wYWxfaW5kZXgpOworCQlpZiAoSVNf
-RVJSKGF0dHJfbmFtZSkpIHsKKwkJCWRldl9lcnIoJnBkZXYtPmRldiwgIlNlbnNvciBkZXZpY2Ug
-bm9kZSBuYW1lICclcycgaXMgaW52YWxpZFxuIiwKKwkJCQlucC0+bmFtZSk7CisJCQllcnIgPSBJ
-U19FUlIoYXR0cl9uYW1lKTsKIAkJCWdvdG8gZXhpdF9wdXRfbm9kZTsKKwkJfQorCisJCXNucHJp
-bnRmKHNkYXRhW2NvdW50XS5uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwKKwkJCSBzZW5z
-b3JfZ3JvdXBzW3R5cGVdLm5hbWUsIG9wYWxfaW5kZXgsIGF0dHJfbmFtZSk7CiAKIAkJc3lzZnNf
-YXR0cl9pbml0KCZzZGF0YVtjb3VudF0uZGV2X2F0dHIuYXR0cik7CiAJCXNkYXRhW2NvdW50XS5k
-ZXZfYXR0ci5hdHRyLm5hbWUgPSBzZGF0YVtjb3VudF0ubmFtZTsKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+[ ... ] 
+
+
+> @@ -265,10 +261,17 @@ static int create_device_attrs(struct pl
+> 
+>  		sdata[count].id = sensor_id;
+>  		sdata[count].type = type;
+> -		err = create_hwmon_attr_name(&pdev->dev, type, np->name,
+> -					     sdata[count].name);
+> -		if (err)
+> +
+> +		attr_name = parse_opal_node_name(np->name, type, &opal_index);
+> +		if (IS_ERR(attr_name)) {
+> +			dev_err(&pdev->dev, "Sensor device node name '%s' is invalid\n",
+> +				np->name);
+> +			err = IS_ERR(attr_name);
+                              ^^^^^^
+
+Arg. Bad copy/paste. This should be PTR_ERR() ... 
+
+Do you want a full patchset resend or just a resend of this patch ? or a fix maybe.
+
+Sorry for the noise ...
+
+C.  
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
