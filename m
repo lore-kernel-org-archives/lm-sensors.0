@@ -1,54 +1,32 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 05 Mar 2015 08:34:05 +0000
-Subject: Re: [lm-sensors] Patch and Upstart file for healthd.sh
-Message-Id: <20150305093405.78aae251@endymion.delvare>
+From: =?big5?B?YW5kcmV3Lnl1ICirXMR+tLwp?= <andrew.yu@gigabyte.com>
+Date: Tue, 24 Mar 2015 02:48:01 +0000
+Subject: [lm-sensors] Z97X-GAMING G1 WIFI-BK - LM-Sensors
+Message-Id: <57807564FA53474498623D3C31446601016A28C9@gbtmail02.gigabyte.intra>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20150226233151.GA17731@alpha.somenet.pw>
-In-Reply-To: <20150226233151.GA17731@alpha.somenet.pw>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi vbooh,
-
-Adding the list back...
-
-On Thu, 5 Mar 2015 01:59:29 +0300, vbooh wrote:
-> Yes, I have checked a CPU load after applying the patch, but mostly using a manual launch in a command line('perf stat', 'time' external utility). In a daemon mode in my case it really increased CPU load(from 0.1% to 4.5%), but until you said I just did not notice that, since it is not so much. My bad.
-> You were right, it looks like the 'read' command goes crazy without an attached terminal. I have found a pretty dirty hack around it, it requires some additional external utilities, but they are launched just once, not every 15 seconds, all the changes are in the attached patch. Now in a daemon mode 'healthd.sh' in my case consumes 0.0% of a CPU load.
-
-I've looked around for such hacks and found several of them, including
-this one indeed. I agree it works and is probably the least ugly and
-unreliable, but it's still awkward compared to just calling sleep, and
-in my opinion it's not nice enough to go upstream. We may run in all
-kinds of compatibility and portability issues with that kind of code.
-
-> Yes, the 'sleep' external utility can be compiled in 'bash', it was the very first tought of mine. But in Debian this must be done separately after an installation of an additional packages and in CentOS 7 there are even not all the needed files in the repository, so I have striked out that idea.
-
-As far as I can see, Debian ships the loadable commands as source
-files, not binaries, in package bash-builtins, right?  That doesn't
-seem very useful :(
-
-I agree that the availability of the loadable builtins is limited.
-However I think this is a kind of chicken and egg problem:
-distributions don't care much because there aren't many users of that
-feature, and application authors don't want to use it because
-distributions don't support it.
-
-I'll talk to the upstream maintainers of bash about integrating it
-better in their build system, to get the ball rolling. I really think
-this is the way to go in the long term.
-
-> Anyway thank you for your work.
-
-You're welcome :)
-
--- 
-Jean Delvare
-SUSE L3 Support
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+RGVhciBTaXI6DQoNCk1COiBaOTdYLUdBTUlORyBHMSBXSUZJLUJLDQpodHRwOi8vd3d3LmdpZ2Fi
+eXRlLmNvbS9wcm9kdWN0cy9wcm9kdWN0LXBhZ2UuYXNweD9waWQ9NDk4MCZrdz1HQS1aOTdYLUdh
+bWluZyUyMEcxJTIwV0lGSS1CSzEuMCNzcA0KDQpPLlMuOiBMaW51eA0KDQpTL1c6IExNIFNlbnNv
+cnMNCmh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbG0tc2Vuc29ycy9tc2c0MzIxOC5odG1s
+DQoNCkRlc2NyaXB0aW9uOg0KDQpHcmVldGluZywgdGhpcyBpcyBHSUdBQllURSBGQUUgQW5kcmV3
+Lg0KT25lIG9mIG91ciBHZXJtYW55IHVzZXJzIGhhcyByZXBvcnRlZCB0aGF0IG91ciBNQiBoYXMg
+dHJvdWJsZSBzaG93aW5nIHRoZSB3aG9sZSBDUFUvU1lTIEZBTiBpbmZvLiB2aWEgTE0gU2Vuc29y
+cy4NClRoaXMgbWF5IGR1ZSB0byBJVEUgY2hpcCBpcyBkaWZmZXJlbnQgZnJvbSBvdXIgb3RoZXIg
+b2xkZXIgTUIsIHdlIHVzZSBJVEU4NjIwIGluc3RlYWQgb2YgSVRFODcyOCBvbiB0aGlzIE1CLg0K
+DQpEdWUgdG8gdGhlIFMvVyBpcyBub3Qgb2ZmZXJlZCBieSB1cywgYWxzbyB3ZaGmcmUgcHJldHR5
+IHN1cmUgdGhhdCBvdXIgUy9XIEVhc3lUdW5lIHdvcmtzIGZpbmUgdW5kZXIgV2luZG93cyBPLlMu
+Lg0KSXShpnMgaGFyZCBmb3IgdXMgdG8ga25vdyB3aGF0IGV4YWN0IGluZm8uIHlvdSBuZWVkIGZv
+ciBmdXJ0aGVyIHN0dWR5Lg0KDQpDYW4geW91IHBsZWFzZSBsZXQgdXMga25vdyB3aGF0IGluZm8u
+IHlvdSBuZWVkIHRvIGltcHJvdmU/DQpBbHNvIHBsZWFzZSBub3RlIHRoYXQgdW5sZXNzIHlvdSBz
+aWduIHRoZSBOREEgZG9jdW1lbnQsIHdlIGNhbiBvbmx5IHByb3ZpZGUgZGF0YXNoZWV0IGluZm8u
+IHBhcnRseSBpbiBzY3JlZW5zaG90Lg0KDQpUaGFuayB5b3UuDQoNCkJlc3QgUmVnYXJkcw0KQW5k
+cmV3IFl1DQpGQUUgVGVjaG5pY2FsIFN1cHBvcnQgRGVwYXJ0bWVudCwgR2lnYWJ5dGUgVGVjaG5v
+bG9neQ0KMjMxIE5vLjYgQmFvcWlhbmcgUmQuLCBYaW5kaWFuIERpc3QuLCBOZXcgVGFpcGVpIENp
+dHksIFRhaXdhbg0KVGVsOiArODg2LTItODkxMi00MDAwIEV4dC4gMTE2Nw0KDQpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcg
+bGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
