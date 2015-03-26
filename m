@@ -1,72 +1,67 @@
-From: Taz <rastataz@gmail.com>
-Date: Mon, 02 Mar 2015 18:10:02 +0000
-Subject: Re: [lm-sensors] Fancontrol memory consumption
-Message-Id: <54F4A77A.6070903@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 26 Mar 2015 13:32:22 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: ITE updates
+Message-Id: <1427376742-17682-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141105175729.39a88ab1@endymion.delvare>
-In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-CkxlIDAyLzAzLzIwMTUgMTM6MjYsIEplYW4gRGVsdmFyZSBhIMOpY3JpdCA6Cj4gT24gTW9uLCAw
-MiBNYXIgMjAxNSAxMjowNTowOSArMDEwMCwgVGF6IHdyb3RlOgo+PiBMZSAwMi8wMy8yMDE1IDEx
-OjMwLCBKZWFuIERlbHZhcmUgYSDDqWNyaXQgOgo+Pj4gT24gVGh1LCAxMyBOb3YgMjAxNCAxNToz
-NjozMiArMDEwMCwgVGF6IHdyb3RlOgo+Pj4+IChzb3JyeSBJIGp1c3Qgc2F3IG15IHJlcGx5IHN0
-aWxsIHdhcyBpbiBteSBkcmFmdHMsIGRvbid0IGtub3cgd2h5Li4uKQo+Pj4+Cj4+Pj4gSW5kZWVk
-IDogbXkgY3VycmVudCBiYXNoIHZlcnNpb24gaXMgNC4zLjExCj4+Pj4gQWx0aG91Z2ggSSBkb24n
-dCBoYXZlIGxpbmUgNTg1IGluIG15IGZhbmNvbnRyb2wgc2NyaXB0Cj4+Pj4gSSBjYW4gYXBwbHkg
-dGhlIHRoZSBwYXRjaCAobGluZXMgNDk3ICYgNTM2IGZvciBmYW5jb250cm9sIHYwLjcpCj4+Pj4K
-Pj4+PiBJIGFsc28gZ2F2ZSBpdCBhIHRyeSB3aXRob3V0IHRoZSB3YWl0IGxpbmVzIGFuZCBub3Qg
-c2VuZGluZyB0bwo+Pj4+IGJhY2tncm91bmQgdGhlIHByZXZpb3VzCj4+Pj4gc2xlZXAgY29tbWFu
-ZCB0aGUgd2FpdCB3YXMgd2FpdGluZyBmb3IgYW55d2F5ICh1c2VsZXNzID8pCj4+Pj4KPj4+PiA9
-PiBNZW0gY29uc3VtcHRpb24gc2VlbXMgdG8gYmUgdGhlIHNhbWUgaW4gYWxsIGNhc2VzLCB3ZSds
-bCBzZWUgaW4gdGhlCj4+Pj4gbG9uZyBydW4uLi4KPiBJIGRvbid0IHRoaW5rIHlvdSBldmVyIHJl
-cG9ydGVkIHRoZSByZXN1bHRzIG9mIHRoYXQgdGVzdD8gV2l0aCB0aGUKPiBmaXJzdCBwYXRjaCBh
-cHBsaWVkLCBkb2VzIGZhbmNvbnRyb2wgc3RpbGwgcmVhY2ggMjUgTUIgb2YgbWVtb3J5IG92ZXIK
-PiB0aW1lLCBvciBub3Q/Cj4KPj4+IEJUVywgY2FuIHlvdSBwbGVhc2UgdGVsbCBtZQo+Pj4gKiBX
-aGljaCBhcmNoaXRlY3R1cmUgdGhpcyBpcyAoeDg2IG9yIHg4Ni02NCk/Cj4+PiAqIFRoZSB2YWx1
-ZSBvZiAidWxpbWl0IC11IiBvbiB0aGlzIHN5c3RlbS4KPj4+ICogVGhlIHRvdGFsIGFtb3VudCBv
-ZiBtZW1vcnkgb24gdGhlIHN5c3RlbS4KPj4+Cj4+PiBBcyBDaGV0IFJhbWV5IGV4cGxhaW5lZCB0
-byBtZSwgdGhlIG1lbW9yeSBjb25zdW1wdGlvbiBpcyBib3VuZCBhbmQgdGhlCj4+PiBkZWZhdWx0
-IGxpbWl0IGRlcGVuZHMgb24gdGhlc2UgZmFjdG9ycy4gQXNzdW1pbmcgYW4geDg2LTY0IHN5c3Rl
-bSwKPj4+IGVhdGluZyAyMiBNQiBvZiBtZW1vcnkgYXMgeW91IHJlcG9ydGVkIHdvdWxkIHRha2Ug
-YWJvdXQgNzM0MDAwIHJlY29yZHMKPj4+IG9mIDMyIGJ5dGVzIGVhY2gsIGFuZCAidWxpbWl0IC11
-IiB3b3VsZCBiZSBzZXQgdG8gdGhhdCB2YWx1ZSBieSBkZWZhdWx0Cj4+PiBmb3IgYSBzeXN0ZW0g
-d2l0aCBhYm91dCAxODcgR0Igb2YgbWVtb3J5LiBXaGljaCBJIHdvdWxkIG5vdCBleHBlY3QgaW4g
-YQo+Pj4gTkFTLCBzbyBzb21ldGhpbmcgaXMgd3JvbmcuCj4+Pgo+PiBUaGUgaGFyZHdhcmUgaXMg
-YWN0dWFsbHkgYSBSZWFkeU5BUyB1bHRyYSA2MDAwIHdpdGggMkdCIFJBTS4KPj4gSSdtIHJ1bm5p
-bmcgYSB4ODZfNjQgdWJ1bnR1IHNlcnZlciAxNC4wNCB3aXRoIDMuMTYgU01QIGtlcm5lbAo+PiBh
-bmQgZmFuY29udHJvbCBmcm9tIHN0YW5kYXJkIHJlcG9zIChwa2cgdmVycyBpcyAxOjMuMy40LTJ1
-YnVudHUxKS4KPj4KPj4gPT09PT09PQo+Pgo+PiAocm9vdEBSZWFkeU5BUzpwdHMvMCkgIyB1bGlt
-aXQgLXUKPj4gICAgICAgNzg5Mgo+Pgo+PiAocm9vdEBSZWFkeU5BUzpwdHMvMCkgI2ZyZWUKPj4g
-ICAgICAgICAgICAgICAgICAgIHRvdGFsICAgICAgIHVzZWQgICAgICAgZnJlZSAgICAgc2hhcmVk
-IGJ1ZmZlcnMgICAgIGNhY2hlZAo+PiAgICAgICBNZW06ICAgICAgIDIwMzk4MjggICAgMTgyOTY1
-NiAgICAgMjEwMTcyICAgICAgICA3MDggNDc5NiAgICAxMDkxNTE2Cj4+ICAgICAgIC0vKyBidWZm
-ZXJzL2NhY2hlOiAgICAgNzMzMzQ0ICAgIDEzMDY0ODQKPj4gICAgICAgU3dhcDogICAgICA1MjQy
-ODc2ICAgICAgICAgIDAgICAgNTI0Mjg3Ngo+IFRoaXMgc2VlbXMgdG90YWxseSByZWFzb25hYmxl
-LiBXaXRoIHRoZXNlcyBzZXR0aW5ncywgYmFzaCBzaG91bGQgbm90Cj4gY29uc3VtZSBtb3JlIHRo
-YW4gMjQ3IGtCIG9mIG1lbW9yeSB0byByZW1lbWJlciB0aGUgcHJvY2VzcyBzdGF0dXNlcy4KPiBU
-aGlzIGNhbid0IGV4cGxhaW4gdGhlIDI1IE1CIHlvdSByZXBvcnRlZCBpbml0aWFsbHkuCj4KPiBT
-byBJIHN0YXJ0IHN1c3BlY3RpbmcgdGhhdCB5b3VyIHByb2JsZW0gaXMgZGlmZmVyZW50IGZyb20g
-dGhlICJ3YWl0ICQhIgo+IGlzc3VlIEkgaGF2ZSBiZWVuIGludmVzdGlnYXRpbmcgc28gZmFyLiBJ
-IGNvdWxkIHJlcHJvZHVjZSB0aGUgbWVtb3J5Cj4gaW5jcmVhc2UgY2F1c2VkIGJ5ICJ3YWl0ICQh
-IiwgYnV0IEkgY291bGQgbmV2ZXIgZ2V0IGJhc2ggdG8gcmVhY2ggMjUgTUIKPiBhcyB5b3UgcmVw
-b3J0ZWQuCj4KPiBTbyBtYXliZSBpdCdzIGEgZGlmZmVyZW50IGJ1Zy4gYmFzaCA0LjMuMTEgaXMg
-Z2V0dGluZyBvbGQsIHRoZXJlIGhhdmUKPiBiZWVuIDIyIHVwc3RyZWFtIGZpeGVzIG1lYW53aGls
-ZSAobGF0ZXN0IHN0YWJsZSB2ZXJzaW9uIGlzIDQuMy4zMy4pCj4gTWF5YmUgYSBtb3JlIHJlY2Vu
-dCB2ZXJzaW9uIGlzIGF2YWlsYWJsZSBmb3IgeW91ciBzeXN0ZW0gbm93PyBUaGlzCj4gY291bGQg
-YWxzbyBiZSBhIGJ1ZyBzcGVjaWZpYyB0byB0aGUgVWJ1bnR1IGJhc2ggcGFja2FnZSB5b3UncmUg
-cnVubmluZywKPiB3aG8ga25vd3MuCj4KSmVhbiwKCkZvciB0aGUgcmVzdWx0cyA6IHllcyBpdCBy
-ZWFjaGVkIGFyb3VuZCB0aGUgc2FtZSBtZW0gY29uc3VtcHRpb24gOiAKYWx3YXlzIGxlc3MgdGhh
-biAzME1CLApzdGFydGluZyBhdCA0TUIgYW5kIGl0IGxvb2tzIHRvIGJlIHRoZSBzYW1lIHN0YXJ0
-LXVwIGNvbnN1bXB0aW9uIGFzIHdlbGwgCndpdGggcmVhZCBpbnN0ZWFkIG9mIHNsZWVwLgoKT24g
-dGhlIGJhc2ggdmVyc2lvbiA6IEkgZG9uJ3QgcmVhbGx5IHBhaWQgYXR0ZW50aW9uLCBJIGp1c3Qg
-a2VwdCBteSAKc3lzdGVtIHVwLXRvIGRhdGUKYW5kIGl0J3Mgc3RpbGwgdGhlIHNhbWUgdmVzcmlv
-biwgc28gSSBndWVzcyB0aGVyZSB3ZXJlIG5vIG5ldyByZWxlYXNlIAphdmFpbGFibGUgc2luY2Ug
-dGhlbi4uLgoKPT4gSSdsbCB0cnkgdG8gaW5zdGFsbCBhbiB1cGRhdGVkIHZlcnNpb24gb2YgYmFz
-aCBpZiBJIGNhbiBhbmQgdGVsbCB5b3UgCmFib3V0IGl0LgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
-c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9sbS1zZW5zb3Jz
+Add detection of ITE8790E.
+Reflect that IT8620E will soon be supported by the it87 driver.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Patches to it87.c follow.
+
+ CHANGES                    | 1 +
+ prog/detect/sensors-detect | 8 +++++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/CHANGES b/CHANGES
+index 3d710c0..a5eb974 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -35,6 +35,7 @@ SVN HEAD
+                   Add detection of TSE2004 and TS3001
+                   Document driver support for NCT7802Y
+                   Add detection of NCT7904D
++                  Add detection of IT8790E
+ 
+ 3.3.5 "Happy Birthday Beddy" (2014-01-22)
+   libsensors: Improve documentation of two functions
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index 436cf95..08721f0 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -2303,7 +2303,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
+ 		name => "ITE IT8620E Super IO Sensors",
+-		driver => "to-be-written",	# it87
++		driver => "it87",
+ 		devid => 0x8620,
+ 		logdev => 0x04,
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+@@ -2427,6 +2427,12 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		devid => 0x8786,
+ 		logdev => 0x04,
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++	}, {
++		name => "ITE IT8790E Super IO Sensors",
++		driver => "it87",
++		devid => 0x8790,
++		logdev => 0x04,
++		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}
+ );
+ 
+-- 
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
