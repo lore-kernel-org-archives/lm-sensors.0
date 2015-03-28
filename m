@@ -1,69 +1,29 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 31 Mar 2015 16:34:05 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (it87) Use feature macros on sio_data
-Message-Id: <1427819645-21749-1-git-send-email-linux@roeck-us.net>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Date: Sat, 28 Mar 2015 10:24:13 +0000
+Subject: [lm-sensors] [PATCH 0/2] i8k.c => dell-smm-hwmon.c
+Message-Id: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jean Delvare <jdelvare@suse.de>
+Cc: Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 
-Feature macros work on sio_data as well, so use them there.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-Applies on top of the previous patch series.
-
- drivers/hwmon/it87.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index d7935a5e9413..c4cb75cba2f0 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -2047,6 +2047,7 @@ static int __init it87_find(int sioaddr, unsigned short *address,
- 	int err;
- 	u16 chip_type;
- 	const char *board_vendor, *board_name;
-+	const struct it87_devices *config;
- 
- 	err = superio_enter(sioaddr);
- 	if (err)
-@@ -2131,23 +2132,25 @@ static int __init it87_find(int sioaddr, unsigned short *address,
- 		it87_devices[sio_data->type].suffix,
- 		*address, sio_data->revision);
- 
-+	config = &it87_devices[sio_data->type];
-+
- 	/* in7 (VSB or VCCH5V) is always internal on some chips */
--	if (it87_devices[sio_data->type].features & FEAT_IN7_INTERNAL)
-+	if (has_in7_internal(config))
- 		sio_data->internal |= (1 << 1);
- 
- 	/* in8 (Vbat) is always internal */
- 	sio_data->internal = (1 << 2);
- 
- 	/* in9 (AVCC3), always internal if supported */
--	if (it87_devices[sio_data->type].features & FEAT_AVCC3)
-+	if (has_avcc3(config))
- 		sio_data->internal |= (1 << 3); /* in9 is AVCC */
- 	else
- 		sio_data->skip_in |= (1 << 9);
- 
--	if (!(it87_devices[sio_data->type].features & FEAT_SIX_PWM))
-+	if (!has_six_pwm(config))
- 		sio_data->skip_pwm |= (1 << 3) | (1 << 4) | (1 << 5);
- 
--	if (!(it87_devices[sio_data->type].features & FEAT_VID))
-+	if (!has_vid(config))
- 		sio_data->skip_vid = 1;
- 
- 	/* Read GPIO config and VID value from LDN 7 (GPIO) */
--- 
-2.1.0
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBzZXJpZXMgbW92ZXMgZHJpdmVycy9jaGFyL2k4ay5jIHRvIGRyaXZlcnMvaHdt
+b24vZGVsbC1zbW0taHdtb24uYwphbmQgYWxsb3dzIHRvIGNvbXBpbGUgaHdtb24gZHJpdmVyIHdp
+dGhvdXQgL3Byb2MvaThrIGZpbGUuCgpQYWxpIFJvaMOhciAoMik6CiAgaHdtb246IFJlbmFtZSBp
+OGsgZHJpdmVyIHRvIGRlbGwtc21tLWh3bW9uIGFuZCBtb3ZlIGl0IHRvIGh3bW9uIHRyZWUKICBo
+d21vbjogQWxsb3cgdG8gY29tcGlsZSBkZWxsLXNtbS1od21vbiBkcml2ZXIgd2l0aG91dCAvcHJv
+Yy9pOGsKCiBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgfCAgICAzICstCiBhcmNoL3g4
+Ni9LY29uZmlnICAgICAgICAgICAgICAgfCAgIDI1ICstCiBkcml2ZXJzL2NoYXIvTWFrZWZpbGUg
+ICAgICAgICAgfCAgICAxIC0KIGRyaXZlcnMvY2hhci9pOGsuYyAgICAgICAgICAgICB8IDEwMDUg
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiBkcml2ZXJzL2h3bW9uL0tj
+b25maWcgICAgICAgICAgfCAgIDExICsKIGRyaXZlcnMvaHdtb24vTWFrZWZpbGUgICAgICAgICB8
+ICAgIDEgKwogZHJpdmVycy9od21vbi9kZWxsLXNtbS1od21vbi5jIHwgMTAxOSArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiA3IGZpbGVzIGNoYW5nZWQsIDEwNDIgaW5z
+ZXJ0aW9ucygrKSwgMTAyMyBkZWxldGlvbnMoLSkKIGRlbGV0ZSBtb2RlIDEwMDY0NCBkcml2ZXJz
+L2NoYXIvaThrLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL2RlbGwtc21tLWh3
+bW9uLmMKCi0tIAoxLjcuOS41CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3Jz
