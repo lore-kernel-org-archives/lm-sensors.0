@@ -1,25 +1,30 @@
 From: Peter Chang <dpf@google.com>
-Date: Sat, 28 Mar 2015 13:12:12 +0000
-Subject: [lm-sensors] [PATCH] support i2c 10-bit addressing
-Message-Id: <CAF2xp_GC43xxrcXCx8sU_KJQW_Y6C+CTVtH5YqJcSHtad1u_-g@mail.gmail.com>
+Date: Sat, 28 Mar 2015 13:17:43 +0000
+Subject: Re: [lm-sensors] [PATCH] support i2c 10-bit addressing
+Message-Id: <CAF2xp_H62JgAmBPhsvKgYHae6OMwgOtXmQndf5sj=Hjy1YREnA@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="e89a8ff2521a819de10512590054"
+Content-Type: multipart/mixed; boundary="001a113dd1d431d021051259144e"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAF2xp_GC43xxrcXCx8sU_KJQW_Y6C+CTVtH5YqJcSHtad1u_-g@mail.gmail.com>
+In-Reply-To: <CAF2xp_GC43xxrcXCx8sU_KJQW_Y6C+CTVtH5YqJcSHtad1u_-g@mail.gmail.com>
 To: lm-sensors@vger.kernel.org
 
---e89a8ff2521a819de10512590054
+--001a113dd1d431d021051259144e
 Content-Type: text/plain; charset=UTF-8
 
-the address parsing doesn't have the adapter's support bits yet, so it
-looks a little out of place.
+<sigh> gmail appears to have futzed w/ the attachment type.
 
-\p
+2015-03-28 6:12 GMT-07:00 Peter Chang <dpf@google.com>:
+> the address parsing doesn't have the adapter's support bits yet, so it
+> looks a little out of place.
+>
+> \p
 
---e89a8ff2521a819de10512590054
-Content-Type: application/octet-stream; name="i2c-10bit.patch"
-Content-Disposition: attachment; filename="i2c-10bit.patch"
+--001a113dd1d431d021051259144e
+Content-Type: text/plain; charset=US-ASCII; name="i2c-10bit.diff"
+Content-Disposition: attachment; filename="i2c-10bit.diff"
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_i7t1bmt00
+X-Attachment-Id: f_i7t1m46e1
 
 SW5kZXg6IHRvb2xzL2kyY2J1c3Nlcy5jCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
 PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIHRvb2xzL2kyY2J1c3Nlcy5j
@@ -185,7 +190,7 @@ fCBzZXRfc2xhdmVfYWRkcihmaWxlLCBhZGRyZXNzLCBmb3JjZSkpCisJIHx8IGNoZWNrX2Z1bmNz
 KGZpbGUsIHNpemUsIHBlYywgJmZ1bmNzKQorCSB8fCBzZXRfc2xhdmVfYWRkcihmaWxlLCBhZGRy
 ZXNzLCBmb3JjZSwgZnVuY3MpKQogCQlleGl0KDEpOwogCiAJaWYgKCF5ZXMgJiYgIWNvbmZpcm0o
 ZmlsZW5hbWUsIGFkZHJlc3MsIHNpemUsIGRhZGRyZXNzLAo=
---e89a8ff2521a819de10512590054
+--001a113dd1d431d021051259144e
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -195,4 +200,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---e89a8ff2521a819de10512590054--
+--001a113dd1d431d021051259144e--
