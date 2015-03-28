@@ -1,74 +1,143 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 28 Mar 2015 22:20:41 +0000
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Date: Sat, 28 Mar 2015 22:33:46 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: Allow to compile dell-smm-hwmon driver without /proc/i8k
-Message-Id: <55172939.4070100@roeck-us.net>
+Message-Id: <201503282333.46803@pali>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5836667387771929115=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com> <1427540660.2334.14.camel@x220> <CABz95_BkAvPoBAm_tRLH6OhCk_pDfJQ8UuwfhuEYuPNt3P-PGw@mail.gmail.com> <201503282300.48749@pali>
-In-Reply-To: <201503282300.48749@pali>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Steven Honeyman <stevenhoneyman@gmail.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jean Delvare <jdelvare@suse.de>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com> <1427580377.2408.2.camel@x220> <CABz95_AZnyCH_0VYdx4bHV7KV=goNxz1YdvrUCFJQSOAqwwMug@mail.gmail.com>
+In-Reply-To: <CABz95_AZnyCH_0VYdx4bHV7KV=goNxz1YdvrUCFJQSOAqwwMug@mail.gmail.com>
+To: Steven Honeyman <stevenhoneyman@gmail.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>, Guenter Roeck <linux@roeck-us.net>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jean Delvare <jdelvare@suse.de>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-T24gMDMvMjgvMjAxNSAwMzowMCBQTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gT24gU2F0dXJkYXkg
-MjggTWFyY2ggMjAxNSAxMzo1NDo1MSBTdGV2ZW4gSG9uZXltYW4gd3JvdGU6Cj4+IE9uIDI4IE1h
-cmNoIDIwMTUgYXQgMTE6MDQsIFBhdWwgQm9sbGUgPHBlYm9sbGVAdGlzY2FsaS5ubD4KPiB3cm90
-ZToKPj4+IE9uIFNhdCwgMjAxNS0wMy0yOCBhdCAxMToyNCArMDEwMCwgUGFsaSBSb2jDoXIgd3Jv
-dGU6Cj4+Pj4gLS0tIGEvZHJpdmVycy9od21vbi9LY29uZmlnCj4+Pj4gKysrIGIvZHJpdmVycy9o
-d21vbi9LY29uZmlnCj4+Pj4gQEAgLTE3MDMsNiArMTcwMywxNyBAQCBjb25maWcgU0VOU09SU19V
-TFRSQTQ1Cj4+Pj4KPj4+PiAgICAgICAgICBUaGlzIGRyaXZlciBwcm92aWRlcyBzdXBwb3J0IGZv
-ciB0aGUgVWx0cmE0NQo+Pj4+ICAgICAgICAgIHdvcmtzdGF0aW9uIGVudmlyb25tZW50YWwgc2Vu
-c29ycy4KPj4+Pgo+Pj4+ICtjb25maWcgU0VOU09SU19ERUxMX1NNTQo+Pj4+ICsgICAgIHRyaXN0
-YXRlICJEZWxsIGxhcHRvcCBTTU0gQklPUyBod21vbiBkcml2ZXIiCj4+Pj4gKyAgICAgZGVwZW5k
-cyBPTiBYODYKPj4+Cj4+PiBIb3cgZGlkIHRoaXMgcGFzdCB5b3VyIHRlc3Rpbmc/Cj4+Pgo+Pj4+
-ICsgICAgIC0tLWhlbHAtLS0KPj4+PiArICAgICAgIFRoaXMgaHdtb24gZHJpdmVyIGFkZHMgc3Vw
-cG9ydCBmb3IgcmVwb3J0aW5nCj4+Pj4gdGVtcGVyYXR1cmUgb2YgZGlmZmVyZW50ICsgICAgICAg
-c2Vuc29ycyBhbmQgY29udHJvbHMgdGhlCj4+Pj4gZmFucyBvbiBEZWxsIGxhcHRvcHMgdmlhIFN5
-c3RlbSBNYW5hZ2VtZW50ICsgICAgICAgTW9kZQo+Pj4+IHByb3ZpZGVkIGJ5IERlbGwgQklPUy4K
-Pj4+PiArCj4+Pj4gKyAgICAgICBXaGVuIG9wdGlvbiBJOEsgaXMgYWxzbyBlbmFibGVkIHRoaXMg
-ZHJpdmVyCj4+Pj4gcHJvdmlkZXMgbGVnYWN5IC9wcm9jL2k4ayArICAgICAgIHVzZXJzcGFjZSBp
-bnRlcmZhY2UgZm9yCj4+Pj4gaThrdXRpbHMgcGFja2FnZS4KPj4+PiArCj4+Cj4+IEl0J3Mgd29y
-a2luZyBPSyBmb3IgbWUgKGFmdGVyIGZpeGluZyB0aGUgbWlzdGFrZSBwb2ludGVkIG91dAo+PiBh
-Ym92ZSkuCj4+Cj4+IFtMYXRpdHVkZSBlNjU0MF0KPj4gLS0tLS0KPj4gY29yZXRlbXAtaXNhLTAw
-MDAKPj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPj4gUGh5c2ljYWwgaWQgMDogICs1My4wwrBDICAo
-aGlnaCA9ICs4NC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+PiBDb3JlIDA6ICAgICAgICAgKzUx
-LjDCsEMgIChoaWdoID0gKzg0LjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCj4+IENvcmUgMTogICAg
-ICAgICArNTMuMMKwQyAgKGhpZ2ggPSArODQuMMKwQywgY3JpdCA9ICsxMDAuMMKwQykKPj4KPj4g
-aThrLXZpcnR1YWwtMAo+PiBBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQo+PiBQcm9jZXNzb3IgRmFu
-OiAzMTcxIFJQTQo+PiBDUFU6ICAgICAgICAgICAgKzUyLjDCsEMKPj4gQW1iaWVudDogICAgICAg
-ICs0Ni4wwrBDCj4+IFNPRElNTTogICAgICAgICArNDAuMMKwQwo+PiAtLS0tLQo+Pgo+PiBBbWJp
-ZW50IGFuZCBTT0RJTU0gbG9vayBzd2FwcGVkIC0gYnV0IGl0J3MgcHJvYmFibHkganVzdAo+PiBh
-bm90aGVyIERlbGwgZXJyb3IuIEkgcmVhbGx5IG5lZWQgdG8gbG9vayBhdCBnZXR0aW5nIGNvcmVi
-b290Cj4+IG9uIHRoaXMgdGhpbmcuCj4+Cj4KPiBCb3RoIHBhdGNoZXMgZG8gbm90IGNoYW5nZSBh
-bnkgY29kZS4gU28gdGhlcmUgc2hvdWxkIG5vdCBiZSBhbnkKPiB0eXBlIHN3YXBwZWQgd2l0aCBv
-ciB3aXRob3V0IG15IHBhdGNoLgo+Cj4gQ3B1IHR5cGUgaXMgcmVxdWVzdGVkIHZpYSBTTU0gaW4g
-c2FtZSB3YXkgYXMgaXQgaXMgZG9pbmcgb2xkIERPUwo+IGV4ZWN1dGFibGUuIFNvIHRoZXJlIGNh
-biBiZSBtYXliZSBwcm9ibGVtIGluIERFTEwgU01NIGhhbmRsZXIgdG9vCj4gb3IgbWF5YmUganVz
-dCBJIGRpZCBub3QgdW5kZXJzdGFuZCBjb3JyZWN0bHkgYXNzZW1ibGVyIGR1bXAgb2YKPiBET1Mg
-ZXhlY3V0YWJsZS4uLgo+Cj4+IE9uIDI4IE1hcmNoIDIwMTUgYXQgMTA6MjQsIFBhbGkgUm9ow6Fy
-IDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4KPj4gd3JvdGU6IC4uLgo+Pgo+Pj4gICBjb25maWcgSThL
-Cj4+Pgo+Pj4gLSAgICAgICB0cmlzdGF0ZSAiRGVsbCBsYXB0b3Agc3VwcG9ydCIKPj4+IC0gICAg
-ICAgc2VsZWN0IEhXTU9OCj4+PiArICAgICAgIGJvb2wgIkRlbGwgaThrIGxlZ2FjeSBsYXB0b3Ag
-c3VwcG9ydCIKPj4+ICsgICAgICAgc2VsZWN0IFNFTlNPUlNfREVMTF9TTU0KPj4KPj4gLi4uCj4+
-Cj4+PiArY29uZmlnIFNFTlNPUlNfREVMTF9TTU0KPj4+ICsgICAgICAgdHJpc3RhdGUgIkRlbGwg
-bGFwdG9wIFNNTSBCSU9TIGh3bW9uIGRyaXZlciIKPj4KPj4gVGhlIG9ubHkgY2hhbmdlIEknZCBz
-dWdnZXN0IGlzIG5vdCB0byBjaGFuZ2UgdGhlIHRyaXN0YXRlIHRvCj4+IGJvb2wgZm9yIEk4Sy4g
-Rm9yY2luZyB0aGF0IHRvIGJvb2wgbWVhbnMgdGhhdAo+PiBTRU5TT1JTX0RFTExfU01NIGNhbid0
-IGJlIGNvbXBpbGVkIGFzIGEgbW9kdWxlIGlmIHRoZSB1c2VyCj4+IHdpc2hlcyB0byBrZWVwIGk4
-ayBoYW5naW5nIGFyb3VuZCAianVzdCBpbiBjYXNlIi4gSXQnbGwKPj4gcHJvYmFibHkgYW5ub3kg
-ZGlzdHJvIGtlcm5lbCBwYWNrYWdlcnMgdG9vLgo+Pgo+Pgo+PiBUaGFua3MsCj4+IFN0ZXZlbgo+
-Cj4gTXkgaWRlYSB3YXM6Cj4KPiBTRU5TT1JTX0RFTExfU01NIGVuYWJsZS9kaXNhYmxlIGNvbXBp
-bGF0aW9uIG9mIGtlcm5lbCBkcml2ZXIKPiAoZXRoZXIgc3RhdGljYWxseSBsaW5rIGludG8ga2Vy
-bmVsIGltYWdlIG9yIGFzIGV4dGVybmFsIG1vZHVsZSkKPgo+IENPTkZJR19JOEsganVzdCBlbmFi
-bGUgL3Byb2MvaThrIGNvZGUgaW4gU0VOU09SU19ERUxMX1NNTSAtLSBubwo+IGFkZGl0aW9uYWwg
-ZHJpdmVyLCBqdXN0IGJvb2xlYW4gc3dpdGNoIHdoaWNoIGhhcyBlZmZlY3Qgb25seSBpZmYKPiBT
-RU5TT1JTX0RFTExfU01NIGlzIFkgb3IgTQo+CgpNYXliZSB0aGF0IGlzIHRoZSBwbGFuLCBidXQg
-aXQgaXMgbm90IHdoYXQgaXMgaGFwcGVuaW5nLgpJOEsgc2VsZWN0cyBTRU5TT1JTX0RFTExfU01N
-LCBzbyBhIGJvb2xlYW4gSThLIGZvcmNlcyBTRU5TT1JTX0RFTExfU01NCnRvIGJlIGJ1aWx0IGlu
-dG8gdGhlIGtlcm5lbC4KCldoYXQgeW91IHN1Z2dlc3Qgd291bGQgd29yayBpZiBJOEsgd291bGQg
-ZGVwZW5kIG9uIFNFTlNPUlNfREVMTF9TTU0sCmJ1dCB0aGVuIHRoZSBzeW1ib2xzIHdvdWxkIG5v
-dCBiZSBiYWNrd2FyZC1jb21wYXRpYmxlLgoKR3VlbnRlcgoKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
-bGlzdGluZm8vbG0tc2Vuc29ycw=
+--===============5836667387771929115==
+Content-Type: multipart/signed;
+  boundary="nextPart9468335.Bq8StZm9v6";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart9468335.Bq8StZm9v6
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Saturday 28 March 2015 23:19:04 Steven Honeyman wrote:
+> On 28 March 2015 at 22:00, Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> wrote:
+> > On Saturday 28 March 2015 13:54:51 Steven Honeyman wrote:
+> >> i8k-virtual-0
+> >> Adapter: Virtual device
+> >> Processor Fan: 3171 RPM
+> >> CPU:            +52.0=C2=B0C
+> >> Ambient:        +46.0=C2=B0C
+> >> SODIMM:         +40.0=C2=B0C
+> >> -----
+> >>=20
+> >> Ambient and SODIMM look swapped - but it's probably just
+> >> another Dell error. I really need to look at getting
+> >> coreboot on this thing.
+> >=20
+> > Both patches do not change any code. So there should not be
+> > any type swapped with or without my patch.
+> >=20
+> > Cpu type is requested via SMM in same way as it is doing old
+> > DOS executable. So there can be maybe problem in DELL SMM
+> > handler too or maybe just I did not understand correctly
+> > assembler dump of DOS executable...
+>=20
+> Is there some way that I can find out for you? I've got a
+> Windows partition somewhere, or DOS boot disk should be easy
+> enough if this program works on new hardware.
+> If I knew where the sensors were placed I could cool one of
+> them.
+>=20
+
+Maybe DOS executable is just too old... and need to use new one.=20
+I extracted diagnostic application from BIOS package (EFI binary=20
+which show temperature in BIOS) for my laptop, but decoding=20
+instructions of this big graphic binary is beyond my power. But=20
+it looks like it calls same SMM inb/outb calls, so SMM code in=20
+BIOS handler was not changed.
+
+So if you want to fix this problem, next step is to disassemble=20
+or understand new modern EFI diag binary...
+
+I think it would be better to locate on which bus are sensors=20
+connected (smbus? isa? pci?), find out HW chips and wrote native=20
+kernel drivers for them...
+
+I scanned smbus (intel controller connected on pci) on my E6440=20
+but there is no additional/unknown device. I have no idea where=20
+else could be sensor device connected and accessible (from SMM or=20
+kernel mode).
+
+> On 28 March 2015 at 22:04, Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> wrote:
+> > I think that setting CONFIG_I8K to tristate (Y/M/N) does not
+> > make sense... CONFIG_I8K just control if /proc/i8k will be
+> > compiled into dell-smm-hwmon or not.
+>=20
+> Try and select dell-smm-hwmon as a module, with i8k enabled as
+> well...
+>=20
+
+Got it.
+
+> On 28 March 2015 at 22:06, Paul Bolle <pebolle@tiscali.nl>
+> wrote:
+> > On Sat, 2015-03-28 at 22:55 +0100, Pali Roh=C3=A1r wrote:
+> >> I have tested compilation only with out of tree make
+> >> command with manual CONFIG_SENSORS_DELL_SMM and CONFIG_I8K
+> >> options.
+> >=20
+> > Not sure what you mean here. I can't get things past this
+> > error:
+> >     drivers/hwmon/Kconfig:1721: syntax error
+> >     drivers/hwmon/Kconfig:1720: invalid option
+>=20
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -1705,8 +1705,8 @@
+>=20
+>  config SENSORS_DELL_SMM
+>      tristate "Dell laptop SMM BIOS hwmon driver"
+> -    depends ON X86
+> -    ---help---
+> +    depends on X86
+> +    help
+>        This hwmon driver adds support for reporting
+> temperature of different sensors and controls the fans on
+> Dell laptops via System Management Mode provided by Dell
+> BIOS.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart9468335.Bq8StZm9v6
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlUXLEoACgkQi/DJPQPkQ1LafACfaPoaTXVdanbkrbbOTfFcb/Md
+X6IAnj6lIyZ/LmLDj0ZbuKG4wtPGBecu
+=qP1a
+-----END PGP SIGNATURE-----
+
+--nextPart9468335.Bq8StZm9v6--
+
+
+--===============5836667387771929115==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5836667387771929115==--
