@@ -1,63 +1,134 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Mar 2015 03:58:06 +0000
-Subject: Re: [lm-sensors] [PATCH 3/5] hwmon: (ibmpowernv) add a convert_opal_attr_name() routine
-Message-Id: <550A494E.2080103@roeck-us.net>
+Date: Mon, 30 Mar 2015 06:33:45 +0000
+Subject: [lm-sensors] [PATCH 05/15] hwmon: (it87) Add support for IT8790E
+Message-Id: <1427697235-23566-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
- <1426693665-10797-4-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1426693665-10797-4-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?Q8OpZHJpYyBMZSBHb2F0ZXI=?= <clg@fr.ibm.com>, lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+To: lm-sensors@vger.kernel.org
 
-T24gMDMvMTgvMjAxNSAwODo0NyBBTSwgQ8OpZHJpYyBMZSBHb2F0ZXIgd3JvdGU6Cj4gSXQgc2lt
-cGxpZmllcyB0aGUgY3JlYXRlX2h3bW9uX2F0dHJfbmFtZSgpIHJvdXRpbmUgYW5kIGl0IGNsZWFy
-bHkgaXNvbGF0ZXMKPiB0aGUgY29udmVyc2lvbiBkb25lIGJldHdlZW4gdGhlIE9QQUwgbm9kZSBu
-YW1lcyBhbmQgaHdtb24gYXR0cmlidXRlcyBuYW1lcy4KPgo+IFNpZ25lZC1vZmYtYnk6IEPDqWRy
-aWMgTGUgR29hdGVyIDxjbGdAZnIuaWJtLmNvbT4KPiAtLS0KPiAgIGRyaXZlcnMvaHdtb24vaWJt
-cG93ZXJudi5jIHwgICAzOSArKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0K
-PiAgIDEgZmlsZSBjaGFuZ2VkLCAyNSBpbnNlcnRpb25zKCspLCAxNCBkZWxldGlvbnMoLSkKPgo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyBiL2RyaXZlcnMvaHdtb24v
-aWJtcG93ZXJudi5jCj4gaW5kZXggMDdhODIxOWI3ZjRlLi5lZGNjNGZmYTVhZDAgMTAwNjQ0Cj4g
-LS0tIGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKPiArKysgYi9kcml2ZXJzL2h3bW9uL2li
-bXBvd2VybnYuYwo+IEBAIC0xMjcsNiArMTI3LDI4IEBAIHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl9p
-bmRleF9hdHRyKGNvbnN0IGNoYXIgKm5hbWUsIHUzMiAqaW5kZXgsCj4gICAJcmV0dXJuIDA7Cj4g
-ICB9Cj4KPiArc3RhdGljIGNvbnN0IGNoYXIgKmNvbnZlcnRfb3BhbF9hdHRyX25hbWUoZW51bSBz
-ZW5zb3JzIHR5cGUsCj4gKwkJCQkJY29uc3QgY2hhciAqb3BhbF9hdHRyKQoKV291bGQgYmUgZ3Jl
-YXQgaWYgeW91IGNvdWxkIGFsaWduIGFsbCB0aGUgY29udGludWF0aW9uIGxpbmVzIHdpdGggJygn
-LgoKPiArewo+ICsJY29uc3QgY2hhciAqYXR0cl9uYW1lID0gTlVMTDsKPiArCj4gKwlpZiAoIXN0
-cmNtcChvcGFsX2F0dHIsIERUX0ZBVUxUX0FUVFJfU1VGRklYKSkgewo+ICsJCWF0dHJfbmFtZSA9
-ICJmYXVsdCI7Cj4gKwl9IGVsc2UgaWYgKCFzdHJjbXAob3BhbF9hdHRyLCBEVF9EQVRBX0FUVFJf
-U1VGRklYKSkgewo+ICsJCWF0dHJfbmFtZSA9ICJpbnB1dCI7Cj4gKwl9IGVsc2UgaWYgKCFzdHJj
-bXAob3BhbF9hdHRyLCBEVF9USFJFU0hPTERfQVRUUl9TVUZGSVgpKSB7Cj4gKwkJaWYgKHR5cGUg
-PT0gVEVNUCkKPiArCQkJYXR0cl9uYW1lID0gIm1heCI7Cj4gKwkJZWxzZSBpZiAodHlwZSA9PSBG
-QU4pCj4gKwkJCWF0dHJfbmFtZSA9ICJtaW4iOwo+ICsJCWVsc2UKPiArCQkJcmV0dXJuIE5VTEw7
-Cj4gKwl9IGVsc2Ugewo+ICsJCXJldHVybiBOVUxMOwo+ICsJfQoKVGhvc2UgZWxzZSBjYXNlcyBy
-ZXR1cm5pbmcgTlVMTCBhcmUgdW5uZWNlc3Nhcnk7IGF0dHJfbmFtZQppcyBhbHJlYWR5IGluaXRp
-YWxpemVkIHdpdGggTlVMTCwgc28geW91IGNhbiBqdXN0IHJldHVybiBpdC4KCgo+ICsJcmV0dXJu
-IGF0dHJfbmFtZTsKPiArfQo+ICsKPiAgIC8qCj4gICAgKiBUaGlzIGZ1bmN0aW9uIHRyYW5zbGF0
-ZXMgdGhlIERUIG5vZGUgbmFtZSBpbnRvIHRoZSAnaHdtb24nIGF0dHJpYnV0ZSBuYW1lLgo+ICAg
-ICogSUJNUE9XRVJOViBkZXZpY2Ugbm9kZSBhcHBlYXIgbGlrZSBjb29saW5nLWZhbiMyLWRhdGEs
-IGFtYi10ZW1wIzEtdGhycyBldGMuCj4gQEAgLTEzOCw3ICsxNjAsNyBAQCBzdGF0aWMgaW50IGNy
-ZWF0ZV9od21vbl9hdHRyX25hbWUoc3RydWN0IGRldmljZSAqZGV2LCBlbnVtIHNlbnNvcnMgdHlw
-ZSwKPiAgIAkJCQkJIGNoYXIgKmh3bW9uX2F0dHJfbmFtZSkKPiAgIHsKPiAgIAljaGFyIGF0dHJf
-c3VmZml4W01BWF9BVFRSX0xFTl07Cj4gLQljaGFyICphdHRyX25hbWU7Cj4gKwljb25zdCBjaGFy
-ICphdHRyX25hbWU7Cj4gICAJdTMyIGluZGV4Owo+ICAgCWludCBlcnI7Cj4KPiBAQCAtMTQ5LDIw
-ICsxNzEsOSBAQCBzdGF0aWMgaW50IGNyZWF0ZV9od21vbl9hdHRyX25hbWUoc3RydWN0IGRldmlj
-ZSAqZGV2LCBlbnVtIHNlbnNvcnMgdHlwZSwKPiAgIAkJcmV0dXJuIGVycjsKPiAgIAl9Cj4KPiAt
-CWlmICghc3RyY21wKGF0dHJfc3VmZml4LCBEVF9GQVVMVF9BVFRSX1NVRkZJWCkpIHsKPiAtCQlh
-dHRyX25hbWUgPSAiZmF1bHQiOwo+IC0JfSBlbHNlIGlmICghc3RyY21wKGF0dHJfc3VmZml4LCBE
-VF9EQVRBX0FUVFJfU1VGRklYKSkgewo+IC0JCWF0dHJfbmFtZSA9ICJpbnB1dCI7Cj4gLQl9IGVs
-c2UgaWYgKCFzdHJjbXAoYXR0cl9zdWZmaXgsIERUX1RIUkVTSE9MRF9BVFRSX1NVRkZJWCkpIHsK
-PiAtCQlpZiAodHlwZSA9PSBURU1QKQo+IC0JCQlhdHRyX25hbWUgPSAibWF4IjsKPiAtCQllbHNl
-IGlmICh0eXBlID09IEZBTikKPiAtCQkJYXR0cl9uYW1lID0gIm1pbiI7Cj4gLQkJZWxzZQo+IC0J
-CQlyZXR1cm4gLUVOT0VOVDsKPiAtCX0gZWxzZSB7Cj4gKwlhdHRyX25hbWUgPSBjb252ZXJ0X29w
-YWxfYXR0cl9uYW1lKHR5cGUsIGF0dHJfc3VmZml4KTsKPiArCWlmICghYXR0cl9uYW1lKQo+ICAg
-CQlyZXR1cm4gLUVOT0VOVDsKPiAtCX0KPgo+ICAgCXNucHJpbnRmKGh3bW9uX2F0dHJfbmFtZSwg
-TUFYX0FUVFJfTEVOLCAiJXMlZF8lcyIsCj4gICAJCSBzZW5zb3JfZ3JvdXBzW3R5cGVdLm5hbWUs
-IGluZGV4LCBhdHRyX25hbWUpOwo+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+IT8790E is a super-IO chip with three fan tachometers. It is mostly
+compatible to IT8728E.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/it87 | 13 ++++++++++---
+ drivers/hwmon/Kconfig    |  4 ++--
+ drivers/hwmon/it87.c     | 14 +++++++++++++-
+ 3 files changed, 25 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 19fbe775ae10..64ea41f017c1 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -58,6 +58,10 @@ Supported chips:
+     Prefix: 'it8786'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: Not publicly available
++  * IT8790E
++    Prefix: 'it8790'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
++    Datasheet: Not publicly available
+   * SiS950   [clone of IT8705F]
+     Prefix: 'it87'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+@@ -102,9 +106,10 @@ motherboard models.
+ Description
+ -----------
+ 
+-This driver implements support for the IT8603E, IT8623E, IT8705F, IT8712F,
+-IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E, IT8771E,
+-IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, and SiS950 chips.
++This driver implements support for the IT8603E, IT8623E, IT8705F,
++IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E,
++IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E, and SiS950
++chips.
+ 
+ These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
+ joysticks and other miscellaneous stuff. For hardware monitoring, they
+@@ -145,6 +150,8 @@ The IT8603E/IT8623E is a custom design, hardware monitoring part is similar to
+ IT8728F. It only supports 16-bit fan mode, the full speed mode of the
+ fan is not supported (value 0 of pwmX_enable).
+ 
++The IT8790E supports up to three fans. 16-bit fan mode is always enabled.
++
+ Temperatures are measured in degrees Celsius. An alarm is triggered once
+ when the Overtemperature Shutdown limit is crossed.
+ 
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index ec711af5697a..929d30e2047e 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -600,8 +600,8 @@ config SENSORS_IT87
+ 	help
+ 	  If you say yes here you get support for ITE IT8705F, IT8712F,
+ 	  IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E,
+-	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E,
+-	  and IT8603E sensor chips, and the SiS950 clone.
++	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E,
++	  IT8603E, and IT8623E sensor chips, and the SiS950 clone.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 2b41a598cee7..01a021172121 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -27,6 +27,7 @@
+  *            IT8782F  Super I/O chip w/LPC interface
+  *            IT8783E/F Super I/O chip w/LPC interface
+  *            IT8786E  Super I/O chip w/LPC interface
++ *            IT8790E  Super I/O chip w/LPC interface
+  *            Sis950   A clone of the IT8705F
+  *
+  *  Copyright (C) 2001 Chris Gauthron
+@@ -68,7 +69,7 @@
+ #define DRVNAME "it87"
+ 
+ enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8771,
+-	     it8772, it8781, it8782, it8783, it8786, it8603 };
++	     it8772, it8781, it8782, it8783, it8786, it8790, it8603 };
+ 
+ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+@@ -154,6 +155,7 @@ static inline void superio_exit(void)
+ #define IT8786E_DEVID 0x8786
+ #define IT8603E_DEVID 0x8603
+ #define IT8623E_DEVID 0x8623
++#define IT8790E_DEVID 0x8790
+ #define IT87_ACT_REG  0x30
+ #define IT87_BASE_REG 0x60
+ 
+@@ -359,6 +361,13 @@ static const struct it87_devices it87_devices[] = {
+ 		.peci_mask = 0x07,
+ 		.suffix = "E",
+ 	},
++	[it8790] = {
++		.name = "it8790",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
++		.peci_mask = 0x07,
++		.suffix = "E",
++	},
+ 	[it8603] = {
+ 		.name = "it8603",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+@@ -1834,6 +1843,9 @@ static int __init it87_find(unsigned short *address,
+ 	case IT8786E_DEVID:
+ 		sio_data->type = it8786;
+ 		break;
++	case IT8790E_DEVID:
++		sio_data->type = it8790;
++		break;
+ 	case IT8603E_DEVID:
+ 	case IT8623E_DEVID:
+ 		sio_data->type = it8603;
+-- 
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
