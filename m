@@ -1,37 +1,129 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Thu, 19 Mar 2015 17:44:41 +0000
-Subject: [lm-sensors] [PATCH v2 1/5] hwmon: (ibmpowernv) replace AMBIENT_TEMP by TEMP
-Message-Id: <1426787085-9004-2-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 30 Mar 2015 06:33:54 +0000
+Subject: [lm-sensors] [PATCH 14/15] hwmon: (it87) Add support for second Super-IO chip
+Message-Id: <1427697235-23566-15-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-QW1iaWVudCBpcyB0b28gcmVzdHJpY3RpdmUgYXMgdGhlcmUgY2FuIGJlIG90aGVyIHRlbXBlcmF0
-dXJlIGNoYW5uZWxzIDoKY29yZSwgbWVtb3J5LCBldGMuCgpTaWduZWQtb2ZmLWJ5OiBDw6lkcmlj
-IExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9od21vbi9pYm1wb3dlcm52
-LmMgfCAgICA2ICsrKy0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxl
-dGlvbnMoLSkKCkluZGV4OiBsaW51eC5naXQvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKPT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PQotLS0gbGludXguZ2l0Lm9yaWcvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysr
-IGxpbnV4LmdpdC9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwpAQCAtNDQsNyArNDQsNyBAQAog
-ICovCiBlbnVtIHNlbnNvcnMgewogCUZBTiwKLQlBTUJJRU5UX1RFTVAsCisJVEVNUCwKIAlQT1dF
-Ul9TVVBQTFksCiAJUE9XRVJfSU5QVVQsCiAJTUFYX1NFTlNPUl9UWVBFLApAQCAtODcsNyArODcs
-NyBAQCBzdGF0aWMgc3NpemVfdCBzaG93X3NlbnNvcihzdHJ1Y3QgZGV2aWNlCiAJCXJldHVybiBy
-ZXQ7CiAKIAkvKiBDb252ZXJ0IHRlbXBlcmF0dXJlIHRvIG1pbGxpLWRlZ3JlZXMgKi8KLQlpZiAo
-c2RhdGEtPnR5cGUgPT0gQU1CSUVOVF9URU1QKQorCWlmIChzZGF0YS0+dHlwZSA9PSBURU1QKQog
-CQl4ICo9IDEwMDA7CiAJLyogQ29udmVydCBwb3dlciB0byBtaWNyby13YXR0cyAqLwogCWVsc2Ug
-aWYgKHNkYXRhLT50eXBlID09IFBPV0VSX0lOUFVUKQpAQCAtMTU0LDcgKzE1NCw3IEBAIHN0YXRp
-YyBpbnQgY3JlYXRlX2h3bW9uX2F0dHJfbmFtZShzdHJ1Y3QKIAl9IGVsc2UgaWYgKCFzdHJjbXAo
-YXR0cl9zdWZmaXgsIERUX0RBVEFfQVRUUl9TVUZGSVgpKSB7CiAJCWF0dHJfbmFtZSA9ICJpbnB1
-dCI7CiAJfSBlbHNlIGlmICghc3RyY21wKGF0dHJfc3VmZml4LCBEVF9USFJFU0hPTERfQVRUUl9T
-VUZGSVgpKSB7Ci0JCWlmICh0eXBlID09IEFNQklFTlRfVEVNUCkKKwkJaWYgKHR5cGUgPT0gVEVN
-UCkKIAkJCWF0dHJfbmFtZSA9ICJtYXgiOwogCQllbHNlIGlmICh0eXBlID09IEZBTikKIAkJCWF0
-dHJfbmFtZSA9ICJtaW4iOwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
-cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
-cw=
+The Super-IO chip can also reside at SIO address 0x4e, and there can be
+two Super-IO chips in the system. Add support for it.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 49 ++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 34 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index d4b9a87a78f8..1cf03fc9cec5 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -76,9 +76,10 @@ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
+-static struct platform_device *it87_pdev;
++static struct platform_device *it87_pdev[2];
+ 
+ #define	REG_2E	0x2e	/* The register to read/write */
++#define	REG_4E	0x4e	/* Secondary register to read/write */
+ 
+ #define	DEV	0x07	/* Register: Logical device select */
+ #define PME	0x04	/* The device with the fan registers in it */
+@@ -128,7 +129,7 @@ static inline int superio_enter(int ioreg)
+ 	outb(0x87, ioreg);
+ 	outb(0x01, ioreg);
+ 	outb(0x55, ioreg);
+-	outb(0x55, ioreg);
++	outb(ioreg = REG_4E ? 0xaa : 0x55, ioreg);
+ 	return 0;
+ }
+ 
+@@ -2863,7 +2864,7 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 	return data;
+ }
+ 
+-static int __init it87_device_add(unsigned short address,
++static int __init it87_device_add(int index, unsigned short address,
+ 				  const struct it87_sio_data *sio_data)
+ {
+ 	struct platform_device *pdev;
+@@ -2902,7 +2903,7 @@ static int __init it87_device_add(unsigned short address,
+ 		goto exit_device_put;
+ 	}
+ 
+-	it87_pdev = pdev;
++	it87_pdev[index] = pdev;
+ 	return 0;
+ 
+ exit_device_put:
+@@ -2912,30 +2913,48 @@ exit_device_put:
+ 
+ static int __init sm_it87_init(void)
+ {
+-	int err;
+-	unsigned short isa_address = 0;
++	int sioaddr[2] = { REG_2E, REG_4E };
+ 	struct it87_sio_data sio_data;
++	unsigned short isa_address;
++	bool found = false;
++	int i, err;
+ 
+-	memset(&sio_data, 0, sizeof(struct it87_sio_data));
+-	err = it87_find(REG_2E, &isa_address, &sio_data);
+-	if (err)
+-		return err;
+ 	err = platform_driver_register(&it87_driver);
+ 	if (err)
+ 		return err;
+ 
+-	err = it87_device_add(isa_address, &sio_data);
+-	if (err) {
+-		platform_driver_unregister(&it87_driver);
+-		return err;
++	for (i = 0; i < ARRAY_SIZE(sioaddr); i++) {
++		memset(&sio_data, 0, sizeof(struct it87_sio_data));
++		isa_address = 0;
++		err = it87_find(sioaddr[i], &isa_address, &sio_data);
++		if (err || isa_address = 0)
++			continue;
++
++		err = it87_device_add(i, isa_address, &sio_data);
++		if (err)
++			goto exit_dev_unregister;
++		found = true;
+ 	}
+ 
++	if (!found) {
++		err = -ENODEV;
++		goto exit_unregister;
++	}
+ 	return 0;
++
++exit_dev_unregister:
++	/* NULL check handled by platform_device_unregister */
++	platform_device_unregister(it87_pdev[0]);
++exit_unregister:
++	platform_driver_unregister(&it87_driver);
++	return err;
+ }
+ 
+ static void __exit sm_it87_exit(void)
+ {
+-	platform_device_unregister(it87_pdev);
++	/* NULL check handled by platform_device_unregister */
++	platform_device_unregister(it87_pdev[1]);
++	platform_device_unregister(it87_pdev[0]);
+ 	platform_driver_unregister(&it87_driver);
+ }
+ 
+-- 
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
