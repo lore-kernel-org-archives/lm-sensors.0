@@ -1,44 +1,333 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Tue, 10 Mar 2015 17:27:22 +0000
-Subject: [lm-sensors] [PATCH v2 4/4] hwmon: (w83795) use find_closest_desc() in pwm_freq_to_reg()
-Message-Id: <1426008442-26236-5-git-send-email-bgolaszewski@baylibre.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 30 Mar 2015 06:33:50 +0000
+Subject: [lm-sensors] [PATCH 10/15] hwmon: (it87) Add support for second pwm frequency register
+Message-Id: <1427697235-23566-11-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1426008442-26236-1-git-send-email-bgolaszewski@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <srostedt@redhat.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: lm-sensors@vger.kernel.org
 
-Replace the loop iterating over pwm_freq_cksel0 with a call to
-find_closest_desc().
+Recent chips have a separate register to select the pwm2 frequency.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/w83795.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/hwmon/it87.c | 101 +++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 70 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/hwmon/w83795.c b/drivers/hwmon/w83795.c
-index 2189413..1f0b301 100644
---- a/drivers/hwmon/w83795.c
-+++ b/drivers/hwmon/w83795.c
-@@ -308,11 +308,8 @@ static u8 pwm_freq_to_reg(unsigned long val, u16 clkin)
- 	unsigned long best0, best1;
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 4321accc93d3..b373589c695f 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -270,6 +270,7 @@ struct it87_devices {
+ #define FEAT_SIX_FANS		(1 << 11)	/* Supports six fans */
+ #define FEAT_AVCC3		(1 << 12)	/* Chip supports in9/AVCC3 */
+ #define FEAT_SIX_PWM		(1 << 13)	/* Chip supports 6 pwm chn */
++#define FEAT_PWM_FREQ2		(1 << 14)	/* Separate pwm freq 2 */
  
- 	/* Best fit for cksel = 0 */
--	for (reg0 = 0; reg0 < ARRAY_SIZE(pwm_freq_cksel0) - 1; reg0++) {
--		if (val > (pwm_freq_cksel0[reg0] +
--			   pwm_freq_cksel0[reg0 + 1]) / 2)
--			break;
--	}
-+	reg0 = find_closest_desc(val, pwm_freq_cksel0,
-+				 ARRAY_SIZE(pwm_freq_cksel0));
- 	if (val < 375)	/* cksel = 1 can't beat this */
- 		return reg0;
- 	best0 = pwm_freq_cksel0[reg0];
+ static const struct it87_devices it87_devices[] = {
+ 	[it87] = {
+@@ -286,20 +287,22 @@ static const struct it87_devices it87_devices[] = {
+ 	[it8716] = {
+ 		.name = "it8716",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+-		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
++		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS | FEAT_PWM_FREQ2,
+ 		.suffix = "F",
+ 	},
+ 	[it8718] = {
+ 		.name = "it8718",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+-		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
++		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS
++		  | FEAT_PWM_FREQ2,
+ 		.old_peci_mask = 0x4,
+ 		.suffix = "F",
+ 	},
+ 	[it8720] = {
+ 		.name = "it8720",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+-		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
++		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS
++		  | FEAT_PWM_FREQ2,
+ 		.old_peci_mask = 0x4,
+ 		.suffix = "F",
+ 	},
+@@ -307,7 +310,8 @@ static const struct it87_devices it87_devices[] = {
+ 		.name = "it8721",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_OLD_PECI | FEAT_TEMP_PECI
+-		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS | FEAT_IN7_INTERNAL,
++		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS | FEAT_IN7_INTERNAL
++		  | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x05,
+ 		.old_peci_mask = 0x02,	/* Actually reports PCH */
+ 		.suffix = "F",
+@@ -316,14 +320,15 @@ static const struct it87_devices it87_devices[] = {
+ 		.name = "it8728",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_FIVE_FANS
+-		  | FEAT_IN7_INTERNAL,
++		  | FEAT_IN7_INTERNAL | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x07,
+ 		.suffix = "F",
+ 	},
+ 	[it8771] = {
+ 		.name = "it8771",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+-		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL
++		  | FEAT_PWM_FREQ2,
+ 				/* PECI: guesswork */
+ 				/* 12mV ADC (OHM) */
+ 				/* 16 bit fans (OHM) */
+@@ -334,7 +339,8 @@ static const struct it87_devices it87_devices[] = {
+ 	[it8772] = {
+ 		.name = "it8772",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+-		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL
++		  | FEAT_PWM_FREQ2,
+ 				/* PECI (coreboot) */
+ 				/* 12mV ADC (HWSensors4, OHM) */
+ 				/* 16 bit fans (HWSensors4, OHM) */
+@@ -345,35 +351,37 @@ static const struct it87_devices it87_devices[] = {
+ 	[it8781] = {
+ 		.name = "it8781",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
+-		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG,
++		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_PWM_FREQ2,
+ 		.old_peci_mask = 0x4,
+ 		.suffix = "F",
+ 	},
+ 	[it8782] = {
+ 		.name = "it8782",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
+-		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG,
++		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_PWM_FREQ2,
+ 		.old_peci_mask = 0x4,
+ 		.suffix = "F",
+ 	},
+ 	[it8783] = {
+ 		.name = "it8783",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
+-		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG,
++		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_PWM_FREQ2,
+ 		.old_peci_mask = 0x4,
+ 		.suffix = "E/F",
+ 	},
+ 	[it8786] = {
+ 		.name = "it8786",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+-		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL
++		  | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x07,
+ 		.suffix = "E",
+ 	},
+ 	[it8790] = {
+ 		.name = "it8790",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+-		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL
++		  | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x07,
+ 		.suffix = "E",
+ 	},
+@@ -381,7 +389,7 @@ static const struct it87_devices it87_devices[] = {
+ 		.name = "it8603",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL
+-		  | FEAT_AVCC3,
++		  | FEAT_AVCC3 | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x07,
+ 		.suffix = "E",
+ 	},
+@@ -389,7 +397,8 @@ static const struct it87_devices it87_devices[] = {
+ 		.name = "it8620",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
+-		  | FEAT_IN7_INTERNAL | FEAT_AVCC3 | FEAT_SIX_PWM,
++		  | FEAT_IN7_INTERNAL | FEAT_AVCC3 | FEAT_SIX_PWM
++		  | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x07,
+ 		.suffix = "E",
+ 	},
+@@ -413,6 +422,7 @@ static const struct it87_devices it87_devices[] = {
+ #define has_six_fans(data)	((data)->features & FEAT_SIX_FANS)
+ #define has_avcc3(data)		((data)->features & FEAT_AVCC3)
+ #define has_six_pwm(data)	((data)->features & FEAT_SIX_PWM)
++#define has_pwm_freq2(data)	((data)->features & FEAT_PWM_FREQ2)
+ 
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -885,9 +895,16 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
+ static ssize_t show_pwm_freq(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	struct it87_data *data = it87_update_device(dev);
+-	int index = (data->fan_ctl >> 4) & 0x07;
++	int nr = sensor_attr->index;
+ 	unsigned int freq;
++	int index;
++
++	if (has_pwm_freq2(data) && nr = 1)
++		index = (data->extra >> 4) & 0x07;
++	else
++		index = (data->fan_ctl >> 4) & 0x07;
+ 
+ 	freq = pwm_freq[index] / has_newer_autopwm(data) ? 256 : 128;
+ 
+@@ -1106,7 +1123,9 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ static ssize_t set_pwm_freq(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	struct it87_data *data = dev_get_drvdata(dev);
++	int nr = sensor_attr->index;
+ 	unsigned long val;
+ 	int i;
+ 
+@@ -1123,9 +1142,15 @@ static ssize_t set_pwm_freq(struct device *dev,
+ 	}
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->fan_ctl = it87_read_value(data, IT87_REG_FAN_CTL) & 0x8f;
+-	data->fan_ctl |= i << 4;
+-	it87_write_value(data, IT87_REG_FAN_CTL, data->fan_ctl);
++	if (nr = 0) {
++		data->fan_ctl = it87_read_value(data, IT87_REG_FAN_CTL) & 0x8f;
++		data->fan_ctl |= i << 4;
++		it87_write_value(data, IT87_REG_FAN_CTL, data->fan_ctl);
++	} else {
++		data->extra = it87_read_value(data, IT87_REG_TEMP_EXTRA) & 0x8f;
++		data->extra |= i << 4;
++		it87_write_value(data, IT87_REG_TEMP_EXTRA, data->extra);
++	}
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+@@ -1295,7 +1320,8 @@ static SENSOR_DEVICE_ATTR_2(fan6_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
+ static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 0);
+ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 0);
+-static DEVICE_ATTR(pwm1_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
++static SENSOR_DEVICE_ATTR(pwm1_freq, S_IRUGO | S_IWUSR, show_pwm_freq,
++			  set_pwm_freq, 0);
+ static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IRUGO | S_IWUSR,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 0);
+ static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_pwm, S_IRUGO | S_IWUSR,
+@@ -1320,7 +1346,7 @@ static SENSOR_DEVICE_ATTR_2(pwm1_auto_point4_temp, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 1);
+ static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 1);
+-static DEVICE_ATTR(pwm2_freq, S_IRUGO, show_pwm_freq, NULL);
++static SENSOR_DEVICE_ATTR(pwm2_freq, S_IRUGO, show_pwm_freq, set_pwm_freq, 1);
+ static SENSOR_DEVICE_ATTR(pwm2_auto_channels_temp, S_IRUGO | S_IWUSR,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 1);
+ static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_pwm, S_IRUGO | S_IWUSR,
+@@ -1345,7 +1371,7 @@ static SENSOR_DEVICE_ATTR_2(pwm2_auto_point4_temp, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 2);
+ static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 2);
+-static DEVICE_ATTR(pwm3_freq, S_IRUGO, show_pwm_freq, NULL);
++static SENSOR_DEVICE_ATTR(pwm3_freq, S_IRUGO, show_pwm_freq, NULL, 2);
+ static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IRUGO | S_IWUSR,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 2);
+ static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_pwm, S_IRUGO | S_IWUSR,
+@@ -1370,21 +1396,21 @@ static SENSOR_DEVICE_ATTR_2(pwm3_auto_point4_temp, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 3);
+ static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 3);
+-static DEVICE_ATTR(pwm4_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
++static SENSOR_DEVICE_ATTR(pwm4_freq, S_IRUGO, show_pwm_freq, NULL, 3);
+ static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IRUGO | S_IWUSR,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 3);
+ 
+ static SENSOR_DEVICE_ATTR(pwm5_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 4);
+ static SENSOR_DEVICE_ATTR(pwm5, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 4);
+-static DEVICE_ATTR(pwm5_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
++static SENSOR_DEVICE_ATTR(pwm5_freq, S_IRUGO, show_pwm_freq, NULL, 4);
+ static SENSOR_DEVICE_ATTR(pwm5_auto_channels_temp, S_IRUGO | S_IWUSR,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 4);
+ 
+ static SENSOR_DEVICE_ATTR(pwm6_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 5);
+ static SENSOR_DEVICE_ATTR(pwm6, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 5);
+-static DEVICE_ATTR(pwm6_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
++static SENSOR_DEVICE_ATTR(pwm6_freq, S_IRUGO, show_pwm_freq, NULL, 5);
+ static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO | S_IWUSR,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 5);
+ 
+@@ -1748,44 +1774,57 @@ static const struct attribute *it87_attributes_fan_div[] = {
+ static struct attribute *it87_attributes_pwm[6][4+1] = { {
+ 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1.dev_attr.attr,
+-	&dev_attr_pwm1_freq.attr,
++	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_channels_temp.dev_attr.attr,
+ 	NULL
+ }, {
+ 	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2.dev_attr.attr,
+-	&dev_attr_pwm2_freq.attr,
++	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_auto_channels_temp.dev_attr.attr,
+ 	NULL
+ }, {
+ 	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3.dev_attr.attr,
+-	&dev_attr_pwm3_freq.attr,
++	&sensor_dev_attr_pwm3_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_auto_channels_temp.dev_attr.attr,
+ 	NULL
+ }, {
+ 	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm4.dev_attr.attr,
+-	&dev_attr_pwm4_freq.attr,
++	&sensor_dev_attr_pwm4_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm4_auto_channels_temp.dev_attr.attr,
+ 	NULL
+ }, {
+ 	&sensor_dev_attr_pwm5_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm5.dev_attr.attr,
+-	&dev_attr_pwm5_freq.attr,
++	&sensor_dev_attr_pwm5_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm5_auto_channels_temp.dev_attr.attr,
+ 	NULL
+ }, {
+ 	&sensor_dev_attr_pwm6_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm6.dev_attr.attr,
+-	&dev_attr_pwm6_freq.attr,
++	&sensor_dev_attr_pwm6_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm6_auto_channels_temp.dev_attr.attr,
+ 	NULL
+ } };
+ 
++static umode_t pwm_attribute_mode(struct kobject *kobj, struct attribute *attr,
++				  int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct it87_data *data = dev_get_drvdata(dev);
++
++	if (has_pwm_freq2(data) && index = 2)
++		return attr->mode | S_IWUSR;
++
++	return attr->mode;
++}
++
+ static const struct attribute_group it87_group_pwm[6] = {
+ 	{ .attrs = it87_attributes_pwm[0] },
+-	{ .attrs = it87_attributes_pwm[1] },
++	{ .attrs = it87_attributes_pwm[1],
++	  .is_visible = pwm_attribute_mode, },
+ 	{ .attrs = it87_attributes_pwm[2] },
+ 	{ .attrs = it87_attributes_pwm[3] },
+ 	{ .attrs = it87_attributes_pwm[4] },
 -- 
-2.1.4
+2.1.0
 
 
 _______________________________________________
