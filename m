@@ -1,73 +1,73 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 30 Mar 2015 06:34:36 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: ITE updates
-Message-Id: <20150330083436.28898c98@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 30 Mar 2015 06:33:52 +0000
+Subject: [lm-sensors] [PATCH 12/15] hwmon: (it87) Don't use pdev as static driver variable
+Message-Id: <1427697235-23566-13-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427376742-17682-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1427376742-17682-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+Using the same varible name for function names and as static
+variable invites misuse and prevents us from adding support
+for a second chip. Rename pdev to it87_pdev and limit its use
+to where it is needed.
 
-On Thu, 26 Mar 2015 06:32:22 -0700, Guenter Roeck wrote:
-> Add detection of ITE8790E.
-> Reflect that IT8620E will soon be supported by the it87 driver.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> Patches to it87.c follow.
-> 
->  CHANGES                    | 1 +
->  prog/detect/sensors-detect | 8 +++++++-
->  2 files changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/CHANGES b/CHANGES
-> index 3d710c0..a5eb974 100644
-> --- a/CHANGES
-> +++ b/CHANGES
-> @@ -35,6 +35,7 @@ SVN HEAD
->                    Add detection of TSE2004 and TS3001
->                    Document driver support for NCT7802Y
->                    Add detection of NCT7904D
-> +                  Add detection of IT8790E
->  
->  3.3.5 "Happy Birthday Beddy" (2014-01-22)
->    libsensors: Improve documentation of two functions
-> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> index 436cf95..08721f0 100755
-> --- a/prog/detect/sensors-detect
-> +++ b/prog/detect/sensors-detect
-> @@ -2303,7 +2303,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
->  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
->  	}, {
->  		name => "ITE IT8620E Super IO Sensors",
-> -		driver => "to-be-written",	# it87
-> +		driver => "it87",
->  		devid => 0x8620,
->  		logdev => 0x04,
->  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
-> @@ -2427,6 +2427,12 @@ use constant FEAT_SMBUS	=> (1 << 7);
->  		devid => 0x8786,
->  		logdev => 0x04,
->  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
-> +	}, {
-> +		name => "ITE IT8790E Super IO Sensors",
-> +		driver => "it87",
-> +		devid => 0x8790,
-> +		logdev => 0x04,
-> +		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
->  	}
->  );
->  
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-Looks good, please commit.
-
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 03900d4e71d1..ae5be060731c 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -76,7 +76,7 @@ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
+-static struct platform_device *pdev;
++static struct platform_device *it87_pdev;
+ 
+ #define	REG	0x2e	/* The register to read/write */
+ #define	DEV	0x07	/* Register: Logical device select */
+@@ -2254,7 +2254,7 @@ exit:
+ 
+ static void it87_remove_files(struct device *dev)
+ {
+-	struct it87_data *data = platform_get_drvdata(pdev);
++	struct it87_data *data = dev_get_drvdata(dev);
+ 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+ 	int i;
+ 
+@@ -2859,6 +2859,7 @@ static struct it87_data *it87_update_device(struct device *dev)
+ static int __init it87_device_add(unsigned short address,
+ 				  const struct it87_sio_data *sio_data)
+ {
++	struct platform_device *pdev;
+ 	struct resource res = {
+ 		.start	= address + IT87_EC_OFFSET,
+ 		.end	= address + IT87_EC_OFFSET + IT87_EC_EXTENT - 1,
+@@ -2894,6 +2895,7 @@ static int __init it87_device_add(unsigned short address,
+ 		goto exit_device_put;
+ 	}
+ 
++	it87_pdev = pdev;
+ 	return 0;
+ 
+ exit_device_put:
+@@ -2926,7 +2928,7 @@ static int __init sm_it87_init(void)
+ 
+ static void __exit sm_it87_exit(void)
+ {
+-	platform_device_unregister(pdev);
++	platform_device_unregister(it87_pdev);
+ 	platform_driver_unregister(&it87_driver);
+ }
+ 
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.0
+
 
 _______________________________________________
 lm-sensors mailing list
