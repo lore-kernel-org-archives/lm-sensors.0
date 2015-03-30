@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 30 Mar 2015 15:10:40 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 30 Mar 2015 16:35:39 +0000
 Subject: Re: [lm-sensors] [PATCH 01/15] hwmon: (it87) Fix pwm frequency display for chips with newer pwm cont
-Message-Id: <55196770.6080908@roeck-us.net>
+Message-Id: <1427733339.4425.3.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1427697235-23566-2-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1427697235-23566-2-git-send-email-linux@roeck-us.net>
@@ -10,55 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 03/30/2015 04:07 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun, 29 Mar 2015 23:33:41 -0700, Guenter Roeck wrote:
->> On chips with newer pwm control, the pwm frequency divider is 256
->> instead of 128. Since the base pwm frequency remained the same, the actual
->> pwm frequency is half of what it used to be with the older pwm control
->> mechanism.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/it87.c | 34 +++++++++++++++++++++++++---------
->>   1 file changed, 25 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
->> index ab12dc2eb896..7ab5bd026e91 100644
->> --- a/drivers/hwmon/it87.c
->> +++ b/drivers/hwmon/it87.c
->> @@ -502,15 +502,25 @@ static int DIV_TO_REG(int val)
->>   }
->>   #define DIV_FROM_REG(val) (1 << (val))
->>
->> +/*
->> + * pwm base frequencies. The frequency has to be divided by either 128 or 256,
->> + * depending on the chip type, to calculate the actual pwm frequency.
->> + *
->> + * Some of the chip datasheets suggest a base frequency of 51kHz instead
->> + * of 750kHz for the slowest base frequency, resulting in a pwm frequency
->> + * of 200Hz. Sometimes both pwm frequency select registers are affected,
->> + * sometimes just one. It is unknown if this is a datasheet error or real,
->> + * so this is ignored for now.
->
-> Leaving a space between the number and kHz or Hz makes it easier to
-> read IMHO. I would also capitalize PWM everywhere.
->
-> Other than these minor suggestions, this looks good, good catch! I never
-> noticed this difference between the various chips.
->
-
-Hi Jean,
-
-I made those changes. Should I resubmit, or do I have your Reviewed-by: ?
-
-Thanks,
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TGUgTW9uZGF5IDMwIE1hcmNoIDIwMTUgw6AgMDg6MTAgLTA3MDAsIEd1ZW50ZXIgUm9lY2sgYSDD
+qWNyaXQgOgo+IE9uIDAzLzMwLzIwMTUgMDQ6MDcgQU0sIEplYW4gRGVsdmFyZSB3cm90ZToKPiA+
+IEhpIEd1ZW50ZXIsCj4gPgo+ID4gT24gU3VuLCAyOSBNYXIgMjAxNSAyMzozMzo0MSAtMDcwMCwg
+R3VlbnRlciBSb2VjayB3cm90ZToKPiA+PiBPbiBjaGlwcyB3aXRoIG5ld2VyIHB3bSBjb250cm9s
+LCB0aGUgcHdtIGZyZXF1ZW5jeSBkaXZpZGVyIGlzIDI1Ngo+ID4+IGluc3RlYWQgb2YgMTI4LiBT
+aW5jZSB0aGUgYmFzZSBwd20gZnJlcXVlbmN5IHJlbWFpbmVkIHRoZSBzYW1lLCB0aGUgYWN0dWFs
+Cj4gPj4gcHdtIGZyZXF1ZW5jeSBpcyBoYWxmIG9mIHdoYXQgaXQgdXNlZCB0byBiZSB3aXRoIHRo
+ZSBvbGRlciBwd20gY29udHJvbAo+ID4+IG1lY2hhbmlzbS4KPiA+Pgo+ID4+IFNpZ25lZC1vZmYt
+Ynk6IEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KPiA+PiAtLS0KPiA+PiAgIGRy
+aXZlcnMvaHdtb24vaXQ4Ny5jIHwgMzQgKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0t
+LQo+ID4+ICAgMSBmaWxlIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25zKC0p
+Cj4gPj4KPiA+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9pdDg3LmMgYi9kcml2ZXJzL2h3
+bW9uL2l0ODcuYwo+ID4+IGluZGV4IGFiMTJkYzJlYjg5Ni4uN2FiNWJkMDI2ZTkxIDEwMDY0NAo+
+ID4+IC0tLSBhL2RyaXZlcnMvaHdtb24vaXQ4Ny5jCj4gPj4gKysrIGIvZHJpdmVycy9od21vbi9p
+dDg3LmMKPiA+PiBAQCAtNTAyLDE1ICs1MDIsMjUgQEAgc3RhdGljIGludCBESVZfVE9fUkVHKGlu
+dCB2YWwpCj4gPj4gICB9Cj4gPj4gICAjZGVmaW5lIERJVl9GUk9NX1JFRyh2YWwpICgxIDw8ICh2
+YWwpKQo+ID4+Cj4gPj4gKy8qCj4gPj4gKyAqIHB3bSBiYXNlIGZyZXF1ZW5jaWVzLiBUaGUgZnJl
+cXVlbmN5IGhhcyB0byBiZSBkaXZpZGVkIGJ5IGVpdGhlciAxMjggb3IgMjU2LAo+ID4+ICsgKiBk
+ZXBlbmRpbmcgb24gdGhlIGNoaXAgdHlwZSwgdG8gY2FsY3VsYXRlIHRoZSBhY3R1YWwgcHdtIGZy
+ZXF1ZW5jeS4KPiA+PiArICoKPiA+PiArICogU29tZSBvZiB0aGUgY2hpcCBkYXRhc2hlZXRzIHN1
+Z2dlc3QgYSBiYXNlIGZyZXF1ZW5jeSBvZiA1MWtIeiBpbnN0ZWFkCj4gPj4gKyAqIG9mIDc1MGtI
+eiBmb3IgdGhlIHNsb3dlc3QgYmFzZSBmcmVxdWVuY3ksIHJlc3VsdGluZyBpbiBhIHB3bSBmcmVx
+dWVuY3kKPiA+PiArICogb2YgMjAwSHouIFNvbWV0aW1lcyBib3RoIHB3bSBmcmVxdWVuY3kgc2Vs
+ZWN0IHJlZ2lzdGVycyBhcmUgYWZmZWN0ZWQsCj4gPj4gKyAqIHNvbWV0aW1lcyBqdXN0IG9uZS4g
+SXQgaXMgdW5rbm93biBpZiB0aGlzIGlzIGEgZGF0YXNoZWV0IGVycm9yIG9yIHJlYWwsCj4gPj4g
+KyAqIHNvIHRoaXMgaXMgaWdub3JlZCBmb3Igbm93Lgo+ID4KPiA+IExlYXZpbmcgYSBzcGFjZSBi
+ZXR3ZWVuIHRoZSBudW1iZXIgYW5kIGtIeiBvciBIeiBtYWtlcyBpdCBlYXNpZXIgdG8KPiA+IHJl
+YWQgSU1ITy4gSSB3b3VsZCBhbHNvIGNhcGl0YWxpemUgUFdNIGV2ZXJ5d2hlcmUuCj4gPgo+ID4g
+T3RoZXIgdGhhbiB0aGVzZSBtaW5vciBzdWdnZXN0aW9ucywgdGhpcyBsb29rcyBnb29kLCBnb29k
+IGNhdGNoISBJIG5ldmVyCj4gPiBub3RpY2VkIHRoaXMgZGlmZmVyZW5jZSBiZXR3ZWVuIHRoZSB2
+YXJpb3VzIGNoaXBzLgo+ID4KPiAKPiBIaSBKZWFuLAo+IAo+IEkgbWFkZSB0aG9zZSBjaGFuZ2Vz
+LiBTaG91bGQgSSByZXN1Ym1pdCwgb3IgZG8gSSBoYXZlIHlvdXIgUmV2aWV3ZWQtYnk6ID8KCllv
+dSBoYXZlIGl0IG9mIGNvdXJzZSwgc29ycnkgSSB0aG91Z2h0IEkgaGFkIHB1dCBpdCBhbHJlYWR5
+IGJ1dCBpdCBzZWVtcwpub3QuCgpSZXZpZXdlZC1ieTogSmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBz
+dXNlLmRlPgoKCi0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBTdXBwb3J0CgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxp
+c3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
+bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
