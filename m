@@ -1,38 +1,37 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 30 Mar 2015 07:44:29 +0000
+From: Paul Bolle <pebolle@tiscali.nl>
+Date: Mon, 30 Mar 2015 08:01:41 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: Allow to compile dell-smm-hwmon driver without /proc/i8k
-Message-Id: <20150330094429.53eaacc1@endymion.delvare>
+Message-Id: <1427702501.2408.21.camel@x220>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com>
-	<1427580377.2408.2.camel@x220>
-	<CABz95_AZnyCH_0VYdx4bHV7KV=goNxz1YdvrUCFJQSOAqwwMug@mail.gmail.com>
-	<201503282333.46803@pali>
-In-Reply-To: <201503282333.46803@pali>
+		 <1427540660.2334.14.camel@x220>
+		 <CABz95_BkAvPoBAm_tRLH6OhCk_pDfJQ8UuwfhuEYuPNt3P-PGw@mail.gmail.com>
+		 <201503282300.48749@pali> <55172939.4070100@roeck-us.net>
+	 <1427582640.3377.0.camel@tiscali.nl> <55174D7B.8070401@roeck-us.net>
+In-Reply-To: <55174D7B.8070401@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pali =?UTF-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Steven Honeyman <stevenhoneyman@gmail.com>, Paul Bolle <pebolle@tiscali.nl>, Guenter Roeck <linux@roeck-us.net>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Steven Honeyman <stevenhoneyman@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jean Delvare <jdelvare@suse.de>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-T24gU2F0LCAyOCBNYXIgMjAxNSAyMzozMzo0NiArMDEwMCwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4g
-SSB0aGluayBpdCB3b3VsZCBiZSBiZXR0ZXIgdG8gbG9jYXRlIG9uIHdoaWNoIGJ1cyBhcmUgc2Vu
-c29ycyAKPiBjb25uZWN0ZWQgKHNtYnVzPyBpc2E/IHBjaT8pLCBmaW5kIG91dCBIVyBjaGlwcyBh
-bmQgd3JvdGUgbmF0aXZlIAo+IGtlcm5lbCBkcml2ZXJzIGZvciB0aGVtLi4uCj4gCj4gSSBzY2Fu
-bmVkIHNtYnVzIChpbnRlbCBjb250cm9sbGVyIGNvbm5lY3RlZCBvbiBwY2kpIG9uIG15IEU2NDQw
-IAo+IGJ1dCB0aGVyZSBpcyBubyBhZGRpdGlvbmFsL3Vua25vd24gZGV2aWNlLiBJIGhhdmUgbm8g
-aWRlYSB3aGVyZSAKPiBlbHNlIGNvdWxkIGJlIHNlbnNvciBkZXZpY2UgY29ubmVjdGVkIGFuZCBh
-Y2Nlc3NpYmxlIChmcm9tIFNNTSBvciAKPiBrZXJuZWwgbW9kZSkuCgpBcyBtdWNoIGFzIEkgaGF0
-ZSBTTU0sIG5hdGl2ZSBhY2Nlc3MgdG8gYSBCSU9TLW93bmVkIGRldmljZSBpcyBub3QgYQpnb29k
-IGlkZWEsIGFzIGlzIGl0IGRhbmdlcm91c2x5IHJhY3kuIElmIGFueXRoaW5nLCB3ZSBhcmUgY3Vy
-cmVudGx5CnRyeWluZyB0byBtb3ZlIF9hd2F5XyBmcm9tIG5hdGl2ZSBkcml2ZXJzIG9uIGEgbnVt
-YmVyIG9mIHN5c3RlbXMKKGJhc2ljYWxseSBhbGwgc3lzdGVtcyB3aGVyZSBhY3BpX2VuZm9yY2Vf
-cmVzb3VyY2VzPWxheCBpcyBuZWVkZWQuKQoKT24geDg2LCBpZGVhbGx5IEFDUEkgd291bGQgb2Zm
-ZXIgYSBzdGFuZGFyZCBpbnRlcmZhY2UgdG8gdGhlIGhhcmR3YXJlCm1vbml0b3JpbmcgY2hpcCBh
-bmQgdGhlIE9TIHdvdWxkIG5lZWQgYSBzaW5nbGUgZHJpdmVyIGZvciBhbGwgYm9hcmRzCm91dCB0
-aGVyZS4gRmFpbGluZyB0aGF0LCBBQ1BJIHNob3VsZCBwcm92aWRlIGEgY2xlYW4gYW5kIHNhZmUg
-d2F5IHRvCmFjY2VzcyB0aGUgY2hpcCdzIHJlZ2lzdGVycyAocmVhZDogc29tZSBtdXRleCB0byBh
-dm9pZCBjb25jdXJyZW50CmFjY2VzcyB0byB0aGUgcmVnaXN0ZXJzIGJ5IHRoZSBCSU9TIGFuZCB0
-aGUgT1MuKQoKLS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
-CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
-aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Sat, 2015-03-28 at 17:55 -0700, Guenter Roeck wrote:
+> On 03/28/2015 03:44 PM, Paul Bolle wrote:
+> > I haven't actually looked into this part of the patch, since as far as
+> > I'm concerned this patch is broken.
+> 
+> You mean beyond the "ON" and the above problem ? Can you elaborate ?
+
+No, I was talking about the ON typo. Because a patch that mainly juggles
+Kconfig symbols but adds a Kconfig syntax error while doing that is a
+broken patch.
+
+
+Paul Bolle
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
