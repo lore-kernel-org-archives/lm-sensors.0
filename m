@@ -1,54 +1,148 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 11 Mar 2015 02:14:19 +0000
-Subject: Re: [lm-sensors] [PATCH -next] hwmon: fix gpio-fan.c build
-Message-Id: <54FFA4FB.80007@roeck-us.net>
+Date: Mon, 30 Mar 2015 06:33:43 +0000
+Subject: [lm-sensors] [PATCH 03/15] hwmon: (it87) Introduce configuration field for chip suffix
+Message-Id: <1427697235-23566-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <54FF8171.9080101@infradead.org>
-In-Reply-To: <54FF8171.9080101@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Randy Dunlap <rdunlap@infradead.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
-Cc: Jean Delvare <jdelvare@suse.de>, Simon Guinot <sguinot@lacie.com>
+To: lm-sensors@vger.kernel.org
 
-On 03/10/2015 04:42 PM, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
->
-> Fix build error when CONFIG_THERMAL=m and SENSORS_GPIO_FAN=y
-> by preventing that combination.
->
-> Fixes these build errors:
->
-> drivers/built-in.o: In function `gpio_fan_remove':
-> gpio-fan.c:(.text+0x21e97e): undefined reference to `thermal_cooling_device_unregister'
-> drivers/built-in.o: In function `gpio_fan_probe':
-> gpio-fan.c:(.text+0x21efbc): undefined reference to `thermal_cooling_device_register'
->
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc:	Jean Delvare <jdelvare@suse.de>
-> Cc:	Guenter Roeck <linux@roeck-us.net>
-> Cc:	lm-sensors@lm-sensors.org
-> Cc:	Simon Guinot <sguinot@lacie.com>
-> ---
->   drivers/hwmon/Kconfig |    1 +
->   1 file changed, 1 insertion(+)
->
-> --- linux-next-20150310.orig/drivers/hwmon/Kconfig
-> +++ linux-next-20150310/drivers/hwmon/Kconfig
-> @@ -510,6 +510,7 @@ config SENSORS_G762
->   config SENSORS_GPIO_FAN
->   	tristate "GPIO fan"
->   	depends on GPIOLIB
-> +	depends on THERMAL || THERMAL=n
->   	help
->   	  If you say yes here you get support for fans connected to GPIO lines.
->
->
-Applied, thanks.
+ITE chips may have 'E', 'F', or both 'E' and 'F' suffixes.
+Introduce suffic configuration to the it87_devices structure
+to simplify adding new chips.
 
-I really have to add that combination to my build tests :-(
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-Guenter
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 180750ef6156..bdd6b33a3b25 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -245,6 +245,7 @@ struct it87_devices {
+ 	u16 features;
+ 	u8 peci_mask;
+ 	u8 old_peci_mask;
++	const char * const suffix;
+ };
+ 
+ #define FEAT_12MV_ADC		(1 << 0)
+@@ -262,28 +263,33 @@ static const struct it87_devices it87_devices[] = {
+ 	[it87] = {
+ 		.name = "it87",
+ 		.features = FEAT_OLD_AUTOPWM,	/* may need to overwrite */
++		.suffix = "F",
+ 	},
+ 	[it8712] = {
+ 		.name = "it8712",
+ 		.features = FEAT_OLD_AUTOPWM | FEAT_VID,
+ 						/* may need to overwrite */
++		.suffix = "F",
+ 	},
+ 	[it8716] = {
+ 		.name = "it8716",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+ 		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
++		.suffix = "F",
+ 	},
+ 	[it8718] = {
+ 		.name = "it8718",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
+ 		.old_peci_mask = 0x4,
++		.suffix = "F",
+ 	},
+ 	[it8720] = {
+ 		.name = "it8720",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET | FEAT_VID
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
+ 		.old_peci_mask = 0x4,
++		.suffix = "F",
+ 	},
+ 	[it8721] = {
+ 		.name = "it8721",
+@@ -292,12 +298,14 @@ static const struct it87_devices it87_devices[] = {
+ 		  | FEAT_FAN16_CONFIG | FEAT_FIVE_FANS,
+ 		.peci_mask = 0x05,
+ 		.old_peci_mask = 0x02,	/* Actually reports PCH */
++		.suffix = "F",
+ 	},
+ 	[it8728] = {
+ 		.name = "it8728",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_FIVE_FANS,
+ 		.peci_mask = 0x07,
++		.suffix = "F",
+ 	},
+ 	[it8771] = {
+ 		.name = "it8771",
+@@ -308,6 +316,7 @@ static const struct it87_devices it87_devices[] = {
+ 				/* 16 bit fans (OHM) */
+ 				/* three fans, always 16 bit (guesswork) */
+ 		.peci_mask = 0x07,
++		.suffix = "E",
+ 	},
+ 	[it8772] = {
+ 		.name = "it8772",
+@@ -318,36 +327,42 @@ static const struct it87_devices it87_devices[] = {
+ 				/* 16 bit fans (HWSensors4, OHM) */
+ 				/* three fans, always 16 bit (datasheet) */
+ 		.peci_mask = 0x07,
++		.suffix = "E",
+ 	},
+ 	[it8781] = {
+ 		.name = "it8781",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG,
+ 		.old_peci_mask = 0x4,
++		.suffix = "F",
+ 	},
+ 	[it8782] = {
+ 		.name = "it8782",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG,
+ 		.old_peci_mask = 0x4,
++		.suffix = "F",
+ 	},
+ 	[it8783] = {
+ 		.name = "it8783",
+ 		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET
+ 		  | FEAT_TEMP_OLD_PECI | FEAT_FAN16_CONFIG,
+ 		.old_peci_mask = 0x4,
++		.suffix = "E/F",
+ 	},
+ 	[it8786] = {
+ 		.name = "it8786",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI,
+ 		.peci_mask = 0x07,
++		.suffix = "E",
+ 	},
+ 	[it8603] = {
+ 		.name = "it8603",
+ 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI,
+ 		.peci_mask = 0x07,
++		.suffix = "E",
+ 	},
+ };
+ 
+@@ -1841,9 +1856,8 @@ static int __init it87_find(unsigned short *address,
+ 
+ 	err = 0;
+ 	sio_data->revision = superio_inb(DEVREV) & 0x0f;
+-	pr_info("Found IT%04x%c chip at 0x%x, revision %d\n", chip_type,
+-		chip_type = 0x8771 || chip_type = 0x8772 ||
+-		chip_type = 0x8786 || chip_type = 0x8603 ? 'E' : 'F',
++	pr_info("Found IT%04x%s chip at 0x%x, revision %d\n", chip_type,
++		it87_devices[sio_data->type].suffix,
+ 		*address, sio_data->revision);
+ 
+ 	/* in8 (Vbat) is always internal */
+-- 
+2.1.0
 
 
 _______________________________________________
