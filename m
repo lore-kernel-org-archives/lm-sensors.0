@@ -1,31 +1,34 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Date: Sun, 29 Mar 2015 12:57:37 +0000
-Subject: [lm-sensors] [PATCH v2 0/2] i8k.c => dell-smm-hwmon.c
-Message-Id: <1427633859-18596-1-git-send-email-pali.rohar@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 31 Mar 2015 03:32:36 +0000
+Subject: Re: [lm-sensors] [PATCH v2 0/2] i8k.c => dell-smm-hwmon.c
+Message-Id: <551A1554.3090005@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com>
-In-Reply-To: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com>
+References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com> <1427633859-18596-1-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <1427633859-18596-1-git-send-email-pali.rohar@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jean Delvare <jdelvare@suse.de>
-Cc: Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jean Delvare <jdelvare@suse.de>
+Cc: Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-VGhpcyBwYXRjaCBzZXJpZXMgbW92ZXMgZHJpdmVycy9jaGFyL2k4ay5jIHRvIGRyaXZlcnMvaHdt
-b24vZGVsbC1zbW0taHdtb24uYwphbmQgYWxsb3dzIHRvIGNvbXBpbGUgaHdtb24gZHJpdmVyIHdp
-dGhvdXQgL3Byb2MvaThrIGZpbGUuCgpQYWxpIFJvaMOhciAoMik6CiAgaHdtb246IFJlbmFtZSBp
-OGsgZHJpdmVyIHRvIGRlbGwtc21tLWh3bW9uIGFuZCBtb3ZlIGl0IHRvIGh3bW9uIHRyZWUKICBo
-d21vbjogQWxsb3cgdG8gY29tcGlsZSBkZWxsLXNtbS1od21vbiBkcml2ZXIgd2l0aG91dCAvcHJv
-Yy9pOGsKCiBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgfCAgICA0ICstCiBhcmNoL3g4
-Ni9LY29uZmlnICAgICAgICAgICAgICAgfCAgIDI1ICstCiBkcml2ZXJzL2NoYXIvTWFrZWZpbGUg
-ICAgICAgICAgfCAgICAxIC0KIGRyaXZlcnMvY2hhci9pOGsuYyAgICAgICAgICAgICB8IDEwMDUg
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiBkcml2ZXJzL2h3bW9uL0tj
-b25maWcgICAgICAgICAgfCAgIDExICsKIGRyaXZlcnMvaHdtb24vTWFrZWZpbGUgICAgICAgICB8
-ICAgIDEgKwogZHJpdmVycy9od21vbi9kZWxsLXNtbS1od21vbi5jIHwgMTAyNSArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiA3IGZpbGVzIGNoYW5nZWQsIDEwNDkgaW5z
-ZXJ0aW9ucygrKSwgMTAyMyBkZWxldGlvbnMoLSkKIGRlbGV0ZSBtb2RlIDEwMDY0NCBkcml2ZXJz
-L2NoYXIvaThrLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL2RlbGwtc21tLWh3
-bW9uLmMKCi0tIAoxLjcuOS41CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
-Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
-b3Jz
+T24gMDMvMjkvMjAxNSAwNTo1NyBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gVGhpcyBwYXRjaCBz
+ZXJpZXMgbW92ZXMgZHJpdmVycy9jaGFyL2k4ay5jIHRvIGRyaXZlcnMvaHdtb24vZGVsbC1zbW0t
+aHdtb24uYwo+IGFuZCBhbGxvd3MgdG8gY29tcGlsZSBod21vbiBkcml2ZXIgd2l0aG91dCAvcHJv
+Yy9pOGsgZmlsZS4KPgo+IFBhbGkgUm9ow6FyICgyKToKPiAgICBod21vbjogUmVuYW1lIGk4ayBk
+cml2ZXIgdG8gZGVsbC1zbW0taHdtb24gYW5kIG1vdmUgaXQgdG8gaHdtb24gdHJlZQo+ICAgIGh3
+bW9uOiBBbGxvdyB0byBjb21waWxlIGRlbGwtc21tLWh3bW9uIGRyaXZlciB3aXRob3V0IC9wcm9j
+L2k4awo+Cj4gICBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgfCAgICA0ICstCj4gICBh
+cmNoL3g4Ni9LY29uZmlnICAgICAgICAgICAgICAgfCAgIDI1ICstCj4gICBkcml2ZXJzL2NoYXIv
+TWFrZWZpbGUgICAgICAgICAgfCAgICAxIC0KPiAgIGRyaXZlcnMvY2hhci9pOGsuYyAgICAgICAg
+ICAgICB8IDEwMDUgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gICBk
+cml2ZXJzL2h3bW9uL0tjb25maWcgICAgICAgICAgfCAgIDExICsKPiAgIGRyaXZlcnMvaHdtb24v
+TWFrZWZpbGUgICAgICAgICB8ICAgIDEgKwo+ICAgZHJpdmVycy9od21vbi9kZWxsLXNtbS1od21v
+bi5jIHwgMTAyNSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gICA3
+IGZpbGVzIGNoYW5nZWQsIDEwNDkgaW5zZXJ0aW9ucygrKSwgMTAyMyBkZWxldGlvbnMoLSkKPiAg
+IGRlbGV0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2NoYXIvaThrLmMKPiAgIGNyZWF0ZSBtb2RlIDEw
+MDY0NCBkcml2ZXJzL2h3bW9uL2RlbGwtc21tLWh3bW9uLmMKPgpJIGFtIG9rIHdpdGggdGhlIHNl
+cmllcyBhbmQgd291bGQgdGFrZSBpdCBmb3IgNC4xIGlmIEdyZWcgYWdyZWVzLgoKR3JlZywgYW55
+IGNvbW1lbnRzID8KClRoYW5rcywKR3VlbnRlcgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
