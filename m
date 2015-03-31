@@ -1,46 +1,31 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 18 Mar 2015 15:47:42 +0000
-Subject: [lm-sensors] [PATCH 2/5] hwmon: (ibmpowernv) add a get_sensor_type() routine
-Message-Id: <1426693665-10797-3-git-send-email-clg@fr.ibm.com>
+From: Toby Bateson <archetypalsphere@gmail.com>
+Date: Tue, 31 Mar 2015 18:57:48 +0000
+Subject: [lm-sensors] Hardware support.
+Message-Id: <CAEfu8t3AWkvjm_0Mywpuu7EeiY4s=50fwHt5kraWWzqs2aLd+w@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1423117857-32759-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-SXQgd2lsbCBoZWxwIGluIGFkZGluZyBkaWZmZXJlbnQgY29tcGF0aWJsZSBwcm9wZXJ0aWVzLCBj
-b21pbmcgZnJvbSBhCm5ldyBkZXZpY2UgdHJlZSBsYXlvdXQgZm9yIGV4YW1wbGUuCgpTaWduZWQt
-b2ZmLWJ5OiBDw6lkcmljIExlIEdvYXRlciA8Y2xnQGZyLmlibS5jb20+Ci0tLQogZHJpdmVycy9o
-d21vbi9pYm1wb3dlcm52LmMgfCAgIDI2ICsrKysrKysrKysrKysrKy0tLS0tLS0tLS0tCiAxIGZp
-bGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYu
-YwppbmRleCBmNjkxZTE4ZGYxNmIuLjA3YTgyMTliN2Y0ZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9o
-d21vbi9pYm1wb3dlcm52LmMKKysrIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKQEAgLTE2
-OSw2ICsxNjksMTcgQEAgc3RhdGljIGludCBjcmVhdGVfaHdtb25fYXR0cl9uYW1lKHN0cnVjdCBk
-ZXZpY2UgKmRldiwgZW51bSBzZW5zb3JzIHR5cGUsCiAJcmV0dXJuIDA7CiB9CiAKK3N0YXRpYyBp
-bnQgZ2V0X3NlbnNvcl90eXBlKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnApCit7CisJZW51bSBzZW5z
-b3JzIHR5cGU7CisKKwlmb3IgKHR5cGUgPSAwOyB0eXBlIDwgTUFYX1NFTlNPUl9UWVBFOyB0eXBl
-KyspIHsKKwkJaWYgKG9mX2RldmljZV9pc19jb21wYXRpYmxlKG5wLCBzZW5zb3JfZ3JvdXBzW3R5
-cGVdLmNvbXBhdGlibGUpKQorCQkJcmV0dXJuIHR5cGU7CisJfQorCXJldHVybiBNQVhfU0VOU09S
-X1RZUEU7Cit9CisKIHN0YXRpYyBpbnQgcG9wdWxhdGVfYXR0cl9ncm91cHMoc3RydWN0IHBsYXRm
-b3JtX2RldmljZSAqcGRldikKIHsKIAlzdHJ1Y3QgcGxhdGZvcm1fZGF0YSAqcGRhdGEgPSBwbGF0
-Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKQEAgLTE4MSwxMiArMTkyLDkgQEAgc3RhdGljIGludCBw
-b3B1bGF0ZV9hdHRyX2dyb3VwcyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCQlpZiAo
-bnAtPm5hbWUgPT0gTlVMTCkKIAkJCWNvbnRpbnVlOwogCi0JCWZvciAodHlwZSA9IDA7IHR5cGUg
-PCBNQVhfU0VOU09SX1RZUEU7IHR5cGUrKykKLQkJCWlmIChvZl9kZXZpY2VfaXNfY29tcGF0aWJs
-ZShucCwKLQkJCQkJc2Vuc29yX2dyb3Vwc1t0eXBlXS5jb21wYXRpYmxlKSkgewotCQkJCXNlbnNv
-cl9ncm91cHNbdHlwZV0uYXR0cl9jb3VudCsrOwotCQkJCWJyZWFrOwotCQkJfQorCQl0eXBlID0g
-Z2V0X3NlbnNvcl90eXBlKG5wKTsKKwkJaWYgKHR5cGUgIT0gTUFYX1NFTlNPUl9UWVBFKQorCQkJ
-c2Vuc29yX2dyb3Vwc1t0eXBlXS5hdHRyX2NvdW50Kys7CiAJfQogCiAJb2Zfbm9kZV9wdXQob3Bh
-bCk7CkBAIC0yMzYsMTEgKzI0NCw3IEBAIHN0YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCQlpZiAobnAtPm5hbWUgPT0gTlVMTCkKIAkJ
-CWNvbnRpbnVlOwogCi0JCWZvciAodHlwZSA9IDA7IHR5cGUgPCBNQVhfU0VOU09SX1RZUEU7IHR5
-cGUrKykKLQkJCWlmIChvZl9kZXZpY2VfaXNfY29tcGF0aWJsZShucCwKLQkJCQkJc2Vuc29yX2dy
-b3Vwc1t0eXBlXS5jb21wYXRpYmxlKSkKLQkJCQlicmVhazsKLQorCQl0eXBlID0gZ2V0X3NlbnNv
-cl90eXBlKG5wKTsKIAkJaWYgKHR5cGUgPT0gTUFYX1NFTlNPUl9UWVBFKQogCQkJY29udGludWU7
-CiAKLS0gCjEuNy4xMC40CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9y
-ZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Hello,
+
+I m hoping you can help me. I have a device which creates a high voltage,
+low current pulse every second or so and I would like to be able to send an
+email notification if the voltage of the pulse drops below a certain
+variable threshold.  I have a Raspberry Pi B+ with this non-invasive
+current sensor http://www.amazon.co.uk/gp/product/B00OYNKT0U which plugs
+into the 3.5mm jack.  Your software looks amazing and just the ticket for
+what I need to do.
+
+What should I do?
+
+Many thanks for your help,
+
+Best wishes,
+
+Toby
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
