@@ -1,164 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:55:03 +0000
-Subject: [lm-sensors] [PATCH 12/22] hwmon: (it87) Use is_visible for temperature sensors
-Message-Id: <1428184513-22380-13-git-send-email-linux@roeck-us.net>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Wed, 01 Apr 2015 10:15:03 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (ibmpowernv) add a helper routine create_hwmon_attr
+Message-Id: <1427883306-32528-2-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Simplify code and reduce object size by more than 200 bytes on x86_64.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c | 87 ++++++++++++++++++++++------------------------------
- 1 file changed, 36 insertions(+), 51 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 5e4ef232b03a..507add1a695f 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1809,40 +1809,57 @@ static const struct attribute_group it87_group_in = {
- 	.is_visible = it87_in_is_visible,
- };
- 
--static struct attribute *it87_attributes_temp[3][6] = {
-+static umode_t it87_temp_is_visible(struct kobject *kobj,
-+				    struct attribute *attr, int index)
- {
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct it87_data *data = dev_get_drvdata(dev);
-+	int i = index / 7;	/* temperature index */
-+	int a = index % 7;	/* attribute index */
-+
-+	if (!(data->has_temp & (1 << i)))
-+		return 0;
-+
-+	if (a = 5 && !has_temp_offset(data))
-+		return 0;
-+
-+	if (a = 6 && !data->has_beep)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static struct attribute *it87_attributes_temp[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
- 	&sensor_dev_attr_temp1_type.dev_attr.attr,
- 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
--	NULL
--} , {
-+	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
-+	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
-+
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_type.dev_attr.attr,
- 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
--	NULL
--} , {
-+	&sensor_dev_attr_temp2_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp2_beep.dev_attr.attr,
-+
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_type.dev_attr.attr,
- 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
--	NULL
--} };
-+	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp3_beep.dev_attr.attr,
- 
--static const struct attribute_group it87_group_temp[3] = {
--	{ .attrs = it87_attributes_temp[0] },
--	{ .attrs = it87_attributes_temp[1] },
--	{ .attrs = it87_attributes_temp[2] },
-+	NULL
- };
- 
--static struct attribute *it87_attributes_temp_offset[] = {
--	&sensor_dev_attr_temp1_offset.dev_attr.attr,
--	&sensor_dev_attr_temp2_offset.dev_attr.attr,
--	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+static const struct attribute_group it87_group_temp = {
-+	.attrs = it87_attributes_temp,
-+	.is_visible = it87_temp_is_visible,
- };
- 
- static struct attribute *it87_attributes[] = {
-@@ -1856,12 +1873,6 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
- };
- 
--static struct attribute *it87_attributes_temp_beep[] = {
--	&sensor_dev_attr_temp1_beep.dev_attr.attr,
--	&sensor_dev_attr_temp2_beep.dev_attr.attr,
--	&sensor_dev_attr_temp3_beep.dev_attr.attr,
--};
--
- static struct attribute *it87_attributes_fan[6][3+1] = { {
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_fan1_min.dev_attr.attr,
-@@ -2408,18 +2419,8 @@ static void it87_remove_files(struct device *dev)
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
- 	sysfs_remove_group(&dev->kobj, &it87_group_in);
-+	sysfs_remove_group(&dev->kobj, &it87_group_temp);
- 
--	for (i = 0; i < 3; i++) {
--		if (!(data->has_temp & (1 << i)))
--			continue;
--		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
--		if (has_temp_offset(data))
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_temp_offset[i]);
--		if (sio_data->beep_pin)
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_temp_beep[i]);
--	}
- 	for (i = 0; i < 6; i++) {
- 		if (!(data->has_fan & (1 << i)))
- 			continue;
-@@ -2717,25 +2718,9 @@ static int it87_probe(struct platform_device *pdev)
- 	if (err)
- 		goto error;
- 
--	for (i = 0; i < 3; i++) {
--		if (!(data->has_temp & (1 << i)))
--			continue;
--		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
--		if (err)
--			goto error;
--		if (has_temp_offset(data)) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_temp_offset[i]);
--			if (err)
--				goto error;
--		}
--		if (sio_data->beep_pin) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_temp_beep[i]);
--			if (err)
--				goto error;
--		}
--	}
-+	err = sysfs_create_group(&dev->kobj, &it87_group_temp);
-+	if (err)
-+		goto error;
- 
- 	/* Do not create fan files for disabled fans */
- 	fan_beep_need_rw = 1;
--- 
-2.1.0
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBzaG91bGQgc2hvcnRlbiBhIGJpdCB0aGUgY29kZSBuZWNlc3NhcnkgdG8gY3JlYXRlIGEg
+aG13b24gYXR0cmlidXRlLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bm
+ci5pYm0uY29tPgotLS0KIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgICAyMyArKysrKysr
+KysrKysrKystLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDggZGVs
+ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2
+ZXJzL2h3bW9uL2libXBvd2VybnYuYwppbmRleCBhNmU3MjQ1ZjE3MmQuLmM5YWE0ZDgzN2M2ZiAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysrIGIvZHJpdmVycy9od21v
+bi9pYm1wb3dlcm52LmMKQEAgLTIzMiw2ICsyMzIsMjAgQEAgc3RhdGljIGludCBwb3B1bGF0ZV9h
+dHRyX2dyb3VwcyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCXJldHVybiAwOwogfQog
+CitzdGF0aWMgdm9pZCBjcmVhdGVfaHdtb25fYXR0cihzdHJ1Y3Qgc2Vuc29yX2RhdGEgKnNkYXRh
+LCBjb25zdCBjaGFyICphdHRyX25hbWUsCisJc3NpemVfdCAoKnNob3cpKHN0cnVjdCBkZXZpY2Ug
+KmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQljaGFyICpidWYpKQorewor
+CXNucHJpbnRmKHNkYXRhLT5uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwKKwkJIHNlbnNv
+cl9ncm91cHNbc2RhdGEtPnR5cGVdLm5hbWUsIHNkYXRhLT5od21vbl9pbmRleCwKKwkJIGF0dHJf
+bmFtZSk7CisKKwlzeXNmc19hdHRyX2luaXQoJnNkYXRhLT5kZXZfYXR0ci5hdHRyKTsKKwlzZGF0
+YS0+ZGV2X2F0dHIuYXR0ci5uYW1lID0gc2RhdGEtPm5hbWU7CisJc2RhdGEtPmRldl9hdHRyLmF0
+dHIubW9kZSA9IFNfSVJVR087CisJc2RhdGEtPmRldl9hdHRyLnNob3cgPSBzaG93OworfQorCiAv
+KgogICogSXRlcmF0ZSB0aHJvdWdoIHRoZSBkZXZpY2UgdHJlZSBmb3IgZWFjaCBjaGlsZCBvZiAn
+c2Vuc29ycycgbm9kZSwgY3JlYXRlCiAgKiBhIHN5c2ZzIGF0dHJpYnV0ZSBmaWxlLCB0aGUgZmls
+ZSBpcyBuYW1lZCBieSB0cmFuc2xhdGluZyB0aGUgRFQgbm9kZSBuYW1lCkBAIC0yOTAsMTQgKzMw
+NCw3IEBAIHN0YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhzdHJ1Y3QgcGxhdGZvcm1fZGV2
+aWNlICpwZGV2KQogCQlzZGF0YVtjb3VudF0uaHdtb25faW5kZXggPQogCQkJZ2V0X3NlbnNvcl9o
+d21vbl9pbmRleCgmc2RhdGFbY291bnRdLCBzZGF0YSwgY291bnQpOwogCi0JCXNucHJpbnRmKHNk
+YXRhW2NvdW50XS5uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwKLQkJCSBzZW5zb3JfZ3Jv
+dXBzW3R5cGVdLm5hbWUsIHNkYXRhW2NvdW50XS5od21vbl9pbmRleCwKLQkJCSBhdHRyX25hbWUp
+OwotCi0JCXN5c2ZzX2F0dHJfaW5pdCgmc2RhdGFbY291bnRdLmRldl9hdHRyLmF0dHIpOwotCQlz
+ZGF0YVtjb3VudF0uZGV2X2F0dHIuYXR0ci5uYW1lID0gc2RhdGFbY291bnRdLm5hbWU7Ci0JCXNk
+YXRhW2NvdW50XS5kZXZfYXR0ci5hdHRyLm1vZGUgPSBTX0lSVUdPOwotCQlzZGF0YVtjb3VudF0u
+ZGV2X2F0dHIuc2hvdyA9IHNob3dfc2Vuc29yOworCQljcmVhdGVfaHdtb25fYXR0cigmc2RhdGFb
+Y291bnRdLCBhdHRyX25hbWUsIHNob3dfc2Vuc29yKTsKIAogCQlwZ3JvdXBzW3R5cGVdLT5hdHRy
+c1tzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrK10gPQogCQkJCSZzZGF0YVtjb3VudCsr
+XS5kZXZfYXR0ci5hdHRyOwotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
+QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xtLXNlbnNvcnM
