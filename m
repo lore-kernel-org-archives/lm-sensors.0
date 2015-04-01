@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Apr 2015 13:53:39 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 01 Apr 2015 14:35:03 +0000
 Subject: Re: [lm-sensors] [PATCH 05/15] hwmon: (it87) Add support for IT8790E
-Message-Id: <551BF863.40700@roeck-us.net>
+Message-Id: <1427898903.4063.161.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1427697235-23566-6-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1427697235-23566-6-git-send-email-linux@roeck-us.net>
@@ -10,161 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-On 03/31/2015 11:59 PM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun, 29 Mar 2015 23:33:45 -0700, Guenter Roeck wrote:
->> IT8790E is a super-IO chip with three fan tachometers. It is mostly
->> compatible to IT8728E.
->
-> IT8728F, not E. That being said, the IT8728F supports 5 fans, so the
-> IT8790E seems rather similar to the IT8786E? They are treated exactly
-> the same AFAICS.
->
-... and 8771, and 8772. I tend to use 8728 as base reference since that is the
-first chip which fully supports the new fan control mechanism as well as the new
-means of PECI support.
-
-On a side note, did you notice that IT8728F supports up to five pwm controls ?
-It doesn't matter much though because pwm4 and pwm5 as simply mapped to pwm1..3
-(which one is configurable).
-
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   Documentation/hwmon/it87 | 13 ++++++++++---
->>   drivers/hwmon/Kconfig    |  4 ++--
->>   drivers/hwmon/it87.c     | 14 +++++++++++++-
->>   3 files changed, 25 insertions(+), 6 deletions(-)
->>
->> diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
->> index 19fbe775ae10..64ea41f017c1 100644
->> --- a/Documentation/hwmon/it87
->> +++ b/Documentation/hwmon/it87
->> @@ -58,6 +58,10 @@ Supported chips:
->>       Prefix: 'it8786'
->>       Addresses scanned: from Super I/O config space (8 I/O ports)
->>       Datasheet: Not publicly available
->> +  * IT8790E
->> +    Prefix: 'it8790'
->> +    Addresses scanned: from Super I/O config space (8 I/O ports)
->> +    Datasheet: Not publicly available
->>     * SiS950   [clone of IT8705F]
->>       Prefix: 'it87'
->>       Addresses scanned: from Super I/O config space (8 I/O ports)
->> @@ -102,9 +106,10 @@ motherboard models.
->>   Description
->>   -----------
->>
->> -This driver implements support for the IT8603E, IT8623E, IT8705F, IT8712F,
->> -IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E, IT8771E,
->> -IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, and SiS950 chips.
->> +This driver implements support for the IT8603E, IT8623E, IT8705F,
->> +IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E,
->> +IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E, and SiS950
->> +chips.
->>
->>   These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
->>   joysticks and other miscellaneous stuff. For hardware monitoring, they
->> @@ -145,6 +150,8 @@ The IT8603E/IT8623E is a custom design, hardware monitoring part is similar to
->>   IT8728F. It only supports 16-bit fan mode, the full speed mode of the
->>   fan is not supported (value 0 of pwmX_enable).
->>
->> +The IT8790E supports up to three fans. 16-bit fan mode is always enabled.
->> +
->
-> For consistency with the rest of the chip feature descriptions, I'd
-> write "3 fans".
->
->>   Temperatures are measured in degrees Celsius. An alarm is triggered once
->>   when the Overtemperature Shutdown limit is crossed.
->>
->> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
->> index ec711af5697a..929d30e2047e 100644
->> --- a/drivers/hwmon/Kconfig
->> +++ b/drivers/hwmon/Kconfig
->> @@ -600,8 +600,8 @@ config SENSORS_IT87
->>   	help
->>   	  If you say yes here you get support for ITE IT8705F, IT8712F,
->>   	  IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E,
->> -	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E,
->> -	  and IT8603E sensor chips, and the SiS950 clone.
->> +	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E,
->> +	  IT8603E, and IT8623E sensor chips, and the SiS950 clone.
->>
->>   	  This driver can also be built as a module.  If so, the module
->>   	  will be called it87.
->> diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
->> index 2b41a598cee7..01a021172121 100644
->> --- a/drivers/hwmon/it87.c
->> +++ b/drivers/hwmon/it87.c
->> @@ -27,6 +27,7 @@
->>    *            IT8782F  Super I/O chip w/LPC interface
->>    *            IT8783E/F Super I/O chip w/LPC interface
->>    *            IT8786E  Super I/O chip w/LPC interface
->> + *            IT8790E  Super I/O chip w/LPC interface
->>    *            Sis950   A clone of the IT8705F
->>    *
->>    *  Copyright (C) 2001 Chris Gauthron
->> @@ -68,7 +69,7 @@
->>   #define DRVNAME "it87"
->>
->>   enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8771,
->> -	     it8772, it8781, it8782, it8783, it8786, it8603 };
->> +	     it8772, it8781, it8782, it8783, it8786, it8790, it8603 };
->>
->>   static unsigned short force_id;
->>   module_param(force_id, ushort, 0);
->> @@ -154,6 +155,7 @@ static inline void superio_exit(void)
->>   #define IT8786E_DEVID 0x8786
->>   #define IT8603E_DEVID 0x8603
->>   #define IT8623E_DEVID 0x8623
->> +#define IT8790E_DEVID 0x8790
->
-> I'd move this declaration right after IT8786E_DEVID for consistency.
->
->>   #define IT87_ACT_REG  0x30
->>   #define IT87_BASE_REG 0x60
->>
->> @@ -359,6 +361,13 @@ static const struct it87_devices it87_devices[] = {
->>   		.peci_mask = 0x07,
->>   		.suffix = "E",
->>   	},
->> +	[it8790] = {
->> +		.name = "it8790",
->> +		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
->> +		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
->> +		.peci_mask = 0x07,
->> +		.suffix = "E",
->> +	},
->>   	[it8603] = {
->>   		.name = "it8603",
->>   		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
->> @@ -1834,6 +1843,9 @@ static int __init it87_find(unsigned short *address,
->>   	case IT8786E_DEVID:
->>   		sio_data->type = it8786;
->>   		break;
->> +	case IT8790E_DEVID:
->> +		sio_data->type = it8790;
->> +		break;
->>   	case IT8603E_DEVID:
->>   	case IT8623E_DEVID:
->>   		sio_data->type = it8603;
->
-> Looks good otherwise.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Applied with the changes you suggested.
-
-Thanks,
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TGUgV2VkbmVzZGF5IDAxIEFwcmlsIDIwMTUgw6AgMDY6NTMgLTA3MDAsIEd1ZW50ZXIgUm9lY2sg
+YSDDqWNyaXQgOgo+IE9uIGEgc2lkZSBub3RlLCBkaWQgeW91IG5vdGljZSB0aGF0IElUODcyOEYg
+c3VwcG9ydHMgdXAgdG8gZml2ZSBwd20gY29udHJvbHMgPwo+IEl0IGRvZXNuJ3QgbWF0dGVyIG11
+Y2ggdGhvdWdoIGJlY2F1c2UgcHdtNCBhbmQgcHdtNSBhcyBzaW1wbHkgbWFwcGVkIHRvIHB3bTEu
+LjMKPiAod2hpY2ggb25lIGlzIGNvbmZpZ3VyYWJsZSkuCgpFaXRoZXIgSSBuZXZlciBub3RpY2Vk
+LCBvciBJIGZvcmdvdCBtZWFud2hpbGUgKHRoYXQgd291bGRuJ3QgYmUgYWxsIHRoYXQKc3VycHJp
+c2luZy4pIEVpdGhlciB3YXkgaXQgZG9lc24ndCBsb29rIGxpa2Ugc29tZXRoaW5nIHRoZSBkcml2
+ZXIgbmVlZHMKdG8gY2FyZSBhYm91dD8gSSBzdXBwb3NlIHRoYXQgdGhlIG9ubHkgcHVycG9zZSBp
+cyB0byBtYWtlIHNpZ25hbCByb3V0aW5nCmVhc2llciBmb3IgYm9hcmQgbWFudWZhY3R1cmVycy4K
+Ci0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBTdXBwb3J0CgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
+c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9sbS1zZW5zb3Jz
