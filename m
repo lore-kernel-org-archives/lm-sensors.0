@@ -1,33 +1,63 @@
-From: Pavel Rojtberg <mail@rojtberg.net>
-Date: Fri, 03 Apr 2015 16:18:56 +0000
-Subject: Re: [lm-sensors] Call for testing: Driver for IT8620E, IT8790E
-Message-Id: <CA+b0ujeFri+4SnbY9QSuMJ9bnJRDdpPZOVpvzt2Ga9QjNWc_1A@mail.gmail.com>
+From: Marcin Nowak <galandilias@gmail.com>
+Date: Wed, 01 Apr 2015 10:41:22 +0000
+Subject: Re: [lm-sensors] SB800 support
+Message-Id: <CA+-AzzKMVipuO+Hh=mNpNt6Z5nG+JVqXknoKBcah1HCjtKhBEg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5518F02A.9000703@roeck-us.net>
-In-Reply-To: <5518F02A.9000703@roeck-us.net>
+References: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
+In-Reply-To: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Y29ycmVjdGx5IGRldGVjdHMgdGhlICJJVDg2MjBFIiBvbiBteSBHQS1IOTdOIGFuZCAgd29ya3Mg
-anVzdCBhcyAiaXQ4Nwpmb3JjZV9pZD0weDg3MjgiIHVzZWQgdG8uCgpHdWVudGVyIFJvZWNrIDxs
-aW51eEByb2Vjay11cy5uZXQ+IHNjaHJpZWIgYW0gTW8uLCAzMC4gTcOkcnogMjAxNSB1bQowODo0
-MSBVaHI6Cgo+IEdyZWV0aW5nczoKPgo+IFdlIG5vdyBoYXZlIGFuIGV4cGVyaW1lbnRhbCBkcml2
-ZXIgd2hpY2ggc3VwcG9ydHMgYm90aCBJVDg2MjBFIGFuZCBJVDg3OTBFLgo+IFRoZSBkcml2ZXIg
-aXMgYXZhaWxhYmxlIGZyb20gdGhlIGZvbGxvd2luZyB1cmwuCj4KPiAgICAgICAgIGh0dHBzOi8v
-Z2l0aHViLmNvbS9ncm9lY2svaXQ4Nwo+Cj4gVGhpcyBkcml2ZXIgc3VwcG9ydHMgSVQ4NjIwRSBh
-bmQgSVQ4NzkwRSB3aXRoIGFsbCBrbm93biBjaGlwIHNwZWNpYWx0aWVzLgo+IE5ldyBmZWF0dXJl
-cyBhcmU6Cj4KPiAtIFN1cHBvcnQgZm9yIElUODYyMEUsIGluY2x1ZGluZyB1cCB0byA2IGZhbiB0
-YWNob21ldGVycyBhbmQgdXAgdG8gNiBwd20KPiBjb250cm9scwo+IC0gU3VwcG9ydCBmb3IgSVQ4
-NzkwRQo+IC0gU3VwcG9ydCBmb3IgU3VwZXItSU8gY2hpcHMgYXQgU0lPIGFkZHJlc3MgMHg0ZSAo
-bmVlZGVkIGZvciBzb21lCj4gR2lnYWJ5dHllIGJvYXJkcykKPiAtIFN1cHBvcnQgZm9yIHR3byBT
-dXBlci1JTyBjaGlwcyBpbiB0aGUgc3lzdGVtIGF0IHRoZSBzYW1lIHRpbWUgKG5lZWRlZAo+IGZv
-ciBzb21lCj4gICAgR2lnYWJ5dGUgYm9hcmRzKQo+Cj4gVGhpcyBjb2RlIHdpbGwgbmVlZCBleHRl
-bnNpdmUgdGVzdGluZyB0byBiZSBhYmxlIHRvIHVwc3RyZWFtIGl0Lgo+IEkgd291bGQga2luZGx5
-IGFzayBldmVyeW9uZSB3aG8gaGFzIGEgYm9hcmQgd2l0aCBJVDg2MjBFIGFuZC9vciBJVDg3OTBF
-Cj4gdG8gaW5zdGFsbCB0aGUgZHJpdmVyIGFuZCB0ZXN0IGl0LCBhbmQgdG8gcmVwb3J0IHRoZSBy
-ZXN1bHRzIG9uIHRoZQo+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Lgo+Cj4gVGhhbmtzLAo+IEd1
-ZW50ZXIKPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
-aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Anyone willing to help?
+
+2015-03-21 8:24 GMT+01:00 Marcin Nowak <galandilias@gmail.com>:
+
+> Is there a lot to do? Maybe someone can take the work of Eddi and finish
+> it - what you say? I am actually a programmer but not C :) so I am a bit
+> lost :) I could finish it but I would need a lot of guidance.
+>
+> Marcin.
+>
+> 2015-03-21 2:38 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
+>
+>> On 03/20/2015 07:07 AM, Marcin Nowak wrote:
+>>
+>>> Anyone have any knowledge about the real progress on this? Anyone knows
+>>> the
+>>> real status?
+>>>
+>>>
+>> I don't think there has been any progress.
+>>
+>> Guenter
+>>
+>>  2015-03-11 18:00 GMT+01:00 Marcin Nowak <galandilias@gmail.com>:
+>>>
+>>>  Hi,
+>>>>
+>>>> Here: http://www.lm-sensors.org/wiki/Devices you have information that
+>>>> as
+>>>> for full SB800 support Eddi De Pieri is working on the solution - last
+>>>> update of this I have found was nearly three years ago :) (
+>>>> http://marc.info/?l=linux-i2c&m4626228005697&w=2) so maybe as the
+>>>> anniversary is coming within three days you can post any update on this
+>>>> -
+>>>> can you? I am greatly interested in solving this.
+>>>>
+>>>> Regards,
+>>>> Marcin
+>>>>
+>>>>  _______________________________________________
+>>> lm-sensors mailing list
+>>> lm-sensors@lm-sensors.org
+>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>>>
+>>>
+>>
+>
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
