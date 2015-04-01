@@ -1,98 +1,73 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Tue, 28 Apr 2015 12:33:02 +0000
-Subject: [lm-sensors] [PATCH] libsensors: Fix sparse warnings
-Message-Id: <20150428143302.3cdacd3a@endymion.delvare>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Wed, 01 Apr 2015 10:15:05 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (ibmpowernv) add a label attribute
+Message-Id: <1427883306-32528-4-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Sparse wants forward declarations of static functions to be static as
-well. For sensors_eval_expr, do that. For the error callbacks,
-rearrange the code so that the forward declarations are no longer
-needed.
----
- lib/access.c |    6 +++---
- lib/error.c  |   27 +++++++++++----------------
- 2 files changed, 14 insertions(+), 19 deletions(-)
-
---- lm-sensors.orig/lib/access.c	2014-11-17 09:16:14.570052822 +0100
-+++ lm-sensors/lib/access.c	2015-04-28 14:25:16.766433604 +0200
-@@ -435,9 +435,9 @@ sensors_get_subfeature(const sensors_chi
- }
- 
- /* Evaluate an expression */
--int sensors_eval_expr(const sensors_chip_features *chip_features,
--		      const sensors_expr *expr,
--		      double val, int depth, double *result)
-+static int sensors_eval_expr(const sensors_chip_features *chip_features,
-+			     const sensors_expr *expr,
-+			     double val, int depth, double *result)
- {
- 	double res1, res2;
- 	int res;
---- lm-sensors.orig/lib/error.c	2014-03-20 11:06:57.490155748 +0100
-+++ lm-sensors/lib/error.c	2015-04-28 14:22:59.151550121 +0200
-@@ -24,18 +24,6 @@
- #include "error.h"
- #include "general.h"
- 
--static void sensors_default_parse_error(const char *err, int lineno);
--static void sensors_default_parse_error_wfn(const char *err,
--					    const char *filename, int lineno);
--static void sensors_default_fatal_error(const char *proc, const char *err);
--
--void (*sensors_parse_error) (const char *err, int lineno) -						sensors_default_parse_error;
--void (*sensors_parse_error_wfn) (const char *err, const char *filename,
--				 int lineno) = sensors_default_parse_error_wfn;
--void (*sensors_fatal_error) (const char *proc, const char *err) -						sensors_default_fatal_error;
--
- static const char *errorlist[] = {
- 	/* Invalid error code    */ "Unknown error",
- 	/* SENSORS_ERR_WILDCARDS */ "Wildcard found in chip name",
-@@ -60,7 +48,7 @@ const char *sensors_strerror(int errnum)
- 	return errorlist[errnum];
- }
- 
--void sensors_default_parse_error(const char *err, int lineno)
-+static void sensors_default_parse_error(const char *err, int lineno)
- {
- 	if (lineno)
- 		fprintf(stderr, "Error: Line %d: %s\n", lineno, err);
-@@ -68,8 +56,8 @@ void sensors_default_parse_error(const c
- 		fprintf(stderr, "Error: %s\n", err);
- }
- 
--void sensors_default_parse_error_wfn(const char *err,
--				     const char *filename, int lineno)
-+static void sensors_default_parse_error_wfn(const char *err,
-+					    const char *filename, int lineno)
- {
- 	/* If application provided a custom parse error reporting function
- 	   but not the variant with the filename, fall back to the original
-@@ -85,8 +73,15 @@ void sensors_default_parse_error_wfn(con
- 		fprintf(stderr, "Error: File %s: %s\n", filename, err);
- }
- 
--void sensors_default_fatal_error(const char *proc, const char *err)
-+static void sensors_default_fatal_error(const char *proc, const char *err)
- {
- 	fprintf(stderr, "Fatal error in `%s': %s\n", proc, err);
- 	exit(1);
- }
-+
-+void (*sensors_parse_error) (const char *err, int lineno) +						sensors_default_parse_error;
-+void (*sensors_parse_error_wfn) (const char *err, const char *filename,
-+				 int lineno) = sensors_default_parse_error_wfn;
-+void (*sensors_fatal_error) (const char *proc, const char *err) +						sensors_default_fatal_error;
-
-
--- 
-Jean Delvare
-SUSE L3 Support
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Q3VycmVudGx5LCBzZW5zb3JzIGFyZSBvbmx5IGlkZW50aWZpZWQgYnkgdGhlaXIgdHlwZSBhbmQg
+aW5kZXguCgpUaGUgbmV3IE9QQUwgZGV2aWNlIHRyZWUgY2FuIGV4cG9zZSBleHRyYSBwcm9wZXJ0
+aWVzIHRvIGlkZW50aWZ5CnNvbWUgc2Vuc29ycyBieSB0aGVpciBuYW1lIG9yIGxvY2F0aW9uLiBU
+aGlzIHBhdGNoIGFkZHMgdGhlIGNyZWF0aW9uCm9mIGEgbmV3IGh3bW9uICpfbGFiZWwgYXR0cmli
+dXRlIHdoZW4gc3VjaCBwcm9wZXJ0aWVzIGFyZSBkZXRlY3RlZC4KClNpZ25lZC1vZmYtYnk6IEPD
+qWRyaWMgTGUgR29hdGVyIDxjbGdAZnIuaWJtLmNvbT4KLS0tCiBkcml2ZXJzL2h3bW9uL2libXBv
+d2VybnYuYyB8ICAgNTEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+Ky0KIDEgZmlsZSBjaGFuZ2VkLCA1MCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2ZXJzL2h3bW9uL2libXBv
+d2VybnYuYwppbmRleCBmMzhhYTI3MzQzZjIuLmJlNmZlNTU5YjUyYSAxMDA2NDQKLS0tIGEvZHJp
+dmVycy9od21vbi9pYm1wb3dlcm52LmMKKysrIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMK
+QEAgLTMyLDYgKzMyLDcgQEAKICNpbmNsdWRlIDxsaW51eC9lcnIuaD4KIAogI2RlZmluZSBNQVhf
+QVRUUl9MRU4JMzIKKyNkZWZpbmUgTUFYX0xBQkVMX0xFTgk2NAogCiAvKiBTZW5zb3Igc3VmZml4
+IG5hbWUgZnJvbSBEVCAqLwogI2RlZmluZSBEVF9GQVVMVF9BVFRSX1NVRkZJWAkJImZhdWx0ZWQi
+CkBAIC02OCw2ICs2OSw3IEBAIHN0cnVjdCBzZW5zb3JfZGF0YSB7CiAJdTMyIGh3bW9uX2luZGV4
+OwogCXUzMiBvcGFsX2luZGV4OwogCWVudW0gc2Vuc29ycyB0eXBlOworCWNoYXIgbGFiZWxbTUFY
+X0xBQkVMX0xFTl07CiAJY2hhciBuYW1lW01BWF9BVFRSX0xFTl07CiAJc3RydWN0IGRldmljZV9h
+dHRyaWJ1dGUgZGV2X2F0dHI7CiB9OwpAQCAtOTksNiArMTAxLDIzIEBAIHN0YXRpYyBzc2l6ZV90
+IHNob3dfc2Vuc29yKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUg
+KmRldmF0dHIsCiAJcmV0dXJuIHNwcmludGYoYnVmLCAiJXVcbiIsIHgpOwogfQogCitzdGF0aWMg
+c3NpemVfdCBzaG93X2xhYmVsKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRy
+aWJ1dGUgKmRldmF0dHIsCisJCQkgICBjaGFyICpidWYpCit7CisJc3RydWN0IHNlbnNvcl9kYXRh
+ICpzZGF0YSA9IGNvbnRhaW5lcl9vZihkZXZhdHRyLCBzdHJ1Y3Qgc2Vuc29yX2RhdGEsCisJCQkJ
+CQkgZGV2X2F0dHIpOworCisJcmV0dXJuIHNwcmludGYoYnVmLCAiJXNcbiIsIHNkYXRhLT5sYWJl
+bCk7Cit9CisKK3N0YXRpYyB2b2lkIF9faW5pdCBtYWtlX3NlbnNvcl9sYWJlbChzdHJ1Y3QgZGV2
+aWNlX25vZGUgKm5wLAorCQkgICAgc3RydWN0IHNlbnNvcl9kYXRhICpzZGF0YSwgY29uc3QgY2hh
+ciAqbGFiZWwpCit7CisJc2l6ZV90IG47CisKKwluID0gc25wcmludGYoc2RhdGEtPmxhYmVsLCBz
+aXplb2Yoc2RhdGEtPmxhYmVsKSwgIiVzIiwgbGFiZWwpOworfQorCiBzdGF0aWMgaW50IGdldF9z
+ZW5zb3JfaW5kZXhfYXR0cihjb25zdCBjaGFyICpuYW1lLCB1MzIgKmluZGV4LAogCQkJCQljaGFy
+ICphdHRyKQogewpAQCAtMjI2LDExICsyNDUsMjEgQEAgc3RhdGljIGludCBwb3B1bGF0ZV9hdHRy
+X2dyb3VwcyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCiAJb3BhbCA9IG9mX2ZpbmRf
+bm9kZV9ieV9wYXRoKCIvaWJtLG9wYWwvc2Vuc29ycyIpOwogCWZvcl9lYWNoX2NoaWxkX29mX25v
+ZGUob3BhbCwgbnApIHsKKwkJY29uc3QgY2hhciAqbGFiZWw7CisKIAkJaWYgKG5wLT5uYW1lID09
+IE5VTEwpCiAJCQljb250aW51ZTsKIAogCQl0eXBlID0gZ2V0X3NlbnNvcl90eXBlKG5wKTsKLQkJ
+aWYgKHR5cGUgIT0gTUFYX1NFTlNPUl9UWVBFKQorCQlpZiAodHlwZSA9PSBNQVhfU0VOU09SX1RZ
+UEUpCisJCQljb250aW51ZTsKKworCQlzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrKzsK
+KworCQkvKgorCQkgKiBhZGQgYSBuZXcgYXR0cmlidXRlIGZvciBsYWJlbHMKKwkJICovCisJCWlm
+ICghb2ZfcHJvcGVydHlfcmVhZF9zdHJpbmcobnAsICJsYWJlbCIsICZsYWJlbCkpCiAJCQlzZW5z
+b3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrKzsKIAl9CiAKQEAgLTI5NCw2ICszMjMsNyBAQCBz
+dGF0aWMgaW50IGNyZWF0ZV9kZXZpY2VfYXR0cnMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRl
+dikKIAlmb3JfZWFjaF9jaGlsZF9vZl9ub2RlKG9wYWwsIG5wKSB7CiAJCWNvbnN0IGNoYXIgKmF0
+dHJfbmFtZTsKIAkJdTMyIG9wYWxfaW5kZXg7CisJCWNvbnN0IGNoYXIgKmxhYmVsOwogCiAJCWlm
+IChucC0+bmFtZSA9PSBOVUxMKQogCQkJY29udGludWU7CkBAIC0zMzcsNiArMzY3LDI1IEBAIHN0
+YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2
+KQogCiAJCXBncm91cHNbdHlwZV0tPmF0dHJzW3NlbnNvcl9ncm91cHNbdHlwZV0uYXR0cl9jb3Vu
+dCsrXSA9CiAJCQkJJnNkYXRhW2NvdW50KytdLmRldl9hdHRyLmF0dHI7CisKKwkJaWYgKCFvZl9w
+cm9wZXJ0eV9yZWFkX3N0cmluZyhucCwgImxhYmVsIiwgJmxhYmVsKSkgeworCQkJLyoKKwkJCSAq
+IEZvciB0aGUgbGFiZWwgYXR0cmlidXRlLCB3ZSBjYW4gcmV1c2UgdGhlCisJCQkgKiAicHJvcGVy
+dGllcyIgb2YgdGhlIHByZXZpb3VzICJpbnB1dCIKKwkJCSAqIGF0dHJpYnV0ZS4gVGhleSBhcmUg
+cmVsYXRlZCB0byB0aGUgc2FtZQorCQkJICogc2Vuc29yLgorCQkJICovCisJCQlzZGF0YVtjb3Vu
+dF0udHlwZSA9IHR5cGU7CisJCQlzZGF0YVtjb3VudF0ub3BhbF9pbmRleCA9IHNkYXRhW2NvdW50
+IC0gMV0ub3BhbF9pbmRleDsKKwkJCXNkYXRhW2NvdW50XS5od21vbl9pbmRleCA9IHNkYXRhW2Nv
+dW50IC0gMV0uaHdtb25faW5kZXg7CisKKwkJCW1ha2Vfc2Vuc29yX2xhYmVsKG5wLCAmc2RhdGFb
+Y291bnRdLCBsYWJlbCk7CisKKwkJCWNyZWF0ZV9od21vbl9hdHRyKCZzZGF0YVtjb3VudF0sICJs
+YWJlbCIsIHNob3dfbGFiZWwpOworCisJCQlwZ3JvdXBzW3R5cGVdLT5hdHRyc1tzZW5zb3JfZ3Jv
+dXBzW3R5cGVdLmF0dHJfY291bnQrK10gPQorCQkJCSZzZGF0YVtjb3VudCsrXS5kZXZfYXR0ci5h
+dHRyOworCQl9CiAJfQogCiBleGl0X3B1dF9ub2RlOgotLSAKMS43LjEwLjQKCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcg
+bGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
