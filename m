@@ -1,52 +1,30 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 09 Apr 2015 13:38:10 +0000
-Subject: Re: [lm-sensors] [PATCH 01/22] hwmon: (it87) Fix in7 voltage display
-Message-Id: <552680C2.6020508@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 02 Apr 2015 15:05:09 +0000
+Subject: Re: [lm-sensors] test
+Message-Id: <1427987109.4281.302.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1428184513-22380-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1428184513-22380-2-git-send-email-linux@roeck-us.net>
+References: <40ABCFAB.6060701@edgedesign.us>
+In-Reply-To: <40ABCFAB.6060701@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/09/2015 04:31 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sat,  4 Apr 2015 14:54:52 -0700, Guenter Roeck wrote:
->> Commit a6ebb8b09421 ("hwmon: (it87) Introduce feature flag to reflect internal
->> in7 sensor") actually caused in7 to never be recognized as internal.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/it87.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
->> index 4763d1157a5e..32180aaa4ac6 100644
->> --- a/drivers/hwmon/it87.c
->> +++ b/drivers/hwmon/it87.c
->> @@ -1910,7 +1910,7 @@ static int __init it87_find(unsigned short *address,
->>   		sio_data->internal |= (1 << 1);
->>
->>   	/* in8 (Vbat) is always internal */
->> -	sio_data->internal = (1 << 2);
->> +	sio_data->internal |= (1 << 2);
->>
->>   	/* Only the IT8603E has in9 */
->>   	if (sio_data->type != it8603)
->
-> Meanwhile you merged that fix in patch "hwmon: (it87) Introduce feature
-> flag to reflect internal in7 sensor" so this patch is no longer
-> relevant, right?
->
-Yes.
-
-Thanks,
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TGUgVGh1cnNkYXkgMDIgQXByaWwgMjAxNSDDoCAxNjozNCArMDIwMCwgQWxleGFuZGVyIEJydW5z
+IGEgw6ljcml0IDoKPiB0ZXN0LCBwbGVhc2UgaWdub3JlCgpIb3cgY2FuIHdlIGlnbm9yZSBhIG1h
+aWwgd2UgYWxsIHJlY2VpdmVkLCBhbmQgdGhhdCB3aWxsIGFsc28gYmUgYXJjaGl2ZWQKZm9yZXZl
+cj8KClRoaXMgaXMgbm90IGhvdyBtYWlsaW5nIGxpc3RzIHdvcmssIHNvcnJ5LiBZb3UgbmVlZCB0
+byB0aGluayBiZWZvcmUgeW91CmFjdCBhbmQgYmVoYXZlIGJldHRlciB0aGFuIHRoYXQuCgpTdWNo
+IHRlc3QgZW1haWxzIHNlcnZlIG5vIHB1cnBvc2UgYW55d2F5LiBFaXRoZXIgdGhleSBwYXNzIGFu
+ZCB0aGlzIGlzCm5vaXNlIGZvciBldmVyeW9uZSwgb3IgdGhleSBibG9jayBhbmQgc2VuZGluZyBh
+biBhY3R1YWwgbWVzc2FnZSB0byB0aGUKbGlzdCAod2l0aCB2YWx1YWJsZSBjb250ZW50cykgd291
+bGQgaGF2ZSB0aGUgc2FtZSByZXN1bHQuCgpJZiB5b3UgaGF2ZSB0ZWNobmljYWwgaXNzdWVzIHdp
+dGggdGhlIG1haWxpbmcgbGlzdCwgYW5kIHlvdSBjYW4ndCBmaWd1cmUKdGhlbSBvdXQgYnkgeW91
+cnNlbGYsIHRoZXJlIGFyZSBsaXN0IGFkbWlucyB3aG8gY2FuIGhlbHAgeW91LiBUaGVpcgphZGRy
+ZXNzZXMgYXJlIG1lbnRpb25lZCBhdCB0aGUgYm90dG9tIG9mIHRoZSBsaXN0IGluZm9ybWF0aW9u
+IHBhZ2UuCkNvbnRhY3RpbmcgdGhlbSBwcml2YXRlbHkgaXMgbXVjaCBtb3JlIGVmZmljaWVudCBh
+bmQgcmVzcGVjdGZ1bCB0aGFuCnNlbmRpbmcgY3JhcCB0byAxNTAgcGVvcGxlLgoKLS0gCkplYW4g
+RGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNl
+bnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xt
+LXNlbnNvcnM
