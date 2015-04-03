@@ -1,77 +1,33 @@
-From: Cedric Le Goater <clg@fr.ibm.com>
-Date: Wed, 08 Apr 2015 16:06:03 +0000
-Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (ibmpowernv) add support for the new device tree
-Message-Id: <552551EB.9020808@fr.ibm.com>
+From: Pavel Rojtberg <mail@rojtberg.net>
+Date: Fri, 03 Apr 2015 16:18:56 +0000
+Subject: Re: [lm-sensors] Call for testing: Driver for IT8620E, IT8790E
+Message-Id: <CA+b0ujeFri+4SnbY9QSuMJ9bnJRDdpPZOVpvzt2Ga9QjNWc_1A@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20150408152029.GA11030@roeck-us.net>
-In-Reply-To: <20150408152029.GA11030@roeck-us.net>
+References: <5518F02A.9000703@roeck-us.net>
+In-Reply-To: <5518F02A.9000703@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-On 04/08/2015 05:20 PM, Guenter Roeck wrote:
-> On Wed, Apr 01, 2015 at 12:15:04PM +0200, C=E9dric Le Goater wrote:
->> The new OPAL device tree for sensors has a different layout and uses new
->> property names, for the type and for the handler used to capture the
->> sensor data.
->>
->> This patch modifies the ibmpowernv driver to support such a tree in a
->> way preserving compatibility with older OPAL firmwares.
->>
->> This is achieved by changing the error path of the routine parsing
->> an OPAL node name. The node is simply considered being from the new
->> device tree layout and fallback values are used.
->>
->> Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
->=20
-> Hi Cedric,
->=20
-> I was about to apply the series, but then I found the following problem.
->=20
->> ---
->>  drivers/hwmon/ibmpowernv.c |   47 +++++++++++++++++++++++++++++++++++--=
--------
->>  1 file changed, 38 insertions(+), 9 deletions(-)
->>
-> [ ... ]
->> =20
->> @@ -189,11 +204,16 @@ static u32 get_sensor_hwmon_index(struct sensor_da=
-ta *sdata,
->>  {
->>  	int i;
->> =20
->> -	for (i =3D 0; i < count; i++)
->> -		if (sdata_table[i].opal_index =3D=3D sdata->opal_index &&
->> -		    sdata_table[i].type =3D=3D sdata->type)
->> -			return sdata_table[i].hwmon_index;
->> +	/*
->> +	 * We don't use the OPAL index on newer device trees
->> +	 */
->> +	if (sdata->opal_index !=3D -1) {
->=20
-> opal_index is u32, so this won't work (or at least the result is
-> unpredictable).
->=20
-> Also, in patch 4/4 (v4), get_logical_cpu() takes unsigned int as paramete=
-r,
-> but get_hard_smp_processor_id() returns an int, causing gcc to complain
-> if the code is built with W=3D1.
->=20
-> Please fix and resubmit the entire series.
->=20
-> When you do that, please also ensure that continuation lines
-> are aligned (in patch 3/4).
-
-Sure. Working on it right now.
-
-Thanks,
-
-C.=20
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Y29ycmVjdGx5IGRldGVjdHMgdGhlICJJVDg2MjBFIiBvbiBteSBHQS1IOTdOIGFuZCAgd29ya3Mg
+anVzdCBhcyAiaXQ4Nwpmb3JjZV9pZD0weDg3MjgiIHVzZWQgdG8uCgpHdWVudGVyIFJvZWNrIDxs
+aW51eEByb2Vjay11cy5uZXQ+IHNjaHJpZWIgYW0gTW8uLCAzMC4gTcOkcnogMjAxNSB1bQowODo0
+MSBVaHI6Cgo+IEdyZWV0aW5nczoKPgo+IFdlIG5vdyBoYXZlIGFuIGV4cGVyaW1lbnRhbCBkcml2
+ZXIgd2hpY2ggc3VwcG9ydHMgYm90aCBJVDg2MjBFIGFuZCBJVDg3OTBFLgo+IFRoZSBkcml2ZXIg
+aXMgYXZhaWxhYmxlIGZyb20gdGhlIGZvbGxvd2luZyB1cmwuCj4KPiAgICAgICAgIGh0dHBzOi8v
+Z2l0aHViLmNvbS9ncm9lY2svaXQ4Nwo+Cj4gVGhpcyBkcml2ZXIgc3VwcG9ydHMgSVQ4NjIwRSBh
+bmQgSVQ4NzkwRSB3aXRoIGFsbCBrbm93biBjaGlwIHNwZWNpYWx0aWVzLgo+IE5ldyBmZWF0dXJl
+cyBhcmU6Cj4KPiAtIFN1cHBvcnQgZm9yIElUODYyMEUsIGluY2x1ZGluZyB1cCB0byA2IGZhbiB0
+YWNob21ldGVycyBhbmQgdXAgdG8gNiBwd20KPiBjb250cm9scwo+IC0gU3VwcG9ydCBmb3IgSVQ4
+NzkwRQo+IC0gU3VwcG9ydCBmb3IgU3VwZXItSU8gY2hpcHMgYXQgU0lPIGFkZHJlc3MgMHg0ZSAo
+bmVlZGVkIGZvciBzb21lCj4gR2lnYWJ5dHllIGJvYXJkcykKPiAtIFN1cHBvcnQgZm9yIHR3byBT
+dXBlci1JTyBjaGlwcyBpbiB0aGUgc3lzdGVtIGF0IHRoZSBzYW1lIHRpbWUgKG5lZWRlZAo+IGZv
+ciBzb21lCj4gICAgR2lnYWJ5dGUgYm9hcmRzKQo+Cj4gVGhpcyBjb2RlIHdpbGwgbmVlZCBleHRl
+bnNpdmUgdGVzdGluZyB0byBiZSBhYmxlIHRvIHVwc3RyZWFtIGl0Lgo+IEkgd291bGQga2luZGx5
+IGFzayBldmVyeW9uZSB3aG8gaGFzIGEgYm9hcmQgd2l0aCBJVDg2MjBFIGFuZC9vciBJVDg3OTBF
+Cj4gdG8gaW5zdGFsbCB0aGUgZHJpdmVyIGFuZCB0ZXN0IGl0LCBhbmQgdG8gcmVwb3J0IHRoZSBy
+ZXN1bHRzIG9uIHRoZQo+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Lgo+Cj4gVGhhbmtzLAo+IEd1
+ZW50ZXIKPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
+aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
