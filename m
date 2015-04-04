@@ -1,73 +1,177 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:54:58 +0000
-Subject: [lm-sensors] [PATCH v2 07/22] hwmon: (it87) Don't use pdev as static driver variable
-Message-Id: <1428184513-22380-8-git-send-email-linux@roeck-us.net>
+Date: Sat, 04 Apr 2015 21:55:12 +0000
+Subject: [lm-sensors] [PATCH 21/22] hwmon: (it87) Use defines for array sizes and sensor counts
+Message-Id: <1428184513-22380-22-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Using the same varible name for function names and as static
-variable invites misuse and prevents us from adding support
-for a second chip. Rename pdev to it87_pdev and limit its use
-to where it is needed.
+Using array size defines makes it much easier to find errors
+in index values and loop counts.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-v2: Rebased to previous patches; no functional change
-
- drivers/hwmon/it87.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/hwmon/it87.c | 56 +++++++++++++++++++++++++++++++-----------------=
+----
+ 1 file changed, 33 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index a951112d5481..dc40951346dd 100644
+index bac1fd7f3b2a..845d4c095e2e 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -76,7 +76,7 @@ static unsigned short force_id;
- module_param(force_id, ushort, 0);
- MODULE_PARM_DESC(force_id, "Override the detected device ID");
- 
--static struct platform_device *pdev;
-+static struct platform_device *it87_pdev;
- 
- #define	REG	0x2e	/* The register to read/write */
- #define	DEV	0x07	/* Register: Logical device select */
-@@ -2257,7 +2257,7 @@ exit:
- 
- static void it87_remove_files(struct device *dev)
- {
--	struct it87_data *data = platform_get_drvdata(pdev);
-+	struct it87_data *data = dev_get_drvdata(dev);
- 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
- 	int i;
- 
-@@ -2860,6 +2860,7 @@ static struct it87_data *it87_update_device(struct device *dev)
- static int __init it87_device_add(unsigned short address,
- 				  const struct it87_sio_data *sio_data)
- {
-+	struct platform_device *pdev;
- 	struct resource res = {
- 		.start	= address + IT87_EC_OFFSET,
- 		.end	= address + IT87_EC_OFFSET + IT87_EC_EXTENT - 1,
-@@ -2895,6 +2896,7 @@ static int __init it87_device_add(unsigned short address,
- 		goto exit_device_put;
+@@ -257,6 +257,16 @@ static const u8 IT87_REG_VIN[]	=3D { 0x20, 0x21, 0x22,=
+ 0x23, 0x24, 0x25, 0x26,
+=20
+ #define IT87_REG_TEMP456_ENABLE	0x77
+=20
++#define NUM_VIN			ARRAY_SIZE(IT87_REG_VIN)
++#define NUM_VIN_LIMIT		8
++#define NUM_TEMP		6
++#define NUM_TEMP_OFFSET		ARRAY_SIZE(IT87_REG_TEMP_OFFSET)
++#define NUM_TEMP_LIMIT		3
++#define NUM_FAN			ARRAY_SIZE(IT87_REG_FAN)
++#define NUM_FAN_DIV		3
++#define NUM_PWM			ARRAY_SIZE(IT87_REG_PWM)
++#define NUM_AUTO_PWM		ARRAY_SIZE(IT87_REG_PWM)
++
+ struct it87_devices {
+ 	const char *name;
+ 	const char * const suffix;
+@@ -470,14 +480,14 @@ struct it87_data {
+ 	u16 in_scaled;		/* Internal voltage sensors are scaled */
+ 	u16 in_internal;	/* Bitfield, internal sensors (for labels) */
+ 	u16 has_in;		/* Bitfield, voltage sensors enabled */
+-	u8 in[13][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
++	u8 in[NUM_VIN][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+-	u16 fan[6][2];		/* Register values, [nr][0]=FAn, [1]=3Dmin */
++	u16 fan[NUM_FAN][2];	/* Register values, [nr][0]=FAn, [1]=3Dmin */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+-	s8 temp[6][4];		/* [nr][0]=3Dtemp, [1]=3Dmin, [2]=3Dmax, [3]=3Doffset */
++	s8 temp[NUM_TEMP][4];	/* [nr][0]=3Dtemp, [1]=3Dmin, [2]=3Dmax, [3]=3Doffs=
+et */
+ 	u8 sensor;		/* Register value (IT87_REG_TEMP_ENABLE) */
+ 	u8 extra;		/* Register value (IT87_REG_TEMP_EXTRA) */
+-	u8 fan_div[3];		/* Register encoding, shifted right */
++	u8 fan_div[NUM_FAN_DIV];/* Register encoding, shifted right */
+ 	bool has_vid;		/* True if VID supported */
+ 	u8 vid;			/* Register encoding, combined */
+ 	u8 vrm;
+@@ -498,13 +508,13 @@ struct it87_data {
+ 	 * simple.
+ 	 */
+ 	u8 has_pwm;		/* Bitfield, pwm control enabled */
+-	u8 pwm_ctrl[6];		/* Register value */
+-	u8 pwm_duty[6];		/* Manual PWM value set by user */
+-	u8 pwm_temp_map[6];	/* PWM to temp. chan. mapping (bits 1-0) */
++	u8 pwm_ctrl[NUM_PWM];	/* Register value */
++	u8 pwm_duty[NUM_PWM];	/* Manual PWM value set by user */
++	u8 pwm_temp_map[NUM_PWM];/* PWM to temp. chan. mapping (bits 1-0) */
+=20
+ 	/* Automatic fan speed control registers */
+-	u8 auto_pwm[3][4];	/* [nr][3] is hard-coded */
+-	s8 auto_temp[3][5];	/* [nr][0] is point1_temp_hyst */
++	u8 auto_pwm[NUM_AUTO_PWM][4];	/* [nr][3] is hard-coded */
++	s8 auto_temp[NUM_AUTO_PWM][5];	/* [nr][0] is point1_temp_hyst */
+ };
+=20
+ static int adc_lsb(const struct it87_data *data, int nr)
+@@ -665,7 +675,7 @@ static struct it87_data *it87_update_device(struct devi=
+ce *dev)
+ 			it87_write_value(data, IT87_REG_CONFIG,
+ 				it87_read_value(data, IT87_REG_CONFIG) | 0x40);
+ 		}
+-		for (i =3D 0; i < ARRAY_SIZE(IT87_REG_VIN); i++) {
++		for (i =3D 0; i < NUM_VIN; i++) {
+ 			if (!(data->has_in & BIT(i)))
+ 				continue;
+=20
+@@ -682,7 +692,7 @@ static struct it87_data *it87_update_device(struct devi=
+ce *dev)
+ 				it87_read_value(data, IT87_REG_VIN_MAX(i));
+ 		}
+=20
+-		for (i =3D 0; i < 6; i++) {
++		for (i =3D 0; i < NUM_FAN; i++) {
+ 			/* Skip disabled fans */
+ 			if (!(data->has_fan & BIT(i)))
+ 				continue;
+@@ -699,24 +709,24 @@ static struct it87_data *it87_update_device(struct de=
+vice *dev)
+ 						IT87_REG_FANX_MIN[i]) << 8;
+ 			}
+ 		}
+-		for (i =3D 0; i < 6; i++) {
++		for (i =3D 0; i < NUM_TEMP; i++) {
+ 			if (!(data->has_temp & BIT(i)))
+ 				continue;
+ 			data->temp[i][0]  				it87_read_value(data, IT87_REG_TEMP(i));
+=20
+-			/* No limits/offset for additional sensors */
+-			if (i >=3D 3)
++			if (has_temp_offset(data) && i < NUM_TEMP_OFFSET)
++				data->temp[i][3] +				  it87_read_value(data,
++						  IT87_REG_TEMP_OFFSET[i]);
++
++			if (i >=3D NUM_TEMP_LIMIT)
+ 				continue;
+=20
+ 			data->temp[i][1]  				it87_read_value(data, IT87_REG_TEMP_LOW(i));
+ 			data->temp[i][2]  				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+-			if (has_temp_offset(data))
+-				data->temp[i][3] -				  it87_read_value(data,
+-						  IT87_REG_TEMP_OFFSET[i]);
+ 		}
+=20
+ 		/* Newer chips don't have clock dividers */
+@@ -736,7 +746,7 @@ static struct it87_data *it87_update_device(struct devi=
+ce *dev)
+ 		data->fan_main_ctrl =3D it87_read_value(data,
+ 				IT87_REG_FAN_MAIN_CTRL);
+ 		data->fan_ctl =3D it87_read_value(data, IT87_REG_FAN_CTL);
+-		for (i =3D 0; i < 6; i++)
++		for (i =3D 0; i < NUM_PWM; i++)
+ 			it87_update_pwm_ctrl(data, i);
+=20
+ 		data->sensor =3D it87_read_value(data, IT87_REG_TEMP_ENABLE);
+@@ -2480,7 +2490,7 @@ static void it87_init_device(struct platform_device *=
+pdev)
+ 	 * these have separate registers for the temperature mapping and the
+ 	 * manual duty cycle.
+ 	 */
+-	for (i =3D 0; i < 3; i++) {
++	for (i =3D 0; i < NUM_AUTO_PWM; i++) {
+ 		data->pwm_temp_map[i] =3D i;
+ 		data->pwm_duty[i] =3D 0x7f;	/* Full speed */
+ 		data->auto_pwm[i][3] =3D 0x7f;	/* Full speed, hard-coded */
+@@ -2493,12 +2503,12 @@ static void it87_init_device(struct platform_device=
+ *pdev)
+ 	 * means -1 degree C, which surprisingly doesn't trigger an alarm,
+ 	 * but is still confusing, so change to 127 degrees C.
+ 	 */
+-	for (i =3D 0; i < 8; i++) {
++	for (i =3D 0; i < NUM_VIN_LIMIT; i++) {
+ 		tmp =3D it87_read_value(data, IT87_REG_VIN_MIN(i));
+ 		if (tmp =3D 0xff)
+ 			it87_write_value(data, IT87_REG_VIN_MIN(i), 0);
  	}
- 
-+	it87_pdev = pdev;
- 	return 0;
- 
- exit_device_put:
-@@ -2927,7 +2929,7 @@ static int __init sm_it87_init(void)
- 
- static void __exit sm_it87_exit(void)
- {
--	platform_device_unregister(pdev);
-+	platform_device_unregister(it87_pdev);
- 	platform_driver_unregister(&it87_driver);
- }
- 
--- 
+-	for (i =3D 0; i < 3; i++) {
++	for (i =3D 0; i < NUM_TEMP_LIMIT; i++) {
+ 		tmp =3D it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+ 		if (tmp =3D 0xff)
+ 			it87_write_value(data, IT87_REG_TEMP_HIGH(i), 127);
+@@ -2590,7 +2600,7 @@ static int it87_check_pwm(struct device *dev)
+ 			int i;
+ 			u8 pwm[3];
+=20
+-			for (i =3D 0; i < 3; i++)
++			for (i =3D 0; i < ARRAY_SIZE(pwm); i++)
+ 				pwm[i] =3D it87_read_value(data,
+ 							 IT87_REG_PWM[i]);
+=20
+--=20
 2.1.0
 
 
