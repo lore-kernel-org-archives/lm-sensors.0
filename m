@@ -1,73 +1,238 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 01 Apr 2015 10:15:05 +0000
-Subject: [lm-sensors] [PATCH 3/4] hwmon: (ibmpowernv) add a label attribute
-Message-Id: <1427883306-32528-4-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 04 Apr 2015 21:55:02 +0000
+Subject: [lm-sensors] [PATCH 11/22] hwmon: (it87) Use is_visible for voltage sensors
+Message-Id: <1428184513-22380-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Q3VycmVudGx5LCBzZW5zb3JzIGFyZSBvbmx5IGlkZW50aWZpZWQgYnkgdGhlaXIgdHlwZSBhbmQg
-aW5kZXguCgpUaGUgbmV3IE9QQUwgZGV2aWNlIHRyZWUgY2FuIGV4cG9zZSBleHRyYSBwcm9wZXJ0
-aWVzIHRvIGlkZW50aWZ5CnNvbWUgc2Vuc29ycyBieSB0aGVpciBuYW1lIG9yIGxvY2F0aW9uLiBU
-aGlzIHBhdGNoIGFkZHMgdGhlIGNyZWF0aW9uCm9mIGEgbmV3IGh3bW9uICpfbGFiZWwgYXR0cmli
-dXRlIHdoZW4gc3VjaCBwcm9wZXJ0aWVzIGFyZSBkZXRlY3RlZC4KClNpZ25lZC1vZmYtYnk6IEPD
-qWRyaWMgTGUgR29hdGVyIDxjbGdAZnIuaWJtLmNvbT4KLS0tCiBkcml2ZXJzL2h3bW9uL2libXBv
-d2VybnYuYyB8ICAgNTEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-Ky0KIDEgZmlsZSBjaGFuZ2VkLCA1MCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2ZXJzL2h3bW9uL2libXBv
-d2VybnYuYwppbmRleCBmMzhhYTI3MzQzZjIuLmJlNmZlNTU5YjUyYSAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9od21vbi9pYm1wb3dlcm52LmMKKysrIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMK
-QEAgLTMyLDYgKzMyLDcgQEAKICNpbmNsdWRlIDxsaW51eC9lcnIuaD4KIAogI2RlZmluZSBNQVhf
-QVRUUl9MRU4JMzIKKyNkZWZpbmUgTUFYX0xBQkVMX0xFTgk2NAogCiAvKiBTZW5zb3Igc3VmZml4
-IG5hbWUgZnJvbSBEVCAqLwogI2RlZmluZSBEVF9GQVVMVF9BVFRSX1NVRkZJWAkJImZhdWx0ZWQi
-CkBAIC02OCw2ICs2OSw3IEBAIHN0cnVjdCBzZW5zb3JfZGF0YSB7CiAJdTMyIGh3bW9uX2luZGV4
-OwogCXUzMiBvcGFsX2luZGV4OwogCWVudW0gc2Vuc29ycyB0eXBlOworCWNoYXIgbGFiZWxbTUFY
-X0xBQkVMX0xFTl07CiAJY2hhciBuYW1lW01BWF9BVFRSX0xFTl07CiAJc3RydWN0IGRldmljZV9h
-dHRyaWJ1dGUgZGV2X2F0dHI7CiB9OwpAQCAtOTksNiArMTAxLDIzIEBAIHN0YXRpYyBzc2l6ZV90
-IHNob3dfc2Vuc29yKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUg
-KmRldmF0dHIsCiAJcmV0dXJuIHNwcmludGYoYnVmLCAiJXVcbiIsIHgpOwogfQogCitzdGF0aWMg
-c3NpemVfdCBzaG93X2xhYmVsKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRy
-aWJ1dGUgKmRldmF0dHIsCisJCQkgICBjaGFyICpidWYpCit7CisJc3RydWN0IHNlbnNvcl9kYXRh
-ICpzZGF0YSA9IGNvbnRhaW5lcl9vZihkZXZhdHRyLCBzdHJ1Y3Qgc2Vuc29yX2RhdGEsCisJCQkJ
-CQkgZGV2X2F0dHIpOworCisJcmV0dXJuIHNwcmludGYoYnVmLCAiJXNcbiIsIHNkYXRhLT5sYWJl
-bCk7Cit9CisKK3N0YXRpYyB2b2lkIF9faW5pdCBtYWtlX3NlbnNvcl9sYWJlbChzdHJ1Y3QgZGV2
-aWNlX25vZGUgKm5wLAorCQkgICAgc3RydWN0IHNlbnNvcl9kYXRhICpzZGF0YSwgY29uc3QgY2hh
-ciAqbGFiZWwpCit7CisJc2l6ZV90IG47CisKKwluID0gc25wcmludGYoc2RhdGEtPmxhYmVsLCBz
-aXplb2Yoc2RhdGEtPmxhYmVsKSwgIiVzIiwgbGFiZWwpOworfQorCiBzdGF0aWMgaW50IGdldF9z
-ZW5zb3JfaW5kZXhfYXR0cihjb25zdCBjaGFyICpuYW1lLCB1MzIgKmluZGV4LAogCQkJCQljaGFy
-ICphdHRyKQogewpAQCAtMjI2LDExICsyNDUsMjEgQEAgc3RhdGljIGludCBwb3B1bGF0ZV9hdHRy
-X2dyb3VwcyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCiAJb3BhbCA9IG9mX2ZpbmRf
-bm9kZV9ieV9wYXRoKCIvaWJtLG9wYWwvc2Vuc29ycyIpOwogCWZvcl9lYWNoX2NoaWxkX29mX25v
-ZGUob3BhbCwgbnApIHsKKwkJY29uc3QgY2hhciAqbGFiZWw7CisKIAkJaWYgKG5wLT5uYW1lID09
-IE5VTEwpCiAJCQljb250aW51ZTsKIAogCQl0eXBlID0gZ2V0X3NlbnNvcl90eXBlKG5wKTsKLQkJ
-aWYgKHR5cGUgIT0gTUFYX1NFTlNPUl9UWVBFKQorCQlpZiAodHlwZSA9PSBNQVhfU0VOU09SX1RZ
-UEUpCisJCQljb250aW51ZTsKKworCQlzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrKzsK
-KworCQkvKgorCQkgKiBhZGQgYSBuZXcgYXR0cmlidXRlIGZvciBsYWJlbHMKKwkJICovCisJCWlm
-ICghb2ZfcHJvcGVydHlfcmVhZF9zdHJpbmcobnAsICJsYWJlbCIsICZsYWJlbCkpCiAJCQlzZW5z
-b3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrKzsKIAl9CiAKQEAgLTI5NCw2ICszMjMsNyBAQCBz
-dGF0aWMgaW50IGNyZWF0ZV9kZXZpY2VfYXR0cnMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRl
-dikKIAlmb3JfZWFjaF9jaGlsZF9vZl9ub2RlKG9wYWwsIG5wKSB7CiAJCWNvbnN0IGNoYXIgKmF0
-dHJfbmFtZTsKIAkJdTMyIG9wYWxfaW5kZXg7CisJCWNvbnN0IGNoYXIgKmxhYmVsOwogCiAJCWlm
-IChucC0+bmFtZSA9PSBOVUxMKQogCQkJY29udGludWU7CkBAIC0zMzcsNiArMzY3LDI1IEBAIHN0
-YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2
-KQogCiAJCXBncm91cHNbdHlwZV0tPmF0dHJzW3NlbnNvcl9ncm91cHNbdHlwZV0uYXR0cl9jb3Vu
-dCsrXSA9CiAJCQkJJnNkYXRhW2NvdW50KytdLmRldl9hdHRyLmF0dHI7CisKKwkJaWYgKCFvZl9w
-cm9wZXJ0eV9yZWFkX3N0cmluZyhucCwgImxhYmVsIiwgJmxhYmVsKSkgeworCQkJLyoKKwkJCSAq
-IEZvciB0aGUgbGFiZWwgYXR0cmlidXRlLCB3ZSBjYW4gcmV1c2UgdGhlCisJCQkgKiAicHJvcGVy
-dGllcyIgb2YgdGhlIHByZXZpb3VzICJpbnB1dCIKKwkJCSAqIGF0dHJpYnV0ZS4gVGhleSBhcmUg
-cmVsYXRlZCB0byB0aGUgc2FtZQorCQkJICogc2Vuc29yLgorCQkJICovCisJCQlzZGF0YVtjb3Vu
-dF0udHlwZSA9IHR5cGU7CisJCQlzZGF0YVtjb3VudF0ub3BhbF9pbmRleCA9IHNkYXRhW2NvdW50
-IC0gMV0ub3BhbF9pbmRleDsKKwkJCXNkYXRhW2NvdW50XS5od21vbl9pbmRleCA9IHNkYXRhW2Nv
-dW50IC0gMV0uaHdtb25faW5kZXg7CisKKwkJCW1ha2Vfc2Vuc29yX2xhYmVsKG5wLCAmc2RhdGFb
-Y291bnRdLCBsYWJlbCk7CisKKwkJCWNyZWF0ZV9od21vbl9hdHRyKCZzZGF0YVtjb3VudF0sICJs
-YWJlbCIsIHNob3dfbGFiZWwpOworCisJCQlwZ3JvdXBzW3R5cGVdLT5hdHRyc1tzZW5zb3JfZ3Jv
-dXBzW3R5cGVdLmF0dHJfY291bnQrK10gPQorCQkJCSZzZGF0YVtjb3VudCsrXS5kZXZfYXR0ci5h
-dHRyOworCQl9CiAJfQogCiBleGl0X3B1dF9ub2RlOgotLSAKMS43LjEwLjQKCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcg
-bGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Simplify code and reduce object size by more than 300 bytes on x86_64.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 124 +++++++++++++++++++++++------------------------=
+----
+ 1 file changed, 56 insertions(+), 68 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 8169a4fb225b..5e4ef232b03a 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -458,6 +458,7 @@ struct it87_data {
+ 	unsigned long last_updated;	/* In jiffies */
+=20
+ 	u16 in_scaled;		/* Internal voltage sensors are scaled */
++	u16 has_in;		/* Bitfield, voltage sensors enabled */
+ 	u8 in[10][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[6][2];		/* Register values, [nr][0]=FAn, [1]=3Dmin */
+@@ -469,6 +470,7 @@ struct it87_data {
+ 	u8 vid;			/* Register encoding, combined */
+ 	u8 vrm;
+ 	u32 alarms;		/* Register encoding, combined */
++	bool has_beep;		/* true if beep supported */
+ 	u8 beeps;		/* Register encoding */
+ 	u8 fan_main_ctrl;	/* Register value */
+ 	u8 fan_ctl;		/* Register value */
+@@ -1726,74 +1728,85 @@ static ssize_t show_name(struct device *dev, struct=
+ device_attribute
+ }
+ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+=20
+-static struct attribute *it87_attributes_in[10][5] =3D {
++static umode_t it87_in_is_visible(struct kobject *kobj,
++				  struct attribute *attr, int index)
+ {
++	struct device *dev =3D container_of(kobj, struct device, kobj);
++	struct it87_data *data =3D dev_get_drvdata(dev);
++	int i =3D index / 5;	/* voltage index */
++	int a =3D index % 5;	/* attribute index */
++
++	if (index >=3D 40) {	/* in8, in9 only have input attributes */
++		i =3D index - 40 + 8;
++		a =3D 0;
++	}
++
++	if (!(data->has_in & (1 << i)))
++		return 0;
++
++	if (a =3D 4 && !data->has_beep)
++		return 0;
++
++	return attr->mode;
++}
++
++static struct attribute *it87_attributes_in[] =3D {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
+ 	&sensor_dev_attr_in0_max.dev_attr.attr,
+ 	&sensor_dev_attr_in0_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in0_beep.dev_attr.attr,	/* 4 */
++
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_in1_min.dev_attr.attr,
+ 	&sensor_dev_attr_in1_max.dev_attr.attr,
+ 	&sensor_dev_attr_in1_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in1_beep.dev_attr.attr,	/* 9 */
++
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 	&sensor_dev_attr_in2_min.dev_attr.attr,
+ 	&sensor_dev_attr_in2_max.dev_attr.attr,
+ 	&sensor_dev_attr_in2_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in2_beep.dev_attr.attr,	/* 14 */
++
+ 	&sensor_dev_attr_in3_input.dev_attr.attr,
+ 	&sensor_dev_attr_in3_min.dev_attr.attr,
+ 	&sensor_dev_attr_in3_max.dev_attr.attr,
+ 	&sensor_dev_attr_in3_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in3_beep.dev_attr.attr,	/* 19 */
++
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
+ 	&sensor_dev_attr_in4_max.dev_attr.attr,
+ 	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in4_beep.dev_attr.attr,	/* 24 */
++
+ 	&sensor_dev_attr_in5_input.dev_attr.attr,
+ 	&sensor_dev_attr_in5_min.dev_attr.attr,
+ 	&sensor_dev_attr_in5_max.dev_attr.attr,
+ 	&sensor_dev_attr_in5_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in5_beep.dev_attr.attr,	/* 29 */
++
+ 	&sensor_dev_attr_in6_input.dev_attr.attr,
+ 	&sensor_dev_attr_in6_min.dev_attr.attr,
+ 	&sensor_dev_attr_in6_max.dev_attr.attr,
+ 	&sensor_dev_attr_in6_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_in6_beep.dev_attr.attr,	/* 34 */
++
+ 	&sensor_dev_attr_in7_input.dev_attr.attr,
+ 	&sensor_dev_attr_in7_min.dev_attr.attr,
+ 	&sensor_dev_attr_in7_max.dev_attr.attr,
+ 	&sensor_dev_attr_in7_alarm.dev_attr.attr,
+-	NULL
+-}, {
+-	&sensor_dev_attr_in8_input.dev_attr.attr,
+-	NULL
+-}, {
+-	&sensor_dev_attr_in9_input.dev_attr.attr,
+-	NULL
+-} };
++	&sensor_dev_attr_in7_beep.dev_attr.attr,	/* 39 */
++
++	&sensor_dev_attr_in8_input.dev_attr.attr,	/* 40 */
++
++	&sensor_dev_attr_in9_input.dev_attr.attr,	/* 41 */
++};
+=20
+-static const struct attribute_group it87_group_in[10] =3D {
+-	{ .attrs =3D it87_attributes_in[0] },
+-	{ .attrs =3D it87_attributes_in[1] },
+-	{ .attrs =3D it87_attributes_in[2] },
+-	{ .attrs =3D it87_attributes_in[3] },
+-	{ .attrs =3D it87_attributes_in[4] },
+-	{ .attrs =3D it87_attributes_in[5] },
+-	{ .attrs =3D it87_attributes_in[6] },
+-	{ .attrs =3D it87_attributes_in[7] },
+-	{ .attrs =3D it87_attributes_in[8] },
+-	{ .attrs =3D it87_attributes_in[9] },
++static const struct attribute_group it87_group_in =3D {
++	.attrs =3D it87_attributes_in,
++	.is_visible =3D it87_in_is_visible,
+ };
+=20
+ static struct attribute *it87_attributes_temp[3][6] =3D {
+@@ -1843,19 +1856,6 @@ static const struct attribute_group it87_group =3D {
+ 	.attrs =3D it87_attributes,
+ };
+=20
+-static struct attribute *it87_attributes_in_beep[] =3D {
+-	&sensor_dev_attr_in0_beep.dev_attr.attr,
+-	&sensor_dev_attr_in1_beep.dev_attr.attr,
+-	&sensor_dev_attr_in2_beep.dev_attr.attr,
+-	&sensor_dev_attr_in3_beep.dev_attr.attr,
+-	&sensor_dev_attr_in4_beep.dev_attr.attr,
+-	&sensor_dev_attr_in5_beep.dev_attr.attr,
+-	&sensor_dev_attr_in6_beep.dev_attr.attr,
+-	&sensor_dev_attr_in7_beep.dev_attr.attr,
+-	NULL,
+-	NULL,
+-};
+-
+ static struct attribute *it87_attributes_temp_beep[] =3D {
+ 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+@@ -2407,14 +2407,8 @@ static void it87_remove_files(struct device *dev)
+ 	int i;
+=20
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
+-	for (i =3D 0; i < 10; i++) {
+-		if (sio_data->skip_in & (1 << i))
+-			continue;
+-		sysfs_remove_group(&dev->kobj, &it87_group_in[i]);
+-		if (it87_attributes_in_beep[i])
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_in_beep[i]);
+-	}
++	sysfs_remove_group(&dev->kobj, &it87_group_in);
++
+ 	for (i =3D 0; i < 3; i++) {
+ 		if (!(data->has_temp & (1 << i)))
+ 			continue;
+@@ -2707,6 +2701,10 @@ static int it87_probe(struct platform_device *pdev)
+ 			data->has_temp &=3D ~(1 << 2);
+ 	}
+=20
++	data->has_in =3D 0x3ff & ~sio_data->skip_in;
++
++	data->has_beep =3D !!sio_data->beep_pin;
++
+ 	/* Initialize the IT87 chip */
+ 	it87_init_device(pdev);
+=20
+@@ -2715,19 +2713,9 @@ static int it87_probe(struct platform_device *pdev)
+ 	if (err)
+ 		return err;
+=20
+-	for (i =3D 0; i < 10; i++) {
+-		if (sio_data->skip_in & (1 << i))
+-			continue;
+-		err =3D sysfs_create_group(&dev->kobj, &it87_group_in[i]);
+-		if (err)
+-			goto error;
+-		if (sio_data->beep_pin && it87_attributes_in_beep[i]) {
+-			err =3D sysfs_create_file(&dev->kobj,
+-						it87_attributes_in_beep[i]);
+-			if (err)
+-				goto error;
+-		}
+-	}
++	err =3D sysfs_create_group(&dev->kobj, &it87_group_in);
++	if (err)
++		goto error;
+=20
+ 	for (i =3D 0; i < 3; i++) {
+ 		if (!(data->has_temp & (1 << i)))
+--=20
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
