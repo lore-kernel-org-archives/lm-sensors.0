@@ -1,78 +1,131 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 08 Apr 2015 17:19:48 +0000
-Subject: [lm-sensors] [PATCH v5 2/4] hwmon: (ibmpowernv) add support for the new device tree
-Message-Id: <1428513590-5773-3-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 04 Apr 2015 21:55:00 +0000
+Subject: [lm-sensors] [PATCH v2 09/22] hwmon: (it87) Add support for second Super-IO chip
+Message-Id: <1428184513-22380-10-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-VGhlIG5ldyBPUEFMIGRldmljZSB0cmVlIGZvciBzZW5zb3JzIGhhcyBhIGRpZmZlcmVudCBsYXlv
-dXQgYW5kIHVzZXMgbmV3CnByb3BlcnR5IG5hbWVzLCBmb3IgdGhlIHR5cGUgYW5kIGZvciB0aGUg
-aGFuZGxlciB1c2VkIHRvIGNhcHR1cmUgdGhlCnNlbnNvciBkYXRhLgoKVGhpcyBwYXRjaCBtb2Rp
-ZmllcyB0aGUgaWJtcG93ZXJudiBkcml2ZXIgdG8gc3VwcG9ydCBzdWNoIGEgdHJlZSBpbiBhCndh
-eSBwcmVzZXJ2aW5nIGNvbXBhdGliaWxpdHkgd2l0aCBvbGRlciBPUEFMIGZpcm13YXJlcy4KClRo
-aXMgaXMgYWNoaWV2ZWQgYnkgY2hhbmdpbmcgdGhlIGVycm9yIHBhdGggb2YgdGhlIHJvdXRpbmUg
-cGFyc2luZwphbiBPUEFMIG5vZGUgbmFtZS4gVGhlIG5vZGUgaXMgc2ltcGx5IGNvbnNpZGVyZWQg
-YmVpbmcgZnJvbSB0aGUgbmV3CmRldmljZSB0cmVlIGxheW91dCBhbmQgZmFsbGJhY2sgdmFsdWVz
-IGFyZSB1c2VkLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bmci5pYm0u
-Y29tPgotLS0KCiBDaGFuZ2VzIHNpbmNlIHYxOgoKIC0gZml4ZWQgY29tcGFyaXNvbiBiZXR3ZWVu
-IHNpZ25lZCBhbmQgdW5zaWduZWQgaW50ZWdlciBvbiBvcGFsX2luZGV4IAogLSBmaXggYWxpZ25t
-ZW50CgogZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgfCAgIDQ5ICsrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKy0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgNDAgaW5zZXJ0aW9u
-cygrKSwgOSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2libXBvd2Vy
-bnYuYyBiL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCmluZGV4IDc4MjI0NzRjNGFjOC4uY2Rh
-MTI1Njg1MjMzIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYworKysgYi9k
-cml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwpAQCAtNTAsNiArNTAsOCBAQCBlbnVtIHNlbnNvcnMg
-ewogCU1BWF9TRU5TT1JfVFlQRSwKIH07CiAKKyNkZWZpbmUgSU5WQUxJRF9JTkRFWCAoLTFVKQor
-CiBzdGF0aWMgc3RydWN0IHNlbnNvcl9ncm91cCB7CiAJY29uc3QgY2hhciAqbmFtZTsKIAljb25z
-dCBjaGFyICpjb21wYXRpYmxlOwpAQCAtMTc2LDExICsxNzgsMjYgQEAgc3RhdGljIGNvbnN0IGNo
-YXIgKnBhcnNlX29wYWxfbm9kZV9uYW1lKGNvbnN0IGNoYXIgKm5vZGVfbmFtZSwKIHN0YXRpYyBp
-bnQgZ2V0X3NlbnNvcl90eXBlKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnApCiB7CiAJZW51bSBzZW5z
-b3JzIHR5cGU7CisJY29uc3QgY2hhciAqc3RyOwogCiAJZm9yICh0eXBlID0gMDsgdHlwZSA8IE1B
-WF9TRU5TT1JfVFlQRTsgdHlwZSsrKSB7CiAJCWlmIChvZl9kZXZpY2VfaXNfY29tcGF0aWJsZShu
-cCwgc2Vuc29yX2dyb3Vwc1t0eXBlXS5jb21wYXRpYmxlKSkKIAkJCXJldHVybiB0eXBlOwogCX0K
-KworCS8qCisJICogTGV0J3MgY2hlY2sgaWYgd2UgaGF2ZSBhIG5ld2VyIGRldmljZSB0cmVlCisJ
-ICovCisJaWYgKCFvZl9kZXZpY2VfaXNfY29tcGF0aWJsZShucCwgImlibSxvcGFsLXNlbnNvciIp
-KQorCQlyZXR1cm4gTUFYX1NFTlNPUl9UWVBFOworCisJaWYgKG9mX3Byb3BlcnR5X3JlYWRfc3Ry
-aW5nKG5wLCAic2Vuc29yLXR5cGUiLCAmc3RyKSkKKwkJcmV0dXJuIE1BWF9TRU5TT1JfVFlQRTsK
-KworCWZvciAodHlwZSA9IDA7IHR5cGUgPCBNQVhfU0VOU09SX1RZUEU7IHR5cGUrKykKKwkJaWYg
-KCFzdHJjbXAoc3RyLCBzZW5zb3JfZ3JvdXBzW3R5cGVdLm5hbWUpKQorCQkJcmV0dXJuIHR5cGU7
-CisKIAlyZXR1cm4gTUFYX1NFTlNPUl9UWVBFOwogfQogCkBAIC0xODksMTEgKzIwNiwxNiBAQCBz
-dGF0aWMgdTMyIGdldF9zZW5zb3JfaHdtb25faW5kZXgoc3RydWN0IHNlbnNvcl9kYXRhICpzZGF0
-YSwKIHsKIAlpbnQgaTsKIAotCWZvciAoaSA9IDA7IGkgPCBjb3VudDsgaSsrKQotCQlpZiAoc2Rh
-dGFfdGFibGVbaV0ub3BhbF9pbmRleCA9PSBzZGF0YS0+b3BhbF9pbmRleCAmJgotCQkgICAgc2Rh
-dGFfdGFibGVbaV0udHlwZSA9PSBzZGF0YS0+dHlwZSkKLQkJCXJldHVybiBzZGF0YV90YWJsZVtp
-XS5od21vbl9pbmRleDsKKwkvKgorCSAqIFdlIGRvbid0IHVzZSB0aGUgT1BBTCBpbmRleCBvbiBu
-ZXdlciBkZXZpY2UgdHJlZXMKKwkgKi8KKwlpZiAoc2RhdGEtPm9wYWxfaW5kZXggIT0gSU5WQUxJ
-RF9JTkRFWCkgeworCQlmb3IgKGkgPSAwOyBpIDwgY291bnQ7IGkrKykKKwkJCWlmIChzZGF0YV90
-YWJsZVtpXS5vcGFsX2luZGV4ID09IHNkYXRhLT5vcGFsX2luZGV4ICYmCisJCQkgICAgc2RhdGFf
-dGFibGVbaV0udHlwZSA9PSBzZGF0YS0+dHlwZSkKKwkJCQlyZXR1cm4gc2RhdGFfdGFibGVbaV0u
-aHdtb25faW5kZXg7CiAKKwl9CiAJcmV0dXJuICsrc2Vuc29yX2dyb3Vwc1tzZGF0YS0+dHlwZV0u
-aHdtb25faW5kZXg7CiB9CiAKQEAgLTI4Myw3ICszMDUsMTIgQEAgc3RhdGljIGludCBjcmVhdGVf
-ZGV2aWNlX2F0dHJzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCWlmICh0eXBlID09
-IE1BWF9TRU5TT1JfVFlQRSkKIAkJCWNvbnRpbnVlOwogCi0JCWlmIChvZl9wcm9wZXJ0eV9yZWFk
-X3UzMihucCwgInNlbnNvci1pZCIsICZzZW5zb3JfaWQpKSB7CisJCS8qCisJCSAqIE5ld2VyIGRl
-dmljZSB0cmVlcyB1c2UgYSAic2Vuc29yLWRhdGEiIHByb3BlcnR5CisJCSAqIG5hbWUgZm9yIGlu
-cHV0LgorCQkgKi8KKwkJaWYgKG9mX3Byb3BlcnR5X3JlYWRfdTMyKG5wLCAic2Vuc29yLWlkIiwg
-JnNlbnNvcl9pZCkgJiYKKwkJICAgIG9mX3Byb3BlcnR5X3JlYWRfdTMyKG5wLCAic2Vuc29yLWRh
-dGEiLCAmc2Vuc29yX2lkKSkgewogCQkJZGV2X2luZm8oJnBkZXYtPmRldiwKIAkJCQkgIidzZW5z
-b3ItaWQnIG1pc3NpbmcgaW4gdGhlIG5vZGUgJyVzJ1xuIiwKIAkJCQkgbnAtPm5hbWUpOwpAQCAt
-MjkzLDEyICszMjAsMTYgQEAgc3RhdGljIGludCBjcmVhdGVfZGV2aWNlX2F0dHJzKHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCXNkYXRhW2NvdW50XS5pZCA9IHNlbnNvcl9pZDsKIAkJ
-c2RhdGFbY291bnRdLnR5cGUgPSB0eXBlOwogCisJCS8qCisJCSAqIElmIHdlIGNhbiBub3QgcGFy
-c2UgdGhlIG5vZGUgbmFtZSwgaXQgbWVhbnMgd2UgYXJlCisJCSAqIHJ1bm5pbmcgb24gYSBuZXdl
-ciBkZXZpY2UgdHJlZS4gV2UgY2FuIGp1c3QgZm9yZ2V0CisJCSAqIGFib3V0IHRoZSBPUEFMIGlu
-ZGV4IGFuZCB1c2UgYSBkZWZhdXQgdmFsdWUgZm9yIHRoZQorCQkgKiBod21vbiBhdHRyaWJ1dGUg
-bmFtZQorCQkgKi8KIAkJYXR0cl9uYW1lID0gcGFyc2Vfb3BhbF9ub2RlX25hbWUobnAtPm5hbWUs
-IHR5cGUsICZvcGFsX2luZGV4KTsKIAkJaWYgKElTX0VSUihhdHRyX25hbWUpKSB7Ci0JCQlkZXZf
-ZXJyKCZwZGV2LT5kZXYsICJTZW5zb3IgZGV2aWNlIG5vZGUgbmFtZSAnJXMnIGlzIGludmFsaWRc
-biIsCi0JCQkJbnAtPm5hbWUpOwotCQkJZXJyID0gUFRSX0VSUihhdHRyX25hbWUpOwotCQkJZ290
-byBleGl0X3B1dF9ub2RlOworCQkJYXR0cl9uYW1lID0gImlucHV0IjsKKwkJCW9wYWxfaW5kZXgg
-PSBJTlZBTElEX0lOREVYOwogCQl9CiAKIAkJc2RhdGFbY291bnRdLm9wYWxfaW5kZXggPSBvcGFs
-X2luZGV4OwotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
-bnNvcnM
+The Super-IO chip can also reside at SIO address 0x4e, and there can be
+two Super-IO chips in the system. Add support for it.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Rebased to previous patches; no functional change
+
+ drivers/hwmon/it87.c | 49 ++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 34 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index f29d2fb30f7e..e361b42f1456 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -76,9 +76,10 @@ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
+-static struct platform_device *it87_pdev;
++static struct platform_device *it87_pdev[2];
+ 
+ #define	REG_2E	0x2e	/* The register to read/write */
++#define	REG_4E	0x4e	/* Secondary register to read/write */
+ 
+ #define	DEV	0x07	/* Register: Logical device select */
+ #define PME	0x04	/* The device with the fan registers in it */
+@@ -128,7 +129,7 @@ static inline int superio_enter(int ioreg)
+ 	outb(0x87, ioreg);
+ 	outb(0x01, ioreg);
+ 	outb(0x55, ioreg);
+-	outb(0x55, ioreg);
++	outb(ioreg = REG_4E ? 0xaa : 0x55, ioreg);
+ 	return 0;
+ }
+ 
+@@ -2864,7 +2865,7 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 	return data;
+ }
+ 
+-static int __init it87_device_add(unsigned short address,
++static int __init it87_device_add(int index, unsigned short address,
+ 				  const struct it87_sio_data *sio_data)
+ {
+ 	struct platform_device *pdev;
+@@ -2903,7 +2904,7 @@ static int __init it87_device_add(unsigned short address,
+ 		goto exit_device_put;
+ 	}
+ 
+-	it87_pdev = pdev;
++	it87_pdev[index] = pdev;
+ 	return 0;
+ 
+ exit_device_put:
+@@ -2913,30 +2914,48 @@ exit_device_put:
+ 
+ static int __init sm_it87_init(void)
+ {
+-	int err;
+-	unsigned short isa_address = 0;
++	int sioaddr[2] = { REG_2E, REG_4E };
+ 	struct it87_sio_data sio_data;
++	unsigned short isa_address;
++	bool found = false;
++	int i, err;
+ 
+-	memset(&sio_data, 0, sizeof(struct it87_sio_data));
+-	err = it87_find(REG_2E, &isa_address, &sio_data);
+-	if (err)
+-		return err;
+ 	err = platform_driver_register(&it87_driver);
+ 	if (err)
+ 		return err;
+ 
+-	err = it87_device_add(isa_address, &sio_data);
+-	if (err) {
+-		platform_driver_unregister(&it87_driver);
+-		return err;
++	for (i = 0; i < ARRAY_SIZE(sioaddr); i++) {
++		memset(&sio_data, 0, sizeof(struct it87_sio_data));
++		isa_address = 0;
++		err = it87_find(sioaddr[i], &isa_address, &sio_data);
++		if (err || isa_address = 0)
++			continue;
++
++		err = it87_device_add(i, isa_address, &sio_data);
++		if (err)
++			goto exit_dev_unregister;
++		found = true;
+ 	}
+ 
++	if (!found) {
++		err = -ENODEV;
++		goto exit_unregister;
++	}
+ 	return 0;
++
++exit_dev_unregister:
++	/* NULL check handled by platform_device_unregister */
++	platform_device_unregister(it87_pdev[0]);
++exit_unregister:
++	platform_driver_unregister(&it87_driver);
++	return err;
+ }
+ 
+ static void __exit sm_it87_exit(void)
+ {
+-	platform_device_unregister(it87_pdev);
++	/* NULL check handled by platform_device_unregister */
++	platform_device_unregister(it87_pdev[1]);
++	platform_device_unregister(it87_pdev[0]);
+ 	platform_driver_unregister(&it87_driver);
+ }
+ 
+-- 
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
