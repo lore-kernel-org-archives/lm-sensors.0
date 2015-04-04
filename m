@@ -1,66 +1,186 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:55:09 +0000
-Subject: [lm-sensors] [PATCH 18/22] hwmon: (it87) Simplify reading voltage registers
-Message-Id: <1428184513-22380-19-git-send-email-linux@roeck-us.net>
+Date: Sat, 04 Apr 2015 21:55:06 +0000
+Subject: [lm-sensors] [PATCH 15/22] hwmon: (it87) Use single group and is_visible for miscellaneous attribute
+Message-Id: <1428184513-22380-16-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Voltage registers are non-sequential. Use a register array instead
-of a macro to map sensor index to register to simplify the code
-and to make it easier to add additional voltage sensors.
+Use is_visible to determine if attributes should be generated or not.
+This simplifies the code and reduces object size by about 120 bytes
+on x86_64.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ drivers/hwmon/it87.c | 81 +++++++++++++++++++++-------------------------------
+ 1 file changed, 33 insertions(+), 48 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index d9d2d8d8877d..2ca183029c8f 100644
+index defb0f8ac161..a3de4604183a 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -229,10 +229,10 @@ static const u8 IT87_REG_TEMP_OFFSET[] = { 0x56, 0x57, 0x59 };
- static const u8 IT87_REG_PWM[]         = { 0x15, 0x16, 0x17, 0x7f, 0xa7, 0xaf };
- static const u8 IT87_REG_PWM_DUTY[]    = { 0x63, 0x6b, 0x73, 0x7b, 0xa3, 0xab };
+@@ -458,6 +458,7 @@ struct it87_data {
+ 	unsigned long last_updated;	/* In jiffies */
  
--#define IT87_REG_VIN(nr)       (0x20 + (nr))
--#define IT87_REG_TEMP(nr)      (0x29 + (nr))
-+static const u8 IT87_REG_VIN[]	= { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26,
-+				    0x27, 0x28, 0x2f };
+ 	u16 in_scaled;		/* Internal voltage sensors are scaled */
++	u16 in_internal;	/* Bitfield, internal sensors (for labels) */
+ 	u16 has_in;		/* Bitfield, voltage sensors enabled */
+ 	u8 in[10][3];		/* [nr][0]=in, [1]=min, [2]=max */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+@@ -467,6 +468,7 @@ struct it87_data {
+ 	u8 sensor;		/* Register value (IT87_REG_TEMP_ENABLE) */
+ 	u8 extra;		/* Register value (IT87_REG_TEMP_EXTRA) */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
++	bool has_vid;		/* True if VID supported */
+ 	u8 vid;			/* Register encoding, combined */
+ 	u8 vrm;
+ 	u32 alarms;		/* Register encoding, combined */
+@@ -1854,15 +1856,37 @@ static const struct attribute_group it87_group_temp = {
+ 	.is_visible = it87_temp_is_visible,
+ };
  
--#define IT87_REG_AVCC3		0x2f
-+#define IT87_REG_TEMP(nr)      (0x29 + (nr))
++static umode_t it87_is_visible(struct kobject *kobj,
++			       struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct it87_data *data = dev_get_drvdata(dev);
++
++	if ((index = 3 || index = 4) && !data->has_vid)
++		return 0;
++
++	if (index > 4 && !(data->in_internal & (1 << (index - 5))))
++		return 0;
++
++	return attr->mode;
++}
++
+ static struct attribute *it87_attributes[] = {
+ 	&dev_attr_alarms.attr,
+ 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
+ 	&dev_attr_name.attr,
++	&dev_attr_vrm.attr,				/* 3 */
++	&dev_attr_cpu0_vid.attr,			/* 4 */
++	&sensor_dev_attr_in3_label.dev_attr.attr,	/* 5 .. 8 */
++	&sensor_dev_attr_in7_label.dev_attr.attr,
++	&sensor_dev_attr_in8_label.dev_attr.attr,
++	&sensor_dev_attr_in9_label.dev_attr.attr,
+ 	NULL
+ };
  
- #define IT87_REG_VIN_MAX(nr)   (0x30 + (nr) * 2)
- #define IT87_REG_VIN_MIN(nr)   (0x31 + (nr) * 2)
-@@ -658,18 +658,22 @@ static struct it87_data *it87_update_device(struct device *dev)
- 			it87_write_value(data, IT87_REG_CONFIG,
- 				it87_read_value(data, IT87_REG_CONFIG) | 0x40);
+ static const struct attribute_group it87_group = {
+ 	.attrs = it87_attributes,
++	.is_visible = it87_is_visible,
+ };
+ 
+ static umode_t it87_fan_is_visible(struct kobject *kobj,
+@@ -2049,28 +2073,6 @@ static const struct attribute_group it87_group_auto_pwm = {
+ 	.is_visible = it87_auto_pwm_is_visible,
+ };
+ 
+-static struct attribute *it87_attributes_vid[] = {
+-	&dev_attr_vrm.attr,
+-	&dev_attr_cpu0_vid.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group it87_group_vid = {
+-	.attrs = it87_attributes_vid,
+-};
+-
+-static struct attribute *it87_attributes_label[] = {
+-	&sensor_dev_attr_in3_label.dev_attr.attr,
+-	&sensor_dev_attr_in7_label.dev_attr.attr,
+-	&sensor_dev_attr_in8_label.dev_attr.attr,
+-	&sensor_dev_attr_in9_label.dev_attr.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group it87_group_label = {
+-	.attrs = it87_attributes_label,
+-};
+-
+ /* SuperIO detection - will change isa_address if a chip is found */
+ static int __init it87_find(int sioaddr, unsigned short *address,
+ 			    struct it87_sio_data *sio_data)
+@@ -2432,18 +2434,12 @@ exit:
+ 
+ static void it87_remove_files(struct device *dev)
+ {
+-	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+-
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_in);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_fan);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_pwm);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_auto_pwm);
+-
+-	if (!sio_data->skip_vid)
+-		sysfs_remove_group(&dev->kobj, &it87_group_vid);
+-	sysfs_remove_group(&dev->kobj, &it87_group_label);
+ }
+ 
+ /* Called when we have found a new IT87. */
+@@ -2620,8 +2616,8 @@ static int it87_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct device *dev = &pdev->dev;
+ 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+-	int err = 0, i;
+ 	int enable_pwm_interface;
++	int err = 0;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -2702,6 +2698,7 @@ static int it87_probe(struct platform_device *pdev)
+ 			data->has_temp &= ~(1 << 2);
+ 	}
+ 
++	data->in_internal = sio_data->internal;
+ 	data->has_in = 0x3ff & ~sio_data->skip_in;
+ 
+ 	data->has_beep = !!sio_data->beep_pin;
+@@ -2709,6 +2706,13 @@ static int it87_probe(struct platform_device *pdev)
+ 	/* Initialize the IT87 chip */
+ 	it87_init_device(pdev);
+ 
++	if (!sio_data->skip_vid) {
++		data->has_vid = true;
++		data->vrm = vid_which_vrm();
++		/* VID reading from Super-I/O config space if available */
++		data->vid = sio_data->vid_value;
++	}
++
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&dev->kobj, &it87_group);
+ 	if (err)
+@@ -2741,25 +2745,6 @@ static int it87_probe(struct platform_device *pdev)
  		}
--		for (i = 0; i <= 7; i++) {
-+		for (i = 0; i < ARRAY_SIZE(IT87_REG_VIN); i++) {
-+			if (!(data->has_in & (1 << i)))
-+				continue;
-+
- 			data->in[i][0] -				it87_read_value(data, IT87_REG_VIN(i));
-+				it87_read_value(data, IT87_REG_VIN[i]);
-+
-+			/* VBAT and AVCC don't have limit registers */
-+			if (i >= 8)
-+				continue;
-+
- 			data->in[i][1]  				it87_read_value(data, IT87_REG_VIN_MIN(i));
- 			data->in[i][2]  				it87_read_value(data, IT87_REG_VIN_MAX(i));
- 		}
--		/* in8 (battery) has no limit registers */
--		data->in[8][0] = it87_read_value(data, IT87_REG_VIN(8));
--		if (has_avcc3(data))
--			data->in[9][0] = it87_read_value(data, IT87_REG_AVCC3);
+ 	}
  
- 		for (i = 0; i < 6; i++) {
- 			/* Skip disabled fans */
+-	if (!sio_data->skip_vid) {
+-		data->vrm = vid_which_vrm();
+-		/* VID reading from Super-I/O config space if available */
+-		data->vid = sio_data->vid_value;
+-		err = sysfs_create_group(&dev->kobj, &it87_group_vid);
+-		if (err)
+-			goto error;
+-	}
+-
+-	/* Export labels for internal sensors */
+-	for (i = 0; i < 4; i++) {
+-		if (!(sio_data->internal & (1 << i)))
+-			continue;
+-		err = sysfs_create_file(&dev->kobj,
+-					it87_attributes_label[i]);
+-		if (err)
+-			goto error;
+-	}
+-
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
 -- 
 2.1.0
 
