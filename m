@@ -1,63 +1,122 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 08 Apr 2015 13:42:07 +0000
-Subject: [lm-sensors] [PATCH v4] hwmon: (ibmpowernv) pretty print labels
-Message-Id: <1428500527-7833-1-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 04 Apr 2015 21:55:10 +0000
+Subject: [lm-sensors] [PATCH 19/22] hwmon: (it87) Add support for VIN7 to VIN10 on IT8620E
+Message-Id: <1428184513-22380-20-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-VGhlIG5ldyBPUEFMIGRldmljZSB0cmVlIGFkZHMgYSBmZXcgcHJvcGVydGllcyB3aGljaCBjYW4g
-YmUgdXNlZCB0byBhZGQKZXh0cmEgaW5mb3JtYXRpb24gb24gdGhlIHNlbnNvciBsYWJlbC4KCklu
-IHRoZSBjYXNlIG9mIGEgY3B1IGNvcmUgc2Vuc29yLCB0aGUgZmlybXdhcmUgZXhwb3NlcyB0aGUg
-cGh5c2ljYWwgCmlkZW50aWZpZXIgb2YgdGhlIGNvcmUgaW4gdGhlICJpYm0scGlyIiBwcm9wZXJ0
-eS4gVGhlIGRyaXZlciAKdHJhbnNsYXRlcyB0aGlzIGlkZW50aWZpZXIgaW4gYSBsaW51eCBjcHUg
-bnVtYmVyIGFuZCBwcmludHMgb3V0IGEgCnJhbmdlIGNvcnJlc3BvbmRpbmcgdG8gdGhlIGhhcmR3
-YXJlIHRocmVhZHMgb2YgdGhlIGNvcmUgKGFzIHRoZXkKc2hhcmUgdGhlIHNhbWUgc2Vuc29yKS4K
-ClRoZSBudW1iZXJpbmcgZ2l2ZXMgYSBoaW50IG9uIHRoZSBsb2NhbGl6YXRpb24gb2YgdGhlIGNv
-cmUgaW4gdGhlIApzeXN0ZW0gKHdoaWNoIHNvY2tldCwgd2hpY2ggY2hpcCkuIAoKU2lnbmVkLW9m
-Zi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bmci5pYm0uY29tPgotLS0KCiBDaGFuZ2VzIHNp
-bmNlIHYzOgoKIC0gcmVtb3ZlZCBlcnJvciBtZXNzYWdlIGluIGNhc2Ugb2YgYW4gdW5rbm93biBw
-aHlzaWNhbCBjcHUgbnVtYmVyCgogQ2hhbmdlcyBzaW5jZSB2MjoKCiAtIGZpeCBib2d1cyBsb2dp
-Y2FsIGNwdSByZXRyaWV2YWwgCiAtIHVzZSAndGhyZWFkc19wZXJfY29yZScgdG8gcHJpbnQgb3V0
-IGNwdSByYW5nZQoKIENoYW5nZXMgc2luY2UgdjE6CgogLSBjaGVjayBjcHUgdmFsaWRpdHkgYmVm
-b3JlIHByaW50aW5nIG91dCB0aGUgYXR0cmlidXRlIGxhYmVsLiAKICAgaWYgaW52YWxpZCwgdXNl
-IGEgInBoeSIgcHJlZml4IHRvIGRpc3Rpbmd1aXNoIGEgbGludXggY3B1IAogICBudW1iZXIgZnJv
-bSBhIHBoeXNpY2FsIGNwdSBudW1iZXIuIAoKIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwg
-ICA0MSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlIGNo
-YW5nZWQsIDQxIGluc2VydGlvbnMoKykKCkluZGV4OiBsaW51eC5naXQvZHJpdmVycy9od21vbi9p
-Ym1wb3dlcm52LmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXguZ2l0Lm9yaWcvZHJpdmVycy9od21vbi9p
-Ym1wb3dlcm52LmMKKysrIGxpbnV4LmdpdC9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwpAQCAt
-MzAsNiArMzAsNyBAQAogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgogI2luY2x1
-ZGUgPGFzbS9vcGFsLmg+CiAjaW5jbHVkZSA8bGludXgvZXJyLmg+CisjaW5jbHVkZSA8YXNtL2Nw
-dXRocmVhZHMuaD4KIAogI2RlZmluZSBNQVhfQVRUUl9MRU4JMzIKICNkZWZpbmUgTUFYX0xBQkVM
-X0xFTgk2NApAQCAtMTEwLDEyICsxMTEsNTIgQEAgc3RhdGljIHNzaXplX3Qgc2hvd19sYWJlbChz
-dHJ1Y3QgZGV2aWNlCiAJcmV0dXJuIHNwcmludGYoYnVmLCAiJXNcbiIsIHNkYXRhLT5sYWJlbCk7
-CiB9CiAKK3N0YXRpYyBpbnQgX19pbml0IGdldF9sb2dpY2FsX2NwdSh1bnNpZ25lZCBpbnQgaHdj
-cHUpCit7CisJaW50IGNwdTsKKworCWZvcl9lYWNoX3Bvc3NpYmxlX2NwdShjcHUpCisJCWlmIChn
-ZXRfaGFyZF9zbXBfcHJvY2Vzc29yX2lkKGNwdSkgPT0gaHdjcHUpCisJCQlyZXR1cm4gY3B1Owor
-CisJcmV0dXJuIC1FTk9FTlQ7Cit9CisKIHN0YXRpYyB2b2lkIF9faW5pdCBtYWtlX3NlbnNvcl9s
-YWJlbChzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wLAogCQkgICAgc3RydWN0IHNlbnNvcl9kYXRhICpz
-ZGF0YSwgY29uc3QgY2hhciAqbGFiZWwpCiB7CisJdTMyIGlkOwogCXNpemVfdCBuOwogCiAJbiA9
-IHNucHJpbnRmKHNkYXRhLT5sYWJlbCwgc2l6ZW9mKHNkYXRhLT5sYWJlbCksICIlcyIsIGxhYmVs
-KTsKKworCS8qCisJICogQ29yZSB0ZW1wIHByZXR0eSBwcmludAorCSAqLworCWlmICghb2ZfcHJv
-cGVydHlfcmVhZF91MzIobnAsICJpYm0scGlyIiwgJmlkKSkgeworCQlpbnQgY3B1aWQgPSBnZXRf
-bG9naWNhbF9jcHUoaWQpOworCisJCWlmIChjcHVpZCA+PSAwKQorCQkJLyoKKwkJCSAqIFRoZSBk
-aWdpdGFsIHRoZXJtYWwgc2Vuc29ycyBhcmUgYXNzb2NpYXRlZAorCQkJICogd2l0aCBhIGNvcmUu
-IExldCdzIHByaW50IG91dCB0aGUgcmFuZ2Ugb2YKKwkJCSAqIGNwdSBpZHMgY29ycmVzcG9uZGlu
-ZyB0byB0aGUgaGFyZHdhcmUKKwkJCSAqIHRocmVhZHMgb2YgdGhlIGNvcmUuCisJCQkgKi8KKwkJ
-CW4gKz0gc25wcmludGYoc2RhdGEtPmxhYmVsICsgbiwKKwkJCQkgICAgICBzaXplb2Yoc2RhdGEt
-PmxhYmVsKSAtIG4sICIgJWQtJWQiLAorCQkJCSAgICAgIGNwdWlkLCBjcHVpZCArIHRocmVhZHNf
-cGVyX2NvcmUgLSAxKTsKKwkJZWxzZQorCQkJbiArPSBzbnByaW50ZihzZGF0YS0+bGFiZWwgKyBu
-LAorCQkJCSAgICAgIHNpemVvZihzZGF0YS0+bGFiZWwpIC0gbiwgIiBwaHklZCIsIGlkKTsKKwl9
-CisKKwkvKgorCSAqIE1lbWJ1ZmZlciBwcmV0dHkgcHJpbnQKKwkgKi8KKwlpZiAoIW9mX3Byb3Bl
-cnR5X3JlYWRfdTMyKG5wLCAiaWJtLGNoaXAtaWQiLCAmaWQpKQorCQluICs9IHNucHJpbnRmKHNk
-YXRhLT5sYWJlbCArIG4sIHNpemVvZihzZGF0YS0+bGFiZWwpIC0gbiwKKwkJCSAgICAgICIgJWQi
-LCBpZCAmIDB4ZmZmZik7CiB9CiAKIHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl9pbmRleF9hdHRyKGNv
-bnN0IGNoYXIgKm5hbWUsIHUzMiAqaW5kZXgsCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
-bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
-by9sbS1zZW5zb3Jz
+IT8620E supports three additional voltage sensors.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 2ca183029c8f..37a2827348b6 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -216,7 +216,12 @@ static bool fix_pwm_polarity;
+ #define IT87_REG_FAN_DIV       0x0b
+ #define IT87_REG_FAN_16BIT     0x0c
+=20
+-/* Monitors: 9 voltage (0 to 7, battery), 6 temp (1 to 6), 3 fan (1 to 3) =
+*/
++/*
++ * Monitors:
++ * - up to 13 voltage (0 to 7, battery, avcc, 10 to 12)
++ * - up to 6 temp (1 to 6)
++ * - up to 6 fan (1 to 6)
++ */
+=20
+ static const u8 IT87_REG_FAN[]         =3D { 0x0d, 0x0e, 0x0f, 0x80, 0x82,=
+ 0x4c };
+ static const u8 IT87_REG_FAN_MIN[]     =3D { 0x10, 0x11, 0x12, 0x84, 0x86,=
+ 0x4e };
+@@ -230,7 +235,7 @@ static const u8 IT87_REG_PWM[]         =3D { 0x15, 0x16=
+, 0x17, 0x7f, 0xa7, 0xaf };
+ static const u8 IT87_REG_PWM_DUTY[]    =3D { 0x63, 0x6b, 0x73, 0x7b, 0xa3,=
+ 0xab };
+=20
+ static const u8 IT87_REG_VIN[]	=3D { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0=
+x26,
+-				    0x27, 0x28, 0x2f };
++				    0x27, 0x28, 0x2f, 0x2c, 0x2d, 0x2e };
+=20
+ #define IT87_REG_TEMP(nr)      (0x29 + (nr))
+=20
+@@ -464,7 +469,7 @@ struct it87_data {
+ 	u16 in_scaled;		/* Internal voltage sensors are scaled */
+ 	u16 in_internal;	/* Bitfield, internal sensors (for labels) */
+ 	u16 has_in;		/* Bitfield, voltage sensors enabled */
+-	u8 in[10][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
++	u8 in[13][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[6][2];		/* Register values, [nr][0]=FAn, [1]=3Dmin */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+@@ -840,6 +845,9 @@ static SENSOR_DEVICE_ATTR_2(in7_max, S_IRUGO | S_IWUSR,=
+ show_in, set_in,
+=20
+ static SENSOR_DEVICE_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 8, 0);
+ static SENSOR_DEVICE_ATTR_2(in9_input, S_IRUGO, show_in, NULL, 9, 0);
++static SENSOR_DEVICE_ATTR_2(in10_input, S_IRUGO, show_in, NULL, 10, 0);
++static SENSOR_DEVICE_ATTR_2(in11_input, S_IRUGO, show_in, NULL, 11, 0);
++static SENSOR_DEVICE_ATTR_2(in12_input, S_IRUGO, show_in, NULL, 12, 0);
+=20
+ /* Up to 6 temperatures */
+ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+@@ -1738,7 +1746,7 @@ static umode_t it87_in_is_visible(struct kobject *kob=
+j,
+ 	int i =3D index / 5;	/* voltage index */
+ 	int a =3D index % 5;	/* attribute index */
+=20
+-	if (index >=3D 40) {	/* in8, in9 only have input attributes */
++	if (index >=3D 40) {	/* in8 and higher only have input attributes */
+ 		i =3D index - 40 + 8;
+ 		a =3D 0;
+ 	}
+@@ -1802,8 +1810,10 @@ static struct attribute *it87_attributes_in[] =3D {
+ 	&sensor_dev_attr_in7_beep.dev_attr.attr,	/* 39 */
+=20
+ 	&sensor_dev_attr_in8_input.dev_attr.attr,	/* 40 */
+-
+ 	&sensor_dev_attr_in9_input.dev_attr.attr,	/* 41 */
++	&sensor_dev_attr_in10_input.dev_attr.attr,	/* 41 */
++	&sensor_dev_attr_in11_input.dev_attr.attr,	/* 41 */
++	&sensor_dev_attr_in12_input.dev_attr.attr,	/* 41 */
+ };
+=20
+ static const struct attribute_group it87_group_in =3D {
+@@ -2708,12 +2718,21 @@ static int it87_probe(struct platform_device *pdev)
+ 	if (has_six_temp(data)) {
+ 		u8 reg =3D it87_read_value(data, IT87_REG_TEMP456_ENABLE);
+=20
++		/* Check for additional temperature sensors */
+ 		if ((reg & 0x03) >=3D 0x02)
+ 			data->has_temp |=3D (1 << 3);
+ 		if (((reg >> 2) & 0x03) >=3D 0x02)
+ 			data->has_temp |=3D (1 << 4);
+ 		if (((reg >> 4) & 0x03) >=3D 0x02)
+ 			data->has_temp |=3D (1 << 5);
++
++		/* Check for additional voltage sensors */
++		if ((reg & 0x03) =3D 0x01)
++			data->has_in |=3D (1 << 10);
++		if (((reg >> 2) & 0x03) =3D 0x01)
++			data->has_in |=3D (1 << 11);
++		if (((reg >> 4) & 0x03) =3D 0x01)
++			data->has_in |=3D (1 << 12);
+ 	}
+=20
+ 	data->has_beep =3D !!sio_data->beep_pin;
+--=20
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
