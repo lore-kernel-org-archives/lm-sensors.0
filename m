@@ -1,48 +1,183 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 01 Apr 2015 10:15:03 +0000
-Subject: [lm-sensors] [PATCH 1/4] hwmon: (ibmpowernv) add a helper routine create_hwmon_attr
-Message-Id: <1427883306-32528-2-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 04 Apr 2015 21:55:08 +0000
+Subject: [lm-sensors] [PATCH 17/22] hwmon: (it87) Support up to 6 temperature sensors on IT8620E
+Message-Id: <1428184513-22380-18-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBzaG91bGQgc2hvcnRlbiBhIGJpdCB0aGUgY29kZSBuZWNlc3NhcnkgdG8gY3JlYXRlIGEg
-aG13b24gYXR0cmlidXRlLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bm
-ci5pYm0uY29tPgotLS0KIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgICAyMyArKysrKysr
-KysrKysrKystLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDggZGVs
-ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2
-ZXJzL2h3bW9uL2libXBvd2VybnYuYwppbmRleCBhNmU3MjQ1ZjE3MmQuLmM5YWE0ZDgzN2M2ZiAx
-MDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysrIGIvZHJpdmVycy9od21v
-bi9pYm1wb3dlcm52LmMKQEAgLTIzMiw2ICsyMzIsMjAgQEAgc3RhdGljIGludCBwb3B1bGF0ZV9h
-dHRyX2dyb3VwcyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCXJldHVybiAwOwogfQog
-CitzdGF0aWMgdm9pZCBjcmVhdGVfaHdtb25fYXR0cihzdHJ1Y3Qgc2Vuc29yX2RhdGEgKnNkYXRh
-LCBjb25zdCBjaGFyICphdHRyX25hbWUsCisJc3NpemVfdCAoKnNob3cpKHN0cnVjdCBkZXZpY2Ug
-KmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQljaGFyICpidWYpKQorewor
-CXNucHJpbnRmKHNkYXRhLT5uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwKKwkJIHNlbnNv
-cl9ncm91cHNbc2RhdGEtPnR5cGVdLm5hbWUsIHNkYXRhLT5od21vbl9pbmRleCwKKwkJIGF0dHJf
-bmFtZSk7CisKKwlzeXNmc19hdHRyX2luaXQoJnNkYXRhLT5kZXZfYXR0ci5hdHRyKTsKKwlzZGF0
-YS0+ZGV2X2F0dHIuYXR0ci5uYW1lID0gc2RhdGEtPm5hbWU7CisJc2RhdGEtPmRldl9hdHRyLmF0
-dHIubW9kZSA9IFNfSVJVR087CisJc2RhdGEtPmRldl9hdHRyLnNob3cgPSBzaG93OworfQorCiAv
-KgogICogSXRlcmF0ZSB0aHJvdWdoIHRoZSBkZXZpY2UgdHJlZSBmb3IgZWFjaCBjaGlsZCBvZiAn
-c2Vuc29ycycgbm9kZSwgY3JlYXRlCiAgKiBhIHN5c2ZzIGF0dHJpYnV0ZSBmaWxlLCB0aGUgZmls
-ZSBpcyBuYW1lZCBieSB0cmFuc2xhdGluZyB0aGUgRFQgbm9kZSBuYW1lCkBAIC0yOTAsMTQgKzMw
-NCw3IEBAIHN0YXRpYyBpbnQgY3JlYXRlX2RldmljZV9hdHRycyhzdHJ1Y3QgcGxhdGZvcm1fZGV2
-aWNlICpwZGV2KQogCQlzZGF0YVtjb3VudF0uaHdtb25faW5kZXggPQogCQkJZ2V0X3NlbnNvcl9o
-d21vbl9pbmRleCgmc2RhdGFbY291bnRdLCBzZGF0YSwgY291bnQpOwogCi0JCXNucHJpbnRmKHNk
-YXRhW2NvdW50XS5uYW1lLCBNQVhfQVRUUl9MRU4sICIlcyVkXyVzIiwKLQkJCSBzZW5zb3JfZ3Jv
-dXBzW3R5cGVdLm5hbWUsIHNkYXRhW2NvdW50XS5od21vbl9pbmRleCwKLQkJCSBhdHRyX25hbWUp
-OwotCi0JCXN5c2ZzX2F0dHJfaW5pdCgmc2RhdGFbY291bnRdLmRldl9hdHRyLmF0dHIpOwotCQlz
-ZGF0YVtjb3VudF0uZGV2X2F0dHIuYXR0ci5uYW1lID0gc2RhdGFbY291bnRdLm5hbWU7Ci0JCXNk
-YXRhW2NvdW50XS5kZXZfYXR0ci5hdHRyLm1vZGUgPSBTX0lSVUdPOwotCQlzZGF0YVtjb3VudF0u
-ZGV2X2F0dHIuc2hvdyA9IHNob3dfc2Vuc29yOworCQljcmVhdGVfaHdtb25fYXR0cigmc2RhdGFb
-Y291bnRdLCBhdHRyX25hbWUsIHNob3dfc2Vuc29yKTsKIAogCQlwZ3JvdXBzW3R5cGVdLT5hdHRy
-c1tzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrK10gPQogCQkJCSZzZGF0YVtjb3VudCsr
-XS5kZXZfYXR0ci5hdHRyOwotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
-QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xtLXNlbnNvcnM
+Add support for the additional temperature sensors on IT8620E.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 45 ++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 38 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 37a250ae610e..d9d2d8d8877d 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -216,7 +216,7 @@ static bool fix_pwm_polarity;
+ #define IT87_REG_FAN_DIV       0x0b
+ #define IT87_REG_FAN_16BIT     0x0c
+=20
+-/* Monitors: 9 voltage (0 to 7, battery), 3 temp (1 to 3), 3 fan (1 to 3) =
+*/
++/* Monitors: 9 voltage (0 to 7, battery), 6 temp (1 to 6), 3 fan (1 to 3) =
+*/
+=20
+ static const u8 IT87_REG_FAN[]         =3D { 0x0d, 0x0e, 0x0f, 0x80, 0x82,=
+ 0x4c };
+ static const u8 IT87_REG_FAN_MIN[]     =3D { 0x10, 0x11, 0x12, 0x84, 0x86,=
+ 0x4e };
+@@ -249,6 +249,8 @@ static const u8 IT87_REG_PWM_DUTY[]    =3D { 0x63, 0x6b=
+, 0x73, 0x7b, 0xa3, 0xab };
+ #define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
+ #define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
+=20
++#define IT87_REG_TEMP456_ENABLE	0x77
++
+ struct it87_devices {
+ 	const char *name;
+ 	const char * const suffix;
+@@ -272,6 +274,7 @@ struct it87_devices {
+ #define FEAT_AVCC3		(1 << 12)	/* Chip supports in9/AVCC3 */
+ #define FEAT_SIX_PWM		(1 << 13)	/* Chip supports 6 pwm chn */
+ #define FEAT_PWM_FREQ2		(1 << 14)	/* Separate pwm freq 2 */
++#define FEAT_SIX_TEMP		(1 << 15)	/* Up to 6 temp sensors */
+=20
+ static const struct it87_devices it87_devices[] =3D {
+ 	[it87] =3D {
+@@ -400,7 +403,7 @@ static const struct it87_devices it87_devices[] =3D {
+ 		.features =3D FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
+ 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
+ 		  | FEAT_IN7_INTERNAL | FEAT_AVCC3 | FEAT_SIX_PWM
+-		  | FEAT_PWM_FREQ2,
++		  | FEAT_PWM_FREQ2 | FEAT_SIX_TEMP,
+ 		.peci_mask =3D 0x07,
+ 	},
+ };
+@@ -424,6 +427,7 @@ static const struct it87_devices it87_devices[] =3D {
+ #define has_avcc3(data)		((data)->features & FEAT_AVCC3)
+ #define has_six_pwm(data)	((data)->features & FEAT_SIX_PWM)
+ #define has_pwm_freq2(data)	((data)->features & FEAT_PWM_FREQ2)
++#define has_six_temp(data)	((data)->features & FEAT_SIX_TEMP)
+=20
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -464,7 +468,7 @@ struct it87_data {
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[6][2];		/* Register values, [nr][0]=FAn, [1]=3Dmin */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+-	s8 temp[3][4];		/* [nr][0]=3Dtemp, [1]=3Dmin, [2]=3Dmax, [3]=3Doffset */
++	s8 temp[6][4];		/* [nr][0]=3Dtemp, [1]=3Dmin, [2]=3Dmax, [3]=3Doffset */
+ 	u8 sensor;		/* Register value (IT87_REG_TEMP_ENABLE) */
+ 	u8 extra;		/* Register value (IT87_REG_TEMP_EXTRA) */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+@@ -684,11 +688,16 @@ static struct it87_data *it87_update_device(struct de=
+vice *dev)
+ 						IT87_REG_FANX_MIN[i]) << 8;
+ 			}
+ 		}
+-		for (i =3D 0; i < 3; i++) {
++		for (i =3D 0; i < 6; i++) {
+ 			if (!(data->has_temp & (1 << i)))
+ 				continue;
+ 			data->temp[i][0]  				it87_read_value(data, IT87_REG_TEMP(i));
++
++			/* No limits/offset for additional sensors */
++			if (i >=3D 3)
++				continue;
++
+ 			data->temp[i][1]  				it87_read_value(data, IT87_REG_TEMP_LOW(i));
+ 			data->temp[i][2] @@ -828,7 +837,7 @@ static SENSOR_DEVICE_ATTR_2(in7_ma=
+x, S_IRUGO | S_IWUSR, show_in, set_in,
+ static SENSOR_DEVICE_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 8, 0);
+ static SENSOR_DEVICE_ATTR_2(in9_input, S_IRUGO, show_in, NULL, 9, 0);
+=20
+-/* 3 temperatures */
++/* Up to 6 temperatures */
+ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+ 			 char *buf)
+ {
+@@ -901,6 +910,9 @@ static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGO | S_IWUS=
+R, show_temp, set_temp,
+ 			    2, 2);
+ static SENSOR_DEVICE_ATTR_2(temp3_offset, S_IRUGO | S_IWUSR, show_temp,
+ 			    set_temp, 2, 3);
++static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 3, 0);
++static SENSOR_DEVICE_ATTR_2(temp5_input, S_IRUGO, show_temp, NULL, 4, 0);
++static SENSOR_DEVICE_ATTR_2(temp6_input, S_IRUGO, show_temp, NULL, 5, 0);
+=20
+ static ssize_t show_temp_type(struct device *dev, struct device_attribute =
+*attr,
+ 			      char *buf)
+@@ -1803,6 +1815,11 @@ static umode_t it87_temp_is_visible(struct kobject *=
+kobj,
+ 	int i =3D index / 7;	/* temperature index */
+ 	int a =3D index % 7;	/* attribute index */
+=20
++	if (index >=3D 21) {
++		i =3D index - 21 + 3;
++		a =3D 0;
++	}
++
+ 	if (!(data->has_temp & (1 << i)))
+ 		return 0;
+=20
+@@ -1824,7 +1841,7 @@ static struct attribute *it87_attributes_temp[] =3D {
+ 	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
+ 	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
+=20
+-	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,	/* 7 */
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_type.dev_attr.attr,
+@@ -1832,7 +1849,7 @@ static struct attribute *it87_attributes_temp[] =3D {
+ 	&sensor_dev_attr_temp2_offset.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+=20
+-	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,	/* 14 */
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_type.dev_attr.attr,
+@@ -1840,6 +1857,9 @@ static struct attribute *it87_attributes_temp[] =3D {
+ 	&sensor_dev_attr_temp3_offset.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+=20
++	&sensor_dev_attr_temp4_input.dev_attr.attr,	/* 21 */
++	&sensor_dev_attr_temp5_input.dev_attr.attr,
++	&sensor_dev_attr_temp6_input.dev_attr.attr,
+ 	NULL
+ };
+=20
+@@ -2681,6 +2701,17 @@ static int it87_probe(struct platform_device *pdev)
+ 	data->in_internal =3D sio_data->internal;
+ 	data->has_in =3D 0x3ff & ~sio_data->skip_in;
+=20
++	if (has_six_temp(data)) {
++		u8 reg =3D it87_read_value(data, IT87_REG_TEMP456_ENABLE);
++
++		if ((reg & 0x03) >=3D 0x02)
++			data->has_temp |=3D (1 << 3);
++		if (((reg >> 2) & 0x03) >=3D 0x02)
++			data->has_temp |=3D (1 << 4);
++		if (((reg >> 4) & 0x03) >=3D 0x02)
++			data->has_temp |=3D (1 << 5);
++	}
++
+ 	data->has_beep =3D !!sio_data->beep_pin;
+=20
+ 	/* Initialize the IT87 chip */
+--=20
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
