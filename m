@@ -1,41 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 22:05:45 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (it87) Fix pwm frequency display
-Message-Id: <1428185145-22959-1-git-send-email-linux@roeck-us.net>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Tue, 07 Apr 2015 20:22:02 +0000
+Subject: Re: [lm-sensors] [Skiboot] [PATCH 4/4] hwmon: (ibmpowernv) pretty print labels
+Message-Id: <1428438122.4947.6.camel@kernel.crashing.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <5523ECC4.9010609@fr.ibm.com>
+ <1428417956-28617-1-git-send-email-clg@fr.ibm.com>
+ <20150407164439.GA4514@roeck-us.net> <55241C02.60103@fr.ibm.com>
+In-Reply-To: <55241C02.60103@fr.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Cedric Le Goater <clg@fr.ibm.com>
+Cc: skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-Commit 687c68dd7955 ("hwmon: (it87) Fix PWM frequency display for chips
-with newer PWM control") tried to fix pwm frequency display but got operator
-precedence all wrong, resulting in a pwm frequency display of 256 or,
-with older chips, a division by zero.
+On Tue, 2015-04-07 at 20:03 +0200, Cedric Le Goater wrote:
+> 
+> This is a shortcut. The code is for the ibmpowernv platform and assumes 
+> that we are running on a P8 (8 hardware threads). It would be better to 
+> use a "maximum threads per core" variable but I am not sure this is 
+> available, as it is a tunable. I will look into it.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-I might actually fold this one into the original patch, given the severeness
-of the problem.
+Yes, please don't hard code this...
 
- drivers/hwmon/it87.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Cheers,
+Ben.
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 2c2d945e47e3..b70227108cb8 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1085,7 +1085,7 @@ static ssize_t show_pwm_freq(struct device *dev, struct device_attribute *attr,
- 	else
- 		index = (data->fan_ctl >> 4) & 0x07;
- 
--	freq = pwm_freq[index] / has_newer_autopwm(data) ? 256 : 128;
-+	freq = pwm_freq[index] / (has_newer_autopwm(data) ? 256 : 128);
- 
- 	return sprintf(buf, "%u\n", freq);
- }
--- 
-2.1.0
+
 
 
 _______________________________________________
