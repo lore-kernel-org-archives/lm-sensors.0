@@ -1,54 +1,113 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Tue, 07 Apr 2015 14:45:56 +0000
-Subject: [lm-sensors] [PATCH 4/4] hwmon: (ibmpowernv) pretty print labels
-Message-Id: <1428417956-28617-1-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 07 Apr 2015 16:44:39 +0000
+Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: (ibmpowernv) pretty print labels
+Message-Id: <20150407164439.GA4514@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5523ECC4.9010609@fr.ibm.com>
-In-Reply-To: <5523ECC4.9010609@fr.ibm.com>
+ <1428417956-28617-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1428417956-28617-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-VGhlIG5ldyBPUEFMIGRldmljZSB0cmVlIGFkZHMgYSBmZXcgcHJvcGVydGllcyB3aGljaCBjYW4g
-YmUgdXNlZCB0byBhZGQKZXh0cmEgaW5mb3JtYXRpb24gb24gdGhlIHNlbnNvciBsYWJlbC4KCklu
-IHRoZSBjYXNlIG9mIGEgY3B1IGNvcmUgc2Vuc29yLCB0aGUgZmlybXdhcmUgZXhwb3NlcyB0aGUg
-cGh5c2ljYWwgCmlkZW50aWZpZXIgb2YgdGhlIGNvcmUgaW4gdGhlICJpYm0scGlyIiBwcm9wZXJ0
-eS4gVGhlIGRyaXZlciAKdHJhbnNsYXRlcyB0aGlzIGlkZW50aWZpZXIgaW4gYSBsaW51eCBjcHUg
-bnVtYmVyIGFuZCBwcmludHMgb3V0IGEgCnJhbmdlIGNvcnJlc3BvbmRpbmcgdG8gdGhlIGhhcmR3
-YXJlIHRocmVhZHMgb2YgdGhlIGNvcmUgKGFzIHRoZXkKc2hhcmUgdGhlIHNhbWUgc2Vuc29yKS4K
-ClRoZSBudW1iZXJpbmcgZ2l2ZXMgYSBoaW50IG9uIHRoZSBsb2NhbGl6YXRpb24gb2YgdGhlIGNv
-cmUgaW4gdGhlIApzeXN0ZW0gKHdoaWNoIHNvY2tldCwgd2hpY2ggY2hpcCkuIAoKU2lnbmVkLW9m
-Zi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bmci5pYm0uY29tPgotLS0KCiBDaGFuZ2VzIHNp
-bmNlIHYxOgoKIC0gY2hlY2sgY3B1IHZhbGlkaXR5IGJlZm9yZSBwcmludGluZyBvdXQgdGhlIGF0
-dHJpYnV0ZSBsYWJlbC4gCiAgIGlmIGludmFsaWQsIHVzZSBhICJwaHkiIHByZWZpeCB0byBkaXN0
-aW5ndWlzaCBhIGxpbnV4IGNwdSAKICAgbnVtYmVyIGZyb20gYSBwaHlzaWNhbCBjcHUgbnVtYmVy
-LiAKCiBkcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyB8ICAgMzQgKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDM0IGluc2VydGlvbnMoKykKCkluZGV4
-OiBsaW51eC5naXQvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKPT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGlu
-dXguZ2l0Lm9yaWcvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysrIGxpbnV4LmdpdC9kcml2
-ZXJzL2h3bW9uL2libXBvd2VybnYuYwpAQCAtMTEzLDkgKzExMyw0MyBAQCBzdGF0aWMgc3NpemVf
-dCBzaG93X2xhYmVsKHN0cnVjdCBkZXZpY2UKIHN0YXRpYyB2b2lkIF9faW5pdCBtYWtlX3NlbnNv
-cl9sYWJlbChzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wLAogCQkgICAgc3RydWN0IHNlbnNvcl9kYXRh
-ICpzZGF0YSwgY29uc3QgY2hhciAqbGFiZWwpCiB7CisJdTMyIGlkOwogCXNpemVfdCBuOwogCiAJ
-biA9IHNucHJpbnRmKHNkYXRhLT5sYWJlbCwgc2l6ZW9mKHNkYXRhLT5sYWJlbCksICIlcyIsIGxh
-YmVsKTsKKworCS8qCisJICogQ29yZSB0ZW1wIHByZXR0eSBwcmludAorCSAqLworCWlmICghb2Zf
-cHJvcGVydHlfcmVhZF91MzIobnAsICJpYm0scGlyIiwgJmlkKSkgeworCQlpbnQgaSA9IC0xOwor
-CisJCWZvcl9lYWNoX3Bvc3NpYmxlX2NwdShpKQorCQkJaWYgKHBhY2FbaV0uaHdfY3B1X2lkID09
-IGlkKQorCQkJCWJyZWFrOworCisJCWlmIChpICE9IC0xKQorCQkJLyoKKwkJCSAqIFRoZSBkaWdp
-dGFsIHRoZXJtYWwgc2Vuc29ycyBhcmUgYXNzb2NpYXRlZAorCQkJICogd2l0aCBhIGNvcmUuIExl
-dCdzIHByaW50IG91dCB0aGUgcmFuZ2Ugb2YKKwkJCSAqIGNwdSBpZHMgY29ycmVzcG9uZGluZyB0
-byB0aGUgaGFyZHdhcmUKKwkJCSAqIHRocmVhZHMgb2YgdGhlIGNvcmUuCisJCQkgKi8KKwkJCW4g
-Kz0gc25wcmludGYoc2RhdGEtPmxhYmVsICsgbiwKKwkJCQkgICAgICBzaXplb2Yoc2RhdGEtPmxh
-YmVsKSAtIG4sCisJCQkJICAgICAgIiAlZC0lZCIsIGksIGkrNyk7CisJCWVsc2UKKwkJCW4gKz0g
-c25wcmludGYoc2RhdGEtPmxhYmVsICsgbiwKKwkJCQkgICAgICBzaXplb2Yoc2RhdGEtPmxhYmVs
-KSAtIG4sCisJCQkJICAgICAgIiBwaHklZCIsIGlkKTsKKwl9CisKKwkvKgorCSAqIE1lbWJ1ZmZl
-ciBwcmV0dHkgcHJpbnQKKwkgKi8KKwlpZiAoIW9mX3Byb3BlcnR5X3JlYWRfdTMyKG5wLCAiaWJt
-LGNoaXAtaWQiLCAmaWQpKQorCQluICs9IHNucHJpbnRmKHNkYXRhLT5sYWJlbCArIG4sIHNpemVv
-ZihzZGF0YS0+bGFiZWwpIC0gbiwKKwkJCSAgICAgICIgJWQiLCBpZCAmIDB4ZmZmZik7CiB9CiAK
-IHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl9pbmRleF9hdHRyKGNvbnN0IGNoYXIgKm5hbWUsIHUzMiAq
-aW5kZXgsCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
-bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Tue, Apr 07, 2015 at 04:45:56PM +0200, C=E9dric Le Goater wrote:
+> The new OPAL device tree adds a few properties which can be used to add
+> extra information on the sensor label.
+>=20
+> In the case of a cpu core sensor, the firmware exposes the physical=20
+> identifier of the core in the "ibm,pir" property. The driver=20
+> translates this identifier in a linux cpu number and prints out a=20
+> range corresponding to the hardware threads of the core (as they
+> share the same sensor).
+>=20
+> The numbering gives a hint on the localization of the core in the=20
+> system (which socket, which chip).=20
+>=20
+> Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
+
+Hi Cedric,
+
+Please do not send follow-up patches as reply, but as separate e-mail.
+
+Further comments below.
+
+> ---
+>=20
+>  Changes since v1:
+>=20
+>  - check cpu validity before printing out the attribute label.=20
+>    if invalid, use a "phy" prefix to distinguish a linux cpu=20
+>    number from a physical cpu number.=20
+>=20
+>  drivers/hwmon/ibmpowernv.c |   34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+>=20
+> Index: linux.git/drivers/hwmon/ibmpowernv.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux.git.orig/drivers/hwmon/ibmpowernv.c
+> +++ linux.git/drivers/hwmon/ibmpowernv.c
+> @@ -113,9 +113,43 @@ static ssize_t show_label(struct device
+>  static void __init make_sensor_label(struct device_node *np,
+>  		    struct sensor_data *sdata, const char *label)
+>  {
+> +	u32 id;
+>  	size_t n;
+> =20
+>  	n =3D snprintf(sdata->label, sizeof(sdata->label), "%s", label);
+> +
+> +	/*
+> +	 * Core temp pretty print
+> +	 */
+> +	if (!of_property_read_u32(np, "ibm,pir", &id)) {
+> +		int i =3D -1;
+> +
+> +		for_each_possible_cpu(i)
+> +			if (paca[i].hw_cpu_id =3D=3D id)
+
+I think you should consider using get_hard_smp_processor_id() and avoid
+direct access to the paca array.
+
+> +				break;
+> +
+> +		if (i !=3D -1)
+
+I don't think that works. i is initialized by for_each_possible_cpu(),
+either to -1 or 0 depending on the state of CONFIG_SMP. So pre-initializing
+it won't make a difference. Its last value is NR_CPUS (SMP) or 1 (non-SMP).
+
+You would need a second variable (which you could pre-initialize)
+to determine if the code found a matching ID or not.
+
+> +			/*
+> +			 * The digital thermal sensors are associated
+> +			 * with a core. Let's print out the range of
+> +			 * cpu ids corresponding to the hardware
+> +			 * threads of the core.
+> +			 */
+> +			n +=3D snprintf(sdata->label + n,
+> +				      sizeof(sdata->label) - n,
+> +				      " %d-%d", i, i+7);
+
+I would really like to see how this looks like in practice.
+
+The id in the devicetree entry is the physical CPU. The resulting index
+is the logical CPU number. So let's assume that the logical CPU number
+for the first physical CPU is 0. Output would be "0-7". If the second
+physical CPU matches logical CPU 1, output would be "1-8".=20
+How does that make any sense ?
+
+Also, how do you know that the range of CPU IDs is always 8 ?
+
+Can you provide some resulting outputs ?
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
