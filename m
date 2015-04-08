@@ -1,74 +1,71 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 01 Apr 2015 10:15:04 +0000
-Subject: [lm-sensors] [PATCH 2/4] hwmon: (ibmpowernv) add support for the new device tree
-Message-Id: <1427883306-32528-3-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 08 Apr 2015 15:20:29 +0000
+Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (ibmpowernv) add support for the new device tree
+Message-Id: <20150408152029.GA11030@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1426787085-9004-1-git-send-email-clg@fr.ibm.com>
+References: <1427883306-32528-3-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1427883306-32528-3-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-VGhlIG5ldyBPUEFMIGRldmljZSB0cmVlIGZvciBzZW5zb3JzIGhhcyBhIGRpZmZlcmVudCBsYXlv
-dXQgYW5kIHVzZXMgbmV3CnByb3BlcnR5IG5hbWVzLCBmb3IgdGhlIHR5cGUgYW5kIGZvciB0aGUg
-aGFuZGxlciB1c2VkIHRvIGNhcHR1cmUgdGhlCnNlbnNvciBkYXRhLgoKVGhpcyBwYXRjaCBtb2Rp
-ZmllcyB0aGUgaWJtcG93ZXJudiBkcml2ZXIgdG8gc3VwcG9ydCBzdWNoIGEgdHJlZSBpbiBhCndh
-eSBwcmVzZXJ2aW5nIGNvbXBhdGliaWxpdHkgd2l0aCBvbGRlciBPUEFMIGZpcm13YXJlcy4KClRo
-aXMgaXMgYWNoaWV2ZWQgYnkgY2hhbmdpbmcgdGhlIGVycm9yIHBhdGggb2YgdGhlIHJvdXRpbmUg
-cGFyc2luZwphbiBPUEFMIG5vZGUgbmFtZS4gVGhlIG5vZGUgaXMgc2ltcGx5IGNvbnNpZGVyZWQg
-YmVpbmcgZnJvbSB0aGUgbmV3CmRldmljZSB0cmVlIGxheW91dCBhbmQgZmFsbGJhY2sgdmFsdWVz
-IGFyZSB1c2VkLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bmci5pYm0u
-Y29tPgotLS0KIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgICA0NyArKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDM4IGluc2Vy
-dGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9pYm1w
-b3dlcm52LmMgYi9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwppbmRleCBjOWFhNGQ4MzdjNmYu
-LmYzOGFhMjczNDNmMiAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysr
-IGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKQEAgLTE3NiwxMSArMTc2LDI2IEBAIHN0YXRp
-YyBjb25zdCBjaGFyICpwYXJzZV9vcGFsX25vZGVfbmFtZShjb25zdCBjaGFyICpub2RlX25hbWUs
-CiBzdGF0aWMgaW50IGdldF9zZW5zb3JfdHlwZShzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wKQogewog
-CWVudW0gc2Vuc29ycyB0eXBlOworCWNvbnN0IGNoYXIgKnN0cjsKIAogCWZvciAodHlwZSA9IDA7
-IHR5cGUgPCBNQVhfU0VOU09SX1RZUEU7IHR5cGUrKykgewogCQlpZiAob2ZfZGV2aWNlX2lzX2Nv
-bXBhdGlibGUobnAsIHNlbnNvcl9ncm91cHNbdHlwZV0uY29tcGF0aWJsZSkpCiAJCQlyZXR1cm4g
-dHlwZTsKIAl9CisKKwkvKgorCSAqIExldCdzIGNoZWNrIGlmIHdlIGhhdmUgYSBuZXdlciBkZXZp
-Y2UgdHJlZQorCSAqLworCWlmICghb2ZfZGV2aWNlX2lzX2NvbXBhdGlibGUobnAsICJpYm0sb3Bh
-bC1zZW5zb3IiKSkKKwkJcmV0dXJuIE1BWF9TRU5TT1JfVFlQRTsKKworCWlmIChvZl9wcm9wZXJ0
-eV9yZWFkX3N0cmluZyhucCwgInNlbnNvci10eXBlIiwgJnN0cikpCisJCXJldHVybiBNQVhfU0VO
-U09SX1RZUEU7CisKKwlmb3IgKHR5cGUgPSAwOyB0eXBlIDwgTUFYX1NFTlNPUl9UWVBFOyB0eXBl
-KyspCisJCWlmICghc3RyY21wKHN0ciwgc2Vuc29yX2dyb3Vwc1t0eXBlXS5uYW1lKSkKKwkJCXJl
-dHVybiB0eXBlOworCiAJcmV0dXJuIE1BWF9TRU5TT1JfVFlQRTsKIH0KIApAQCAtMTg5LDExICsy
-MDQsMTYgQEAgc3RhdGljIHUzMiBnZXRfc2Vuc29yX2h3bW9uX2luZGV4KHN0cnVjdCBzZW5zb3Jf
-ZGF0YSAqc2RhdGEsCiB7CiAJaW50IGk7CiAKLQlmb3IgKGkgPSAwOyBpIDwgY291bnQ7IGkrKykK
-LQkJaWYgKHNkYXRhX3RhYmxlW2ldLm9wYWxfaW5kZXggPT0gc2RhdGEtPm9wYWxfaW5kZXggJiYK
-LQkJICAgIHNkYXRhX3RhYmxlW2ldLnR5cGUgPT0gc2RhdGEtPnR5cGUpCi0JCQlyZXR1cm4gc2Rh
-dGFfdGFibGVbaV0uaHdtb25faW5kZXg7CisJLyoKKwkgKiBXZSBkb24ndCB1c2UgdGhlIE9QQUwg
-aW5kZXggb24gbmV3ZXIgZGV2aWNlIHRyZWVzCisJICovCisJaWYgKHNkYXRhLT5vcGFsX2luZGV4
-ICE9IC0xKSB7CisJCWZvciAoaSA9IDA7IGkgPCBjb3VudDsgaSsrKQorCQkJaWYgKHNkYXRhX3Rh
-YmxlW2ldLm9wYWxfaW5kZXggPT0gc2RhdGEtPm9wYWxfaW5kZXggJiYKKwkJCSAgICBzZGF0YV90
-YWJsZVtpXS50eXBlID09IHNkYXRhLT50eXBlKQorCQkJCXJldHVybiBzZGF0YV90YWJsZVtpXS5o
-d21vbl9pbmRleDsKIAorCX0KIAlyZXR1cm4gKytzZW5zb3JfZ3JvdXBzW3NkYXRhLT50eXBlXS5o
-d21vbl9pbmRleDsKIH0KIApAQCAtMjgyLDcgKzMwMiwxMiBAQCBzdGF0aWMgaW50IGNyZWF0ZV9k
-ZXZpY2VfYXR0cnMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJaWYgKHR5cGUgPT0g
-TUFYX1NFTlNPUl9UWVBFKQogCQkJY29udGludWU7CiAKLQkJaWYgKG9mX3Byb3BlcnR5X3JlYWRf
-dTMyKG5wLCAic2Vuc29yLWlkIiwgJnNlbnNvcl9pZCkpIHsKKwkJLyoKKwkJICogTmV3ZXIgZGV2
-aWNlIHRyZWVzIHVzZSBhICJzZW5zb3ItZGF0YSIgcHJvcGVydHkKKwkJICogbmFtZSBmb3IgaW5w
-dXQuCisJCSAqLworCQlpZiAob2ZfcHJvcGVydHlfcmVhZF91MzIobnAsICJzZW5zb3ItaWQiLCAm
-c2Vuc29yX2lkKSAmJgorCQkgICAgb2ZfcHJvcGVydHlfcmVhZF91MzIobnAsICJzZW5zb3ItZGF0
-YSIsICZzZW5zb3JfaWQpKSB7CiAJCQlkZXZfaW5mbygmcGRldi0+ZGV2LAogCQkJCSAiJ3NlbnNv
-ci1pZCcgbWlzc2luZyBpbiB0aGUgbm9kZSAnJXMnXG4iLAogCQkJCSBucC0+bmFtZSk7CkBAIC0y
-OTIsMTIgKzMxNywxNiBAQCBzdGF0aWMgaW50IGNyZWF0ZV9kZXZpY2VfYXR0cnMoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqcGRldikKIAkJc2RhdGFbY291bnRdLmlkID0gc2Vuc29yX2lkOwogCQlz
-ZGF0YVtjb3VudF0udHlwZSA9IHR5cGU7CiAKKwkJLyoKKwkJICogSWYgd2UgY2FuIG5vdCBwYXJz
-ZSB0aGUgbm9kZSBuYW1lLCBpdCBtZWFucyB3ZSBhcmUKKwkJICogcnVubmluZyBvbiBhIG5ld2Vy
-IGRldmljZSB0cmVlLiBXZSBjYW4ganVzdCBmb3JnZXQKKwkJICogYWJvdXQgdGhlIE9QQUwgaW5k
-ZXggYW5kIHVzZSBhIGRlZmF1dCB2YWx1ZSBmb3IgdGhlCisJCSAqIGh3bW9uIGF0dHJpYnV0ZSBu
-YW1lCisJCSAqLwogCQlhdHRyX25hbWUgPSBwYXJzZV9vcGFsX25vZGVfbmFtZShucC0+bmFtZSwg
-dHlwZSwgJm9wYWxfaW5kZXgpOwogCQlpZiAoSVNfRVJSKGF0dHJfbmFtZSkpIHsKLQkJCWRldl9l
-cnIoJnBkZXYtPmRldiwgIlNlbnNvciBkZXZpY2Ugbm9kZSBuYW1lICclcycgaXMgaW52YWxpZFxu
-IiwKLQkJCQlucC0+bmFtZSk7Ci0JCQllcnIgPSBQVFJfRVJSKGF0dHJfbmFtZSk7Ci0JCQlnb3Rv
-IGV4aXRfcHV0X25vZGU7CisJCQlhdHRyX25hbWUgPSAiaW5wdXQiOworCQkJb3BhbF9pbmRleCA9
-IC0xOwogCQl9CiAKIAkJc2RhdGFbY291bnRdLm9wYWxfaW5kZXggPSBvcGFsX2luZGV4OwotLSAK
-MS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Wed, Apr 01, 2015 at 12:15:04PM +0200, C=E9dric Le Goater wrote:
+> The new OPAL device tree for sensors has a different layout and uses new
+> property names, for the type and for the handler used to capture the
+> sensor data.
+>=20
+> This patch modifies the ibmpowernv driver to support such a tree in a
+> way preserving compatibility with older OPAL firmwares.
+>=20
+> This is achieved by changing the error path of the routine parsing
+> an OPAL node name. The node is simply considered being from the new
+> device tree layout and fallback values are used.
+>=20
+> Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
+
+Hi Cedric,
+
+I was about to apply the series, but then I found the following problem.
+
+> ---
+>  drivers/hwmon/ibmpowernv.c |   47 +++++++++++++++++++++++++++++++++++---=
+------
+>  1 file changed, 38 insertions(+), 9 deletions(-)
+>=20
+[ ... ]
+> =20
+> @@ -189,11 +204,16 @@ static u32 get_sensor_hwmon_index(struct sensor_dat=
+a *sdata,
+>  {
+>  	int i;
+> =20
+> -	for (i =3D 0; i < count; i++)
+> -		if (sdata_table[i].opal_index =3D=3D sdata->opal_index &&
+> -		    sdata_table[i].type =3D=3D sdata->type)
+> -			return sdata_table[i].hwmon_index;
+> +	/*
+> +	 * We don't use the OPAL index on newer device trees
+> +	 */
+> +	if (sdata->opal_index !=3D -1) {
+
+opal_index is u32, so this won't work (or at least the result is
+unpredictable).
+
+Also, in patch 4/4 (v4), get_logical_cpu() takes unsigned int as parameter,
+but get_hard_smp_processor_id() returns an int, causing gcc to complain
+if the code is built with W=3D1.
+
+Please fix and resubmit the entire series.
+
+When you do that, please also ensure that continuation lines
+are aligned (in patch 3/4).
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
