@@ -1,324 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:54:55 +0000
-Subject: [lm-sensors] [PATCH v2 04/22] hwmon: (it87) Add support for all pwm channels on IT8620E
-Message-Id: <1428184513-22380-5-git-send-email-linux@roeck-us.net>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Wed, 08 Apr 2015 17:19:47 +0000
+Subject: [lm-sensors] [PATCH v5 1/4] hwmon: (ibmpowernv) add a helper routine create_hwmon_attr
+Message-Id: <1428513590-5773-2-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-IT8620E supports up to 6 pwm channels. Add support for it.
-Also check if fan tachometers 4..6 are enabled before instantiating
-the respective sysfs attributes.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Fix formatting of IT87_REG_PWM and IT87_REG_PWM_DUTY
-    Use feature macros on configuration data
-    Fix pwm_temp_map display (pwm4..6 use temp4..6)
-    Call it87_update_pwm_ctrl for all 6 pwm channels
-
- drivers/hwmon/it87.c | 114 ++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 94 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index d26b51f6683b..0602f0d251e4 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -165,6 +165,7 @@ static inline void superio_exit(void)
- #define IT87_SIO_GPIO1_REG	0x25
- #define IT87_SIO_GPIO2_REG	0x26
- #define IT87_SIO_GPIO3_REG	0x27
-+#define IT87_SIO_GPIO4_REG	0x28
- #define IT87_SIO_GPIO5_REG	0x29
- #define IT87_SIO_PINX1_REG	0x2a	/* Pin selection */
- #define IT87_SIO_PINX2_REG	0x2c	/* Pin selection */
-@@ -224,8 +225,8 @@ static const u8 IT87_REG_TEMP_OFFSET[] = { 0x56, 0x57, 0x59 };
- 
- #define IT87_REG_FAN_MAIN_CTRL 0x13
- #define IT87_REG_FAN_CTL       0x14
--#define IT87_REG_PWM(nr)       (0x15 + (nr))
--#define IT87_REG_PWM_DUTY(nr)  (0x63 + (nr) * 8)
-+static const u8 IT87_REG_PWM[]         = { 0x15, 0x16, 0x17, 0x7f, 0xa7, 0xaf };
-+static const u8 IT87_REG_PWM_DUTY[]    = { 0x63, 0x6b, 0x73, 0x7b, 0xa3, 0xab };
- 
- #define IT87_REG_VIN(nr)       (0x20 + (nr))
- #define IT87_REG_TEMP(nr)      (0x29 + (nr))
-@@ -268,6 +269,7 @@ struct it87_devices {
- #define FEAT_IN7_INTERNAL	(1 << 10)	/* Set if in7 is internal */
- #define FEAT_SIX_FANS		(1 << 11)	/* Supports six fans */
- #define FEAT_AVCC3		(1 << 12)	/* Chip supports in9/AVCC3 */
-+#define FEAT_SIX_PWM		(1 << 13)	/* Chip supports 6 pwm chn */
- 
- static const struct it87_devices it87_devices[] = {
- 	[it87] = {
-@@ -388,7 +390,7 @@ static const struct it87_devices it87_devices[] = {
- 		.suffix = "E",
- 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
- 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
--		  | FEAT_IN7_INTERNAL | FEAT_AVCC3,
-+		  | FEAT_IN7_INTERNAL | FEAT_AVCC3 | FEAT_SIX_PWM,
- 		.peci_mask = 0x07,
- 	},
- };
-@@ -410,6 +412,7 @@ static const struct it87_devices it87_devices[] = {
- #define has_in7_internal(data)	((data)->features & FEAT_IN7_INTERNAL)
- #define has_six_fans(data)	((data)->features & FEAT_SIX_FANS)
- #define has_avcc3(data)		((data)->features & FEAT_AVCC3)
-+#define has_six_pwm(data)	((data)->features & FEAT_SIX_PWM)
- 
- struct it87_sio_data {
- 	enum chips type;
-@@ -469,9 +472,9 @@ struct it87_data {
- 	 * is no longer needed, but it is still done to keep the driver
- 	 * simple.
- 	 */
--	u8 pwm_ctrl[3];		/* Register value */
--	u8 pwm_duty[3];		/* Manual PWM value set by user */
--	u8 pwm_temp_map[3];	/* PWM to temp. chan. mapping (bits 1-0) */
-+	u8 pwm_ctrl[6];		/* Register value */
-+	u8 pwm_duty[6];		/* Manual PWM value set by user */
-+	u8 pwm_temp_map[6];	/* PWM to temp. chan. mapping (bits 1-0) */
- 
- 	/* Automatic fan speed control registers */
- 	u8 auto_pwm[3][4];	/* [nr][3] is hard-coded */
-@@ -1047,7 +1050,7 @@ static ssize_t set_pwm_enable(struct device *dev,
- 					     data->pwm_duty[nr];
- 		else					/* Automatic mode */
- 			data->pwm_ctrl[nr] = 0x80 | data->pwm_temp_map[nr];
--		it87_write_value(data, IT87_REG_PWM(nr), data->pwm_ctrl[nr]);
-+		it87_write_value(data, IT87_REG_PWM[nr], data->pwm_ctrl[nr]);
- 
- 		if (data->type != it8603) {
- 			/* set SmartGuardian mode */
-@@ -1083,7 +1086,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 			return -EBUSY;
- 		}
- 		data->pwm_duty[nr] = pwm_to_reg(data, val);
--		it87_write_value(data, IT87_REG_PWM_DUTY(nr),
-+		it87_write_value(data, IT87_REG_PWM_DUTY[nr],
- 				 data->pwm_duty[nr]);
- 	} else {
- 		data->pwm_duty[nr] = pwm_to_reg(data, val);
-@@ -1093,7 +1096,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 		 */
- 		if (!(data->pwm_ctrl[nr] & 0x80)) {
- 			data->pwm_ctrl[nr] = data->pwm_duty[nr];
--			it87_write_value(data, IT87_REG_PWM(nr),
-+			it87_write_value(data, IT87_REG_PWM[nr],
- 					 data->pwm_ctrl[nr]);
- 		}
- 	}
-@@ -1186,7 +1189,7 @@ static ssize_t set_pwm_temp_map(struct device *dev,
- 	 */
- 	if (data->pwm_ctrl[nr] & 0x80) {
- 		data->pwm_ctrl[nr] = 0x80 | data->pwm_temp_map[nr];
--		it87_write_value(data, IT87_REG_PWM(nr), data->pwm_ctrl[nr]);
-+		it87_write_value(data, IT87_REG_PWM[nr], data->pwm_ctrl[nr]);
- 	}
- 	mutex_unlock(&data->update_lock);
- 	return count;
-@@ -1364,6 +1367,27 @@ static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_temp, S_IRUGO | S_IWUSR,
- static SENSOR_DEVICE_ATTR_2(pwm3_auto_point4_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 2, 4);
- 
-+static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
-+			  show_pwm_enable, set_pwm_enable, 3);
-+static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 3);
-+static DEVICE_ATTR(pwm4_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IRUGO | S_IWUSR,
-+			  show_pwm_temp_map, set_pwm_temp_map, 3);
-+
-+static SENSOR_DEVICE_ATTR(pwm5_enable, S_IRUGO | S_IWUSR,
-+			  show_pwm_enable, set_pwm_enable, 4);
-+static SENSOR_DEVICE_ATTR(pwm5, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 4);
-+static DEVICE_ATTR(pwm5_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm5_auto_channels_temp, S_IRUGO | S_IWUSR,
-+			  show_pwm_temp_map, set_pwm_temp_map, 4);
-+
-+static SENSOR_DEVICE_ATTR(pwm6_enable, S_IRUGO | S_IWUSR,
-+			  show_pwm_enable, set_pwm_enable, 5);
-+static SENSOR_DEVICE_ATTR(pwm6, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 5);
-+static DEVICE_ATTR(pwm6_freq, S_IRUGO | S_IWUSR, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO | S_IWUSR,
-+			  show_pwm_temp_map, set_pwm_temp_map, 5);
-+
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
- 		char *buf)
-@@ -1721,7 +1745,7 @@ static const struct attribute *it87_attributes_fan_div[] = {
- 	&sensor_dev_attr_fan3_div.dev_attr.attr,
- };
- 
--static struct attribute *it87_attributes_pwm[3][4+1] = { {
-+static struct attribute *it87_attributes_pwm[6][4+1] = { {
- 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
- 	&sensor_dev_attr_pwm1.dev_attr.attr,
- 	&dev_attr_pwm1_freq.attr,
-@@ -1739,12 +1763,33 @@ static struct attribute *it87_attributes_pwm[3][4+1] = { {
- 	&dev_attr_pwm3_freq.attr,
- 	&sensor_dev_attr_pwm3_auto_channels_temp.dev_attr.attr,
- 	NULL
-+}, {
-+	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm4.dev_attr.attr,
-+	&dev_attr_pwm4_freq.attr,
-+	&sensor_dev_attr_pwm4_auto_channels_temp.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_pwm5_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm5.dev_attr.attr,
-+	&dev_attr_pwm5_freq.attr,
-+	&sensor_dev_attr_pwm5_auto_channels_temp.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_pwm6_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm6.dev_attr.attr,
-+	&dev_attr_pwm6_freq.attr,
-+	&sensor_dev_attr_pwm6_auto_channels_temp.dev_attr.attr,
-+	NULL
- } };
- 
--static const struct attribute_group it87_group_pwm[3] = {
-+static const struct attribute_group it87_group_pwm[6] = {
- 	{ .attrs = it87_attributes_pwm[0] },
- 	{ .attrs = it87_attributes_pwm[1] },
- 	{ .attrs = it87_attributes_pwm[2] },
-+	{ .attrs = it87_attributes_pwm[3] },
-+	{ .attrs = it87_attributes_pwm[4] },
-+	{ .attrs = it87_attributes_pwm[5] },
- };
- 
- static struct attribute *it87_attributes_autopwm[3][9+1] = { {
-@@ -1926,6 +1971,9 @@ static int __init it87_find(unsigned short *address,
- 	else
- 		sio_data->skip_in |= (1 << 9);
- 
-+	if (!has_six_pwm(config))
-+		sio_data->skip_pwm |= (1 << 3) | (1 << 4) | (1 << 5);
-+
- 	if (!has_vid(config))
- 		sio_data->skip_vid = 1;
- 
-@@ -2028,6 +2076,11 @@ static int __init it87_find(unsigned short *address,
- 
- 		superio_select(GPIO);
- 
-+		/* Check for pwm5 */
-+		reg = superio_inb(IT87_SIO_GPIO1_REG);
-+		if (reg & (1 << 6))
-+			sio_data->skip_pwm |= (1 << 4);
-+
- 		/* Check for fan4, fan5 */
- 		reg = superio_inb(IT87_SIO_GPIO2_REG);
- 		if (!(reg & (1 << 5)))
-@@ -2042,12 +2095,22 @@ static int __init it87_find(unsigned short *address,
- 		if (reg & (1 << 7))
- 			sio_data->skip_fan |= (1 << 2);
- 
-+		/* Check for pwm4 */
-+		reg = superio_inb(IT87_SIO_GPIO4_REG);
-+		if (!(reg & (1 << 4)))
-+			sio_data->skip_pwm |= (1 << 3);
-+
- 		/* Check for pwm2, fan2 */
- 		reg = superio_inb(IT87_SIO_GPIO5_REG);
- 		if (reg & (1 << 1))
- 			sio_data->skip_pwm |= (1 << 1);
- 		if (reg & (1 << 2))
- 			sio_data->skip_fan |= (1 << 1);
-+		/* Check for pwm6, fan6 */
-+		if (!(reg & (1 << 7))) {
-+			sio_data->skip_pwm |= (1 << 5);
-+			sio_data->skip_fan |= (1 << 5);
-+		}
- 
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	} else {
-@@ -2190,7 +2253,7 @@ static void it87_remove_files(struct device *dev)
- 			sysfs_remove_file(&dev->kobj,
- 					  it87_attributes_fan_div[i]);
- 	}
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < 6; i++) {
- 		if (sio_data->skip_pwm & (1 << i))
- 			continue;
- 		sysfs_remove_group(&dev->kobj, &it87_group_pwm[i]);
-@@ -2373,7 +2436,7 @@ static int it87_probe(struct platform_device *pdev)
- 	}
- 
- 	if (enable_pwm_interface) {
--		for (i = 0; i < 3; i++) {
-+		for (i = 0; i < 6; i++) {
- 			if (sio_data->skip_pwm & (1 << i))
- 				continue;
- 			err = sysfs_create_group(&dev->kobj,
-@@ -2476,7 +2539,7 @@ static int it87_check_pwm(struct device *dev)
- 
- 			for (i = 0; i < 3; i++)
- 				pwm[i] = it87_read_value(data,
--							 IT87_REG_PWM(i));
-+							 IT87_REG_PWM[i]);
- 
- 			/*
- 			 * If any fan is in automatic pwm mode, the polarity
-@@ -2491,7 +2554,7 @@ static int it87_check_pwm(struct device *dev)
- 						 tmp | 0x87);
- 				for (i = 0; i < 3; i++)
- 					it87_write_value(data,
--							 IT87_REG_PWM(i),
-+							 IT87_REG_PWM[i],
- 							 0x7f & ~pwm[i]);
- 				return 1;
- 			}
-@@ -2606,6 +2669,16 @@ static void it87_init_device(struct platform_device *pdev)
- 	/* Fan input pins may be used for alternative functions */
- 	data->has_fan &= ~sio_data->skip_fan;
- 
-+	/* Check if pwm5, pwm6 are enabled */
-+	if (has_six_pwm(data)) {
-+		/* The following code may be IT8620E specific */
-+		tmp = it87_read_value(data, IT87_REG_FAN_DIV);
-+		if ((tmp & 0xc0) = 0xc0)
-+			sio_data->skip_pwm |= (1 << 4);
-+		if (!(tmp & (1 << 3)))
-+			sio_data->skip_pwm |= (1 << 5);
-+	}
-+
- 	/* Start monitoring */
- 	it87_write_value(data, IT87_REG_CONFIG,
- 			 (it87_read_value(data, IT87_REG_CONFIG) & 0x3e)
-@@ -2614,11 +2687,12 @@ static void it87_init_device(struct platform_device *pdev)
- 
- static void it87_update_pwm_ctrl(struct it87_data *data, int nr)
- {
--	data->pwm_ctrl[nr] = it87_read_value(data, IT87_REG_PWM(nr));
-+	data->pwm_ctrl[nr] = it87_read_value(data, IT87_REG_PWM[nr]);
- 	if (has_newer_autopwm(data)) {
--		data->pwm_temp_map[nr] = data->pwm_ctrl[nr] & 0x03;
-+		data->pwm_temp_map[nr] = (data->pwm_ctrl[nr] & 0x03) +
-+			nr < 3 ? 0 : 3;
- 		data->pwm_duty[nr] = it87_read_value(data,
--						     IT87_REG_PWM_DUTY(nr));
-+						     IT87_REG_PWM_DUTY[nr]);
- 	} else {
- 		if (data->pwm_ctrl[nr] & 0x80)	/* Automatic mode */
- 			data->pwm_temp_map[nr] = data->pwm_ctrl[nr] & 0x03;
-@@ -2717,7 +2791,7 @@ static struct it87_data *it87_update_device(struct device *dev)
- 		data->fan_main_ctrl = it87_read_value(data,
- 				IT87_REG_FAN_MAIN_CTRL);
- 		data->fan_ctl = it87_read_value(data, IT87_REG_FAN_CTL);
--		for (i = 0; i < 3; i++)
-+		for (i = 0; i < 6; i++)
- 			it87_update_pwm_ctrl(data, i);
- 
- 		data->sensor = it87_read_value(data, IT87_REG_TEMP_ENABLE);
--- 
-2.1.0
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBzaG91bGQgc2hvcnRlbiBhIGJpdCB0aGUgY29kZSBuZWNlc3NhcnkgdG8gY3JlYXRlIGEg
+aG13b24gYXR0cmlidXRlLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bm
+ci5pYm0uY29tPgotLS0KCiBDaGFuZ2VzIHNpbmNlIHYxOgoKIC0gZml4IGFsaWdubWVudCBvZiBj
+cmVhdGVfaHdtb25fYXR0cigpIHByb3RvdHlwZQoKIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5j
+IHwgICAyNCArKysrKysrKysrKysrKysrLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxNiBpbnNl
+cnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vaWJt
+cG93ZXJudi5jIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKaW5kZXggYTZlNzI0NWYxNzJk
+Li43ODIyNDc0YzRhYzggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCisr
+KyBiL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCkBAIC0yMzIsNiArMjMyLDIxIEBAIHN0YXRp
+YyBpbnQgcG9wdWxhdGVfYXR0cl9ncm91cHMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikK
+IAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIHZvaWQgY3JlYXRlX2h3bW9uX2F0dHIoc3RydWN0IHNl
+bnNvcl9kYXRhICpzZGF0YSwgY29uc3QgY2hhciAqYXR0cl9uYW1lLAorCQkJICAgICAgc3NpemVf
+dCAoKnNob3cpKHN0cnVjdCBkZXZpY2UgKmRldiwKKwkJCQkJICAgICAgc3RydWN0IGRldmljZV9h
+dHRyaWJ1dGUgKmF0dHIsCisJCQkJCSAgICAgIGNoYXIgKmJ1ZikpCit7CisJc25wcmludGYoc2Rh
+dGEtPm5hbWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAorCQkgc2Vuc29yX2dyb3Vwc1tzZGF0
+YS0+dHlwZV0ubmFtZSwgc2RhdGEtPmh3bW9uX2luZGV4LAorCQkgYXR0cl9uYW1lKTsKKworCXN5
+c2ZzX2F0dHJfaW5pdCgmc2RhdGEtPmRldl9hdHRyLmF0dHIpOworCXNkYXRhLT5kZXZfYXR0ci5h
+dHRyLm5hbWUgPSBzZGF0YS0+bmFtZTsKKwlzZGF0YS0+ZGV2X2F0dHIuYXR0ci5tb2RlID0gU19J
+UlVHTzsKKwlzZGF0YS0+ZGV2X2F0dHIuc2hvdyA9IHNob3c7Cit9CisKIC8qCiAgKiBJdGVyYXRl
+IHRocm91Z2ggdGhlIGRldmljZSB0cmVlIGZvciBlYWNoIGNoaWxkIG9mICdzZW5zb3JzJyBub2Rl
+LCBjcmVhdGUKICAqIGEgc3lzZnMgYXR0cmlidXRlIGZpbGUsIHRoZSBmaWxlIGlzIG5hbWVkIGJ5
+IHRyYW5zbGF0aW5nIHRoZSBEVCBub2RlIG5hbWUKQEAgLTI5MCwxNCArMzA1LDcgQEAgc3RhdGlj
+IGludCBjcmVhdGVfZGV2aWNlX2F0dHJzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJ
+CXNkYXRhW2NvdW50XS5od21vbl9pbmRleCA9CiAJCQlnZXRfc2Vuc29yX2h3bW9uX2luZGV4KCZz
+ZGF0YVtjb3VudF0sIHNkYXRhLCBjb3VudCk7CiAKLQkJc25wcmludGYoc2RhdGFbY291bnRdLm5h
+bWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAotCQkJIHNlbnNvcl9ncm91cHNbdHlwZV0ubmFt
+ZSwgc2RhdGFbY291bnRdLmh3bW9uX2luZGV4LAotCQkJIGF0dHJfbmFtZSk7Ci0KLQkJc3lzZnNf
+YXR0cl9pbml0KCZzZGF0YVtjb3VudF0uZGV2X2F0dHIuYXR0cik7Ci0JCXNkYXRhW2NvdW50XS5k
+ZXZfYXR0ci5hdHRyLm5hbWUgPSBzZGF0YVtjb3VudF0ubmFtZTsKLQkJc2RhdGFbY291bnRdLmRl
+dl9hdHRyLmF0dHIubW9kZSA9IFNfSVJVR087Ci0JCXNkYXRhW2NvdW50XS5kZXZfYXR0ci5zaG93
+ID0gc2hvd19zZW5zb3I7CisJCWNyZWF0ZV9od21vbl9hdHRyKCZzZGF0YVtjb3VudF0sIGF0dHJf
+bmFtZSwgc2hvd19zZW5zb3IpOwogCiAJCXBncm91cHNbdHlwZV0tPmF0dHJzW3NlbnNvcl9ncm91
+cHNbdHlwZV0uYXR0cl9jb3VudCsrXSA9CiAJCQkJJnNkYXRhW2NvdW50KytdLmRldl9hdHRyLmF0
+dHI7Ci0tIAoxLjcuMTAuNAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw=
