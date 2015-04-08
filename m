@@ -1,224 +1,72 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:55:04 +0000
-Subject: [lm-sensors] [PATCH 13/22] hwmon: (it87) Use is_visible for fan attributes
-Message-Id: <1428184513-22380-14-git-send-email-linux@roeck-us.net>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Wed, 08 Apr 2015 17:19:49 +0000
+Subject: [lm-sensors] [PATCH v5 3/4] hwmon: (ibmpowernv) add a label attribute
+Message-Id: <1428513590-5773-4-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-Simplify code and reduce object size by almost 500 bytes on x86_64.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c | 140 ++++++++++++++++++++-------------------------------
- 1 file changed, 55 insertions(+), 85 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 507add1a695f..82d2950d7898 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1873,51 +1873,75 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
- };
- 
--static struct attribute *it87_attributes_fan[6][3+1] = { {
-+static umode_t it87_fan_is_visible(struct kobject *kobj,
-+				   struct attribute *attr, int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct it87_data *data = dev_get_drvdata(dev);
-+	int i = index / 5;	/* fan index */
-+	int a = index % 5;	/* attribute index */
-+
-+	if (index >= 15) {	/* fan 4..6 don't have divisor attributes */
-+		i = (index - 15) / 4 + 3;
-+		a = (index - 15) % 4;
-+	}
-+
-+	if (!(data->has_fan & (1 << i)))
-+		return 0;
-+
-+	if (a = 3) {				/* beep */
-+		if (!data->has_beep)
-+			return 0;
-+		/* first fan beep attribute is writable */
-+		if (i = __ffs(data->has_fan))
-+			return attr->mode | S_IWUSR;
-+	}
-+
-+	if (a = 4 && has_16bit_fans(data))	/* divisor */
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static struct attribute *it87_attributes_fan[] = {
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_fan1_min.dev_attr.attr,
- 	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_fan1_beep.dev_attr.attr,	/* 3 */
-+	&sensor_dev_attr_fan1_div.dev_attr.attr,	/* 4 */
-+
- 	&sensor_dev_attr_fan2_input.dev_attr.attr,
- 	&sensor_dev_attr_fan2_min.dev_attr.attr,
- 	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
--	NULL
--}, {
-+	&sensor_dev_attr_fan2_beep.dev_attr.attr,
-+	&sensor_dev_attr_fan2_div.dev_attr.attr,	/* 9 */
-+
- 	&sensor_dev_attr_fan3_input.dev_attr.attr,
- 	&sensor_dev_attr_fan3_min.dev_attr.attr,
- 	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
--	NULL
--}, {
--	&sensor_dev_attr_fan4_input.dev_attr.attr,
-+	&sensor_dev_attr_fan3_beep.dev_attr.attr,
-+	&sensor_dev_attr_fan3_div.dev_attr.attr,	/* 14 */
-+
-+	&sensor_dev_attr_fan4_input.dev_attr.attr,	/* 15 */
- 	&sensor_dev_attr_fan4_min.dev_attr.attr,
- 	&sensor_dev_attr_fan4_alarm.dev_attr.attr,
--	NULL
--}, {
--	&sensor_dev_attr_fan5_input.dev_attr.attr,
-+	&sensor_dev_attr_fan4_beep.dev_attr.attr,
-+
-+	&sensor_dev_attr_fan5_input.dev_attr.attr,	/* 19 */
- 	&sensor_dev_attr_fan5_min.dev_attr.attr,
- 	&sensor_dev_attr_fan5_alarm.dev_attr.attr,
--	NULL
--}, {
--	&sensor_dev_attr_fan6_input.dev_attr.attr,
-+	&sensor_dev_attr_fan5_beep.dev_attr.attr,
-+
-+	&sensor_dev_attr_fan6_input.dev_attr.attr,	/* 23 */
- 	&sensor_dev_attr_fan6_min.dev_attr.attr,
- 	&sensor_dev_attr_fan6_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan6_beep.dev_attr.attr,
- 	NULL
--} };
--
--static const struct attribute_group it87_group_fan[6] = {
--	{ .attrs = it87_attributes_fan[0] },
--	{ .attrs = it87_attributes_fan[1] },
--	{ .attrs = it87_attributes_fan[2] },
--	{ .attrs = it87_attributes_fan[3] },
--	{ .attrs = it87_attributes_fan[4] },
--	{ .attrs = it87_attributes_fan[5] },
- };
- 
--static const struct attribute *it87_attributes_fan_div[] = {
--	&sensor_dev_attr_fan1_div.dev_attr.attr,
--	&sensor_dev_attr_fan2_div.dev_attr.attr,
--	&sensor_dev_attr_fan3_div.dev_attr.attr,
-+static const struct attribute_group it87_group_fan = {
-+	.attrs = it87_attributes_fan,
-+	.is_visible = it87_fan_is_visible,
- };
- 
- static struct attribute *it87_attributes_pwm[6][4+1] = { {
-@@ -2021,15 +2045,6 @@ static const struct attribute_group it87_group_autopwm[3] = {
- 	{ .attrs = it87_attributes_autopwm[2] },
- };
- 
--static struct attribute *it87_attributes_fan_beep[] = {
--	&sensor_dev_attr_fan1_beep.dev_attr.attr,
--	&sensor_dev_attr_fan2_beep.dev_attr.attr,
--	&sensor_dev_attr_fan3_beep.dev_attr.attr,
--	&sensor_dev_attr_fan4_beep.dev_attr.attr,
--	&sensor_dev_attr_fan5_beep.dev_attr.attr,
--	&sensor_dev_attr_fan6_beep.dev_attr.attr,
--};
--
- static struct attribute *it87_attributes_vid[] = {
- 	&dev_attr_vrm.attr,
- 	&dev_attr_cpu0_vid.attr,
-@@ -2420,19 +2435,9 @@ static void it87_remove_files(struct device *dev)
- 	sysfs_remove_group(&dev->kobj, &it87_group);
- 	sysfs_remove_group(&dev->kobj, &it87_group_in);
- 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
-+	sysfs_remove_group(&dev->kobj, &it87_group_fan);
- 
- 	for (i = 0; i < 6; i++) {
--		if (!(data->has_fan & (1 << i)))
--			continue;
--		sysfs_remove_group(&dev->kobj, &it87_group_fan[i]);
--		if (sio_data->beep_pin)
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_fan_beep[i]);
--		if (i < 3 && !has_16bit_fans(data))
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_fan_div[i]);
--	}
--	for (i = 0; i < 6; i++) {
- 		if (sio_data->skip_pwm & (1 << i))
- 			continue;
- 		sysfs_remove_group(&dev->kobj, &it87_group_pwm[i]);
-@@ -2621,7 +2626,6 @@ static int it87_probe(struct platform_device *pdev)
- 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
- 	int err = 0, i;
- 	int enable_pwm_interface;
--	int fan_beep_need_rw;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
-@@ -2722,43 +2726,9 @@ static int it87_probe(struct platform_device *pdev)
- 	if (err)
- 		goto error;
- 
--	/* Do not create fan files for disabled fans */
--	fan_beep_need_rw = 1;
--	for (i = 0; i < 6; i++) {
--		if (!(data->has_fan & (1 << i)))
--			continue;
--		err = sysfs_create_group(&dev->kobj, &it87_group_fan[i]);
--		if (err)
--			goto error;
--
--		if (i < 3 && !has_16bit_fans(data)) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_fan_div[i]);
--			if (err)
--				goto error;
--		}
--
--		if (sio_data->beep_pin) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_fan_beep[i]);
--			if (err)
--				goto error;
--			if (!fan_beep_need_rw)
--				continue;
--
--			/*
--			 * As we have a single beep enable bit for all fans,
--			 * only the first enabled fan has a writable attribute
--			 * for it.
--			 */
--			if (sysfs_chmod_file(&dev->kobj,
--					     it87_attributes_fan_beep[i],
--					     S_IRUGO | S_IWUSR))
--				dev_dbg(dev, "chmod +w fan%d_beep failed\n",
--					i + 1);
--			fan_beep_need_rw = 0;
--		}
--	}
-+	err = sysfs_create_group(&dev->kobj, &it87_group_fan);
-+	if (err)
-+		goto error;
- 
- 	if (enable_pwm_interface) {
- 		for (i = 0; i < 6; i++) {
--- 
-2.1.0
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Q3VycmVudGx5LCBzZW5zb3JzIGFyZSBvbmx5IGlkZW50aWZpZWQgYnkgdGhlaXIgdHlwZSBhbmQg
+aW5kZXguCgpUaGUgbmV3IE9QQUwgZGV2aWNlIHRyZWUgY2FuIGV4cG9zZSBleHRyYSBwcm9wZXJ0
+aWVzIHRvIGlkZW50aWZ5CnNvbWUgc2Vuc29ycyBieSB0aGVpciBuYW1lIG9yIGxvY2F0aW9uLiBU
+aGlzIHBhdGNoIGFkZHMgdGhlIGNyZWF0aW9uCm9mIGEgbmV3IGh3bW9uICpfbGFiZWwgYXR0cmli
+dXRlIHdoZW4gc3VjaCBwcm9wZXJ0aWVzIGFyZSBkZXRlY3RlZC4KClNpZ25lZC1vZmYtYnk6IEPD
+qWRyaWMgTGUgR29hdGVyIDxjbGdAZnIuaWJtLmNvbT4KLS0tCgogQ2hhbmdlcyBzaW5jZSB2MToK
+CiAtIGZpeCBhbGlnbm1lbnQKCiBkcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyB8ICAgNTIgKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0KIDEgZmlsZSBjaGFuZ2Vk
+LCA1MSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9o
+d21vbi9pYm1wb3dlcm52LmMgYi9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYwppbmRleCBjZGEx
+MjU2ODUyMzMuLjllOGY5M2M5YzQ3NSAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9pYm1wb3dl
+cm52LmMKKysrIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKQEAgLTMyLDYgKzMyLDcgQEAK
+ICNpbmNsdWRlIDxsaW51eC9lcnIuaD4KIAogI2RlZmluZSBNQVhfQVRUUl9MRU4JMzIKKyNkZWZp
+bmUgTUFYX0xBQkVMX0xFTgk2NAogCiAvKiBTZW5zb3Igc3VmZml4IG5hbWUgZnJvbSBEVCAqLwog
+I2RlZmluZSBEVF9GQVVMVF9BVFRSX1NVRkZJWAkJImZhdWx0ZWQiCkBAIC03MCw2ICs3MSw3IEBA
+IHN0cnVjdCBzZW5zb3JfZGF0YSB7CiAJdTMyIGh3bW9uX2luZGV4OwogCXUzMiBvcGFsX2luZGV4
+OwogCWVudW0gc2Vuc29ycyB0eXBlOworCWNoYXIgbGFiZWxbTUFYX0xBQkVMX0xFTl07CiAJY2hh
+ciBuYW1lW01BWF9BVFRSX0xFTl07CiAJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgZGV2X2F0dHI7
+CiB9OwpAQCAtMTAxLDYgKzEwMywyNCBAQCBzdGF0aWMgc3NpemVfdCBzaG93X3NlbnNvcihzdHJ1
+Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLAogCXJldHVy
+biBzcHJpbnRmKGJ1ZiwgIiV1XG4iLCB4KTsKIH0KIAorc3RhdGljIHNzaXplX3Qgc2hvd19sYWJl
+bChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLAor
+CQkJICBjaGFyICpidWYpCit7CisJc3RydWN0IHNlbnNvcl9kYXRhICpzZGF0YSA9IGNvbnRhaW5l
+cl9vZihkZXZhdHRyLCBzdHJ1Y3Qgc2Vuc29yX2RhdGEsCisJCQkJCQkgZGV2X2F0dHIpOworCisJ
+cmV0dXJuIHNwcmludGYoYnVmLCAiJXNcbiIsIHNkYXRhLT5sYWJlbCk7Cit9CisKK3N0YXRpYyB2
+b2lkIF9faW5pdCBtYWtlX3NlbnNvcl9sYWJlbChzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wLAorCQkJ
+CSAgICAgc3RydWN0IHNlbnNvcl9kYXRhICpzZGF0YSwKKwkJCQkgICAgIGNvbnN0IGNoYXIgKmxh
+YmVsKQoreworCXNpemVfdCBuOworCisJbiA9IHNucHJpbnRmKHNkYXRhLT5sYWJlbCwgc2l6ZW9m
+KHNkYXRhLT5sYWJlbCksICIlcyIsIGxhYmVsKTsKK30KKwogc3RhdGljIGludCBnZXRfc2Vuc29y
+X2luZGV4X2F0dHIoY29uc3QgY2hhciAqbmFtZSwgdTMyICppbmRleCwKIAkJCQkJY2hhciAqYXR0
+cikKIHsKQEAgLTIyOCwxMSArMjQ4LDIxIEBAIHN0YXRpYyBpbnQgcG9wdWxhdGVfYXR0cl9ncm91
+cHMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAogCW9wYWwgPSBvZl9maW5kX25vZGVf
+YnlfcGF0aCgiL2libSxvcGFsL3NlbnNvcnMiKTsKIAlmb3JfZWFjaF9jaGlsZF9vZl9ub2RlKG9w
+YWwsIG5wKSB7CisJCWNvbnN0IGNoYXIgKmxhYmVsOworCiAJCWlmIChucC0+bmFtZSA9PSBOVUxM
+KQogCQkJY29udGludWU7CiAKIAkJdHlwZSA9IGdldF9zZW5zb3JfdHlwZShucCk7Ci0JCWlmICh0
+eXBlICE9IE1BWF9TRU5TT1JfVFlQRSkKKwkJaWYgKHR5cGUgPT0gTUFYX1NFTlNPUl9UWVBFKQor
+CQkJY29udGludWU7CisKKwkJc2Vuc29yX2dyb3Vwc1t0eXBlXS5hdHRyX2NvdW50Kys7CisKKwkJ
+LyoKKwkJICogYWRkIGEgbmV3IGF0dHJpYnV0ZSBmb3IgbGFiZWxzCisJCSAqLworCQlpZiAoIW9m
+X3Byb3BlcnR5X3JlYWRfc3RyaW5nKG5wLCAibGFiZWwiLCAmbGFiZWwpKQogCQkJc2Vuc29yX2dy
+b3Vwc1t0eXBlXS5hdHRyX2NvdW50Kys7CiAJfQogCkBAIC0yOTcsNiArMzI3LDcgQEAgc3RhdGlj
+IGludCBjcmVhdGVfZGV2aWNlX2F0dHJzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJ
+Zm9yX2VhY2hfY2hpbGRfb2Zfbm9kZShvcGFsLCBucCkgewogCQljb25zdCBjaGFyICphdHRyX25h
+bWU7CiAJCXUzMiBvcGFsX2luZGV4OworCQljb25zdCBjaGFyICpsYWJlbDsKIAogCQlpZiAobnAt
+Pm5hbWUgPT0gTlVMTCkKIAkJCWNvbnRpbnVlOwpAQCAtMzQwLDYgKzM3MSwyNSBAQCBzdGF0aWMg
+aW50IGNyZWF0ZV9kZXZpY2VfYXR0cnMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAog
+CQlwZ3JvdXBzW3R5cGVdLT5hdHRyc1tzZW5zb3JfZ3JvdXBzW3R5cGVdLmF0dHJfY291bnQrK10g
+PQogCQkJCSZzZGF0YVtjb3VudCsrXS5kZXZfYXR0ci5hdHRyOworCisJCWlmICghb2ZfcHJvcGVy
+dHlfcmVhZF9zdHJpbmcobnAsICJsYWJlbCIsICZsYWJlbCkpIHsKKwkJCS8qCisJCQkgKiBGb3Ig
+dGhlIGxhYmVsIGF0dHJpYnV0ZSwgd2UgY2FuIHJldXNlIHRoZQorCQkJICogInByb3BlcnRpZXMi
+IG9mIHRoZSBwcmV2aW91cyAiaW5wdXQiCisJCQkgKiBhdHRyaWJ1dGUuIFRoZXkgYXJlIHJlbGF0
+ZWQgdG8gdGhlIHNhbWUKKwkJCSAqIHNlbnNvci4KKwkJCSAqLworCQkJc2RhdGFbY291bnRdLnR5
+cGUgPSB0eXBlOworCQkJc2RhdGFbY291bnRdLm9wYWxfaW5kZXggPSBzZGF0YVtjb3VudCAtIDFd
+Lm9wYWxfaW5kZXg7CisJCQlzZGF0YVtjb3VudF0uaHdtb25faW5kZXggPSBzZGF0YVtjb3VudCAt
+IDFdLmh3bW9uX2luZGV4OworCisJCQltYWtlX3NlbnNvcl9sYWJlbChucCwgJnNkYXRhW2NvdW50
+XSwgbGFiZWwpOworCisJCQljcmVhdGVfaHdtb25fYXR0cigmc2RhdGFbY291bnRdLCAibGFiZWwi
+LCBzaG93X2xhYmVsKTsKKworCQkJcGdyb3Vwc1t0eXBlXS0+YXR0cnNbc2Vuc29yX2dyb3Vwc1t0
+eXBlXS5hdHRyX2NvdW50KytdID0KKwkJCQkmc2RhdGFbY291bnQrK10uZGV2X2F0dHIuYXR0cjsK
+KwkJfQogCX0KIAogZXhpdF9wdXRfbm9kZToKLS0gCjEuNy4xMC40CgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
+bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
