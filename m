@@ -1,129 +1,83 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:55:00 +0000
-Subject: [lm-sensors] [PATCH v2 09/22] hwmon: (it87) Add support for second Super-IO chip
-Message-Id: <1428184513-22380-10-git-send-email-linux@roeck-us.net>
+Date: Wed, 08 Apr 2015 15:21:58 +0000
+Subject: Re: [lm-sensors] [v4] hwmon: (ibmpowernv) pretty print labels
+Message-Id: <20150408152158.GA15824@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1428500527-7833-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1428500527-7833-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org
 
-The Super-IO chip can also reside at SIO address 0x4e, and there can be
-two Super-IO chips in the system. Add support for it.
+On Wed, Apr 08, 2015 at 03:42:07PM +0200, C=E9dric Le Goater wrote:
+> The new OPAL device tree adds a few properties which can be used to add
+> extra information on the sensor label.
+>=20
+> In the case of a cpu core sensor, the firmware exposes the physical=20
+> identifier of the core in the "ibm,pir" property. The driver=20
+> translates this identifier in a linux cpu number and prints out a=20
+> range corresponding to the hardware threads of the core (as they
+> share the same sensor).
+>=20
+> The numbering gives a hint on the localization of the core in the=20
+> system (which socket, which chip).=20
+>=20
+> Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
+> ---
+>=20
+>  Changes since v3:
+>=20
+>  - removed error message in case of an unknown physical cpu number
+>=20
+>  Changes since v2:
+>=20
+>  - fix bogus logical cpu retrieval=20
+>  - use 'threads_per_core' to print out cpu range
+>=20
+>  Changes since v1:
+>=20
+>  - check cpu validity before printing out the attribute label.=20
+>    if invalid, use a "phy" prefix to distinguish a linux cpu=20
+>    number from a physical cpu number.=20
+>=20
+>  drivers/hwmon/ibmpowernv.c |   41 ++++++++++++++++++++++++++++++++++++++=
++++
+>  1 file changed, 41 insertions(+)
+>=20
+> Index: linux.git/drivers/hwmon/ibmpowernv.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux.git.orig/drivers/hwmon/ibmpowernv.c
+> +++ linux.git/drivers/hwmon/ibmpowernv.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/platform_device.h>
+>  #include <asm/opal.h>
+>  #include <linux/err.h>
+> +#include <asm/cputhreads.h>
+> =20
+>  #define MAX_ATTR_LEN	32
+>  #define MAX_LABEL_LEN	64
+> @@ -110,12 +111,52 @@ static ssize_t show_label(struct device
+>  	return sprintf(buf, "%s\n", sdata->label);
+>  }
+> =20
+> +static int __init get_logical_cpu(unsigned int hwcpu)
+> +{
+> +	int cpu;
+> +
+> +	for_each_possible_cpu(cpu)
+> +		if (get_hard_smp_processor_id(cpu) =3D=3D hwcpu)
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Rebased to previous patches; no functional change
+drivers/hwmon/ibmpowernv.c: In function 'get_logical_cpu':
+drivers/hwmon/ibmpowernv.c:119:38: warning: comparison between signed and
+unsigned integer expressions [-Wsign-compare]
+   if (get_hard_smp_processor_id(cpu) =3D=3D hwcpu)
+                                         ^
 
- drivers/hwmon/it87.c | 49 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index f29d2fb30f7e..e361b42f1456 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -76,9 +76,10 @@ static unsigned short force_id;
- module_param(force_id, ushort, 0);
- MODULE_PARM_DESC(force_id, "Override the detected device ID");
- 
--static struct platform_device *it87_pdev;
-+static struct platform_device *it87_pdev[2];
- 
- #define	REG_2E	0x2e	/* The register to read/write */
-+#define	REG_4E	0x4e	/* Secondary register to read/write */
- 
- #define	DEV	0x07	/* Register: Logical device select */
- #define PME	0x04	/* The device with the fan registers in it */
-@@ -128,7 +129,7 @@ static inline int superio_enter(int ioreg)
- 	outb(0x87, ioreg);
- 	outb(0x01, ioreg);
- 	outb(0x55, ioreg);
--	outb(0x55, ioreg);
-+	outb(ioreg = REG_4E ? 0xaa : 0x55, ioreg);
- 	return 0;
- }
- 
-@@ -2864,7 +2865,7 @@ static struct it87_data *it87_update_device(struct device *dev)
- 	return data;
- }
- 
--static int __init it87_device_add(unsigned short address,
-+static int __init it87_device_add(int index, unsigned short address,
- 				  const struct it87_sio_data *sio_data)
- {
- 	struct platform_device *pdev;
-@@ -2903,7 +2904,7 @@ static int __init it87_device_add(unsigned short address,
- 		goto exit_device_put;
- 	}
- 
--	it87_pdev = pdev;
-+	it87_pdev[index] = pdev;
- 	return 0;
- 
- exit_device_put:
-@@ -2913,30 +2914,48 @@ exit_device_put:
- 
- static int __init sm_it87_init(void)
- {
--	int err;
--	unsigned short isa_address = 0;
-+	int sioaddr[2] = { REG_2E, REG_4E };
- 	struct it87_sio_data sio_data;
-+	unsigned short isa_address;
-+	bool found = false;
-+	int i, err;
- 
--	memset(&sio_data, 0, sizeof(struct it87_sio_data));
--	err = it87_find(REG_2E, &isa_address, &sio_data);
--	if (err)
--		return err;
- 	err = platform_driver_register(&it87_driver);
- 	if (err)
- 		return err;
- 
--	err = it87_device_add(isa_address, &sio_data);
--	if (err) {
--		platform_driver_unregister(&it87_driver);
--		return err;
-+	for (i = 0; i < ARRAY_SIZE(sioaddr); i++) {
-+		memset(&sio_data, 0, sizeof(struct it87_sio_data));
-+		isa_address = 0;
-+		err = it87_find(sioaddr[i], &isa_address, &sio_data);
-+		if (err || isa_address = 0)
-+			continue;
-+
-+		err = it87_device_add(i, isa_address, &sio_data);
-+		if (err)
-+			goto exit_dev_unregister;
-+		found = true;
- 	}
- 
-+	if (!found) {
-+		err = -ENODEV;
-+		goto exit_unregister;
-+	}
- 	return 0;
-+
-+exit_dev_unregister:
-+	/* NULL check handled by platform_device_unregister */
-+	platform_device_unregister(it87_pdev[0]);
-+exit_unregister:
-+	platform_driver_unregister(&it87_driver);
-+	return err;
- }
- 
- static void __exit sm_it87_exit(void)
- {
--	platform_device_unregister(it87_pdev);
-+	/* NULL check handled by platform_device_unregister */
-+	platform_device_unregister(it87_pdev[1]);
-+	platform_device_unregister(it87_pdev[0]);
- 	platform_driver_unregister(&it87_driver);
- }
- 
--- 
-2.1.0
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
