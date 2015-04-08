@@ -1,38 +1,37 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 08 Apr 2015 17:19:46 +0000
-Subject: [lm-sensors] [PATCH v5 0/4] hwmon: (ibmpowernv) add DTS support
-Message-Id: <1428513590-5773-1-git-send-email-clg@fr.ibm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 08 Apr 2015 17:32:36 +0000
+Subject: Re: [lm-sensors] [PATCH v5 0/4] hwmon: (ibmpowernv) add DTS support
+Message-Id: <20150408173236.GB26109@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1428513590-5773-1-git-send-email-clg@fr.ibm.com>
+In-Reply-To: <1428513590-5773-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Jean Delvare <jdelvare@suse.de>
 
-SGVsbG8gIQoKVGhlc2UgcGF0Y2hlcyBleHRlbmQgdGhlIGlibXBvd2VybnYgZHJpdmVyIHRvIHN1
-cHBvcnQgdGhlIG5ldyBPUEFMIGZpcm13YXJlIAp3aGljaCBub3cgZXhwb3NlcyBpbiBpdHMgZGV2
-aWNlIHRyZWUgdGhlIERpZ2l0YWwgVGVtcGVyYXR1cmUgU2Vuc29ycyBvZiAKYSBQOCBzeXN0ZW0u
-CgpUaGV5IGFyZSBiYXNlZCBvbiBMaW51eCA0LjAuMC1yYzcgKyB0aGUgaW5pdGlhbCBjbGVhbnVw
-IHNlcmllIDoKCiAgICAgaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1z
-ZW5zb3JzLzIwMTUtTWFyY2gvMDQzNjcwLmh0bWwKCmFuZCB3ZXJlIHRlc3RlZCBvbiBJQk0gUG93
-ZXIgYW5kIE9wZW4gUG93ZXIgc3lzdGVtcyBydW5uaW5nIFRydXN0eS4KCkNoZWVycywKCkMuCgog
-Q2hhbmdlcyBzaW5jZSB2NDoKCiAtIGZpeGVkIGNvbXBhcmlzb24gYmV0d2VlbiBzaWduZWQgYW5k
-IHVuc2lnbmVkIGludGVnZXIgaW4gCiAgIGdldF9sb2dpY2FsX2NwdSgpCgogQ2hhbmdlcyBzaW5j
-ZSB2MzoKCiAtIHJlbW92ZWQgZXJyb3IgbWVzc2FnZSBpbiBjYXNlIG9mIGFuIHVua25vd24gcGh5
-c2ljYWwgY3B1IG51bWJlcgoKIENoYW5nZXMgc2luY2UgdjI6CgogLSBmaXggYm9ndXMgbG9naWNh
-bCBjcHUgcmV0cmlldmFsIAogLSB1c2UgJ3RocmVhZHNfcGVyX2NvcmUnIHRvIHByaW50IG91dCBj
-cHUgcmFuZ2UKCiBDaGFuZ2VzIHNpbmNlIHYxOgoKIC0gY2hlY2sgY3B1IHZhbGlkaXR5IGJlZm9y
-ZSBwcmludGluZyBvdXQgdGhlIGF0dHJpYnV0ZSBsYWJlbC4gCiAgIGlmIGludmFsaWQsIHVzZSBh
-ICJwaHkiIHByZWZpeCB0byBkaXN0aW5ndWlzaCBhIGxpbnV4IGNwdSAKICAgbnVtYmVyIGZyb20g
-YSBwaHlzaWNhbCBjcHUgbnVtYmVyLiAKIC0gZml4ZWQgYWxpZ25tZW50CiAtIGZpeGVkIGNvbXBh
-cmlzb24gYmV0d2VlbiBzaWduZWQgYW5kIHVuc2lnbmVkIGludGVnZXIgb24gb3BhbF9pbmRleCAK
-CgpDw6lkcmljIExlIEdvYXRlciAoNCk6CiAgaHdtb246IChpYm1wb3dlcm52KSBhZGQgYSBoZWxw
-ZXIgcm91dGluZSBjcmVhdGVfaHdtb25fYXR0cgogIGh3bW9uOiAoaWJtcG93ZXJudikgYWRkIHN1
-cHBvcnQgZm9yIHRoZSBuZXcgZGV2aWNlIHRyZWUKICBod21vbjogKGlibXBvd2VybnYpIGFkZCBh
-IGxhYmVsIGF0dHJpYnV0ZQogIGh3bW9uOiAoaWJtcG93ZXJudikgcHJldHR5IHByaW50IGxhYmVs
-cwoKIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jIHwgIDE2NiArKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKystLS0tLQogMSBmaWxlIGNoYW5nZWQsIDE0OCBpbnNlcnRpb25z
-KCspLCAxOCBkZWxldGlvbnMoLSkKCi0tIAoxLjcuMTAuNAoKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
-bGlzdGluZm8vbG0tc2Vuc29ycw=
+On Wed, Apr 08, 2015 at 07:19:46PM +0200, C=E9dric Le Goater wrote:
+> Hello !
+>=20
+> These patches extend the ibmpowernv driver to support the new OPAL firmwa=
+re=20
+> which now exposes in its device tree the Digital Temperature Sensors of=20
+> a P8 system.
+>=20
+> They are based on Linux 4.0.0-rc7 + the initial cleanup serie :
+>=20
+>      http://lists.lm-sensors.org/pipermail/lm-sensors/2015-March/043670.h=
+tml
+>=20
+> and were tested on IBM Power and Open Power systems running Trusty.
+>=20
+Series applied to -next.
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
