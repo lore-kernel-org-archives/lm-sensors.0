@@ -1,85 +1,65 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 08 Apr 2015 15:21:58 +0000
-Subject: Re: [lm-sensors] [v4] hwmon: (ibmpowernv) pretty print labels
-Message-Id: <20150408152158.GA15824@roeck-us.net>
+From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
+Date: Wed, 08 Apr 2015 17:19:50 +0000
+Subject: [lm-sensors] [PATCH v5 4/4] hwmon: (ibmpowernv) pretty print labels
+Message-Id: <1428513590-5773-5-git-send-email-clg@fr.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1428500527-7833-1-git-send-email-clg@fr.ibm.com>
-In-Reply-To: <1428500527-7833-1-git-send-email-clg@fr.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@fr.ibm.com>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, lm-sensors@lm-sensors.org, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@lm-sensors.org
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
 
-On Wed, Apr 08, 2015 at 03:42:07PM +0200, C=E9dric Le Goater wrote:
-> The new OPAL device tree adds a few properties which can be used to add
-> extra information on the sensor label.
->=20
-> In the case of a cpu core sensor, the firmware exposes the physical=20
-> identifier of the core in the "ibm,pir" property. The driver=20
-> translates this identifier in a linux cpu number and prints out a=20
-> range corresponding to the hardware threads of the core (as they
-> share the same sensor).
->=20
-> The numbering gives a hint on the localization of the core in the=20
-> system (which socket, which chip).=20
->=20
-> Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
-> ---
->=20
->  Changes since v3:
->=20
->  - removed error message in case of an unknown physical cpu number
->=20
->  Changes since v2:
->=20
->  - fix bogus logical cpu retrieval=20
->  - use 'threads_per_core' to print out cpu range
->=20
->  Changes since v1:
->=20
->  - check cpu validity before printing out the attribute label.=20
->    if invalid, use a "phy" prefix to distinguish a linux cpu=20
->    number from a physical cpu number.=20
->=20
->  drivers/hwmon/ibmpowernv.c |   41 ++++++++++++++++++++++++++++++++++++++=
-+++
->  1 file changed, 41 insertions(+)
->=20
-> Index: linux.git/drivers/hwmon/ibmpowernv.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux.git.orig/drivers/hwmon/ibmpowernv.c
-> +++ linux.git/drivers/hwmon/ibmpowernv.c
-> @@ -30,6 +30,7 @@
->  #include <linux/platform_device.h>
->  #include <asm/opal.h>
->  #include <linux/err.h>
-> +#include <asm/cputhreads.h>
-> =20
->  #define MAX_ATTR_LEN	32
->  #define MAX_LABEL_LEN	64
-> @@ -110,12 +111,52 @@ static ssize_t show_label(struct device
->  	return sprintf(buf, "%s\n", sdata->label);
->  }
-> =20
-> +static int __init get_logical_cpu(unsigned int hwcpu)
-> +{
-> +	int cpu;
-> +
-> +	for_each_possible_cpu(cpu)
-> +		if (get_hard_smp_processor_id(cpu) =3D=3D hwcpu)
-
-drivers/hwmon/ibmpowernv.c: In function 'get_logical_cpu':
-drivers/hwmon/ibmpowernv.c:119:38: warning: comparison between signed and
-unsigned integer expressions [-Wsign-compare]
-   if (get_hard_smp_processor_id(cpu) =3D=3D hwcpu)
-                                         ^
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIG5ldyBPUEFMIGRldmljZSB0cmVlIGFkZHMgYSBmZXcgcHJvcGVydGllcyB3aGljaCBjYW4g
+YmUgdXNlZCB0byBhZGQKZXh0cmEgaW5mb3JtYXRpb24gb24gdGhlIHNlbnNvciBsYWJlbC4KCklu
+IHRoZSBjYXNlIG9mIGEgY3B1IGNvcmUgc2Vuc29yLCB0aGUgZmlybXdhcmUgZXhwb3NlcyB0aGUg
+cGh5c2ljYWwKaWRlbnRpZmllciBvZiB0aGUgY29yZSBpbiB0aGUgImlibSxwaXIiIHByb3BlcnR5
+LiBUaGUgZHJpdmVyCnRyYW5zbGF0ZXMgdGhpcyBpZGVudGlmaWVyIGluIGEgbGludXggY3B1IG51
+bWJlciBhbmQgcHJpbnRzIG91dCBhCnJhbmdlIGNvcnJlc3BvbmRpbmcgdG8gdGhlIGhhcmR3YXJl
+IHRocmVhZHMgb2YgdGhlIGNvcmUgKGFzIHRoZXkKc2hhcmUgdGhlIHNhbWUgc2Vuc29yKS4KClRo
+ZSBudW1iZXJpbmcgZ2l2ZXMgYSBoaW50IG9uIHRoZSBsb2NhbGl6YXRpb24gb2YgdGhlIGNvcmUg
+aW4gdGhlCnN5c3RlbSAod2hpY2ggc29ja2V0LCB3aGljaCBjaGlwKS4KClNpZ25lZC1vZmYtYnk6
+IEPDqWRyaWMgTGUgR29hdGVyIDxjbGdAZnIuaWJtLmNvbT4KLS0tCgogQ2hhbmdlcyBzaW5jZSB2
+NDoKCiAtIGZpeGVkIGNvbXBhcmlzb24gYmV0d2VlbiBzaWduZWQgYW5kIHVuc2lnbmVkIGludGVn
+ZXIgaW4gCiAgIGdldF9sb2dpY2FsX2NwdSgpCgogQ2hhbmdlcyBzaW5jZSB2MzoKCiAtIHJlbW92
+ZWQgZXJyb3IgbWVzc2FnZSBpbiBjYXNlIG9mIGFuIHVua25vd24gcGh5c2ljYWwgY3B1IG51bWJl
+cgoKIENoYW5nZXMgc2luY2UgdjI6CgogLSBmaXggYm9ndXMgbG9naWNhbCBjcHUgcmV0cmlldmFs
+IAogLSB1c2UgJ3RocmVhZHNfcGVyX2NvcmUnIHRvIHByaW50IG91dCBjcHUgcmFuZ2UKCiBDaGFu
+Z2VzIHNpbmNlIHYxOgoKIC0gY2hlY2sgY3B1IHZhbGlkaXR5IGJlZm9yZSBwcmludGluZyBvdXQg
+dGhlIGF0dHJpYnV0ZSBsYWJlbC4gCiAgIGlmIGludmFsaWQsIHVzZSBhICJwaHkiIHByZWZpeCB0
+byBkaXN0aW5ndWlzaCBhIGxpbnV4IGNwdSAKICAgbnVtYmVyIGZyb20gYSBwaHlzaWNhbCBjcHUg
+bnVtYmVyLiAKCiBkcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyB8ICAgNDEgKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA0MSBpbnNlcnRp
+b25zKCspCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMgYi9kcml2ZXJz
+L2h3bW9uL2libXBvd2VybnYuYwppbmRleCA5ZThmOTNjOWM0NzUuLjdmMTZmMWIxYTU3MSAxMDA2
+NDQKLS0tIGEvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKKysrIGIvZHJpdmVycy9od21vbi9p
+Ym1wb3dlcm52LmMKQEAgLTMwLDYgKzMwLDcgQEAKICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9k
+ZXZpY2UuaD4KICNpbmNsdWRlIDxhc20vb3BhbC5oPgogI2luY2x1ZGUgPGxpbnV4L2Vyci5oPgor
+I2luY2x1ZGUgPGFzbS9jcHV0aHJlYWRzLmg+CiAKICNkZWZpbmUgTUFYX0FUVFJfTEVOCTMyCiAj
+ZGVmaW5lIE1BWF9MQUJFTF9MRU4JNjQKQEAgLTExMiwxMyArMTEzLDUzIEBAIHN0YXRpYyBzc2l6
+ZV90IHNob3dfbGFiZWwoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0
+ZSAqZGV2YXR0ciwKIAlyZXR1cm4gc3ByaW50ZihidWYsICIlc1xuIiwgc2RhdGEtPmxhYmVsKTsK
+IH0KIAorc3RhdGljIGludCBfX2luaXQgZ2V0X2xvZ2ljYWxfY3B1KGludCBod2NwdSkKK3sKKwlp
+bnQgY3B1OworCisJZm9yX2VhY2hfcG9zc2libGVfY3B1KGNwdSkKKwkJaWYgKGdldF9oYXJkX3Nt
+cF9wcm9jZXNzb3JfaWQoY3B1KSA9PSBod2NwdSkKKwkJCXJldHVybiBjcHU7CisKKwlyZXR1cm4g
+LUVOT0VOVDsKK30KKwogc3RhdGljIHZvaWQgX19pbml0IG1ha2Vfc2Vuc29yX2xhYmVsKHN0cnVj
+dCBkZXZpY2Vfbm9kZSAqbnAsCiAJCQkJICAgICBzdHJ1Y3Qgc2Vuc29yX2RhdGEgKnNkYXRhLAog
+CQkJCSAgICAgY29uc3QgY2hhciAqbGFiZWwpCiB7CisJdTMyIGlkOwogCXNpemVfdCBuOwogCiAJ
+biA9IHNucHJpbnRmKHNkYXRhLT5sYWJlbCwgc2l6ZW9mKHNkYXRhLT5sYWJlbCksICIlcyIsIGxh
+YmVsKTsKKworCS8qCisJICogQ29yZSB0ZW1wIHByZXR0eSBwcmludAorCSAqLworCWlmICghb2Zf
+cHJvcGVydHlfcmVhZF91MzIobnAsICJpYm0scGlyIiwgJmlkKSkgeworCQlpbnQgY3B1aWQgPSBn
+ZXRfbG9naWNhbF9jcHUoaWQpOworCisJCWlmIChjcHVpZCA+PSAwKQorCQkJLyoKKwkJCSAqIFRo
+ZSBkaWdpdGFsIHRoZXJtYWwgc2Vuc29ycyBhcmUgYXNzb2NpYXRlZAorCQkJICogd2l0aCBhIGNv
+cmUuIExldCdzIHByaW50IG91dCB0aGUgcmFuZ2Ugb2YKKwkJCSAqIGNwdSBpZHMgY29ycmVzcG9u
+ZGluZyB0byB0aGUgaGFyZHdhcmUKKwkJCSAqIHRocmVhZHMgb2YgdGhlIGNvcmUuCisJCQkgKi8K
+KwkJCW4gKz0gc25wcmludGYoc2RhdGEtPmxhYmVsICsgbiwKKwkJCQkgICAgICBzaXplb2Yoc2Rh
+dGEtPmxhYmVsKSAtIG4sICIgJWQtJWQiLAorCQkJCSAgICAgIGNwdWlkLCBjcHVpZCArIHRocmVh
+ZHNfcGVyX2NvcmUgLSAxKTsKKwkJZWxzZQorCQkJbiArPSBzbnByaW50ZihzZGF0YS0+bGFiZWwg
+KyBuLAorCQkJCSAgICAgIHNpemVvZihzZGF0YS0+bGFiZWwpIC0gbiwgIiBwaHklZCIsIGlkKTsK
+Kwl9CisKKwkvKgorCSAqIE1lbWJ1ZmZlciBwcmV0dHkgcHJpbnQKKwkgKi8KKwlpZiAoIW9mX3By
+b3BlcnR5X3JlYWRfdTMyKG5wLCAiaWJtLGNoaXAtaWQiLCAmaWQpKQorCQluICs9IHNucHJpbnRm
+KHNkYXRhLT5sYWJlbCArIG4sIHNpemVvZihzZGF0YS0+bGFiZWwpIC0gbiwKKwkJCSAgICAgICIg
+JWQiLCBpZCAmIDB4ZmZmZik7CiB9CiAKIHN0YXRpYyBpbnQgZ2V0X3NlbnNvcl9pbmRleF9hdHRy
+KGNvbnN0IGNoYXIgKm5hbWUsIHUzMiAqaW5kZXgsCi0tIAoxLjcuMTAuNAoKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
+aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
