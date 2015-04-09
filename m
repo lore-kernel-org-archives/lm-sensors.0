@@ -1,41 +1,27 @@
-From: Beomho Seo <beomho.seo@samsung.com>
-Date: Thu, 30 Apr 2015 05:17:50 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ntc_thermistor) Add support for ncpXXwf104
-Message-Id: <5541BAFE.3090202@samsung.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 09 Apr 2015 04:12:00 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ibmpowernv) Fix build error seen for some configurations
+Message-Id: <1428552720-10773-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1430366863-22705-1-git-send-email-beomho.seo@samsung.com>
- <5541B829.2020903@roeck-us.net>
-In-Reply-To: <5541B829.2020903@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, jdelvare@suse.de
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, cw00.choi@samsung.com, inki.dae@samsung.com, sangbae90.lee@samsung.com
+To: lm-sensors@vger.kernel.org
 
-On 04/30/2015 02:05 PM, Guenter Roeck wrote:
-> On 04/29/2015 09:07 PM, Beomho Seo wrote:
->> This patch adds support for the ntc thermistor NCPXXWF104 serises.
->>
-> 
-> series :-)
-> 
->> Cc: Jean Delvare <jdelvare@suse.de>
->> Cc: Guenter Roeck <linux@roeck-us.net>
->> Signed-off-by: Beomho Seo <beomho.seo@samsung.com>
-> 
-> Applied to -next.
-> 
-> Thanks,
-> Guenter
-> 
-> 
-
-Thank you for your response.
-
-Best regards,
-Beomho Seo
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Rml4CmRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jOiBJbiBmdW5jdGlvbiAnZ2V0X2xvZ2ljYWxf
+Y3B1JzoKZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmM6MTIxOjM6CgllcnJvcjogaW1wbGljaXQg
+ZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ2dldF9oYXJkX3NtcF9wcm9jZXNzb3JfaWQnCgpzZWVu
+IGZvciBzb21lIGNvbmZpZ3VyYXRpb25zLCBwb3NzaWJseSBpZiBTTVAgaXMgbm90IGNvbmZpZ3Vy
+ZWQuCgpGaXhlczogM2RmMmY1OWYwYWFlICgiaHdtb246IChpYm1wb3dlcm52KSBwcmV0dHkgcHJp
+bnQgbGFiZWxzIikKQ2M6IEPDqWRyaWMgTGUgR29hdGVyIDxjbGdAZnIuaWJtLmNvbT4KU2lnbmVk
+LW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgotLS0KIGRyaXZlcnMv
+aHdtb24vaWJtcG93ZXJudi5jIHwgMSArCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKykK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYyBiL2RyaXZlcnMvaHdtb24v
+aWJtcG93ZXJudi5jCmluZGV4IDcxMDhkYWYwNTZiMC4uNDI1NTUxNGIyYzcyIDEwMDY0NAotLS0g
+YS9kcml2ZXJzL2h3bW9uL2libXBvd2VybnYuYworKysgYi9kcml2ZXJzL2h3bW9uL2libXBvd2Vy
+bnYuYwpAQCAtMzEsNiArMzEsNyBAQAogI2luY2x1ZGUgPGFzbS9vcGFsLmg+CiAjaW5jbHVkZSA8
+bGludXgvZXJyLmg+CiAjaW5jbHVkZSA8YXNtL2NwdXRocmVhZHMuaD4KKyNpbmNsdWRlIDxhc20v
+c21wLmg+CiAKICNkZWZpbmUgTUFYX0FUVFJfTEVOCTMyCiAjZGVmaW5lIE1BWF9MQUJFTF9MRU4J
+NjQKLS0gCjIuMS4wCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpo
+dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
