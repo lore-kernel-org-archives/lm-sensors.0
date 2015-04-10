@@ -1,111 +1,62 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Apr 2015 18:30:34 +0000
-Subject: Re: [lm-sensors] [PATCH 07/15] hwmon: (it87) Add support for 6th fan of IT8620E
-Message-Id: <551C394A.7040302@roeck-us.net>
+From: Ville Aakko <ville.aakko@gmail.com>
+Date: Fri, 10 Apr 2015 16:15:49 +0000
+Subject: [lm-sensors] [NCT6775] Additional temperature sensors on nct6791d
+Message-Id: <CAEP-KKukbpX=PU4-9eDipVPxzQKD8c3iGA6_F1MtZeF7b6qSEA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427697235-23566-8-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1427697235-23566-8-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-On 04/01/2015 10:11 AM, Jean Delvare wrote:
-> Hi Guenter,
->
-> On Sun, 29 Mar 2015 23:33:47 -0700, Guenter Roeck wrote:
->> IT8620E supports up to 6 fan tachometers.
->>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/it87.c | 51 ++++++++++++++++++++++++++++++++++++---------------
->>   1 file changed, 36 insertions(+), 15 deletions(-)
->>
->> diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
->> index ee6d30960fce..24e9369f1b74 100644
->> --- a/drivers/hwmon/it87.c
->> +++ b/drivers/hwmon/it87.c
->> @@ -215,11 +215,11 @@ static bool fix_pwm_polarity;
->>
->>   /* Monitors: 9 voltage (0 to 7, battery), 3 temp (1 to 3), 3 fan (1 to 3) */
->
-> The comment above it out of date, BTW.
->
-Yes, I noticed earlier today. I'll address that later, when I add VIN7..9 and TEMP4..6.
-
->>
->> -static const u8 IT87_REG_FAN[]		= { 0x0d, 0x0e, 0x0f, 0x80, 0x82 };
->> -static const u8 IT87_REG_FAN_MIN[]	= { 0x10, 0x11, 0x12, 0x84, 0x86 };
->> -static const u8 IT87_REG_FANX[]		= { 0x18, 0x19, 0x1a, 0x81, 0x83 };
->> -static const u8 IT87_REG_FANX_MIN[]	= { 0x1b, 0x1c, 0x1d, 0x85, 0x87 };
->> -static const u8 IT87_REG_TEMP_OFFSET[]	= { 0x56, 0x57, 0x59 };
->> +static const u8 IT87_REG_FAN[]		= {0x0d, 0x0e, 0x0f, 0x80, 0x82, 0x4c};
->> +static const u8 IT87_REG_FAN_MIN[]	= {0x10, 0x11, 0x12, 0x84, 0x86, 0x4e};
->> +static const u8 IT87_REG_FANX[]		= {0x18, 0x19, 0x1a, 0x81, 0x83, 0x4d};
->> +static const u8 IT87_REG_FANX_MIN[]	= {0x1b, 0x1c, 0x1d, 0x85, 0x87, 0x4f};
->> +static const u8 IT87_REG_TEMP_OFFSET[]	= {0x56, 0x57, 0x59};
->
-> I see why you removed the spaces inside the curly braces, but that's
-> inconsistent with enum chips and the style used in the vast majority of
-> other hwmon drivers. I would rather align with spaces instead of tabs
-> so that you can move everything by a few columns to the left and
-> everything fits again. (Until the next chip that will support 7 fans,
-> that is ^^.)
->
-> (That's typically the kind of comment you're free to ignore if you
-> prefer the way you did.)
->
-You are right, that is better. Done.
-
->>
->>   #define IT87_REG_FAN_MAIN_CTRL 0x13
->>   #define IT87_REG_FAN_CTL       0x14
->> (...)
->> @@ -2569,13 +2586,17 @@ static void it87_init_device(struct platform_device *pdev)
->>
->>   	/* Check for additional fans */
->>   	if (has_five_fans(data)) {
->> -		tmp = it87_read_value(data, IT87_REG_FAN_16BIT);
->>   		if (tmp & (1 << 4))
->>   			data->has_fan |= (1 << 3); /* fan4 enabled */
->>   		if (tmp & (1 << 5))
->>   			data->has_fan |= (1 << 4); /* fan5 enabled */
->>   	}
->>
->> +	if (has_six_fans(data)) {
->> +		if (tmp & (1 << 2))
->> +			data->has_fan |= (1 << 5); /* fan6 enabled */
->> +	}
->> +
->
-> May I suggest the following optimization?
->
-> 	/* Check for additional fans */
-> 	if (has_five_fans(data)) {
-> 		if (tmp & (1 << 4))
-> 			data->has_fan |= (1 << 3); /* fan4 enabled */
-> 		if (tmp & (1 << 5))
-> 			data->has_fan |= (1 << 4); /* fan5 enabled */
-> 		if (has_six_fans(data) && (tmp & (1 << 2)))
-> 			data->has_fan |= (1 << 5); /* fan6 enabled */
-> 	}
->
-> This fits in fewer lines and saves a test for 3-fan chips.
->
-Excellent idea. Done.
-
-> Looks good otherwise:
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Thanks a lot!
-
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCgpJJ2QgbGlrZSB0byBrbm93IGlmIGl0IHdvdWxkIGJlIHBvc3NpYmxlIHRvIGFkZCBzdXBw
+b3J0IGZvciBhZGRpdGlvbmFsCnNlbnNvcnMgb24gYSBtb3RoZXJib2FyZCBoYXZpbmcgYW4gbmN0
+Njc5MWQgc2Vuc29yIGNoaXAsIGFuZCAtCnByZXN1bWluZyBpdCBpcyBwb3NzaWJsZSwgaG93IG11
+Y2ggd29yayAvIGRpZmZpY3VsdCB0aGF0IHdvdWxkIGJlLgoKSSdtIGN1cnJlbnRseSB1c2luZyB0
+aGUgQXN1cyBNYXhpbXVzIEdhbWluZyBWSUkgR2VuZSBtb3RoZXJib2FyZC4gSXQKaGFzIG9uZSBh
+ZGRpdGlvbmFsIHRlbXBlcmF0dXJlIHNlbnNvciAoVF9TRU5TT1IxKSwgd2hpY2ggSSBoYXZlCmNv
+bm5lY3RlZCBhIHdvcmtpbmcgc2Vuc29yIHRvLiBGcm9tIEJJT1MgSSBjYW4gc2VlIGl0IGlzIHdv
+cmtpbmcsCnNpbmNlIGl0IGdpdmVzIHNlbnNpYmxlIHJlYWRpbmdzLiBUaGUgbmN0Njc3NSBkcml2
+ZXIgKHdoaWNoIEknbSBqdXN0CnByZXN1bWluZyBpcyBhbHNvIGhhbmRsaW5nIHRoZSBhZGRpdGlv
+bmFsIHNlbnNvciwgdGhvdWdoIEknbSBub3QgMTAwJQpzdXJlKSBkb2VzIG5vdCByZXBvcnQgdGhl
+IHRlbXBlcmF0dXJlIGZvciB0aGlzIHNlbnNvciwgaG93ZXZlcjoKCiQgc2Vuc29ycyAgbmN0Njc5
+MS0qIHwgIGdyZXAgwrBDClNZU1RJTjogICAgICAgICAgICAgICAgICszNi4wwrBDICAoaGlnaCA9
+ICs1NS4wwrBDLCBoeXN0ID0gKzc1LjDCsEMpCnNlbnNvciA9IHRoZXJtaXN0b3IKQ1BVVElOOiAg
+ICAgICAgICAgICAgICAgKzUwLjXCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKw
+QykKc2Vuc29yID0gdGhlcm1pc3RvcgpBVVhUSU4wOiAgICAgICAgICAgICAgICArNDUuMMKwQyAg
+ICBzZW5zb3IgPSB0aGVybWlzdG9yCkFVWFRJTjE6ICAgICAgICAgICAgICAgKzEyNy4wwrBDICAg
+IHNlbnNvciA9IHRoZXJtaXN0b3IKQVVYVElOMjogICAgICAgICAgICAgICAgKzM3LjDCsEMgICAg
+c2Vuc29yID0gdGhlcm1pc3RvcgpBVVhUSU4zOiAgICAgICAgICAgICAgICArNTUuMMKwQyAgICBz
+ZW5zb3IgPSB0aGVybWlzdG9yClBFQ0kgQWdlbnQgMDogICAgICAgICAgICs2My41wrBDClBDSF9D
+SElQX0NQVV9NQVhfVEVNUDogICArMC4wwrBDClBDSF9DSElQX1RFTVA6ICAgICAgICAgICArMC4w
+wrBDClBDSF9DUFVfVEVNUDogICAgICAgICAgICArMC4wwrBDCgpJJ2QgcHJlc3VtZSBpdCBzaG91
+bGQgYmUgb25lIG9mIHRoZSBBVVhUSU5bMC0zXSBzZW5zb3JzLCBidXQgdGhleSBnaXZlCnNlZW1p
+bmdseSBib2d1cyAoc2VlICopIGluZm9ybWF0aW9uLCB0aGF0IGlzIGV4YWN0bHkgdGhlIHNhbWUg
+d2V0aGVyCnRoZSBzZW5zb3IgaXMgY29ubmVjdGVkIG9yIG5vdCAoSSB3YXMgZG9pbmcgc29tZSB2
+ZXJ5IGludGVuc2l2ZQpjb21wdXRhdGlvbiB3aGlsZSB0YWtpbmcgdGhlIHJlYWRpbmcgYWJvdmUs
+IHdoaWNoIGNhdXNlcyB0aGVtIHRvIGJlCnF1aXRlIGhpZ2gpLgoKSSdkIGJlIGhhcHB5IHRvIHBy
+b3ZpZGUgYW55IGluZm9ybWF0aW9uIHRvIGhlbHAgYWRkIHByb3BlcgpzdXBwb3J0LlRlc3Rpbmcg
+c29tZSBwYXRjaGVzIGFuZCBjb21waWxpbmcgdGhlIGtlcm5lbCBtb2R1bGUgaXMgbm90IGEKcHJv
+YmxlbS4gSSd2ZSBhbHNvIGZpZ3VyZWQgSSBjYW4gZHVtcCBzb21lIG9mIHRoZSByZWdpc3RlcnMg
+dmlhCmlzYWR1bXAgYW5kIGxvb2tlZCBhdCB0aGUgc291cmNlLCBidXQgSSBoYXZlbid0IGZpZ3Vy
+ZWQgb3V0IChhdCBsZWFzdAp5ZXQpIHdoZXJlIHRvIGxvb2sgZm9yIHRoZSB2YWx1ZXMsIGFuZCB3
+aGVyZSB0aGUgdGVtcGVyYXR1cmUgZGF0YQptaWdodCBiZSBpbiB0aGUgZHVtcHMgLSBhbmQgaWYg
+aXQgaXMgYXZhaWxhYmxlLCBob3cgdGhlIHNvdXJjZSBzaG91bGQKYmUgbW9kaWZpZWQuIEkgZGlk
+bid0IGdpdmUgaXQgdG9vIG11Y2ggZWZmb3IgdGhvdWdoIHNpbmNlIEkgbWlnaHQgYmUKdG90YWxs
+eSBvbiB0aGUgd3JvbmcgdHJhY2suIEJ1dCBpbiBjYXNlIHNvbWVvbmUgKEkgcHJlc3VtZSB0aGUg
+YXV0aG9yCmlzIG9uIHRoaXMgbGlzdD8pIGNhbiBwb2ludCBtZSBpbiB0aGUgcmlnaHQgZGlyZWN0
+aW9uLCBJIG1pZ2h0IGV2ZW4gYmUKYWJsZSB0byBtYWtlIHRoZSBuZWNlc3NhcnkgY2hhbmdlcyBh
+bmQgdGVzdCB0aGVtIG15c2VsZi4KCkknZCBiZSBwbGVhc2VkIGZvciBhbnkgaGVscCBvciBjb21t
+ZW50cyEKClRoYW5rcywKLSBWaWxsZQoKKikgQVVYVElOMCwxIGFuZCAzIHdhcnkgZnJvbSBhbnl3
+aGVyZSBiZXR3ZWVuIC0xMjcgdG8gKzEyNyBzZWVtaW5nbHkKdW5yZWxhdGVkIHRvIGFueXRoaW5n
+LCBhbmQgMiBpcyBhbHdheXMgYXJvdW5kIDM3wrBDLiBBbHNvLCBJIGhhdmUgdHJpZWQKdG8gY29v
+bCAvIHdhcm0gdGhlIHNlbnNvciB3aGlsZSAnd2F0Y2ggc2Vuc29ycycgdG8gc2VlIHNvbWUKY29y
+cmVsYXRpb24sIHRvIHJ1bGUgb3V0IGEgc29tZSBraW5kIG9mIGNvbXB1dGF0aW9uIGZhdWx0IGlu
+IHRoZQpkcml2ZXIsIGJ1dCB0aGF0IGRvZXMgbm90IHNlZW0gdG8gYmUgdGhlIGNhc2UuIFRvIG1l
+IGl0IHNlZW1zIHRoYXQKQVVYVElOWzAtM10gaXMgbG9va2luZyBhdCB0aGUgd3JvbmcgKG9yIHVu
+Y29ubmVjdGVkIGluIG15IE1CKSBhZGRyZXNzLgpTWVNUSU4gYW5kIENQVVRJTiBnaXZlIHNvbWV0
+aGluZyB1c2VmdWxsLCB0aG91Z2ggSSdtIG5vdCBzdXJlIHdoZXJlCnRoZXkgYXJlIG9uIHRoZSBz
+ZW5zb3JzLCBQRUNJIEFnZW50IGlzIHNlbGYtZXhwbGFuYXRvcnksIHRoZSByZXN0CmJlbG93IHRo
+YXQgYXJlIGFsd2F5cyAwwrBDLgoKCi0tIAotLSAKVmlsbGUgQWFra28gLSB2aWxsZS5hYWtrb0Bn
+bWFpbC5jb20KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
