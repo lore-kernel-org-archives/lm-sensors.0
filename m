@@ -1,43 +1,72 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 21 Apr 2015 13:40:57 +0000
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 21 Apr 2015 13:52:06 +0000
 Subject: Re: [lm-sensors] [PATCH v2 0/2] i8k.c => dell-smm-hwmon.c
-Message-Id: <55365369.5080306@roeck-us.net>
+Message-Id: <20150421135206.GA10347@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com> <1427633859-18596-1-git-send-email-pali.rohar@gmail.com> <551A1554.3090005@roeck-us.net> <20150331135601.GA8806@kroah.com> <20150409140224.GI12339@atrey.karlin.mff.cuni.cz> <20150421133036.GQ6515@pali>
-In-Reply-To: <20150421133036.GQ6515@pali>
+References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com>
+ <1427633859-18596-1-git-send-email-pali.rohar@gmail.com>
+ <551A1554.3090005@roeck-us.net>
+ <20150331135601.GA8806@kroah.com>
+ <20150409140224.GI12339@atrey.karlin.mff.cuni.cz>
+ <20150421133036.GQ6515@pali>
+ <55365369.5080306@roeck-us.net>
+In-Reply-To: <55365369.5080306@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jean Delvare <jdelvare@suse.de>, Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Jean Delvare <jdelvare@suse.de>, Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-T24gMDQvMjEvMjAxNSAwNjozMCBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gT24gVGh1cnNkYXkg
-MDkgQXByaWwgMjAxNSAxNjowMjoyNCBQYWxpIFJvaMOhciB3cm90ZToKPj4gT24gVHVlc2RheSAz
-MSBNYXJjaCAyMDE1IDE1OjU2OjAxIEdyZWcgS3JvYWgtSGFydG1hbiB3cm90ZToKPj4+IE9uIE1v
-biwgTWFyIDMwLCAyMDE1IGF0IDA4OjMyOjM2UE0gLTA3MDAsIEd1ZW50ZXIgUm9lY2sgd3JvdGU6
-Cj4+Pj4gT24gMDMvMjkvMjAxNSAwNTo1NyBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4+Pj4+IFRo
-aXMgcGF0Y2ggc2VyaWVzIG1vdmVzIGRyaXZlcnMvY2hhci9pOGsuYyB0byBkcml2ZXJzL2h3bW9u
-L2RlbGwtc21tLWh3bW9uLmMKPj4+Pj4gYW5kIGFsbG93cyB0byBjb21waWxlIGh3bW9uIGRyaXZl
-ciB3aXRob3V0IC9wcm9jL2k4ayBmaWxlLgo+Pj4+Pgo+Pj4+PiBQYWxpIFJvaMOhciAoMik6Cj4+
-Pj4+ICAgIGh3bW9uOiBSZW5hbWUgaThrIGRyaXZlciB0byBkZWxsLXNtbS1od21vbiBhbmQgbW92
-ZSBpdCB0byBod21vbiB0cmVlCj4+Pj4+ICAgIGh3bW9uOiBBbGxvdyB0byBjb21waWxlIGRlbGwt
-c21tLWh3bW9uIGRyaXZlciB3aXRob3V0IC9wcm9jL2k4awo+Pj4+Pgo+Pj4+PiAgIE1BSU5UQUlO
-RVJTICAgICAgICAgICAgICAgICAgICB8ICAgIDQgKy0KPj4+Pj4gICBhcmNoL3g4Ni9LY29uZmln
-ICAgICAgICAgICAgICAgfCAgIDI1ICstCj4+Pj4+ICAgZHJpdmVycy9jaGFyL01ha2VmaWxlICAg
-ICAgICAgIHwgICAgMSAtCj4+Pj4+ICAgZHJpdmVycy9jaGFyL2k4ay5jICAgICAgICAgICAgIHwg
-MTAwNSAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPj4+Pj4gICBkcml2
-ZXJzL2h3bW9uL0tjb25maWcgICAgICAgICAgfCAgIDExICsKPj4+Pj4gICBkcml2ZXJzL2h3bW9u
-L01ha2VmaWxlICAgICAgICAgfCAgICAxICsKPj4+Pj4gICBkcml2ZXJzL2h3bW9uL2RlbGwtc21t
-LWh3bW9uLmMgfCAxMDI1ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysK
-Pj4+Pj4gICA3IGZpbGVzIGNoYW5nZWQsIDEwNDkgaW5zZXJ0aW9ucygrKSwgMTAyMyBkZWxldGlv
-bnMoLSkKPj4+Pj4gICBkZWxldGUgbW9kZSAxMDA2NDQgZHJpdmVycy9jaGFyL2k4ay5jCj4+Pj4+
-ICAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvaHdtb24vZGVsbC1zbW0taHdtb24uYwo+Pj4+
-Pgo+Pj4+IEkgYW0gb2sgd2l0aCB0aGUgc2VyaWVzIGFuZCB3b3VsZCB0YWtlIGl0IGZvciA0LjEg
-aWYgR3JlZyBhZ3JlZXMuCj4+Pj4KPj4+PiBHcmVnLCBhbnkgY29tbWVudHMgPwo+Pj4KPj4+IExl
-dCBtZSByZXZpZXcgaXQsIGl0J3MgaW4gbXkgcXVldWUuLi4KPj4KPj4gSGkgR3JlZyEgSGF2ZSB5
-b3UgbG9va2VkIGF0IGl0Pwo+Pgo+Cj4gR3JlZyAmIEd1ZW50ZXI6IHBpbmcuIFdpbGwgeW91IGlu
-Y2x1ZGUgaXQgaW50byA0LjE/Cj4KSSBkb24ndCBzZWUgaXQgaW4gR3JlZydzIHB1bGwgcmVxdWVz
-dCwgc28gcHJlc3VtYWJseSBubyAodW5sZXNzIEkgbWlzc2VkIGl0KS4KCkd1ZW50ZXIKCgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1h
-aWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5z
-b3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Tue, Apr 21, 2015 at 06:40:57AM -0700, Guenter Roeck wrote:
+> On 04/21/2015 06:30 AM, Pali Roh=E1r wrote:
+> >On Thursday 09 April 2015 16:02:24 Pali Roh=E1r wrote:
+> >>On Tuesday 31 March 2015 15:56:01 Greg Kroah-Hartman wrote:
+> >>>On Mon, Mar 30, 2015 at 08:32:36PM -0700, Guenter Roeck wrote:
+> >>>>On 03/29/2015 05:57 AM, Pali Roh=E1r wrote:
+> >>>>>This patch series moves drivers/char/i8k.c to drivers/hwmon/dell-smm=
+-hwmon.c
+> >>>>>and allows to compile hwmon driver without /proc/i8k file.
+> >>>>>
+> >>>>>Pali Roh=E1r (2):
+> >>>>>   hwmon: Rename i8k driver to dell-smm-hwmon and move it to hwmon t=
+ree
+> >>>>>   hwmon: Allow to compile dell-smm-hwmon driver without /proc/i8k
+> >>>>>
+> >>>>>  MAINTAINERS                    |    4 +-
+> >>>>>  arch/x86/Kconfig               |   25 +-
+> >>>>>  drivers/char/Makefile          |    1 -
+> >>>>>  drivers/char/i8k.c             | 1005 ----------------------------=
+-----------
+> >>>>>  drivers/hwmon/Kconfig          |   11 +
+> >>>>>  drivers/hwmon/Makefile         |    1 +
+> >>>>>  drivers/hwmon/dell-smm-hwmon.c | 1025 ++++++++++++++++++++++++++++=
+++++++++++++
+> >>>>>  7 files changed, 1049 insertions(+), 1023 deletions(-)
+> >>>>>  delete mode 100644 drivers/char/i8k.c
+> >>>>>  create mode 100644 drivers/hwmon/dell-smm-hwmon.c
+> >>>>>
+> >>>>I am ok with the series and would take it for 4.1 if Greg agrees.
+> >>>>
+> >>>>Greg, any comments ?
+> >>>
+> >>>Let me review it, it's in my queue...
+> >>
+> >>Hi Greg! Have you looked at it?
+> >>
+> >
+> >Greg & Guenter: ping. Will you include it into 4.1?
+> >
+> I don't see it in Greg's pull request, so presumably no (unless I missed =
+it).
+
+No, I missed it for this rc cycle, sorry.  If you want to include it in
+yours, by all means please do so.
+
+thanks,
+
+greg k-h
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
