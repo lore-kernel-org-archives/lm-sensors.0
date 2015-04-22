@@ -1,14 +1,14 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Tue, 21 Apr 2015 10:19:48 +0000
+Date: Wed, 22 Apr 2015 01:57:27 +0000
 Subject: Re: [lm-sensors] [PATCH v5] hwmon: (lm90) split set&show temp as common codes
-Message-Id: <55362444.80709@nvidia.com>
+Message-Id: <55370007.5030408@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1381215866-20608-1-git-send-email-wni@nvidia.com> <20131011091741.59cdaf31@endymion.delvare>
 In-Reply-To: <20131011091741.59cdaf31-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+To: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
 Cc: "linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org" <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 
 SGksIEplYW4KU29ycnkgdG8gdHJvdWJsZSB5b3UsIEkgcmVjYWxsZWQgdGhhdCB5b3UgaGFkIGFw
