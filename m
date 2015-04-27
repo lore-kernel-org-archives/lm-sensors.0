@@ -1,37 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Apr 2015 13:37:11 +0000
-Subject: Re: [lm-sensors] SB800 support
-Message-Id: <551BF487.1010605@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 27 Apr 2015 14:37:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Update the location of my quilt tree
+Message-Id: <20150427163739.01a03a7c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
-In-Reply-To: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/01/2015 03:41 AM, Marcin Nowak wrote:
-> Anyone willing to help?
->
-Marcin,
+This new location was supposed to be temporary, but a couple years
+have elapsed and it's still there, so apparently it's there to stay.
 
-problem is that enhancing a kernel driver like this isn't really
-the best project to learn C programming. I would love to help you
-along, but unfortunately my task list already stretches out to
-sometime in the next century.
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+---
+Guenter, can you pick this in your tree please? I don't have anything
+else to send ATM.
 
-Note that top-posting is discouraged on this mailing list.
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Guenter
+--- linux-4.1-rc1.orig/MAINTAINERS	2015-04-27 16:24:51.445267115 +0200
++++ linux-4.1-rc1/MAINTAINERS	2015-04-27 16:33:57.946487307 +0200
+@@ -4516,7 +4516,7 @@ M:	Jean Delvare <jdelvare@suse.de>
+ M:	Guenter Roeck <linux@roeck-us.net>
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+-T:	quilt kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
++T:	quilt http://jdelvare.nerim.net/devel/linux/jdelvare-hwmon/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git
+ S:	Maintained
+ F:	Documentation/hwmon/
 
-> 2015-03-21 8:24 GMT+01:00 Marcin Nowak <galandilias@gmail.com <mailto:galandilias@gmail.com>>:
->
->     Is there a lot to do? Maybe someone can take the work of Eddi and finish it - what you say? I am actually a programmer but not C :) so I am a bit lost :) I could finish it but I would need a lot of guidance.
->
->     Marcin.
->
 
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
