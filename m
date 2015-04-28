@@ -1,48 +1,52 @@
-From: =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>
-Date: Wed, 08 Apr 2015 17:19:47 +0000
-Subject: [lm-sensors] [PATCH v5 1/4] hwmon: (ibmpowernv) add a helper routine create_hwmon_attr
-Message-Id: <1428513590-5773-2-git-send-email-clg@fr.ibm.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Apr 2015 12:38:50 +0000
+Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: Allow to compile dell-smm-hwmon driver without /proc/i8k
+Message-Id: <20150428123850.GA8855@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1427538255-10860-1-git-send-email-pali.rohar@gmail.com>
+ <1427633859-18596-1-git-send-email-pali.rohar@gmail.com>
+ <1427633859-18596-3-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <1427633859-18596-3-git-send-email-pali.rohar@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@fr.ibm.com>, Jean Delvare <jdelvare@suse.de>, Neelesh Gupta <neelegup@linux.vnet.ibm.com>, skiboot@lists.ozlabs.org, linuxppc-dev@lists.ozlabs.org, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Guenter Roeck <linux@roeck-us.net>, Arnd Bergmann <arnd@arndb.de>, Jean Delvare <jdelvare@suse.de>, Steven Honeyman <stevenhoneyman@gmail.com>, Valdis.Kletnieks@vt.edu, Jochen Eisinger <jochen@penguin-breeder.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-VGhpcyBzaG91bGQgc2hvcnRlbiBhIGJpdCB0aGUgY29kZSBuZWNlc3NhcnkgdG8gY3JlYXRlIGEg
-aG13b24gYXR0cmlidXRlLgoKU2lnbmVkLW9mZi1ieTogQ8OpZHJpYyBMZSBHb2F0ZXIgPGNsZ0Bm
-ci5pYm0uY29tPgotLS0KCiBDaGFuZ2VzIHNpbmNlIHYxOgoKIC0gZml4IGFsaWdubWVudCBvZiBj
-cmVhdGVfaHdtb25fYXR0cigpIHByb3RvdHlwZQoKIGRyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5j
-IHwgICAyNCArKysrKysrKysrKysrKysrLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxNiBpbnNl
-cnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vaWJt
-cG93ZXJudi5jIGIvZHJpdmVycy9od21vbi9pYm1wb3dlcm52LmMKaW5kZXggYTZlNzI0NWYxNzJk
-Li43ODIyNDc0YzRhYzggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCisr
-KyBiL2RyaXZlcnMvaHdtb24vaWJtcG93ZXJudi5jCkBAIC0yMzIsNiArMjMyLDIxIEBAIHN0YXRp
-YyBpbnQgcG9wdWxhdGVfYXR0cl9ncm91cHMoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikK
-IAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIHZvaWQgY3JlYXRlX2h3bW9uX2F0dHIoc3RydWN0IHNl
-bnNvcl9kYXRhICpzZGF0YSwgY29uc3QgY2hhciAqYXR0cl9uYW1lLAorCQkJICAgICAgc3NpemVf
-dCAoKnNob3cpKHN0cnVjdCBkZXZpY2UgKmRldiwKKwkJCQkJICAgICAgc3RydWN0IGRldmljZV9h
-dHRyaWJ1dGUgKmF0dHIsCisJCQkJCSAgICAgIGNoYXIgKmJ1ZikpCit7CisJc25wcmludGYoc2Rh
-dGEtPm5hbWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAorCQkgc2Vuc29yX2dyb3Vwc1tzZGF0
-YS0+dHlwZV0ubmFtZSwgc2RhdGEtPmh3bW9uX2luZGV4LAorCQkgYXR0cl9uYW1lKTsKKworCXN5
-c2ZzX2F0dHJfaW5pdCgmc2RhdGEtPmRldl9hdHRyLmF0dHIpOworCXNkYXRhLT5kZXZfYXR0ci5h
-dHRyLm5hbWUgPSBzZGF0YS0+bmFtZTsKKwlzZGF0YS0+ZGV2X2F0dHIuYXR0ci5tb2RlID0gU19J
-UlVHTzsKKwlzZGF0YS0+ZGV2X2F0dHIuc2hvdyA9IHNob3c7Cit9CisKIC8qCiAgKiBJdGVyYXRl
-IHRocm91Z2ggdGhlIGRldmljZSB0cmVlIGZvciBlYWNoIGNoaWxkIG9mICdzZW5zb3JzJyBub2Rl
-LCBjcmVhdGUKICAqIGEgc3lzZnMgYXR0cmlidXRlIGZpbGUsIHRoZSBmaWxlIGlzIG5hbWVkIGJ5
-IHRyYW5zbGF0aW5nIHRoZSBEVCBub2RlIG5hbWUKQEAgLTI5MCwxNCArMzA1LDcgQEAgc3RhdGlj
-IGludCBjcmVhdGVfZGV2aWNlX2F0dHJzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJ
-CXNkYXRhW2NvdW50XS5od21vbl9pbmRleCA9CiAJCQlnZXRfc2Vuc29yX2h3bW9uX2luZGV4KCZz
-ZGF0YVtjb3VudF0sIHNkYXRhLCBjb3VudCk7CiAKLQkJc25wcmludGYoc2RhdGFbY291bnRdLm5h
-bWUsIE1BWF9BVFRSX0xFTiwgIiVzJWRfJXMiLAotCQkJIHNlbnNvcl9ncm91cHNbdHlwZV0ubmFt
-ZSwgc2RhdGFbY291bnRdLmh3bW9uX2luZGV4LAotCQkJIGF0dHJfbmFtZSk7Ci0KLQkJc3lzZnNf
-YXR0cl9pbml0KCZzZGF0YVtjb3VudF0uZGV2X2F0dHIuYXR0cik7Ci0JCXNkYXRhW2NvdW50XS5k
-ZXZfYXR0ci5hdHRyLm5hbWUgPSBzZGF0YVtjb3VudF0ubmFtZTsKLQkJc2RhdGFbY291bnRdLmRl
-dl9hdHRyLmF0dHIubW9kZSA9IFNfSVJVR087Ci0JCXNkYXRhW2NvdW50XS5kZXZfYXR0ci5zaG93
-ID0gc2hvd19zZW5zb3I7CisJCWNyZWF0ZV9od21vbl9hdHRyKCZzZGF0YVtjb3VudF0sIGF0dHJf
-bmFtZSwgc2hvd19zZW5zb3IpOwogCiAJCXBncm91cHNbdHlwZV0tPmF0dHJzW3NlbnNvcl9ncm91
-cHNbdHlwZV0uYXR0cl9jb3VudCsrXSA9CiAJCQkJJnNkYXRhW2NvdW50KytdLmRldl9hdHRyLmF0
-dHI7Ci0tIAoxLjcuMTAuNAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
-cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
-cw=
+On Sun, Mar 29, 2015 at 02:57:39PM +0200, Pali Roh=E1r wrote:
+> This patch splits CONFIG_I8K compile option to SENSORS_DELL_SMM and CONFI=
+G_I8K.
+> Option SENSORS_DELL_SMM is now used to enable compilation of dell-smm-hwm=
+on
+> driver and old CONFIG_I8K option to enable /proc/i8k interface in driver.
+>=20
+> So this change allows to compile dell-smm-hwmon driver without legacy /pr=
+oc/i8k
+> interface which is needed only for old Dell Inspirion models or for users=
+pace
+> i8kutils package.
+>=20
+> For backward compatibility when CONFIG_I8K is enabled then also SENSORS_D=
+ELL_SMM
+> is enabled and so driver dell-smm-hwmon (with /proc/i8k) is compiled.
+>=20
+> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+> ---
+>  arch/x86/Kconfig               |   25 +++----
+>  drivers/hwmon/Kconfig          |   11 +++
+>  drivers/hwmon/Makefile         |    2 +-
+>  drivers/hwmon/dell-smm-hwmon.c |  150 ++++++++++++++++++++++------------=
+------
+>  4 files changed, 106 insertions(+), 82 deletions(-)
+
+This doesn't apply to 4.1-rc1, so I can't apply this series now.  Can
+you respin it and resend?
+
+thanks,
+
+greg k-h
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
