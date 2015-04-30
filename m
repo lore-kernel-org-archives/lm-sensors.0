@@ -1,26 +1,169 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Apr 2015 15:03:13 +0000
-Subject: Re: [lm-sensors] [PATCH 05/15] hwmon: (it87) Add support for IT8790E
-Message-Id: <551C08B1.9090402@roeck-us.net>
+From: Beomho Seo <beomho.seo@samsung.com>
+Date: Thu, 30 Apr 2015 04:07:43 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ntc_thermistor) Add support for ncpXXwf104
+Message-Id: <1430366863-22705-1-git-send-email-beomho.seo@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1427697235-23566-6-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1427697235-23566-6-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, cw00.choi@samsung.com, inki.dae@samsung.com, sangbae90.lee@samsung.com, Beomho Seo <beomho.seo@samsung.com>
 
-T24gMDQvMDEvMjAxNSAwNzozNSBBTSwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+IExlIFdlZG5lc2Rh
-eSAwMSBBcHJpbCAyMDE1IMOgIDA2OjUzIC0wNzAwLCBHdWVudGVyIFJvZWNrIGEgw6ljcml0IDoK
-Pj4gT24gYSBzaWRlIG5vdGUsIGRpZCB5b3Ugbm90aWNlIHRoYXQgSVQ4NzI4RiBzdXBwb3J0cyB1
-cCB0byBmaXZlIHB3bSBjb250cm9scyA/Cj4+IEl0IGRvZXNuJ3QgbWF0dGVyIG11Y2ggdGhvdWdo
-IGJlY2F1c2UgcHdtNCBhbmQgcHdtNSBhcyBzaW1wbHkgbWFwcGVkIHRvIHB3bTEuLjMKPj4gKHdo
-aWNoIG9uZSBpcyBjb25maWd1cmFibGUpLgo+Cj4gRWl0aGVyIEkgbmV2ZXIgbm90aWNlZCwgb3Ig
-SSBmb3Jnb3QgbWVhbndoaWxlICh0aGF0IHdvdWxkbid0IGJlIGFsbCB0aGF0Cj4gc3VycHJpc2lu
-Zy4pIEVpdGhlciB3YXkgaXQgZG9lc24ndCBsb29rIGxpa2Ugc29tZXRoaW5nIHRoZSBkcml2ZXIg
-bmVlZHMKPiB0byBjYXJlIGFib3V0PyBJIHN1cHBvc2UgdGhhdCB0aGUgb25seSBwdXJwb3NlIGlz
-IHRvIG1ha2Ugc2lnbmFsIHJvdXRpbmcKPiBlYXNpZXIgZm9yIGJvYXJkIG1hbnVmYWN0dXJlcnMu
-Cj4KClllcywgeW91IGFyZSByaWdodC4KClRoYW5rcywKR3VlbnRlcgoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
-CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
-aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+This patch adds support for the ntc thermistor NCPXXWF104 serises.
+
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Beomho Seo <beomho.seo@samsung.com>
+---
+Changes in v2
+- Fix typo.
+- Update Documents and Kconfig.
+- Use murata instead of ntc.
+- add entry to  the murata list.
+---
+ .../devicetree/bindings/hwmon/ntc_thermistor.txt   |    1 +
+ Documentation/hwmon/ntc_thermistor                 |    6 ++-
+ drivers/hwmon/Kconfig                              |    4 +-
+ drivers/hwmon/ntc_thermistor.c                     |   44 ++++++++++++++++++++
+ include/linux/platform_data/ntc_thermistor.h       |    1 +
+ 5 files changed, 52 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt b/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
+index fcca8e7..a04a80f 100644
+--- a/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
++++ b/Documentation/devicetree/bindings/hwmon/ntc_thermistor.txt
+@@ -9,6 +9,7 @@ Requires node properties:
+ 	"murata,ncp21wb473"
+ 	"murata,ncp03wb473"
+ 	"murata,ncp15wl333"
++	"murata,ncp03wf104"
+ 
+ /* Usage of vendor name "ntc" is deprecated */
+ <DEPRECATED>	"ntc,ncp15wb473"
+diff --git a/Documentation/hwmon/ntc_thermistor b/Documentation/hwmon/ntc_thermistor
+index c5e05e2..1d4cc84 100644
+--- a/Documentation/hwmon/ntc_thermistor
++++ b/Documentation/hwmon/ntc_thermistor
+@@ -2,8 +2,10 @@ Kernel driver ntc_thermistor
+ ======== 
+ Supported thermistors from Murata:
+-* Murata NTC Thermistors NCP15WB473, NCP18WB473, NCP21WB473, NCP03WB473, NCP15WL333
+-  Prefixes: 'ncp15wb473', 'ncp18wb473', 'ncp21wb473', 'ncp03wb473', 'ncp15wl333'
++* Murata NTC Thermistors NCP15WB473, NCP18WB473, NCP21WB473, NCP03WB473,
++  NCP15WL333, NCP03WF104
++  Prefixes: 'ncp15wb473', 'ncp18wb473', 'ncp21wb473', 'ncp03wb473',
++  'ncp15wl333', 'ncp03wf104'
+   Datasheet: Publicly available at Murata
+ 
+ Supported thermistors from EPCOS:
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 25d9e72..4542ffc 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1106,8 +1106,8 @@ config SENSORS_NTC_THERMISTOR
+ 	  send notifications about the temperature.
+ 
+ 	  Currently, this driver supports
+-	  NCP15WB473, NCP18WB473, NCP21WB473, NCP03WB473, and NCP15WL333
+-	  from Murata and B57330V2103 from EPCOS.
++	  NCP15WB473, NCP18WB473, NCP21WB473, NCP03WB473, NCP15WL333,
++	  and NCP03WF104 from Murata and B57330V2103 from EPCOS.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ntc-thermistor.
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index 112e4d4..09ece61 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -53,6 +53,7 @@ static const struct platform_device_id ntc_thermistor_id[] = {
+ 	{ "ncp03wb473", TYPE_NCPXXWB473 },
+ 	{ "ncp15wl333", TYPE_NCPXXWL333 },
+ 	{ "b57330v2103", TYPE_B57330V2103},
++	{ "ncp03wf104", TYPE_NCPXXWF104 },
+ 	{ },
+ };
+ 
+@@ -135,6 +136,43 @@ static const struct ntc_compensation ncpXXwl333[] = {
+ 	{ .temp_c	= 125, .ohm	= 707 },
+ };
+ 
++static const struct ntc_compensation ncpXXwf104[] = {
++	{ .temp_c	= -40, .ohm	= 4397119 },
++	{ .temp_c	= -35, .ohm	= 3088599 },
++	{ .temp_c	= -30, .ohm	= 2197225 },
++	{ .temp_c	= -25, .ohm	= 1581881 },
++	{ .temp_c	= -20, .ohm	= 1151037 },
++	{ .temp_c	= -15, .ohm	= 846579 },
++	{ .temp_c	= -10, .ohm	= 628988 },
++	{ .temp_c	= -5, .ohm	= 471632 },
++	{ .temp_c	= 0, .ohm	= 357012 },
++	{ .temp_c	= 5, .ohm	= 272500 },
++	{ .temp_c	= 10, .ohm	= 209710 },
++	{ .temp_c	= 15, .ohm	= 162651 },
++	{ .temp_c	= 20, .ohm	= 127080 },
++	{ .temp_c	= 25, .ohm	= 100000 },
++	{ .temp_c	= 30, .ohm	= 79222 },
++	{ .temp_c	= 35, .ohm	= 63167 },
++	{ .temp_c	= 40, .ohm	= 50677 },
++	{ .temp_c	= 45, .ohm	= 40904 },
++	{ .temp_c	= 50, .ohm	= 33195 },
++	{ .temp_c	= 55, .ohm	= 27091 },
++	{ .temp_c	= 60, .ohm	= 22224 },
++	{ .temp_c	= 65, .ohm	= 18323 },
++	{ .temp_c	= 70, .ohm	= 15184 },
++	{ .temp_c	= 75, .ohm	= 12635 },
++	{ .temp_c	= 80, .ohm	= 10566 },
++	{ .temp_c	= 85, .ohm	= 8873 },
++	{ .temp_c	= 90, .ohm	= 7481 },
++	{ .temp_c	= 95, .ohm	= 6337 },
++	{ .temp_c	= 100, .ohm	= 5384 },
++	{ .temp_c	= 105, .ohm	= 4594 },
++	{ .temp_c	= 110, .ohm	= 3934 },
++	{ .temp_c	= 115, .ohm	= 3380 },
++	{ .temp_c	= 120, .ohm	= 2916 },
++	{ .temp_c	= 125, .ohm	= 2522 },
++};
++
+ /*
+  * The following compensation table is from the specification of EPCOS NTC
+  * Thermistors Datasheet
+@@ -219,6 +257,8 @@ static const struct of_device_id ntc_match[] = {
+ 		.data = &ntc_thermistor_id[4] },
+ 	{ .compatible = "epcos,b57330v2103",
+ 		.data = &ntc_thermistor_id[5]},
++	{ .compatible = "murata,ncp03wf104",
++		.data = &ntc_thermistor_id[6] },
+ 
+ 	/* Usage of vendor name "ntc" is deprecated */
+ 	{ .compatible = "ntc,ncp15wb473",
+@@ -558,6 +598,10 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
+ 		data->comp = b57330v2103;
+ 		data->n_comp = ARRAY_SIZE(b57330v2103);
+ 		break;
++	case TYPE_NCPXXWF104:
++		data->comp = ncpXXwf104;
++		data->n_comp = ARRAY_SIZE(ncpXXwf104);
++		break;
+ 	default:
+ 		dev_err(&pdev->dev, "Unknown device type: %lu(%s)\n",
+ 				pdev_id->driver_data, pdev_id->name);
+diff --git a/include/linux/platform_data/ntc_thermistor.h b/include/linux/platform_data/ntc_thermistor.h
+index 0a6de4c..aed1705 100644
+--- a/include/linux/platform_data/ntc_thermistor.h
++++ b/include/linux/platform_data/ntc_thermistor.h
+@@ -27,6 +27,7 @@ enum ntc_thermistor_type {
+ 	TYPE_NCPXXWB473,
+ 	TYPE_NCPXXWL333,
+ 	TYPE_B57330V2103,
++	TYPE_NCPXXWF104,
+ };
+ 
+ struct ntc_thermistor_platform_data {
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
