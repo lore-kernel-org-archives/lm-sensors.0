@@ -1,197 +1,115 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Date: Wed, 04 Mar 2015 12:03:44 +0000
-Subject: [lm-sensors] [PATCH RESEND v6 6/6] hwmon: pwm-fan: Code for using PWM FAN as a cooling device
-Message-Id: <1425470624-25793-7-git-send-email-l.majewski@samsung.com>
+From: Beomho Seo <beomho.seo@samsung.com>
+Date: Thu, 30 Apr 2015 02:25:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ntc_thermistor) Add support for ncpXXwf104
+Message-Id: <1430360739-22006-1-git-send-email-beomho.seo@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1418897591-18332-1-git-send-email-l.majewski@samsung.com>
- <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
-In-Reply-To: <1425470624-25793-1-git-send-email-l.majewski@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>, Kamil Debski <k.debski@samsung.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene@kernel.org>
-Cc: lm-sensors@lm-sensors.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree@vger.kernel.org, Lukasz Majewski <l.majewski@majess.pl>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Abhilash Kesavan <kesavan.abhilash@gmail.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Lukasz Majewski <l.majewski@samsung.com>
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, cw00.choi@samsung.com, inki.dae@samsung.com, sangbae90.lee@samsung.com, Beomho Seo <beomho.seo@samsung.com>
 
-The PWM FAN device can now be used as a thermal cooling device. Necessary
-infrastructure has been added in this commit.
+This patch adds support for the ntc thermistor NCPXXWF104 serise.
 
-Signed-off-by: Lukasz Majewski <l.majewski@samsung.com>
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Beomho Seo <beomho.seo@samsung.com>
 ---
-Changes for v2:
-- Replace pwm_fan_cooling_states with pwm_fan_cooling_levels
-- Update ctx->pwm_fan_state when correct data from device tree is available
-- Using therma_cdev_update() when thermal is ready for controlling the fan
-Changes for v3:
-- Rename patch heading
-- pwm_fan_of_get_cooling_data() now returns -EINVAL when no "cooling-levels"
-  property defined
-- register of cooling device only when proper cooling data is present
-Changes for v4:
-- None
-Changes for v5:
-- Check for IS_ENABLED(CONFIG_THERMAL) has been added to prevent from
-  executing thermal_* specific functions
-Changes for v6:
-- Adding missing ctx = NULL check in pwm_fan_get_max_state()
-- Call to thermal_cooling_device_unregister(ctx->cdev); at pwm_fan_remove()
-- struct thermal_cooling_device *cdev; added to struct pwm_fan_ctx
----
- drivers/hwmon/pwm-fan.c | 89 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 88 insertions(+), 1 deletion(-)
+ drivers/hwmon/ntc_thermistor.c               |   45 ++++++++++++++++++++++++++
+ include/linux/platform_data/ntc_thermistor.h |    1 +
+ 2 files changed, 46 insertions(+)
 
-diff --git a/drivers/hwmon/pwm-fan.c b/drivers/hwmon/pwm-fan.c
-index e6ed353..7c83dc4 100644
---- a/drivers/hwmon/pwm-fan.c
-+++ b/drivers/hwmon/pwm-fan.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/pwm.h>
- #include <linux/sysfs.h>
-+#include <linux/thermal.h>
- 
- #define MAX_PWM 255
- 
-@@ -34,6 +35,7 @@ struct pwm_fan_ctx {
- 	unsigned int pwm_fan_state;
- 	unsigned int pwm_fan_max_state;
- 	unsigned int *pwm_fan_cooling_levels;
-+	struct thermal_cooling_device *cdev;
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index 112e4d4..a320664 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -53,6 +53,7 @@ static const struct platform_device_id ntc_thermistor_id[] = {
+ 	{ "ncp03wb473", TYPE_NCPXXWB473 },
+ 	{ "ncp15wl333", TYPE_NCPXXWL333 },
+ 	{ "b57330v2103", TYPE_B57330V2103},
++	{ "ncp03wf104", TYPE_NCPXXWF104 },
+ 	{ },
  };
  
- static int  __set_pwm(struct pwm_fan_ctx *ctx, unsigned long pwm)
-@@ -68,6 +70,17 @@ exit_set_pwm_err:
- 	return ret;
- }
+@@ -135,6 +136,43 @@ static const struct ntc_compensation ncpXXwl333[] = {
+ 	{ .temp_c	= 125, .ohm	= 707 },
+ };
  
-+static void pwm_fan_update_state(struct pwm_fan_ctx *ctx, unsigned long pwm)
-+{
-+	int i;
-+
-+	for (i = 0; i < ctx->pwm_fan_max_state; ++i)
-+		if (pwm < ctx->pwm_fan_cooling_levels[i + 1])
-+			break;
-+
-+	ctx->pwm_fan_state = i;
-+}
-+
- static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 		       const char *buf, size_t count)
- {
-@@ -82,6 +95,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 	if (ret)
- 		return ret;
- 
-+	pwm_fan_update_state(ctx, pwm);
- 	return count;
- }
- 
-@@ -103,6 +117,62 @@ static struct attribute *pwm_fan_attrs[] = {
- 
- ATTRIBUTE_GROUPS(pwm_fan);
- 
-+/* thermal cooling device callbacks */
-+static int pwm_fan_get_max_state(struct thermal_cooling_device *cdev,
-+				 unsigned long *state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+
-+	if (!ctx)
-+		return -EINVAL;
-+
-+	*state = ctx->pwm_fan_max_state;
-+
-+	return 0;
-+}
-+
-+static int pwm_fan_get_cur_state(struct thermal_cooling_device *cdev,
-+				 unsigned long *state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+
-+	if (!ctx)
-+		return -EINVAL;
-+
-+	*state = ctx->pwm_fan_state;
-+
-+	return 0;
-+}
-+
-+static int
-+pwm_fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
-+{
-+	struct pwm_fan_ctx *ctx = cdev->devdata;
-+	int ret;
-+
-+	if (!ctx || (state > ctx->pwm_fan_max_state))
-+		return -EINVAL;
-+
-+	if (state = ctx->pwm_fan_state)
-+		return 0;
-+
-+	ret = __set_pwm(ctx, ctx->pwm_fan_cooling_levels[state]);
-+	if (ret) {
-+		dev_err(&cdev->device, "Cannot set pwm!\n");
-+		return ret;
-+	}
-+
-+	ctx->pwm_fan_state = state;
-+
-+	return ret;
-+}
-+
-+static const struct thermal_cooling_device_ops pwm_fan_cooling_ops = {
-+	.get_max_state = pwm_fan_get_max_state,
-+	.get_cur_state = pwm_fan_get_cur_state,
-+	.set_cur_state = pwm_fan_set_cur_state,
++static const struct ntc_compensation ncpXXwf104[] = {
++	{ .temp_c	= -40, .ohm	= 4397119 },
++	{ .temp_c	= -35, .ohm	= 3088599 },
++	{ .temp_c	= -30, .ohm	= 2197225 },
++	{ .temp_c	= -25, .ohm	= 1581881 },
++	{ .temp_c	= -20, .ohm	= 1151037 },
++	{ .temp_c	= -15, .ohm	= 846579 },
++	{ .temp_c	= -10, .ohm	= 628988 },
++	{ .temp_c	= -5, .ohm	= 471632 },
++	{ .temp_c	= 0, .ohm	= 357012 },
++	{ .temp_c	= 5, .ohm	= 272500 },
++	{ .temp_c	= 10, .ohm	= 209710 },
++	{ .temp_c	= 15, .ohm	= 162651 },
++	{ .temp_c	= 20, .ohm	= 127080 },
++	{ .temp_c	= 25, .ohm	= 100000 },
++	{ .temp_c	= 30, .ohm	= 79222 },
++	{ .temp_c	= 35, .ohm	= 63167 },
++	{ .temp_c	= 40, .ohm	= 50677 },
++	{ .temp_c	= 45, .ohm	= 40904 },
++	{ .temp_c	= 50, .ohm	= 33195 },
++	{ .temp_c	= 55, .ohm	= 27091 },
++	{ .temp_c	= 60, .ohm	= 22224 },
++	{ .temp_c	= 65, .ohm	= 18323 },
++	{ .temp_c	= 70, .ohm	= 15184 },
++	{ .temp_c	= 75, .ohm	= 12635 },
++	{ .temp_c	= 80, .ohm	= 10566 },
++	{ .temp_c	= 85, .ohm	= 8873 },
++	{ .temp_c	= 90, .ohm	= 7481 },
++	{ .temp_c	= 95, .ohm	= 6337 },
++	{ .temp_c	= 100, .ohm	= 5384 },
++	{ .temp_c	= 105, .ohm	= 4594 },
++	{ .temp_c	= 110, .ohm	= 3934 },
++	{ .temp_c	= 115, .ohm	= 3380 },
++	{ .temp_c	= 120, .ohm	= 2916 },
++	{ .temp_c	= 125, .ohm	= 2522 },
 +};
 +
- int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- {
- 	struct device_node *np = dev->of_node;
-@@ -145,8 +215,9 @@ int pwm_fan_of_get_cooling_data(struct device *dev, struct pwm_fan_ctx *ctx)
- 
- static int pwm_fan_probe(struct platform_device *pdev)
- {
--	struct device *hwmon;
-+	struct thermal_cooling_device *cdev;
- 	struct pwm_fan_ctx *ctx;
-+	struct device *hwmon;
- 	int duty_cycle;
- 	int ret;
- 
-@@ -193,6 +264,21 @@ static int pwm_fan_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	ctx->pwm_fan_state = ctx->pwm_fan_max_state;
-+	if (IS_ENABLED(CONFIG_THERMAL)) {
-+		cdev = thermal_of_cooling_device_register(pdev->dev.of_node,
-+							  "pwm-fan", ctx,
-+							  &pwm_fan_cooling_ops);
-+		if (IS_ERR(cdev)) {
-+			dev_err(&pdev->dev,
-+				"Failed to register pwm-fan as cooling device");
-+			pwm_disable(ctx->pwm);
-+			return PTR_ERR(cdev);
-+		}
-+		ctx->cdev = cdev;
-+		thermal_cdev_update(cdev);
-+	}
+ /*
+  * The following compensation table is from the specification of EPCOS NTC
+  * Thermistors Datasheet
+@@ -231,6 +269,9 @@ static const struct of_device_id ntc_match[] = {
+ 		.data = &ntc_thermistor_id[3] },
+ 	{ .compatible = "ntc,ncp15wl333",
+ 		.data = &ntc_thermistor_id[4] },
++	{ .compatible = "ntc,ncp03wf104",
++		.data = &ntc_thermistor_id[6] },
 +
- 	return 0;
- }
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, ntc_match);
+@@ -558,6 +599,10 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
+ 		data->comp = b57330v2103;
+ 		data->n_comp = ARRAY_SIZE(b57330v2103);
+ 		break;
++	case TYPE_NCPXXWF104:
++		data->comp = ncpXXwf104;
++		data->n_comp = ARRAY_SIZE(ncpXXwf104);
++		break;
+ 	default:
+ 		dev_err(&pdev->dev, "Unknown device type: %lu(%s)\n",
+ 				pdev_id->driver_data, pdev_id->name);
+diff --git a/include/linux/platform_data/ntc_thermistor.h b/include/linux/platform_data/ntc_thermistor.h
+index 0a6de4c..aed1705 100644
+--- a/include/linux/platform_data/ntc_thermistor.h
++++ b/include/linux/platform_data/ntc_thermistor.h
+@@ -27,6 +27,7 @@ enum ntc_thermistor_type {
+ 	TYPE_NCPXXWB473,
+ 	TYPE_NCPXXWL333,
+ 	TYPE_B57330V2103,
++	TYPE_NCPXXWF104,
+ };
  
-@@ -200,6 +286,7 @@ static int pwm_fan_remove(struct platform_device *pdev)
- {
- 	struct pwm_fan_ctx *ctx = platform_get_drvdata(pdev);
- 
-+	thermal_cooling_device_unregister(ctx->cdev);
- 	if (ctx->pwm_value)
- 		pwm_disable(ctx->pwm);
- 	return 0;
+ struct ntc_thermistor_platform_data {
 -- 
-2.0.0.rc2
+1.7.9.5
 
 
 _______________________________________________
