@@ -1,29 +1,37 @@
-From: Rodrigo Wezher <rodrigo.wezher@fluidolabs.com>
-Date: Mon, 04 May 2015 15:37:09 +0000
-Subject: [lm-sensors] [PATCH] fancontrol: syslog flooded by error messages.
-Message-Id: <CAHbfunW_O=KQiOX4dD2O9kuBqkoafWm7ijMOrqa957+PJsgzZg@mail.gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 04 May 2015 16:12:15 +0000
+Subject: Re: [lm-sensors] [PATCH] fancontrol: syslog flooded by error messages.
+Message-Id: <1430755935.4445.117.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAHbfunW_O=KQiOX4dD2O9kuBqkoafWm7ijMOrqa957+PJsgzZg@mail.gmail.com>
+In-Reply-To: <CAHbfunW_O=KQiOX4dD2O9kuBqkoafWm7ijMOrqa957+PJsgzZg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-There is an error at this line:
-http://lm-sensors.org/browser/lm-sensors/trunk/prog/pwm/fancontrol?revb55#L544
-
-Bug reported at:
-https://launchpad.net/~debianbug
-
-Fix by: Mac_Weber
-
-Replace:
-if [ $pwmpval -eq 0 -o $min_fanval -eq 0 ]
-By:
-if [ "${pwmpval} -eq 0 -o ${min_fanval} -eq 0" ]
-
-
-Without this fix the file /var/log/syslog gets flooded by error messages.
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgUm9kcmlnbywKCkxlIE1vbmRheSAwNCBNYXkgMjAxNSDDoCAxMjozNyAtMDMwMCwgUm9kcmln
+byBXZXpoZXIgYSDDqWNyaXQgOgo+IFRoZXJlIGlzIGFuIGVycm9yIGF0IHRoaXMgbGluZToKPiBo
+dHRwOi8vbG0tc2Vuc29ycy5vcmcvYnJvd3Nlci9sbS1zZW5zb3JzL3RydW5rL3Byb2cvcHdtL2Zh
+bmNvbnRyb2w/cmV2PTYyNTUjTDU0NAo+IAo+IEJ1ZyByZXBvcnRlZCBhdDoKPiBodHRwczovL2xh
+dW5jaHBhZC5uZXQvfmRlYmlhbmJ1ZwoKSSBndWVzcyB5b3UgYWN0dWFsbHkgbWVhbnQ6CgpodHRw
+czovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUvK3NvdXJjZS9sbS1zZW5zb3JzLTMvK2J1Zy8x
+NDA1Nzg0Cgo+IAo+IEZpeCBieTogTWFjX1dlYmVyCj4gCj4gUmVwbGFjZToKPiBpZiBbICRwd21w
+dmFsIC1lcSAwIC1vICRtaW5fZmFudmFsIC1lcSAwIF0KClRoaXMgaXMgYXJndWFibHkgZnJhZ2ls
+ZSBidXQuLi4KCj4gQnk6Cj4gaWYgWyAiJHtwd21wdmFsfSAtZXEgMCAtbyAke21pbl9mYW52YWx9
+IC1lcSAwIiBdCgouLi4gdGhpcyBpcyBwbGFpbiB3cm9uZzogdGhlIGNvbmRpdGlvbiB3aWxsIGFs
+d2F5cyBiZSB0cnVlIHJlZ2FyZGxlc3Mgb2YKdGhlIHZhbHVlIG9mICRwd21wdmFsIGFuZCAkbWlu
+X2ZhbnZhbC4KCmlmIFsgIiRwd21wdmFsIiAtZXEgMCAtbyAiJG1pbl9mYW52YWwiIC1lcSAwIF0K
+CndvdWxkIGJlIGNvcnJlY3QgYW5kIHNvbWV3aGF0IG1vcmUgcm9idXN0LCBob3dldmVyIGlmIHRo
+ZSBjdXJyZW50IHN5bnRheApjYXVzZXMgYW4gZXJyb3IgdGhpcyBzdWdnZXN0cyB0aGF0IGVpdGhl
+ciBwd21wdmFsIG9yIG1pbl9mYW52YWwgaXNuJ3QKc2V0IHRvIGEgbnVtYmVyLCBhbmQgdGhlIHN5
+bnRheCBhYm92ZSB3aWxsIHN0aWxsIHByaW50IGFuIGVycm9yIGluIHRoYXQKY2FzZS4KCj4gV2l0
+aG91dCB0aGlzIGZpeCB0aGUgZmlsZSAvdmFyL2xvZy9zeXNsb2cgZ2V0cyBmbG9vZGVkIGJ5IGVy
+cm9yIG1lc3NhZ2VzLgoKV2l0aCB0aGUgcHJvcG9zZWQgImZpeCIsIHRoZSBzY3JpcHQgd291bGQg
+bWlzYmVoYXZlLgoKVGhlIGFjdHVhbCBidWcgaXMgYWxyZWFkeSBmaXhlZCBhbnl3YXk6CgpodHRw
+Oi8vbG0tc2Vuc29ycy5vcmcvY2hhbmdlc2V0LzYyNTUKCmFzIHBvaW50ZWQgb3V0IGJ5IHRoZSBs
+YXN0IGNvbW1lbnQgb2YgdGhlIGxhdW5jaHBhZCBidWcgcmVwb3J0LgoKLS0gCkplYW4gRGVsdmFy
+ZQpTVVNFIEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMu
+b3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNv
+cnM
