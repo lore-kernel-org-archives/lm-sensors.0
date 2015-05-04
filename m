@@ -1,29 +1,48 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 04 May 2015 16:00:47 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 04 May 2015 17:00:48 +0000
 Subject: Re: [lm-sensors] How to send a patch?
-Message-Id: <1430755247.4445.106.camel@chaos.site>
+Message-Id: <20150504170048.GF9602@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHbfunXfy00bowOy-UDVw0X2TBkNKcFEVUdyo7ER_VwNcze_8A@mail.gmail.com>
 In-Reply-To: <CAHbfunXfy00bowOy-UDVw0X2TBkNKcFEVUdyo7ER_VwNcze_8A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-TGUgTW9uZGF5IDA0IE1heSAyMDE1IMOgIDEyOjI0IC0wMzAwLCBSb2RyaWdvIFdlemhlciBhIMOp
-Y3JpdCA6Cj4gSGVsbG8sCj4gCj4gT24gU2F0LCBNYXkgMiwgMjAxNSBhdCA1OjA4IEFNLCBKZWFu
-IERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+IHdyb3RlOgo+IAo+ID4gT24gRnJpLCAxIE1heSAy
-MDE1IDEwOjI1OjE5IC0wMzAwLCBSb2RyaWdvIFdlemhlciB3cm90ZToKPiA+ID4gQmVzaWRlcyB0
-aGUgbWFpbCBsaXN0LCBpcyB0aGVyZSBhbm90aGVyIHdheSB0byBzZW5kIGEgcGF0Y2ggdG8gdGhl
-Cj4gPiBwcm9qZWN0Pwo+ID4gPiBNYXliZSBHaXRIdWIgb3Igc29tZXRoaW5nIHNpbWlsYXI/Cj4g
-Pgo+ID4gVGhlIG1haWxpbmcgbGlzdCBpcyB0aGUgd2F5IHRvIGdvLCB0aGVyZSBpcyBubyBvdGhl
-ciB3YXkuCj4KPiBIb3cgYWJvdXQgbW92aW5nIHRoZSBwcm9qZWN0IHRvIHNvbWV0aGluZyBtb3Jl
-IHNvY2lhbCB3aGVyZSBvdGhlcgo+IGRldmVsb3BlcnMgY291bGQgaGVscCBmYXN0ZXI/Cj4gSXQg
-d291bGQgYWxzbyBnZXQgbW9yZSB2aXNpYmlsaXR5IGFuZCBnZXQgbW9yZSBwZW9wbGUgdG8gaGVs
-cC4gTm90IGp1c3QKPiBzZW5kaW5nIHBhdGNoZXMsIGJ1dCByZXZpZXdpbmcgdGhlIGNvZGUgYW5k
-IHN1Z2dlc3RpbmcgbW9yZSBpbXByb3ZlbWVudHMuCgpBbGwgb2YgdGhpcyBjYW4gYmUgZG9uZSBv
-biB0aGUgbWFpbGluZyBsaXN0LCBJIGNhbid0IHNlZSBob3cgZ2l0aHViCndvdWxkIGhlbHAuCgot
-LSAKSmVhbiBEZWx2YXJlClNVU0UgTDMgU3VwcG9ydAoKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNv
-cnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlz
-dGluZm8vbG0tc2Vuc29ycw=
+On Mon, May 04, 2015 at 06:00:47PM +0200, Jean Delvare wrote:
+> Le Monday 04 May 2015 =E0 12:24 -0300, Rodrigo Wezher a =E9crit :
+> > Hello,
+> >=20
+> > On Sat, May 2, 2015 at 5:08 AM, Jean Delvare <jdelvare@suse.de> wrote:
+> >=20
+> > > On Fri, 1 May 2015 10:25:19 -0300, Rodrigo Wezher wrote:
+> > > > Besides the mail list, is there another way to send a patch to the
+> > > project?
+> > > > Maybe GitHub or something similar?
+> > >
+> > > The mailing list is the way to go, there is no other way.
+> >
+> > How about moving the project to something more social where other
+> > developers could help faster?
+> > It would also get more visibility and get more people to help. Not just
+> > sending patches, but reviewing the code and suggesting more improvement=
+s.
+>=20
+> All of this can be done on the mailing list, I can't see how github
+> would help.
+>=20
+
+Also, there already are clones for both lm-sensors and i2c-tools at github,
+at https://github.com/groeck/{lm-sensors, i2c-tools}, for those who prefer
+to work with git. Most of the time the clones are even up to date. The forks
+suggest that people know and use it, and the stars suggest that they
+appreciate it. But patches still have to be sent to the mailing list to be
+considered for upstream integration, and that is how it should be.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
