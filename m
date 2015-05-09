@@ -1,75 +1,61 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Date: Thu, 14 May 2015 11:16:36 +0000
-Subject: [lm-sensors] [PATCH v3 1/2] hwmon: Rename i8k driver to dell-smm-hwmon and move it to hwmon tree
-Message-Id: <1431602197-2172-1-git-send-email-pali.rohar@gmail.com>
+From: <vt8231@hiddenengine.co.uk>
+Date: Sat, 09 May 2015 12:57:41 +0000
+Subject: [lm-sensors] Additional PWM driver support for w83792d
+Message-Id: <003901d08a57$bc46f8a0$34d4e9e0$@hiddenengine.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1430307686-1734-1-git-send-email-pali.rohar@gmail.com>
-In-Reply-To: <1430307686-1734-1-git-send-email-pali.rohar@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-VGhpcyBjb21taXQgbW92ZXMgaThrIGRyaXZlciB0byBod21vbiB0cmVlIHVuZGVyIG5hbWUgZGVs
-bC1zbW0taHdtb24gd2hpY2ggaXMKYmV0dGVyIG5hbWUgdGhlbiBhYmJyZXZpYXRpb24gaThrLiBG
-b3IgYmFja3dhcmQgY29tcGF0aWJpbGl0eSBpcyBhZGRlZCBtYWNybwpNT0RVTEVfQUxJQVMoImk4
-ayIpIHNvIG1vZHByb2JlIHdpbGwgbG9hZCBkcml2ZXIgYWxzbyBvbGQgbmFtZSBpOGsuIENPTkZJ
-R19JOEsKY29tcGlsZSBvcHRpb24gd2FzIG5vdCBjaGFuZ2VkLgoKVGhpcyBjb21taXQgYWxzbyBh
-ZGRzIG1lIGFzIG1haW50YWluZXIgb2YgdGhpcyBuZXcgZGVsbC1zbW0taHdtb24gZHJpdmVyIGFu
-ZApyZW1vdmUgR3VlbnRlciBSb2VjayBmcm9tIGxpc3Qgd2hvIGlzIGltcGxpY2l0IG1haW50YWlu
-ZXIgYWxsIGh3bW9uIGRyaXZlcnMuCgpTaWduZWQtb2ZmLWJ5OiBQYWxpIFJvaMOhciA8cGFsaS5y
-b2hhckBnbWFpbC5jb20+Ci0tLQogTUFJTlRBSU5FUlMgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICB8ICAgIDQgKystLQogZHJpdmVycy9jaGFyL01ha2VmaWxlICAgICAgICAgICAg
-ICAgICAgICAgICAgICB8ICAgIDEgLQogZHJpdmVycy9od21vbi9NYWtlZmlsZSAgICAgICAgICAg
-ICAgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVycy97Y2hhci9pOGsuYyA9PiBod21vbi9kZWxs
-LXNtbS1od21vbi5jfSB8ICAgIDYgKysrKy0tCiA0IGZpbGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9u
-cygrKSwgNSBkZWxldGlvbnMoLSkKIHJlbmFtZSBkcml2ZXJzL3tjaGFyL2k4ay5jID0+IGh3bW9u
-L2RlbGwtc21tLWh3bW9uLmN9ICg5OSUpCgpkaWZmIC0tZ2l0IGEvTUFJTlRBSU5FUlMgYi9NQUlO
-VEFJTkVSUwppbmRleCAyZTViYmMwLi4wMTRjMTVmIDEwMDY0NAotLS0gYS9NQUlOVEFJTkVSUwor
-KysgYi9NQUlOVEFJTkVSUwpAQCAtMzA3Nyw5ICszMDc3LDkgQEAgUzoJTWFpbnRhaW5lZAogRjoJ
-ZHJpdmVycy9wbGF0Zm9ybS94ODYvZGVsbC1zbW84ODAwLmMKIAogREVMTCBMQVBUT1AgU01NIERS
-SVZFUgotTToJR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgorTToJUGFsaSBSb2jD
-oXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgogUzoJTWFpbnRhaW5lZAotRjoJZHJpdmVycy9jaGFy
-L2k4ay5jCitGOglkcml2ZXJzL2h3bW9uL2RlbGwtc21tLWh3bW9uLmMKIEY6CWluY2x1ZGUvdWFw
-aS9saW51eC9pOGsuaAogCiBERUxMIFNZU1RFTVMgTUFOQUdFTUVOVCBCQVNFIERSSVZFUiAoZGNk
-YmFzKQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9jaGFyL01ha2VmaWxlIGIvZHJpdmVycy9jaGFyL01h
-a2VmaWxlCmluZGV4IGQwNmNkZTI2Li4xZDljZjAwIDEwMDY0NAotLS0gYS9kcml2ZXJzL2NoYXIv
-TWFrZWZpbGUKKysrIGIvZHJpdmVycy9jaGFyL01ha2VmaWxlCkBAIC0zNiw3ICszNiw2IEBAIGVs
-c2UKICAgb2JqLSQoQ09ORklHX05WUkFNKQkrPSBudnJhbS5vCiBlbmRpZgogb2JqLSQoQ09ORklH
-X1RPU0hJQkEpCQkrPSB0b3NoaWJhLm8KLW9iai0kKENPTkZJR19JOEspCQkrPSBpOGsubwogb2Jq
-LSQoQ09ORklHX0RTMTYyMCkJCSs9IGRzMTYyMC5vCiBvYmotJChDT05GSUdfSFdfUkFORE9NKQkJ
-Kz0gaHdfcmFuZG9tLwogb2JqLSQoQ09ORklHX1BQREVWKQkJKz0gcHBkZXYubwpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9od21vbi9NYWtlZmlsZSBiL2RyaXZlcnMvaHdtb24vTWFrZWZpbGUKaW5kZXgg
-YjRhNDBmMS4uNTE1MzNhYyAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9NYWtlZmlsZQorKysg
-Yi9kcml2ZXJzL2h3bW9uL01ha2VmaWxlCkBAIC0xNTYsNiArMTU2LDcgQEAgb2JqLSQoQ09ORklH
-X1NFTlNPUlNfVzgzTDc4NVRTKQkrPSB3ODNsNzg1dHMubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
-VzgzTDc4Nk5HKQkrPSB3ODNsNzg2bmcubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfV004MzFYKQkr
-PSB3bTgzMXgtaHdtb24ubwogb2JqLSQoQ09ORklHX1NFTlNPUlNfV004MzUwKQkrPSB3bTgzNTAt
-aHdtb24ubworb2JqLSQoQ09ORklHX0k4SykJCSs9IGRlbGwtc21tLWh3bW9uLm8KIAogb2JqLSQo
-Q09ORklHX1BNQlVTKQkJKz0gcG1idXMvCiAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2hhci9pOGsu
-YyBiL2RyaXZlcnMvaHdtb24vZGVsbC1zbW0taHdtb24uYwpzaW1pbGFyaXR5IGluZGV4IDk5JQpy
-ZW5hbWUgZnJvbSBkcml2ZXJzL2NoYXIvaThrLmMKcmVuYW1lIHRvIGRyaXZlcnMvaHdtb24vZGVs
-bC1zbW0taHdtb24uYwppbmRleCBhNDMwNDhiLi42NWQzMTRiIDEwMDY0NAotLS0gYS9kcml2ZXJz
-L2NoYXIvaThrLmMKKysrIGIvZHJpdmVycy9od21vbi9kZWxsLXNtbS1od21vbi5jCkBAIC0xLDEy
-ICsxLDEyIEBACiAvKgotICogaThrLmMgLS0gTGludXggZHJpdmVyIGZvciBhY2Nlc3NpbmcgdGhl
-IFNNTSBCSU9TIG9uIERlbGwgbGFwdG9wcy4KKyAqIGRlbGwtc21tLWh3bW9uLmMgLS0gTGludXgg
-ZHJpdmVyIGZvciBhY2Nlc3NpbmcgdGhlIFNNTSBCSU9TIG9uIERlbGwgbGFwdG9wcy4KICAqCiAg
-KiBDb3B5cmlnaHQgKEMpIDIwMDEgIE1hc3NpbW8gRGFsIFpvdHRvIDxkekBkZWJpYW4ub3JnPgog
-ICoKICAqIEh3bW9uIGludGVncmF0aW9uOgogICogQ29weXJpZ2h0IChDKSAyMDExICBKZWFuIERl
-bHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+CiAgKiBDb3B5cmlnaHQgKEMpIDIwMTMsIDIwMTQgIEd1
-ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KLSAqIENvcHlyaWdodCAoQykgMjAxNCAg
-UGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgorICogQ29weXJpZ2h0IChDKSAyMDE0
-LCAyMDE1ICBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+CiAgKgogICogVGhpcyBw
-cm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBt
-b2RpZnkgaXQKICAqIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExp
-Y2Vuc2UgYXMgcHVibGlzaGVkIGJ5IHRoZQpAQCAtODAsOCArODAsMTAgQEAgc3RhdGljIHVpbnQg
-aThrX2Zhbl9tYXggPSBJOEtfRkFOX0hJR0g7CiAjZGVmaW5lIEk4S19IV01PTl9IQVZFX0ZBTjIJ
-KDEgPDwgNSkKIAogTU9EVUxFX0FVVEhPUigiTWFzc2ltbyBEYWwgWm90dG8gKGR6QGRlYmlhbi5v
-cmcpIik7CitNT0RVTEVfQVVUSE9SKCJQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+
-Iik7CiBNT0RVTEVfREVTQ1JJUFRJT04oIkRyaXZlciBmb3IgYWNjZXNzaW5nIFNNTSBCSU9TIG9u
-IERlbGwgbGFwdG9wcyIpOwogTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOworTU9EVUxFX0FMSUFTKCJp
-OGsiKTsKIAogc3RhdGljIGJvb2wgZm9yY2U7CiBtb2R1bGVfcGFyYW0oZm9yY2UsIGJvb2wsIDAp
-OwotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
-Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Dear LM-Sensors,
+
+I have a Dell FS12-NV7 server and it has two W83792G chips on it (as well as
+an IT87).  One of the W83792G devices is connected to three fans on PWM
+outputs 3,4 and 5 respectively.
+
+I am running with Ubuntu 15.04 (Linux 3.19.0) and the W83792D driver only
+has support for PWM outputs 1,2 and 3.
+
+The patch below adds the 4 missing PWM outputs which are supported by the
+chip.  This has been tested and works as expected on my motherboard.
+
+--- linux-3.19.0/drivers/hwmon/w83792d.c        2015-02-09
+02:54:22.000000000 +0000
++++ linux-3.19.0-new/drivers/hwmon/w83792d.c    2015-05-08
+21:53:06.637515282 +0100
+@@ -1075,6 +1075,10 @@
+ static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0);
+ static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1);
+ static SENSOR_DEVICE_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2);
++static SENSOR_DEVICE_ATTR(pwm4, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 3);
++static SENSOR_DEVICE_ATTR(pwm5, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 4);
++static SENSOR_DEVICE_ATTR(pwm6, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 5);
++static SENSOR_DEVICE_ATTR(pwm7, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 6);
+ static SENSOR_DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
+                        show_pwmenable, store_pwmenable, 1);
+ static SENSOR_DEVICE_ATTR(pwm2_enable, S_IWUSR | S_IRUGO,
+@@ -1270,6 +1274,10 @@
+        &sensor_dev_attr_pwm3.dev_attr.attr,
+        &sensor_dev_attr_pwm3_mode.dev_attr.attr,
+        &sensor_dev_attr_pwm3_enable.dev_attr.attr,
++       &sensor_dev_attr_pwm4.dev_attr.attr,
++       &sensor_dev_attr_pwm5.dev_attr.attr,
++       &sensor_dev_attr_pwm6.dev_attr.attr,
++       &sensor_dev_attr_pwm7.dev_attr.attr,
+        &dev_attr_alarms.attr,
+        &dev_attr_intrusion0_alarm.attr,
+        &sensor_dev_attr_tolerance1.dev_attr.attr,
+
+I hope this patch is of use to others who are using the same server or have
+a similar situation.
+
+Best regards,
+
+Roger Lucas
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
