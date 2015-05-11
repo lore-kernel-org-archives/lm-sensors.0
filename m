@@ -1,7 +1,7 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 11 May 2015 10:45:20 +0000
+Date: Mon, 11 May 2015 10:50:40 +0000
 Subject: Re: [lm-sensors] Additional PWM driver support for w83792d
-Message-Id: <20150511124520.42367656@endymion.delvare>
+Message-Id: <20150511125040.7b22390e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <003901d08a57$bc46f8a0$34d4e9e0$@hiddenengine.co.uk>
 In-Reply-To: <003901d08a57$bc46f8a0$34d4e9e0$@hiddenengine.co.uk>
@@ -10,88 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 10 May 2015 09:01:25 -0700, Guenter Roeck wrote:
-> On 05/10/2015 06:42 AM, vt8231@hiddenengine.co.uk wrote:
-> [ ... ]
-> >>>
-> >>> Last note: registers 0xA3-0xA6 have extra configuration bits "Sync
-> >>> T1/2/3". Maybe the driver should handle them but I am not sure how. It
-> >>> could be that the extra outputs should only be exposed to user-space if
-> >>> these bits are 0 (stand alone.) Guenter, any idea/opinion on this?
-> >>
-> >> How about using pwm[4567]_enable ? If I understand correctly, the possible
-> >> modes would be manual or sync(x). In this case we could have 1 (manual),
-> >> 2 (sync with fan1), 3 (sync with fan2), and 4 (sync with fan3), with the
-> >> caveat that the sync settings only make sense if the matching pwmX_enable
-> >> is set to thermal cruise mode.
-> >>
-> >> Does this make sense ?
+On Sun, 10 May 2015 14:42:18 +0100, vt8231@hiddenengine.co.uk wrote:
+> With regards to generating the patch, I've checked the LM-Sensors Wiki for
+> submitting patches (http://lm-sensors.org/wiki/FAQ/Chapter5) and it refers to
+> CVS as the reference... but I can't see the chip drivers there.  As far as I
+> can tell, they are in the Linux kernel itself.  Where is the reference source 
+> code for the chip drivers?  I patch that I offered above was against the 
+> Ubuntu source for kernel 3.19.0 but this isn't the latest kernel...
 
-Not really. The problem is that for now I'm not sure what "sync" really
-refers to. The datasheet mentions temperature channels, and as far as I
-can see each temperature channel is hard-bound to a specific fan
-output. So I suspect that what these configuration bit really mean is
-that the pwm4 output (for example) mirrors the pwm1 output, i.e. pwm4
-has no independent existence. In which case it's better to not expose
-it at all.
+The FAQ is old, and only refers to the user-space side of things now.
+So you can ignore it. Better read Documentation/SubmittingPatches and
+Documentation/hwmon/submitting-patches in the kernel tree.
 
-If the BIOS specifically configured these bits, there must be a reason
-and that reason would be the way the fans are connected to the chipset.
-Better not change it.
-
-If we really want to expose these bits then abusing pwmX_enable the way
-you suggested is still not correct, pwmX_auto_channels_temp would be
-better suited. But then again I don't think it adds any value if the
-extra PWM outputs only mirror already existing PWM outputs.
-
-> > I don't think you have that level of control over PWM 4-7.  From what I can see
-> > in the datasheet (section 8.21 of the W83792G manual), you only have Thermal and
-> > Smart FAN modes for PWM 1 - 3.  This is why the existing driver does a limit
-> > check when setting the mode so that it only allows PWM[1-3] to be controlled.
-> >
-> > If I am reading the datasheet correctly, you have a simple enable/disable for PWM7
-> > (aka FAN7 Enable) and PWM6 (aka FAN6) in register 0x4B (Bank 0) "Pin Control
-> > Register", see section 8.13.  Likewise, you have a simple enable/disable for
-> > PWM5 (aka FAN_OUT5) and PWM4 (aka FAN_OUT4) via bits 6 and 5 of register 0x1A
-> > (CR1A_GPIO Enable).  FAN_OUT4 shares with GPIOA0 and FAN_OUT5 shares with GPIOA2.
-> >
-> > I would be nervous of changing these in Linux, however.
-
-We definitely don't want to change these.
-
-> > These relate to the HW
-> > configuration of the board so I would expect the BIOS to set these up correctly
-> > to ensure that the HW monitoring was correct from power-on.  My preference would
-> > be to *read* these values and only offer the /hwmonX/device/pwm[4-7] virtual
-> > files if the registers had *already* been set to enable this mode.  I don't like
-> > the idea that you could accidentally turn a GPIO input into a PWM output if you
-> > misconfigured the pwm[4-7]_enable signals (which you could do when probing, for
-> > example).
-> >
-> > My preference is *not* to provide pwm[4-7]_enable controls but just check the
-> > existing chip config and make pwm[4-7] and pwm[4-7]_mode available if (and only
-> > if) the chip has already been configured to enable them.
-
-+1
-
-> Jean specifically suggested adding support for 'registers 0xA3-0xA6 have extra
-> configuration bits "Sync T1/2/3"'.
-
-Err, not really. What I meant is that these configuration bits must
-have some effect that we can't ignore. But like Roger I would go for
-the minimum checks and either expose pwm[4-7] in manual mode (including
-pwm[4_7]_mode) if the chip was configured that way, or not expose them
-at all. I don't think it makes sense to let the user change these sync
-T1/2/3 bits.
-
-This feeling is reinforced by the fact that the W83792D/G chip is
-getting old so improving it is unlikely to benefit a large number of
-users. So let's do whatever Roger needs for himself, and not much more.
-We simply need to ensure we don't break anything for other users.
-
-> I suggested to support those through pwmX_enable,
-> nothing else. You are right, you don't want to change the configuration bits
-> you referred to. But that is not what I suggested.
+A patch against kernel 3.19.0 will be just fine, the w83792d driver
+didn't see any change for over a year.
 
 -- 
 Jean Delvare
