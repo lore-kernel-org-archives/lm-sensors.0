@@ -1,23 +1,22 @@
-From: "Clough, Ian" <ian.clough@navcanada.ca>
-Date: Wed, 13 May 2015 12:43:05 +0000
-Subject: [lm-sensors] SVN Server Down??
-Message-Id: <B7B37C745D90DC45A70CA514EE82A6F91E324F40BC@NAVMAIL1.corp.navcan.ca>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Wed, 13 May 2015 12:57:38 +0000
+Subject: Re: [lm-sensors] SVN Server Down??
+Message-Id: <1431521858.10802.161.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <B7B37C745D90DC45A70CA514EE82A6F91E324F40BC@NAVMAIL1.corp.navcan.ca>
+In-Reply-To: <B7B37C745D90DC45A70CA514EE82A6F91E324F40BC@NAVMAIL1.corp.navcan.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've tried yesterday and this morning to checkout with no luck.  Could the Subversion server be down?
-
-
-
-  ________________________________
-This electronic message, as well as any transmitted files included in the electronic message, may contain privileged or confidential information and is intended solely for the use of the individual(s) or entity to which it is addressed. If you have received this electronic message in error please notify the sender immediately and delete the electronic message. Any unauthorized copying, disclosure or distribution of the electronic message is strictly forbidden. NAV CANADA accepts no liability for any damage caused by any virus and/or other malicious code transmitted by this electronic communication.
-
-Le pr?sent message ?lectronique et tout fichier qui peut y ?tre joint peuvent contenir des renseignements privil?gi?s ou confidentiels destin?s ? l'usage exclusif des personnes ou des organismes ? qui ils s'adressent. Si vous avez re?u ce message ?lectronique par erreur, veuillez en informer l'exp?diteur imm?diatement et supprimez le. Toute reproduction, divulgation ou distribution du pr?sent message ?lectronique est strictement interdite. NAV CANADA n'assume aucune responsabilit? en cas de dommage caus? par tout virus ou autre programme malveillant transmis par ce message ?lectronique.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSWFuLAoKTGUgV2VkbmVzZGF5IDEzIE1heSAyMDE1IMOgIDA4OjQzIC0wNDAwLCBDbG91Z2gs
+IElhbiBhIMOpY3JpdCA6Cj4gSSd2ZSB0cmllZCB5ZXN0ZXJkYXkgYW5kIHRoaXMgbW9ybmluZyB0
+byBjaGVja291dCB3aXRoIG5vIGx1Y2suICBDb3VsZCB0aGUgU3VidmVyc2lvbiBzZXJ2ZXIgYmUg
+ZG93bj8KClRoZSBTVk4gc2VydmVyIHdvcmtzIGZvciBtZSByaWdodCBub3cuCgpJZiBpdCBkb2Vz
+bid0IHdvcmsgZm9yIHlvdSwgY2hlY2sgaWYgeW91IGNhbiBwaW5nIHRoZSBob3N0LCBhbmQgbWF5
+YmUKdHJ5IHRyYWNlcm91dGUgdG8gc2VlIGlmIHNvbWV0aGluZyBibG9ja3MgdGhlIGNvbm5lY3Rp
+b24gaW4gdGhlIG1pZGRsZS4KCi0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBTdXBwb3J0CgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
+YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
+c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
