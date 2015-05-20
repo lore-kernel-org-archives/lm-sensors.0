@@ -1,39 +1,45 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 28 May 2015 15:22:49 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Detect graphics card in all cases
-Message-Id: <20150528172249.7a9a0957@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 20 May 2015 02:24:09 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.1-rc5
+Message-Id: <1432088649-20965-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On recent kernels, the i2c bus may not be an immediate child of the
-graphics device, instead there can be a drm class device in between.
-Treat all drm class devices as graphics devices so that probing the
-i2c bus is disabled by default as intended.
----
- prog/detect/sensors-detect |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Hi Linus,
 
---- lm-sensors.orig/prog/detect/sensors-detect	2015-05-28 08:01:21.884379048 +0200
-+++ lm-sensors/prog/detect/sensors-detect	2015-05-28 17:15:58.685620089 +0200
-@@ -3897,7 +3897,9 @@ sub get_pci_class
- 	my ($subsystem, $class);
- 
- 	$subsystem = sysfs_device_subsystem($device);
--	return 0 unless defined $subsystem && $subsystem eq "pci";
-+	return 0 unless defined $subsystem;
-+	return 0x0300 if $subsystem eq "drm";	# Graphics card
-+	return 0 unless $subsystem eq "pci";
- 
- 	$class = sysfs_device_attribute($device, "class");
- 	return 0 unless defined $class;
+Please pull hwmon fixes for Linux v4.1-rc5 from signed tag:
 
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.1-rc5
 
--- 
-Jean Delvare
-SUSE L3 Support
+Thanks,
+Guenter
+------
+
+The following changes since commit e26081808edadfd257c6c9d81014e3b25e9a6118:
+
+  Linux 4.1-rc4 (2015-05-18 10:13:47 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.1-rc5
+
+for you to fetch changes up to a94ef4ed710e0864c9720ff3f30ceb051aeb8377:
+
+  hwmon: Update the location of my quilt tree (2015-05-18 17:36:29 -0700)
+
+----------------------------------------------------------------
+Update location of Jean Delvare's hwmon quilt tree
+
+----------------------------------------------------------------
+Jean Delvare (1):
+      hwmon: Update the location of my quilt tree
+
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 _______________________________________________
 lm-sensors mailing list
