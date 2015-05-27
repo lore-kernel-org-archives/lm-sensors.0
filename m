@@ -1,22 +1,33 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Sat, 02 May 2015 08:07:27 +0000
-Subject: Re: [lm-sensors] I2C-Tools Expansion?
-Message-Id: <20150502100727.21abb4a9@endymion.delvare>
+Date: Wed, 27 May 2015 09:25:49 +0000
+Subject: [lm-sensors] I2C addresses of TMP435
+Message-Id: <20150527112549.1e5e0e2f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLUPR05MB2580961BBBD7675F5AAC4C7C4D50@BLUPR05MB258.namprd05.prod.outlook.com>
-In-Reply-To: <BLUPR05MB2580961BBBD7675F5AAC4C7C4D50@BLUPR05MB258.namprd05.prod.outlook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Randy,
+Hi Guenter,
 
-On Fri, 1 May 2015 19:59:47 +0000, Randy Grunwell wrote:
-> First, let me thank you for the I2C-tools! I have made a test controller board for my RPi that uses them, and it has been working flawlessly!
-> (...)
+In this commit:
+http://www.lm-sensors.org/changeset/6260
 
-i2c-tools related requests go to the linux-i2c list, Cc me.
+You listed 0x37 as a possible address for the TMP435. While this is
+correct, I don't think we want to probe this address. Currently we do
+not probe it for any other chip, and we even removed it explicitly in
+the past:
+http://www.lm-sensors.org/changeset/3233
+
+In the light of recent reports of display breakage caused by
+sensors-detect I would like to play it safe and not probe address 0x37
+(which is used by some EEPROMs as well as the DDC/CI interface.)
+
+While less critical, it might also make sense to remove 0x37 from
+normal_i2c[] in the tmp401 driver. Users with a TMP435 as this address
+can always instantiate it explicitly.
+
+What do you think?
 
 Thanks,
 -- 
