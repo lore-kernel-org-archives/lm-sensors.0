@@ -1,46 +1,69 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 04 Apr 2015 21:54:51 +0000
-Subject: [lm-sensors] [PATCH 00/22] hwmon: (it87) Various enhancements and fixes (take two)
-Message-Id: <1428184513-22380-1-git-send-email-linux@roeck-us.net>
+From: Chris Lesiak <chris.lesiak@licor.com>
+Date: Wed, 27 May 2015 15:29:51 +0000
+Subject: [lm-sensors] [PATCH] hwmon: ntc: use iio_read_channel_processed if possible
+Message-Id: <1432740591-21313-1-git-send-email-chris.lesiak@licor.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch series builds on top of the already reviewed patches for the
-it87 driver. The series was tested on a system with IT8728F.
+The function ntc_adc_iio_read assumes both a 12 bit ADC and that
+pullup_uv is the same as the ADC reference voltage.  If either
+assumption is false, then the result is incorrect.
 
-Some of the patches in this series were previously submitted as part of
-the first series. Those patches are marked as v2, with changelog included.
+For iio channels supporting either IIO_CHAN_INFO_PROCESSED or
+IIO_CHAN_INFO_SCALE, a new function, ntc_adc_iio_read_processed,
+will be used.  That function gets microvolts directly with a call to
+iio_read_channel_processed.
 
-----------------------------------------------------------------
-Guenter Roeck (22):
-      hwmon: (it87) Fix in7 voltage display
-      hwmon: (it87) Use feature macros on sio_data
-      hwmon: (it87) Add AVCC3 support for IT8620E
-      hwmon: (it87) Add support for all pwm channels on IT8620E
-      hwmon: (it87) Add support for second pwm frequency register
-      hwmon: (it87) Simplify error return in it87_device_add
-      hwmon: (it87) Don't use pdev as static driver variable
-      hwmon: (it87) Pass SIO base address as parameter to superio functions
-      hwmon: (it87) Add support for second Super-IO chip
-      hwmon: (it87) Rearrange code to avoid forward declarations
-      hwmon: (it87) Use is_visible for voltage sensors
-      hwmon: (it87) Use is_visible for temperature sensors
-      hwmon: (it87) Use is_visible for fan attributes
-      hwmon: (it87) Use is_visible for pwm attributes
-      hwmon: (it87) Use single group and is_visible for miscellaneous attributes
-      hwmon: (it87) Convert to use new hwmon API
-      hwmon: (it87) Support up to 6 temperature sensors on IT8620E
-      hwmon: (it87) Simplify reading voltage registers
-      hwmon: (it87) Add support for VIN7 to VIN10 on IT8620E
-      hwmon: (it87) Use BIT macro
-      hwmon: (it87) Use defines for array sizes and sensor counts
-      hwmon: (it87) Formatting cleanup
+Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
+---
+ drivers/hwmon/ntc_thermistor.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
- drivers/hwmon/it87.c | 1992 ++++++++++++++++++++++++++------------------------
- 1 file changed, 1033 insertions(+), 959 deletions(-)
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index 6880011..311df86 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -206,6 +206,20 @@ static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
+ 	return (int)result;
+ }
+ 
++static int ntc_adc_iio_read_processed(struct ntc_thermistor_platform_data *pdata)
++{
++	struct iio_channel *channel = pdata->chan;
++	int val, ret;
++
++	ret = iio_read_channel_processed(channel, &val);
++	if (ret < 0) {
++		pr_err("read channel() error: %d\n", ret);
++		return ret;
++	}
++
++	return val;
++}
++
+ static const struct of_device_id ntc_match[] = {
+ 	{ .compatible = "murata,ncp15wb473",
+ 		.data = &ntc_thermistor_id[0] },
+@@ -275,7 +289,12 @@ ntc_thermistor_parse_dt(struct platform_device *pdev)
+ 		pdata->connect = NTC_CONNECTED_GROUND;
+ 
+ 	pdata->chan = chan;
+-	pdata->read_uv = ntc_adc_iio_read;
++
++	if (iio_channel_has_info(chan->channel, IIO_CHAN_INFO_PROCESSED)
++		|| iio_channel_has_info(chan->channel, IIO_CHAN_INFO_SCALE))
++		pdata->read_uv = ntc_adc_iio_read_processed;
++	else
++		pdata->read_uv = ntc_adc_iio_read;
+ 
+ 	return pdata;
+ }
+-- 
+1.9.3
+
 
 _______________________________________________
 lm-sensors mailing list
