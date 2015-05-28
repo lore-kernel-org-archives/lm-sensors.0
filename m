@@ -1,26 +1,43 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 01 May 2015 18:03:38 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: max197: Constify platform_device_id
-Message-Id: <20150501180338.GE7712@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 28 May 2015 15:50:35 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Skip addresses 0x37 and 0x4f on DDC channels
+Message-Id: <20150528175035.0127e5d1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1430495783-31969-1-git-send-email-k.kozlowski.k@gmail.com>
-In-Reply-To: <1430495783-31969-1-git-send-email-k.kozlowski.k@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
-Cc: Jean Delvare <jdelvare@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sat, May 02, 2015 at 12:56:22AM +0900, Krzysztof Kozlowski wrote:
-> The platform_device_id is not modified by the driver and core uses it as
-> const.
-> 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+We already skip EDID addresses (0x50-0x57) by default on graphics card
+I2C/DDC buses. Also skip 0x37 (DDC/CI) and 0x4f which was recently
+reported as corrupting a laptop's display when probed.
 
-Applied to -next.
+This closes ticket #2392.
+http://www.lm-sensors.org/ticket/2392
+---
+ prog/detect/sensors-detect |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Thanks,
-Guenter
+--- lm-sensors.orig/prog/detect/sensors-detect	2015-05-28 17:15:58.685620089 +0200
++++ lm-sensors/prog/detect/sensors-detect	2015-05-28 17:46:56.573270434 +0200
+@@ -3943,8 +3943,10 @@ sub scan_i2c_adapter
+ 		chomp($input);
+ 		@not_to_scan = parse_not_to_scan(0x03, 0x77, $input);
+ 	} elsif (($class & 0xff00) = 0x0300) {
+-		# Skip EDID addresses by default on graphics adapters
+-		@not_to_scan = parse_not_to_scan(0x03, 0x77, "0x50-0x57");
++		# Skip EDID and DDC/CI addresses by default on graphics
++		# adapters. Also skip address 0x4f which was reported in a
++		# display corruption case.
++		@not_to_scan = parse_not_to_scan(0x03, 0x77, "0x37,0x50-0x57,0x4f");
+ 	}
+ 
+ 	open(local *FILE, "$dev_i2c$adapter_nr") or
+
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
