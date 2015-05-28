@@ -1,48 +1,53 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Sun, 31 May 2015 20:30:48 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Document which I2C addresses can be probed
-Message-Id: <20150531223048.149c1eb7@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 28 May 2015 16:15:56 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (nct6683) Add missing sysfs attibute initialization
+Message-Id: <1432829756-14595-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20150529104302.1e8a0a11@endymion.delvare>
-In-Reply-To: <20150529104302.1e8a0a11@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 29 May 2015 07:46:39 -0700, Guenter Roeck wrote:
-> Hi Jean,
-> 
-> On 05/29/2015 01:43 AM, Jean Delvare wrote:
-> > Add an item to the checklist when submitting a new hwmon driver: only
-> > some I2C addresses can be probed, others should not for safety
-> > reasons.
-> >
-> > Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> > Cc: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >   Documentation/hwmon/submitting-patches |    7 +++++++
-> >   1 file changed, 7 insertions(+)
-> >
-> > --- linux-4.1-rc5.orig/Documentation/hwmon/submitting-patches	2015-04-27 02:59:10.000000000 +0200
-> > +++ linux-4.1-rc5/Documentation/hwmon/submitting-patches	2015-05-29 10:40:49.118900331 +0200
-> > @@ -81,6 +81,13 @@ increase the chances of your change bein
-> >
-> >   * Provide a detect function if and only if a chip can be detected reliably.
-> >
-> > +* Only the following I2C addresses shall be probed: 0x18-0x1f, 0x28-0x2f,
-> > +  0x48-0x4f, 0x58, 0x5c, 0x73 and 0x77. Probing other addresses is strongly
-> > +  discouraged as it is known to cause trouble with other (non-hwmon) I2C
-> > +  chips. If your chip can live at an address which can't be probed then the
-> 
-> lives ? After all, the chip can still be probed on its other addresses,
-> like the tmp435.
+The following error message is seen when loading the nct6683 driver
+with DEBUG_LOCK_ALLOC enabled.
 
-Fixed, thanks for the review.
+BUG: key ffff88040b2f0030 not in .data!
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 186 at kernel/locking/lockdep.c:2988
+				lockdep_init_map+0x469/0x630()
+DEBUG_LOCKS_WARN_ON(1)
 
--- 
-Jean Delvare
-SUSE L3 Support
+Caused by a missing call to sysfs_attr_init() when initializing
+sysfs attributes.
+
+Reported-by: Alexey Orishko <alexey.orishko@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6683.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/hwmon/nct6683.c b/drivers/hwmon/nct6683.c
+index f3830db02d46..37f01702d081 100644
+--- a/drivers/hwmon/nct6683.c
++++ b/drivers/hwmon/nct6683.c
+@@ -439,6 +439,7 @@ nct6683_create_attr_group(struct device *dev, struct sensor_template_group *tg,
+ 				 (*t)->dev_attr.attr.name, tg->base + i);
+ 			if ((*t)->s2) {
+ 				a2 = &su->u.a2;
++				sysfs_attr_init(&a2->dev_attr.attr);
+ 				a2->dev_attr.attr.name = su->name;
+ 				a2->nr = (*t)->u.s.nr + i;
+ 				a2->index = (*t)->u.s.index;
+@@ -449,6 +450,7 @@ nct6683_create_attr_group(struct device *dev, struct sensor_template_group *tg,
+ 				*attrs = &a2->dev_attr.attr;
+ 			} else {
+ 				a = &su->u.a1;
++				sysfs_attr_init(&a->dev_attr.attr);
+ 				a->dev_attr.attr.name = su->name;
+ 				a->index = (*t)->u.index + i;
+ 				a->dev_attr.attr.mode -- 
+2.1.0
+
 
 _______________________________________________
 lm-sensors mailing list
