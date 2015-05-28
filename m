@@ -1,26 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 May 2015 00:19:31 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: ntc: Ensure iio channel is of type IIO_VOLTGE
-Message-Id: <20150527001931.GA29583@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 28 May 2015 15:22:49 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Detect graphics card in all cases
+Message-Id: <20150528172249.7a9a0957@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1432672844-28133-1-git-send-email-chris.lesiak@licor.com>
-In-Reply-To: <1432672844-28133-1-git-send-email-chris.lesiak@licor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, May 26, 2015 at 03:40:44PM -0500, Chris Lesiak wrote:
-> When configured via device tree, the associated iio device needs to be
-> measuring voltage for the converstion to resistance to be correct.
-> Return -EINVAL if that is not the case.
-> 
-> Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
+On recent kernels, the i2c bus may not be an immediate child of the
+graphics device, instead there can be a drm class device in between.
+Treat all drm class devices as graphics devices so that probing the
+i2c bus is disabled by default as intended.
+---
+ prog/detect/sensors-detect |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Applied, after fixing the spelling errors in subject and description.
+--- lm-sensors.orig/prog/detect/sensors-detect	2015-05-28 08:01:21.884379048 +0200
++++ lm-sensors/prog/detect/sensors-detect	2015-05-28 17:15:58.685620089 +0200
+@@ -3897,7 +3897,9 @@ sub get_pci_class
+ 	my ($subsystem, $class);
+ 
+ 	$subsystem = sysfs_device_subsystem($device);
+-	return 0 unless defined $subsystem && $subsystem eq "pci";
++	return 0 unless defined $subsystem;
++	return 0x0300 if $subsystem eq "drm";	# Graphics card
++	return 0 unless $subsystem eq "pci";
+ 
+ 	$class = sysfs_device_attribute($device, "class");
+ 	return 0 unless defined $class;
 
-Thanks,
-Guenter
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
