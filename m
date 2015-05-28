@@ -1,54 +1,86 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 May 2015 22:54:53 +0000
-Subject: Re: [lm-sensors] Fujitsu Siemens Futro A250
-Message-Id: <5561053D.2050501@roeck-us.net>
+From: Chris Lesiak <chris.lesiak@licor.com>
+Date: Thu, 28 May 2015 13:57:51 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: ntc: use iio_read_channel_processed if possible
+Message-Id: <1432821471-17373-1-git-send-email-chris.lesiak@licor.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <556100F3.6010106@laposte.net>
-In-Reply-To: <556100F3.6010106@laposte.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMDUvMjMvMjAxNSAwMzozNiBQTSwgTWFyYyBHaWxldCB3cm90ZToKPiBIZWxsbywKPiBJJ20g
-dHJ5aW5nIHRvIGhhdmUgbG0tc2Vuc29ycyB3b3JraW5nIG9uIG15IFRoaW5jbGllbnQgKEZ1dHJv
-IEEyNTApIHdvcmtpbmcuCj4gSSdtIG9uIEdlbnRvbywga2VybmVsIDMuMTguMTEuCj4gSXQncyBh
-IEdlb2RlIGx4ODAwIGJvYXJkOgo+ClsgLi4uIF0KPiAvCj4gSSd2ZSBmaW5hbGx5IG1hbmFnZWQg
-dG8gbG9hZCB0aGUgdzgzNjI3aGYgc2Vuc29yIG1vZHVsZSB3aXRoIHRoZSBoZWxwIG9mIGlzYXNl
-dDoKPgo+IC8jIGlzYXNldCAteSAtZiAweDJlIDB4ODcvLwo+IC8vIyBpc2FzZXQgLXkgLWYgMHgy
-ZSAweDg3Ly8KPiAvLyMgaXNhc2V0IC15IDB4MmUgMHgyZiAweDA3IDB4MGIvLwo+IC8vIyBpc2Fz
-ZXQgLXkgMHgyZSAweDJmIDB4NjAgMHgwMi8vCj4gLy8jIGlzYXNldCAteSAweDJlIDB4MmYgMHg2
-MSAweDkwLy8KPiAvLyMgaXNhc2V0IC15IC1mIDB4MmUgMHhhYS8KPiAvIyBtb2Rwcm9iZSB3ODM2
-MjdoZi8KPgoKU28gaXQgbG9va3MgbGlrZSB0aGUgaGFyZHdhcmUgbW9uaXRvcmluZyBmdW5jdGlv
-biBvZiB0aGUgU3VwZXItSU8gY2hpcAp3YXMgZGlzYWJsZWQuCgo+Cj4gL0hlcmUncyBzZW5zb3Jz
-IHJlc3VsdDoKPgo+IC8jIHNlbnNvcnMvLwo+IC8vdzgzNjI3aGYtaXNhLTAyOTAvLwo+IC8vQWRh
-cHRlcjogSVNBIGFkYXB0ZXIvLwo+IC8vaW4wOiAgICAgICAgICArNC4wOCBWICAobWluID0gICsw
-LjAwIFYsIG1heCA9ICArNC4wOCBWKS8vCj4gLy9pbjE6ICAgICAgICAgICs0LjA4IFYgIChtaW4g
-PSAgKzAuMDAgViwgbWF4ID0gICs0LjA4IFYpLy8KPiAvL2luMjogICAgICAgICAgKzQuMDggViAg
-KG1pbiA9ICArMi44MiBWLCBtYXggPSAgKzMuNzkgVikgIEFMQVJNLy8KPiAvL2luMzogICAgICAg
-ICAgKzIuOTYgViAgKG1pbiA9ICArMy4wNiBWLCBtYXggPSAgKzIuMTggVikgIEFMQVJNLy8KPiAv
-L2luNDogICAgICAgICAgKzMuMDIgViAgKG1pbiA9ICArMy41NyBWLCBtYXggPSAgKzIuMjkgVikg
-IEFMQVJNLy8KPiAvL2luNTogICAgICAgICAgKzMuMDkgViAgKG1pbiA9ICArMi44NSBWLCBtYXgg
-PSAgKzEuNzggVikgIEFMQVJNLy8KPiAvL2luNjogICAgICAgICAgKzMuMTUgViAgKG1pbiA9ICAr
-MS44MiBWLCBtYXggPSAgKzQuMDYgVikvLwo+IC8vaW43OiAgICAgICAgICArMy4yNiBWICAobWlu
-ID0gICszLjkwIFYsIG1heCA9ICArMS44OSBWKSAgQUxBUk0vLwo+IC8vaW44OiAgICAgICAgICAr
-My4xOCBWICAobWluID0gICsxLjg3IFYsIG1heCA9ICArMy4zMyBWKS8vCj4gLy9mYW4xOiAgICAg
-ICAgICAgMCBSUE0gIChtaW4gPSAxMDcxNCBSUE0sIGRpdiA9IDIpIEFMQVJNLy8KPiAvL2ZhbjI6
-ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBkaXYgPSAyKS8vCj4gLy9mYW4zOiAg
-ICAgICAgICAgMCBSUE0gIChtaW4gPSAzNjg4IFJQTSwgZGl2ID0gMikgIEFMQVJNLy8KPiAvL3Rl
-bXAxOiAgICAgICAgLTQ4LjDCsEMgIChoaWdoID0gICs3LjDCsEMsIGh5c3QgPSArNTkuMMKwQykg
-IHNlbnNvciA9IHRoZXJtaXN0b3IvLwo+IC8vdGVtcDI6ICAgICAgICAtNDguMMKwQyAgKGhpZ2gg
-PSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvci8vCj4gLy90
-ZW1wMzogICAgICAgIC00OC4wwrBDICAoaGlnaCA9ICs4MC4wwrBDLCBoeXN0ID0gKzc1LjDCsEMp
-ICBzZW5zb3IgPSB0aGVybWlzdG9yLy8KPiAvL2NwdTBfdmlkOiAgICArMC4wMDAgVi8vCj4gLy9i
-ZWVwX2VuYWJsZTogZW5hYmxlZAo+Cj4gL0FzIHlvdSBjYW4gc2VlLCB0ZW1wMSwgdGVtcDIgYW5k
-IHRlbXAzIHZhbHVlcyBhcmUgSW5zYW5lLCBob3cgY291bGQgSSBzb2x2ZSB0aGUgcHJvYmxlbSA/
-Cj4gVGhhbmtzIGZvciBoZWxwLCBjaGVlcnMKPgpTaW5jZSB0aGUgaGFyZHdhcmUgbW9uaXRvciB3
-YXMgZGlzYWJsZWQsIGl0IGlzIHZlcnkgbGlrZWx5IHRoYXQgdGhlCnRlbXBlcmF0dXJlIG1vbml0
-b3JpbmcgcGlucyBhcmUgc2ltcGx5IG5vdCBjb25uZWN0ZWQgdG8gYW55dGhpbmcuClNldmVyYWwg
-b2YgdGhlIHZvbHRhZ2Ugb3V0cHV0cyBzdWdnZXN0IHRoYXQgdGhlIHJlc3BlY3RpdmUgaW5wdXQK
-cGlucyBhcmUgbm90IGNvbm5lY3RlZCBlaXRoZXIuCgpUaGlzIG1lYW5zIHRoYXQgdGhlcmUgaXMg
-dmVyeSBsaWtlbHkgbm90aGluZyB5b3UgY2FuIGRvLgoKR3VlbnRlcgoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
-CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
-aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+The function ntc_adc_iio_read (now ntc_adc_iio_read_raw) assumes
+both a 12 bit ADC and that pullup_uv is the same as the ADC reference
+voltage.  If either assumption is false, then the result is incorrect.
+
+For iio channels supporting either IIO_CHAN_INFO_PROCESSED or
+IIO_CHAN_INFO_SCALE, the new ntc_adc_iio_read will be used.  It gets
+microvolts directly with a call to iio_read_channel_processed.
+
+Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
+---
+
+Changes in v2
+======- Rename existing ntc_adc_iio_read to ntc_adc_iio_read_raw so that
+  the name ntc_adc_iio_read can be used for the new behavior.
+
+- Fixed issue related to coding style.
+
+ drivers/hwmon/ntc_thermistor.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index 6880011..2cbdf72 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -187,7 +187,7 @@ struct ntc_data {
+ };
+ 
+ #if defined(CONFIG_OF) && IS_ENABLED(CONFIG_IIO)
+-static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
++static int ntc_adc_iio_read_raw(struct ntc_thermistor_platform_data *pdata)
+ {
+ 	struct iio_channel *channel = pdata->chan;
+ 	s64 result;
+@@ -206,6 +206,20 @@ static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
+ 	return (int)result;
+ }
+ 
++static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
++{
++	struct iio_channel *channel = pdata->chan;
++	int val, ret;
++
++	ret = iio_read_channel_processed(channel, &val);
++	if (ret < 0) {
++		pr_err("read channel() error: %d\n", ret);
++		return ret;
++	}
++
++	return val;
++}
++
+ static const struct of_device_id ntc_match[] = {
+ 	{ .compatible = "murata,ncp15wb473",
+ 		.data = &ntc_thermistor_id[0] },
+@@ -275,7 +289,12 @@ ntc_thermistor_parse_dt(struct platform_device *pdev)
+ 		pdata->connect = NTC_CONNECTED_GROUND;
+ 
+ 	pdata->chan = chan;
+-	pdata->read_uv = ntc_adc_iio_read;
++
++	if (iio_channel_has_info(chan->channel, IIO_CHAN_INFO_PROCESSED) ||
++	    iio_channel_has_info(chan->channel, IIO_CHAN_INFO_SCALE))
++		pdata->read_uv = ntc_adc_iio_read;
++	else
++		pdata->read_uv = ntc_adc_iio_read_raw;
+ 
+ 	return pdata;
+ }
+-- 
+1.9.3
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
