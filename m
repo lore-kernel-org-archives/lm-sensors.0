@@ -1,7 +1,7 @@
-From: Chris Godbout <chris@mathologist.net>
-Date: Wed, 27 May 2015 14:48:14 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 28 May 2015 10:10:49 +0000
 Subject: Re: [lm-sensors] sensors-detect and my monitor
-Message-Id: <loom.20150527T163449-12@post.gmane.org>
+Message-Id: <20150528121049.7a2596f9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20150516T211122-274@post.gmane.org>
 In-Reply-To: <loom.20150516T211122-274@post.gmane.org>
@@ -10,95 +10,121 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > I know I should have stuck with the defaults, but I
-> > didn't. Instead, I hit yes for everything which hasn't been a problem
-before.
+Hi Chris,
+
+On Wed, 27 May 2015 14:48:14 +0000 (UTC), Chris Godbout wrote:
+> > If that doesn't help, I'm afraid I can't offer any help as long as I
+> > don't know what the two I2C chips are. Providing register dumps (using
+> > i2cdump from the i2c-tools package) may help, but it may also make
+> > things worse, so it's up to you if you want to give it a try.
+> > Alternatively you may try contacting Lenovo's support and asking them
+> > for the information, but chances that they actually reply with useful
+> > data seems thin.
 > 
-> There's a reason for these defaults...
-
-And sadly, there's a common reason many of my computers / laptops don't last
-forever.
-
-> > Everything was fine until I probed DPDDC-A (i2c-6). It went through a list
-> > of sensors and part way through it my screen flickered. Afterwards, my
-> > monitor got really bright and the colors were all washed out. Unfortunately,
-> > I'm colorblind and have a hard time describing it more than that.
-> > Additionally, in large blocks of the same color it's almost as if I can see
-> > the individual pixels and some of them are actually black. This may be an
-> > optical illusion, but when I look closely, it's almost as if they're moving.
+> For better or worse, if I were worried about making things worse I probably
+> would have stuck with the defaults and wouldn't be in this predicament. So I
+> went ahead and did the i2cdump. I'm glad I did, because it seems to actually
+> have improved things. Here's the i2cdump
 > 
-> Do I understand correctly that you are speaking of the internal laptop
-> display and not an external display?
+> # i2cdump 6 0x4f
+> No size specified (using byte-data access)
+> WARNING! This program can confuse your I2C bus, cause data loss and worse!
+> I will probe file /dev/i2c-6, address 0x4f, mode byte
+> Continue? [Y/n] 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+> 00: 00 XX XX 03 XX XX XX XX XX XX XX XX XX XX XX XX    .XX?XXXXXXXXXXXX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 
-Yes, that's correct. Sorry I forgot to specify. I actually set the output to
-my TV (via HDMI) and there seemed to be no problem.
+OK, clearly the device does not have a regular 8-bit addressed register
+map. Only sub-addresses 0x00 and 0x03 seem to return actual register
+values (assuming a second call to i2cdump would return the same - maybe
+not.) Sensors-detect has protection code against devices with no
+register map at all, but I can't think of a way to safely detect the
+case above.
 
-> > Any suggestions, even if it's where else to look for help? Any other logs
-> > you need?
+I am curious if:
+
+$ i2cget 6 0x4f 0x00
+$ i2cget 6 0x4f 0x03
+
+would be always successful and returning consistent values, or if it
+is random. The fact that register 0x00 holds value 0x00 and register
+0x03 holds value 0x03 is rather suspicious, I'd say.
+
+> Immediately after hitting yes, my screen flickered a little and got really
+> bright (as it did when doing sensors-detect). But as it continued with the
+> dump, it got darker and now it seems like it's corrected itself. The colors
+> are all back to normal now.
+
+This suggests that the reads done by i2cdump are in fact interpreted as
+writes by whatever chip lives at I2C address 0x4f. This is a recurrent
+problem with I2C as it only defines directions for messages on the bus,
+but no semantics for them.
+
+You might want play with i2cset. If the device reacts to short writes
+(and the description you made of what happened during the dump pretty
+much suggests so) then something like:
+
+$ i2cset 6 0x4f 0x80
+
+would write value 0x80 to the chip. And the following command should
+reproduce the state at the end of i2cdump:
+
+$ i2cset 6 0x4f 0xff
+
+Sensors-detect OTOH reads register values in completely random order so
+it is difficult to know which was the last one.
+
+Probably one value corresponds to the initial state of the chip before
+the very first sensors-detect run. If we had access to a similar system
+where the problem did not happen, we may be able to get the right value
+with:
+
+$ i2cget 6 0x4f
+
+> I think it's all better and I have no idea what happened. I can do more
+> probes or logs or whatever if that's helpful to other people, though.
+
+Did you run i2cdump on I2C address 0x2c too? I'm going to blacklist
+0x4f on graphics cards by default, I need to know if I should do the
+same for 0x2c too.
+
+> > I can also offer to create a ticket in our bug tracking tool, to record
+> > the issue in case other users are affected, and tweak sensors-detect to
+> > be even safer even when the user explicitly asks for DDC channels to be
+> > probed.
 > 
-> Did you try try cold booting the laptop? This means: powering it down,
-> unplugging the AC adapter, removing the battery, waiting for several
-> minutes, then plugging everything back and starting the laptop.
+> That might not be a bad idea, but hopefully other people are smarter than I am.
 
-Sadly, this didn't work. I'd rebooted several times, but never thought to
-take the battery out and leave it out.
+You'd be surprised and disappointed ;-)
 
-> Also if you also have Windows installed on the laptop, you may try
-> booting it, maybe Lenovo's utilities can fix the problem.
-> 
-> If that doesn't help, I'm afraid I can't offer any help as long as I
-> don't know what the two I2C chips are. Providing register dumps (using
-> i2cdump from the i2c-tools package) may help, but it may also make
-> things worse, so it's up to you if you want to give it a try.
-> Alternatively you may try contacting Lenovo's support and asking them
-> for the information, but chances that they actually reply with useful
-> data seems thin.
+I have created:
+http://www.lm-sensors.org/ticket/2392
 
-For better or worse, if I were worried about making things worse I probably
-would have stuck with the defaults and wouldn't be in this predicament. So I
-went ahead and did the i2cdump. I'm glad I did, because it seems to actually
-have improved things. Here's the i2cdump
+I'll add further discoveries there.
 
-# i2cdump 6 0x4f
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-6, address 0x4f, mode byte
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 XX XX 03 XX XX XX XX XX XX XX XX XX XX XX XX    .XX?XXXXXXXXXXXX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+> Anyway, thanks a lot for looking at my post and helping me out.
 
-Immediately after hitting yes, my screen flickered a little and got really
-bright (as it did when doing sensors-detect). But as it continued with the
-dump, it got darker and now it seems like it's corrected itself. The colors
-are all back to normal now. 
+You're welcome, I'm glad if you managed to get the display to a usable
+state again, to be honest I did not think we would succeed.
 
-I think it's all better and I have no idea what happened. I can do more
-probes or logs or whatever if that's helpful to other people, though.
-
-> I can also offer to create a ticket in our bug tracking tool, to record
-> the issue in case other users are affected, and tweak sensors-detect to
-> be even safer even when the user explicitly asks for DDC channels to be
-> probed.
-
-That might not be a bad idea, but hopefully other people are smarter than I am.
-
-Anyway, thanks a lot for looking at my post and helping me out.
-
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
