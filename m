@@ -1,37 +1,39 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 29 May 2015 21:20:44 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (nct6683) Add missing sysfs attibute initialization
-Message-Id: <20150529232044.7d683ee9@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 29 May 2015 20:27:44 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (atxp1) Drop FSF mailing address
+Message-Id: <1432931265-21499-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1432829756-14595-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1432829756-14595-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 29 May 2015 13:24:10 -0700, Guenter Roeck wrote:
-> Hi Jean,
-> 
-> On 05/29/2015 01:50 AM, Jean Delvare wrote:
-> 
-> > Reviewed-by: Jean Delvare <jdelvare@suse.de>
-> >
-> > Looks like the abituguru and abituguru3 drivers suffer from the same
-> > bug?
-> >
-> 
-> Those drivers derive the attr values from a template which is pre-initialized
-> with SENSOR_ATTR_2. With this, the initialization should be taken care of.
-> Am I missing something ?
+The FSF mailing address may change and does not provide any real value.
 
-Probably not. My naive assumption was based on the lack of
-sysfs_attr_init() call in these drivers. If the initialization is done
-differently then alright. Thanks for verifying.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/atxp1.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
+diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
+index 4c829bb2f9db..78edc56b59e5 100644
+--- a/drivers/hwmon/atxp1.c
++++ b/drivers/hwmon/atxp1.c
+@@ -11,11 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+  */
+ 
+ #include <linux/kernel.h>
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.0
+
 
 _______________________________________________
 lm-sensors mailing list
