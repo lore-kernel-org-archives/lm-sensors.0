@@ -1,39 +1,46 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 27 Jun 2015 21:46:02 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (nct7802) add temperature sensor type attribute
-Message-Id: <558F199A.3010509@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 01 Jun 2015 13:32:41 +0000
+Subject: Re: [lm-sensors] Fancontrol memory consumption
+Message-Id: <20150601153241.164d83f7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1435440850-18246-1-git-send-email-const@MakeLinux.com>
-In-Reply-To: <1435440850-18246-1-git-send-email-const@MakeLinux.com>
+References: <20141105175729.39a88ab1@endymion.delvare>
+In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Constantine Shulyupin <const@MakeLinux.com>, jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 06/27/2015 02:34 PM, Constantine Shulyupin wrote:
-> From: const <const@MakeLinux.com>
->
-> 0, 3 - Temperature attributes are hidden
-> 1 - Current mode
-> 2 - Thermistor mode
->
-> Reference:
-> Nuvoton Hardware Monitoring IC NCT7802Y
-> 7.2.32 Mode Selection Register
-> Location : Index 22h
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+On Mon, 02 Mar 2015 19:10:02 +0100, Taz wrote:
+> For the results : yes it reached around the same mem consumption : 
+> always less than 30MB,
+> starting at 4MB and it looks to be the same start-up consumption as well 
+> with read instead of sleep.
 
-Hi Constantine,
+Looks like I managed to reproduce your problem:
 
-when resending a patch, please mark its version and provide a change log.
-Remember that the patches are visible online forever, and without an
-indication what changed no one will know the difference a year from now
-with out version and change log.
+00d50000-04748000 rw-p 00000000 00:00 0                                  [heap]
+Size:              59360 kB
+Rss:               41072 kB
+Pss:               41072 kB
+Shared_Clean:          0 kB
+Shared_Dirty:          0 kB
+Private_Clean:         0 kB
+Private_Dirty:     41072 kB
+Referenced:        23936 kB
+Anonymous:         41072 kB
+AnonHugePages:         0 kB
+Swap:              18288 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Locked:                0 kB
+VmFlags: rd wr mr mw me ac
 
-Thanks,
-Guenter
+I didn't do anything special, no idea why I couldn't see that before.
+And no idea how to investigate it further :(
 
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
