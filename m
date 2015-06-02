@@ -1,69 +1,79 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 11 Jun 2015 08:11:51 +0000
-Subject: Re: [lm-sensors] [PATCH 1/1 linux-next] hwmon: (w83627ehf) use swap() in w82627ehf_swap_tempreg()
-Message-Id: <20150611101151.6ca81769@endymion.delvare>
+From: Chris Lesiak <chris.lesiak@licor.com>
+Date: Tue, 02 Jun 2015 18:48:27 +0000
+Subject: [lm-sensors] [PATCH] hwmon: ntc: improve precision of resistance calculation
+Message-Id: <1433270907-24933-1-git-send-email-chris.lesiak@licor.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1433953981-24515-1-git-send-email-fabf@skynet.be>
-In-Reply-To: <1433953981-24515-1-git-send-email-fabf@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Fabian Frederick <fabf@skynet.be>
-Cc: linux-kernel@vger.kernel.org, Julia Lawall <Julia.Lawall@lip6.fr>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, 10 Jun 2015 18:33:01 +0200, Fabian Frederick wrote:
-> Use kernel.h macro definition.
-> 
-> Thanks to Julia Lawall for Coccinelle scripting support.
-> 
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> ---
->  drivers/hwmon/w83627ehf.c | 26 +++++---------------------
->  1 file changed, 5 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-> index b10353b..697007a 100644
-> --- a/drivers/hwmon/w83627ehf.c
-> +++ b/drivers/hwmon/w83627ehf.c
-> @@ -1937,27 +1937,11 @@ static inline void w83627ehf_init_device(struct w83627ehf_data *data,
->  static void w82627ehf_swap_tempreg(struct w83627ehf_data *data,
->  				   int r1, int r2)
->  {
-> -	u16 tmp;
-> -
-> -	tmp = data->temp_src[r1];
-> -	data->temp_src[r1] = data->temp_src[r2];
-> -	data->temp_src[r2] = tmp;
-> -
-> -	tmp = data->reg_temp[r1];
-> -	data->reg_temp[r1] = data->reg_temp[r2];
-> -	data->reg_temp[r2] = tmp;
-> -
-> -	tmp = data->reg_temp_over[r1];
-> -	data->reg_temp_over[r1] = data->reg_temp_over[r2];
-> -	data->reg_temp_over[r2] = tmp;
-> -
-> -	tmp = data->reg_temp_hyst[r1];
-> -	data->reg_temp_hyst[r1] = data->reg_temp_hyst[r2];
-> -	data->reg_temp_hyst[r2] = tmp;
-> -
-> -	tmp = data->reg_temp_config[r1];
-> -	data->reg_temp_config[r1] = data->reg_temp_config[r2];
-> -	data->reg_temp_config[r2] = tmp;
-> +	swap(data->temp_src[r1], data->temp_src[r2]);
-> +	swap(data->reg_temp[r1], data->reg_temp[r2]);
-> +	swap(data->reg_temp_over[r1], data->reg_temp_over[r2]);
-> +	swap(data->reg_temp_hyst[r1], data->reg_temp_hyst[r2]);
-> +	swap(data->reg_temp_config[r1], data->reg_temp_config[r2]);
->  }
->  
->  static void
+The function get_ohm_of_thermistor has both the measured voltage and the
+pullup voltage available in microvolts.  But it was promptly converting
+both to millivolts before using them to calculate the thermistor
+resistance.  That conversion unnecessarily hurt the precision of the
+calculation.
 
-Looks good. Applied, thanks.
+For example, take the ncpXXwb473 connected to 5000 mV and pulled down
+through a 47000 ohm resistor.  At 25 C, the resistance of the thermistor
+is 47000 ohms.  The measured voltage will be 2500 mV.  If we measure
+instead 2501 mV, then the calculated resistance will be 46962 ohms --
+a difference of 38 ohms.  So the precision of the resistance estimate
+could be increased by 38X by doing the calculations in microvolts.
 
+Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
+---
+ drivers/hwmon/ntc_thermistor.c | 23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index e08ed47..e112814 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -310,30 +310,27 @@ static inline u64 div64_u64_safe(u64 dividend, u64 divisor)
+ static int get_ohm_of_thermistor(struct ntc_data *data, unsigned int uv)
+ {
+ 	struct ntc_thermistor_platform_data *pdata = data->pdata;
+-	u64 mv = uv / 1000;
+-	u64 pmv = pdata->pullup_uv / 1000;
++	u32 puv = pdata->pullup_uv;
+ 	u64 n, puo, pdo;
+ 	puo = pdata->pullup_ohm;
+ 	pdo = pdata->pulldown_ohm;
+ 
+-	if (mv = 0) {
+-		if (pdata->connect = NTC_CONNECTED_POSITIVE)
+-			return INT_MAX;
+-		return 0;
+-	}
+-	if (mv >= pmv)
++	if (uv <= 0)
++		return (pdata->connect = NTC_CONNECTED_POSITIVE) ?
++			INT_MAX : 0;
++	if (uv >= puv)
+ 		return (pdata->connect = NTC_CONNECTED_POSITIVE) ?
+ 			0 : INT_MAX;
+ 
+ 	if (pdata->connect = NTC_CONNECTED_POSITIVE && puo = 0)
+-		n = div64_u64_safe(pdo * (pmv - mv), mv);
++		n = div_u64(pdo * (puv - uv), uv);
+ 	else if (pdata->connect = NTC_CONNECTED_GROUND && pdo = 0)
+-		n = div64_u64_safe(puo * mv, pmv - mv);
++		n = div_u64(puo * uv, puv - uv);
+ 	else if (pdata->connect = NTC_CONNECTED_POSITIVE)
+-		n = div64_u64_safe(pdo * puo * (pmv - mv),
+-				puo * mv - pdo * (pmv - mv));
++		n = div64_u64_safe(pdo * puo * (puv - uv),
++				puo * uv - pdo * (puv - uv));
+ 	else
+-		n = div64_u64_safe(pdo * puo * mv, pdo * (pmv - mv) - puo * mv);
++		n = div64_u64_safe(pdo * puo * uv, pdo * (puv - uv) - puo * uv);
+ 
+ 	if (n > INT_MAX)
+ 		n = INT_MAX;
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.3
+
 
 _______________________________________________
 lm-sensors mailing list
