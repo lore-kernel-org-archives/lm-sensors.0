@@ -1,31 +1,23 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 10 Jun 2015 20:34:30 +0000
-Subject: Re: [lm-sensors] Time for a new release?
-Message-Id: <55789F56.6050206@roeck-us.net>
+From: Wesley Pegden <wpegden@gmail.com>
+Date: Sat, 06 Jun 2015 01:21:23 +0000
+Subject: [lm-sensors] support for ITE IT8732F
+Message-Id: <CADRFTFK_xpN1sxxCG+8OH3TgOngpjLbnZjDqGFC_iTpMBCstAg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20150610094249.67047c37@endymion.delvare>
-In-Reply-To: <20150610094249.67047c37@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 06/10/2015 12:42 AM, Jean Delvare wrote:
-> Hi all,
->
-> It's been almost one year and a half since the last release of
-> lm-sensors (3.3.5 in January 2014.) I think it's about time for a new
-> release. There are quite a few changes there which I would like to see
-> in distributions rather sooner than later.
->
-> What about we (i.e. I) release lm-sensors 3.4.0 before the end of the
-> month?
->
-Makes sense.
+This is found on the lenovo ThinkCentre M93z all-in-one.
 
-Guenter
+This would be particularly nice to have because the default bios control of
+fan is very annoying (it cycles speeds constantly... people complain about
+this often on lenovo forums).  If this chip was supported that would give a
+simple fix for the problem in linux, at least.
 
+I could help with testing.
 
+-Wes
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
