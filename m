@@ -1,120 +1,92 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 06 Jun 2015 16:55:27 +0000
+From: Gergely Imreh <imrehg@gmail.com>
+Date: Sun, 07 Jun 2015 05:44:56 +0000
 Subject: Re: [lm-sensors] Parallella board temperature sensing
-Message-Id: <557325FF.8040501@roeck-us.net>
+Message-Id: <CAJ3iQco8ExOb03UnA-Lzt02Gr7V2DaQgzYZ+AsqBVp3+ep-8AA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAJ3iQcr8cSEB_vYYR2_0H-Am0wYstQvtfzHJcVgMsdcWzFn=VA@mail.gmail.com>
 In-Reply-To: <CAJ3iQcr8cSEB_vYYR2_0H-Am0wYstQvtfzHJcVgMsdcWzFn=VA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On 06/06/2015 08:28 AM, Gergely Imreh wrote:
-> On 6 June 2015 at 23:05, Guenter Roeck <linux@roeck-us.net> wrote:
->> On 06/06/2015 08:01 AM, Guenter Roeck wrote:
->>>
->>> On 06/06/2015 07:51 AM, Gergely Imreh wrote:
->>>>
->>>> Hi,
->>>>
->>>> I was checking out what would it take to support lm-sensors on the
->>>> Parallella board[1]. It's an interesting little board with a dual core
->>>> Xilinx ARM Cortex-A9, an FPGA, and a 16-core Epiphany co-processor.
->>>> It's Xilinx XADC sensor used for temperature/voltage sensing does not
->>>> seem to be anywhere on the lm-sensors supported device list. Currently
->>>> users seem to monitor it through reading the device data directly from
->>>> the /sys entries and doing the necessary scaling and conversion (as it
->>>> was discussed on the Parallella forums, bash script included[2])
->>>>
->>>> In a nutshell, the data is accessible through
->>>> /sys/bus/iio/devices/iio:device0/in_temp0_{raw,offset,scale} files.
->>>> There are also 8 voltage readings there that could be extracted.
->>>>
->>>
->>> If it is supported through iio, it should be possible use the iio->hwmon
->>> bridge.
->>>
->>
->> Here is an example devicetree entry, used to configure a max1139 as
->> hwmon device.
->>
->>                  max1139: voltage-sensor@35 {
->>                          compatible = "maxim,max1139";
->>                          reg = <0x35>;
->>                          vcc-supply = <&reg_3p3v>;
->>                          vref-supply = <&reg_3p3v>;
->>                          #io-channel-cells = <1>;
->>                  };
->>
->> ...
->>
->>          max1139@35 {
->>                  compatible = "iio-hwmon";
->>
->>                  io-channels = <&max1139 0>, <&max1139 1>, <&max1139 2>,
->>                          <&max1139 3>, <&max1139 4>, <&max1139 5>,
->>                          <&max1139 6>, <&max1139 7>, <&max1139 8>,
->>                          <&max1139 9>, <&max1139 10>, <&max1139 11>;
->>          };
->>
->> Guenter
->>
->
-> So if I get it right, all the support can be enabled through iio-hwmon
-> by modifying the Parallella device tree?
->
-> If so, the relevant entry is I think this (from the repo[1])
->
-> xadc@f8007100 {
->      compatible = "xlnx,zynq-xadc-1.00.a", "xlnx,ps7-xadc-1.00.a";
->      reg = <0xf8007100 0x20>;
->      interrupts = <0 7 4>;
->      interrupt-parent = <&gic>;
->      clocks = <&clkc 12>;
-> };
->
-> I guess in the above example "voltage-sensor" is just a descriptive
-> label, can be anything else too, right?
->
-Yes.
-
-> Looking at the iio-hwmon binding docs[2], would a version like this be usable?
->
-> adc: xadc@f8007100 {
->      compatible = "xlnx,zynq-xadc-1.00.a", "xlnx,ps7-xadc-1.00.a";
->      reg = <0xf8007100 0x20>;
->      interrupts = <0 7 4>;
->      interrupt-parent = <&gic>;
->      clocks = <&clkc 12>;
->      #io-channel-cells = <1>;
-> };
->
-> iio_hwmon {
->      compatible = "iio-hwmon";
->      io-channels = <&adc 0>, <&adc 1>, <&adc 2>,
->                           <&adc 3>, <&adc 4>, <&adc 5>,
->                           <&adc 6>, <&adc 7>, <&adc 8>,
->                           <&adc 9>; <&adc 10>; <&adc 11>;
->                           <&adc 12>; <&adc 13>; <&adc 14>;
->                           <&adc 15>; <&adc 16>; <&adc 17>;
->                           <&adc 18>;
-> };
-
-Something like that, correct.
-
->
-> How would this be able to tell which adc channels belong to what? (eg.
-> 0-1-2 are needed for the temperature sensing, the rest are voltage
-> sensors in pairs, raw and scale values)
->
-
-iio-hwmon checks the sensor type and instantiates it accordingly.
-
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gNyBKdW5lIDIwMTUgYXQgMDA6NTUsIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5l
+dD4gd3JvdGU6Cj4gT24gMDYvMDYvMjAxNSAwODoyOCBBTSwgR2VyZ2VseSBJbXJlaCB3cm90ZToK
+Pj4KPj4gT24gNiBKdW5lIDIwMTUgYXQgMjM6MDUsIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNr
+LXVzLm5ldD4gd3JvdGU6Cj4+Pgo+Pj4gT24gMDYvMDYvMjAxNSAwODowMSBBTSwgR3VlbnRlciBS
+b2VjayB3cm90ZToKPj4+Pgo+Pj4+Cj4+Pj4gT24gMDYvMDYvMjAxNSAwNzo1MSBBTSwgR2VyZ2Vs
+eSBJbXJlaCB3cm90ZToKPj4+Pj4KPj4+Pj4KPj4+Pj4gSGksCj4+Pj4+Cj4+Pj4+IEkgd2FzIGNo
+ZWNraW5nIG91dCB3aGF0IHdvdWxkIGl0IHRha2UgdG8gc3VwcG9ydCBsbS1zZW5zb3JzIG9uIHRo
+ZQo+Pj4+PiBQYXJhbGxlbGxhIGJvYXJkWzFdLiBJdCdzIGFuIGludGVyZXN0aW5nIGxpdHRsZSBi
+b2FyZCB3aXRoIGEgZHVhbCBjb3JlCj4+Pj4+IFhpbGlueCBBUk0gQ29ydGV4LUE5LCBhbiBGUEdB
+LCBhbmQgYSAxNi1jb3JlIEVwaXBoYW55IGNvLXByb2Nlc3Nvci4KPj4+Pj4gSXQncyBYaWxpbngg
+WEFEQyBzZW5zb3IgdXNlZCBmb3IgdGVtcGVyYXR1cmUvdm9sdGFnZSBzZW5zaW5nIGRvZXMgbm90
+Cj4+Pj4+IHNlZW0gdG8gYmUgYW55d2hlcmUgb24gdGhlIGxtLXNlbnNvcnMgc3VwcG9ydGVkIGRl
+dmljZSBsaXN0LiBDdXJyZW50bHkKPj4+Pj4gdXNlcnMgc2VlbSB0byBtb25pdG9yIGl0IHRocm91
+Z2ggcmVhZGluZyB0aGUgZGV2aWNlIGRhdGEgZGlyZWN0bHkgZnJvbQo+Pj4+PiB0aGUgL3N5cyBl
+bnRyaWVzIGFuZCBkb2luZyB0aGUgbmVjZXNzYXJ5IHNjYWxpbmcgYW5kIGNvbnZlcnNpb24gKGFz
+IGl0Cj4+Pj4+IHdhcyBkaXNjdXNzZWQgb24gdGhlIFBhcmFsbGVsbGEgZm9ydW1zLCBiYXNoIHNj
+cmlwdCBpbmNsdWRlZFsyXSkKPj4+Pj4KPj4+Pj4gSW4gYSBudXRzaGVsbCwgdGhlIGRhdGEgaXMg
+YWNjZXNzaWJsZSB0aHJvdWdoCj4+Pj4+IC9zeXMvYnVzL2lpby9kZXZpY2VzL2lpbzpkZXZpY2Uw
+L2luX3RlbXAwX3tyYXcsb2Zmc2V0LHNjYWxlfSBmaWxlcy4KPj4+Pj4gVGhlcmUgYXJlIGFsc28g
+OCB2b2x0YWdlIHJlYWRpbmdzIHRoZXJlIHRoYXQgY291bGQgYmUgZXh0cmFjdGVkLgo+Pj4+Pgo+
+Pj4+Cj4+Pj4gSWYgaXQgaXMgc3VwcG9ydGVkIHRocm91Z2ggaWlvLCBpdCBzaG91bGQgYmUgcG9z
+c2libGUgdXNlIHRoZSBpaW8tPmh3bW9uCj4+Pj4gYnJpZGdlLgo+Pj4+Cj4+Pgo+Pj4gSGVyZSBp
+cyBhbiBleGFtcGxlIGRldmljZXRyZWUgZW50cnksIHVzZWQgdG8gY29uZmlndXJlIGEgbWF4MTEz
+OSBhcwo+Pj4gaHdtb24gZGV2aWNlLgo+Pj4KPj4+ICAgICAgICAgICAgICAgICAgbWF4MTEzOTog
+dm9sdGFnZS1zZW5zb3JAMzUgewo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbXBhdGli
+bGUgPSAibWF4aW0sbWF4MTEzOSI7Cj4+PiAgICAgICAgICAgICAgICAgICAgICAgICAgcmVnID0g
+PDB4MzU+Owo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgIHZjYy1zdXBwbHkgPSA8JnJlZ18z
+cDN2PjsKPj4+ICAgICAgICAgICAgICAgICAgICAgICAgICB2cmVmLXN1cHBseSA9IDwmcmVnXzNw
+M3Y+Owo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICNpby1jaGFubmVsLWNlbGxzID0gPDE+
+Owo+Pj4gICAgICAgICAgICAgICAgICB9Owo+Pj4KPj4+IC4uLgo+Pj4KPj4+ICAgICAgICAgIG1h
+eDExMzlAMzUgewo+Pj4gICAgICAgICAgICAgICAgICBjb21wYXRpYmxlID0gImlpby1od21vbiI7
+Cj4+Pgo+Pj4gICAgICAgICAgICAgICAgICBpby1jaGFubmVscyA9IDwmbWF4MTEzOSAwPiwgPCZt
+YXgxMTM5IDE+LCA8Jm1heDExMzkgMj4sCj4+PiAgICAgICAgICAgICAgICAgICAgICAgICAgPCZt
+YXgxMTM5IDM+LCA8Jm1heDExMzkgND4sIDwmbWF4MTEzOSA1PiwKPj4+ICAgICAgICAgICAgICAg
+ICAgICAgICAgICA8Jm1heDExMzkgNj4sIDwmbWF4MTEzOSA3PiwgPCZtYXgxMTM5IDg+LAo+Pj4g
+ICAgICAgICAgICAgICAgICAgICAgICAgIDwmbWF4MTEzOSA5PiwgPCZtYXgxMTM5IDEwPiwgPCZt
+YXgxMTM5IDExPjsKPj4+ICAgICAgICAgIH07Cj4+Pgo+Pj4gR3VlbnRlcgo+Pj4KPj4KPj4gU28g
+aWYgSSBnZXQgaXQgcmlnaHQsIGFsbCB0aGUgc3VwcG9ydCBjYW4gYmUgZW5hYmxlZCB0aHJvdWdo
+IGlpby1od21vbgo+PiBieSBtb2RpZnlpbmcgdGhlIFBhcmFsbGVsbGEgZGV2aWNlIHRyZWU/Cj4+
+Cj4+IElmIHNvLCB0aGUgcmVsZXZhbnQgZW50cnkgaXMgSSB0aGluayB0aGlzIChmcm9tIHRoZSBy
+ZXBvWzFdKQo+Pgo+PiB4YWRjQGY4MDA3MTAwIHsKPj4gICAgICBjb21wYXRpYmxlID0gInhsbngs
+enlucS14YWRjLTEuMDAuYSIsICJ4bG54LHBzNy14YWRjLTEuMDAuYSI7Cj4+ICAgICAgcmVnID0g
+PDB4ZjgwMDcxMDAgMHgyMD47Cj4+ICAgICAgaW50ZXJydXB0cyA9IDwwIDcgND47Cj4+ICAgICAg
+aW50ZXJydXB0LXBhcmVudCA9IDwmZ2ljPjsKPj4gICAgICBjbG9ja3MgPSA8JmNsa2MgMTI+Owo+
+PiB9Owo+Pgo+PiBJIGd1ZXNzIGluIHRoZSBhYm92ZSBleGFtcGxlICJ2b2x0YWdlLXNlbnNvciIg
+aXMganVzdCBhIGRlc2NyaXB0aXZlCj4+IGxhYmVsLCBjYW4gYmUgYW55dGhpbmcgZWxzZSB0b28s
+IHJpZ2h0Pwo+Pgo+IFllcy4KPgo+PiBMb29raW5nIGF0IHRoZSBpaW8taHdtb24gYmluZGluZyBk
+b2NzWzJdLCB3b3VsZCBhIHZlcnNpb24gbGlrZSB0aGlzIGJlCj4+IHVzYWJsZT8KPj4KPj4gYWRj
+OiB4YWRjQGY4MDA3MTAwIHsKPj4gICAgICBjb21wYXRpYmxlID0gInhsbngsenlucS14YWRjLTEu
+MDAuYSIsICJ4bG54LHBzNy14YWRjLTEuMDAuYSI7Cj4+ICAgICAgcmVnID0gPDB4ZjgwMDcxMDAg
+MHgyMD47Cj4+ICAgICAgaW50ZXJydXB0cyA9IDwwIDcgND47Cj4+ICAgICAgaW50ZXJydXB0LXBh
+cmVudCA9IDwmZ2ljPjsKPj4gICAgICBjbG9ja3MgPSA8JmNsa2MgMTI+Owo+PiAgICAgICNpby1j
+aGFubmVsLWNlbGxzID0gPDE+Owo+PiB9Owo+Pgo+PiBpaW9faHdtb24gewo+PiAgICAgIGNvbXBh
+dGlibGUgPSAiaWlvLWh3bW9uIjsKPj4gICAgICBpby1jaGFubmVscyA9IDwmYWRjIDA+LCA8JmFk
+YyAxPiwgPCZhZGMgMj4sCj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgPCZhZGMgMz4sIDwm
+YWRjIDQ+LCA8JmFkYyA1PiwKPj4gICAgICAgICAgICAgICAgICAgICAgICAgICA8JmFkYyA2Piwg
+PCZhZGMgNz4sIDwmYWRjIDg+LAo+PiAgICAgICAgICAgICAgICAgICAgICAgICAgIDwmYWRjIDk+
+OyA8JmFkYyAxMD47IDwmYWRjIDExPjsKPj4gICAgICAgICAgICAgICAgICAgICAgICAgICA8JmFk
+YyAxMj47IDwmYWRjIDEzPjsgPCZhZGMgMTQ+Owo+PiAgICAgICAgICAgICAgICAgICAgICAgICAg
+IDwmYWRjIDE1PjsgPCZhZGMgMTY+OyA8JmFkYyAxNz47Cj4+ICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgPCZhZGMgMTg+Owo+PiB9Owo+Cj4KPiBTb21ldGhpbmcgbGlrZSB0aGF0LCBjb3JyZWN0
+Lgo+Cj4+Cj4+IEhvdyB3b3VsZCB0aGlzIGJlIGFibGUgdG8gdGVsbCB3aGljaCBhZGMgY2hhbm5l
+bHMgYmVsb25nIHRvIHdoYXQ/IChlZy4KPj4gMC0xLTIgYXJlIG5lZWRlZCBmb3IgdGhlIHRlbXBl
+cmF0dXJlIHNlbnNpbmcsIHRoZSByZXN0IGFyZSB2b2x0YWdlCj4+IHNlbnNvcnMgaW4gcGFpcnMs
+IHJhdyBhbmQgc2NhbGUgdmFsdWVzKQo+Pgo+Cj4gaWlvLWh3bW9uIGNoZWNrcyB0aGUgc2Vuc29y
+IHR5cGUgYW5kIGluc3RhbnRpYXRlcyBpdCBhY2NvcmRpbmdseS4KPgoKSSd2ZSBhZGRlZCBhIG1v
+ZGlmaWVkIHZlcnNpb24gYW5kIHdvcmtzIGxpa2UgYSBjaGFybSEgVG9vayBhIGJpdCBvZgp0cmlh
+bCBhbmQgZXJyb3IsIGFuZCBoYWQgdG8gdXBkYXRlIHRoZSBpaW8gZHJpdmVyIGZvciB0aGUgcmVs
+ZXZhbnQKWGlsaW54IEFEQyAodm9sdGFnZSBjaGFubmVscyByZXR1cm5lZCBvZmZzZXQgZXZlbiB3
+aGVuIHRoZXJlIHdhcwpub25lKSwgYnV0IG5vdyBzZW5zb3JzIGNhbiByZWFkIGJvdGggdGhlIHRl
+bXBlcmF0dXJlIGFuZCB0aGUgOCB2b2x0YWdlCmNoYW5uZWxzIQoKVGhhbmtzIGEgbG9yIGZvciB0
+aGUgaGVscCEKCklmIGludGVyZXN0ZWQsIGhlcmUncyB0aGUgcHVsbCByZXF1ZXN0IEkndmUgc2Vu
+dCB0byBQYXJhbGxlbGxhOgpodHRwczovL2dpdGh1Yi5jb20vcGFyYWxsZWxsYS9wYXJhbGxlbGxh
+LWxpbnV4L3B1bGwvNiBhbmQgdGhlIGZvcnVtCnBvc3QgZGlzY3Vzc2luZyB0aGlzOgpodHRwczov
+L3BhcmFsbGVsbGEub3JnL2ZvcnVtcy92aWV3dG9waWMucGhwP2ZIJnQlMTImc2lk0GU3MTczZWRh
+YzM3NzdmYmVhNDkwNmQ4YzY0MGMwOApBbnkgb3RoZXIgZmVlZGJhY2sgaXMgYXBwcmVjaWF0ZWQu
+CgpDaGVlcnMsCiAgIEdyZWcKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw==
