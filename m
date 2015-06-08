@@ -1,57 +1,55 @@
-From: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
-Date: Mon, 08 Jun 2015 12:11:19 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 08 Jun 2015 15:03:12 +0000
 Subject: Re: [lm-sensors] Dealing with optional i2c devices in a devicetree
-Message-Id: <55758667.70501@melag.de>
+Message-Id: <5575AEB0.70807@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <55713BB1.80004@alliedtelesis.co.nz> <55714FFB.3000608@roeck-us.net> <55752FD4.6050700@alliedtelesis.co.nz>
-In-Reply-To: <55752FD4.6050700-6g8wRflRTwXFdCa3tKVlE6U/zSkkHjvu@public.gmane.org>
+References: <55713BB1.80004@alliedtelesis.co.nz> <55714FFB.3000608@roeck-us.net> <55752FD4.6050700@alliedtelesis.co.nz> <55758667.70501@melag.de>
+In-Reply-To: <55758667.70501-d/C+FbuhHiA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Packham <Chris.Packham-6g8wRflRTwXFdCa3tKVlE6U/zSkkHjvu@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Enrico Weigelt, metux IT consult" <weigelt-d/C+FbuhHiA@public.gmane.org>, Chris Packham <Chris.Packham-6g8wRflRTwXFdCa3tKVlE6U/zSkkHjvu@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: "jdelvare-l3A5Bk7waGM@public.gmane.org" <jdelvare-l3A5Bk7waGM@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "shardy-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <shardy-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "guillaume.roguez-4ysUXcep3aM1wj+D4I0NRVaTQe2KTcn/@public.gmane.org" <guillaume.roguez-4ysUXcep3aM1wj+D4I0NRVaTQe2KTcn/@public.gmane.org>
 
-QW0gMDguMDYuMjAxNSB1bSAwODowMSBzY2hyaWViIENocmlzIFBhY2toYW06CgpIaSBmb2xrcywK
-CiA+IFNvdW5kcyBsaWtlIG15IGJlc3QgYmV0IGlzIHRvIG1hcmsgdGhlIG5vZGVzIGFzIGRpc2Fi
-bGVkIGluIHRoZQogPiBkdHMgYW5kIGhhdmUgbXkgYm9vdGxvYWRlciB1cGRhdGUgdGhlbSBvbiB0
-aGUgd2F5IHRocm91Z2guCgpJbiBjYXNlIHlvdXIgYm9vdGxvYWRlciBjYW4gdGFrZSB0aGF0IGRl
-Y2lzaW9uIChlZy4gaWYgdGhlIGRldmljZQppcyBwcmVzZW50IGF0IGJvb3QgdGltZSwgYW5kIHRo
-ZSBib290bG9hZGVyIGhhcyB0aGUgcHJvcGVyIHByb2JpbmcKbG9naWMgb3Igc2ltcGx5IGtub3dz
-IHRoZSBkZXZpY2UgaGFzIHRvIGJlIHRoZXJlKSwgdGhhdCB3b3VsZCBiZQphbiBwcmV0dHkgZWFz
-eSB3YXkuCgoKQnV0IGxldCBtZSBhZGQgYW5vdGhlciB1c2VjYXNlLCB3aGljaCBtaWdodCBiZSBh
-IGJpdCBtb3JlIHRyaWNreToKCkxldCdzIGFzc3VtZSB3ZSBjYW4gcGx1ZyBpbiBzb21lIG1vcmUg
-Y29tcGxleCBkZXZpY2UsIHdoaWNoIGNvbnNpc3RzCm9mIHNldmVyYWwgKHByZXR0eSBzdGFuZGFy
-ZCkgc3ViZGV2aWNlcywgYmVoaW5kIGNlcnRhaW4gYnVzJ2VzIChtYXliZQppdCdzIGF0dGFjaGVk
-IHZpYSBVU0IsIGFuZCBzb21ld2hlcmUgYmVoaW5kIGFyZSBzb21lIEkyQyBidXMnZXMgd2l0aApy
-ZWd1bGF0b3JzLCBwd20tZ2VuZXJhdG9ycywgZXRjKS4KCkxldCdzIGZ1cnRoZXIgYXNzdW1lLCB3
-ZSBhbHJlYWR5IGdvdCBzb21lIERUUyBvciBzb21lIHBpZWNlIG9mIG1lbW9yeQp3aXRoIGFuIERU
-QiBzdWJ0cmVlIGZvciB0aGF0IGRldmljZSAoZWcuIHNvbWUgc2ltcGxlIGJ1bGsgZW5kcG9pbnQg
-dGhhdApqdXN0IGdpdmVzIGJhY2sgYSBidW5jaCBvZiBieXRlcyB3aXRoIHRoZSBEVEIpLgoKTm93
-LCB3aGVuIHRoZSBkZXZpY2UgaXMgcGx1Z2dlZCBpbiwgSSdkIGxpa2UgdG8gZ2V0IHRoYXQgcGll
-Y2Ugb2YgRFRCCmxvYWRlZCBhbmQgdGhlIGNvcnJlc3BvbmRpbmcgZHJpdmVycyBpbml0aWFsaXpl
-ZC4gQW5kLCBvZiBjb3Vyc2UsIHdoZW4KaXQncyBwbHVnZ2VkLW91dCwgZXZlcnl0aGluZyBzaG91
-bGQgYmUgc2h1dCBkb3duIGNsZWFubHkuCgpIb3cgY291bGQgd2UgYWNoaWV2ZSB0aGF0ID8KCgot
-LW10eAotLQpFbnJpY28gV2VpZ2VsdCwgbWV0dXggSVQgY29uc3VsdAorNDktMTUxLTI3NTY1Mjg3
-Ck1FTEFHIE1lZGl6aW50ZWNobmlrIG9IRyBTaXR6IEJlcmxpbiBSZWdpc3RlcmdlcmljaHQgQUcg
-Q2hhcmxvdHRlbmJ1cmcgSFJBIDIxMzMzIEIKCldpY2h0aWdlciBIaW53ZWlzOiBEaWVzZSBOYWNo
-cmljaHQga2FubiB2ZXJ0cmF1bGljaGUgb2RlciBudXIgZsO8ciBlaW5lbiBiZWdyZW56dGVuIFBl
-cnNvbmVua3JlaXMgYmVzdGltbXRlIEluZm9ybWF0aW9uZW4gZW50aGFsdGVuLiBTaWUgaXN0IGF1
-c3NjaGxpZcOfbGljaCBmw7xyIGRlbmplbmlnZW4gYmVzdGltbXQsIGFuIGRlbiBzaWUgZ2VyaWNo
-dGV0IHdvcmRlbiBpc3QuIFdlbm4gU2llIG5pY2h0IGRlciBBZHJlc3NhdCBkaWVzZXIgRS1NYWls
-IHNpbmQsIGTDvHJmZW4gU2llIGRpZXNlIG5pY2h0IGtvcGllcmVuLCB3ZWl0ZXJsZWl0ZW4sIHdl
-aXRlcmdlYmVuIG9kZXIgc2llIGdhbnogb2RlciB0ZWlsd2Vpc2UgaW4gaXJnZW5kZWluZXIgV2Vp
-c2UgbnV0emVuLiBTb2xsdGVuIFNpZSBkaWVzZSBFLU1haWwgaXJydMO8bWxpY2ggZXJoYWx0ZW4g
-aGFiZW4sIHNvIGJlbmFjaHJpY2h0aWdlbiBTaWUgYml0dGUgZGVuIEFic2VuZGVyLCBpbmRlbSBT
-aWUgYXVmIGRpZXNlIE5hY2hyaWNodCBhbnR3b3J0ZW4uIEJpdHRlIGzDtnNjaGVuIFNpZSBpbiBk
-aWVzZW0gRmFsbCBkaWVzZSBOYWNocmljaHQgdW5kIGFsbGUgQW5ow6RuZ2UsIG9obmUgZWluZSBL
-b3BpZSB6dSBiZWhhbHRlbi4KSW1wb3J0YW50IE5vdGljZTogVGhpcyBtZXNzYWdlIG1heSBjb250
-YWluIGNvbmZpZGVudGlhbCBvciBwcml2aWxlZ2VkIGluZm9ybWF0aW9uLiBJdCBpcyBpbnRlbmRl
-ZCBvbmx5IGZvciB0aGUgcGVyc29uIGl0IHdhcyBhZGRyZXNzZWQgdG8uIElmIHlvdSBhcmUgbm90
-IHRoZSBpbnRlbmRlZCByZWNpcGllbnQgb2YgdGhpcyBlbWFpbCB5b3UgbWF5IG5vdCBjb3B5LCBm
-b3J3YXJkLCBkaXNjbG9zZSBvciBvdGhlcndpc2UgdXNlIGl0IG9yIGFueSBwYXJ0IG9mIGl0IGlu
-IGFueSBmb3JtIHdoYXRzb2V2ZXIuIElmIHlvdSByZWNlaXZlZCB0aGlzIGVtYWlsIGluIGVycm9y
-IHBsZWFzZSBub3RpZnkgdGhlIHNlbmRlciBieSByZXBseWluZyBhbmQgZGVsZXRlIHRoaXMgbWVz
-c2FnZSBhbmQgYW55IGF0dGFjaG1lbnRzIHdpdGhvdXQgcmV0YWluaW5nIGEgY29weS4KCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFp
-bGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNv
-cnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On 06/08/2015 05:11 AM, Enrico Weigelt, metux IT consult wrote:
+> Am 08.06.2015 um 08:01 schrieb Chris Packham:
+>
+> Hi folks,
+>
+>  > Sounds like my best bet is to mark the nodes as disabled in the
+>  > dts and have my bootloader update them on the way through.
+>
+> In case your bootloader can take that decision (eg. if the device
+> is present at boot time, and the bootloader has the proper probing
+> logic or simply knows the device has to be there), that would be
+> an pretty easy way.
+>
+>
+> But let me add another usecase, which might be a bit more tricky:
+>
+> Let's assume we can plug in some more complex device, which consists
+> of several (pretty standard) subdevices, behind certain bus'es (maybe
+> it's attached via USB, and somewhere behind are some I2C bus'es with
+> regulators, pwm-generators, etc).
+>
+> Let's further assume, we already got some DTS or some piece of memory
+> with an DTB subtree for that device (eg. some simple bulk endpoint that
+> just gives back a bunch of bytes with the DTB).
+>
+> Now, when the device is plugged in, I'd like to get that piece of DTB
+> loaded and the corresponding drivers initialized. And, of course, when
+> it's plugged-out, everything should be shut down cleanly.
+>
+> How could we achieve that ?
+>
+
+Use devicetree overlays.
+
+Guenter
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
