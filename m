@@ -1,28 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 02 Jun 2015 13:54:22 +0000
-Subject: Re: [lm-sensors] [v3] hwmon: ntc: fix iio raw to microvolts conversion
-Message-Id: <20150602135422.GA15547@roeck-us.net>
+From: Peter Hung <hpeter@gmail.com>
+Date: Thu, 25 Jun 2015 07:30:15 +0000
+Subject: [lm-sensors] [PATCH 0/3] hwmon:f71882fg add new Fintek SuperIO support
+Message-Id: <1435217418-26249-1-git-send-email-hpeter+linux_kernel@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
 
-On Mon, Jun 01, 2015 at 11:27:37AM -0500, Chris Lesiak wrote:
-> The function ntc_adc_iio_read was assuming both a 12 bit ADC and that
-> pullup_uv is the same as the ADC reference voltage.  If either
-> assumption is false, then the result is incorrect.
-> 
-> Attempt to use iio_convert_raw_to_processed to convert the raw value to
-> microvolts.  It will fail for iio channels that don't support support
-> IIO_CHAN_INFO_SCALE; in that case fall back to the assumptions.
-> 
-> Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
+The first patch will add Fintek F81866/F71868 SuperIO
+with H/W monitor function to f71882fg.c
 
-Applied to -next.
+But some F81866 functional address is differ from F71882fg. 
+The following 2 patches will fix this problem.
 
-Thanks,
-Guenter
+Peter Hung (3):
+  hwmon:f71882fg add f81866/f71868 SuperIO support
+  hwmon:f71882fg fix f81866a temp/beep setting
+  hwmon:f71882fg fix f81866a voltage protection
+
+ drivers/hwmon/f71882fg.c | 160 ++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 129 insertions(+), 31 deletions(-)
+
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
