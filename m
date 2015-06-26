@@ -1,58 +1,43 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 30 May 2015 18:15:10 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.1-rc6
-Message-Id: <1433009710-1482-1-git-send-email-linux@roeck-us.net>
+From: Constantine Shulyupin <const@MakeLinux.com>
+Date: Fri, 26 Jun 2015 14:47:44 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct7802) fix visibility of temp3
+Message-Id: <1435330064-21565-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: const <const@ctera.com>, Constantine Shulyupin <const@MakeLinux.com>
 
-Hi Linus,
+From: const <const@ctera.com>
 
-Please pull hwmon fixes for Linux v4.1-rc6 from signed tag:
+Excerpt from datasheet:
+7.2.32 Mode Selection Register
+RTD3_MD : 00=Closed , 01=Reserved , 10=Thermistor mode , 11=Voltage sense
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.1-rc6
+Show temp3 only in Thermistor mode
 
-Thanks,
-Guenter
-------
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+---
+ drivers/hwmon/nct7802.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The following changes since commit ba155e2d21f6bf05de86a78dbe5bfd8757604a65:
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index 5418417..dcca5fc 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -649,7 +649,7 @@ static umode_t nct7802_temp_is_visible(struct kobject *kobj,
+ 	if (index >= 9 && index < 18 &&
+ 	    (reg & 0x0c) != 0x04 && (reg & 0x0c) != 0x08)	/* RD2 */
+ 		return 0;
+-	if (index >= 18 && index < 27 && (reg & 0x30) != 0x10)	/* RD3 */
++	if (index >= 18 && index < 27 && (reg & 0x30) != 0x20)	/* RD3 */
+ 		return 0;
+ 	if (index >= 27 && index < 35)				/* local */
+ 		return attr->mode;
+-- 
+1.9.1
 
-  Linux 4.1-rc5 (2015-05-24 18:22:35 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.1-rc6
-
-for you to fetch changes up to c7bd6dc320b85445b6b36a0aff41f929210027c7:
-
-  hwmon: (nct6683) Add missing sysfs attribute initialization (2015-05-29 17:47:42 -0700)
-
-----------------------------------------------------------------
-Some late hwmon patches, all headed for -stable
-
-- Fix sysfs attribute initialization in nct6775 and nct6683 drivers
-- Do not attempt to auto-detect tmp435 on I2C address 0x37
-- Ensure iio channel is of type IIO_VOLTAGE in ntc_thermistor driver
-
-----------------------------------------------------------------
-Chris Lesiak (1):
-      hwmon: (ntc_thermistor) Ensure iio channel is of type IIO_VOLTAGE
-
-Guenter Roeck (3):
-      hwmon: (tmp401) Do not auto-detect chip on I2C address 0x37
-      hwmon: (nct6775) Add missing sysfs attribute initialization
-      hwmon: (nct6683) Add missing sysfs attribute initialization
-
- Documentation/hwmon/tmp401     | 2 +-
- drivers/hwmon/nct6683.c        | 2 ++
- drivers/hwmon/nct6775.c        | 2 ++
- drivers/hwmon/ntc_thermistor.c | 9 +++++++++
- drivers/hwmon/tmp401.c         | 2 +-
- 5 files changed, 15 insertions(+), 2 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
