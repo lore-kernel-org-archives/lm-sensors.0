@@ -1,99 +1,54 @@
-From: Taz <rastataz@gmail.com>
-Date: Sat, 13 Jun 2015 18:17:01 +0000
-Subject: Re: [lm-sensors] Fancontrol memory consumption
-Message-Id: <557C739D.1030807@gmail.com>
+From: "Stevens, Nick" <Nick.Stevens@digi.com>
+Date: Mon, 29 Jun 2015 21:45:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (mcp3021) Fix broken output scaling
+Message-Id: <20150629214453.GA30170@nick.stevens-ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20141105175729.39a88ab1@endymion.delvare>
-In-Reply-To: <20141105175729.39a88ab1@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le 01/06/2015 16:47, Jean Delvare a =E9crit :
-> On Mon, 1 Jun 2015 15:32:41 +0200, Jean Delvare wrote:
->> On Mon, 02 Mar 2015 19:10:02 +0100, Taz wrote:
->>> For the results : yes it reached around the same mem consumption :
->>> always less than 30MB,
->>> starting at 4MB and it looks to be the same start-up consumption as well
->>> with read instead of sleep.
->> Looks like I managed to reproduce your problem:
->>
->> 00d50000-04748000 rw-p 00000000 00:00 0                                 =
- [heap]
->> Size:              59360 kB
->> Rss:               41072 kB
->> Pss:               41072 kB
->> Shared_Clean:          0 kB
->> Shared_Dirty:          0 kB
->> Private_Clean:         0 kB
->> Private_Dirty:     41072 kB
->> Referenced:        23936 kB
->> Anonymous:         41072 kB
->> AnonHugePages:         0 kB
->> Swap:              18288 kB
->> KernelPageSize:        4 kB
->> MMUPageSize:           4 kB
->> Locked:                0 kB
->> VmFlags: rd wr mr mw me ac
->>
->> I didn't do anything special, no idea why I couldn't see that before.
-> Bah, I remember now. What I did is running the script with bash version
-> 4.3.11, which is the one you're seeing the bug on. Probably I did that
-> long ago and then forgot to check the result. I'll check how
-> reproducible this is.
->
->> And no idea how to investigate it further :(
-Sorry for late answer but I was quite busy lastly (I moved).
+The mcp3021 scaling code is dividing the VDD (full-scale) value in
+millivolts by the A2D resolution to obtain the scaling factor. When VDD
+is 3300mV (the standard value) and the resolution is 12-bit (4096
+divisions), the result is a scale factor of 3300/4096, which is always
+one.  Effectively, the raw A2D reading is always being returned because
+no scaling is applied.
 
-Still using the bash version you're refering to, I'm at 80 Mb usage=20
-after 20 days uptime:
+This patch fixes the issue while still using only integer math by
+converting VDD to microvolts before dividing by resolution, and then
+converting back to millivolts at return.
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Name:   fancontrol
-State:  S (sleeping)
-Tgid:   1292
-Ngid:   0
-Pid:    1292
-PPid:   1
-TracerPid:      0
-Uid:    0       0       0       0
-Gid:    0       0       0       0
-FDSize: 256
-Groups: 0
-VmPeak:    96472 kB
-VmSize:    96472 kB
-VmLck:         0 kB
-VmPin:         0 kB
-VmHWM:     81064 kB
-VmRSS:     81064 kB
-VmData:    78652 kB
-VmStk:       136 kB
-VmExe:       956 kB
-VmLib:      2288 kB
-VmPTE:       208 kB
-VmSwap:        0 kB
-Threads:        1
-SigQ:   0/7887
-SigPnd: 0000000000000000
-ShdPnd: 0000000000000000
-SigBlk: 0000000000000000
-SigIgn: 0000000000000000
-SigCgt: 0000000000016007
-CapInh: 0000000000000000
-CapPrm: 0000003fffffffff
-CapEff: 0000003fffffffff
-CapBnd: 0000003fffffffff
-Seccomp:        0
-Cpus_allowed:   f
-Cpus_allowed_list:      0-3
-Mems_allowed:   00000000,00000001
-Mems_allowed_list:      0
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Signed-off-by: Nick Stevens <Nick.Stevens@digi.com>
+---
+ drivers/hwmon/mcp3021.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-Won't paste the output as well here but /proc/..../smaps shows many=20
-segments, whithin which one is using 75 Mb.
-(don't know if it's helpful...).
+diff --git a/drivers/hwmon/mcp3021.c b/drivers/hwmon/mcp3021.c
+index d219c06..c3bbba2 100644
+--- a/drivers/hwmon/mcp3021.c
++++ b/drivers/hwmon/mcp3021.c
+@@ -87,10 +87,15 @@ static inline u16 volts_from_reg(struct mcp3021_data *data, u16 val)
+ 	if (val = 0)
+ 		return 0;
+ 
+-	val = val * data->output_scale - data->output_scale / 2;
++	/* Convert VDD setting to uV and divide by resolution to get uV/bit */
++	u32 uv_per_bit = (data->vdd * 1000) / (
++				(1 << data->output_res) * data->output_scale);
+ 
+-	return val * DIV_ROUND_CLOSEST(data->vdd,
+-			(1 << data->output_res) * data->output_scale);
++	/* Scale raw reading by uV/bit */
++	u32 uv_val = val * uv_per_bit;
++
++	/* Convert back from uV to mV */
++	return (u16)DIV_ROUND_CLOSEST(uv_val, 1000);
+ }
+ 
+ static ssize_t show_in_input(struct device *dev, struct device_attribute *attr,
+-- 
+2.2.0
 
 _______________________________________________
 lm-sensors mailing list
