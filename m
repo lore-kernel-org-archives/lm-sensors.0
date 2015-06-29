@@ -1,61 +1,28 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 01 Jun 2015 23:48:33 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: ntc: fix iio raw to microvolts conversion
-Message-Id: <556CEF51.50100@roeck-us.net>
+From: Il Han <corone.il.han@gmail.com>
+Date: Mon, 29 Jun 2015 07:01:27 +0000
+Subject: [lm-sensors] Does anyone have a driver for the MAX31790?
+Message-Id: <CADrkgWK9en4v3QpobCVDeY0GqCMach-nPPJ1fiNk6uXv-4EHYA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1433176057-26446-1-git-send-email-chris.lesiak@licor.com>
-In-Reply-To: <1433176057-26446-1-git-send-email-chris.lesiak@licor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 06/01/2015 03:06 PM, Chris Lesiak wrote:
+Hello,
 
-[ ... ]
-.
->>>
->>> I think things could be improved in one of two ways:
->>> 1.  Accept the precision that you get by doing the calculation millivolts.
->>>      Simplify things by using millivolts throughout, although pullup_uv
->>>      needs to remain becaus it is part of the interface.
->>> 2.  Create an additional patch doing the calculations with microvolts
->>>      instead of millivolts.
->>>
->>> What are your thoughts?
->>>
->>
->> You explain above that doing the calculations in mV looses precision.
->> Given that, what would be the point of the first proposal, especially
->> since the uV are already available (and may still be needed in
->> ntc_adc_iio_read if conversion through iio is not available) ?
->>
->> Thanks,
->> Guenter
->>
->
-> I do think that option 2 is the better choice.  If you'd like, I'll create a patch.
->
-Your call.
+I have a machine with a chip, MAX31790.
+It would monitor and control fans on the machine.
 
-> But if 1 were implemented, ntc_adc_iio_read would give a value in millivolts
-> even when iio_convert_raw_to_processed failed.  Something like:
->
-> ret = iio_convert_raw_to_processed(channel, raw, &mv, 1);
-> if (ret < 0) {
->      /* Assume 12 bit ADC with vref at pullup_uv*/
->      mv = (pdata->pullup_uv * (s64)raw / 1000) >> 12;
-> }
->
+But I couldn't find any drivers for the MAX31790 in the Linux Kernel
+Archives.
+Does anyone have a driver for it?
+Or can I use the other driver instead, such as MAX1111, MAX1619, MAX6650,
+etc. for the MAX31790?
 
-But what would be the point ? I don't see how that would improve anything.
-Since iio internally supports uV, at least optionally, you would then
-always loose accuracy. So we might as well leave everything as-is.
+Thank you.
 
-Thanks,
-Guenter
-
-
+--
+Il Han
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
