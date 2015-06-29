@@ -1,116 +1,212 @@
-From: Peter Hung <hpeter@gmail.com>
-Date: Tue, 30 Jun 2015 01:31:10 +0000
-Subject: [lm-sensors] [PATCH V2 3/3] hwmon:f71882fg fix f81866a voltage protection
-Message-Id: <1435627870-12249-4-git-send-email-hpeter+linux_kernel@gmail.com>
+From: Constantine Shulyupin <const@MakeLinux.com>
+Date: Mon, 29 Jun 2015 23:05:48 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (nct7802) add temperature sensor type attribute
+Message-Id: <1435619148-4929-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1435627870-12249-1-git-send-email-hpeter+linux_kernel@gmail.com>
-In-Reply-To: <1435627870-12249-1-git-send-email-hpeter+linux_kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jdelvare@suse.de, linux@roeck-us.net
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
+To: jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: const <const@MakeLinux.com>
 
-The f81866a voltage-1 protector(VIN1) address
-is differ from f71882.
+From: const <const@MakeLinux.com>
 
-f71882 status:12H, beep:13H, v-high:32H
-f81866a status:16H, beep:17H, v-high:3aH
+Sensor type:
+3 diode (current mode), MD=1
+4 thermistor, MD=2
 
-Signed-off-by: Peter Hung <hpeter+linux_kernel@gmail.com>
+Reference:
+Nuvoton Hardware Monitoring IC NCT7802Y
+7.2.32 Mode Selection Register
+Location : Index 22h
+
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
 ---
- drivers/hwmon/f71882fg.c | 50 +++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 41 insertions(+), 9 deletions(-)
+ drivers/hwmon/nct7802.c | 81 +++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 69 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index c065aec..41fdccf 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -71,6 +71,10 @@
- #define F71882FG_REG_IN(nr)		(0x20  + (nr))
- #define F71882FG_REG_IN1_HIGH		0x32 /* f7188x only */
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index 1341e1f..8f0a573 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -49,7 +49,7 @@ static const u8 REG_VOLTAGE_LIMIT_MSB_SHIFT[2][5] = {
+ #define REG_VOLTAGE_LOW		0x0f
+ #define REG_FANCOUNT_LOW	0x13
+ #define REG_START		0x21
+-#define REG_MODE		0x22
++#define REG_MODE		0x22 /* 7.2.32 Mode Selection Register */
+ #define REG_PECI_ENABLE		0x23
+ #define REG_FAN_ENABLE		0x24
+ #define REG_VMON_ENABLE		0x25
+@@ -66,6 +66,43 @@ struct nct7802_data {
+ 	struct mutex access_lock; /* for multi-byte read and write operations */
+ };
  
-+#define F81866_REG_IN_STATUS		0x16 /* F81866 only */
-+#define F81866_REG_IN_BEEP			0x17 /* F81866 only */
-+#define F81866_REG_IN1_HIGH		0x3a /* F81866 only */
++static ssize_t show_temp_type(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct nct7802_data *data = dev_get_drvdata(dev);
++	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
++	unsigned int mode;
++	int ret;
 +
- #define F71882FG_REG_FAN(nr)		(0xA0 + (16 * (nr)))
- #define F71882FG_REG_FAN_TARGET(nr)	(0xA2 + (16 * (nr)))
- #define F71882FG_REG_FAN_FULL_SPEED(nr)	(0xA4 + (16 * (nr)))
-@@ -1203,10 +1207,21 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
- 	if (time_after(jiffies, data->last_limits + 60 * HZ) ||
- 			!data->valid) {
- 		if (f71882fg_has_in1_alarm[data->type]) {
--			data->in1_max -				f71882fg_read8(data, F71882FG_REG_IN1_HIGH);
--			data->in_beep -				f71882fg_read8(data, F71882FG_REG_IN_BEEP);
-+			if (data->type = f81866a) {
-+				data->in1_max +					f71882fg_read8(data,
-+							F81866_REG_IN1_HIGH);
-+				data->in_beep +					f71882fg_read8(data,
-+							F81866_REG_IN_BEEP);
-+			} else {
-+				data->in1_max +					f71882fg_read8(data,
-+							F71882FG_REG_IN1_HIGH);
-+				data->in_beep +					f71882fg_read8(data,
-+							F71882FG_REG_IN_BEEP);
-+			}
- 		}
- 
- 		/* Get High & boundary temps*/
-@@ -1330,9 +1345,16 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
- 			data->fan[3] = f71882fg_read16(data,
- 						F71882FG_REG_FAN(3));
- 
--		if (f71882fg_has_in1_alarm[data->type])
--			data->in_status = f71882fg_read8(data,
-+		if (f71882fg_has_in1_alarm[data->type]) {
-+			if (data->type = f81866a)
-+				data->in_status = f71882fg_read8(data,
-+						F81866_REG_IN_STATUS);
++	ret = regmap_read(data->regmap, REG_MODE, &mode);
++	if (ret < 0)
++		return ret;
 +
-+			else
-+				data->in_status = f71882fg_read8(data,
- 						F71882FG_REG_IN_STATUS);
-+		}
++	return sprintf(buf, "%u\n", (mode >> (2 * sattr->index) & 3) + 2);
++}
 +
- 		for (nr = 0; nr < F71882FG_MAX_INS; nr++)
- 			if (f71882fg_has_in[data->type][nr])
- 				data->in[nr] = f71882fg_read8(data,
-@@ -1473,7 +1495,10 @@ static ssize_t store_in_max(struct device *dev, struct device_attribute
- 	val = clamp_val(val, 0, 255);
- 
- 	mutex_lock(&data->update_lock);
--	f71882fg_write8(data, F71882FG_REG_IN1_HIGH, val);
-+	if (data->type = f81866a)
-+		f71882fg_write8(data, F81866_REG_IN1_HIGH, val);
-+	else
-+		f71882fg_write8(data, F71882FG_REG_IN1_HIGH, val);
- 	data->in1_max = val;
- 	mutex_unlock(&data->update_lock);
- 
-@@ -1504,13 +1529,20 @@ static ssize_t store_in_beep(struct device *dev, struct device_attribute
- 		return err;
- 
- 	mutex_lock(&data->update_lock);
--	data->in_beep = f71882fg_read8(data, F71882FG_REG_IN_BEEP);
-+	if (data->type = f81866a)
-+		data->in_beep = f71882fg_read8(data, F81866_REG_IN_BEEP);
-+	else
-+		data->in_beep = f71882fg_read8(data, F71882FG_REG_IN_BEEP);
++static ssize_t store_temp_type(struct device *dev,
++			       struct device_attribute *attr,
++			       const char *buf, size_t count)
++{
++	struct nct7802_data *data = dev_get_drvdata(dev);
++	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
++	unsigned int type;
++	int err;
 +
- 	if (val)
- 		data->in_beep |= 1 << nr;
- 	else
- 		data->in_beep &= ~(1 << nr);
++	err = kstrtouint(buf, 0, &type);
++	if (err < 0)
++		return err;
++	if (sattr->index = 2 && type != 4) /* RD3 */
++		return -EINVAL;
++	if (type < 3 || type > 4)
++		return -EINVAL;
++	err = regmap_update_bits(data->regmap, REG_MODE,
++			3 << 2 * sattr->index, (type - 2) << 2 * sattr->index);
++	return err ? : count;
++}
++
++
+ static int nct7802_read_temp(struct nct7802_data *data,
+ 			     u8 reg_temp, u8 reg_temp_low, int *temp)
+ {
+@@ -377,6 +414,8 @@ store_beep(struct device *dev, struct device_attribute *attr, const char *buf,
+ 	return err ? : count;
+ }
  
--	f71882fg_write8(data, F71882FG_REG_IN_BEEP, data->in_beep);
-+	if (data->type = f81866a)
-+		f71882fg_write8(data, F81866_REG_IN_BEEP, data->in_beep);
-+	else
-+		f71882fg_write8(data, F71882FG_REG_IN_BEEP, data->in_beep);
- 	mutex_unlock(&data->update_lock);
++static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO | S_IWUSR,
++			  show_temp_type, store_temp_type, 0);
+ static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0x01,
+ 			    REG_TEMP_LSB);
+ static SENSOR_DEVICE_ATTR_2(temp1_min, S_IRUGO | S_IWUSR, show_temp,
+@@ -386,6 +425,8 @@ static SENSOR_DEVICE_ATTR_2(temp1_max, S_IRUGO | S_IWUSR, show_temp,
+ static SENSOR_DEVICE_ATTR_2(temp1_crit, S_IRUGO | S_IWUSR, show_temp,
+ 			    store_temp, 0x3a, 0);
  
- 	return count;
++static SENSOR_DEVICE_ATTR(temp2_type, S_IRUGO | S_IWUSR,
++			  show_temp_type, store_temp_type, 1);
+ static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0x02,
+ 			    REG_TEMP_LSB);
+ static SENSOR_DEVICE_ATTR_2(temp2_min, S_IRUGO | S_IWUSR, show_temp,
+@@ -395,6 +436,8 @@ static SENSOR_DEVICE_ATTR_2(temp2_max, S_IRUGO | S_IWUSR, show_temp,
+ static SENSOR_DEVICE_ATTR_2(temp2_crit, S_IRUGO | S_IWUSR, show_temp,
+ 			    store_temp, 0x3b, 0);
+ 
++static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO | S_IWUSR,
++			  show_temp_type, store_temp_type, 2);
+ static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 0x03,
+ 			    REG_TEMP_LSB);
+ static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGO | S_IWUSR, show_temp,
+@@ -475,6 +518,7 @@ static SENSOR_DEVICE_ATTR_2(temp6_beep, S_IRUGO | S_IWUSR, show_beep,
+ 			    store_beep, 0x5c, 5);
+ 
+ static struct attribute *nct7802_temp_attrs[] = {
++	&sensor_dev_attr_temp1_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+@@ -485,7 +529,9 @@ static struct attribute *nct7802_temp_attrs[] = {
+ 	&sensor_dev_attr_temp1_fault.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+ 
+-	&sensor_dev_attr_temp2_input.dev_attr.attr,		/* 9 */
++	/* 10: */
++	&sensor_dev_attr_temp2_type.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_crit.dev_attr.attr,
+@@ -495,7 +541,9 @@ static struct attribute *nct7802_temp_attrs[] = {
+ 	&sensor_dev_attr_temp2_fault.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+ 
+-	&sensor_dev_attr_temp3_input.dev_attr.attr,		/* 18 */
++	/* 20: */
++	&sensor_dev_attr_temp3_type.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_crit.dev_attr.attr,
+@@ -505,7 +553,8 @@ static struct attribute *nct7802_temp_attrs[] = {
+ 	&sensor_dev_attr_temp3_fault.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+ 
+-	&sensor_dev_attr_temp4_input.dev_attr.attr,		/* 27 */
++	/* 30: */
++	&sensor_dev_attr_temp4_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_crit.dev_attr.attr,
+@@ -514,7 +563,8 @@ static struct attribute *nct7802_temp_attrs[] = {
+ 	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_beep.dev_attr.attr,
+ 
+-	&sensor_dev_attr_temp5_input.dev_attr.attr,		/* 35 */
++	/* 38: */
++	&sensor_dev_attr_temp5_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp5_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp5_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp5_crit.dev_attr.attr,
+@@ -523,7 +573,8 @@ static struct attribute *nct7802_temp_attrs[] = {
+ 	&sensor_dev_attr_temp5_crit_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp5_beep.dev_attr.attr,
+ 
+-	&sensor_dev_attr_temp6_input.dev_attr.attr,		/* 43 */
++	/* 46: */
++	&sensor_dev_attr_temp6_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp6_beep.dev_attr.attr,
+ 
+ 	NULL
+@@ -541,25 +592,31 @@ static umode_t nct7802_temp_is_visible(struct kobject *kobj,
+ 	if (err < 0)
+ 		return 0;
+ 
+-	if (index < 9 &&
++	/* temp1 */
++	if (index < 10 &&
+ 	    (reg & 03) != 0x01 && (reg & 0x03) != 0x02)		/* RD1 */
+ 		return 0;
+-	if (index >= 9 && index < 18 &&
++
++	/* temp2 */
++	if (index >= 10 && index < 20 &&
+ 	    (reg & 0x0c) != 0x04 && (reg & 0x0c) != 0x08)	/* RD2 */
+ 		return 0;
+-	if (index >= 18 && index < 27 && (reg & 0x30) != 0x20)	/* RD3 */
++	/* temp3 */
++	if (index >= 20 && index < 30 && (reg & 0x30) != 0x20)	/* RD3 */
+ 		return 0;
+-	if (index >= 27 && index < 35)				/* local */
++
++	/* temp4, local */
++	if (index >= 30 && index < 38)
+ 		return attr->mode;
+ 
+ 	err = regmap_read(data->regmap, REG_PECI_ENABLE, &reg);
+ 	if (err < 0)
+ 		return 0;
+ 
+-	if (index >= 35 && index < 43 && !(reg & 0x01))		/* PECI 0 */
++	if (index >= 38 && index < 46 && !(reg & 0x01))		/* PECI 0 */
+ 		return 0;
+ 
+-	if (index >= 0x43 && (!(reg & 0x02)))			/* PECI 1 */
++	if (index >= 0x46 && (!(reg & 0x02)))			/* PECI 1 */
+ 		return 0;
+ 
+ 	return attr->mode;
 -- 
 1.9.1
 
