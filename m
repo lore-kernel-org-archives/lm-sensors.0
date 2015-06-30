@@ -1,35 +1,38 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 25 Jun 2015 11:46:35 +0000
-Subject: [lm-sensors]  lm-sensors 3.4.0 has been released!
-Message-Id: <20150625134635.10080a0a@endymion.delvare>
+From: Peter Hung <hpeter@gmail.com>
+Date: Tue, 30 Jun 2015 01:31:07 +0000
+Subject: [lm-sensors] [PATCH V2 0/3] hwmon:f71882fg add new Fintek SuperIO support
+Message-Id: <1435627870-12249-1-git-send-email-hpeter+linux_kernel@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
 
-Hi all,
+The first patch will add Fintek F81866/F71868 SuperIO
+with H/W monitor function to f71882fg.c
 
-I just released lm-sensors 3.4.0.
+But some F81866 functional address is differ from F71882fg.
+The following 2 patches will fix this problem.
 
-Most important changes are:
-* library: The arbitrary limit on per-type sensor count is gone
-* library: Support for temperature min and critical min hysteresis
-* sensors: Support for temperature min and critical min hysteresis
-* fancontrol: Deal with moving hwmon attributes
-* fancontrol: Fix shell error when FCFANS is not set
-* fancontrol: Reduce memory consumption
-* sensors-detect: Detection of new devices
-* sensors-detect: Avoid probing graphics cards by default
-* sensors-detect: Skip some addresses on graphics cards
+Changelog:
 
-See CHANGES for the details.
+V2
+	Fix comments by Guenter Roeck <linux@roeck-us.net>
+	all newer add IC should keep chip IDs in numeric order.
 
-Phil, please copy the new release to your mirror as your time permits.
+
+Peter Hung (3):
+  hwmon:f71882fg add f81866/f71868 SuperIO support
+  hwmon:f71882fg fix f81866a temp/beep setting
+  hwmon:f71882fg fix f81866a voltage protection
+
+ drivers/hwmon/f71882fg.c | 162 +++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 130 insertions(+), 32 deletions(-)
 
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
