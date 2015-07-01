@@ -1,142 +1,144 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 27 Jul 2015 19:45:03 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (nct7904) Rename pwm attributes to match hwmon ABI
-Message-Id: <1438026303-15873-1-git-send-email-linux@roeck-us.net>
+Date: Wed, 01 Jul 2015 03:28:01 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: (nct7802) add temperature sensor type attribute
+Message-Id: <55935E41.9020107@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1435619148-4929-1-git-send-email-const@MakeLinux.com>
+In-Reply-To: <1435619148-4929-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Constantine Shulyupin <const@MakeLinux.com>, jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-pwm attributes have well defined names, which should be used.
+Hi Constantine,
 
-Cc: Vadim V. Vlasov <vvlasov@dev.rtsoft.ru>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Update documentation as well.
+On 06/29/2015 04:05 PM, Constantine Shulyupin wrote:
+> From: const <const@MakeLinux.com>
+>
+> Sensor type:
+> 3 diode (current mode), MD=1
+> 4 thermistor, MD=2
+>
+> Reference:
+> Nuvoton Hardware Monitoring IC NCT7802Y
+> 7.2.32 Mode Selection Register
+> Location : Index 22h
+>
+> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+> ---
 
- Documentation/hwmon/nct7904 |  4 ++--
- drivers/hwmon/nct7904.c     | 57 +++++++++++++++++++++++----------------------
- 2 files changed, 31 insertions(+), 30 deletions(-)
+>   static struct attribute *nct7802_temp_attrs[] = {
+> +	&sensor_dev_attr_temp1_type.dev_attr.attr,
+>   	&sensor_dev_attr_temp1_input.dev_attr.attr,
+>   	&sensor_dev_attr_temp1_min.dev_attr.attr,
+>   	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> @@ -485,7 +529,9 @@ static struct attribute *nct7802_temp_attrs[] = {
+>   	&sensor_dev_attr_temp1_fault.dev_attr.attr,
+>   	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+>
+> -	&sensor_dev_attr_temp2_input.dev_attr.attr,		/* 9 */
+> +	/* 10: */
 
-diff --git a/Documentation/hwmon/nct7904 b/Documentation/hwmon/nct7904
-index 014f112e2a14..57fffe33ebfc 100644
---- a/Documentation/hwmon/nct7904
-+++ b/Documentation/hwmon/nct7904
-@@ -35,11 +35,11 @@ temp1_input		Local temperature (1/1000 degree,
- temp[2-9]_input		CPU temperatures (1/1000 degree,
- 			0.125 degree resolution)
- 
--fan[1-4]_mode		R/W, 0/1 for manual or SmartFan mode
-+pwm[1-4]_enable		R/W, 1/2 for manual or SmartFan mode
- 			Setting SmartFan mode is supported only if it has been
- 			previously configured by BIOS (or configuration EEPROM)
- 
--fan[1-4]_pwm		R/O in SmartFan mode, R/W in manual control mode
-+pwm[1-4]		R/O in SmartFan mode, R/W in manual control mode
- 
- The driver checks sensor control registers and does not export the sensors
- that are not enabled. Anyway, a sensor that is enabled may actually be not
-diff --git a/drivers/hwmon/nct7904.c b/drivers/hwmon/nct7904.c
-index b77b82f24480..6153df735e82 100644
---- a/drivers/hwmon/nct7904.c
-+++ b/drivers/hwmon/nct7904.c
-@@ -412,8 +412,9 @@ static ssize_t show_pwm(struct device *dev,
- 	return sprintf(buf, "%d\n", val);
- }
- 
--static ssize_t store_mode(struct device *dev, struct device_attribute *devattr,
--			  const char *buf, size_t count)
-+static ssize_t store_enable(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf, size_t count)
- {
- 	int index = to_sensor_dev_attr(devattr)->index;
- 	struct nct7904_data *data = dev_get_drvdata(dev);
-@@ -422,18 +423,18 @@ static ssize_t store_mode(struct device *dev, struct device_attribute *devattr,
- 
- 	if (kstrtoul(buf, 10, &val) < 0)
- 		return -EINVAL;
--	if (val > 1 || (val && !data->fan_mode[index]))
-+	if (val < 1 || val > 2 || (val = 2 && !data->fan_mode[index]))
- 		return -EINVAL;
- 
- 	ret = nct7904_write_reg(data, BANK_3, FANCTL1_FMR_REG + index,
--				val ? data->fan_mode[index] : 0);
-+				val = 2 ? data->fan_mode[index] : 0);
- 
- 	return ret ? ret : count;
- }
- 
--/* Return 0 for manual mode or 1 for SmartFan mode */
--static ssize_t show_mode(struct device *dev,
--			 struct device_attribute *devattr, char *buf)
-+/* Return 1 for manual mode or 2 for SmartFan mode */
-+static ssize_t show_enable(struct device *dev,
-+			   struct device_attribute *devattr, char *buf)
- {
- 	int index = to_sensor_dev_attr(devattr)->index;
- 	struct nct7904_data *data = dev_get_drvdata(dev);
-@@ -443,36 +444,36 @@ static ssize_t show_mode(struct device *dev,
- 	if (val < 0)
- 		return val;
- 
--	return sprintf(buf, "%d\n", val ? 1 : 0);
-+	return sprintf(buf, "%d\n", val ? 2 : 1);
- }
- 
- /* 2 attributes per channel: pwm and mode */
--static SENSOR_DEVICE_ATTR(fan1_pwm, S_IRUGO | S_IWUSR,
-+static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR,
- 			show_pwm, store_pwm, 0);
--static SENSOR_DEVICE_ATTR(fan1_mode, S_IRUGO | S_IWUSR,
--			show_mode, store_mode, 0);
--static SENSOR_DEVICE_ATTR(fan2_pwm, S_IRUGO | S_IWUSR,
-+static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
-+			show_enable, store_enable, 0);
-+static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR,
- 			show_pwm, store_pwm, 1);
--static SENSOR_DEVICE_ATTR(fan2_mode, S_IRUGO | S_IWUSR,
--			show_mode, store_mode, 1);
--static SENSOR_DEVICE_ATTR(fan3_pwm, S_IRUGO | S_IWUSR,
-+static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
-+			show_enable, store_enable, 1);
-+static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR,
- 			show_pwm, store_pwm, 2);
--static SENSOR_DEVICE_ATTR(fan3_mode, S_IRUGO | S_IWUSR,
--			show_mode, store_mode, 2);
--static SENSOR_DEVICE_ATTR(fan4_pwm, S_IRUGO | S_IWUSR,
-+static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR,
-+			show_enable, store_enable, 2);
-+static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR,
- 			show_pwm, store_pwm, 3);
--static SENSOR_DEVICE_ATTR(fan4_mode, S_IRUGO | S_IWUSR,
--			show_mode, store_mode, 3);
-+static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
-+			show_enable, store_enable, 3);
- 
- static struct attribute *nct7904_fanctl_attrs[] = {
--	&sensor_dev_attr_fan1_pwm.dev_attr.attr,
--	&sensor_dev_attr_fan1_mode.dev_attr.attr,
--	&sensor_dev_attr_fan2_pwm.dev_attr.attr,
--	&sensor_dev_attr_fan2_mode.dev_attr.attr,
--	&sensor_dev_attr_fan3_pwm.dev_attr.attr,
--	&sensor_dev_attr_fan3_mode.dev_attr.attr,
--	&sensor_dev_attr_fan4_pwm.dev_attr.attr,
--	&sensor_dev_attr_fan4_mode.dev_attr.attr,
-+	&sensor_dev_attr_pwm1.dev_attr.attr,
-+	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm2.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm3.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm4.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
- 	NULL
- };
- 
--- 
-2.1.0
+My problem with this kind of change isn't that much that I wrote
+the code and I tend to use the other mechanism. My problem is that
+if I accept it, someone else who adds another attribute may change
+it back tomorrow, or find yet another means to express the same.
+And we'd end up with a lot of churn for pretty much personal preference
+reasons.
+
+So, please refrain from making changes like this.
+
+> +	&sensor_dev_attr_temp2_type.dev_attr.attr,
+> +	&sensor_dev_attr_temp2_input.dev_attr.attr,
+>   	&sensor_dev_attr_temp2_min.dev_attr.attr,
+>   	&sensor_dev_attr_temp2_max.dev_attr.attr,
+>   	&sensor_dev_attr_temp2_crit.dev_attr.attr,
+> @@ -495,7 +541,9 @@ static struct attribute *nct7802_temp_attrs[] = {
+>   	&sensor_dev_attr_temp2_fault.dev_attr.attr,
+>   	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+>
+> -	&sensor_dev_attr_temp3_input.dev_attr.attr,		/* 18 */
+> +	/* 20: */
+> +	&sensor_dev_attr_temp3_type.dev_attr.attr,
+> +	&sensor_dev_attr_temp3_input.dev_attr.attr,
+>   	&sensor_dev_attr_temp3_min.dev_attr.attr,
+>   	&sensor_dev_attr_temp3_max.dev_attr.attr,
+>   	&sensor_dev_attr_temp3_crit.dev_attr.attr,
+> @@ -505,7 +553,8 @@ static struct attribute *nct7802_temp_attrs[] = {
+>   	&sensor_dev_attr_temp3_fault.dev_attr.attr,
+>   	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+>
+> -	&sensor_dev_attr_temp4_input.dev_attr.attr,		/* 27 */
+> +	/* 30: */
+> +	&sensor_dev_attr_temp4_input.dev_attr.attr,
+>   	&sensor_dev_attr_temp4_min.dev_attr.attr,
+>   	&sensor_dev_attr_temp4_max.dev_attr.attr,
+>   	&sensor_dev_attr_temp4_crit.dev_attr.attr,
+> @@ -514,7 +563,8 @@ static struct attribute *nct7802_temp_attrs[] = {
+>   	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
+>   	&sensor_dev_attr_temp4_beep.dev_attr.attr,
+>
+> -	&sensor_dev_attr_temp5_input.dev_attr.attr,		/* 35 */
+> +	/* 38: */
+> +	&sensor_dev_attr_temp5_input.dev_attr.attr,
+>   	&sensor_dev_attr_temp5_min.dev_attr.attr,
+>   	&sensor_dev_attr_temp5_max.dev_attr.attr,
+>   	&sensor_dev_attr_temp5_crit.dev_attr.attr,
+> @@ -523,7 +573,8 @@ static struct attribute *nct7802_temp_attrs[] = {
+>   	&sensor_dev_attr_temp5_crit_alarm.dev_attr.attr,
+>   	&sensor_dev_attr_temp5_beep.dev_attr.attr,
+>
+> -	&sensor_dev_attr_temp6_input.dev_attr.attr,		/* 43 */
+> +	/* 46: */
+> +	&sensor_dev_attr_temp6_input.dev_attr.attr,
+>   	&sensor_dev_attr_temp6_beep.dev_attr.attr,
+>
+>   	NULL
+> @@ -541,25 +592,31 @@ static umode_t nct7802_temp_is_visible(struct kobject *kobj,
+>   	if (err < 0)
+>   		return 0;
+>
+> -	if (index < 9 &&
+> +	/* temp1 */
+
+This comment is redundant with RD1. Same for the other temp comments below.
+
+Thanks,
+Guenter
+
+> +	if (index < 10 &&
+>   	    (reg & 03) != 0x01 && (reg & 0x03) != 0x02)		/* RD1 */
+>   		return 0;
+> -	if (index >= 9 && index < 18 &&
+> +
+> +	/* temp2 */
+> +	if (index >= 10 && index < 20 &&
+>   	    (reg & 0x0c) != 0x04 && (reg & 0x0c) != 0x08)	/* RD2 */
+>   		return 0;
+> -	if (index >= 18 && index < 27 && (reg & 0x30) != 0x20)	/* RD3 */
+> +	/* temp3 */
+> +	if (index >= 20 && index < 30 && (reg & 0x30) != 0x20)	/* RD3 */
+>   		return 0;
+> -	if (index >= 27 && index < 35)				/* local */
+> +
+> +	/* temp4, local */
+> +	if (index >= 30 && index < 38)
+>   		return attr->mode;
+>
+>   	err = regmap_read(data->regmap, REG_PECI_ENABLE, &reg);
+>   	if (err < 0)
+>   		return 0;
+>
+> -	if (index >= 35 && index < 43 && !(reg & 0x01))		/* PECI 0 */
+> +	if (index >= 38 && index < 46 && !(reg & 0x01))		/* PECI 0 */
+>   		return 0;
+>
+> -	if (index >= 0x43 && (!(reg & 0x02)))			/* PECI 1 */
+> +	if (index >= 0x46 && (!(reg & 0x02)))			/* PECI 1 */
+>   		return 0;
+>
+>   	return attr->mode;
+>
 
 
 _______________________________________________
