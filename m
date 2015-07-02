@@ -1,112 +1,114 @@
-From: Constantine Shulyupin <const@MakeLinux.com>
-Date: Fri, 03 Jul 2015 21:09:33 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (nct7802) Add pwm control
-Message-Id: <1435957773-18908-1-git-send-email-const@MakeLinux.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 02 Jul 2015 08:43:52 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Fix systemd paths
+Message-Id: <20150702104352.5ce3394a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
-Cc: Constantine Shulyupin <const@MakeLinux.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Notes:
-
-Some lines intentionally more than 80 characters because wrapping
-this lines decreases readability.
-The patch was checked with scripts/checkpatch.pl --max-line-length=88
-
-Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+Most distributions have moved systemd from / to /usr, so sensors-detect
+should check for the latter too (and first.)
 ---
- drivers/hwmon/nct7802.c | 47 +++++++++++++++++++++++++++++++++++++++++++++=
-++
- 1 file changed, 47 insertions(+)
+ prog/detect/sensors-detect |   53 +++++++++++++++++++++++++++------------------
+ 1 file changed, 32 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
-index afa242d..104d8b9 100644
---- a/drivers/hwmon/nct7802.c
-+++ b/drivers/hwmon/nct7802.c
-@@ -102,6 +102,36 @@ static ssize_t store_temp_type(struct device *dev,
- 	return err ? : count;
+--- lm-sensors.orig/prog/detect/sensors-detect	2015-06-09 15:12:16.556941510 +0200
++++ lm-sensors/prog/detect/sensors-detect	2015-07-02 10:28:32.138475805 +0200
+@@ -2728,7 +2728,7 @@ sub isa_read_i5d6
+ # AUTODETECTION #
+ #################
+ 
+-use vars qw($dev_i2c $sysfs_root);
++use vars qw($dev_i2c $sysfs_root $systemd_systemctl $systemd_system_dir);
+ 
+ sub initialize_conf
+ {
+@@ -2789,6 +2789,19 @@ sub initialize_conf
+ 			exit -1;
+ 		}
+ 	}
++
++	# Detect systemd presence and paths
++	if (-x "/usr/bin/systemctl") {
++		$systemd_systemctl = "/usr/bin/systemctl";
++	} elsif (-x "/bin/systemctl") {
++		$systemd_systemctl = "/bin/systemctl";
++	}
++
++	if (-d "/usr/lib/systemd/system") {
++		$systemd_system_dir = "/usr/lib/systemd/system";
++	} elsif (-d "/lib/systemd/system") {
++		$systemd_system_dir = "/lib/systemd/system";
++	}
  }
-=20
-+static ssize_t show_pwm(struct device *dev, struct device_attribute *devat=
-tr, char *buf)
-+{
-+	int ret =3D -1;
-+	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
-+	struct nct7802_data *data =3D dev_get_drvdata(dev);
-+	unsigned int val =3D 0;
+ 
+ # [0] -> VERSION
+@@ -7090,19 +7103,16 @@ EOT
+ 		print SYSCONFIG "HWMON_MODULES=\"", join(" ", @{$hwmon_modules}), "\"\n";
+ 		close(SYSCONFIG);
+ 
+-		if (-x "/bin/systemctl" && -d "/lib/systemd/system" &&
+-		    ! -f "/lib/systemd/system/lm_sensors.service") {
+-			print "Copy prog/init/lm_sensors.service to /lib/systemd/system\n".
+-			      "and run 'systemctl enable lm_sensors.service'\n".
+-			      "for initialization at boot time.\n";
+-			return;
+-		}
+-
+-		if (-x "/bin/systemctl" &&
+-		    -f "/lib/systemd/system/lm_sensors.service") {
+-			system("/bin/systemctl", "enable", "lm_sensors.service");
+-			system("/bin/systemctl", "start", "lm_sensors.service");
+-			# All done, don't check for /etc/init.d/lm_sensors
++		if ($systemd_systemctl && $systemd_system_dir) {
++			if (-f "$systemd_system_dir/lm_sensors.service") {
++				system($systemd_systemctl, "enable", "lm_sensors.service");
++				system($systemd_systemctl, "start", "lm_sensors.service");
++				# All done, don't check for /etc/init.d/lm_sensors
++			} else {
++				print "Copy prog/init/lm_sensors.service to $systemd_system_dir\n".
++				      "and run 'systemctl enable lm_sensors.service'\n".
++				      "for initialization at boot time.\n";
++			}
+ 			return;
+ 		}
+ 
+@@ -7170,13 +7180,6 @@ sub main
+ 		exit -1;
+ 	}
+ 
+-	if (-x "/bin/systemctl" && -f "/lib/systemd/system/lm_sensors.service") {
+-		system("/bin/systemctl", "stop", "lm_sensors.service");
+-	} elsif (-x "/sbin/service" && -f "/etc/init.d/lm_sensors" &&
+-		 -f "/var/lock/subsys/lm_sensors") {
+-		system("/sbin/service", "lm_sensors", "stop");
+-	}
+-
+ 	initialize_kernel_version();
+ 	initialize_conf();
+ 	initialize_pci();
+@@ -7187,6 +7190,14 @@ sub main
+ 	initialize_modules_supported();
+ 	initialize_cpu_list();
+ 
++	if ($systemd_systemctl && $systemd_system_dir &&
++	    -f "$systemd_system_dir/lm_sensors.service") {
++		system("$systemd_systemctl", "stop", "lm_sensors.service");
++	} elsif (-x "/sbin/service" && -f "/etc/init.d/lm_sensors" &&
++		 -f "/var/lock/subsys/lm_sensors") {
++		system("/sbin/service", "lm_sensors", "stop");
++	}
 +
-+	ret =3D regmap_read(data->regmap, attr->index, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret =3D sprintf(buf, "%d\n", val);
-+	return ret;
-+}
-+
-+static ssize_t store_u8(struct device *dev, struct device_attribute *devat=
-tr,
-+			const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
-+	struct nct7802_data *data =3D dev_get_drvdata(dev);
-+	int err;
-+	u8 val;
-+
-+	err =3D kstrtou8(buf, 0, &val);
-+	if (err < 0)
-+		return err;
-+
-+	err =3D regmap_write(data->regmap, attr->index, val);
-+	return err ? : count;
-+}
-=20
- static int nct7802_read_temp(struct nct7802_data *data,
- 			     u8 reg_temp, u8 reg_temp_low, int *temp)
-@@ -735,6 +765,11 @@ static SENSOR_DEVICE_ATTR_2(fan3_alarm, S_IRUGO, show_=
-alarm, NULL, 0x1a, 2);
- static SENSOR_DEVICE_ATTR_2(fan3_beep, S_IRUGO | S_IWUSR, show_beep, store=
-_beep,
- 			    0x5b, 2);
-=20
-+/* 7.2.91... Fan Control Output Value */
-+static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, store_u8, 0x6=
-0);
-+static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, store_u8, 0x6=
-1);
-+static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm, store_u8, 0x6=
-2);
-+
- static struct attribute *nct7802_fan_attrs[] =3D {
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_fan1_min.dev_attr.attr,
-@@ -773,10 +808,22 @@ static struct attribute_group nct7802_fan_group =3D {
- 	.is_visible =3D nct7802_fan_is_visible,
- };
-=20
-+static struct attribute *nct7802_pwm_attrs[] =3D {
-+	&sensor_dev_attr_pwm1.dev_attr.attr,
-+	&sensor_dev_attr_pwm2.dev_attr.attr,
-+	&sensor_dev_attr_pwm3.dev_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute_group nct7802_pwm_group =3D {
-+	.attrs =3D nct7802_pwm_attrs,
-+};
-+
- static const struct attribute_group *nct7802_groups[] =3D {
- 	&nct7802_temp_group,
- 	&nct7802_in_group,
- 	&nct7802_fan_group,
-+	&nct7802_pwm_group,
- 	NULL
- };
-=20
---=20
-1.9.1
+ 	print "# sensors-detect revision $revision\n";
+ 	initialize_dmi_data();
+ 	print_dmi_summary();
 
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
