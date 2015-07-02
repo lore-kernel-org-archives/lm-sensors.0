@@ -1,32 +1,28 @@
-From: =?UTF-8?B?6ams6LaF?= <mrs@mail.ustc.edu.cn>
-Date: Thu, 02 Jul 2015 00:58:01 +0000
-Subject: [lm-sensors] about fan speed problem
-Message-Id: <6c0eab42.dbdf.14e4c45363a.Coremail.mrs@mail.ustc.edu.cn>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 02 Jul 2015 06:09:07 +0000
+Subject: Re: [lm-sensors] about fan speed problem
+Message-Id: <20150702080907.2870b301@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <6c0eab42.dbdf.14e4c45363a.Coremail.mrs@mail.ustc.edu.cn>
+In-Reply-To: <6c0eab42.dbdf.14e4c45363a.Coremail.mrs@mail.ustc.edu.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-Hi, May need your help
-
-
-I just want to check cpu fan speed, but I can not get this data.
-
-
-After I install lm_sensors, I could get cpu temperature, but can not get cpu fan speed, how could I get this data?
-
-
-My machine OS is CentOS 6.6, I install lm_sensors-3.1.1 for x86-64 system.
-
-
-Thanks and Regards,
--Chao Ma
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVGh1LCAyIEp1bCAyMDE1IDA4OjU4OjAxICswODAwIChHTVQrMDg6MDApLCDpqazotoUgd3Jv
+dGU6Cj4gSSBqdXN0IHdhbnQgdG8gY2hlY2sgY3B1IGZhbiBzcGVlZCwgYnV0IEkgY2FuIG5vdCBn
+ZXQgdGhpcyBkYXRhLgo+IAo+IEFmdGVyIEkgaW5zdGFsbCBsbV9zZW5zb3JzLCBJIGNvdWxkIGdl
+dCBjcHUgdGVtcGVyYXR1cmUsIGJ1dCBjYW4gbm90IGdldCBjcHUgZmFuIHNwZWVkLCBob3cgY291
+bGQgSSBnZXQgdGhpcyBkYXRhPwoKRGlkIHlvdSBydW4gc2Vuc29ycy1kZXRlY3Q/IElmIHlvdSBk
+aWQsIHBsZWFzZSBwcm92aWRlIHRoZSBjb21wbGV0ZQpvdXRwdXQuCgo+IE15IG1hY2hpbmUgT1Mg
+aXMgQ2VudE9TIDYuNiwgSSBpbnN0YWxsIGxtX3NlbnNvcnMtMy4xLjEgZm9yIHg4Ni02NCBzeXN0
+ZW0uCgpUaGlzIGlzIG9sZC4gSWYgeW91ciBoYXJkd2FyZSBpcyByZWNlbnQsIHlvdSBtYXkgd2Fu
+dCB0byB1c2UKaHR0cDovL2RsLmxtLXNlbnNvcnMub3JnL2xtLXNlbnNvcnMvZmlsZXMvc2Vuc29y
+cy1kZXRlY3QKaW5zdGVhZCBvZiB0aGUgc2NyaXB0IGluc3RhbGxlZCBvbiB5b3VyIHN5c3RlbS4K
+CldoYXQga2luZCBvZiBoYXJkd2FyZSBpcyBpdCwgQlRXPyBJbiBnZW5lcmFsIHJ1bm5pbmcgc2Vu
+c29ycy1kZXRlY3Qgb24KbGFwdG9wcyBpcyB1c2VsZXNzIGFzIHRoZXkgZG8gbm90IGhhdmUgbmF0
+aXZlIGhhcmR3YXJlIG1vbml0b3JpbmcgY2hpcHMuCgotLSAKSmVhbiBEZWx2YXJlClNVU0UgTDMg
+U3VwcG9ydAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
