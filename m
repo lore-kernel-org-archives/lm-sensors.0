@@ -1,12 +1,14 @@
 From: Constantine Shulyupin <const@MakeLinux.com>
-Date: Fri, 03 Jul 2015 21:11:51 +0000
+Date: Fri, 03 Jul 2015 21:13:32 +0000
 Subject: [lm-sensors] [PATCH v2] hwmon: (nct7802) Add pwm control
-Message-Id: <1435957911-19044-1-git-send-email-const@MakeLinux.com>
+Message-Id: <1435958012-19179-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1435957911-19044-1-git-send-email-const@MakeLinux.com>
+In-Reply-To: <1435957911-19044-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
+To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
 Cc: Constantine Shulyupin <const@MakeLinux.com>
 
 Notes:
