@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 03 Jul 2015 02:56:00 +0000
+From: =?UTF-8?B?6ams6LaF?= <mrs@mail.ustc.edu.cn>
+Date: Fri, 03 Jul 2015 06:58:01 +0000
 Subject: Re: [lm-sensors] about fan speed problem
-Message-Id: <5595F9C0.3010501@roeck-us.net>
+Message-Id: <5936cad.127b4.14e52b52905.Coremail.mrs@mail.ustc.edu.cn>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <6c0eab42.dbdf.14e4c45363a.Coremail.mrs@mail.ustc.edu.cn>
 In-Reply-To: <6c0eab42.dbdf.14e4c45363a.Coremail.mrs@mail.ustc.edu.cn>
@@ -10,35 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMDcvMDIvMjAxNSAwNzowNSBQTSwg6ams6LaFIHdyb3RlOgo+Cj4KPiBUaGFuayB5b3UgSmVh
-biwKPgpQbGVhc2UgZG9uJ3QgdG9wLXBvc3QuCgo+IE5vdCBsYXB0b3AsIGhlcmUgaXMgbXkgaGFy
-ZHdhcmUgaW5mbyBhbmQgc2Vuc29ycy1kZXRlY3QgcmVzdWx0LCBJIGhhdmUgY2hhbmdlZCB0aGUg
-b2xkIHNlbnNvcnMtZGV0ZWN0IHRvIHRoZSBsYXRlc3Qgc2Vuc29ycy1kZXRlY3QoU2VsZWN0IHll
-cyBldmVyeSBzdGVwKSwgYnV0IHN0aWxsIG9ubHkgZ2V0IHRoZSBjcHUgdGVtcGVyYXR1cmUuCj4K
-PiBJcyB0aGVyZSBhdmFpbGFibGUgc2Vuc29ycyBmb3IgbXkgY3B1IGZhbj8KPgoKRGlkIHlvdSB0
-cnkgdGhlIGZvbGxvd2luZyA/CgpzdWRvIG1vZHByb2JlIG5jdDY3NzUKCkd1ZW50ZXIKCj4gVGhh
-bmtzIGFuZCBSZWdhcmRzLAo+IC1DaGFvIE1hCj4KPgo+PiAtLS0tLeWOn+Wni+mCruS7ti0tLS0t
-Cj4+IOWPkeS7tuS6ujogIkplYW4gRGVsdmFyZSIgPGpkZWx2YXJlQHN1c2UuZGU+Cj4+IOWPkemA
-geaXtumXtDogMjAxNS0wNy0wMiAxNDowOTowNyAo5pif5pyf5ZubKQo+PiDmlLbku7bkuro6ICLp
-qazotoUiIDxtcnNAbWFpbC51c3RjLmVkdS5jbj4KPj4g5oqE6YCBOiBsbS1zZW5zb3JzQGxtLXNl
-bnNvcnMub3JnCj4+IOS4u+mimDogUmU6IFtsbS1zZW5zb3JzXSBhYm91dCBmYW4gc3BlZWQgcHJv
-YmxlbQo+Pgo+PiBPbiBUaHUsIDIgSnVsIDIwMTUgMDg6NTg6MDEgKzA4MDAgKEdNVCswODowMCks
-IOmprOi2hSB3cm90ZToKPj4+IEkganVzdCB3YW50IHRvIGNoZWNrIGNwdSBmYW4gc3BlZWQsIGJ1
-dCBJIGNhbiBub3QgZ2V0IHRoaXMgZGF0YS4KPj4+Cj4+PiBBZnRlciBJIGluc3RhbGwgbG1fc2Vu
-c29ycywgSSBjb3VsZCBnZXQgY3B1IHRlbXBlcmF0dXJlLCBidXQgY2FuIG5vdCBnZXQgY3B1IGZh
-biBzcGVlZCwgaG93IGNvdWxkIEkgZ2V0IHRoaXMgZGF0YT8KPj4KPj4gRGlkIHlvdSBydW4gc2Vu
-c29ycy1kZXRlY3Q/IElmIHlvdSBkaWQsIHBsZWFzZSBwcm92aWRlIHRoZSBjb21wbGV0ZQo+PiBv
-dXRwdXQuCj4+Cj4+PiBNeSBtYWNoaW5lIE9TIGlzIENlbnRPUyA2LjYsIEkgaW5zdGFsbCBsbV9z
-ZW5zb3JzLTMuMS4xIGZvciB4ODYtNjQgc3lzdGVtLgo+Pgo+PiBUaGlzIGlzIG9sZC4gSWYgeW91
-ciBoYXJkd2FyZSBpcyByZWNlbnQsIHlvdSBtYXkgd2FudCB0byB1c2UKPj4gaHR0cDovL2RsLmxt
-LXNlbnNvcnMub3JnL2xtLXNlbnNvcnMvZmlsZXMvc2Vuc29ycy1kZXRlY3QKPj4gaW5zdGVhZCBv
-ZiB0aGUgc2NyaXB0IGluc3RhbGxlZCBvbiB5b3VyIHN5c3RlbS4KPj4KPj4gV2hhdCBraW5kIG9m
-IGhhcmR3YXJlIGlzIGl0LCBCVFc/IEluIGdlbmVyYWwgcnVubmluZyBzZW5zb3JzLWRldGVjdCBv
-bgo+PiBsYXB0b3BzIGlzIHVzZWxlc3MgYXMgdGhleSBkbyBub3QgaGF2ZSBuYXRpdmUgaGFyZHdh
-cmUgbW9uaXRvcmluZyBjaGlwcy4KPj4KPj4gLS0KPj4gSmVhbiBEZWx2YXJlCj4+IFNVU0UgTDMg
-U3VwcG9ydAo+Pgo+Pgo+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwo+PiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+PiBsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCj4+IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xt
-LXNlbnNvcnMKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+
+ 
+ On 07/03/2015 10:56 AM, Guenter Roeck wrote:
+> >
+> >
+> > Thank you Jean,
+> >
+> Please don't top-post.
+> 
+> > Not laptop, here is my hardware info and sensors-detect result, I have changed the old sensors-detect to the latest sensors-detect(Select yes every step), but still only get the cpu temperature.
+> >
+> > Is there available sensors for my cpu fan?
+> >
+> 
+> Did you try the following ?
+> 
+> sudo modprobe nct6775
+
+I did not run this command before. After install kernels-devel rpm, run this command successfully, and get all the data I want.
+
+Thank you very much and Best wishes for you.
+
+Chao Ma
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
