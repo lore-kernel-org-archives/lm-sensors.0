@@ -1,149 +1,111 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Wed, 22 Jul 2015 14:02:39 +0000
-Subject: [lm-sensors] [PATCH 5/9] firmware: arm_scpi: Extend to support sensors
-Message-Id: <1437573763-6525-6-git-send-email-punit.agrawal@arm.com>
+From: Constantine Shulyupin <const@MakeLinux.com>
+Date: Fri, 03 Jul 2015 21:09:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct7802) Add pwm control
+Message-Id: <1435957773-18908-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
-In-Reply-To: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-pm@vger.kernel.org
-Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Constantine Shulyupin <const@MakeLinux.com>
 
-ARM System Control Processor (SCP) provides an API to query and use
-the sensors available in the system. Extend the SCPI driver to support
- sensor messages.
+Notes:
 
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+Some lines intentionally more than 80 characters because wrapping
+this lines decreases readability.
+The patch was checked with scripts/checkpatch.pl --max-line-length=88
+
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
 ---
- drivers/firmware/arm_scpi.c   | 60 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/scpi_protocol.h | 17 ++++++++++++
- 2 files changed, 77 insertions(+)
+ drivers/hwmon/nct7802.c | 47 +++++++++++++++++++++++++++++++++++++++++++++=
+++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/firmware/arm_scpi.c b/drivers/firmware/arm_scpi.c
-index a70b7ba..478c5c5 100644
---- a/drivers/firmware/arm_scpi.c
-+++ b/drivers/firmware/arm_scpi.c
-@@ -219,6 +219,21 @@ struct dvfs_set {
- 	u8 index;
- } __packed;
- 
-+struct sensor_capabilities {
-+	__le16 sensors;
-+} __packed;
-+
-+struct _scpi_sensor_info {
-+	__le16 sensor_id;
-+	u8 class;
-+	u8 trigger_type;
-+	char name[20];
-+};
-+
-+struct sensor_value {
-+	__le32 val;
-+} __packed;
-+
- static struct scpi_drvinfo *scpi_info;
- 
- static int scpi_linux_errmap[SCPI_ERR_MAX] = {
-@@ -481,6 +496,48 @@ static struct scpi_dvfs_info *scpi_dvfs_get_info(u8 domain)
- 	return info;
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index afa242d..104d8b9 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -102,6 +102,36 @@ static ssize_t store_temp_type(struct device *dev,
+ 	return err ? : count;
  }
- 
-+static int scpi_sensor_get_capability(u16 *sensors)
+=20
++static ssize_t show_pwm(struct device *dev, struct device_attribute *devat=
+tr, char *buf)
 +{
-+	struct sensor_capabilities cap_buf;
-+	int ret;
++	int ret =3D -1;
++	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
++	struct nct7802_data *data =3D dev_get_drvdata(dev);
++	unsigned int val =3D 0;
 +
-+	ret = scpi_send_message(SCPI_CMD_SENSOR_CAPABILITIES, NULL, 0, &cap_buf,
-+				sizeof(cap_buf));
-+	if (!ret)
-+		*sensors = le16_to_cpu(cap_buf.sensors);
++	ret =3D regmap_read(data->regmap, attr->index, &val);
++	if (ret < 0)
++		return ret;
 +
++	ret =3D sprintf(buf, "%d\n", val);
 +	return ret;
 +}
 +
-+static int scpi_sensor_get_info(u16 sensor_id, struct scpi_sensor_info *info)
++static ssize_t store_u8(struct device *dev, struct device_attribute *devat=
+tr,
++			const char *buf, size_t count)
 +{
-+	__le16 id = cpu_to_le16(sensor_id);
-+	struct _scpi_sensor_info _info;
-+	int ret;
++	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
++	struct nct7802_data *data =3D dev_get_drvdata(dev);
++	int err;
++	u8 val;
 +
-+	ret = scpi_send_message(SCPI_CMD_SENSOR_INFO, &id,
-+				 sizeof(id), &_info, sizeof(_info));
-+	if (!ret) {
-+		memcpy(info, &_info, sizeof(*info));
-+		info->sensor_id = le16_to_cpu(_info.sensor_id);
-+	}
++	err =3D kstrtou8(buf, 0, &val);
++	if (err < 0)
++		return err;
 +
-+	return ret;
++	err =3D regmap_write(data->regmap, attr->index, val);
++	return err ? : count;
 +}
+=20
+ static int nct7802_read_temp(struct nct7802_data *data,
+ 			     u8 reg_temp, u8 reg_temp_low, int *temp)
+@@ -735,6 +765,11 @@ static SENSOR_DEVICE_ATTR_2(fan3_alarm, S_IRUGO, show_=
+alarm, NULL, 0x1a, 2);
+ static SENSOR_DEVICE_ATTR_2(fan3_beep, S_IRUGO | S_IWUSR, show_beep, store=
+_beep,
+ 			    0x5b, 2);
+=20
++/* 7.2.91... Fan Control Output Value */
++static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, store_u8, 0x6=
+0);
++static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, store_u8, 0x6=
+1);
++static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm, store_u8, 0x6=
+2);
 +
-+int scpi_sensor_get_value(u16 sensor, u32 *val)
-+{
-+	struct sensor_value buf;
-+	int ret;
-+
-+	ret = scpi_send_message(SCPI_CMD_SENSOR_VALUE, &sensor, sizeof(sensor),
-+				&buf, sizeof(buf));
-+	if (!ret)
-+		*val = le32_to_cpu(buf.val);
-+
-+	return ret;
-+}
-+
- static struct scpi_ops scpi_ops = {
- 	.get_version = scpi_get_version,
- 	.clk_get_range = scpi_clk_get_range,
-@@ -489,6 +546,9 @@ static struct scpi_ops scpi_ops = {
- 	.dvfs_get_idx = scpi_dvfs_get_idx,
- 	.dvfs_set_idx = scpi_dvfs_set_idx,
- 	.dvfs_get_info = scpi_dvfs_get_info,
-+	.sensor_get_capability = scpi_sensor_get_capability,
-+	.sensor_get_info = scpi_sensor_get_info,
-+	.sensor_get_value = scpi_sensor_get_value,
+ static struct attribute *nct7802_fan_attrs[] =3D {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+@@ -773,10 +808,22 @@ static struct attribute_group nct7802_fan_group =3D {
+ 	.is_visible =3D nct7802_fan_is_visible,
  };
- 
- struct scpi_ops *get_scpi_ops(void)
-diff --git a/include/linux/scpi_protocol.h b/include/linux/scpi_protocol.h
-index e7169cd..80af3cd 100644
---- a/include/linux/scpi_protocol.h
-+++ b/include/linux/scpi_protocol.h
-@@ -28,6 +28,20 @@ struct scpi_dvfs_info {
- 	struct scpi_opp *opps;
- };
- 
-+enum scpi_sensor_class {
-+	TEMPERATURE,
-+	VOLTAGE,
-+	CURRENT,
-+	POWER,
+=20
++static struct attribute *nct7802_pwm_attrs[] =3D {
++	&sensor_dev_attr_pwm1.dev_attr.attr,
++	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&sensor_dev_attr_pwm3.dev_attr.attr,
++	NULL
 +};
 +
-+struct scpi_sensor_info {
-+	u16 sensor_id;
-+	u8 class;
-+	u8 trigger_type;
-+	char name[20];
-+} __packed;
++static struct attribute_group nct7802_pwm_group =3D {
++	.attrs =3D nct7802_pwm_attrs,
++};
 +
- /**
-  * struct scpi_ops - represents the various operations provided
-  *	by SCP through SCPI message protocol
-@@ -52,6 +66,9 @@ struct scpi_ops {
- 	int (*dvfs_get_idx)(u8);
- 	int (*dvfs_set_idx)(u8, u8);
- 	struct scpi_dvfs_info *(*dvfs_get_info)(u8);
-+	int (*sensor_get_capability)(u16 *sensors);
-+	int (*sensor_get_info)(u16 sensor_id, struct scpi_sensor_info *);
-+	int (*sensor_get_value)(u16, u32 *);
+ static const struct attribute_group *nct7802_groups[] =3D {
+ 	&nct7802_temp_group,
+ 	&nct7802_in_group,
+ 	&nct7802_fan_group,
++	&nct7802_pwm_group,
+ 	NULL
  };
- 
- #if IS_ENABLED(CONFIG_ARM_SCPI_PROTOCOL)
--- 
-2.1.4
+=20
+--=20
+1.9.1
 
 
 _______________________________________________
