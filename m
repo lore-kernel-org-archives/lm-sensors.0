@@ -1,69 +1,75 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Jul 2015 20:43:12 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (nct7802) Add pwmX_enable attribute
-Message-Id: <559C39E0.3030203@roeck-us.net>
+From: Constantine Shulyupin <const@MakeLinux.com>
+Date: Sat, 04 Jul 2015 21:07:06 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct7802) Add pwm mode
+Message-Id: <1436044026-2882-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1436299360-25771-1-git-send-email-const@MakeLinux.com>
-In-Reply-To: <1436299360-25771-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Constantine Shulyupin <const@MakeLinux.com>
 
-Hi Constantine,
+Introduced: show_pwm_mode, pwm1_mode, pwm2_mode, pwm2_mode
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+---
+ drivers/hwmon/nct7802.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-On 07/07/2015 01:02 PM, Constantine Shulyupin wrote:
-> Introduced REG_SMARTFAN_EN_BASE, pwmX_enable,
-> show_pwm_enable, store_pwm_enable.
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
-> ---
->   drivers/hwmon/nct7802.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 46 insertions(+)
->
-> diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
-> index a0d9010..a53e6e1 100644
-> --- a/drivers/hwmon/nct7802.c
-> +++ b/drivers/hwmon/nct7802.c
-> @@ -53,6 +53,7 @@ static const u8 REG_VOLTAGE_LIMIT_MSB_SHIFT[2][5] = {
->   #define REG_PECI_ENABLE		0x23
->   #define REG_FAN_ENABLE		0x24
->   #define REG_VMON_ENABLE		0x25
-> +#define REG_SMARTFAN_EN_BASE	0x64
->   #define REG_VENDOR_ID		0xfd
->   #define REG_CHIP_ID		0xfe
->   #define REG_VERSION_ID		0xff
-> @@ -151,6 +152,43 @@ static ssize_t store_pwm(struct device *dev, struct device_attribute *devattr,
->   	return err ? : count;
->   }
->
-> +static ssize_t show_pwm_enable(struct device *dev,
-> +			       struct device_attribute *attr, char *buf)
-> +{
-> +	struct nct7802_data *data = dev_get_drvdata(dev);
-> +	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
-> +	unsigned int reg, enabled, pwm;
-> +	int ret;
-> +
-> +	ret = regmap_read(data->regmap, REG_SMARTFAN_EN_BASE + sattr->index / 2,
-> +			  &reg);
-> +	if (ret < 0)
-> +		return ret;
-> +	enabled = reg >> (sattr->index % 2 * 4) & 1;
-
-While that works, I think it would be nicer to have something like
-
-#define REG_SMARTFAN_EN(x)	(REG_SMARTFAN_EN_BASE + (x) / 2)
-#define SMARTFAN_EN_SHIFT(x)	((x) % 2 * 4)
-
-and then use those defines instead of hard-coding the expressions
-multiple times. Actually, since REG_SMARTFAN_BASE is then only used
-once, you could just make it
-
-#define REG_SMARTFAN_EN(x)	(0x64 + (x) / 2)
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index 56b6f7b..16e0d17 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -102,6 +102,24 @@ static ssize_t store_temp_type(struct device *dev,
+ 	return err ? : count;
+ }
+ 
++static ssize_t show_pwm_mode(struct device *dev, struct device_attribute *attr,
++			     char *buf)
++{
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct nct7802_data *data = dev_get_drvdata(dev);
++	unsigned int regval;
++	int ret;
++
++	if (sattr->index > 1)
++		return sprintf(buf, "1\n");
++
++	ret = regmap_read(data->regmap, sattr->nr, &regval);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%u\n", !(regval & (1 << sattr->index)));
++}
++
+ static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr,
+ 			char *buf)
+ {
+@@ -765,6 +783,11 @@ static SENSOR_DEVICE_ATTR_2(fan3_alarm, S_IRUGO, show_alarm, NULL, 0x1a, 2);
+ static SENSOR_DEVICE_ATTR_2(fan3_beep, S_IRUGO | S_IWUSR, show_beep, store_beep,
+ 			    0x5b, 2);
+ 
++/* 7.2.89 Fan Control Output Type */
++static SENSOR_DEVICE_ATTR_2(pwm1_mode, S_IRUGO, show_pwm_mode, NULL, 0x5E, 0);
++static SENSOR_DEVICE_ATTR_2(pwm2_mode, S_IRUGO, show_pwm_mode, NULL, 0x5E, 1);
++static SENSOR_DEVICE_ATTR_2(pwm3_mode, S_IRUGO, show_pwm_mode, NULL, 0, 2);
++
+ /* 7.2.91... Fan Control Output Value */
+ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x60);
+ static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x61);
+@@ -809,8 +832,11 @@ static struct attribute_group nct7802_fan_group = {
+ };
+ 
+ static struct attribute *nct7802_pwm_attrs[] = {
++	&sensor_dev_attr_pwm1_mode.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1.dev_attr.attr,
++	&sensor_dev_attr_pwm2_mode.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&sensor_dev_attr_pwm3_mode.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3.dev_attr.attr,
+ 	NULL
+ };
+-- 
+1.9.1
 
 
 _______________________________________________
