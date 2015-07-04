@@ -1,30 +1,39 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 15 Jul 2015 17:46:04 +0000
-Subject: Re: [lm-sensors] support for IT8586E
-Message-Id: <20150715194604.488f4673@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 04 Jul 2015 20:26:18 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct7802) Fix integer overflow seen when writing voltage limits
+Message-Id: <1436041578-14411-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CANOLSHBWuQCpJTUT3aNi7_rqPwPT4QK7CkVxvhcuyfm4qqFw8g@mail.gmail.com>
-In-Reply-To: <CANOLSHBWuQCpJTUT3aNi7_rqPwPT4QK7CkVxvhcuyfm4qqFw8g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 15 Jul 2015 12:27:04 -0400, Dev Anand wrote:
-> Thanks Jean and Guenter,
-> 
-> There is no /proc/acpi/fan or /proc/acpi/thermal_zone folder but, I do see
-> /proc/acpi/button and /proc/acpi/wakeup.
-> Is there any guide on how to setup the ACPI fan control?
+Writing a large value into a voltage limit attribute can result
+in an overflow due to an auto-conversion from unsigned long to
+unsigned int.
 
-In general there is nothing to setup by the OS, the environment
-controller will do it all for you. That's why I suggested checking the
-BIOS options. If there is any way to tweak the environment controller,
-that's in the BIOS.
+Cc: Constantine Shulyupin <const@MakeLinux.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct7802.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index 658bc91033a2..457b0f2678a4 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -262,7 +262,7 @@ abort:
+ }
+ 
+ static int nct7802_write_voltage(struct nct7802_data *data, int nr, int index,
+-				 unsigned int voltage)
++				 unsigned long voltage)
+ {
+ 	int shift = 8 - REG_VOLTAGE_LIMIT_MSB_SHIFT[index - 1][nr];
+ 	int err;
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.0
+
 
 _______________________________________________
 lm-sensors mailing list
