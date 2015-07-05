@@ -1,81 +1,29 @@
-From: Constantine Shulyupin <const@MakeLinux.com>
-Date: Sat, 04 Jul 2015 22:41:31 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (nct7802) Add pwm mode
-Message-Id: <1436049691-20312-1-git-send-email-const@MakeLinux.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 05 Jul 2015 02:41:00 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: (nct7802) Add pwm mode
+Message-Id: <5598993C.9090003@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1436049691-20312-1-git-send-email-const@MakeLinux.com>
+In-Reply-To: <1436049691-20312-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
-Cc: Constantine Shulyupin <const@MakeLinux.com>
+To: lm-sensors@vger.kernel.org
 
-Introduced: show_pwm_mode, pwm1_mode, pwm2_mode, pwm2_mode
+On 07/04/2015 03:41 PM, Constantine Shulyupin wrote:
+> Introduced: show_pwm_mode, pwm1_mode, pwm2_mode, pwm2_mode
+>
+> ---
+> Changelog:
+> Fixed in v2:
+> - used SENSOR_DEVICE_ATTR instead of SENSOR_DEVICE_ATTR_2 for pwmX_mode
+>
+> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
 
----
-Changelog:
-Fixed in v2:
-- used SENSOR_DEVICE_ATTR instead of SENSOR_DEVICE_ATTR_2 for pwmX_mode
+Applied to -next.
 
-Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
----
- drivers/hwmon/nct7802.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
-
-diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
-index 56b6f7b..a0d9010 100644
---- a/drivers/hwmon/nct7802.c
-+++ b/drivers/hwmon/nct7802.c
-@@ -102,6 +102,24 @@ static ssize_t store_temp_type(struct device *dev,
- 	return err ? : count;
- }
- 
-+static ssize_t show_pwm_mode(struct device *dev, struct device_attribute *attr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
-+	struct nct7802_data *data = dev_get_drvdata(dev);
-+	unsigned int regval;
-+	int ret;
-+
-+	if (sattr->index > 1)
-+		return sprintf(buf, "1\n");
-+
-+	ret = regmap_read(data->regmap, 0x5E, &regval);
-+	if (ret < 0)
-+		return ret;
-+
-+	return sprintf(buf, "%u\n", !(regval & (1 << sattr->index)));
-+}
-+
- static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr,
- 			char *buf)
- {
-@@ -765,6 +783,11 @@ static SENSOR_DEVICE_ATTR_2(fan3_alarm, S_IRUGO, show_alarm, NULL, 0x1a, 2);
- static SENSOR_DEVICE_ATTR_2(fan3_beep, S_IRUGO | S_IWUSR, show_beep, store_beep,
- 			    0x5b, 2);
- 
-+/* 7.2.89 Fan Control Output Type */
-+static SENSOR_DEVICE_ATTR(pwm1_mode, S_IRUGO, show_pwm_mode, NULL, 0);
-+static SENSOR_DEVICE_ATTR(pwm2_mode, S_IRUGO, show_pwm_mode, NULL, 1);
-+static SENSOR_DEVICE_ATTR(pwm3_mode, S_IRUGO, show_pwm_mode, NULL, 2);
-+
- /* 7.2.91... Fan Control Output Value */
- static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x60);
- static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x61);
-@@ -809,8 +832,11 @@ static struct attribute_group nct7802_fan_group = {
- };
- 
- static struct attribute *nct7802_pwm_attrs[] = {
-+	&sensor_dev_attr_pwm1_mode.dev_attr.attr,
- 	&sensor_dev_attr_pwm1.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_mode.dev_attr.attr,
- 	&sensor_dev_attr_pwm2.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_mode.dev_attr.attr,
- 	&sensor_dev_attr_pwm3.dev_attr.attr,
- 	NULL
- };
--- 
-1.9.1
+Thanks,
+Guenter
 
 
 _______________________________________________
