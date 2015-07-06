@@ -1,51 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 06 Jul 2015 12:51:43 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (nct7802) Fix integer overflow seen when writing voltage limits
-Message-Id: <559A79DF.9000902@roeck-us.net>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 06 Jul 2015 12:20:18 +0000
+Subject: Re: [lm-sensors] Anyone working on Fintek f81768?
+Message-Id: <20150706142018.35622469@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1436041578-14411-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1436041578-14411-1-git-send-email-linux@roeck-us.net>
+References: <CAHKv19CY4xBJwedUpOP5995JSSTB35QMoR50LDwct6pTtCEgjw@mail.gmail.com>
+In-Reply-To: <CAHKv19CY4xBJwedUpOP5995JSSTB35QMoR50LDwct6pTtCEgjw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi George,
 
-On 07/06/2015 04:46 AM, Jean Delvare wrote:
-> On Sat,  4 Jul 2015 13:26:18 -0700, Guenter Roeck wrote:
->> Writing a large value into a voltage limit attribute can result
->> in an overflow due to an auto-conversion from unsigned long to
->> unsigned int.
->>
->> Cc: Constantine Shulyupin <const@MakeLinux.com>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/hwmon/nct7802.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
->> index 658bc91033a2..457b0f2678a4 100644
->> --- a/drivers/hwmon/nct7802.c
->> +++ b/drivers/hwmon/nct7802.c
->> @@ -262,7 +262,7 @@ abort:
->>   }
->>
->>   static int nct7802_write_voltage(struct nct7802_data *data, int nr, int index,
->> -				 unsigned int voltage)
->> +				 unsigned long voltage)
->>   {
->>   	int shift = 8 - REG_VOLTAGE_LIMIT_MSB_SHIFT[index - 1][nr];
->>   	int err;
->
-> Good catch.
->
-> Reviewed-by: Jean Delvare <jdelvare@suse.de>
->
-Thanks!
+On Mon, 29 Jun 2015 10:28:17 -0600, George Joseph wrote:
+> I've got a few Jetway NF9N motherboards with the f81768 chip (id
+> 0x1210 I think).  If no one's already working on getting it added,
+> I'll take a look at adding it to one of the existing fintek drivers,
+> hopefully f71882fg.  Can't find a data sheet though. :(
+> 
+> http://www.fintek.com.tw/index.php/i-o-controller-and-i-f-management/item/134-f81768
 
-Guenter
+This is the first request. I can't find a datasheet either. I've added
+an entry in the wiki and in sensors-detect too.
 
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
