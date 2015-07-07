@@ -1,114 +1,147 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 02 Jul 2015 08:43:52 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Fix systemd paths
-Message-Id: <20150702104352.5ce3394a@endymion.delvare>
+From: Peter Hung <hpeter@gmail.com>
+Date: Tue, 07 Jul 2015 08:22:37 +0000
+Subject: [lm-sensors] [PATCH V3 2/3] hwmon:f71882fg fix f81866a temp/beep setting
+Message-Id: <1436257358-31360-3-git-send-email-hpeter+linux_kernel@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
+In-Reply-To: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
 
-Most distributions have moved systemd from / to /usr, so sensors-detect
-should check for the latter too (and first.)
+The temperature value of Fintek F81866 is the same with
+f71882fg. It located with 0x6c + 2*(nr), others located
+with 0x6c + 2*(nr+1). We change the rule in f71882fg_probe(),
+If type = f71858fg/f8000/f81866a. the temp_start will set to 0,
+others are 1.
+
+The F81866 over-temperature beep setting is not the same with
+f71882fg too. They are using the same address 63H, but F81866 is
+using bit 0/1/2 & 4/5/6, others are using bit 1/2/3 & 5/6/7,
+So we copy from fxxxx_temp_beep_attr[] to f81866_temp_beep_attr
+and change bit setting.
+
+Signed-off-by: Peter Hung <hpeter+linux_kernel@gmail.com>
 ---
- prog/detect/sensors-detect |   53 +++++++++++++++++++++++++++------------------
- 1 file changed, 32 insertions(+), 21 deletions(-)
+ drivers/hwmon/f71882fg.c | 60 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 52 insertions(+), 8 deletions(-)
 
---- lm-sensors.orig/prog/detect/sensors-detect	2015-06-09 15:12:16.556941510 +0200
-+++ lm-sensors/prog/detect/sensors-detect	2015-07-02 10:28:32.138475805 +0200
-@@ -2728,7 +2728,7 @@ sub isa_read_i5d6
- # AUTODETECTION #
- #################
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 3a7185a..79f1f50 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -506,6 +506,23 @@ static struct sensor_device_attribute_2 fxxxx_temp_beep_attr[3][2] = { {
+ 		store_temp_beep, 0, 7),
+ } };
  
--use vars qw($dev_i2c $sysfs_root);
-+use vars qw($dev_i2c $sysfs_root $systemd_systemctl $systemd_system_dir);
- 
- sub initialize_conf
- {
-@@ -2789,6 +2789,19 @@ sub initialize_conf
- 			exit -1;
- 		}
- 	}
++static struct sensor_device_attribute_2 f81866_temp_beep_attr[3][2] = { {
++	SENSOR_ATTR_2(temp1_max_beep, S_IRUGO|S_IWUSR, show_temp_beep,
++		store_temp_beep, 0, 0),
++	SENSOR_ATTR_2(temp1_crit_beep, S_IRUGO|S_IWUSR, show_temp_beep,
++		store_temp_beep, 0, 4),
++}, {
++	SENSOR_ATTR_2(temp2_max_beep, S_IRUGO|S_IWUSR, show_temp_beep,
++		store_temp_beep, 0, 1),
++	SENSOR_ATTR_2(temp2_crit_beep, S_IRUGO|S_IWUSR, show_temp_beep,
++		store_temp_beep, 0, 5),
++}, {
++	SENSOR_ATTR_2(temp3_max_beep, S_IRUGO|S_IWUSR, show_temp_beep,
++		store_temp_beep, 0, 2),
++	SENSOR_ATTR_2(temp3_crit_beep, S_IRUGO|S_IWUSR, show_temp_beep,
++		store_temp_beep, 0, 6),
++} };
 +
-+	# Detect systemd presence and paths
-+	if (-x "/usr/bin/systemctl") {
-+		$systemd_systemctl = "/usr/bin/systemctl";
-+	} elsif (-x "/bin/systemctl") {
-+		$systemd_systemctl = "/bin/systemctl";
-+	}
+ /*
+  * Temp attr for the f8000
+  * Note on the f8000 temp_ovt (crit) is used as max, and temp_high (max)
+@@ -2287,6 +2304,7 @@ static int f71882fg_probe(struct platform_device *pdev)
+ 	int nr_fans = f71882fg_nr_fans[sio_data->type];
+ 	int nr_temps = f71882fg_nr_temps[sio_data->type];
+ 	int err, i;
++	int size;
+ 	u8 start_reg, reg;
+ 
+ 	data = devm_kzalloc(&pdev->dev, sizeof(struct f71882fg_data),
+@@ -2297,7 +2315,8 @@ static int f71882fg_probe(struct platform_device *pdev)
+ 	data->addr = platform_get_resource(pdev, IORESOURCE_IO, 0)->start;
+ 	data->type = sio_data->type;
+ 	data->temp_start -	    (data->type = f71858fg || data->type = f8000) ? 0 : 1;
++	    (data->type = f71858fg || data->type = f8000 ||
++		data->type = f81866a) ? 0 : 1;
+ 	mutex_init(&data->update_lock);
+ 	platform_set_drvdata(pdev, data);
+ 
+@@ -2339,6 +2358,11 @@ static int f71882fg_probe(struct platform_device *pdev)
+ 					f8000_temp_attr,
+ 					ARRAY_SIZE(f8000_temp_attr));
+ 			break;
++		case f81866a:
++			err = f71882fg_create_sysfs_files(pdev,
++					f71858fg_temp_attr,
++					ARRAY_SIZE(f71858fg_temp_attr));
++			break;
+ 		default:
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 				&fxxxx_temp_attr[0][0],
+@@ -2348,10 +2372,18 @@ static int f71882fg_probe(struct platform_device *pdev)
+ 			goto exit_unregister_sysfs;
+ 
+ 		if (f71882fg_temp_has_beep[data->type]) {
+-			err = f71882fg_create_sysfs_files(pdev,
+-					&fxxxx_temp_beep_attr[0][0],
+-					ARRAY_SIZE(fxxxx_temp_beep_attr[0])
+-						* nr_temps);
++			if (data->type = f81866a) {
++				size = ARRAY_SIZE(f81866_temp_beep_attr[0]);
++				err = f71882fg_create_sysfs_files(pdev,
++						&f81866_temp_beep_attr[0][0],
++						size * nr_temps);
 +
-+	if (-d "/usr/lib/systemd/system") {
-+		$systemd_system_dir = "/usr/lib/systemd/system";
-+	} elsif (-d "/lib/systemd/system") {
-+		$systemd_system_dir = "/lib/systemd/system";
-+	}
- }
- 
- # [0] -> VERSION
-@@ -7090,19 +7103,16 @@ EOT
- 		print SYSCONFIG "HWMON_MODULES=\"", join(" ", @{$hwmon_modules}), "\"\n";
- 		close(SYSCONFIG);
- 
--		if (-x "/bin/systemctl" && -d "/lib/systemd/system" &&
--		    ! -f "/lib/systemd/system/lm_sensors.service") {
--			print "Copy prog/init/lm_sensors.service to /lib/systemd/system\n".
--			      "and run 'systemctl enable lm_sensors.service'\n".
--			      "for initialization at boot time.\n";
--			return;
--		}
--
--		if (-x "/bin/systemctl" &&
--		    -f "/lib/systemd/system/lm_sensors.service") {
--			system("/bin/systemctl", "enable", "lm_sensors.service");
--			system("/bin/systemctl", "start", "lm_sensors.service");
--			# All done, don't check for /etc/init.d/lm_sensors
-+		if ($systemd_systemctl && $systemd_system_dir) {
-+			if (-f "$systemd_system_dir/lm_sensors.service") {
-+				system($systemd_systemctl, "enable", "lm_sensors.service");
-+				system($systemd_systemctl, "start", "lm_sensors.service");
-+				# All done, don't check for /etc/init.d/lm_sensors
 +			} else {
-+				print "Copy prog/init/lm_sensors.service to $systemd_system_dir\n".
-+				      "and run 'systemctl enable lm_sensors.service'\n".
-+				      "for initialization at boot time.\n";
++				size = ARRAY_SIZE(fxxxx_temp_beep_attr[0]);
++				err = f71882fg_create_sysfs_files(pdev,
++						&fxxxx_temp_beep_attr[0][0],
++						size * nr_temps);
 +			}
- 			return;
+ 			if (err)
+ 				goto exit_unregister_sysfs;
+ 		}
+@@ -2468,15 +2500,27 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 					f8000_temp_attr,
+ 					ARRAY_SIZE(f8000_temp_attr));
+ 			break;
++		case f81866a:
++			f71882fg_remove_sysfs_files(pdev,
++					f71858fg_temp_attr,
++					ARRAY_SIZE(f71858fg_temp_attr));
++			break;
+ 		default:
+ 			f71882fg_remove_sysfs_files(pdev,
+ 				&fxxxx_temp_attr[0][0],
+ 				ARRAY_SIZE(fxxxx_temp_attr[0]) * nr_temps);
+ 		}
+ 		if (f71882fg_temp_has_beep[data->type]) {
+-			f71882fg_remove_sysfs_files(pdev,
+-			       &fxxxx_temp_beep_attr[0][0],
+-			       ARRAY_SIZE(fxxxx_temp_beep_attr[0]) * nr_temps);
++			if (data->type = f81866a)
++				f71882fg_remove_sysfs_files(pdev,
++					&f81866_temp_beep_attr[0][0],
++					ARRAY_SIZE(f81866_temp_beep_attr[0])
++						* nr_temps);
++			else
++				f71882fg_remove_sysfs_files(pdev,
++					&fxxxx_temp_beep_attr[0][0],
++					ARRAY_SIZE(fxxxx_temp_beep_attr[0])
++						* nr_temps);
  		}
  
-@@ -7170,13 +7180,6 @@ sub main
- 		exit -1;
- 	}
- 
--	if (-x "/bin/systemctl" && -f "/lib/systemd/system/lm_sensors.service") {
--		system("/bin/systemctl", "stop", "lm_sensors.service");
--	} elsif (-x "/sbin/service" && -f "/etc/init.d/lm_sensors" &&
--		 -f "/var/lock/subsys/lm_sensors") {
--		system("/sbin/service", "lm_sensors", "stop");
--	}
--
- 	initialize_kernel_version();
- 	initialize_conf();
- 	initialize_pci();
-@@ -7187,6 +7190,14 @@ sub main
- 	initialize_modules_supported();
- 	initialize_cpu_list();
- 
-+	if ($systemd_systemctl && $systemd_system_dir &&
-+	    -f "$systemd_system_dir/lm_sensors.service") {
-+		system("$systemd_systemctl", "stop", "lm_sensors.service");
-+	} elsif (-x "/sbin/service" && -f "/etc/init.d/lm_sensors" &&
-+		 -f "/var/lock/subsys/lm_sensors") {
-+		system("/sbin/service", "lm_sensors", "stop");
-+	}
-+
- 	print "# sensors-detect revision $revision\n";
- 	initialize_dmi_data();
- 	print_dmi_summary();
-
-
+ 		for (i = 0; i < F71882FG_MAX_INS; i++) {
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
