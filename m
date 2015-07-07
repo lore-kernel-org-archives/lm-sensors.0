@@ -1,7 +1,7 @@
-From: Peter Hung <hpeter@gmail.com>
-Date: Tue, 07 Jul 2015 01:30:27 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 07 Jul 2015 04:16:54 +0000
 Subject: Re: [lm-sensors] hwmon: (f71882fg) Add f81866/f71868 SuperIO support
-Message-Id: <559B2BB3.5050402@gmail.com>
+Message-Id: <559B52B6.6010909@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20150706153502.GA22265@mwanda>
 In-Reply-To: <20150706153502.GA22265@mwanda>
@@ -10,22 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-> easy to fix, and annoying that I didn't catch it earlier.
->
-> I decided to pull the entire series, since you obviously
-> did not test the code. When you resubmit, please let me know
-> how you tested it.
-
-I'll take more tests with this series patch.
-Sorry for my mistakes.
-
--- 
-With Best Regards,
-Peter Hung
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMDcvMDYvMjAxNSAwNjoxOSBQTSwgUGV0ZXIgSHVuZyB3cm90ZToKPiBIaSBEYW4sCj4gCj4g
+RGFuIENhcnBlbnRlciCp8yAyMDE1LzcvNiCkVaTIIDExOjM1ILxnuUQ6Cj4+IEJ1dCB0aGlzIGFy
+cmF5IHN0aWxsIG9ubHkgaGFzIDkgZWxlbWVudHMuCj4+Cj4+ICAgICAyNDI2ICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGlmIChlcnIpCj4+ICAgICAyNDI3ICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgZ290byBleGl0X3VucmVnaXN0ZXJfc3lzZnM7Cj4+
+ICAgICAyNDI4ICAgICAgICAgICAgICAgICAgICAgICAgICB9Cj4+ICAgICAyNDI5ICAgICAgICAg
+ICAgICAgICAgfQo+IAo+IENvdWxkIHlvdSB0ZWxsIG1lIHdoYXQgc3RhdGljIGNvZGUgYW5hbHlz
+aXMgdG9vbHMKPiBkaWQgeW91IHVzZSB0byBnZW5lcmF0ZSB0aGlzIHJlcG9ydD8KPiAKPiBJIGhh
+ZCB0cmllZCB3aXRoIHNwYXJzZSBhbmQgdXNlIG1ha2UgQz0yIDxkcml2ZXIgZGlyPgo+IGJ1dCBJ
+IGdvdCBubyB3YXJuaW5nLgo+IApIaSBQZXRlciwKClRoaXMgaXMgd2l0aCBzbWF0Y2guCgptYWtl
+IEM9MSBDSEVDSz0icGF0aC10by1zbWF0Y2ggLS1wcm9qZWN0PWtlcm5lbCIgZmlsZW5hbWUKCkd1
+ZW50ZXIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
+aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
