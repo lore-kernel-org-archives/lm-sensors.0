@@ -1,35 +1,49 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 05 Jul 2015 13:00:29 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: (nct7802) Add pwm control
-Message-Id: <55992A6D.6010506@roeck-us.net>
+From: Peter Hung <hpeter@gmail.com>
+Date: Tue, 07 Jul 2015 08:22:35 +0000
+Subject: [lm-sensors] [PATCH V3 0/3] hwmon:f71882fg add new Fintek SuperIO support
+Message-Id: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1436021854-13072-1-git-send-email-const@MakeLinux.com>	<55982124.2070500@roeck-us.net> <20150705085727.23e25d08@endymion.delvare>
-In-Reply-To: <20150705085727.23e25d08@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Constantine Shulyupin <const@MakeLinux.com>, open@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
 
-On 07/04/2015 11:57 PM, Jean Delvare wrote:
-> On Sat, 04 Jul 2015 11:08:36 -0700, Guenter Roeck wrote:
->> Hi Constantine,
->>
->> On 07/04/2015 07:57 AM, Constantine Shulyupin wrote:
->>> Added fan output control registers.
->>> Modes of operation are PWM (default) and DC.
->>>
->>
->> Another note: Since you mention DC vs. pwm mode, have you
->> considered adding pwm[123]_mode attributes to report the
->> selected mode ?
->
-> If you do, please make sure these attributes are read-only.
->
+The first patch will add Fintek F81866/F71868 SuperIO
+with H/W monitor function to f71882fg.c.
 
-They are.
+But some F81866 functional address is differ from F71882fg.
+The following 2 patches will fix this problem.
 
-Guenter
+The test report is upload to following link. If I lost something,
+with test, please let me know. I'll append it to the report.
+
+Here is F81866 on customer MB report:
+https://drive.google.com/file/d/0B8vRwwYO7aMFUmliSFVWVVRUaTA/view?pli=1
+
+Cause we had no F71868 MB currently, we just check and mapping
+register to driver.
+
+Changelog:
+V3
+	1. Fix fatal compile error. (Thanks to Guenter Roeck)
+	2. Fix array size and content not match error.
+	   (Thanks to Dan Carpenter)
+
+V2
+	1. Fix comments by Guenter Roeck <linux@roeck-us.net>
+	   all newer add IC should keep chip IDs in numeric order.
+
+Peter Hung (3):
+  hwmon:f71882fg add f81866/f71868 SuperIO support
+  hwmon:f71882fg fix f81866a temp/beep setting
+  hwmon:f71882fg fix f81866a voltage protection
+
+ drivers/hwmon/f71882fg.c | 163 +++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 131 insertions(+), 32 deletions(-)
+
+-- 
+1.9.1
 
 
 _______________________________________________
