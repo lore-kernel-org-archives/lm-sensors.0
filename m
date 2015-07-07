@@ -1,7 +1,7 @@
 From: Peter Hung <hpeter@gmail.com>
-Date: Tue, 07 Jul 2015 01:19:03 +0000
+Date: Tue, 07 Jul 2015 01:30:27 +0000
 Subject: Re: [lm-sensors] hwmon: (f71882fg) Add f81866/f71868 SuperIO support
-Message-Id: <559B2907.8000205@gmail.com>
+Message-Id: <559B2BB3.5050402@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20150706153502.GA22265@mwanda>
 In-Reply-To: <20150706153502.GA22265@mwanda>
@@ -10,15 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgRGFuLAoKRGFuIENhcnBlbnRlciCp8yAyMDE1LzcvNiCkVaTIIDExOjM1ILxnuUQ6Cj4gQnV0
-IHRoaXMgYXJyYXkgc3RpbGwgb25seSBoYXMgOSBlbGVtZW50cy4KPiAKPiAgICAyNDI2ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChlcnIpCj4gICAgMjQyNyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gZXhpdF91bnJlZ2lzdGVyX3N5c2Zz
-Owo+ICAgIDI0MjggICAgICAgICAgICAgICAgICAgICAgICAgIH0KPiAgICAyNDI5ICAgICAgICAg
-ICAgICAgICAgfQoKQ291bGQgeW91IHRlbGwgbWUgd2hhdCBzdGF0aWMgY29kZSBhbmFseXNpcyB0
-b29scwpkaWQgeW91IHVzZSB0byBnZW5lcmF0ZSB0aGlzIHJlcG9ydD8KCkkgaGFkIHRyaWVkIHdp
-dGggc3BhcnNlIGFuZCB1c2UgbWFrZSBDPTIgPGRyaXZlciBkaXI+CmJ1dCBJIGdvdCBubyB3YXJu
-aW5nLgoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApQZXRlciBIdW5nCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hi Guenter,
+
+> easy to fix, and annoying that I didn't catch it earlier.
+>
+> I decided to pull the entire series, since you obviously
+> did not test the code. When you resubmit, please let me know
+> how you tested it.
+
+I'll take more tests with this series patch.
+Sorry for my mistakes.
+
+-- 
+With Best Regards,
+Peter Hung
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
