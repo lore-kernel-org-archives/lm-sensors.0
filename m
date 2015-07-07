@@ -1,64 +1,106 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 22 Jul 2015 16:37:30 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: ads7828: Add devicetree support
-Message-Id: <55AFC6CA.7070408@roeck-us.net>
+From: Constantine Shulyupin <const@MakeLinux.com>
+Date: Tue, 07 Jul 2015 20:02:40 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct7802) Add pwmX_enable attribute
+Message-Id: <1436299360-25771-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1437582620-2294-1-git-send-email-denis@eukrea.com> <1437582620-2294-2-git-send-email-denis@eukrea.com>
-In-Reply-To: <1437582620-2294-2-git-send-email-denis-fO0SIAKYzcbQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Denis Carikli <denis-fO0SIAKYzcbQT0dZR+AlfA@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?windows-1252?Q?Eric_B=E9nard?= <eric-fO0SIAKYzcbQT0dZR+AlfA@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Constantine Shulyupin <const@MakeLinux.com>
 
-On 07/22/2015 09:30 AM, Denis Carikli wrote:
-> Signed-off-by: Denis Carikli <denis@eukrea.com>
-> ---
+Introduced REG_SMARTFAN_EN_BASE, pwmX_enable,
+show_pwm_enable, store_pwm_enable.
 
-i2c drivers do not need explicit devicetree support.
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+---
+ drivers/hwmon/nct7802.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-Guenter
-
->   drivers/hwmon/ads7828.c | 11 +++++++++++
->   1 file changed, 11 insertions(+)
->
-> diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
-> index 6c99ee7..a2d297f 100644
-> --- a/drivers/hwmon/ads7828.c
-> +++ b/drivers/hwmon/ads7828.c
-> @@ -31,6 +31,7 @@
->   #include <linux/i2c.h>
->   #include <linux/init.h>
->   #include <linux/module.h>
-> +#include <linux/of.h>
->   #include <linux/platform_data/ads7828.h>
->   #include <linux/regmap.h>
->   #include <linux/slab.h>
-> @@ -160,6 +161,15 @@ static int ads7828_probe(struct i2c_client *client,
->   	return PTR_ERR_OR_ZERO(hwmon_dev);
->   }
->
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id ads7828_of_match[] = {
-> +	{ .compatible = "ti,ads7828", .data = (void *) ads7828, },
-> +	{ .compatible = "ti,ads7830", .data = (void *) ads7830, },
-> +
-> +};
-> +MODULE_DEVICE_TABLE(of, ads7828_of_match);
-> +#endif
-> +
->   static const struct i2c_device_id ads7828_device_ids[] = {
->   	{ "ads7828", ads7828 },
->   	{ "ads7830", ads7830 },
-> @@ -170,6 +180,7 @@ MODULE_DEVICE_TABLE(i2c, ads7828_device_ids);
->   static struct i2c_driver ads7828_driver = {
->   	.driver = {
->   		.name = "ads7828",
-> +		.of_match_table = of_match_ptr(ads7828_of_match),
->   	},
->
->   	.id_table = ads7828_device_ids,
->
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index a0d9010..a53e6e1 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -53,6 +53,7 @@ static const u8 REG_VOLTAGE_LIMIT_MSB_SHIFT[2][5] = {
+ #define REG_PECI_ENABLE		0x23
+ #define REG_FAN_ENABLE		0x24
+ #define REG_VMON_ENABLE		0x25
++#define REG_SMARTFAN_EN_BASE	0x64
+ #define REG_VENDOR_ID		0xfd
+ #define REG_CHIP_ID		0xfe
+ #define REG_VERSION_ID		0xff
+@@ -151,6 +152,43 @@ static ssize_t store_pwm(struct device *dev, struct device_attribute *devattr,
+ 	return err ? : count;
+ }
+ 
++static ssize_t show_pwm_enable(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	struct nct7802_data *data = dev_get_drvdata(dev);
++	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
++	unsigned int reg, enabled, pwm;
++	int ret;
++
++	ret = regmap_read(data->regmap, REG_SMARTFAN_EN_BASE + sattr->index / 2,
++			  &reg);
++	if (ret < 0)
++		return ret;
++	enabled = reg >> (sattr->index % 2 * 4) & 1;
++	return sprintf(buf, "%u\n", enabled + 1);
++}
++
++static ssize_t store_pwm_enable(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
++{
++	struct nct7802_data *data = dev_get_drvdata(dev);
++	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
++	u8 val;
++	int ret;
++
++	ret = kstrtou8(buf, 0, &val);
++	if (ret < 0)
++		return ret;
++	if (val < 1 || val > 3)
++		return -EINVAL;
++	ret = regmap_update_bits(data->regmap,
++				 REG_SMARTFAN_EN_BASE + sattr->index / 2,
++				 1 << sattr->index % 2 * 4,
++				 (val - 1) << sattr->index % 2 * 4);
++	return ret ? : count;
++}
++
+ static int nct7802_read_temp(struct nct7802_data *data,
+ 			     u8 reg_temp, u8 reg_temp_low, int *temp)
+ {
+@@ -793,6 +831,11 @@ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x60);
+ static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x61);
+ static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x62);
+ 
++/* 7.2.95... Temperature to Fan mapping Relationships Register */
++static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR, show_pwm_enable, store_pwm_enable, 0);
++static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR, show_pwm_enable, store_pwm_enable, 1);
++static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR, show_pwm_enable, store_pwm_enable, 2);
++
+ static struct attribute *nct7802_fan_attrs[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+@@ -832,10 +875,13 @@ static struct attribute_group nct7802_fan_group = {
+ };
+ 
+ static struct attribute *nct7802_pwm_attrs[] = {
++	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_mode.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1.dev_attr.attr,
++	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_mode.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_mode.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3.dev_attr.attr,
+ 	NULL
+-- 
+1.9.1
 
 
 _______________________________________________
