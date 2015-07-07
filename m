@@ -1,72 +1,118 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Date: Thu, 30 Jul 2015 16:18:52 +0000
-Subject: [lm-sensors] [PATCH 27/27] i2c: (RFC, don't apply) report OF style modalias when probing using DT
-Message-Id: <1438273132-20926-28-git-send-email-javier@osg.samsung.com>
+From: Peter Hung <hpeter@gmail.com>
+Date: Tue, 07 Jul 2015 08:22:38 +0000
+Subject: [lm-sensors] [PATCH V3 3/3] hwmon:f71882fg fix f81866a voltage protection
+Message-Id: <1436257358-31360-4-git-send-email-hpeter+linux_kernel@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1438273132-20926-1-git-send-email-javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+References: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
+In-Reply-To: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, Liam Girdwood <lgird>
+To: jdelvare@suse.de, linux@roeck-us.net
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
 
-An I2C driver that supports both OF and legacy platforms, will have
-both a OF and I2C ID table. This means that when built as a module,
-the aliases will be filled from both tables but currently always an
-alias of the form i2c:<deviceId> is reported, e.g:
+The f81866a voltage-1 protector(VIN1) address
+is differ from f71882.
 
-$ cat /sys/class/i2c-adapter/i2c-8/8-004b/modalias
-i2c:maxtouch
+f71882 status:12H, beep:13H, v-high:32H
+f81866a status:16H, beep:17H, v-high:3aH
 
-So if a device is probed by matching its compatible string, udev can
-get a MODALIAS uevent env var that doesn't match with one of the valid
-aliases so the module won't be auto-loaded.
-
-This patch changes the I2C core to report a OF related MODALIAS uevent
-(of:N*T*C) env var instead so the module can be auto-loaded and also
-report the correct alias using sysfs:
-
-$ cat /sys/class/i2c-adapter/i2c-8/8-004b/modalias
-of:NtrackpadT<NULL>Catmel,maxtouch
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-
-
+Signed-off-by: Peter Hung <hpeter+linux_kernel@gmail.com>
 ---
+ drivers/hwmon/f71882fg.c | 50 +++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 41 insertions(+), 9 deletions(-)
 
- drivers/i2c/i2c-core.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 92dddfeb3f39..c0668c2ed9da 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -489,6 +489,10 @@ static int i2c_device_uevent(struct device *dev, struct kobj_uevent_env *env)
- 	struct i2c_client	*client = to_i2c_client(dev);
- 	int rc;
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 79f1f50..7cecd83 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -71,6 +71,10 @@
+ #define F71882FG_REG_IN(nr)		(0x20  + (nr))
+ #define F71882FG_REG_IN1_HIGH		0x32 /* f7188x only */
  
-+	rc = of_device_uevent_modalias(dev, env);
-+	if (rc != -ENODEV)
-+		return rc;
++#define F81866_REG_IN_STATUS		0x16 /* F81866 only */
++#define F81866_REG_IN_BEEP			0x17 /* F81866 only */
++#define F81866_REG_IN1_HIGH		0x3a /* F81866 only */
 +
- 	rc = acpi_device_uevent_modalias(dev, env);
- 	if (rc != -ENODEV)
- 		return rc;
-@@ -726,6 +730,10 @@ show_modalias(struct device *dev, struct device_attribute *attr, char *buf)
- 	struct i2c_client *client = to_i2c_client(dev);
- 	int len;
+ #define F71882FG_REG_FAN(nr)		(0xA0 + (16 * (nr)))
+ #define F71882FG_REG_FAN_TARGET(nr)	(0xA2 + (16 * (nr)))
+ #define F71882FG_REG_FAN_FULL_SPEED(nr)	(0xA4 + (16 * (nr)))
+@@ -1204,10 +1208,21 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
+ 	if (time_after(jiffies, data->last_limits + 60 * HZ) ||
+ 			!data->valid) {
+ 		if (f71882fg_has_in1_alarm[data->type]) {
+-			data->in1_max -				f71882fg_read8(data, F71882FG_REG_IN1_HIGH);
+-			data->in_beep -				f71882fg_read8(data, F71882FG_REG_IN_BEEP);
++			if (data->type = f81866a) {
++				data->in1_max +					f71882fg_read8(data,
++							F81866_REG_IN1_HIGH);
++				data->in_beep +					f71882fg_read8(data,
++							F81866_REG_IN_BEEP);
++			} else {
++				data->in1_max +					f71882fg_read8(data,
++							F71882FG_REG_IN1_HIGH);
++				data->in_beep +					f71882fg_read8(data,
++							F71882FG_REG_IN_BEEP);
++			}
+ 		}
  
-+	len = of_device_get_modalias(dev, buf, PAGE_SIZE - 1);
-+	if (len != -ENODEV)
-+		return len;
+ 		/* Get High & boundary temps*/
+@@ -1331,9 +1346,16 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
+ 			data->fan[3] = f71882fg_read16(data,
+ 						F71882FG_REG_FAN(3));
+ 
+-		if (f71882fg_has_in1_alarm[data->type])
+-			data->in_status = f71882fg_read8(data,
++		if (f71882fg_has_in1_alarm[data->type]) {
++			if (data->type = f81866a)
++				data->in_status = f71882fg_read8(data,
++						F81866_REG_IN_STATUS);
 +
- 	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
- 	if (len != -ENODEV)
- 		return len;
++			else
++				data->in_status = f71882fg_read8(data,
+ 						F71882FG_REG_IN_STATUS);
++		}
++
+ 		for (nr = 0; nr < F71882FG_MAX_INS; nr++)
+ 			if (f71882fg_has_in[data->type][nr])
+ 				data->in[nr] = f71882fg_read8(data,
+@@ -1474,7 +1496,10 @@ static ssize_t store_in_max(struct device *dev, struct device_attribute
+ 	val = clamp_val(val, 0, 255);
+ 
+ 	mutex_lock(&data->update_lock);
+-	f71882fg_write8(data, F71882FG_REG_IN1_HIGH, val);
++	if (data->type = f81866a)
++		f71882fg_write8(data, F81866_REG_IN1_HIGH, val);
++	else
++		f71882fg_write8(data, F71882FG_REG_IN1_HIGH, val);
+ 	data->in1_max = val;
+ 	mutex_unlock(&data->update_lock);
+ 
+@@ -1505,13 +1530,20 @@ static ssize_t store_in_beep(struct device *dev, struct device_attribute
+ 		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->in_beep = f71882fg_read8(data, F71882FG_REG_IN_BEEP);
++	if (data->type = f81866a)
++		data->in_beep = f71882fg_read8(data, F81866_REG_IN_BEEP);
++	else
++		data->in_beep = f71882fg_read8(data, F71882FG_REG_IN_BEEP);
++
+ 	if (val)
+ 		data->in_beep |= 1 << nr;
+ 	else
+ 		data->in_beep &= ~(1 << nr);
+ 
+-	f71882fg_write8(data, F71882FG_REG_IN_BEEP, data->in_beep);
++	if (data->type = f81866a)
++		f71882fg_write8(data, F81866_REG_IN_BEEP, data->in_beep);
++	else
++		f71882fg_write8(data, F71882FG_REG_IN_BEEP, data->in_beep);
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
 -- 
-2.4.3
+1.9.1
 
 
 _______________________________________________
