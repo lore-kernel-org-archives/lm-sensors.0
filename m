@@ -1,67 +1,49 @@
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Date: Mon, 06 Jul 2015 19:07:49 +0000
+From: Peter Feuerer <peter@piie.net>
+Date: Wed, 08 Jul 2015 08:11:24 +0000
 Subject: Re: [lm-sensors] [PATCH] thermal: consistently use int for temperatures
-Message-Id: <14808775.AMIXvBTC8g@diego>
+Message-Id: <cone.1436343084.787318.20214.1000@mups>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
+Cc: Lukasz Majewski <l.majewski@samsung.com>, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Stephen Warren <swarren@wwwdotorg.org>, Rafael =?UTF-8?B?Si4=?= Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-acpi@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Guenter Roeck <linux@roeck-us.net>, linux-arm-kernel@lists.infradead.org, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, Jean Delvare <jdelvare@suse.de>
 
-Am Montag, 6. Juli 2015, 09:19:49 schrieb Sascha Hauer:
-> The thermal code uses int, long and unsigned long for temperatures
-> in different places.
->=20
-> Using an unsigned type limits the thermal framework to positive
-> temperatures without need. Also several drivers currently will report
-> temperatures near UINT_MAX for temperatures below 0=B0C. This will probab=
-ly
-> immediately shut the machine down due to overtemperature if started below
-> 0=B0C.
->=20
-> 'long' is 64bit on several architectures. This is not needed since INT_MAX
-> =B0mC is above the melting point of all known materials.
->=20
-> Consistently use a plain 'int' for temperatures throughout the thermal co=
-de
-> and the drivers. This only changes the places in the drivers where the
-> temperature is passed around as pointer, when drivers internally use
-> another type this is not changed.
->=20
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Eduardo Valentin <edubezval@gmail.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: Jean Delvare <jdelvare@suse.de>
-> Cc: Peter Feuerer <peter@piie.net>
-> Cc: Heiko Stuebner <heiko@sntech.de>
-> Cc: Lukasz Majewski <l.majewski@samsung.com>
-> Cc: Stephen Warren <swarren@wwwdotorg.org>
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: platform-driver-x86@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-> Cc: Darren Hart <dvhart@infradead.org>
-> Cc: lm-sensors@lm-sensors.org
-> ---
-
-For
-
->  drivers/thermal/rockchip_thermal.c                 | 10 ++++----
-
-Reviewed-by: Heiko Stuebner <heiko@sntech.de>
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U2FzY2hhIEhhdWVyIHdyaXRlczoKCj4gVGhlIHRoZXJtYWwgY29kZSB1c2VzIGludCwgbG9uZyBh
+bmQgdW5zaWduZWQgbG9uZyBmb3IgdGVtcGVyYXR1cmVzCj4gaW4gZGlmZmVyZW50IHBsYWNlcy4K
+PiAKPiBVc2luZyBhbiB1bnNpZ25lZCB0eXBlIGxpbWl0cyB0aGUgdGhlcm1hbCBmcmFtZXdvcmsg
+dG8gcG9zaXRpdmUKPiB0ZW1wZXJhdHVyZXMgd2l0aG91dCBuZWVkLiBBbHNvIHNldmVyYWwgZHJp
+dmVycyBjdXJyZW50bHkgd2lsbCByZXBvcnQKPiB0ZW1wZXJhdHVyZXMgbmVhciBVSU5UX01BWCBm
+b3IgdGVtcGVyYXR1cmVzIGJlbG93IDDCsEMuIFRoaXMgd2lsbCBwcm9iYWJseQo+IGltbWVkaWF0
+ZWx5IHNodXQgdGhlIG1hY2hpbmUgZG93biBkdWUgdG8gb3ZlcnRlbXBlcmF0dXJlIGlmIHN0YXJ0
+ZWQgYmVsb3cKPiAwwrBDLgo+IAo+ICdsb25nJyBpcyA2NGJpdCBvbiBzZXZlcmFsIGFyY2hpdGVj
+dHVyZXMuIFRoaXMgaXMgbm90IG5lZWRlZCBzaW5jZSBJTlRfTUFYIMKwbUMKPiBpcyBhYm92ZSB0
+aGUgbWVsdGluZyBwb2ludCBvZiBhbGwga25vd24gbWF0ZXJpYWxzLgo+IAo+IENvbnNpc3RlbnRs
+eSB1c2UgYSBwbGFpbiAnaW50JyBmb3IgdGVtcGVyYXR1cmVzIHRocm91Z2hvdXQgdGhlIHRoZXJt
+YWwgY29kZSBhbmQKPiB0aGUgZHJpdmVycy4gVGhpcyBvbmx5IGNoYW5nZXMgdGhlIHBsYWNlcyBp
+biB0aGUgZHJpdmVycyB3aGVyZSB0aGUgdGVtcGVyYXR1cmUKPiBpcyBwYXNzZWQgYXJvdW5kIGFz
+IHBvaW50ZXIsIHdoZW4gZHJpdmVycyBpbnRlcm5hbGx5IHVzZSBhbm90aGVyIHR5cGUgdGhpcyBp
+cwo+IG5vdCBjaGFuZ2VkLgo+IAo+IFNpZ25lZC1vZmYtYnk6IFNhc2NoYSBIYXVlciA8cy5oYXVl
+ckBwZW5ndXRyb25peC5kZT4KPiBDYzogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPgo+
+IENjOiBFZHVhcmRvIFZhbGVudGluIDxlZHViZXp2YWxAZ21haWwuY29tPgo+IENjOiBsaW51eC1w
+bUB2Z2VyLmtlcm5lbC5vcmcKPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+IENj
+OiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+Cj4gQ2M6IFBldGVyIEZldWVyZXIgPHBl
+dGVyQHBpaWUubmV0Pgo+IENjOiBIZWlrbyBTdHVlYm5lciA8aGVpa29Ac250ZWNoLmRlPgo+IENj
+OiBMdWthc3ogTWFqZXdza2kgPGwubWFqZXdza2lAc2Ftc3VuZy5jb20+Cj4gQ2M6IFN0ZXBoZW4g
+V2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+Cj4gQ2M6IFRoaWVycnkgUmVkaW5nIDx0aGll
+cnJ5LnJlZGluZ0BnbWFpbC5jb20+Cj4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnCj4g
+Q2M6IHBsYXRmb3JtLWRyaXZlci14ODZAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
+Zwo+IENjOiBsaW51eC1zYW1zdW5nLXNvY0B2Z2VyLmtlcm5lbC5vcmcKPiBDYzogR3VlbnRlciBS
+b2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJq
+d3lzb2NraS5uZXQ+Cj4gQ2M6IE1heGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAZnJlZS1lbGVj
+dHJvbnMuY29tPgo+IENjOiBEYXJyZW4gSGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+Cj4gQ2M6
+IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiAtLS0KClsuLi5dCgpGb3I6Cgo+ICBkcml2ZXJz
+L3BsYXRmb3JtL3g4Ni9hY2VyaGRmLmMgICAgICAgICAgICAgICAgICAgICB8ICA5ICsrKystLS0t
+Cj4gIGRyaXZlcnMvdGhlcm1hbC9nb3ZfYmFuZ19iYW5nLmMgICAgICAgICAgICAgICAgICAgIHwg
+IDUgKystLQoKUmV2aWV3ZWQtYnk6IFBldGVyIEZldWVyZXIgPHBldGVyQHBpaWUubmV0PgoKWy4u
+Ll0KCgotLSAKLS1wZXRlcjsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29y
+cw=
