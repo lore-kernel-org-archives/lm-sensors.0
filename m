@@ -1,31 +1,51 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 27 Jul 2015 22:17:11 +0000
-Subject: Re: [lm-sensors] [PATCH v5] hwmon: (nct7802) Add auto_point attributes
-Message-Id: <55B6ADE7.3080003@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Fri, 10 Jul 2015 05:00:08 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: pmbus: Constify pmbus_regulator_ops
+Message-Id: <1436504408.17707.2.camel@ingics.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438034468-809-1-git-send-email-const@MakeLinux.com>
-In-Reply-To: <1438034468-809-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/27/2015 03:01 PM, Constantine Shulyupin wrote:
-> Introduced REG_PWM, pwm[1..3]_auto_point[1..5]_temp,
-> pwm[1..3]_auto_point[1..5]_pwm, nct7802_auto_point_attrs,
-> nct7802_auto_point_group, updated nct7802_regmap_is_volatile
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
-> ---
->
+pmbus_regulator_ops is not modified after initialized, so make it const.
 
-Applied to -next.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/pmbus/pmbus.h      | 2 +-
+ drivers/hwmon/pmbus/pmbus_core.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Note that the patch requires http://www.spinics.net/lists/kernel/msg2041703.html
-to work reliably.
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index 21f8b2f..58262b5 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -380,7 +380,7 @@ struct pmbus_driver_info {
+ 
+ /* Regulator ops */
+ 
+-extern struct regulator_ops pmbus_regulator_ops;
++extern const struct regulator_ops pmbus_regulator_ops;
+ 
+ /* Macro for filling in array of struct regulator_desc */
+ #define PMBUS_REGULATOR(_name, _id)				\
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index f2e47c7..12d85b1 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -1796,7 +1796,7 @@ static int pmbus_regulator_disable(struct regulator_dev *rdev)
+ 	return _pmbus_regulator_on_off(rdev, 0);
+ }
+ 
+-struct regulator_ops pmbus_regulator_ops = {
++const struct regulator_ops pmbus_regulator_ops = {
+ 	.enable = pmbus_regulator_enable,
+ 	.disable = pmbus_regulator_disable,
+ 	.is_enabled = pmbus_regulator_is_enabled,
+-- 
+2.1.0
 
-Thanks,
-Guenter
+
 
 
 _______________________________________________
