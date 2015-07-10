@@ -1,144 +1,39 @@
-From: Peter Hung <hpeter@gmail.com>
-Date: Tue, 07 Jul 2015 08:22:37 +0000
-Subject: [lm-sensors] [PATCH V3 2/3] hwmon:f71882fg fix f81866a temp/beep setting
-Message-Id: <1436257358-31360-3-git-send-email-hpeter+linux_kernel@gmail.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Date: Fri, 10 Jul 2015 05:51:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Drop owner assignment from i2c_driver
+Message-Id: <1436507492-23617-1-git-send-email-k.kozlowski@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
-In-Reply-To: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jdelvare@suse.de, linux@roeck-us.net
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
+To: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-The temperature value of Fintek F81866 is the same with
-f71882fg. It located with 0x6c + 2*(nr), others located
-with 0x6c + 2*(nr+1). We change the rule in f71882fg_probe(),
-If type = f71858fg/f8000/f81866a. the temp_start will set to 0,
-others are 1.
+i2c_driver does not need to set an owner because i2c_register_driver()
+will set it.
 
-The F81866 over-temperature beep setting is not the same with
-f71882fg too. They are using the same address 63H, but F81866 is
-using bit 0/1/2 & 4/5/6, others are using bit 1/2/3 & 5/6/7,
-So we copy from fxxxx_temp_beep_attr[] to f81866_temp_beep_attr
-and change bit setting.
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-Signed-off-by: Peter Hung <hpeter+linux_kernel@gmail.com>
 ---
- drivers/hwmon/f71882fg.c | 60 +++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 52 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index 3a7185a..79f1f50 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -506,6 +506,23 @@ static struct sensor_device_attribute_2 fxxxx_temp_beep_attr[3][2] = { {
- 		store_temp_beep, 0, 7),
- } };
- 
-+static struct sensor_device_attribute_2 f81866_temp_beep_attr[3][2] = { {
-+	SENSOR_ATTR_2(temp1_max_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 0),
-+	SENSOR_ATTR_2(temp1_crit_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 4),
-+}, {
-+	SENSOR_ATTR_2(temp2_max_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 1),
-+	SENSOR_ATTR_2(temp2_crit_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 5),
-+}, {
-+	SENSOR_ATTR_2(temp3_max_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 2),
-+	SENSOR_ATTR_2(temp3_crit_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 6),
-+} };
-+
- /*
-  * Temp attr for the f8000
-  * Note on the f8000 temp_ovt (crit) is used as max, and temp_high (max)
-@@ -2287,6 +2304,7 @@ static int f71882fg_probe(struct platform_device *pdev)
- 	int nr_fans = f71882fg_nr_fans[sio_data->type];
- 	int nr_temps = f71882fg_nr_temps[sio_data->type];
- 	int err, i;
-+	int size;
- 	u8 start_reg, reg;
- 
- 	data = devm_kzalloc(&pdev->dev, sizeof(struct f71882fg_data),
-@@ -2297,7 +2315,8 @@ static int f71882fg_probe(struct platform_device *pdev)
- 	data->addr = platform_get_resource(pdev, IORESOURCE_IO, 0)->start;
- 	data->type = sio_data->type;
- 	data->temp_start -	    (data->type = f71858fg || data->type = f8000) ? 0 : 1;
-+	    (data->type = f71858fg || data->type = f8000 ||
-+		data->type = f81866a) ? 0 : 1;
- 	mutex_init(&data->update_lock);
- 	platform_set_drvdata(pdev, data);
- 
-@@ -2339,6 +2358,11 @@ static int f71882fg_probe(struct platform_device *pdev)
- 					f8000_temp_attr,
- 					ARRAY_SIZE(f8000_temp_attr));
- 			break;
-+		case f81866a:
-+			err = f71882fg_create_sysfs_files(pdev,
-+					f71858fg_temp_attr,
-+					ARRAY_SIZE(f71858fg_temp_attr));
-+			break;
- 		default:
- 			err = f71882fg_create_sysfs_files(pdev,
- 				&fxxxx_temp_attr[0][0],
-@@ -2348,10 +2372,18 @@ static int f71882fg_probe(struct platform_device *pdev)
- 			goto exit_unregister_sysfs;
- 
- 		if (f71882fg_temp_has_beep[data->type]) {
--			err = f71882fg_create_sysfs_files(pdev,
--					&fxxxx_temp_beep_attr[0][0],
--					ARRAY_SIZE(fxxxx_temp_beep_attr[0])
--						* nr_temps);
-+			if (data->type = f81866a) {
-+				size = ARRAY_SIZE(f81866_temp_beep_attr[0]);
-+				err = f71882fg_create_sysfs_files(pdev,
-+						&f81866_temp_beep_attr[0][0],
-+						size * nr_temps);
-+
-+			} else {
-+				size = ARRAY_SIZE(fxxxx_temp_beep_attr[0]);
-+				err = f71882fg_create_sysfs_files(pdev,
-+						&fxxxx_temp_beep_attr[0][0],
-+						size * nr_temps);
-+			}
- 			if (err)
- 				goto exit_unregister_sysfs;
- 		}
-@@ -2468,15 +2500,27 @@ static int f71882fg_remove(struct platform_device *pdev)
- 					f8000_temp_attr,
- 					ARRAY_SIZE(f8000_temp_attr));
- 			break;
-+		case f81866a:
-+			f71882fg_remove_sysfs_files(pdev,
-+					f71858fg_temp_attr,
-+					ARRAY_SIZE(f71858fg_temp_attr));
-+			break;
- 		default:
- 			f71882fg_remove_sysfs_files(pdev,
- 				&fxxxx_temp_attr[0][0],
- 				ARRAY_SIZE(fxxxx_temp_attr[0]) * nr_temps);
- 		}
- 		if (f71882fg_temp_has_beep[data->type]) {
--			f71882fg_remove_sysfs_files(pdev,
--			       &fxxxx_temp_beep_attr[0][0],
--			       ARRAY_SIZE(fxxxx_temp_beep_attr[0]) * nr_temps);
-+			if (data->type = f81866a)
-+				f71882fg_remove_sysfs_files(pdev,
-+					&f81866_temp_beep_attr[0][0],
-+					ARRAY_SIZE(f81866_temp_beep_attr[0])
-+						* nr_temps);
-+			else
-+				f71882fg_remove_sysfs_files(pdev,
-+					&fxxxx_temp_beep_attr[0][0],
-+					ARRAY_SIZE(fxxxx_temp_beep_attr[0])
-+						* nr_temps);
- 		}
- 
- 		for (i = 0; i < F71882FG_MAX_INS; i++) {
+The coccinelle script which generated the patch was sent here:
+http://www.spinics.net/lists/kernel/msg2029903.html
+---
+ drivers/hwmon/g762.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/hwmon/g762.c b/drivers/hwmon/g762.c
+index 9b55e673b67c..3d845947f584 100644
+--- a/drivers/hwmon/g762.c
++++ b/drivers/hwmon/g762.c
+@@ -1112,7 +1112,6 @@ static int g762_remove(struct i2c_client *client)
+ static struct i2c_driver g762_driver = {
+ 	.driver = {
+ 		.name = DRVNAME,
+-		.owner = THIS_MODULE,
+ 		.of_match_table = of_match_ptr(g762_dt_match),
+ 	},
+ 	.probe	  = g762_probe,
 -- 
 1.9.1
 
