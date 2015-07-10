@@ -1,39 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Jul 2015 14:34:19 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: (nct7802) add temperature sensor type attribute
-Message-Id: <5593FA6B.6060703@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Fri, 10 Jul 2015 04:59:13 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: pmbus: Explicitly set regulator type for pmbus_regulator_ops
+Message-Id: <1436504353.17707.1.camel@ingics.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1435733543-21290-1-git-send-email-const@MakeLinux.com>
-In-Reply-To: <1435733543-21290-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Constantine Shulyupin <const@MakeLinux.com>, jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Constantine,
+The pmbus_regulator_ops is for voltage regulators, so explicitly set
+regulator type for better readability.
 
-On 06/30/2015 11:52 PM, Constantine Shulyupin wrote:
-> From: const <const@MakeLinux.com>
->
-You don't need the above, since the patch is from yourself.
-It only screws up the commit log (showing the author as "const").
-No problem, I dropped it, just keep it in mind for later.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/pmbus/pmbus.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-> Sensor type:
-> 3 diode (current mode), MD=1
-> 4 thermistor, MD=2
->
-> Reference:
-> Nuvoton Hardware Monitoring IC NCT7802Y
-> 7.2.32 Mode Selection Register
-> Location : Index 22h
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index 89a23ff..21f8b2f 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -390,6 +390,7 @@ extern struct regulator_ops pmbus_regulator_ops;
+ 		.of_match = of_match_ptr(_name # _id),		\
+ 		.regulators_node = of_match_ptr("regulators"),	\
+ 		.ops = &pmbus_regulator_ops,			\
++		.type = REGULATOR_VOLTAGE,			\
+ 		.owner = THIS_MODULE,				\
+ 	}
+ 
+-- 
+2.1.0
 
-Applied to -next.
 
-Thanks,
-Guenter
 
 
 _______________________________________________
