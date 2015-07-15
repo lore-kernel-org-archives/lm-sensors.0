@@ -1,74 +1,129 @@
-From: Dev Anand <anand.dev0@gmail.com>
-Date: Wed, 15 Jul 2015 16:27:04 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 15 Jul 2015 17:44:53 +0000
 Subject: Re: [lm-sensors] support for IT8586E
-Message-Id: <CANOLSHAb+gR743AtcA3kMOAGWuCH8rgS7y_++MNS6S2e=3Cd9w@mail.gmail.com>
+Message-Id: <20150715174453.GA30206@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CANOLSHBWuQCpJTUT3aNi7_rqPwPT4QK7CkVxvhcuyfm4qqFw8g@mail.gmail.com>
 In-Reply-To: <CANOLSHBWuQCpJTUT3aNi7_rqPwPT4QK7CkVxvhcuyfm4qqFw8g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-VGhhbmtzIEplYW4gYW5kIEd1ZW50ZXIsCgpUaGVyZSBpcyBubyAvcHJvYy9hY3BpL2ZhbiBvciAv
-cHJvYy9hY3BpL3RoZXJtYWxfem9uZSBmb2xkZXIgYnV0LCBJIGRvIHNlZQovcHJvYy9hY3BpL2J1
-dHRvbiBhbmQgL3Byb2MvYWNwaS93YWtldXAuCklzIHRoZXJlIGFueSBndWlkZSBvbiBob3cgdG8g
-c2V0dXAgdGhlIEFDUEkgZmFuIGNvbnRyb2w/CgpSZWdhcmRzLApEZXYKCiRzZW5zb3JzCmsxMHRl
-bXAtcGNpLTAwYzMKQWRhcHRlcjogUENJIGFkYXB0ZXIKdGVtcDE6ICAgICAgICArMzcuOMKwQyAg
-KGhpZ2ggPSArNzAuMMKwQykKICAgICAgICAgICAgICAgICAgICAgICAoY3JpdCA9ICsxMDAuMMKw
-QywgaHlzdCA9ICs5OS4wwrBDKQoKZmFtMTVoX3Bvd2VyLXBjaS0wMGM0CkFkYXB0ZXI6IFBDSSBh
-ZGFwdGVyCnBvd2VyMTogICAgICAgICAgIE4vQSAgKGNyaXQgPSAgMTguOTYgVykKCiRzdWRvIHNl
-bnNvcnMtZGV0ZWN0Ci4uLi4uCkFNRCBGYW1pbHkgMTVoIHRoZXJtYWwgc2Vuc29ycy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIFN1Y2Nlc3MhCiAgICAoZHJpdmVyIGBrMTB0ZW1wJykKLi4u
-Li4KU29tZSBTdXBlciBJL08gY2hpcHMgY29udGFpbiBlbWJlZGRlZCBzZW5zb3JzLiBXZSBoYXZl
-IHRvIHdyaXRlIHRvCnN0YW5kYXJkIEkvTyBwb3J0cyB0byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVz
-dWFsbHkgc2FmZS4KRG8geW91IHdhbnQgdG8gc2NhbiBmb3IgU3VwZXIgSS9PIHNlbnNvcnM/IChZ
-RVMvbm8pOiBZRVMKUHJvYmluZyBmb3IgU3VwZXItSS9PIGF0IDB4MmUvMHgyZgpUcnlpbmcgZmFt
-aWx5IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yL0lURScuLi4gICAgICAgICAgICAgICBObwpUcnlp
-bmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBO
-bwpUcnlpbmcgZmFtaWx5IGBWSUEvV2luYm9uZC9OdXZvdG9uL0ZpbnRlaycuLi4gICAgICAgICAg
-ICAgICBObwpUcnlpbmcgZmFtaWx5IGBJVEUnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHg0ZS8weDRmClRyeWluZyBm
-YW1pbHkgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IvSVRFJy4uLiAgICAgICAgICAgICAgIFllcwpG
-b3VuZCB1bmtub3duIGNoaXAgd2l0aCBJRCAweDg1ODYKLi4uLgpOb3cgZm9sbG93cyBhIHN1bW1h
-cnkgb2YgdGhlIHByb2JlcyBJIGhhdmUganVzdCBkb25lLgpKdXN0IHByZXNzIEVOVEVSIHRvIGNv
-bnRpbnVlOgoKRHJpdmVyIGBrMTB0ZW1wJyAoYXV0b2xvYWRlZCk6CiAgKiBDaGlwIGBBTUQgRmFt
-aWx5IDE1aCB0aGVybWFsIHNlbnNvcnMnIChjb25maWRlbmNlOiA5KQoKTm8gbW9kdWxlcyB0byBs
-b2FkLCBza2lwcGluZyBtb2R1bGVzIGNvbmZpZ3VyYXRpb24uCgpVbmxvYWRpbmcgY3B1aWQuLi4g
-T0sKCgokc3VkbyBwd21jb25maWcKLi4uCi91c3Ivc2Jpbi9wd21jb25maWc6IFRoZXJlIGFyZSBu
-byBwd20tY2FwYWJsZSBzZW5zb3IgbW9kdWxlcyBpbnN0YWxsZWQKCgpPbiBXZWQsIEp1bCAxNSwg
-MjAxNSBhdCAxMDozNyBBTSwgR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PiB3cm90
-ZToKCj4gT24gV2VkLCBKdWwgMTUsIDIwMTUgYXQgMDk6NDY6MjZBTSArMDIwMCwgSmVhbiBEZWx2
-YXJlIHdyb3RlOgo+ID4gSGkgRGV2LAo+ID4KPiA+IE9uIFR1ZSwgMTQgSnVsIDIwMTUgMjM6Mjc6
-NDEgLTA0MDAsIERldiBBbmFuZCB3cm90ZToKPiA+ID4gSSBnb3QgbXlzZWxmIGEgTGVub3ZvIHo1
-MC03NS4gVGhlIGZhbiBpcyBhbHdheXMgb24uIEFuZCwgc2Vuc29ycy1kZXRlY3QKPiA+ID4gcmVw
-b3J0cyB0aGUgZm9sbG93aW5nLgo+ID4gPgo+ID4gPiBUcnlpbmcgZmFtaWx5IGBJVEUnLi4uICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwo+ID4gPgo+ID4gPiBQcm9iaW5n
-IGZvciBTdXBlci1JL08gYXQgMHg0ZS8weDRmCj4gPiA+Cj4gPiA+IFRyeWluZyBmYW1pbHkgYE5h
-dGlvbmFsIFNlbWljb25kdWN0b3IvSVRFJy4uLiAgICAgICAgICAgICAgIFllcwo+ID4gPgo+ID4g
-PiBGb3VuZCB1bmtub3duIGNoaXAgd2l0aCBJRCAweDg1ODYKPiA+ID4KPiA+ID4KPiA+ID4gQXBw
-ZWFycyB0byBiZSBJVDg1ODZFLiBBcmUgdGhlcmUgYW55IHBsYW5zIG9mIHN1cHBvcnRpbmcgdGhp
-cyBjaGlwLiBJCj4gZG9uJ3QKPiA+ID4gc2VlIGl0IGxpc3RlZCBvbiB0aGUgaHR0cDovL3d3dy5s
-bS1zZW5zb3JzLm9yZy93aWtpL0RldmljZXMgd2ViIHNpdGUuCj4gPgo+ID4gSXQncyBub3QgbGlz
-dGVkIG9uIElURSdzIHdlYnNpdGUgZWl0aGVyLiBOZXZlciBoZWFyZCBvZiB0aGF0IGNoaXAuIEkn
-dmUKPiA+IGFkZGVkIGFuIGVudHJ5IGluIHRoZSB3aWtpLCB3aXRoIHlvdXIgcmVxdWVzdC4gQnV0
-IHdpdGhvdXQgYSBkYXRhc2hlZXQKPiA+IHRoZXJlJ3Mgbm90aGluZyB3ZSBjYW4gZG8uCj4gPgo+
-IEkgdGhpbmsgdGhpcyBpcyBhbiBlbWJlZGRlZCBjb250cm9sbGVyLCBub3QgYSBsZWdhY3kgU3Vw
-ZXItSU8gY2hpcC4KPiBUcnlpbmcgdGhlIEFDUEkgZHJpdmVycyB5b3UgbWVudGlvbmVkIGJlbG93
-IG1pZ2h0IGJlIHRoZSBiZXN0IG9wdGlvbi4KPgo+IEd1ZW50ZXIKPgo+ID4gUGxlYXNlIG5vdGUg
-dGhhdCBvbiBhIGxhcHRvcCB0aGUgZmFuIGlzIG1vc3QgY2VydGFpbmx5IGNvbnRyb2xsZWQgYnkK
-PiA+IEFDUEkgYW55d2F5IHNvIGEgZHJpdmVyIGZvciB0aGUgSVQ4NTg2RSB3b3VsZCBub3QgbmVj
-ZXNzYXJpbHkgaGVscC4gSWYKPiA+IHRoZSBmYW4gZG9lcyBub3QgYmVoYXZlIHRoZSB3YXkgaXQg
-c2hvdWxkLCB5b3Ugc2hvdWxkIGNoZWNrIHRoZSBCSU9TCj4gPiBvcHRpb25zIGFuZCByZXBvcnQg
-dGhlIHByb2JsZW0gdG8gdGhlIGxpbnV4LWFjcGkgQUNQSS4KPiA+Cj4gPiBBbHNvIGNoZWNrIHRo
-ZSB0aGlua3BhZF9hY3BpIGFuZCBpZGVhcGFkLWxhcHRvcCBrZXJuZWwgZHJpdmVycy4gVGhlcmUK
-PiA+IGlzIG5vIGV4cGxpY2l0IG1lbnRpb24gb2YgeW91ciBsYXB0b3AgbW9kZWwgdGhlcmUgYnV0
-IG90aGVyIExlbm92bwo+ID4gbGFwdG9wcyBhcmUgc3VwcG9ydGVkIHNvIG1heWJlIHN1cHBvcnQg
-Zm9yIHlvdXIgbW9kZWwgY291bGQvc2hvdWxkIGJlCj4gPiBhZGRlZCB0aGVyZS4KPiA+Cj4gPiAt
-LQo+ID4gSmVhbiBEZWx2YXJlCj4gPiBTVVNFIEwzIFN1cHBvcnQKPiA+Cj4gPiBfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+ID4gbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKPiA+IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiA+IGh0dHA6Ly9saXN0cy5s
-bS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMKPgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
-dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Wed, Jul 15, 2015 at 12:27:04PM -0400, Dev Anand wrote:
+> Thanks Jean and Guenter,
+>=20
+> There is no /proc/acpi/fan or /proc/acpi/thermal_zone folder but, I do see
+> /proc/acpi/button and /proc/acpi/wakeup.
+> Is there any guide on how to setup the ACPI fan control?
+>=20
+Did you try to load the acpi modules Jean suggested ?=20
+
+Guenter
+
+> Regards,
+> Dev
+>=20
+> $sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:        +37.8=B0C  (high =3D +70.0=B0C)
+>                        (crit =3D +100.0=B0C, hyst =3D +99.0=B0C)
+>=20
+> fam15h_power-pci-00c4
+> Adapter: PCI adapter
+> power1:           N/A  (crit =3D  18.96 W)
+>=20
+> $sudo sensors-detect
+> .....
+> AMD Family 15h thermal sensors...                           Success!
+>     (driver `k10temp')
+> .....
+> Some Super I/O chips contain embedded sensors. We have to write to
+> standard I/O ports to probe them. This is usually safe.
+> Do you want to scan for Super I/O sensors? (YES/no): YES
+> Probing for Super-I/O at 0x2e/0x2f
+> Trying family `National Semiconductor/ITE'...               No
+> Trying family `SMSC'...                                     No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+> Trying family `ITE'...                                      No
+> Probing for Super-I/O at 0x4e/0x4f
+> Trying family `National Semiconductor/ITE'...               Yes
+> Found unknown chip with ID 0x8586
+> ....
+> Now follows a summary of the probes I have just done.
+> Just press ENTER to continue:
+>=20
+> Driver `k10temp' (autoloaded):
+>   * Chip `AMD Family 15h thermal sensors' (confidence: 9)
+>=20
+> No modules to load, skipping modules configuration.
+>=20
+> Unloading cpuid... OK
+>=20
+>=20
+> $sudo pwmconfig
+> ...
+> /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
+>=20
+>=20
+> On Wed, Jul 15, 2015 at 10:37 AM, Guenter Roeck <linux@roeck-us.net> wrot=
+e:
+>=20
+> > On Wed, Jul 15, 2015 at 09:46:26AM +0200, Jean Delvare wrote:
+> > > Hi Dev,
+> > >
+> > > On Tue, 14 Jul 2015 23:27:41 -0400, Dev Anand wrote:
+> > > > I got myself a Lenovo z50-75. The fan is always on. And, sensors-de=
+tect
+> > > > reports the following.
+> > > >
+> > > > Trying family `ITE'...                                      No
+> > > >
+> > > > Probing for Super-I/O at 0x4e/0x4f
+> > > >
+> > > > Trying family `National Semiconductor/ITE'...               Yes
+> > > >
+> > > > Found unknown chip with ID 0x8586
+> > > >
+> > > >
+> > > > Appears to be IT8586E. Are there any plans of supporting this chip.=
+ I
+> > don't
+> > > > see it listed on the http://www.lm-sensors.org/wiki/Devices web sit=
+e.
+> > >
+> > > It's not listed on ITE's website either. Never heard of that chip. I'=
+ve
+> > > added an entry in the wiki, with your request. But without a datasheet
+> > > there's nothing we can do.
+> > >
+> > I think this is an embedded controller, not a legacy Super-IO chip.
+> > Trying the ACPI drivers you mentioned below might be the best option.
+> >
+> > Guenter
+> >
+> > > Please note that on a laptop the fan is most certainly controlled by
+> > > ACPI anyway so a driver for the IT8586E would not necessarily help. If
+> > > the fan does not behave the way it should, you should check the BIOS
+> > > options and report the problem to the linux-acpi ACPI.
+> > >
+> > > Also check the thinkpad_acpi and ideapad-laptop kernel drivers. There
+> > > is no explicit mention of your laptop model there but other Lenovo
+> > > laptops are supported so maybe support for your model could/should be
+> > > added there.
+> > >
+> > > --
+> > > Jean Delvare
+> > > SUSE L3 Support
+> > >
+> > > _______________________________________________
+> > > lm-sensors mailing list
+> > > lm-sensors@lm-sensors.org
+> > > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> >
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
