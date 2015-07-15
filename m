@@ -1,8 +1,10 @@
 From: "Karen Richards" <krichards@aimdigitalpros.com>
-Date: Mon, 06 Jul 2015 14:15:42 +0000
+Date: Wed, 15 Jul 2015 15:24:42 +0000
 Subject: Re: [lm-sensors] Sugar CRM Users List
-Message-Id: <041001d0b7f6$fe062dc0$fa128940$@com>
+Message-Id: <0f0201d0bf13$069cd650$13d682f0$@com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <041001d0b7f6$fe062dc0$fa128940$@com>
+In-Reply-To: <041001d0b7f6$fe062dc0$fa128940$@com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +14,7 @@ To: lm-sensors@vger.kernel.org
 
  
 
-Hi
+Hi,
 
 Would you be interested in our "Sugar CRM Users List" with opt-in verified
 email addresses from the USA?
