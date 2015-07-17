@@ -1,37 +1,34 @@
-From: Peter Hung <hpeter@gmail.com>
-Date: Tue, 30 Jun 2015 01:31:07 +0000
-Subject: [lm-sensors] [PATCH V2 0/3] hwmon:f71882fg add new Fintek SuperIO support
-Message-Id: <1435627870-12249-1-git-send-email-hpeter+linux_kernel@gmail.com>
+From: Adam Majer <adamm@zombino.com>
+Date: Fri, 17 Jul 2015 11:51:19 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (k10temp) remove duplicate pci-id define
+Message-Id: <1437133879-5352-1-git-send-email-adamm@zombino.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jdelvare@suse.de, linux@roeck-us.net
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-The first patch will add Fintek F81866/F71868 SuperIO
-with H/W monitor function to f71882fg.c
+PCI_DEVICE_ID_AMD_15H_M60H_NB_F3 is now defined in pci_ids.h
 
-But some F81866 functional address is differ from F71882fg.
-The following 2 patches will fix this problem.
+Signed-off-by: Adam Majer <adamm@zombino.com>
+---
+ drivers/hwmon/k10temp.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Changelog:
-
-V2
-	Fix comments by Guenter Roeck <linux@roeck-us.net>
-	all newer add IC should keep chip IDs in numeric order.
-
-
-Peter Hung (3):
-  hwmon:f71882fg add f81866/f71868 SuperIO support
-  hwmon:f71882fg fix f81866a temp/beep setting
-  hwmon:f71882fg fix f81866a voltage protection
-
- drivers/hwmon/f71882fg.c | 162 +++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 130 insertions(+), 32 deletions(-)
-
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index 1e7bdcd..9cdfde6 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -60,7 +60,6 @@ static DEFINE_MUTEX(nb_smu_ind_mutex);
+  * Control]
+  */
+ #define F15H_M60H_REPORTED_TEMP_CTRL_OFFSET	0xd8200ca4
+-#define PCI_DEVICE_ID_AMD_15H_M60H_NB_F3	0x1573
+ 
+ static void amd_nb_smu_index_read(struct pci_dev *pdev, unsigned int devfn,
+ 				  int offset, u32 *val)
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
