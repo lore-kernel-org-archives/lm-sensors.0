@@ -1,79 +1,64 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 17 Jul 2015 19:11:03 +0000
+From: "Odzioba, Lukasz" <lukasz.odzioba@intel.com>
+Date: Fri, 17 Jul 2015 19:23:44 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: coretemp: use list instead of fixed size array for temp data
-Message-Id: <20150717211103.66000d47@endymion.delvare>
+Message-Id: <D6EDEBF1F91015459DB866AC4EE162CCF76C3A@IRSMSX103.ger.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1436976253-4810-1-git-send-email-lukasz.odzioba@intel.com>
-	<20150715230734.76347af2@endymion.delvare>
-	<D6EDEBF1F91015459DB866AC4EE162CCF766C8@IRSMSX103.ger.corp.intel.com>
-	<55A93365.4000702@roeck-us.net>
-	<D6EDEBF1F91015459DB866AC4EE162CCF76BDA@IRSMSX103.ger.corp.intel.com>
-In-Reply-To: <D6EDEBF1F91015459DB866AC4EE162CCF76BDA@IRSMSX103.ger.corp.intel.com>
+ <20150715230734.76347af2@endymion.delvare>
+ <D6EDEBF1F91015459DB866AC4EE162CCF766C8@IRSMSX103.ger.corp.intel.com>
+ <55A93365.4000702@roeck-us.net>
+ <D6EDEBF1F91015459DB866AC4EE162CCF76BDA@IRSMSX103.ger.corp.intel.com>
+ <55A94303.5040805@roeck-us.net>
+In-Reply-To: <55A94303.5040805@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Odzioba, Lukasz" <lukasz.odzioba@intel.com>
-Cc: Guenter Roeck <linux@roeck-us.net>, "Yu, Fenghua" <fenghua.yu@intel.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
+Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, 17 Jul 2015 17:28:20 +0000, Odzioba, Lukasz wrote:
-> From: Guenter Roeck [mailto:linux@roeck-us.net] 
-> On Friday, July 17, 2015 6:55 PM Guenter Roeck wrote:
-> 
-> > You don't really explain why your approach would be better than
-> > allocating an array of pointers to struct temp_data and increasing
-> > its size using krealloc if needed.
-> 
-> Let's consider two cases of such implementation:
-> a) we use array of pointers with O(n) access algorithm
-> b) we use array of pointers with O(1) access algorithm
-> 
-> In both cases an array will have greater memory footprint unless
-> we implement reallocation ourselves when cpus are disabled which will
-> make code harder to maintain.
+On Friday, July 17, 2015 8:02 PM Guenter Roeck wrote:
+> Please explain why krealloc() won't work, why using krealloc(() would
+> result in a larger memory footprint than using lists, and why disabling
+> CPUs would require any action in the first place.
 
-I see no reason to reallocate when CPUs are disabled. This is rare
-enough that I very much doubt we care.
+It will work, but it can use more memory for cpus with many cores.
+If you have just one core visible to the kernel with id 59 
+(i.e. the rest are disabled by hardware) out of 60-core cpu then you
+have to allocate an array of 60 pointers instead of just one element of
+the list. Of course you can say that for cpu with just one core list will
+use 3x the memory needed by array and that's true. I see no point in 
+arguing which case is more important, let's move on.
 
-> Case b) does not handle huge core ids and sparse enumeration well -
-> it is still to discuss whether we really need it since there is no
-> such hardware yet.
+> "yet" is a key term here. Presumably you have insider information.
 
-If you don't have a use case, I see no reason to change anything.
+No I don't have such information.
 
-If you have a use case, it would be nice to tell us what it is, so that
-we can make better comments on your proposal.
+> Unless you can share this information, I don't see the point of replacing
+> an O(1) algorithm with O(n), especially since there is a relatively simple
+> alternative available to support more CPUs.
 
-> I am not saying that my solution is the best of possible ones.
-> I am saying that "the best" can vary depending on which criteria do you
-> choose from (time, memory, clean code...). Some may say that O(n) is
-> fine unless we have thousands of cores and this code is not on hot path,
-> others may be concerned more about memory on small/old devices.
-> I don't see holy grail here, If you see one please let me know.
+Ok I understand that, and somewhat agree with that.
 
-The problem is that the lookup algorithm is only one piece of the
-puzzle. When a user runs "sensors" or any other monitoring tool, you'll
-do the look-up once for each logical CPU, or even for every attribute
-of every CPU. So we're not talking about n, we're talking about
-5 * n^2. And that can happen every other second. So while you may not
-call it a "hot path", this is still frequent enough so I am worried
-about performance aka algorithmic complexity.
+> Unless you clarify that Intel will introduce CPU IDs which cannot be used
+> as array index because they are too sparse, I don't really see how the list 
+> solution would consume less memory than an array of pointers, even if the 
+> array is somewhat sparse. After all, a list consumes at least two pointers 
+> per entry.
 
-Switching from linear complexity to quadratic complexity "because n is
-going to increase soon" is quite opposite to what I would expect.
+Ok maybe I should state that clearer, my bad. For my purposes removing limit
+of supported cores or bumping it is all I need. Removing limit of maxid is 
+just nice to have - nothing really practical any soon I guess.
 
-> If you think that we don't have to care so much about memory,
-> then I can create another patch which uses array instead of list.
+I based this patch on Kirill's which used lists and then you guys did not
+say that this is a bad idea, so I tried to solve problems reported earlier
+- deadlocks and race conditions and submitted another version.
 
-I'm not so worried about memory. Did you actually check how many bytes
-of memory were used per supported logical CPU?
+Maybe if I would start from scratch I would not ran into all this.
+In general it is good that you found the weak point of it.
 
-We could just drop NUM_REAL_CORES and use CONFIG_NR_CPUS instead, I
-would be fine with that. This lets people worried about memory
-consumption control it.
+Thanks,
+Lukas
 
--- 
-Jean Delvare
-SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
