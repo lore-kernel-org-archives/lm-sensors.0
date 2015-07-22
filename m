@@ -1,118 +1,67 @@
-From: Peter Hung <hpeter@gmail.com>
-Date: Tue, 07 Jul 2015 08:22:38 +0000
-Subject: [lm-sensors] [PATCH V3 3/3] hwmon:f71882fg fix f81866a voltage protection
-Message-Id: <1436257358-31360-4-git-send-email-hpeter+linux_kernel@gmail.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Wed, 22 Jul 2015 14:02:38 +0000
+Subject: [lm-sensors] [PATCH 4/9] Documentation: add DT bindings for ARM SCPI sensors
+Message-Id: <1437573763-6525-5-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
-In-Reply-To: <1436257358-31360-1-git-send-email-hpeter+linux_kernel@gmail.com>
+References: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jdelvare@suse.de, linux@roeck-us.net
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, tom_tsai@fintek.com.tw, peter_hong@fintek.com.tw, Peter Hung <hpeter+linux_kernel@gmail.com>
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
 
-The f81866a voltage-1 protector(VIN1) address
-is differ from f71882.
+The System Control Processor (SCP) provides access to SoC sensors via
+the System Control and Power Interface (SCPI) Message Protocol. Add
+bindings to allow probing of these sensors. Also support referencing
+of the sensors for setting up thermal zones via the thermal DT
+bindings.
 
-f71882 status:12H, beep:13H, v-high:32H
-f81866a status:16H, beep:17H, v-high:3aH
-
-Signed-off-by: Peter Hung <hpeter+linux_kernel@gmail.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/hwmon/f71882fg.c | 50 +++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 41 insertions(+), 9 deletions(-)
+ Documentation/devicetree/bindings/arm/arm,scpi.txt | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index 79f1f50..7cecd83 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -71,6 +71,10 @@
- #define F71882FG_REG_IN(nr)		(0x20  + (nr))
- #define F71882FG_REG_IN1_HIGH		0x32 /* f7188x only */
+diff --git a/Documentation/devicetree/bindings/arm/arm,scpi.txt b/Documentation/devicetree/bindings/arm/arm,scpi.txt
+index e3757bc..5cb2b18 100644
+--- a/Documentation/devicetree/bindings/arm/arm,scpi.txt
++++ b/Documentation/devicetree/bindings/arm/arm,scpi.txt
+@@ -74,8 +74,18 @@ Required sub-node properties:
+ - compatible : should be "arm,juno-scp-shmem" for Non-secure SRAM based
+ 	       shared memory on Juno platforms
  
-+#define F81866_REG_IN_STATUS		0x16 /* F81866 only */
-+#define F81866_REG_IN_BEEP			0x17 /* F81866 only */
-+#define F81866_REG_IN1_HIGH		0x3a /* F81866 only */
++Sensor bindings for the sensors based on SCPI Message Protocol
++--------------------------------------------------------------
++SCPI provides an API to access the various sensors on the SoC.
 +
- #define F71882FG_REG_FAN(nr)		(0xA0 + (16 * (nr)))
- #define F71882FG_REG_FAN_TARGET(nr)	(0xA2 + (16 * (nr)))
- #define F71882FG_REG_FAN_FULL_SPEED(nr)	(0xA4 + (16 * (nr)))
-@@ -1204,10 +1208,21 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
- 	if (time_after(jiffies, data->last_limits + 60 * HZ) ||
- 			!data->valid) {
- 		if (f71882fg_has_in1_alarm[data->type]) {
--			data->in1_max -				f71882fg_read8(data, F71882FG_REG_IN1_HIGH);
--			data->in_beep -				f71882fg_read8(data, F71882FG_REG_IN_BEEP);
-+			if (data->type = f81866a) {
-+				data->in1_max +					f71882fg_read8(data,
-+							F81866_REG_IN1_HIGH);
-+				data->in_beep +					f71882fg_read8(data,
-+							F81866_REG_IN_BEEP);
-+			} else {
-+				data->in1_max +					f71882fg_read8(data,
-+							F71882FG_REG_IN1_HIGH);
-+				data->in_beep +					f71882fg_read8(data,
-+							F71882FG_REG_IN_BEEP);
-+			}
- 		}
- 
- 		/* Get High & boundary temps*/
-@@ -1331,9 +1346,16 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
- 			data->fan[3] = f71882fg_read16(data,
- 						F71882FG_REG_FAN(3));
- 
--		if (f71882fg_has_in1_alarm[data->type])
--			data->in_status = f71882fg_read8(data,
-+		if (f71882fg_has_in1_alarm[data->type]) {
-+			if (data->type = f81866a)
-+				data->in_status = f71882fg_read8(data,
-+						F81866_REG_IN_STATUS);
++Required properties:
++- compatible : should be "arm,scpi-sensors".
++- #thermal-sensor-cells: should be set to 1. This property follows the
++			 thermal device tree bindings[2].
 +
-+			else
-+				data->in_status = f71882fg_read8(data,
- 						F71882FG_REG_IN_STATUS);
-+		}
+ [0] http://community.arm.com/servlet/JiveServlet/download/8401-45-18326/DUI0922B_scp_message_interface.pdf
+ [1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++[2] Documentation/devicetree/bindings/thermal/thermal.txt
+ 
+ Example:
+ 
+@@ -124,6 +134,11 @@ scpi_protocol: scpi@2e000000 {
+ 			clock-output-names = "pxlclk0", "pxlclk1";
+ 		};
+ 	};
 +
- 		for (nr = 0; nr < F71882FG_MAX_INS; nr++)
- 			if (f71882fg_has_in[data->type][nr])
- 				data->in[nr] = f71882fg_read8(data,
-@@ -1474,7 +1496,10 @@ static ssize_t store_in_max(struct device *dev, struct device_attribute
- 	val = clamp_val(val, 0, 255);
++	scpi_sensors0: sensors {
++		compatible = "arm,scpi-sensors";
++		#thermal-sensor-cells = <1>;
++	};
+ };
  
- 	mutex_lock(&data->update_lock);
--	f71882fg_write8(data, F71882FG_REG_IN1_HIGH, val);
-+	if (data->type = f81866a)
-+		f71882fg_write8(data, F81866_REG_IN1_HIGH, val);
-+	else
-+		f71882fg_write8(data, F71882FG_REG_IN1_HIGH, val);
- 	data->in1_max = val;
- 	mutex_unlock(&data->update_lock);
- 
-@@ -1505,13 +1530,20 @@ static ssize_t store_in_beep(struct device *dev, struct device_attribute
- 		return err;
- 
- 	mutex_lock(&data->update_lock);
--	data->in_beep = f71882fg_read8(data, F71882FG_REG_IN_BEEP);
-+	if (data->type = f81866a)
-+		data->in_beep = f71882fg_read8(data, F81866_REG_IN_BEEP);
-+	else
-+		data->in_beep = f71882fg_read8(data, F71882FG_REG_IN_BEEP);
-+
- 	if (val)
- 		data->in_beep |= 1 << nr;
- 	else
- 		data->in_beep &= ~(1 << nr);
- 
--	f71882fg_write8(data, F71882FG_REG_IN_BEEP, data->in_beep);
-+	if (data->type = f81866a)
-+		f71882fg_write8(data, F81866_REG_IN_BEEP, data->in_beep);
-+	else
-+		f71882fg_write8(data, F71882FG_REG_IN_BEEP, data->in_beep);
- 	mutex_unlock(&data->update_lock);
- 
- 	return count;
+ cpu@0 {
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
