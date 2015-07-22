@@ -1,198 +1,152 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 06 Jul 2015 15:54:21 +0000
-Subject: [lm-sensors] [PATCH 2/5] hwmon: (adm1275) Introduce configuration data structure for coeffcients
-Message-Id: <1436198064-23678-2-git-send-email-linux@roeck-us.net>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Wed, 22 Jul 2015 14:02:37 +0000
+Subject: [lm-sensors] [PATCH 3/9] cpufreq: arm_big_little: Add support to register a cpufreq cooling device
+Message-Id: <1437573763-6525-4-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Eduardo Valentin <edubezval@gmail.com>
 
-Each new chip supported by the driver has a new set of coefficients,
-making hard-coding coefficients more and more cumbersome. Introduce
-a datastructure and table to simplify configuration.
+Register passive cooling devices when initialising cpufreq on
+big.LITTLE systems. If the device tree provides a dynamic power
+coefficient for the CPUs then the bound cooling device will support
+the extensions that allow it to be used with all the existing thermal
+governors including the power allocator governor.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+A cooling device will be created per individual frequency domain and
+can be bound to thermal zones via the thermal DT bindings.
+
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/hwmon/pmbus/adm1275.c | 110 +++++++++++++++++++++++++-----------------
- 1 file changed, 65 insertions(+), 45 deletions(-)
+ drivers/cpufreq/arm_big_little.c | 52 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 50 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/adm1275.c b/drivers/hwmon/pmbus/adm1275.c
-index d34ba4f10c30..468d39289575 100644
---- a/drivers/hwmon/pmbus/adm1275.c
-+++ b/drivers/hwmon/pmbus/adm1275.c
-@@ -62,6 +62,34 @@ struct adm1275_data {
+diff --git a/drivers/cpufreq/arm_big_little.c b/drivers/cpufreq/arm_big_little.c
+index f1e42f8..72a2777 100644
+--- a/drivers/cpufreq/arm_big_little.c
++++ b/drivers/cpufreq/arm_big_little.c
+@@ -23,6 +23,7 @@
+ #include <linux/cpu.h>
+ #include <linux/cpufreq.h>
+ #include <linux/cpumask.h>
++#include <linux/cpu_cooling.h>
+ #include <linux/export.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+@@ -55,6 +56,10 @@ static bool bL_switching_enabled;
+ #define ACTUAL_FREQ(cluster, freq)  ((cluster = A7_CLUSTER) ? freq << 1 : freq)
+ #define VIRT_FREQ(cluster, freq)    ((cluster = A7_CLUSTER) ? freq >> 1 : freq)
  
- #define to_adm1275_data(x)  container_of(x, struct adm1275_data, info)
- 
-+struct coefficients {
-+	s16 m;
-+	s16 b;
-+	s16 R;
++struct private_data {
++	struct thermal_cooling_device *cdev;
 +};
 +
-+static const struct coefficients adm1075_coefficients[] = {
-+	[0] = { 27169, 0, -1 },		/* voltage */
-+	[1] = { 806, 20475, -1 },	/* current, irange25 */
-+	[2] = { 404, 20475, -1 },	/* current, irange50 */
-+	[3] = { 0, -1, 8549 },		/* power, irange25 */
-+	[4] = { 0, -1, 4279 },		/* power, irange50 */
-+};
-+
-+static const struct coefficients adm1275_coefficients[] = {
-+	[0] = { 19199, 0, -2 },		/* voltage, vrange set */
-+	[1] = { 6720, 0, -1 },		/* voltage, vrange not set */
-+	[2] = { 807, 20475, -1 },	/* current */
-+};
-+
-+static const struct coefficients adm1276_coefficients[] = {
-+	[0] = { 19199, 0, -2 },		/* voltage, vrange set */
-+	[1] = { 6720, 0, -1 },		/* voltage, vrange not set */
-+	[2] = { 807, 20475, -1 },	/* current */
-+	[3] = { 6043, 0, -2 },		/* power, vrange set */
-+	[4] = { 2115, 0, -1 },		/* power, vrange not set */
-+};
-+
- static int adm1275_read_word_data(struct i2c_client *client, int page, int reg)
+ static struct cpufreq_arm_bL_ops *arm_bL_ops;
+ static struct clk *clk[MAX_CLUSTERS];
+ static struct cpufreq_frequency_table *freq_table[MAX_CLUSTERS + 1];
+@@ -440,6 +445,7 @@ static int bL_cpufreq_init(struct cpufreq_policy *policy)
  {
- 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-@@ -235,6 +263,8 @@ static int adm1275_probe(struct i2c_client *client,
- 	struct pmbus_driver_info *info;
- 	struct adm1275_data *data;
- 	const struct i2c_device_id *mid;
-+	const struct coefficients *coefficients;
-+	int vindex = -1, cindex = -1, pindex = -1;
+ 	u32 cur_cluster = cpu_to_cluster(policy->cpu);
+ 	struct device *cpu_dev;
++	struct private_data *priv;
+ 	int ret;
  
- 	if (!i2c_check_functionality(client->adapter,
- 				     I2C_FUNC_SMBUS_READ_BYTE_DATA
-@@ -291,61 +321,34 @@ static int adm1275_probe(struct i2c_client *client,
- 	info->format[PSC_VOLTAGE_IN] = direct;
- 	info->format[PSC_VOLTAGE_OUT] = direct;
- 	info->format[PSC_CURRENT_OUT] = direct;
--	info->m[PSC_CURRENT_OUT] = 807;
--	info->b[PSC_CURRENT_OUT] = 20475;
--	info->R[PSC_CURRENT_OUT] = -1;
-+	info->format[PSC_POWER] = direct;
- 	info->func[0] = PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT;
- 
- 	info->read_word_data = adm1275_read_word_data;
- 	info->read_byte_data = adm1275_read_byte_data;
- 	info->write_word_data = adm1275_write_word_data;
- 
--	if (data->id = adm1075) {
--		info->m[PSC_VOLTAGE_IN] = 27169;
--		info->b[PSC_VOLTAGE_IN] = 0;
--		info->R[PSC_VOLTAGE_IN] = -1;
--		info->m[PSC_VOLTAGE_OUT] = 27169;
--		info->b[PSC_VOLTAGE_OUT] = 0;
--		info->R[PSC_VOLTAGE_OUT] = -1;
--	} else if (config & ADM1275_VRANGE) {
--		info->m[PSC_VOLTAGE_IN] = 19199;
--		info->b[PSC_VOLTAGE_IN] = 0;
--		info->R[PSC_VOLTAGE_IN] = -2;
--		info->m[PSC_VOLTAGE_OUT] = 19199;
--		info->b[PSC_VOLTAGE_OUT] = 0;
--		info->R[PSC_VOLTAGE_OUT] = -2;
--	} else {
--		info->m[PSC_VOLTAGE_IN] = 6720;
--		info->b[PSC_VOLTAGE_IN] = 0;
--		info->R[PSC_VOLTAGE_IN] = -1;
--		info->m[PSC_VOLTAGE_OUT] = 6720;
--		info->b[PSC_VOLTAGE_OUT] = 0;
--		info->R[PSC_VOLTAGE_OUT] = -1;
--	}
--
- 	if (device_config & ADM1275_IOUT_WARN2_SELECT)
- 		data->have_oc_fault = true;
- 
- 	switch (data->id) {
- 	case adm1075:
--		info->format[PSC_POWER] = direct;
--		info->b[PSC_POWER] = 0;
--		info->R[PSC_POWER] = -1;
-+		coefficients = adm1075_coefficients;
-+		vindex = 0;
- 		switch (config & ADM1075_IRANGE_MASK) {
- 		case ADM1075_IRANGE_25:
--			info->m[PSC_POWER] = 8549;
--			info->m[PSC_CURRENT_OUT] = 806;
-+			cindex = 1;
-+			pindex = 3;
- 			break;
- 		case ADM1075_IRANGE_50:
--			info->m[PSC_POWER] = 4279;
--			info->m[PSC_CURRENT_OUT] = 404;
-+			cindex = 2;
-+			pindex = 4;
- 			break;
- 		default:
- 			dev_err(&client->dev, "Invalid input current range");
--			info->m[PSC_POWER] = 0;
--			info->m[PSC_CURRENT_OUT] = 0;
- 			break;
- 		}
+ 	cpu_dev = get_cpu_device(policy->cpu);
+@@ -457,9 +463,15 @@ static int bL_cpufreq_init(struct cpufreq_policy *policy)
+ 	if (ret) {
+ 		dev_err(cpu_dev, "CPU %d, cluster: %d invalid freq table\n",
+ 				policy->cpu, cur_cluster);
+-		put_cluster_clk_and_freq_table(cpu_dev);
+-		return ret;
++		goto out_free_cpufreq_table;
++	}
 +
- 		info->func[0] |= PMBUS_HAVE_VIN | PMBUS_HAVE_PIN
- 		  | PMBUS_HAVE_STATUS_INPUT;
- 		if (config & ADM1275_VIN_VOUT_SELECT)
-@@ -353,6 +356,10 @@ static int adm1275_probe(struct i2c_client *client,
- 			  PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT;
- 		break;
- 	case adm1275:
-+		coefficients = adm1275_coefficients;
-+		vindex = (config & ADM1275_VRANGE) ? 0 : 1;
-+		cindex = 2;
-+
- 		if (config & ADM1275_VIN_VOUT_SELECT)
- 			info->func[0] | 			  PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT;
-@@ -361,23 +368,36 @@ static int adm1275_probe(struct i2c_client *client,
- 			  PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT;
- 		break;
- 	case adm1276:
--		info->format[PSC_POWER] = direct;
-+		coefficients = adm1276_coefficients;
-+		vindex = (config & ADM1275_VRANGE) ? 0 : 1;
-+		cindex = 2;
-+		pindex = (config & ADM1275_VRANGE) ? 3 : 4;
-+
- 		info->func[0] |= PMBUS_HAVE_VIN | PMBUS_HAVE_PIN
- 		  | PMBUS_HAVE_STATUS_INPUT;
- 		if (config & ADM1275_VIN_VOUT_SELECT)
- 			info->func[0] | 			  PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT;
--		if (config & ADM1275_VRANGE) {
--			info->m[PSC_POWER] = 6043;
--			info->b[PSC_POWER] = 0;
--			info->R[PSC_POWER] = -2;
--		} else {
--			info->m[PSC_POWER] = 2115;
--			info->b[PSC_POWER] = 0;
--			info->R[PSC_POWER] = -1;
--		}
- 		break;
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		ret = -ENOMEM;
++		goto out_free_cpufreq_table;
  	}
-+	if (vindex >= 0) {
-+		info->m[PSC_VOLTAGE_IN] = coefficients[vindex].m;
-+		info->b[PSC_VOLTAGE_IN] = coefficients[vindex].b;
-+		info->R[PSC_VOLTAGE_IN] = coefficients[vindex].R;
-+		info->m[PSC_VOLTAGE_OUT] = coefficients[vindex].m;
-+		info->b[PSC_VOLTAGE_OUT] = coefficients[vindex].b;
-+		info->R[PSC_VOLTAGE_OUT] = coefficients[vindex].R;
-+	}
-+	if (cindex >= 0) {
-+		info->m[PSC_CURRENT_OUT] = coefficients[cindex].m;
-+		info->b[PSC_CURRENT_OUT] = coefficients[cindex].b;
-+		info->R[PSC_CURRENT_OUT] = coefficients[cindex].R;
-+	}
-+	if (pindex >= 0) {
-+		info->m[PSC_POWER] = coefficients[pindex].m;
-+		info->b[PSC_POWER] = coefficients[pindex].b;
-+		info->R[PSC_POWER] = coefficients[pindex].R;
-+	}
++	policy->driver_data = priv;
  
- 	return pmbus_do_probe(client, id, info);
+ 	if (cur_cluster < MAX_CLUSTERS) {
+ 		int cpu;
+@@ -484,12 +496,19 @@ static int bL_cpufreq_init(struct cpufreq_policy *policy)
+ 
+ 	dev_info(cpu_dev, "%s: CPU %d initialized\n", __func__, policy->cpu);
+ 	return 0;
++
++out_free_cpufreq_table:
++	put_cluster_clk_and_freq_table(cpu_dev);
++
++	return ret;
  }
+ 
+ static int bL_cpufreq_exit(struct cpufreq_policy *policy)
+ {
+ 	struct device *cpu_dev;
++	struct private_data *priv = policy->driver_data;
+ 
++	cpufreq_cooling_unregister(priv->cdev);
+ 	cpu_dev = get_cpu_device(policy->cpu);
+ 	if (!cpu_dev) {
+ 		pr_err("%s: failed to get cpu%d device\n", __func__,
+@@ -498,11 +517,39 @@ static int bL_cpufreq_exit(struct cpufreq_policy *policy)
+ 	}
+ 
+ 	put_cluster_clk_and_freq_table(cpu_dev);
++	kfree(priv);
+ 	dev_dbg(cpu_dev, "%s: Exited, cpu: %d\n", __func__, policy->cpu);
+ 
+ 	return 0;
+ }
+ 
++static void bL_cpufreq_ready(struct cpufreq_policy *policy)
++{
++	struct device *cpu_dev = get_cpu_device(policy->cpu);
++	struct device_node *np = of_node_get(cpu_dev->of_node);
++	struct private_data *priv = policy->driver_data;
++
++	if (WARN_ON(!np))
++		return;
++
++	if (of_find_property(np, "#cooling-cells", NULL)) {
++		u32 power_coefficient = 0;
++
++		of_property_read_u32(np, "dynamic-power-coefficient",
++				     &power_coefficient);
++
++		priv->cdev = of_cpufreq_power_cooling_register(np,
++				policy->related_cpus, power_coefficient, NULL);
++		if (IS_ERR(priv->cdev)) {
++			dev_err(cpu_dev,
++				"running cpufreq without cooling device: %ld\n",
++				PTR_ERR(priv->cdev));
++			priv->cdev = NULL;
++		}
++	}
++	of_node_put(np);
++}
++
+ static struct cpufreq_driver bL_cpufreq_driver = {
+ 	.name			= "arm-big-little",
+ 	.flags			= CPUFREQ_STICKY |
+@@ -513,6 +560,7 @@ static struct cpufreq_driver bL_cpufreq_driver = {
+ 	.get			= bL_cpufreq_get_rate,
+ 	.init			= bL_cpufreq_init,
+ 	.exit			= bL_cpufreq_exit,
++	.ready			= bL_cpufreq_ready,
+ 	.attr			= cpufreq_generic_attr,
+ };
+ 
 -- 
-2.1.0
+2.1.4
 
 
 _______________________________________________
