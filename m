@@ -1,53 +1,53 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Thu, 23 Jul 2015 10:37:58 +0000
+From: Pavel Machek <pavel@ucw.cz>
+Date: Thu, 23 Jul 2015 12:07:59 +0000
 Subject: Re: [lm-sensors] [PATCH v2] thermal: consistently use int for temperatures
-Message-Id: <20150723103758.GI18700@pengutronix.de>
+Message-Id: <20150723120759.GA17690@amd>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
- <9hhk2tteqb3.fsf@e105922-lin.cambridge.arm.com>
- <744357E9AAD1214791ACBA4B0B9092630153E699@SHSMSX101.ccr.corp.intel.com>
-In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630153E699@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Punit Agrawal <punit.agrawal@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 
-SGkgWmhhbmcsCgpPbiBUdWUsIEp1bCAyMSwgMjAxNSBhdCAwMTozNTozMVBNICswMDAwLCBaaGFu
-ZywgUnVpIHdyb3RlOgo+ID4gPgo+IFBhdGNoIGFwcGxpZWQuCgpUaGFua3MgZm9yIGFwcGx5aW5n
-LiBJIG1pc3NlZCB0byBjb252ZXJ0IGFub3RoZXIgcGxhY2UsIHNvIHdlIGdldCBhIG5ldwpjb21w
-aWxlciB3YXJuaW5nLiBUaGUgYXR0YWNoZWQgcGF0Y2ggZml4ZXMgdGhpcyAoc3VpdGFibGUgZm9y
-IGdpdCByZWJhc2UKLS1hdXRvc3F1YXNoKS4gUGxlYXNlIGxldCBtZSBrbm93IGlmIHlvdSBjYW4g
-aGFuZGxlIHRoaXMgb3IgaWYgeW91CnByZWZlciBhIG5ldyBwYXRjaCBpbnN0ZWFkLgoKVGhhbmtz
-CiBTYXNjaGEKCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLTg8LS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKRnJvbSA0OTA3YTdjMzJmZDE2ZWFmOWYzMWQ5ZjkwNDI3
-NmM5YTAxNzZiNzE3IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBTYXNjaGEgSGF1ZXIg
-PHMuaGF1ZXJAcGVuZ3V0cm9uaXguZGU+CkRhdGU6IFRodSwgMjMgSnVsIDIwMTUgMTI6MzI6MzEg
-KzAyMDAKU3ViamVjdDogW1BBVENIXSBmaXh1cCEgdGhlcm1hbDogY29uc2lzdGVudGx5IHVzZSBp
-bnQgZm9yIHRlbXBlcmF0dXJlcwpNSU1FLVZlcnNpb246IDEuMApDb250ZW50LVR5cGU6IHRleHQv
-cGxhaW47IGNoYXJzZXQ9VVRGLTgKQ29udGVudC1UcmFuc2Zlci1FbmNvZGluZzogOGJpdAoKZml4
-ZXM6CmRyaXZlcnMvcG93ZXIvY2hhcmdlci1tYW5hZ2VyLmM6IEluIGZ1bmN0aW9uIOKAmGNtX2dl
-dF9iYXR0ZXJ5X3RlbXBlcmF0dXJl4oCZOgpkcml2ZXJzL3Bvd2VyL2NoYXJnZXItbWFuYWdlci5j
-OjYyMjo0NTogd2FybmluZzogcGFzc2luZyBhcmd1bWVudCAyIG9mIOKAmHRoZXJtYWxfem9uZV9n
-ZXRfdGVtcOKAmSBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGUKICAgcmV0ID0gdGhlcm1h
-bF96b25lX2dldF90ZW1wKGNtLT50emRfYmF0dCwgKHVuc2lnbmVkIGxvbmcgKil0ZW1wKTsKClNp
-Z25lZC1vZmYtYnk6IFNhc2NoYSBIYXVlciA8cy5oYXVlckBwZW5ndXRyb25peC5kZT4KLS0tCiBk
-cml2ZXJzL3Bvd2VyL2NoYXJnZXItbWFuYWdlci5jIHwgMiArLQogMSBmaWxlIGNoYW5nZWQsIDEg
-aW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wb3dlci9j
-aGFyZ2VyLW1hbmFnZXIuYyBiL2RyaXZlcnMvcG93ZXIvY2hhcmdlci1tYW5hZ2VyLmMKaW5kZXgg
-MWMyMDJjYy4uOTA3MjkzZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9wb3dlci9jaGFyZ2VyLW1hbmFn
-ZXIuYworKysgYi9kcml2ZXJzL3Bvd2VyL2NoYXJnZXItbWFuYWdlci5jCkBAIC02MTksNyArNjE5
-LDcgQEAgc3RhdGljIGludCBjbV9nZXRfYmF0dGVyeV90ZW1wZXJhdHVyZShzdHJ1Y3QgY2hhcmdl
-cl9tYW5hZ2VyICpjbSwKIAogI2lmZGVmIENPTkZJR19USEVSTUFMCiAJaWYgKGNtLT50emRfYmF0
-dCkgewotCQlyZXQgPSB0aGVybWFsX3pvbmVfZ2V0X3RlbXAoY20tPnR6ZF9iYXR0LCAodW5zaWdu
-ZWQgbG9uZyAqKXRlbXApOworCQlyZXQgPSB0aGVybWFsX3pvbmVfZ2V0X3RlbXAoY20tPnR6ZF9i
-YXR0LCB0ZW1wKTsKIAkJaWYgKCFyZXQpCiAJCQkvKiBDYWxpYnJhdGUgdGVtcGVyYXR1cmUgdW5p
-dCAqLwogCQkJKnRlbXAgLz0gMTAwOwotLSAKMi4xLjQKCgotLSAKUGVuZ3V0cm9uaXggZS5LLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwK
-SW5kdXN0cmlhbCBMaW51eCBTb2x1dGlvbnMgICAgICAgICAgICAgICAgIHwgaHR0cDovL3d3dy5w
-ZW5ndXRyb25peC5kZS8gIHwKUGVpbmVyIFN0ci4gNi04LCAzMTEzNyBIaWxkZXNoZWltLCBHZXJt
-YW55IHwgUGhvbmU6ICs0OS01MTIxLTIwNjkxNy0wICAgIHwKQW10c2dlcmljaHQgSGlsZGVzaGVp
-bSwgSFJBIDI2ODYgICAgICAgICAgIHwgRmF4OiAgICs0OS01MTIxLTIwNjkxNy01NTU1IHwKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMg
-bWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNl
-bnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
+> The thermal code uses int, long and unsigned long for temperatures
+> in different places.
+>=20
+> Using an unsigned type limits the thermal framework to positive
+> temperatures without need. Also several drivers currently will report
+> temperatures near UINT_MAX for temperatures below 0=B0C. This will probab=
+ly
+> immediately shut the machine down due to overtemperature if started below
+> 0=B0C.
+>=20
+> 'long' is 64bit on several architectures. This is not needed since INT_MA=
+X =B0mC
+> is above the melting point of all known materials.
+
+Can we do something like
+
+typedef millicelsius_t int;
+
+...to document the units?
+
+> Consistently use a plain 'int' for temperatures throughout the thermal co=
+de and
+> the drivers. This only changes the places in the drivers where the temper=
+ature
+> is passed around as pointer, when drivers internally use another type thi=
+s is
+> not changed.
+
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
