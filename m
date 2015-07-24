@@ -1,72 +1,53 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Date: Fri, 24 Jul 2015 01:31:36 +0000
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Fri, 24 Jul 2015 06:29:48 +0000
 Subject: Re: [lm-sensors] [PATCH v2] thermal: consistently use int for temperatures
-Message-Id: <744357E9AAD1214791ACBA4B0B9092631DD16EED@SHSMSX101.ccr.corp.intel.com>
+Message-Id: <20150724062948.GK18700@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
- <9hhk2tteqb3.fsf@e105922-lin.cambridge.arm.com>
- <744357E9AAD1214791ACBA4B0B9092630153E699@SHSMSX101.ccr.corp.intel.com>
- <20150723103758.GI18700@pengutronix.de>
-In-Reply-To: <20150723103758.GI18700@pengutronix.de>
+ <20150723120759.GA17690@amd>
+In-Reply-To: <20150723120759.GA17690@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Punit Agrawal <punit.agrawal@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 
-QXMgdGhlIG9yaWdpbmFsIHBhdGNoIGhhcyBub3QgYmVlbiBpbiB1cHN0cmVhbSwgSSdkIHByZWZl
-ciBhIHJlZnJlc2hlZCBwYXRjaCwgcmF0aGVyIHRoYW4gYW4gaW5jcmVtZW50YWwgZml4Lg0KDQpU
-aGFua3MsDQpydWkNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBTYXNj
-aGEgSGF1ZXIgW21haWx0bzpzLmhhdWVyQHBlbmd1dHJvbml4LmRlXQ0KPiBTZW50OiBUaHVyc2Rh
-eSwgSnVseSAyMywgMjAxNSA2OjM4IFBNDQo+IFRvOiBaaGFuZywgUnVpDQo+IENjOiBQdW5pdCBB
-Z3Jhd2FsOyBsaW51eC1wbUB2Z2VyLmtlcm5lbC5vcmc7IEVkdWFyZG8gVmFsZW50aW47IGxpbnV4
-LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwub3JnOyBKZWFuIERlbHZhcmU7IFBldGVyIEZldWVyZXI7
-IEhlaWtvIFN0dWVibmVyOw0KPiBMdWthc3ogTWFqZXdza2k7IFN0ZXBoZW4gV2FycmVuOyBUaGll
-cnJ5IFJlZGluZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBwbGF0Zm9ybS1kcml2
-ZXIteDg2QHZnZXIua2VybmVsLm9yZzsgbGludXgtYXJtLQ0KPiBrZXJuZWxAbGlzdHMuaW5mcmFk
-ZWFkLm9yZzsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LXNhbXN1bmctDQo+IHNv
-Y0B2Z2VyLmtlcm5lbC5vcmc7IEd1ZW50ZXIgUm9lY2s7IFJhZmFlbCBKLiBXeXNvY2tpOyBNYXhp
-bWUgUmlwYXJkOw0KPiBEYXJyZW4gSGFydDsgbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZw0KPiBT
-dWJqZWN0OiBSZTogW1BBVENIIHYyXSB0aGVybWFsOiBjb25zaXN0ZW50bHkgdXNlIGludCBmb3Ig
-dGVtcGVyYXR1cmVzDQo+IEltcG9ydGFuY2U6IEhpZ2gNCj4gDQo+IEhpIFpoYW5nLA0KPiANCj4g
-T24gVHVlLCBKdWwgMjEsIDIwMTUgYXQgMDE6MzU6MzFQTSArMDAwMCwgWmhhbmcsIFJ1aSB3cm90
-ZToNCj4gPiA+ID4NCj4gPiBQYXRjaCBhcHBsaWVkLg0KPiANCj4gVGhhbmtzIGZvciBhcHBseWlu
-Zy4gSSBtaXNzZWQgdG8gY29udmVydCBhbm90aGVyIHBsYWNlLCBzbyB3ZSBnZXQgYSBuZXcNCj4g
-Y29tcGlsZXIgd2FybmluZy4gVGhlIGF0dGFjaGVkIHBhdGNoIGZpeGVzIHRoaXMgKHN1aXRhYmxl
-IGZvciBnaXQgcmViYXNlIC0tDQo+IGF1dG9zcXVhc2gpLiBQbGVhc2UgbGV0IG1lIGtub3cgaWYg
-eW91IGNhbiBoYW5kbGUgdGhpcyBvciBpZiB5b3UgcHJlZmVyIGEgbmV3DQo+IHBhdGNoIGluc3Rl
-YWQuDQo+IA0KPiBUaGFua3MNCj4gIFNhc2NoYQ0KPiANCj4gDQo+IC0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tODwtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IA0K
-PiBGcm9tIDQ5MDdhN2MzMmZkMTZlYWY5ZjMxZDlmOTA0Mjc2YzlhMDE3NmI3MTcgTW9uIFNlcCAx
-NyAwMDowMDowMCAyMDAxDQo+IEZyb206IFNhc2NoYSBIYXVlciA8cy5oYXVlckBwZW5ndXRyb25p
-eC5kZT4NCj4gRGF0ZTogVGh1LCAyMyBKdWwgMjAxNSAxMjozMjozMSArMDIwMA0KPiBTdWJqZWN0
-OiBbUEFUQ0hdIGZpeHVwISB0aGVybWFsOiBjb25zaXN0ZW50bHkgdXNlIGludCBmb3IgdGVtcGVy
-YXR1cmVzDQo+IE1JTUUtVmVyc2lvbjogMS4wDQo+IENvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsg
-Y2hhcnNldD1VVEYtOA0KPiBDb250ZW50LVRyYW5zZmVyLUVuY29kaW5nOiA4Yml0DQo+IA0KPiBm
-aXhlczoNCj4gZHJpdmVycy9wb3dlci9jaGFyZ2VyLW1hbmFnZXIuYzogSW4gZnVuY3Rpb24NCj4g
-4oCYY21fZ2V0X2JhdHRlcnlfdGVtcGVyYXR1cmXigJk6DQo+IGRyaXZlcnMvcG93ZXIvY2hhcmdl
-ci1tYW5hZ2VyLmM6NjIyOjQ1OiB3YXJuaW5nOiBwYXNzaW5nIGFyZ3VtZW50IDIgb2YNCj4g4oCY
-dGhlcm1hbF96b25lX2dldF90ZW1w4oCZIGZyb20gaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZQ0K
-PiAgICByZXQgPSB0aGVybWFsX3pvbmVfZ2V0X3RlbXAoY20tPnR6ZF9iYXR0LCAodW5zaWduZWQg
-bG9uZyAqKXRlbXApOw0KPiANCj4gU2lnbmVkLW9mZi1ieTogU2FzY2hhIEhhdWVyIDxzLmhhdWVy
-QHBlbmd1dHJvbml4LmRlPg0KPiAtLS0NCj4gIGRyaXZlcnMvcG93ZXIvY2hhcmdlci1tYW5hZ2Vy
-LmMgfCAyICstDQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24o
-LSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3Bvd2VyL2NoYXJnZXItbWFuYWdlci5jIGIv
-ZHJpdmVycy9wb3dlci9jaGFyZ2VyLQ0KPiBtYW5hZ2VyLmMgaW5kZXggMWMyMDJjYy4uOTA3Mjkz
-ZSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9wb3dlci9jaGFyZ2VyLW1hbmFnZXIuYw0KPiArKysg
-Yi9kcml2ZXJzL3Bvd2VyL2NoYXJnZXItbWFuYWdlci5jDQo+IEBAIC02MTksNyArNjE5LDcgQEAg
-c3RhdGljIGludCBjbV9nZXRfYmF0dGVyeV90ZW1wZXJhdHVyZShzdHJ1Y3QNCj4gY2hhcmdlcl9t
-YW5hZ2VyICpjbSwNCj4gDQo+ICAjaWZkZWYgQ09ORklHX1RIRVJNQUwNCj4gIAlpZiAoY20tPnR6
-ZF9iYXR0KSB7DQo+IC0JCXJldCA9IHRoZXJtYWxfem9uZV9nZXRfdGVtcChjbS0+dHpkX2JhdHQs
-ICh1bnNpZ25lZCBsb25nDQo+ICopdGVtcCk7DQo+ICsJCXJldCA9IHRoZXJtYWxfem9uZV9nZXRf
-dGVtcChjbS0+dHpkX2JhdHQsIHRlbXApOw0KPiAgCQlpZiAoIXJldCkNCj4gIAkJCS8qIENhbGli
-cmF0ZSB0ZW1wZXJhdHVyZSB1bml0ICovDQo+ICAJCQkqdGVtcCAvPSAxMDA7DQo+IC0tDQo+IDIu
-MS40DQo+IA0KPiANCj4gLS0NCj4gUGVuZ3V0cm9uaXggZS5LLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwNCj4gSW5kdXN0cmlhbCBMaW51
-eCBTb2x1dGlvbnMgICAgICAgICAgICAgICAgIHwgaHR0cDovL3d3dy5wZW5ndXRyb25peC5kZS8g
-IHwNCj4gUGVpbmVyIFN0ci4gNi04LCAzMTEzNyBIaWxkZXNoZWltLCBHZXJtYW55IHwgUGhvbmU6
-ICs0OS01MTIxLTIwNjkxNy0wICAgIHwNCj4gQW10c2dlcmljaHQgSGlsZGVzaGVpbSwgSFJBIDI2
-ODYgICAgICAgICAgIHwgRmF4OiAgICs0OS01MTIxLTIwNjkxNy01NTU1IHwNCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
-aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
-L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Thu, Jul 23, 2015 at 02:07:59PM +0200, Pavel Machek wrote:
+> On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
+> > The thermal code uses int, long and unsigned long for temperatures
+> > in different places.
+> >=20
+> > Using an unsigned type limits the thermal framework to positive
+> > temperatures without need. Also several drivers currently will report
+> > temperatures near UINT_MAX for temperatures below 0=B0C. This will prob=
+ably
+> > immediately shut the machine down due to overtemperature if started bel=
+ow
+> > 0=B0C.
+> >=20
+> > 'long' is 64bit on several architectures. This is not needed since INT_=
+MAX =B0mC
+> > is above the melting point of all known materials.
+>=20
+> Can we do something like
+>=20
+> typedef millicelsius_t int;
+>=20
+> ...to document the units?
+
+I am not very fond of typedefs and I am not sure this adds any value. I
+could change it when more people ask for it, but I just sent the new
+version without this.
+
+Sascha
+
+--=20
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
