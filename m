@@ -1,28 +1,145 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 31 Jul 2015 01:08:59 +0000
-Subject: Re: [lm-sensors] [PATCH] dell-smm-hwmon: Blacklist Dell Studio XPS 8100
-Message-Id: <55BACAAB.4090807@roeck-us.net>
+Date: Mon, 27 Jul 2015 19:45:03 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (nct7904) Rename pwm attributes to match hwmon ABI
+Message-Id: <1438026303-15873-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438281717-9863-1-git-send-email-pali.rohar@gmail.com>
-In-Reply-To: <1438281717-9863-1-git-send-email-pali.rohar@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-T24gMDcvMzAvMjAxNSAxMTo0MSBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gQ1BVIGZhbiBzcGVl
-ZCBnb2luZyB1cCBhbmQgZG93biBvbiBEZWxsIFN0dWRpbyBYUFMgODEwMCBmb3IKPiB1bmtub3du
-IHJlYXNvbi4gV2l0aG91dCBmdXR1cmUgZGVidWdnbmluZyBvbiBhZmZlY3RlZCBtYWNoaW5lCj4g
-aXQgaXMgbm90IHBvc3NpYmxlIHRvIGRldGVjdCB3aGVyZSBpcyBwcm9ibGVtLiBGb3IgbW9yZSBz
-ZWU6Cj4gaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMDAxMjEK
-Pgo+IFNpZ25lZC1vZmYtYnk6IFBhbGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4KPiBU
-ZXN0ZWQtYnk6IEphbiBDIFBldGVycyA8amNwZXRlcnM4OUBnbWFpbC5jb20+Cj4gQ2M6IHN0YWJs
-ZUB2Z2VyLmtlcm5lbC5vcmcgIyBiZWZvcmUgdjQuMiBhcHBseSB0byBmaWxlIGRyaXZlcnMvY2hh
-ci9pOGsuYwoKQXBwbGllZCwgYWZ0ZXIgZml4aW5nIHVwIGRlc2NyaXB0aW9uIGFuZCBjb21tZW50
-cy4KCkFmdGVyIGl0IGlzIGFwcGxpZWQgdG8gbWFpbmxpbmUsIHlvdSdsbCBwcm9iYWJseSBnZXQg
-YSBub3RlCmZyb20gR3JlZywgYXNraW5nIHlvdSB0byBiYWNrLXBvcnQgdGhlIHBhdGNoIHRvIDQu
-MS4KClRoYW5rcywKR3VlbnRlcgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
-cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
-c29ycw=
+pwm attributes have well defined names, which should be used.
+
+Cc: Vadim V. Vlasov <vvlasov@dev.rtsoft.ru>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Update documentation as well.
+
+ Documentation/hwmon/nct7904 |  4 ++--
+ drivers/hwmon/nct7904.c     | 57 +++++++++++++++++++++++----------------------
+ 2 files changed, 31 insertions(+), 30 deletions(-)
+
+diff --git a/Documentation/hwmon/nct7904 b/Documentation/hwmon/nct7904
+index 014f112e2a14..57fffe33ebfc 100644
+--- a/Documentation/hwmon/nct7904
++++ b/Documentation/hwmon/nct7904
+@@ -35,11 +35,11 @@ temp1_input		Local temperature (1/1000 degree,
+ temp[2-9]_input		CPU temperatures (1/1000 degree,
+ 			0.125 degree resolution)
+ 
+-fan[1-4]_mode		R/W, 0/1 for manual or SmartFan mode
++pwm[1-4]_enable		R/W, 1/2 for manual or SmartFan mode
+ 			Setting SmartFan mode is supported only if it has been
+ 			previously configured by BIOS (or configuration EEPROM)
+ 
+-fan[1-4]_pwm		R/O in SmartFan mode, R/W in manual control mode
++pwm[1-4]		R/O in SmartFan mode, R/W in manual control mode
+ 
+ The driver checks sensor control registers and does not export the sensors
+ that are not enabled. Anyway, a sensor that is enabled may actually be not
+diff --git a/drivers/hwmon/nct7904.c b/drivers/hwmon/nct7904.c
+index b77b82f24480..6153df735e82 100644
+--- a/drivers/hwmon/nct7904.c
++++ b/drivers/hwmon/nct7904.c
+@@ -412,8 +412,9 @@ static ssize_t show_pwm(struct device *dev,
+ 	return sprintf(buf, "%d\n", val);
+ }
+ 
+-static ssize_t store_mode(struct device *dev, struct device_attribute *devattr,
+-			  const char *buf, size_t count)
++static ssize_t store_enable(struct device *dev,
++			    struct device_attribute *devattr,
++			    const char *buf, size_t count)
+ {
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct nct7904_data *data = dev_get_drvdata(dev);
+@@ -422,18 +423,18 @@ static ssize_t store_mode(struct device *dev, struct device_attribute *devattr,
+ 
+ 	if (kstrtoul(buf, 10, &val) < 0)
+ 		return -EINVAL;
+-	if (val > 1 || (val && !data->fan_mode[index]))
++	if (val < 1 || val > 2 || (val = 2 && !data->fan_mode[index]))
+ 		return -EINVAL;
+ 
+ 	ret = nct7904_write_reg(data, BANK_3, FANCTL1_FMR_REG + index,
+-				val ? data->fan_mode[index] : 0);
++				val = 2 ? data->fan_mode[index] : 0);
+ 
+ 	return ret ? ret : count;
+ }
+ 
+-/* Return 0 for manual mode or 1 for SmartFan mode */
+-static ssize_t show_mode(struct device *dev,
+-			 struct device_attribute *devattr, char *buf)
++/* Return 1 for manual mode or 2 for SmartFan mode */
++static ssize_t show_enable(struct device *dev,
++			   struct device_attribute *devattr, char *buf)
+ {
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct nct7904_data *data = dev_get_drvdata(dev);
+@@ -443,36 +444,36 @@ static ssize_t show_mode(struct device *dev,
+ 	if (val < 0)
+ 		return val;
+ 
+-	return sprintf(buf, "%d\n", val ? 1 : 0);
++	return sprintf(buf, "%d\n", val ? 2 : 1);
+ }
+ 
+ /* 2 attributes per channel: pwm and mode */
+-static SENSOR_DEVICE_ATTR(fan1_pwm, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR,
+ 			show_pwm, store_pwm, 0);
+-static SENSOR_DEVICE_ATTR(fan1_mode, S_IRUGO | S_IWUSR,
+-			show_mode, store_mode, 0);
+-static SENSOR_DEVICE_ATTR(fan2_pwm, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
++			show_enable, store_enable, 0);
++static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR,
+ 			show_pwm, store_pwm, 1);
+-static SENSOR_DEVICE_ATTR(fan2_mode, S_IRUGO | S_IWUSR,
+-			show_mode, store_mode, 1);
+-static SENSOR_DEVICE_ATTR(fan3_pwm, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
++			show_enable, store_enable, 1);
++static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR,
+ 			show_pwm, store_pwm, 2);
+-static SENSOR_DEVICE_ATTR(fan3_mode, S_IRUGO | S_IWUSR,
+-			show_mode, store_mode, 2);
+-static SENSOR_DEVICE_ATTR(fan4_pwm, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR,
++			show_enable, store_enable, 2);
++static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR,
+ 			show_pwm, store_pwm, 3);
+-static SENSOR_DEVICE_ATTR(fan4_mode, S_IRUGO | S_IWUSR,
+-			show_mode, store_mode, 3);
++static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
++			show_enable, store_enable, 3);
+ 
+ static struct attribute *nct7904_fanctl_attrs[] = {
+-	&sensor_dev_attr_fan1_pwm.dev_attr.attr,
+-	&sensor_dev_attr_fan1_mode.dev_attr.attr,
+-	&sensor_dev_attr_fan2_pwm.dev_attr.attr,
+-	&sensor_dev_attr_fan2_mode.dev_attr.attr,
+-	&sensor_dev_attr_fan3_pwm.dev_attr.attr,
+-	&sensor_dev_attr_fan3_mode.dev_attr.attr,
+-	&sensor_dev_attr_fan4_pwm.dev_attr.attr,
+-	&sensor_dev_attr_fan4_mode.dev_attr.attr,
++	&sensor_dev_attr_pwm1.dev_attr.attr,
++	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
++	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
++	&sensor_dev_attr_pwm3.dev_attr.attr,
++	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
++	&sensor_dev_attr_pwm4.dev_attr.attr,
++	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
+ 	NULL
+ };
+ 
+-- 
+2.1.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
