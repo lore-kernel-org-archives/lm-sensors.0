@@ -1,62 +1,51 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Wed, 22 Jul 2015 14:02:35 +0000
-Subject: [lm-sensors] [PATCH 1/9] devicetree: bindings: Add optional dynamic-power-coefficient property
-Message-Id: <1437573763-6525-2-git-send-email-punit.agrawal@arm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 30 Jul 2015 14:43:47 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.2-rc5
+Message-Id: <1438267427-21920-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
-In-Reply-To: <1437573763-6525-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@vger.kernel.org
-Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, viresh.kumar@linaro.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-The dynamic power consumption of a device is proportional to the
-square of voltage (V) and the clock frequency (f). It can be expressed as
+Hi Linus,
 
-Pdyn = dynamic-power-coefficient * V^2 * f.
+Please pull hwmon fixes for Linux v4.2-rc5 from signed tag:
 
-The dynamic-power-coefficient property represents an indicative
-running time dynamic power coefficient in fundamental units of
-mw/MHz/uVolt^2 and can be used in the above formula to calculate the
-dynamic power in mW.
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.2-rc5
 
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
----
- Documentation/devicetree/bindings/arm/cpus.txt | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Thanks,
+Guenter
+------
 
-diff --git a/Documentation/devicetree/bindings/arm/cpus.txt b/Documentation/devicetree/bindings/arm/cpus.txt
-index d6b794c..c32bfac 100644
---- a/Documentation/devicetree/bindings/arm/cpus.txt
-+++ b/Documentation/devicetree/bindings/arm/cpus.txt
-@@ -239,6 +239,21 @@ nodes to be present and contain the properties described below.
- 		Definition: Specifies the syscon node controlling the cpu core
- 			    power domains.
- 
-+	- dynamic-power-coefficient
-+		Usage: optional
-+		Value type: <prop-encoded-array>
-+		Definition: A u32 value that represents an indicative
-+			    running time dynamic power coefficient in
-+			    fundamental units of mW/MHz/uVolt^2.
-+
-+			    The dynamic energy consumption of the CPU
-+			    is proportional to the square of the
-+			    Voltage (V) and the clock frequency (f).
-+
-+			    Pdyn = dynamic-power-coefficient * V^2 * f
-+
-+			    where voltage is in uV, frequency is in MHz.
-+
- Example 1 (dual-cluster big.LITTLE system 32-bit):
- 
- 	cpus {
--- 
-2.1.4
+The following changes since commit cbfe8fa6cd672011c755c3cd85c9ffd4e2d10a6f:
 
+  Linux 4.2-rc4 (2015-07-26 12:26:21 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.2-rc5
+
+for you to fetch changes up to 9200bc4c28cd8992eb5379345abd6b4f0c93df16:
+
+  hwmon: (nct7802) Fix integer overflow seen when writing voltage limits (2015-07-29 20:06:50 -0700)
+
+----------------------------------------------------------------
+Two patches headed for -stable.
+
+nct7802: Fix integer overflow seen when writing voltage limits
+nct7904: Rename pwm attributes to match hwmon ABI
+
+----------------------------------------------------------------
+Guenter Roeck (2):
+      hwmon: (nct7904) Rename pwm attributes to match hwmon ABI
+      hwmon: (nct7802) Fix integer overflow seen when writing voltage limits
+
+ Documentation/hwmon/nct7904 |  4 ++--
+ drivers/hwmon/nct7802.c     |  2 +-
+ drivers/hwmon/nct7904.c     | 57 +++++++++++++++++++++++----------------------
+ 3 files changed, 32 insertions(+), 31 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
