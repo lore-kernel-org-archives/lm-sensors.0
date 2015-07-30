@@ -1,106 +1,55 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Jul 2015 23:14:40 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (nct7802) Add pwmX_enable attribute
-Message-Id: <559C5D60.6030408@roeck-us.net>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Date: Thu, 30 Jul 2015 16:18:43 +0000
+Subject: [lm-sensors] [PATCH 18/27] hwmon: (g762) Export OF module alias information
+Message-Id: <1438273132-20926-19-git-send-email-javier@osg.samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1436305210-679-1-git-send-email-const@MakeLinux.com>
-In-Reply-To: <1436305210-679-1-git-send-email-const@MakeLinux.com>
+References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-Hi Constantine,
+The I2C core always reports the MODALIAS uevent as "i2c:<client name"
+regardless if the driver was matched using the I2C id_table or the
+of_match_table. So technically there's no need for a driver to export
+the OF table since currently it's not used.
 
-On 07/07/2015 02:40 PM, Constantine Shulyupin wrote:
-> Introduced REG_SMARTFAN_EN, SMARTFAN_EN_SHIFT, pwmX_enable,
-> show_pwm_enable, store_pwm_enable.
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
->
-> ---
-> Change log:
-> Fixed in v2:
-> - Introduced REG_SMARTFAN_EN, SMARTFAN_EN_SHIFT
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
-> ---
->   drivers/hwmon/nct7802.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 45 insertions(+)
->
-> diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
-> index a0d9010..2f6bbe5 100644
-> --- a/drivers/hwmon/nct7802.c
-> +++ b/drivers/hwmon/nct7802.c
-> @@ -53,6 +53,8 @@ static const u8 REG_VOLTAGE_LIMIT_MSB_SHIFT[2][5] = {
->   #define REG_PECI_ENABLE		0x23
->   #define REG_FAN_ENABLE		0x24
->   #define REG_VMON_ENABLE		0x25
-> +#define REG_SMARTFAN_EN(x)      (0x64 + (x) / 2)
-> +#define SMARTFAN_EN_SHIFT(x)    ((x) % 2 * 4)
->   #define REG_VENDOR_ID		0xfd
->   #define REG_CHIP_ID		0xfe
->   #define REG_VERSION_ID		0xff
-> @@ -151,6 +153,41 @@ static ssize_t store_pwm(struct device *dev, struct device_attribute *devattr,
->   	return err ? : count;
->   }
->
-> +static ssize_t show_pwm_enable(struct device *dev,
-> +			       struct device_attribute *attr, char *buf)
-> +{
-> +	struct nct7802_data *data = dev_get_drvdata(dev);
-> +	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
-> +	unsigned int reg, enabled;
-> +	int ret;
-> +
-> +	ret = regmap_read(data->regmap, REG_SMARTFAN_EN(sattr->index), &reg);
-> +	if (ret < 0)
-> +		return ret;
-> +	enabled = reg >> SMARTFAN_EN_SHIFT(sattr->index) & 1;
-> +	return sprintf(buf, "%u\n", enabled + 1);
-> +}
-> +
-> +static ssize_t store_pwm_enable(struct device *dev,
-> +				struct device_attribute *attr,
-> +				const char *buf, size_t count)
-> +{
-> +	struct nct7802_data *data = dev_get_drvdata(dev);
-> +	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
-> +	u8 val;
-> +	int ret;
-> +
-> +	ret = kstrtou8(buf, 0, &val);
-> +	if (ret < 0)
-> +		return ret;
-> +	if (val < 1 || val > 2)
-> +		return -EINVAL;
-> +	ret = regmap_update_bits(data->regmap, REG_SMARTFAN_EN(sattr->index),
-> +				 1 << SMARTFAN_EN_SHIFT(sattr->index),
-> +				 (val - 1) << SMARTFAN_EN_SHIFT(sattr->index));
-> +	return ret ? : count;
-> +}
-> +
->   static int nct7802_read_temp(struct nct7802_data *data,
->   			     u8 reg_temp, u8 reg_temp_low, int *temp)
->   {
-> @@ -793,6 +830,11 @@ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x60);
->   static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x61);
->   static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm, store_pwm, 0x62);
->
-> +/* 7.2.95... Temperature to Fan mapping Relationships Register */
-> +static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR, show_pwm_enable, store_pwm_enable, 0);
-> +static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR, show_pwm_enable, store_pwm_enable, 1);
-> +static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR, show_pwm_enable, store_pwm_enable, 2);
-> +
+In fact, the I2C device ID table is mandatory for I2C drivers since
+a i2c_device_id is passed to the driver's probe function even if the
+I2C core used the OF table to match the driver.
 
-You are at odds with the maximum line length again ;-).
+And since the I2C core uses different tables, OF-only drivers needs to
+have duplicated data that has to be kept in sync and also the dev node
+compatible manufacturer prefix is stripped when reporting the MODALIAS.
 
-No need to resubmit, I fixed that up.
+To avoid the above, the I2C core behavior may be changed in the future
+to not require an I2C device table for OF-only drivers and report the
+OF module alias. So, it's better to also export the OF table to prevent
+breaking module autoloading if that happens.
 
-Applied to -next.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Thanks,
-Guenter
+---
+
+ drivers/hwmon/g762.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/hwmon/g762.c b/drivers/hwmon/g762.c
+index 3d845947f584..b96a2a9e4df7 100644
+--- a/drivers/hwmon/g762.c
++++ b/drivers/hwmon/g762.c
+@@ -582,6 +582,7 @@ static const struct of_device_id g762_dt_match[] = {
+ 	{ .compatible = "gmt,g763" },
+ 	{ },
+ };
++MODULE_DEVICE_TABLE(of, g762_dt_match);
+ 
+ /*
+  * Grab clock (a required property), enable it, get (fixed) clock frequency
+-- 
+2.4.3
 
 
 _______________________________________________
