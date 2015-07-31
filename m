@@ -1,144 +1,181 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Jul 2015 03:28:01 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (nct7802) add temperature sensor type attribute
-Message-Id: <55935E41.9020107@roeck-us.net>
+From: Constantine Shulyupin <const@MakeLinux.com>
+Date: Fri, 31 Jul 2015 22:00:59 +0000
+Subject: [lm-sensors] [PATCH v1] hwmon: (nct7802) Add device tree support
+Message-Id: <1438380059-30114-1-git-send-email-const@MakeLinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1435619148-4929-1-git-send-email-const@MakeLinux.com>
-In-Reply-To: <1435619148-4929-1-git-send-email-const@MakeLinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Constantine Shulyupin <const@MakeLinux.com>, jdelvare@suse.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Constantine Shulyupin <const@MakeLinux.com>
 
-Hi Constantine,
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+---
+The first trial.
+Question: how to configure local temp4 (EnLTD)?
+Allow "temp4_type = <3>" (EnLTD=3-2=1) or "temp4_enable = <1>" or else?
+---
+ .../devicetree/bindings/hwmon/nct7802.txt          | 28 ++++++++++++
+ .../devicetree/bindings/vendor-prefixes.txt        |  1 +
+ drivers/hwmon/nct7802.c                            | 52 +++++++++++++++++-----
+ 3 files changed, 71 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/nct7802.txt
 
-On 06/29/2015 04:05 PM, Constantine Shulyupin wrote:
-> From: const <const@MakeLinux.com>
->
-> Sensor type:
-> 3 diode (current mode), MD=1
-> 4 thermistor, MD=2
->
-> Reference:
-> Nuvoton Hardware Monitoring IC NCT7802Y
-> 7.2.32 Mode Selection Register
-> Location : Index 22h
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
-> ---
-
->   static struct attribute *nct7802_temp_attrs[] = {
-> +	&sensor_dev_attr_temp1_type.dev_attr.attr,
->   	&sensor_dev_attr_temp1_input.dev_attr.attr,
->   	&sensor_dev_attr_temp1_min.dev_attr.attr,
->   	&sensor_dev_attr_temp1_max.dev_attr.attr,
-> @@ -485,7 +529,9 @@ static struct attribute *nct7802_temp_attrs[] = {
->   	&sensor_dev_attr_temp1_fault.dev_attr.attr,
->   	&sensor_dev_attr_temp1_beep.dev_attr.attr,
->
-> -	&sensor_dev_attr_temp2_input.dev_attr.attr,		/* 9 */
-> +	/* 10: */
-
-My problem with this kind of change isn't that much that I wrote
-the code and I tend to use the other mechanism. My problem is that
-if I accept it, someone else who adds another attribute may change
-it back tomorrow, or find yet another means to express the same.
-And we'd end up with a lot of churn for pretty much personal preference
-reasons.
-
-So, please refrain from making changes like this.
-
-> +	&sensor_dev_attr_temp2_type.dev_attr.attr,
-> +	&sensor_dev_attr_temp2_input.dev_attr.attr,
->   	&sensor_dev_attr_temp2_min.dev_attr.attr,
->   	&sensor_dev_attr_temp2_max.dev_attr.attr,
->   	&sensor_dev_attr_temp2_crit.dev_attr.attr,
-> @@ -495,7 +541,9 @@ static struct attribute *nct7802_temp_attrs[] = {
->   	&sensor_dev_attr_temp2_fault.dev_attr.attr,
->   	&sensor_dev_attr_temp2_beep.dev_attr.attr,
->
-> -	&sensor_dev_attr_temp3_input.dev_attr.attr,		/* 18 */
-> +	/* 20: */
-> +	&sensor_dev_attr_temp3_type.dev_attr.attr,
-> +	&sensor_dev_attr_temp3_input.dev_attr.attr,
->   	&sensor_dev_attr_temp3_min.dev_attr.attr,
->   	&sensor_dev_attr_temp3_max.dev_attr.attr,
->   	&sensor_dev_attr_temp3_crit.dev_attr.attr,
-> @@ -505,7 +553,8 @@ static struct attribute *nct7802_temp_attrs[] = {
->   	&sensor_dev_attr_temp3_fault.dev_attr.attr,
->   	&sensor_dev_attr_temp3_beep.dev_attr.attr,
->
-> -	&sensor_dev_attr_temp4_input.dev_attr.attr,		/* 27 */
-> +	/* 30: */
-> +	&sensor_dev_attr_temp4_input.dev_attr.attr,
->   	&sensor_dev_attr_temp4_min.dev_attr.attr,
->   	&sensor_dev_attr_temp4_max.dev_attr.attr,
->   	&sensor_dev_attr_temp4_crit.dev_attr.attr,
-> @@ -514,7 +563,8 @@ static struct attribute *nct7802_temp_attrs[] = {
->   	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
->   	&sensor_dev_attr_temp4_beep.dev_attr.attr,
->
-> -	&sensor_dev_attr_temp5_input.dev_attr.attr,		/* 35 */
-> +	/* 38: */
-> +	&sensor_dev_attr_temp5_input.dev_attr.attr,
->   	&sensor_dev_attr_temp5_min.dev_attr.attr,
->   	&sensor_dev_attr_temp5_max.dev_attr.attr,
->   	&sensor_dev_attr_temp5_crit.dev_attr.attr,
-> @@ -523,7 +573,8 @@ static struct attribute *nct7802_temp_attrs[] = {
->   	&sensor_dev_attr_temp5_crit_alarm.dev_attr.attr,
->   	&sensor_dev_attr_temp5_beep.dev_attr.attr,
->
-> -	&sensor_dev_attr_temp6_input.dev_attr.attr,		/* 43 */
-> +	/* 46: */
-> +	&sensor_dev_attr_temp6_input.dev_attr.attr,
->   	&sensor_dev_attr_temp6_beep.dev_attr.attr,
->
->   	NULL
-> @@ -541,25 +592,31 @@ static umode_t nct7802_temp_is_visible(struct kobject *kobj,
->   	if (err < 0)
->   		return 0;
->
-> -	if (index < 9 &&
-> +	/* temp1 */
-
-This comment is redundant with RD1. Same for the other temp comments below.
-
-Thanks,
-Guenter
-
-> +	if (index < 10 &&
->   	    (reg & 03) != 0x01 && (reg & 0x03) != 0x02)		/* RD1 */
->   		return 0;
-> -	if (index >= 9 && index < 18 &&
-> +
-> +	/* temp2 */
-> +	if (index >= 10 && index < 20 &&
->   	    (reg & 0x0c) != 0x04 && (reg & 0x0c) != 0x08)	/* RD2 */
->   		return 0;
-> -	if (index >= 18 && index < 27 && (reg & 0x30) != 0x20)	/* RD3 */
-> +	/* temp3 */
-> +	if (index >= 20 && index < 30 && (reg & 0x30) != 0x20)	/* RD3 */
->   		return 0;
-> -	if (index >= 27 && index < 35)				/* local */
-> +
-> +	/* temp4, local */
-> +	if (index >= 30 && index < 38)
->   		return attr->mode;
->
->   	err = regmap_read(data->regmap, REG_PECI_ENABLE, &reg);
->   	if (err < 0)
->   		return 0;
->
-> -	if (index >= 35 && index < 43 && !(reg & 0x01))		/* PECI 0 */
-> +	if (index >= 38 && index < 46 && !(reg & 0x01))		/* PECI 0 */
->   		return 0;
->
-> -	if (index >= 0x43 && (!(reg & 0x02)))			/* PECI 1 */
-> +	if (index >= 0x46 && (!(reg & 0x02)))			/* PECI 1 */
->   		return 0;
->
->   	return attr->mode;
->
+diff --git a/Documentation/devicetree/bindings/hwmon/nct7802.txt b/Documentation/devicetree/bindings/hwmon/nct7802.txt
+new file mode 100644
+index 0000000..568d3aa
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/nct7802.txt
+@@ -0,0 +1,28 @@
++Nuvoton NCT7802Y Hardware Monitoring IC
++
++Required node properties:
++
++ - "compatible": must be "nuvoton,nct7802"
++ - "reg": I2C bus address of the device
++
++Optional properties:
++
++ - temp1_type
++ - temp2_type
++ - temp3_type
++
++Valid values:
++
++ 0 - disabled
++ 3 - thermal diode
++ 4 - thermistor
++
++Example nct7802 node:
++
++nct7802 {
++	compatible = "nuvoton,nct7802";
++	reg = <0x2a>;
++	temp1_type = <4>;
++	temp2_type = <4>;
++	temp3_type = <4>;
++};
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 181b53e..821e000 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -149,6 +149,7 @@ netxeon		Shenzhen Netxeon Technology CO., LTD
+ newhaven	Newhaven Display International
+ nintendo	Nintendo
+ nokia	Nokia
++nuvoton	Nuvoton
+ nvidia	NVIDIA
+ nxp	NXP Semiconductors
+ onnn	ON Semiconductor Corp.
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index 3ce33d2..2be995d 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -84,24 +84,30 @@ static ssize_t show_temp_type(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%u\n", (mode >> (2 * sattr->index) & 3) + 2);
+ }
+ 
++int set_temp_type(struct nct7802_data *data, int index, u8 type)
++{
++	if (index = 2 && type != 4) /* RD3 */
++		return -EINVAL;
++	if ((type > 0 && type < 3) || type > 4)
++		return -EINVAL;
++	return regmap_update_bits(data->regmap, REG_MODE,
++				  3 << 2 * index,
++				  (type ? type - 2 : 0) << 2 * index);
++}
++
+ static ssize_t store_temp_type(struct device *dev,
+ 			       struct device_attribute *attr,
+ 			       const char *buf, size_t count)
+ {
+ 	struct nct7802_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sattr = to_sensor_dev_attr(attr);
+-	unsigned int type;
++	u8 type;
+ 	int err;
+ 
+-	err = kstrtouint(buf, 0, &type);
++	err = kstrtou8(buf, 0, &type);
+ 	if (err < 0)
+ 		return err;
+-	if (sattr->index = 2 && type != 4) /* RD3 */
+-		return -EINVAL;
+-	if (type < 3 || type > 4)
+-		return -EINVAL;
+-	err = regmap_update_bits(data->regmap, REG_MODE,
+-			3 << 2 * sattr->index, (type - 2) << 2 * sattr->index);
++	err = set_temp_type(data, sattr->index, type);
+ 	return err ? : count;
+ }
+ 
+@@ -1077,9 +1083,11 @@ static const struct regmap_config nct7802_regmap_config = {
+ 	.volatile_reg = nct7802_regmap_is_volatile,
+ };
+ 
+-static int nct7802_init_chip(struct nct7802_data *data)
++static int nct7802_init_chip(struct device_node *node,
++			     struct nct7802_data *data)
+ {
+ 	int err;
++	u32 temp_type;
+ 
+ 	/* Enable ADC */
+ 	err = regmap_update_bits(data->regmap, REG_START, 0x01, 0x01);
+@@ -1091,6 +1099,22 @@ static int nct7802_init_chip(struct nct7802_data *data)
+ 	if (err)
+ 		return err;
+ 
++	if (of_property_read_u32(node, "temp1_type", &temp_type) = 0) {
++		err = set_temp_type(data, 0, temp_type);
++		if (err)
++			return err;
++	}
++	if (of_property_read_u32(node, "temp2_type", &temp_type) = 0) {
++		err = set_temp_type(data, 1, temp_type);
++		if (err)
++			return err;
++	}
++	if (of_property_read_u32(node, "temp3_type", &temp_type) = 0) {
++		err = set_temp_type(data, 2, temp_type);
++		if (err)
++			return err;
++	}
++
+ 	/* Enable Vcore and VCC voltage monitoring */
+ 	return regmap_update_bits(data->regmap, REG_VMON_ENABLE, 0x03, 0x03);
+ }
+@@ -1113,7 +1137,7 @@ static int nct7802_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&data->access_lock);
+ 
+-	ret = nct7802_init_chip(data);
++	ret = nct7802_init_chip(client->dev.of_node, data);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1133,10 +1157,18 @@ static const struct i2c_device_id nct7802_idtable[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, nct7802_idtable);
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id nct7802_dt_match[] = {
++	{ .compatible = "nuvoton,nct7802" },
++	{ },
++};
++#endif
++
+ static struct i2c_driver nct7802_driver = {
+ 	.class = I2C_CLASS_HWMON,
+ 	.driver = {
+ 		.name = DRVNAME,
++		.of_match_table = of_match_ptr(nct7802_dt_match),
+ 	},
+ 	.detect = nct7802_detect,
+ 	.probe = nct7802_probe,
+-- 
+1.9.1
 
 
 _______________________________________________
