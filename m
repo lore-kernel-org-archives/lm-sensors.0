@@ -1,89 +1,30 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Date: Mon, 03 Aug 2015 15:33:24 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 03 Aug 2015 17:06:52 +0000
 Subject: Re: [lm-sensors] MAINTAINERS/s5p: Kamil Debski no longer with Samsung?
-Message-Id: <5606140.737HZuKSvR@amdc1976>
+Message-Id: <1438621612.10722.27.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20150802203128.1B6952691B2@smtprelay05.hostedemail.com>
- <1438548040.30149.1.camel@perches.com>
-In-Reply-To: <1438548040.30149.1.camel@perches.com>
+	 <1438548040.30149.1.camel@perches.com>  <5606140.737HZuKSvR@amdc1976>
+In-Reply-To: <5606140.737HZuKSvR@amdc1976>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joe Perches <joe@perches.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>, Jeongtae Park <jtp.park@samsung.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-media <linux-media@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Kamil Debski <kamil@wypas.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Joe Perches <joe@perches.com>, Kamil Debski <kamil@wypas.org>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Jeongtae Park <jtp.park@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-media <linux-media@vger.kernel.org>
 
-
-Hi,
-
-On Sunday, August 02, 2015 01:40:40 PM Joe Perches wrote:
-> On Sun, 2015-08-02 at 20:31 +0000, Mail Delivery System wrote:
-> > <k.debski@samsung.com>: host mailin.samsung.com[203.254.224.12] 
-> > said: 550 5.1.1
-> >     Recipient address rejected: User unknown (in reply to RCPT TO 
-> > command)
-> 
-> His email address bounces.
-> 
-> Should MAINTAINERS be updated?
-
-Please wait with these changes, the situation should be clarified soon
-(I've added Kamil to Cc).
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
-
-> ---
->  MAINTAINERS | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 826affa..b5197c7 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1442,7 +1442,6 @@ F:        arch/arm/mach-s5pv210/
->  
->  ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
->  M:     Kyungmin Park <kyungmin.park@samsung.com>
-> -M:     Kamil Debski <k.debski@samsung.com>
->  L:     linux-arm-kernel@lists.infradead.org
->  L:     linux-media@vger.kernel.org
->  S:     Maintained
-> @@ -1450,7 +1449,6 @@ F:        drivers/media/platform/s5p-g2d/
->  
->  ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
->  M:     Kyungmin Park <kyungmin.park@samsung.com>
-> -M:     Kamil Debski <k.debski@samsung.com>
->  M:     Jeongtae Park <jtp.park@samsung.com>
->  L:     linux-arm-kernel@lists.infradead.org
->  L:     linux-media@vger.kernel.org
-> @@ -8248,9 +8246,8 @@ S:        Maintained
->  F:     drivers/media/usb/pwc/*
->  
->  PWM FAN DRIVER
-> -M:     Kamil Debski <k.debski@samsung.com>
->  L:     lm-sensors@lm-sensors.org
-> -S:     Supported
-> +S:     Orphan
->  F:     Documentation/devicetree/bindings/hwmon/pwm-fan.txt
->  F:     Documentation/hwmon/pwm-fan
->  F:     drivers/hwmon/pwm-fan.c
-> @@ -8906,9 +8903,8 @@ T:        https://github.com/lmajewski/linux-samsung-thermal.git
->  F:     drivers/thermal/samsung/
->  
->  SAMSUNG USB2 PHY DRIVER
-> -M:     Kamil Debski <k.debski@samsung.com>
->  L:     linux-kernel@vger.kernel.org
-> -S:     Supported
-> +S:     Orphan
->  F:     Documentation/devicetree/bindings/phy/samsung-phy.txt
->  F:     Documentation/phy/samsung-usb2.txt
->  F:     drivers/phy/phy-exynos4210-usb2.c
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQmFydGxvbWllaiwKCkxlIE1vbmRheSAwMyBBdWd1c3QgMjAxNSDDoCAxNzozMyArMDIwMCwg
+QmFydGxvbWllaiBab2xuaWVya2lld2ljeiBhCsOpY3JpdCA6Cj4gSGksCj4gCj4gT24gU3VuZGF5
+LCBBdWd1c3QgMDIsIDIwMTUgMDE6NDA6NDAgUE0gSm9lIFBlcmNoZXMgd3JvdGU6Cj4gPiBPbiBT
+dW4sIDIwMTUtMDgtMDIgYXQgMjA6MzEgKzAwMDAsIE1haWwgRGVsaXZlcnkgU3lzdGVtIHdyb3Rl
+Ogo+ID4gPiA8ay5kZWJza2lAc2Ftc3VuZy5jb20+OiBob3N0IG1haWxpbi5zYW1zdW5nLmNvbVsy
+MDMuMjU0LjIyNC4xMl0gCj4gPiA+IHNhaWQ6IDU1MCA1LjEuMQo+ID4gPiAgICAgUmVjaXBpZW50
+IGFkZHJlc3MgcmVqZWN0ZWQ6IFVzZXIgdW5rbm93biAoaW4gcmVwbHkgdG8gUkNQVCBUTyAKPiA+
+ID4gY29tbWFuZCkKPiA+IAo+ID4gSGlzIGVtYWlsIGFkZHJlc3MgYm91bmNlcy4KPiA+IAo+ID4g
+U2hvdWxkIE1BSU5UQUlORVJTIGJlIHVwZGF0ZWQ/Cj4gCj4gUGxlYXNlIHdhaXQgd2l0aCB0aGVz
+ZSBjaGFuZ2VzLCB0aGUgc2l0dWF0aW9uIHNob3VsZCBiZSBjbGFyaWZpZWQgc29vbgo+IChJJ3Zl
+IGFkZGVkIEthbWlsIHRvIENjKS4KCkFscmVhZHkgY2xhcmlmaWVkIGJlaGluZCB0aGUgc2NlbmVz
+IDstKSBUaGUgcGF0Y2ggc2hvdWxkIGJlIGRpc2NhcmRlZC4KClRoYW5rcywKLS0gCkplYW4gRGVs
+dmFyZQpTVVNFIEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
+cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
+bnNvcnM
