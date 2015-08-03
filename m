@@ -1,83 +1,108 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 10 Aug 2015 08:07:52 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Add device IDs for TPS544{B, C}2{0, 5}
-Message-Id: <20150810100752.47cb34af@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 03 Aug 2015 18:36:38 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Driver for Maxim MAX31790
+Message-Id: <55BFB4B6.5060203@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1439007442-5086-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1439007442-5086-1-git-send-email-linux@roeck-us.net>
+References: <1438195783-26978-1-git-send-email-corone.il.han@gmail.com>
+In-Reply-To: <1438195783-26978-1-git-send-email-corone.il.han@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri,  7 Aug 2015 21:17:22 -0700, Guenter Roeck wrote:
-> Add device IDs and references for Texas Instruments TPS544B20, TPS544B25,
-> TPS544C20, and TPS544C25 to the generic PMBus driver.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  Documentation/hwmon/pmbus   | 8 ++++++--
->  drivers/hwmon/pmbus/Kconfig | 3 ++-
->  drivers/hwmon/pmbus/pmbus.c | 4 ++++
->  3 files changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-> index a3557da8f5b4..b397675e876d 100644
-> --- a/Documentation/hwmon/pmbus
-> +++ b/Documentation/hwmon/pmbus
-> @@ -23,11 +23,15 @@ Supported chips:
->  	http://www.lineagepower.com/oem/pdf/PDT012A0X.pdf
->  	http://www.lineagepower.com/oem/pdf/UDT020A0X.pdf
->  	http://www.lineagepower.com/oem/pdf/MDT040A0X.pdf
-> -  * Texas Instruments TPS40400
-> -    Prefixes: 'tps40400'
-> +  * Texas Instruments TPS40400, TPS544B20, TPS544B25, TPS544C20, TPS544C25
-> +    Prefixes: 'tps40400', 'tps544b20', 'tps544b25', 'tps544c20', 'tps544c25'
->      Addresses scanned: -
->      Datasheets:
->  	http://www.ti.com/lit/gpn/tps40400
-> +	http://www.ti.com/lit/gpn/tps544b20
-> +	http://www.ti.com/lit/gpn/tps544b25
-> +	http://www.ti.com/lit/gpn/tps544c20
-> +	http://www.ti.com/lit/gpn/tps544c25
->    * Generic PMBus devices
->      Prefix: 'pmbus'
->      Addresses scanned: -
-> diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-> index 47be0468e72e..8279727987cb 100644
-> --- a/drivers/hwmon/pmbus/Kconfig
-> +++ b/drivers/hwmon/pmbus/Kconfig
-> @@ -20,7 +20,8 @@ config SENSORS_PMBUS
->  	help
->  	  If you say yes here you get hardware monitoring support for generic
->  	  PMBus devices, including but not limited to ADP4000, BMR453, BMR454,
-> -	  MDT040, NCP4200, NCP4208, PDT003, PDT006, PDT012, UDT020, and TPS40400.
-> +	  MDT040, NCP4200, NCP4208, PDT003, PDT006, PDT012, TPS40400, TPS544B20,
-> +	  TPS544B25, TPS544C20, TPS544C25, and UDT020.
->  
->  	  This driver can also be built as a module. If so, the module will
->  	  be called pmbus.
-> diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
-> index bbfa35d82e42..0a74991a60f0 100644
-> --- a/drivers/hwmon/pmbus/pmbus.c
-> +++ b/drivers/hwmon/pmbus/pmbus.c
-> @@ -194,6 +194,10 @@ static const struct i2c_device_id pmbus_id[] = {
->  	{"pdt012", 1},
->  	{"pmbus", 0},
->  	{"tps40400", 1},
-> +	{"tps544b20", 1},
-> +	{"tps544b25", 1},
-> +	{"tps544c20", 1},
-> +	{"tps544c25", 1},
->  	{"udt020", 1},
->  	{}
->  };
+On 08/03/2015 10:49 AM, Il Han wrote:
+> Hi,
+>
+> Thank you for your review.
+> I am modifying the driver on your advice.
+> I am going to commit it soon again.
+> I also added the comments below.
+>
 
-Reviewed-by: Jean Delvare <jdelvare@suse.de>
+Please don't top-post.
 
--- 
-Jean Delvare
-SUSE L3 Support
+Comments inline.
+
+Thanks,
+Guenter
+
+[ ... ]
+
+>     Given that the sr range is 3 bit, an array would be simpler.
+>
+>     static const u8 sr[8] = { 1, 2, 4, 8, 16, 32, 32, 32 };
+>
+>     u8 get_speed_range(u8 fan_dynamics)
+>     {
+>              return sr[MAX31790_FAN_DYNAMICS_SR(fan_dynamics)];
+>     }
+>
+>
+> OK.
+>
+>
+>     It might be useful to report the configured speed range
+>     as fanX_div, and make it configurable.
+>
+>
+> But it's not a divisor.
+> So I added fanX_period so that it is configurable, instead of the fanX_div.
+>
+... which is not a standard attribute and thus not acceptable. Maybe we need
+to determine how to map the value from one to another in a meaningful way.
+
+>     You use direct values for everything but the pulse count. Might as well just use '2'
+>     for that as well. It is quite useless, though, since
+>              (2 * (data->tach[attr->index] >> 5))
+>     is identical to
+>              (data->tach[attr->index] >> 4)
+>     which you might as well use directly.
+>
+>
+> But, isn't there a case that the number of tachometer pulse per revolution is not 2?
+>
+See Documentation/hwmon/sysfs-interface.
+
+>
+>     Valid range for pwmX is 0..255. Please report this range and adjust
+>     reported / configured values accordingly.
+>
+>
+> In this chip, the range for PWM is 0..511. (9 bits of the PWMOUT Target Duty Cycle register.)
+>
+Again, see Documentation/hwmon/sysfs-interface. You have to stick with the ABI
+and adjust internally. Make the sysfs attribute 0..255 and write, for example,
+(written value * 2) into the chip.
+
+>         +
+>         +static const struct i2c_device_id max31790_id[] = {
+>         +       { "max31790", max31790 },
+>
+>
+>     You don't use the 'max31790' in the probe function (nor would there be
+>     a reason to do so).
+>
+>
+> I'm sorry. I don't understand what you've said.
+> I refered to source code of many other drivers to understand it.
+> But I didn't catch that.
+> Could you let me know what you mean?
+>
+
+Drivers which don't support more than one chip just have something like
+
+static const struct i2c_device_id max31790_id[] = {
+	{ "max31790", 0 },
+	{ }
+};
+
+> Doesn't it register the device with the name, client->name?
+>
+Sure, but that doesn't mean you need the enum (which you don't use anyway).
+
+Thanks,
+Guenter
+
 
 _______________________________________________
 lm-sensors mailing list
