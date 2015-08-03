@@ -1,33 +1,50 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Fri, 21 Aug 2015 08:49:09 +0000
-Subject: [lm-sensors] [patch] thermal: underflow bug in imx_set_trip_temp()
-Message-Id: <20150821084909.GD25369@mwanda>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Mon, 03 Aug 2015 15:22:50 +0000
+Subject: [lm-sensors] [PATCH v2 02/10] cpufreq-dt: Supply power coefficient when registering cooling devices
+Message-Id: <1438615378-14241-3-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Zhang Rui <rui.zhang@intel.com>, Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Eduardo Valentin <edubezval@gmail.com>, linux-pm@vger.kernel.org, kernel-janitors@vger.kernel.org, lm-sensors@lm-sensors.org
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Eduardo Valentin <edubezval@gmail.com>
 
-We recently changed this from unsigned long to int so it introduced an
-underflow bug.
+Support registering cooling devices with dynamic power coefficient
+where provided by the device tree. This allows OF registered cooling
+devices driver to be used with the power_allocator thermal governor.
 
-Fixes: 17e8351a7739 ('thermal: consistently use int for temperatures')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/cpufreq/cpufreq-dt.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
-index 4bec1d3..7a06465 100644
---- a/drivers/thermal/imx_thermal.c
-+++ b/drivers/thermal/imx_thermal.c
-@@ -288,7 +288,7 @@ static int imx_set_trip_temp(struct thermal_zone_device *tz, int trip,
- 	if (trip = IMX_TRIP_CRITICAL)
- 		return -EPERM;
- 
--	if (temp > IMX_TEMP_PASSIVE)
-+	if (temp < 0 || temp > IMX_TEMP_PASSIVE)
- 		return -EINVAL;
- 
- 	data->temp_passive = temp;
+diff --git a/drivers/cpufreq/cpufreq-dt.c b/drivers/cpufreq/cpufreq-dt.c
+index 528a82bf..1d1f61a 100644
+--- a/drivers/cpufreq/cpufreq-dt.c
++++ b/drivers/cpufreq/cpufreq-dt.c
+@@ -344,8 +344,13 @@ static void cpufreq_ready(struct cpufreq_policy *policy)
+ 	 * thermal DT code takes care of matching them.
+ 	 */
+ 	if (of_find_property(np, "#cooling-cells", NULL)) {
+-		priv->cdev = of_cpufreq_cooling_register(np,
+-							 policy->related_cpus);
++		u32 power_coefficient = 0;
++
++		of_property_read_u32(np, "dynamic-power-coefficient",
++				     &power_coefficient);
++
++		priv->cdev = of_cpufreq_power_cooling_register(np,
++				policy->related_cpus, power_coefficient, NULL);
+ 		if (IS_ERR(priv->cdev)) {
+ 			dev_err(priv->cpu_dev,
+ 				"running cpufreq without cooling device: %ld\n",
+-- 
+2.1.4
+
 
 _______________________________________________
 lm-sensors mailing list
