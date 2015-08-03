@@ -1,72 +1,187 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Date: Sun, 09 Aug 2015 07:09:29 +0000
-Subject: Re: [lm-sensors] [PATCH 0/4] i2c: move client binding docs to proper place
-Message-Id: <20150809070929.GA1526@katana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7016089682405031848=="
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Mon, 03 Aug 2015 15:22:56 +0000
+Subject: [lm-sensors] [PATCH v2 08/10] hwmon: Support registration of thermal zones for SCP temperature senso
+Message-Id: <1438615378-14241-9-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1439058636-3082-1-git-send-email-wsa@the-dreams.de>
-In-Reply-To: <1439058636-3082-1-git-send-email-wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============7016089682405031848==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Aug 08, 2015 at 08:30:32PM +0200, Wolfram Sang wrote:
-> The I2C binding directory is for master controllers, muxes and alike. Not=
- for
-> client drivers. Move those who slipped in to their proper places.
->=20
-> I'd like to take these patches via my tree, so it is promptly cleaned up =
-in one
-> go. So, I am mainly asking for acks here.
-
-Thanks for the acks. Applied this series to for-next, thanks!
-
-
---EVF5PPMfhYS0aIcm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVxvypAAoJEBQN5MwUoCm2CqgQAIALBBU8Kate9KLAkdZFrU8p
-z9HnslYW6cCKozgIPuVy40lXub77kDLgHetT8VRHF1qWGE/hG0bfCQIr42ghkAG6
-ALYbscdFLtZB4f51Uo5ctCoyuA6ywLyXLAhVyzEK1uzvdnSFkdj6TSjxslmdDx6l
-zNfgxG7gPIPrA/gjxEkA046ILCtVffLUIUMyhskgjZm+9ZKoRCV8yB4Ker/BPTU0
-NwhJfV+FelO5GPBmsCXcDJY7SO0nODANVl4BE2n2d3Vxom469mjl0NBBUEYK1tvR
-fmDsheQep1lyHjiH92QpZ7dxBQ384/jsq0jxFateru62OWp9uq6WCpC1YjjkY3pa
-vCtRT5rHPTroP2nLKaiNQKPE46WUgxQ1q89v94wKQ5AQVXwoN8Iu17wLdxOaI80w
-MPTWGueUuDVRNhZ4crPMvmair/H+Q7h7qaeGWh4wk5Kj4YZm5lwShKMniIm54VAH
-qGnQiyS0AYgEU38xG5W0ALqXRbMGfmTJPbIyP0OmJ9ROgzFhvSMcc+qocLnN3g+2
-thLNNrBEdWUTwkQqLhgyTGK++9BMXuUCOmH/YnBXJg9/t8KWTJUByK5XtB9GE0J3
-zbmykPrAxpIg88y4jeFv7czU0j8xfz67s2ZZ0T8DfNwEs0SrieNaZ1ndxbYCRTGF
-6J7cvkPPNjP0HQWJoDv5
-=b3X/
------END PGP SIGNATURE-----
-
---EVF5PPMfhYS0aIcm--
-
-
---===============7016089682405031848==
-Content-Type: text/plain; charset="us-ascii"
+References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Eduardo Valentin <edubezval@gmail.com>
+
+Add support to create thermal zones based on the temperature sensors
+provided by the SCP. The thermal zones can be defined using the
+thermal DT bindings and should refer to the SCP sensor id to select
+the sensor.
+
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/hwmon/scpi-hwmon.c | 103 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 102 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/scpi-hwmon.c b/drivers/hwmon/scpi-hwmon.c
+index 7e7e06b..d96a3e5 100644
+--- a/drivers/hwmon/scpi-hwmon.c
++++ b/drivers/hwmon/scpi-hwmon.c
+@@ -20,6 +20,7 @@
+ #include <linux/scpi_protocol.h>
+ #include <linux/slab.h>
+ #include <linux/sysfs.h>
++#include <linux/thermal.h>
+ 
+ struct sensor_data {
+ 	struct scpi_sensor_info info;
+@@ -29,14 +30,39 @@ struct sensor_data {
+ 	char label[20];
+ };
+ 
++struct scpi_thermal_zone {
++	struct list_head list;
++	int sensor_id;
++	struct scpi_sensors *scpi_sensors;
++	struct thermal_zone_device *tzd;
++};
++
+ struct scpi_sensors {
+ 	struct scpi_ops *scpi_ops;
+ 	struct sensor_data *data;
++	struct list_head thermal_zones;
+ 	struct attribute **attrs;
+ 	struct attribute_group group;
+ 	const struct attribute_group *groups[2];
+ };
+ 
++static int scpi_read_temp(void *dev, long *temp)
++{
++	struct scpi_thermal_zone *zone = dev;
++	struct scpi_sensors *scpi_sensors = zone->scpi_sensors;
++	struct scpi_ops *scpi_ops = scpi_sensors->scpi_ops;
++	struct sensor_data *sensor = &scpi_sensors->data[zone->sensor_id];
++	u32 value;
++	int ret;
++
++	ret = scpi_ops->sensor_get_value(sensor->info.sensor_id, &value);
++	if (ret)
++		return ret;
++
++	*temp = value;
++	return 0;
++}
++
+ /* hwmon callback functions */
+ static ssize_t
+ scpi_show_sensor(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -66,6 +92,24 @@ scpi_show_label(struct device *dev, struct device_attribute *attr, char *buf)
+ 	return sprintf(buf, "%s\n", sensor->info.name);
+ }
+ 
++static void
++unregister_thermal_zones(struct platform_device *pdev,
++			 struct scpi_sensors *scpi_sensors)
++{
++	struct list_head *pos;
++
++	list_for_each(pos, &scpi_sensors->thermal_zones) {
++		struct scpi_thermal_zone *zone;
++
++		zone = list_entry(pos, struct scpi_thermal_zone, list);
++		thermal_zone_of_sensor_unregister(&pdev->dev, zone->tzd);
++	}
++}
++
++static struct thermal_zone_of_device_ops scpi_sensor_ops = {
++	.get_temp = scpi_read_temp,
++};
++
+ static int scpi_hwmon_probe(struct platform_device *pdev)
+ {
+ 	u16 nr_sensors, i;
+@@ -157,10 +201,66 @@ static int scpi_hwmon_probe(struct platform_device *pdev)
+ 	scpi_sensors->group.attrs = scpi_sensors->attrs;
+ 	scpi_sensors->groups[0] = &scpi_sensors->group;
+ 
++	platform_set_drvdata(pdev, scpi_sensors);
++
+ 	hwdev = devm_hwmon_device_register_with_groups(dev,
+ 			"scpi_sensors", scpi_sensors, scpi_sensors->groups);
+ 
+-	return PTR_ERR_OR_ZERO(hwdev);
++	if (IS_ERR(hwdev))
++		return PTR_ERR(hwdev);
++
++	/*
++	 * Register the temperature sensors with the thermal framework
++	 * to allow their usage in setting up the thermal zones from
++	 * device tree.
++	 *
++	 * NOTE: Not all temperature sensors maybe used for thermal
++	 * control
++	 */
++	INIT_LIST_HEAD(&scpi_sensors->thermal_zones);
++	for (i = 0; i < nr_sensors; i++) {
++		struct sensor_data *sensor = &scpi_sensors->data[i];
++		struct scpi_thermal_zone *zone;
++
++		if (sensor->info.class != TEMPERATURE)
++			continue;
++
++		zone = devm_kzalloc(&pdev->dev, sizeof(*zone), GFP_KERNEL);
++		if (!zone) {
++			ret = -ENOMEM;
++			goto unregister_tzd;
++		}
++
++		zone->sensor_id = i;
++		zone->scpi_sensors = scpi_sensors;
++		zone->tzd = thermal_zone_of_sensor_register(dev, i, zone,
++							    &scpi_sensor_ops);
++		/*
++		 * The call to thermal_zone_of_sensor_register returns
++		 * an error for sensors that are not associated with
++		 * any thermal zones.
++		 */
++		if (IS_ERR(zone->tzd)) {
++			devm_kfree(dev, zone);
++			continue;
++		}
++		list_add(&zone->list, &scpi_sensors->thermal_zones);
++	}
++
++	return 0;
++
++unregister_tzd:
++	unregister_thermal_zones(pdev, scpi_sensors);
++	return ret;
++}
++
++static int scpi_hwmon_remove(struct platform_device *pdev)
++{
++	struct scpi_sensors *scpi_sensors = platform_get_drvdata(pdev);
++
++	unregister_thermal_zones(pdev, scpi_sensors);
++
++	return 0;
+ }
+ 
+ static const struct of_device_id scpi_of_match[] = {
+@@ -175,6 +275,7 @@ static struct platform_driver scpi_hwmon_platdrv = {
+ 		.of_match_table = scpi_of_match,
+ 	},
+ 	.probe		= scpi_hwmon_probe,
++	.remove		= scpi_hwmon_remove,
+ };
+ module_platform_driver(scpi_hwmon_platdrv);
+ 
+-- 
+2.1.4
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7016089682405031848==--
