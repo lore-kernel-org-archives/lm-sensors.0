@@ -1,55 +1,147 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 07 Aug 2015 08:35:18 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (ltc2978) Add additional chip IDs for LTM4676 and LTM4676A
-Message-Id: <1438936518-23668-1-git-send-email-linux@roeck-us.net>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Mon, 03 Aug 2015 15:22:54 +0000
+Subject: [lm-sensors] [PATCH v2 06/10] firmware: arm_scpi: Extend to support sensors
+Message-Id: <1438615378-14241-7-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Sudeep Holla <sudeep.holla@arm.com>
 
-Per datasheet, the chip ID for LTM4676 is 0x448x. This was observed
-in real systems. In addition to that, chip ID 0x4401 was observed
-as well. Research shows that the chip ID has been changed from 0x440x
-to 0x448x in datasheet revision C. Add support for the additional chip ID.
+ARM System Control Processor (SCP) provides an API to query and use
+the sensors available in the system. Extend the SCPI driver to support
+ sensor messages.
 
-Also add the chip ID for LTM4676A, which is functionally identical
-to LTM4676.
-
-Reported-by: Ananda Babu Nettam <anandab@juniper.net>
-Cc: Ananda Babu Nettam <anandab@juniper.net>
-Cc: Amit U Jain <amjain@juniper.net>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/hwmon/pmbus/ltc2978.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/firmware/arm_scpi.c   | 60 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/scpi_protocol.h | 17 ++++++++++++
+ 2 files changed, 77 insertions(+)
 
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index 16d88d191379..baa643e7f516 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -67,7 +67,9 @@ enum chips { ltc2974, ltc2975, ltc2977, ltc2978, ltc3880, ltc3882, ltc3883,
- #define LTC3880_ID_MASK			0xff00
- #define LTC3883_ID			0x4300
- #define LTC3883_ID_MASK			0xff00
--#define LTM4676_ID			0x4480	/* datasheet claims 0x440X */
-+#define LTM4676_ID			0x4400
-+#define LTM4676_ID_2			0x4480
-+#define LTM4676A_ID			0x47E0
- #define LTM4676_ID_MASK			0xfff0
+diff --git a/drivers/firmware/arm_scpi.c b/drivers/firmware/arm_scpi.c
+index cb75c75..321680e 100644
+--- a/drivers/firmware/arm_scpi.c
++++ b/drivers/firmware/arm_scpi.c
+@@ -219,6 +219,21 @@ struct dvfs_set {
+ 	u8 index;
+ } __packed;
  
- #define LTC2974_NUM_PAGES		4
-@@ -503,7 +505,9 @@ static int ltc2978_get_id(struct i2c_client *client)
- 		return ltc3880;
- 	else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID)
- 		return ltc3883;
--	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID)
-+	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID ||
-+		 (chip_id & LTM4676_ID_MASK) = LTM4676_ID_2 ||
-+		 (chip_id & LTM4676_ID_MASK) = LTM4676A_ID)
- 		return ltm4676;
++struct sensor_capabilities {
++	__le16 sensors;
++} __packed;
++
++struct _scpi_sensor_info {
++	__le16 sensor_id;
++	u8 class;
++	u8 trigger_type;
++	char name[20];
++};
++
++struct sensor_value {
++	__le32 val;
++} __packed;
++
+ static struct scpi_drvinfo *scpi_info;
  
- 	dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
+ static int scpi_linux_errmap[SCPI_ERR_MAX] = {
+@@ -481,6 +496,48 @@ static struct scpi_dvfs_info *scpi_dvfs_get_info(u8 domain)
+ 	return info;
+ }
+ 
++static int scpi_sensor_get_capability(u16 *sensors)
++{
++	struct sensor_capabilities cap_buf;
++	int ret;
++
++	ret = scpi_send_message(SCPI_CMD_SENSOR_CAPABILITIES, NULL, 0, &cap_buf,
++				sizeof(cap_buf));
++	if (!ret)
++		*sensors = le16_to_cpu(cap_buf.sensors);
++
++	return ret;
++}
++
++static int scpi_sensor_get_info(u16 sensor_id, struct scpi_sensor_info *info)
++{
++	__le16 id = cpu_to_le16(sensor_id);
++	struct _scpi_sensor_info _info;
++	int ret;
++
++	ret = scpi_send_message(SCPI_CMD_SENSOR_INFO, &id,
++				 sizeof(id), &_info, sizeof(_info));
++	if (!ret) {
++		memcpy(info, &_info, sizeof(*info));
++		info->sensor_id = le16_to_cpu(_info.sensor_id);
++	}
++
++	return ret;
++}
++
++int scpi_sensor_get_value(u16 sensor, u32 *val)
++{
++	struct sensor_value buf;
++	int ret;
++
++	ret = scpi_send_message(SCPI_CMD_SENSOR_VALUE, &sensor, sizeof(sensor),
++				&buf, sizeof(buf));
++	if (!ret)
++		*val = le32_to_cpu(buf.val);
++
++	return ret;
++}
++
+ static struct scpi_ops scpi_ops = {
+ 	.get_version = scpi_get_version,
+ 	.clk_get_range = scpi_clk_get_range,
+@@ -489,6 +546,9 @@ static struct scpi_ops scpi_ops = {
+ 	.dvfs_get_idx = scpi_dvfs_get_idx,
+ 	.dvfs_set_idx = scpi_dvfs_set_idx,
+ 	.dvfs_get_info = scpi_dvfs_get_info,
++	.sensor_get_capability = scpi_sensor_get_capability,
++	.sensor_get_info = scpi_sensor_get_info,
++	.sensor_get_value = scpi_sensor_get_value,
+ };
+ 
+ struct scpi_ops *get_scpi_ops(void)
+diff --git a/include/linux/scpi_protocol.h b/include/linux/scpi_protocol.h
+index e7169cd..80af3cd 100644
+--- a/include/linux/scpi_protocol.h
++++ b/include/linux/scpi_protocol.h
+@@ -28,6 +28,20 @@ struct scpi_dvfs_info {
+ 	struct scpi_opp *opps;
+ };
+ 
++enum scpi_sensor_class {
++	TEMPERATURE,
++	VOLTAGE,
++	CURRENT,
++	POWER,
++};
++
++struct scpi_sensor_info {
++	u16 sensor_id;
++	u8 class;
++	u8 trigger_type;
++	char name[20];
++} __packed;
++
+ /**
+  * struct scpi_ops - represents the various operations provided
+  *	by SCP through SCPI message protocol
+@@ -52,6 +66,9 @@ struct scpi_ops {
+ 	int (*dvfs_get_idx)(u8);
+ 	int (*dvfs_set_idx)(u8, u8);
+ 	struct scpi_dvfs_info *(*dvfs_get_info)(u8);
++	int (*sensor_get_capability)(u16 *sensors);
++	int (*sensor_get_info)(u16 sensor_id, struct scpi_sensor_info *);
++	int (*sensor_get_value)(u16, u32 *);
+ };
+ 
+ #if IS_ENABLED(CONFIG_ARM_SCPI_PROTOCOL)
 -- 
 2.1.4
 
