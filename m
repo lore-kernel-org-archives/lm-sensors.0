@@ -1,79 +1,152 @@
-From: Huang Rui <ray.huang@amd.com>
-Date: Thu, 27 Aug 2015 08:07:45 +0000
-Subject: [lm-sensors] [PATCH 14/15] hwmon, fam15h_power: add documentation for accumulated power algorithm
-Message-Id: <1440662866-28716-15-git-send-email-ray.huang@amd.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Mon, 03 Aug 2015 15:22:51 +0000
+Subject: [lm-sensors] [PATCH v2 03/10] cpufreq: arm_big_little: Add support to register a cpufreq cooling dev
+Message-Id: <1438615378-14241-4-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
-In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
+References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Sudeep Holla <sudeep.holla@arm.com>, Eduardo Valentin <edubezval@gmail.com>
 
-This patch adds the description to explain the accumulated power
-algorithm.
+Register passive cooling devices when initialising cpufreq on
+big.LITTLE systems. If the device tree provides a dynamic power
+coefficient for the CPUs then the bound cooling device will support
+the extensions that allow it to be used with all the existing thermal
+governors including the power allocator governor.
 
-Signed-off-by: Huang Rui <ray.huang@amd.com>
+A cooling device will be created per individual frequency domain and
+can be bound to thermal zones via the thermal DT bindings.
+
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
 ---
- Documentation/hwmon/fam15h_power | 45 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ drivers/cpufreq/arm_big_little.c | 52 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 50 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/hwmon/fam15h_power b/Documentation/hwmon/fam15h_power
-index 42bf04e..dc2bc69 100644
---- a/Documentation/hwmon/fam15h_power
-+++ b/Documentation/hwmon/fam15h_power
-@@ -45,3 +45,48 @@ This driver provides ProcessorPwrWatts and CurrPwrWatts:
- On multi-node processors the calculated value is for the entire
- package and not for a single node. Thus the driver creates sysfs
- attributes only for internal node0 of a multi-node processor.
+diff --git a/drivers/cpufreq/arm_big_little.c b/drivers/cpufreq/arm_big_little.c
+index f1e42f8..72a2777 100644
+--- a/drivers/cpufreq/arm_big_little.c
++++ b/drivers/cpufreq/arm_big_little.c
+@@ -23,6 +23,7 @@
+ #include <linux/cpu.h>
+ #include <linux/cpufreq.h>
+ #include <linux/cpumask.h>
++#include <linux/cpu_cooling.h>
+ #include <linux/export.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+@@ -55,6 +56,10 @@ static bool bL_switching_enabled;
+ #define ACTUAL_FREQ(cluster, freq)  ((cluster = A7_CLUSTER) ? freq << 1 : freq)
+ #define VIRT_FREQ(cluster, freq)    ((cluster = A7_CLUSTER) ? freq >> 1 : freq)
+ 
++struct private_data {
++	struct thermal_cooling_device *cdev;
++};
 +
-+2) Accumulated Power Mechanism
+ static struct cpufreq_arm_bL_ops *arm_bL_ops;
+ static struct clk *clk[MAX_CLUSTERS];
+ static struct cpufreq_frequency_table *freq_table[MAX_CLUSTERS + 1];
+@@ -440,6 +445,7 @@ static int bL_cpufreq_init(struct cpufreq_policy *policy)
+ {
+ 	u32 cur_cluster = cpu_to_cluster(policy->cpu);
+ 	struct device *cpu_dev;
++	struct private_data *priv;
+ 	int ret;
+ 
+ 	cpu_dev = get_cpu_device(policy->cpu);
+@@ -457,9 +463,15 @@ static int bL_cpufreq_init(struct cpufreq_policy *policy)
+ 	if (ret) {
+ 		dev_err(cpu_dev, "CPU %d, cluster: %d invalid freq table\n",
+ 				policy->cpu, cur_cluster);
+-		put_cluster_clk_and_freq_table(cpu_dev);
+-		return ret;
++		goto out_free_cpufreq_table;
++	}
 +
-+This driver also introduces an algorithm that should be used to
-+calculate the average power consumed by a processor during a
-+measurement interval Tm. The feature of accumulated power mechanism is
-+indicated by CPUID Fn8000_0007_EDX[12].
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		ret = -ENOMEM;
++		goto out_free_cpufreq_table;
+ 	}
++	policy->driver_data = priv;
+ 
+ 	if (cur_cluster < MAX_CLUSTERS) {
+ 		int cpu;
+@@ -484,12 +496,19 @@ static int bL_cpufreq_init(struct cpufreq_policy *policy)
+ 
+ 	dev_info(cpu_dev, "%s: CPU %d initialized\n", __func__, policy->cpu);
+ 	return 0;
 +
-+* Tsample: compute unit power accumulator sample period
-+* Tref: the PTSC counter period
-+* PTSC: performance timestamp counter
-+* N: the ratio of compute unit power accumulator sample period to the
-+  PTSC period
-+* Jmax: max compute unit accumulated power which is indicated by
-+  MaxCpuSwPwrAcc MSR C001007b
-+* Jx/Jy: compute unit accumulated power which is indicated by
-+  CpuSwPwrAcc MSR C001007a
-+* Tx/Ty: the value of performance timestamp counter which is indicated
-+  by CU_PTSC MSR C0010280
-+* PwrCPUave: CPU average power
++out_free_cpufreq_table:
++	put_cluster_clk_and_freq_table(cpu_dev);
 +
-+i. Determine the ratio of Tsample to Tref by executing CPUID Fn8000_0007.
-+	N = value of CPUID Fn8000_0007_ECX[CpuPwrSampleTimeRatio[15:0]].
++	return ret;
+ }
+ 
+ static int bL_cpufreq_exit(struct cpufreq_policy *policy)
+ {
+ 	struct device *cpu_dev;
++	struct private_data *priv = policy->driver_data;
+ 
++	cpufreq_cooling_unregister(priv->cdev);
+ 	cpu_dev = get_cpu_device(policy->cpu);
+ 	if (!cpu_dev) {
+ 		pr_err("%s: failed to get cpu%d device\n", __func__,
+@@ -498,11 +517,39 @@ static int bL_cpufreq_exit(struct cpufreq_policy *policy)
+ 	}
+ 
+ 	put_cluster_clk_and_freq_table(cpu_dev);
++	kfree(priv);
+ 	dev_dbg(cpu_dev, "%s: Exited, cpu: %d\n", __func__, policy->cpu);
+ 
+ 	return 0;
+ }
+ 
++static void bL_cpufreq_ready(struct cpufreq_policy *policy)
++{
++	struct device *cpu_dev = get_cpu_device(policy->cpu);
++	struct device_node *np = of_node_get(cpu_dev->of_node);
++	struct private_data *priv = policy->driver_data;
 +
-+ii. Read the full range of the cumulative energy value from the new
-+MSR MaxCpuSwPwrAcc.
-+	Jmax = value returned.
-+iii. At time x, SW reads CpuSwPwrAcc MSR and samples the PTSC.
-+	Jx = value read from CpuSwPwrAcc and Tx = value read from
-+PTSC.
++	if (WARN_ON(!np))
++		return;
 +
-+iv. At time y, SW reads CpuSwPwrAcc MSR and samples the PTSC.
-+	Jy = value read from CpuSwPwrAcc and Ty = value read from
-+PTSC.
++	if (of_find_property(np, "#cooling-cells", NULL)) {
++		u32 power_coefficient = 0;
 +
-+v. Calculate the average power consumption for a compute unit over
-+time period (y-x). Unit of result is uWatt.
-+	if (Jy < Jx) // Rollover has occurred
-+		Jdelta = (Jy + Jmax) - Jx
-+	else
-+		Jdelta = Jy - Jx
-+	PwrCPUave = N * Jdelta * 1000 / (Ty - Tx)
++		of_property_read_u32(np, "dynamic-power-coefficient",
++				     &power_coefficient);
 +
-+This driver provides PwrCPUave:
-+* power1_acc (PwrCPUave)
++		priv->cdev = of_cpufreq_power_cooling_register(np,
++				policy->related_cpus, power_coefficient, NULL);
++		if (IS_ERR(priv->cdev)) {
++			dev_err(cpu_dev,
++				"running cpufreq without cooling device: %ld\n",
++				PTR_ERR(priv->cdev));
++			priv->cdev = NULL;
++		}
++	}
++	of_node_put(np);
++}
++
+ static struct cpufreq_driver bL_cpufreq_driver = {
+ 	.name			= "arm-big-little",
+ 	.flags			= CPUFREQ_STICKY |
+@@ -513,6 +560,7 @@ static struct cpufreq_driver bL_cpufreq_driver = {
+ 	.get			= bL_cpufreq_get_rate,
+ 	.init			= bL_cpufreq_init,
+ 	.exit			= bL_cpufreq_exit,
++	.ready			= bL_cpufreq_ready,
+ 	.attr			= cpufreq_generic_attr,
+ };
+ 
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
