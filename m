@@ -1,37 +1,49 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 07 Aug 2015 14:46:15 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.2-rc6
-Message-Id: <1438958775-4566-1-git-send-email-linux@roeck-us.net>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Mon, 03 Aug 2015 15:22:57 +0000
+Subject: [lm-sensors] [PATCH v2 09/10] arm64: dts: Add sensor node to Juno dt
+Message-Id: <1438615378-14241-10-git-send-email-punit.agrawal@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: linux-pm@vger.kernel.org
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
 
-SGkgTGludXMsCgpQbGVhc2UgcHVsbCBod21vbiBmaXhlcyBmb3IgTGludXggdjQuMi1yYzYgZnJv
-bSBzaWduZWQgdGFnOgoKICAgIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2Vy
-bmVsL2dpdC9ncm9lY2svbGludXgtc3RhZ2luZy5naXQgaHdtb24tZm9yLWxpbnVzLXY0LjItcmM2
-CgpUaGFua3MsCkd1ZW50ZXIKLS0tLS0tCgpUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29t
-bWl0IDc0ZDMzMjkzZTQ2N2RmNjFkZTFiMWQ4YjJmYmUyOWU1NTBkZWMzM2I6CgogIExpbnV4IDQu
-Mi1yYzUgKDIwMTUtMDgtMDIgMTg6MzQ6NTUgLTA3MDApCgphcmUgYXZhaWxhYmxlIGluIHRoZSBn
-aXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9r
-ZXJuZWwvZ2l0L2dyb2Vjay9saW51eC1zdGFnaW5nLmdpdCB0YWdzL2h3bW9uLWZvci1saW51cy12
-NC4yLXJjNgoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGRlNjZiMzgwOTc3ZWI5ZGFh
-OTI1YWViMjE3NTZhOWIwMGY3MDBlNDU6CgogIGh3bW9uOiAoZzc2MikgRXhwb3J0IE9GIG1vZHVs
-ZSBhbGlhcyBpbmZvcm1hdGlvbiAoMjAxNS0wOC0wNSAwODozMTo1OSAtMDcwMCkKCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-RXhwb3J0IG1vZHVsZSBhbGlhcyBpbmZvcm1hdGlvbiBpbiBnNzYyIGFuZCBuY3Q3OTA0IHRvIHN1
-cHBvcnQgYXV0by1sb2FkaW5nLgpCbGFja2xpc3QgRGVsbCBTdHVkaW8gWFBTIDgxMDAgaW4gZGVs
-bC1zbW0gdG8gZml4IGZhbiBjb250cm9sIHByb2JsZW1zLgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpKYXZpZXIgTWFydGlu
-ZXogQ2FuaWxsYXMgKDIpOgogICAgICBod21vbjogKG5jdDc5MDQpIEV4cG9ydCBJMkMgbW9kdWxl
-IGFsaWFzIGluZm9ybWF0aW9uCiAgICAgIGh3bW9uOiAoZzc2MikgRXhwb3J0IE9GIG1vZHVsZSBh
-bGlhcyBpbmZvcm1hdGlvbgoKUGFsaSBSb2jDoXIgKDEpOgogICAgICBod21vbjogKGRlbGwtc21t
-KSBCbGFja2xpc3QgRGVsbCBTdHVkaW8gWFBTIDgxMDAKCiBkcml2ZXJzL2h3bW9uL2RlbGwtc21t
-LWh3bW9uLmMgfCAxOCArKysrKysrKysrKysrKysrKy0KIGRyaXZlcnMvaHdtb24vZzc2Mi5jICAg
-ICAgICAgICB8ICAxICsKIGRyaXZlcnMvaHdtb24vbmN0NzkwNC5jICAgICAgICB8ICAxICsKIDMg
-ZmlsZXMgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+The SCP firmware on Juno provides access to SoC sensors via the
+SCPI. Add the sensor nodes to the device tree to enable this support.
+
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+---
+ arch/arm64/boot/dts/arm/juno-base.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/arm/juno-base.dtsi b/arch/arm64/boot/dts/arm/juno-base.dtsi
+index c624208..dd5158e 100644
+--- a/arch/arm64/boot/dts/arm/juno-base.dtsi
++++ b/arch/arm64/boot/dts/arm/juno-base.dtsi
+@@ -96,6 +96,11 @@
+ 				clock-output-names = "pxlclk0", "pxlclk1";
+ 			};
+ 		};
++
++		scpi_sensors0: sensors {
++			compatible = "arm,scpi-sensors";
++			#thermal-sensor-cells = <1>;
++		};
+ 	};
+ 
+ 	/include/ "juno-clocks.dtsi"
+-- 
+2.1.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
