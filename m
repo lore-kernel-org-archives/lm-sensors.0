@@ -1,131 +1,107 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Aug 2015 16:06:15 +0000
-Subject: [lm-sensors] [PATCH 4/4] hwmon: (ltc2978) Add support for LTM4675
-Message-Id: <1440000375-3036-4-git-send-email-linux@roeck-us.net>
+Date: Fri, 07 Aug 2015 08:44:16 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (ltc2978) Move code to read chip ID into separate function
+Message-Id: <1438937057-1598-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-TFRNMjk3NSBpcyBhIGR1YWwgOUEgb3Igc2luZ2xlIDE4QSDOvE1vZHVsZSByZWd1bGF0b3IuCkl0
-IGlzIHJlZ2lzdGVyIGNvbXBhdGlibGUgd2l0aCBMVE00Njc2LgoKU2lnbmVkLW9mZi1ieTogR3Vl
-bnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgotLS0KIC4uLi9kZXZpY2V0cmVlL2JpbmRp
-bmdzL2h3bW9uL2x0YzI5NzgudHh0ICAgICAgICAgIHwgIDEgKwogRG9jdW1lbnRhdGlvbi9od21v
-bi9sdGMyOTc4ICAgICAgICAgICAgICAgICAgICAgICAgfCAyNCArKysrKysrKysrKysrKy0tLS0t
-LS0tCiBkcml2ZXJzL2h3bW9uL3BtYnVzL0tjb25maWcgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAyICstCiBkcml2ZXJzL2h3bW9uL3BtYnVzL2x0YzI5NzguYyAgICAgICAgICAgICAgICAgICAg
-ICB8IDEwICsrKysrKystLQogNCBmaWxlcyBjaGFuZ2VkLCAyNiBpbnNlcnRpb25zKCspLCAxMSBk
-ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGlu
-Z3MvaHdtb24vbHRjMjk3OC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3Mv
-aHdtb24vbHRjMjk3OC50eHQKaW5kZXggYTdhZmJmNjBiYjljLi5iZjJhNDdiYmRjNTggMTAwNjQ0
-Ci0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9od21vbi9sdGMyOTc4LnR4
-dAorKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvaHdtb24vbHRjMjk3OC50
-eHQKQEAgLTEzLDYgKzEzLDcgQEAgUmVxdWlyZWQgcHJvcGVydGllczoKICAgKiAibGx0YyxsdGMz
-ODg2IgogICAqICJsbHRjLGx0YzM4ODciCiAgICogImxsdGMsbHRtMjk4NyIKKyAgKiAibGx0Yyxs
-dG00Njc1IgogICAqICJsbHRjLGx0bTQ2NzYiCiAtIHJlZzogSTJDIHNsYXZlIGFkZHJlc3MKIApk
-aWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9od21vbi9sdGMyOTc4IGIvRG9jdW1lbnRhdGlvbi9o
-d21vbi9sdGMyOTc4CmluZGV4IGY5OTdhYTUzZWI5NS4uOWE0OWQzYzkwY2QxIDEwMDY0NAotLS0g
-YS9Eb2N1bWVudGF0aW9uL2h3bW9uL2x0YzI5NzgKKysrIGIvRG9jdW1lbnRhdGlvbi9od21vbi9s
-dGMyOTc4CkBAIC00Nyw2ICs0NywxMCBAQCBTdXBwb3J0ZWQgY2hpcHM6CiAgICAgUHJlZml4OiAn
-bHRtMjk4NycKICAgICBBZGRyZXNzZXMgc2Nhbm5lZDogLQogICAgIERhdGFzaGVldDogaHR0cDov
-L3d3dy5saW5lYXIuY29tL3Byb2R1Y3QvbHRtMjk4NworICAqIExpbmVhciBUZWNobm9sb2d5IExU
-TTQ2NzUKKyAgICBQcmVmaXg6ICdsdG00Njc1JworICAgIEFkZHJlc3NlcyBzY2FubmVkOiAtCisg
-ICAgRGF0YXNoZWV0OiBodHRwOi8vd3d3LmxpbmVhci5jb20vcHJvZHVjdC9sdG00Njc1CiAgICog
-TGluZWFyIFRlY2hub2xvZ3kgTFRNNDY3NgogICAgIFByZWZpeDogJ2x0bTQ2NzYnCiAgICAgQWRk
-cmVzc2VzIHNjYW5uZWQ6IC0KQEAgLTcwLDYgKzc0LDcgQEAgTFRDMzg4MyBpcyBhIHNpbmdsZSBw
-aGFzZSBzdGVwLWRvd24gREMvREMgY29udHJvbGxlci4KIExUTTI5ODcgaXMgYSAxNi1jaGFubmVs
-IFBvd2VyIFN5c3RlbSBNYW5hZ2VyIHdpdGggdHdvIExUQzI5NzcgcGx1cwogYWRkaXRpb25hbCBj
-b21wb25lbnRzIG9uIGEgc2luZ2xlIGRpZS4gVGhlIGNoaXAgaXMgaW5zdGFudGlhdGVkIGFuZCBy
-ZXBvcnRlZAogYXMgdHdvIHNlcGFyYXRlIGNoaXBzIG9uIHR3byBkaWZmZXJlbnQgSTJDIGJ1cyBh
-ZGRyZXNzZXMuCitMVE00Njc1IGlzIGEgZHVhbCA5QSBvciBzaW5nbGUgMThBIM68TW9kdWxlIHJl
-Z3VsYXRvcgogTFRNNDY3NiBpcyBhIGR1YWwgMTNBIG9yIHNpbmdsZSAyNkEgdU1vZHVsZSByZWd1
-bGF0b3IuCiAKIApAQCAtMTE3LDcgKzEyMiw4IEBAIGluW05dX2xhYmVsCQkidm91dFsxLThdIi4K
-IAkJCUxUQzI5NzQsIExUQzI5NzU6IE49Mi01CiAJCQlMVEMyOTc3LCBMVEMyOTgwLCBMVE0yOTg3
-OiBOPTItOQogCQkJTFRDMjk3ODogTj0yLTkKLQkJCUxUQzM4ODAsIExUQzM4ODIsIExUQzIzODg2
-IExUQzM4ODcsIExUTTQ2NzY6IE49Mi0zCisJCQlMVEMzODgwLCBMVEMzODgyLCBMVEMyMzg4NiBM
-VEMzODg3LCBMVE00Njc1LCBMVE00Njc2OgorCQkJCU49Mi0zCiAJCQlMVEMzODgzOiBOPTIKIGlu
-W05dX2lucHV0CQlNZWFzdXJlZCBvdXRwdXQgdm9sdGFnZS4KIGluW05dX21pbgkJTWluaW11bSBv
-dXRwdXQgdm9sdGFnZS4KQEAgLTEzOSw5ICsxNDUsOSBAQCB0ZW1wW05dX2lucHV0CQlNZWFzdXJl
-ZCB0ZW1wZXJhdHVyZS4KIAkJCU9uIExUQzI5NzcsIExUQzI5ODAsIExUQzI5NzgsIGFuZCBMVE0y
-OTg3LCBvbmx5IG9uZQogCQkJdGVtcGVyYXR1cmUgbWVhc3VyZW1lbnQgaXMgc3VwcG9ydGVkIGFu
-ZCByZXBvcnRzCiAJCQl0aGUgY2hpcCB0ZW1wZXJhdHVyZS4KLQkJCU9uIExUQzM4ODAsIExUQzM4
-ODIsIExUQzM4ODcsIGFuZCBMVE00Njc2LCB0ZW1wMSBhbmQKLQkJCXRlbXAyIHJlcG9ydCBleHRl
-cm5hbCB0ZW1wZXJhdHVyZXMsIGFuZCB0ZW1wMyByZXBvcnRzCi0JCQl0aGUgY2hpcCB0ZW1wZXJh
-dHVyZS4KKwkJCU9uIExUQzM4ODAsIExUQzM4ODIsIExUQzM4ODcsIExUTTQ2NzUsIGFuZCBMVE00
-Njc2LAorCQkJdGVtcDEgYW5kIHRlbXAyIHJlcG9ydCBleHRlcm5hbCB0ZW1wZXJhdHVyZXMsIGFu
-ZCB0ZW1wMworCQkJcmVwb3J0cyB0aGUgY2hpcCB0ZW1wZXJhdHVyZS4KIAkJCU9uIExUQzM4ODMs
-IHRlbXAxIHJlcG9ydHMgYW4gZXh0ZXJuYWwgdGVtcGVyYXR1cmUsCiAJCQlhbmQgdGVtcDIgcmVw
-b3J0cyB0aGUgY2hpcCB0ZW1wZXJhdHVyZS4KIHRlbXBbTl1fbWluCQlNaW1pbXVtIHRlbXBlcmF0
-dXJlLiBMVEMyOTc0LCBMQ1QyOTc3LCBMVE0yOTgwLCBMVEMyOTc4LApAQCAtMTcyLDEyICsxNzgs
-MTMgQEAgcG93ZXJbTl1fbGFiZWwJCSJwb3V0WzEtNF0iLgogCQkJTFRDMjk3NCwgTFRDMjk3NTog
-Tj0xLTQKIAkJCUxUQzI5NzcsIExUQzI5ODAsIExUTTI5ODc6IE5vdCBzdXBwb3J0ZWQKIAkJCUxU
-QzI5Nzg6IE5vdCBzdXBwb3J0ZWQKLQkJCUxUQzM4ODAsIExUQzM4ODIsIExUQzM4ODYsIExUQzM4
-ODcsIExUTTQ2NzY6IE49MS0yCisJCQlMVEMzODgwLCBMVEMzODgyLCBMVEMzODg2LCBMVEMzODg3
-LCBMVE00Njc1LCBMVE00Njc2OgorCQkJCU49MS0yCiAJCQlMVEMzODgzOiBOPTIKIHBvd2VyW05d
-X2lucHV0CQlNZWFzdXJlZCBvdXRwdXQgcG93ZXIuCiAKLWN1cnIxX2xhYmVsCQkiaWluIi4gTFRD
-Mzg4MCwgTFRDMzg4MywgTFRDMzg4NiwgTFRDMzg4NywgYW5kIExUTTQ2NzYKLQkJCW9ubHkuCitj
-dXJyMV9sYWJlbAkJImlpbiIuIExUQzM4ODAsIExUQzM4ODMsIExUQzM4ODYsIExUQzM4ODcsIExU
-TTQ2NzUsCisJCQlhbmQgTFRNNDY3NiBvbmx5LgogY3VycjFfaW5wdXQJCU1lYXN1cmVkIGlucHV0
-IGN1cnJlbnQuCiBjdXJyMV9tYXgJCU1heGltdW0gaW5wdXQgY3VycmVudC4KIGN1cnIxX21heF9h
-bGFybQkJSW5wdXQgY3VycmVudCBoaWdoIGFsYXJtLgpAQCAtMTg4LDcgKzE5NSw4IEBAIGN1cnJb
-Tl1fbGFiZWwJCSJpb3V0WzEtNF0iLgogCQkJTFRDMjk3NCwgTFRDMjk3NTogTj0xLTQKIAkJCUxU
-QzI5NzcsIExUQzI5ODAsIExUTTI5ODc6IG5vdCBzdXBwb3J0ZWQKIAkJCUxUQzI5Nzg6IG5vdCBz
-dXBwb3J0ZWQKLQkJCUxUQzM4ODAsIExUQzM4ODIsIExUQzM4ODYsIExUQzM4ODcsIExUTTQ2NzY6
-IE49Mi0zCisJCQlMVEMzODgwLCBMVEMzODgyLCBMVEMzODg2LCBMVEMzODg3LCBMVE00Njc1LCBM
-VE00Njc2OgorCQkJCU49Mi0zCiAJCQlMVEMzODgzOiBOPTIKIGN1cnJbTl1faW5wdXQJCU1lYXN1
-cmVkIG91dHB1dCBjdXJyZW50LgogY3VycltOXV9tYXgJCU1heGltdW0gb3V0cHV0IGN1cnJlbnQu
-CmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL3BtYnVzL0tjb25maWcgYi9kcml2ZXJzL2h3bW9u
-L3BtYnVzL0tjb25maWcKaW5kZXggNWViYzM2MjU1Yzg4Li5kZjZlYmIyYjhmMGYgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvaHdtb24vcG1idXMvS2NvbmZpZworKysgYi9kcml2ZXJzL2h3bW9uL3BtYnVz
-L0tjb25maWcKQEAgLTUzLDcgKzUzLDcgQEAgY29uZmlnIFNFTlNPUlNfTFRDMjk3OAogCWhlbHAK
-IAkgIElmIHlvdSBzYXkgeWVzIGhlcmUgeW91IGdldCBoYXJkd2FyZSBtb25pdG9yaW5nIHN1cHBv
-cnQgZm9yIExpbmVhcgogCSAgVGVjaG5vbG9neSBMVEMyOTc0LCBMVEMyOTc1LCBMVEMyOTc3LCBM
-VEMyOTc4LCBMVEMyOTgwLCBMVEMzODgwLAotCSAgTFRDMzg4MywgTFRDMzg4NiwgTFRDMzg4Nywg
-TFRDTTI5ODcsIGFuZCBMVE00Njc2LgorCSAgTFRDMzg4MywgTFRDMzg4NiwgTFRDMzg4NywgTFRD
-TTI5ODcsIExUTTQ2NzUsIGFuZCBMVE00Njc2LgogCiAJICBUaGlzIGRyaXZlciBjYW4gYWxzbyBi
-ZSBidWlsdCBhcyBhIG1vZHVsZS4gSWYgc28sIHRoZSBtb2R1bGUgd2lsbAogCSAgYmUgY2FsbGVk
-IGx0YzI5NzguCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL3BtYnVzL2x0YzI5NzguYyBiL2Ry
-aXZlcnMvaHdtb24vcG1idXMvbHRjMjk3OC5jCmluZGV4IGYxYzY5YzlkZTg0OS4uNThiNzg5YzI4
-YjQ4IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL3BtYnVzL2x0YzI5NzguYworKysgYi9kcml2
-ZXJzL2h3bW9uL3BtYnVzL2x0YzI5NzguYwpAQCAtMjgsNyArMjgsNyBAQAogI2luY2x1ZGUgInBt
-YnVzLmgiCiAKIGVudW0gY2hpcHMgeyBsdGMyOTc0LCBsdGMyOTc1LCBsdGMyOTc3LCBsdGMyOTc4
-LCBsdGMyOTgwLCBsdGMzODgwLCBsdGMzODgyLAotCWx0YzM4ODMsIGx0YzM4ODYsIGx0YzM4ODcs
-IGx0bTI5ODcsIGx0bTQ2NzYgfTsKKwlsdGMzODgzLCBsdGMzODg2LCBsdGMzODg3LCBsdG0yOTg3
-LCBsdG00Njc1LCBsdG00Njc2IH07CiAKIC8qIENvbW1vbiBmb3IgYWxsIGNoaXBzICovCiAjZGVm
-aW5lIExUQzI5NzhfTUZSX1ZPVVRfUEVBSwkJMHhkZApAQCAtNDYsNyArNDYsNyBAQCBlbnVtIGNo
-aXBzIHsgbHRjMjk3NCwgbHRjMjk3NSwgbHRjMjk3NywgbHRjMjk3OCwgbHRjMjk4MCwgbHRjMzg4
-MCwgbHRjMzg4MiwKICNkZWZpbmUgTFRDMjk3NF9NRlJfSU9VVF9QRUFLCQkweGQ3CiAjZGVmaW5l
-IExUQzI5NzRfTUZSX0lPVVRfTUlOCQkweGQ4CiAKLS8qIExUQzM4ODAsIExUQzM4ODIsIExUQzM4
-ODMsIExUQzM4ODcsIGFuZCBMVE00Njc2ICovCisvKiBMVEMzODgwLCBMVEMzODgyLCBMVEMzODgz
-LCBMVEMzODg3LCBMVE00Njc1LCBhbmQgTFRNNDY3NiAqLwogI2RlZmluZSBMVEMzODgwX01GUl9J
-T1VUX1BFQUsJCTB4ZDcKICNkZWZpbmUgTFRDMzg4MF9NRlJfQ0xFQVJfUEVBS1MJCTB4ZTMKICNk
-ZWZpbmUgTFRDMzg4MF9NRlJfVEVNUEVSQVRVUkUyX1BFQUsJMHhmNApAQCAtNzcsNiArNzcsNyBA
-QCBlbnVtIGNoaXBzIHsgbHRjMjk3NCwgbHRjMjk3NSwgbHRjMjk3NywgbHRjMjk3OCwgbHRjMjk4
-MCwgbHRjMzg4MCwgbHRjMzg4MiwKICNkZWZpbmUgTFRDMzg4N19JRAkJCTB4NDcwMAogI2RlZmlu
-ZSBMVE0yOTg3X0lEX0EJCQkweDgwMTAJLyogQS9CIGZvciB0d28gZGllIElEcyAqLwogI2RlZmlu
-ZSBMVE0yOTg3X0lEX0IJCQkweDgwMjAKKyNkZWZpbmUgTFRNNDY3NV9JRAkJCTB4NDdhMAogI2Rl
-ZmluZSBMVE00Njc2X0lEX1JFVjEJCQkweDQ0MDAKICNkZWZpbmUgTFRNNDY3Nl9JRF9SRVYyCQkJ
-MHg0NDgwCiAjZGVmaW5lIExUTTQ2NzZBX0lECQkJMHg0N2UwCkBAIC01MDksNiArNTEwLDcgQEAg
-c3RhdGljIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkIGx0YzI5NzhfaWRbXSA9IHsKIAl7Imx0
-YzM4ODYiLCBsdGMzODg2fSwKIAl7Imx0YzM4ODciLCBsdGMzODg3fSwKIAl7Imx0bTI5ODciLCBs
-dG0yOTg3fSwKKwl7Imx0bTQ2NzUiLCBsdG00Njc1fSwKIAl7Imx0bTQ2NzYiLCBsdG00Njc2fSwK
-IAl7fQogfTsKQEAgLTU4MSw2ICs1ODMsOCBAQCBzdGF0aWMgaW50IGx0YzI5NzhfZ2V0X2lkKHN0
-cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCiAJCXJldHVybiBsdGMzODg3OwogCWVsc2UgaWYgKGNo
-aXBfaWQgPT0gTFRNMjk4N19JRF9BIHx8IGNoaXBfaWQgPT0gTFRNMjk4N19JRF9CKQogCQlyZXR1
-cm4gbHRtMjk4NzsKKwllbHNlIGlmIChjaGlwX2lkID09IExUTTQ2NzVfSUQpCisJCXJldHVybiBs
-dG00Njc1OwogCWVsc2UgaWYgKGNoaXBfaWQgPT0gTFRNNDY3Nl9JRF9SRVYxIHx8IGNoaXBfaWQg
-PT0gTFRNNDY3Nl9JRF9SRVYyIHx8CiAJCSBjaGlwX2lkID09IExUTTQ2NzZBX0lEKQogCQlyZXR1
-cm4gbHRtNDY3NjsKQEAgLTY3OCw2ICs2ODIsNyBAQCBzdGF0aWMgaW50IGx0YzI5NzhfcHJvYmUo
-c3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKIAkJYnJlYWs7CiAJY2FzZSBsdGMzODgwOgogCWNh
-c2UgbHRjMzg4NzoKKwljYXNlIGx0bTQ2NzU6CiAJY2FzZSBsdG00Njc2OgogCQlkYXRhLT5mZWF0
-dXJlcyB8PSBGRUFUX0NMRUFSX1BFQUtTIHwgRkVBVF9ORUVEU19QT0xMSU5HOwogCQlpbmZvLT5y
-ZWFkX3dvcmRfZGF0YSA9IGx0YzM4ODBfcmVhZF93b3JkX2RhdGE7CkBAIC03NjMsNiArNzY4LDcg
-QEAgc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgbHRjMjk3OF9vZl9tYXRjaFtdID0g
-ewogCXsgLmNvbXBhdGlibGUgPSAibGx0YyxsdGMzODg2IiB9LAogCXsgLmNvbXBhdGlibGUgPSAi
-bGx0YyxsdGMzODg3IiB9LAogCXsgLmNvbXBhdGlibGUgPSAibGx0YyxsdG0yOTg3IiB9LAorCXsg
-LmNvbXBhdGlibGUgPSAibGx0YyxsdG00Njc1IiB9LAogCXsgLmNvbXBhdGlibGUgPSAibGx0Yyxs
-dG00Njc2IiB9LAogCXsgfQogfTsKLS0gCjIuMS40CgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
-c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
-aW5mby9sbS1zZW5zb3Jz
+Verifying the chip type is getting more complicated with new chips,
+since not all chips support the same mechanism to read the chip type.
+Move the code into a separate function to simplify adding support for
+those chips.
+
+Cc: Ananda Babu Nettam <anandab@juniper.net>
+Cc: Amit U Jain <amjain@juniper.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+I just realized that the LTM4676 patch depends on two other patches
+which I did not send out yet. These two patches have to be applied
+first.
+
+ drivers/hwmon/pmbus/ltc2978.c | 51 +++++++++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 33081d1d1c5a..a27debafaad9 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -388,10 +388,36 @@ static const struct regulator_desc ltc2978_reg_desc[] = {
+ };
+ #endif /* CONFIG_SENSORS_LTC2978_REGULATOR */
+ 
++static int ltc2978_get_id(struct i2c_client *client)
++{
++	int chip_id;
++
++	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
++	if (chip_id < 0)
++		return chip_id;
++
++	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2)
++		return ltc2974;
++	else if (chip_id = LTC2977_ID)
++		return ltc2977;
++	else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
++		 chip_id = LTC2978A_ID)
++		return ltc2978;
++	else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID)
++		return ltc3880;
++	else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID)
++		return ltc3883;
++	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID)
++		return ltm4676;
++
++	dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
++	return -ENODEV;
++}
++
+ static int ltc2978_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+-	int chip_id, i;
++	int i;
+ 	struct ltc2978_data *data;
+ 	struct pmbus_driver_info *info;
+ 
+@@ -404,27 +430,10 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
+-	if (chip_id < 0)
+-		return chip_id;
++	data->id = ltc2978_get_id(client);
++	if (data->id < 0)
++		return data->id;
+ 
+-	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2) {
+-		data->id = ltc2974;
+-	} else if (chip_id = LTC2977_ID) {
+-		data->id = ltc2977;
+-	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
+-		   chip_id = LTC2978A_ID) {
+-		data->id = ltc2978;
+-	} else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID) {
+-		data->id = ltc3880;
+-	} else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID) {
+-		data->id = ltc3883;
+-	} else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID) {
+-		data->id = ltm4676;
+-	} else {
+-		dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
+-		return -ENODEV;
+-	}
+ 	if (data->id != id->driver_data)
+ 		dev_warn(&client->dev,
+ 			 "Device mismatch: Configured %s, detected %s\n",
+-- 
+2.1.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
