@@ -1,62 +1,57 @@
-From: Christian Fetzer <fetzer.ch@gmail.com>
-Date: Fri, 28 Aug 2015 08:31:22 +0000
-Subject: [lm-sensors] [PATCH 1/4] i2c-piix4: Optionally release smba in piix4_adap_remove
-Message-Id: <1440750685-19172-2-git-send-email-fetzer.ch@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 07 Aug 2015 08:35:18 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ltc2978) Add additional chip IDs for LTM4676 and LTM4676A
+Message-Id: <1438936518-23668-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is in preparation to support the multiplexed SMBus main controller
-in the SB800 chipset where the controller address is shared among
-the four multiplexed ports. As such the address region should be
-only freed for the first multiplexed adapter to avoid double free
-warnings.
+Per datasheet, the chip ID for LTM4676 is 0x448x. This was observed
+in real systems. In addition to that, chip ID 0x4401 was observed
+as well. Research shows that the chip ID has been changed from 0x440x
+to 0x448x in datasheet revision C. Add support for the additional chip ID.
 
-Signed-off-by: Christian Fetzer <fetzer.ch@gmail.com>
+Also add the chip ID for LTM4676A, which is functionally identical
+to LTM4676.
+
+Reported-by: Ananda Babu Nettam <anandab@juniper.net>
+Cc: Ananda Babu Nettam <anandab@juniper.net>
+Cc: Amit U Jain <amjain@juniper.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/i2c/busses/i2c-piix4.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/hwmon/pmbus/ltc2978.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-index 630bce6..97d2165 100644
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -660,13 +660,14 @@ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 	return 0;
- }
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 16d88d191379..baa643e7f516 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -67,7 +67,9 @@ enum chips { ltc2974, ltc2975, ltc2977, ltc2978, ltc3880, ltc3882, ltc3883,
+ #define LTC3880_ID_MASK			0xff00
+ #define LTC3883_ID			0x4300
+ #define LTC3883_ID_MASK			0xff00
+-#define LTM4676_ID			0x4480	/* datasheet claims 0x440X */
++#define LTM4676_ID			0x4400
++#define LTM4676_ID_2			0x4480
++#define LTM4676A_ID			0x47E0
+ #define LTM4676_ID_MASK			0xfff0
  
--static void piix4_adap_remove(struct i2c_adapter *adap)
-+static void piix4_adap_remove(struct i2c_adapter *adap, int free_smba)
- {
- 	struct i2c_piix4_adapdata *adapdata = i2c_get_adapdata(adap);
+ #define LTC2974_NUM_PAGES		4
+@@ -503,7 +505,9 @@ static int ltc2978_get_id(struct i2c_client *client)
+ 		return ltc3880;
+ 	else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID)
+ 		return ltc3883;
+-	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID)
++	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID ||
++		 (chip_id & LTM4676_ID_MASK) = LTM4676_ID_2 ||
++		 (chip_id & LTM4676_ID_MASK) = LTM4676A_ID)
+ 		return ltm4676;
  
- 	if (adapdata->smba) {
- 		i2c_del_adapter(adap);
--		release_region(adapdata->smba, SMBIOSIZE);
-+		if (free_smba)
-+			release_region(adapdata->smba, SMBIOSIZE);
- 		kfree(adapdata);
- 		kfree(adap);
- 	}
-@@ -675,12 +676,12 @@ static void piix4_adap_remove(struct i2c_adapter *adap)
- static void piix4_remove(struct pci_dev *dev)
- {
- 	if (piix4_main_adapter) {
--		piix4_adap_remove(piix4_main_adapter);
-+		piix4_adap_remove(piix4_main_adapter, 1);
- 		piix4_main_adapter = NULL;
- 	}
- 
- 	if (piix4_aux_adapter) {
--		piix4_adap_remove(piix4_aux_adapter);
-+		piix4_adap_remove(piix4_aux_adapter, 1);
- 		piix4_aux_adapter = NULL;
- 	}
- }
+ 	dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
