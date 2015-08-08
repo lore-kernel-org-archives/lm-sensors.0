@@ -1,55 +1,77 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 10 Aug 2015 08:54:25 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: restrict Super I/O probing to x86
-Message-Id: <20150810105425.507f758e@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 08 Aug 2015 04:17:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (pmbus) Add device IDs for TPS544{B, C}2{0, 5}
+Message-Id: <1439007442-5086-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20150809100048.GA8036@aurel32.net>
-In-Reply-To: <20150809100048.GA8036@aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aurelien,
+Add device IDs and references for Texas Instruments TPS544B20, TPS544B25,
+TPS544C20, and TPS544C25 to the generic PMBus driver.
 
-On Sun, 9 Aug 2015 12:00:48 +0200, Aurelien Jarno wrote:
-> The current sensors-detect avoid Super I/O chips probing on
-> PowerPC machines. However I have also been reported that this code
-> can also crash ARM machines. I therefore believe the probing should
-> be done only on x86 machines. The patch below changes that.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/pmbus   | 8 ++++++--
+ drivers/hwmon/pmbus/Kconfig | 3 ++-
+ drivers/hwmon/pmbus/pmbus.c | 4 ++++
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-In general I am fine with the idea, hardware detection can be
-troublesome so a white list feels safer than a black list. However I am
-curious if these kind of chips can also be found on other
-architectures? Maybe IA-64?
-
-Well I suppose that other architectures can be added to the list later
-if needed.
-
-> --- a/prog/detect/sensors-detect
-> +++ b/prog/detect/sensors-detect
-> @@ -6889,9 +6889,9 @@
->  	print "\n";
->  
->  	$superio_features = 0;
-> -	# Skip "random" I/O port probing on PPC
-> -	if ($kernel_arch ne 'ppc'
-> -	 && $kernel_arch ne 'ppc64') {
-> +	# Skip "random" I/O port probing on non x86 machines
-> +	if ($kernel_arch =~ /i?86/
-
-I've changed that to m/^i[3456]86$/ as it seems safer.
-
-> +	 || $kernel_arch eq 'x86_64') {
->  		print "Some Super I/O chips contain embedded sensors. We have to write to\n".
->  		      "standard I/O ports to probe them. This is usually safe.\n";
->  		print "Do you want to scan for Super I/O sensors? (YES/no): ";
-> 
-
-Thanks,
+diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
+index a3557da8f5b4..b397675e876d 100644
+--- a/Documentation/hwmon/pmbus
++++ b/Documentation/hwmon/pmbus
+@@ -23,11 +23,15 @@ Supported chips:
+ 	http://www.lineagepower.com/oem/pdf/PDT012A0X.pdf
+ 	http://www.lineagepower.com/oem/pdf/UDT020A0X.pdf
+ 	http://www.lineagepower.com/oem/pdf/MDT040A0X.pdf
+-  * Texas Instruments TPS40400
+-    Prefixes: 'tps40400'
++  * Texas Instruments TPS40400, TPS544B20, TPS544B25, TPS544C20, TPS544C25
++    Prefixes: 'tps40400', 'tps544b20', 'tps544b25', 'tps544c20', 'tps544c25'
+     Addresses scanned: -
+     Datasheets:
+ 	http://www.ti.com/lit/gpn/tps40400
++	http://www.ti.com/lit/gpn/tps544b20
++	http://www.ti.com/lit/gpn/tps544b25
++	http://www.ti.com/lit/gpn/tps544c20
++	http://www.ti.com/lit/gpn/tps544c25
+   * Generic PMBus devices
+     Prefix: 'pmbus'
+     Addresses scanned: -
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
+index 47be0468e72e..8279727987cb 100644
+--- a/drivers/hwmon/pmbus/Kconfig
++++ b/drivers/hwmon/pmbus/Kconfig
+@@ -20,7 +20,8 @@ config SENSORS_PMBUS
+ 	help
+ 	  If you say yes here you get hardware monitoring support for generic
+ 	  PMBus devices, including but not limited to ADP4000, BMR453, BMR454,
+-	  MDT040, NCP4200, NCP4208, PDT003, PDT006, PDT012, UDT020, and TPS40400.
++	  MDT040, NCP4200, NCP4208, PDT003, PDT006, PDT012, TPS40400, TPS544B20,
++	  TPS544B25, TPS544C20, TPS544C25, and UDT020.
+ 
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called pmbus.
+diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
+index bbfa35d82e42..0a74991a60f0 100644
+--- a/drivers/hwmon/pmbus/pmbus.c
++++ b/drivers/hwmon/pmbus/pmbus.c
+@@ -194,6 +194,10 @@ static const struct i2c_device_id pmbus_id[] = {
+ 	{"pdt012", 1},
+ 	{"pmbus", 0},
+ 	{"tps40400", 1},
++	{"tps544b20", 1},
++	{"tps544b25", 1},
++	{"tps544c20", 1},
++	{"tps544c25", 1},
+ 	{"udt020", 1},
+ 	{}
+ };
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.4
+
 
 _______________________________________________
 lm-sensors mailing list
