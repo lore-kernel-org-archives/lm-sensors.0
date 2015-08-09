@@ -1,35 +1,37 @@
-From: Brendan Heading <brendanheading@gmail.com>
-Date: Mon, 31 Aug 2015 12:19:37 +0000
-Subject: Re: [lm-sensors] compilation under musl
-Message-Id: <CA+BsyQ5XTbovy2+pr-OsospJjbwy8vOZuinwxnMNBn_egxo7kQ@mail.gmail.com>
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Sun, 09 Aug 2015 10:00:48 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: restrict Super I/O probing to x86
+Message-Id: <20150809100048.GA8036@aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CA+BsyQ7oUSF73bHio+L9pZGTTzsYbWmSVifgXTR_4zRrABShMA@mail.gmail.com>
-In-Reply-To: <CA+BsyQ7oUSF73bHio+L9pZGTTzsYbWmSVifgXTR_4zRrABShMA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->> It's a long time since glibc 2.0.1 was released - 1997. Accordingly,
->> it seems to make little sense at this stage to try to retain
->> compatibility with very old libcs - so maybe it should be removed
->> entirely as per the following patch ? :
->>
->> http://git.alpinelinux.org/cgit/aports/plain/main/lm_sensors/musl-fix-in=
-cludes.patch?id=FEce1d19448dbd3a56fd8ac70443116187141848
->>
->> Is there any chance that this patch could be considered for inclusion
->> in the main lm-sensors tree ?
->
-> Agreed. Patch committed with further cleanups (moving <sys/...>
-> includes to the top of the list):
-> http://www.lm-sensors.org/changeset/6314
->
-> Thanks for your contribution.
+The current sensors-detect avoid Super I/O chips probing on
+PowerPC machines. However I have also been reported that this code
+can also crash ARM machines. I therefore believe the probing should
+be done only on x86 machines. The patch below changes that.
 
-Thanks Jean!
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -6889,9 +6889,9 @@
+ 	print "\n";
+ 
+ 	$superio_features = 0;
+-	# Skip "random" I/O port probing on PPC
+-	if ($kernel_arch ne 'ppc'
+-	 && $kernel_arch ne 'ppc64') {
++	# Skip "random" I/O port probing on non x86 machines
++	if ($kernel_arch =~ /i?86/
++	 || $kernel_arch eq 'x86_64') {
+ 		print "Some Super I/O chips contain embedded sensors. We have to write to\n".
+ 		      "standard I/O ports to probe them. This is usually safe.\n";
+ 		print "Do you want to scan for Super I/O sensors? (YES/no): ";
 
-Brendan
+-- 
+Aurelien Jarno                          GPG: 4096R/1DDD8C9B
+aurelien@aurel32.net                 http://www.aurel32.net
 
 _______________________________________________
 lm-sensors mailing list
