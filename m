@@ -1,71 +1,85 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 28 Aug 2015 07:35:41 +0000
-Subject: Re: [lm-sensors] [hwmon:watchdog-next 25/25] drivers/watchdog/txx9wdt.c:134:20: error: 'pdev' undecl
-Message-Id: <20150828093541.009d0eb1@endymion.delvare>
+From: yalin wang <yalin.wang2010@gmail.com>
+Date: Mon, 10 Aug 2015 14:41:43 +0000
+Subject: [lm-sensors] [PATCH] hwmon:change sht15_reverse()
+Message-Id: <3ED35BB5-7173-4149-885B-0FEB0596743C@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201508190641.YilMpD2S%fengguang.wu@intel.com>
-In-Reply-To: <201508190641.YilMpD2S%fengguang.wu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: jdelvare@suse.com, linux@roeck-us.net, lm-sensors@lm-sensors.org, open list <linux-kernel@vger.kernel.org>
 
-Hi Guenter,
 
-On Thu, 27 Aug 2015 02:51:42 -0700, Guenter Roeck wrote:
-> On 08/27/2015 12:33 AM, Jean Delvare wrote:
-> > On Wed, 19 Aug 2015 06:03:43 +0800, kbuild test robot wrote:
-> >> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git watchdog-next
-> >> head:   8f5555c0f5a355e5f45944d9517e983a1146fe4a
-> >> commit: 8f5555c0f5a355e5f45944d9517e983a1146fe4a [25/25] Watchdog: Fix parent of watchdog_devices
-> >> config: mips-jmr3927_defconfig (attached as .config)
-> >> reproduce:
-> >>    wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-> >>    chmod +x ~/bin/make.cross
-> >>    git checkout 8f5555c0f5a355e5f45944d9517e983a1146fe4a
-> >>    # save the attached .config to linux build tree
-> >>    make.cross ARCH=mips
-> >>
-> >> All error/warnings (new ones prefixed by >>):
-> >>
-> >>     drivers/watchdog/txx9wdt.c: In function 'txx9wdt_probe':
-> >>>> drivers/watchdog/txx9wdt.c:134:20: error: 'pdev' undeclared (first use in this function)
-> >>       txx9wdt.parent = &pdev->dev;
-> >>                         ^
-> >>     drivers/watchdog/txx9wdt.c:134:20: note: each undeclared identifier is reported only once for each function it appears in
-> >>
-> >> vim +/pdev +134 drivers/watchdog/txx9wdt.c
-> >>
-> >>     128	
-> >>     129		if (timeout < 1 || timeout > WD_MAX_TIMEOUT)
-> >>     130			timeout = TIMER_MARGIN;
-> >>     131		txx9wdt.timeout = timeout;
-> >>     132		txx9wdt.min_timeout = 1;
-> >>     133		txx9wdt.max_timeout = WD_MAX_TIMEOUT;
-> >>   > 134		txx9wdt.parent = &pdev->dev;
-> >>     135		watchdog_set_nowayout(&txx9wdt, nowayout);
-> >>     136	
-> >>     137		ret = watchdog_register_device(&txx9wdt);
-> >
-> > You are sending this to the wrong mailing list, lm-sensors has nothing
-> > to do with watchdog drivers.
-> >
-> 
-> This is because every branch in my repo is tested. Sorry for the noise/nuisance.
-> Should I ask for list copies to be dropped ? Might be better, since hwmon
-> isn't the only subsystem I am involved in, branches may change and are not
-> always associated with hwmon.
+This change sht15_reverse() to be generic bitrev8().
 
-Can't the appropriate list be listed per branch rather than (or in
-addition to) per repository? If not, then please don't include the
-lm-sensors list in recipients indeed.
+Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+---
+ drivers/hwmon/sht15.c | 20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-Maybe the kbuild bot could use "./scripts/get_maintainer.pl -f" instead
-to figure out which lists should be Cc'd.
-
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index 497a7f8..a2fdbb7 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -33,6 +33,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/atomic.h>
++#include <linux/bitrev.h>
+ 
+ /* Commands */
+ #define SHT15_MEASURE_TEMP		0x03
+@@ -173,19 +174,6 @@ struct sht15_data {
+ };
+ 
+ /**
+- * sht15_reverse() - reverse a byte
+- * @byte:    byte to reverse.
+- */
+-static u8 sht15_reverse(u8 byte)
+-{
+-	u8 i, c;
+-
+-	for (c = 0, i = 0; i < 8; i++)
+-		c |= (!!(byte & (1 << i))) << (7 - i);
+-	return c;
+-}
+-
+-/**
+  * sht15_crc8() - compute crc8
+  * @data:	sht15 specific data.
+  * @value:	sht15 retrieved data.
+@@ -196,7 +184,7 @@ static u8 sht15_crc8(struct sht15_data *data,
+ 		const u8 *value,
+ 		int len)
+ {
+-	u8 crc = sht15_reverse(data->val_status & 0x0F);
++	u8 crc = bitrev8(data->val_status & 0x0F);
+ 
+ 	while (len--) {
+ 		crc = sht15_crc8_table[*value ^ crc];
+@@ -477,7 +465,7 @@ static int sht15_update_status(struct sht15_data *data)
+ 
+ 		if (data->checksumming) {
+ 			sht15_ack(data);
+-			dev_checksum = sht15_reverse(sht15_read_byte(data));
++			dev_checksum = bitrev8(sht15_read_byte(data));
+ 			checksum_vals[0] = SHT15_READ_STATUS;
+ 			checksum_vals[1] = status;
+ 			data->checksum_ok = (sht15_crc8(data, checksum_vals, 2)
+@@ -864,7 +852,7 @@ static void sht15_bh_read_data(struct work_struct *work_s)
+ 		 */
+ 		if (sht15_ack(data))
+ 			goto wakeup;
+-		dev_checksum = sht15_reverse(sht15_read_byte(data));
++		dev_checksum = bitrev8(sht15_read_byte(data));
+ 		checksum_vals[0] = (data->state = SHT15_READING_TEMP) ?
+ 			SHT15_MEASURE_TEMP : SHT15_MEASURE_RH;
+ 		checksum_vals[1] = (u8) (val >> 8);
 -- 
-Jean Delvare
-SUSE L3 Support
+1.9.1
+
+yalin@ubuntu:~/linux-next$ 
+
 
 _______________________________________________
 lm-sensors mailing list
