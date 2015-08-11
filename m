@@ -1,8 +1,10 @@
 From: Nicolas Roy-Renaud <victoiredupeuple@hotmail.com>
-Date: Tue, 11 Aug 2015 20:05:22 +0000
+Date: Tue, 11 Aug 2015 20:09:38 +0000
 Subject: [lm-sensors] [PATCH] pwmconfig checks for stable readings instead of waiting 5 secs
-Message-Id: <BLU436-SMTP244DA91C09F18BCD3DE8232DE7F0@phx.gbl>
+Message-Id: <BLU437-SMTP2120BBE4F8A7B8F16CF0B9DE7F0@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <BLU436-SMTP244DA91C09F18BCD3DE8232DE7F0@phx.gbl>
+In-Reply-To: <BLU436-SMTP244DA91C09F18BCD3DE8232DE7F0@phx.gbl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -10,20 +12,21 @@ To: lm-sensors@vger.kernel.org
 
 Hello,
 
-I was having issues with pwmconfig on one of my machines, where the 
+I was having issues with pwmconfig on one of my machines where the 
 delays between each step weren't long enough to get my fan to reach its 
-target speed. This makde for some rather strange readings, and so rather 
+target speed. This made for some rather strange readings, and so rather 
 than just change the delay between each step, I isolated that logic in 
 TestPWMSpeed() and made it so the the script starts reading immediately 
 after the pwm change and every .5 second after that. It then compares 
 the last 10 values and if the variation is below a certain threshold 
-(currently 15 RPM, needs testing), it marks the value as stable and 
-moves on. If after 20 readings (i.e : 10 seconds) the value still can't 
-be considered stable, the step times out and the last value read is used 
-as if it was stable (which is conform to the current behavior).
-The script needs at least 10 readings (5 seconds) to verify whether the 
-speed is now stable or not, although that could probably be lowered to 8 
-or maybe 5.
+(currently 15 RPM, though it might be a bit low), it marks the value as 
+stable and moves on. If after 20 readings (i.e : 10 seconds) the value 
+still can't be considered stable, the step times out and the last value 
+read is used as if it was stable (which is conform to the current 
+behavior).
+FanSpeedIsStable() needs at least 10 readings (5 seconds) to verify 
+whether the speed is now stable or not, although that could probably 
+lowered to 5.
 
 That doesn't seem to affect much of the script logic at the moment, 
 seeing how these values are only used for plotting speed-PWM graphs and 
