@@ -1,68 +1,229 @@
-From: Huang Rui <ray.huang@amd.com>
-Date: Thu, 27 Aug 2015 08:07:42 +0000
-Subject: [lm-sensors] [PATCH 11/15] hwmon, fam15h_power: add ptsc counter value for accumulated power
-Message-Id: <1440662866-28716-12-git-send-email-ray.huang@amd.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 12 Aug 2015 18:18:50 +0000
+Subject: [lm-sensors] [PATCH v2 2/4] hwmon: (ltc2978) Add support for LTC3882
+Message-Id: <1439403532-30884-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
-In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
+To: lm-sensors@vger.kernel.org
 
-PTSC is the performance timestamp counter value in a cpu core and the
-cores in one compute unit have the fixed frequency. So it picks up the
-performance timestamp counter value of the first core per compute unit
-to measure the interval for average power per compute unit.
+LTC3882 is mostly compatible with LTC3880. Major differences are that it
+does not measure the input current, and it no longer supports LTC's legacy
+mechanism to identify the chip.
 
-Signed-off-by: Huang Rui <ray.huang@amd.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- arch/x86/include/asm/msr-index.h | 1 +
- drivers/hwmon/fam15h_power.c     | 9 +++++++++
- 2 files changed, 10 insertions(+)
+v2: rebase
 
-diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
-index 9ebc3d0..5566360 100644
---- a/arch/x86/include/asm/msr-index.h
-+++ b/arch/x86/include/asm/msr-index.h
-@@ -293,6 +293,7 @@
- #define MSR_F15H_PERF_CTR		0xc0010201
- #define MSR_F15H_NB_PERF_CTL		0xc0010240
- #define MSR_F15H_NB_PERF_CTR		0xc0010241
-+#define MSR_F15H_PTSC			0xc0010280
+ .../devicetree/bindings/hwmon/ltc2978.txt          |  3 +-
+ Documentation/hwmon/ltc2978                        | 26 ++++++-----
+ drivers/hwmon/pmbus/ltc2978.c                      | 50 +++++++++++++++++++---
+ 3 files changed, 62 insertions(+), 17 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/hwmon/ltc2978.txt b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
+index ed2f09dc2483..230389f6c984 100644
+--- a/Documentation/devicetree/bindings/hwmon/ltc2978.txt
++++ b/Documentation/devicetree/bindings/hwmon/ltc2978.txt
+@@ -6,6 +6,7 @@ Required properties:
+   * "lltc,ltc2977"
+   * "lltc,ltc2978"
+   * "lltc,ltc3880"
++  * "lltc,ltc3882"
+   * "lltc,ltc3883"
+   * "lltc,ltm4676"
+ - reg: I2C slave address
+@@ -20,7 +21,7 @@ Valid names of regulators depend on number of supplies supported per device:
+   * ltc2974 : vout0 - vout3
+   * ltc2977 : vout0 - vout7
+   * ltc2978 : vout0 - vout7
+-  * ltc3880 : vout0 - vout1
++  * ltc3880, ltc3882 : vout0 - vout1
+   * ltc3883 : vout0
+   * ltm4676 : vout0 - vout1
  
- /* Fam 10h MSRs */
- #define MSR_FAM10H_MMIO_CONF_BASE	0xc0010058
-diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
-index f5ff48f..d529e4b 100644
---- a/drivers/hwmon/fam15h_power.c
-+++ b/drivers/hwmon/fam15h_power.c
-@@ -58,6 +58,8 @@ struct fam15h_power_data {
- 	u64 max_cu_acc_power;
- 	/* accumulated power of the compute units */
- 	u64 cu_acc_power[MAX_CUS];
-+	/* performance timestamp counter */
-+	u64 cpu_sw_pwr_ptsc[MAX_CUS];
- };
+diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
+index 686c078bb0e0..521ee8a1135c 100644
+--- a/Documentation/hwmon/ltc2978
++++ b/Documentation/hwmon/ltc2978
+@@ -19,6 +19,10 @@ Supported chips:
+     Prefix: 'ltc3880'
+     Addresses scanned: -
+     Datasheet: http://www.linear.com/product/ltc3880
++  * Linear Technology LTC3882
++    Prefix: 'ltc3882'
++    Addresses scanned: -
++    Datasheet: http://www.linear.com/product/ltc3882
+   * Linear Technology LTC3883
+     Prefix: 'ltc3883'
+     Addresses scanned: -
+@@ -34,11 +38,12 @@ Author: Guenter Roeck <linux@roeck-us.net>
+ Description
+ -----------
  
- static ssize_t show_power(struct device *dev,
-@@ -267,6 +269,13 @@ static int fam15h_power_init_data(struct pci_dev *f4,
- 			       cpu);
- 			return -ENODEV;
- 		}
+-LTC2974 is a quad digital power supply manager. LTC2978 is an octal power supply
+-monitor. LTC2977 is a pin compatible replacement for LTC2978. LTC3880 is a dual
+-output poly-phase step-down DC/DC controller. LTC3883 is a single phase
+-step-down DC/DC controller. LTM4676 is a dual 13A or single 26A uModule
+-regulator.
++LTC2974 is a quad digital power supply managers.
++LTC2978 is an octal power supply monitor.
++LTC2977 is a pin compatible replacement for LTC2978.
++LTC3880 and LTC3882 are dual output poly-phase step-down DC/DC controllers.
++LTC3883 is a single phase step-down DC/DC controller.
++LTM4676 is a dual 13A or single 26A uModule regulator.
+ 
+ 
+ Usage Notes
+@@ -80,7 +85,7 @@ in[N]_label		"vout[1-8]".
+ 			LTC2974: N=2-5
+ 			LTC2977: N=2-9
+ 			LTC2978: N=2-9
+-			LTC3880, LTM4676: N=2-3
++			LTC3880, LTC3882, LTM4676: N=2-3
+ 			LTC3883: N=2
+ in[N]_input		Measured output voltage.
+ in[N]_min		Minimum output voltage.
+@@ -100,8 +105,9 @@ temp[N]_input		Measured temperature.
+ 			and temp5 reports the chip temperature.
+ 			On LTC2977 and LTC2978, only one temperature measurement
+ 			is supported and reports the chip temperature.
+-			On LTC3880 and LTM4676, temp1 and temp2 report external
+-			temperatures, and temp3 reports the chip temperature.
++			On LTC3880, LTC3882, and LTM4676, temp1 and temp2
++			report external temperatures, and temp3 reports
++			the chip temperature.
+ 			On LTC3883, temp1 reports an external temperature,
+ 			and temp2 reports the chip temperature.
+ temp[N]_min		Mimimum temperature. LTC2974, LCT2977, and LTC2978 only.
+@@ -128,7 +134,7 @@ power[N]_label		"pout[1-4]".
+ 			LTC2974: N=1-4
+ 			LTC2977: Not supported
+ 			LTC2978: Not supported
+-			LTC3880, LTM4676: N=1-2
++			LTC3880, LTC3882, LTM4676: N=1-2
+ 			LTC3883: N=2
+ power[N]_input		Measured output power.
+ 
+@@ -143,7 +149,7 @@ curr[N]_label		"iout[1-4]".
+ 			LTC2974: N=1-4
+ 			LTC2977: not supported
+ 			LTC2978: not supported
+-			LTC3880, LTM4676: N=2-3
++			LTC3880, LTC3882, LTM4676: N=2-3
+ 			LTC3883: N=2
+ curr[N]_input		Measured output current.
+ curr[N]_max		Maximum output current.
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 7e10fbf8e133..28e1e735b5c2 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -25,13 +25,13 @@
+ #include <linux/regulator/driver.h>
+ #include "pmbus.h"
+ 
+-enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676 };
++enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3882, ltc3883, ltm4676 };
+ 
+ /* Common for all chips */
+ #define LTC2978_MFR_VOUT_PEAK		0xdd
+ #define LTC2978_MFR_VIN_PEAK		0xde
+ #define LTC2978_MFR_TEMPERATURE_PEAK	0xdf
+-#define LTC2978_MFR_SPECIAL_ID		0xe7
++#define LTC2978_MFR_SPECIAL_ID		0xe7	/* Not on LTC3882 */
+ 
+ /* LTC2974, LCT2977, and LTC2978 */
+ #define LTC2978_MFR_VOUT_MIN		0xfb
+@@ -42,7 +42,7 @@ enum chips { ltc2974, ltc2977, ltc2978, ltc3880, ltc3883, ltm4676 };
+ #define LTC2974_MFR_IOUT_PEAK		0xd7
+ #define LTC2974_MFR_IOUT_MIN		0xd8
+ 
+-/* LTC3880, LTC3883, and LTM4676 */
++/* LTC3880, LTC3882, LTC3883, and LTM4676 */
+ #define LTC3880_MFR_IOUT_PEAK		0xd7
+ #define LTC3880_MFR_CLEAR_PEAKS		0xe3
+ #define LTC3880_MFR_TEMPERATURE2_PEAK	0xf4
+@@ -313,7 +313,7 @@ static int ltc2978_clear_peaks(struct i2c_client *client, int page,
+ {
+ 	int ret;
+ 
+-	if (id = ltc3880 || id = ltc3883 || id = ltm4676)
++	if (id = ltc3880 || id = ltc3882 || id = ltc3883 || id = ltm4676)
+ 		ret = pmbus_write_byte(client, 0, LTC3880_MFR_CLEAR_PEAKS);
+ 	else
+ 		ret = pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
+@@ -369,6 +369,7 @@ static const struct i2c_device_id ltc2978_id[] = {
+ 	{"ltc2977", ltc2977},
+ 	{"ltc2978", ltc2978},
+ 	{"ltc3880", ltc3880},
++	{"ltc3882", ltc3882},
+ 	{"ltc3883", ltc3883},
+ 	{"ltm4676", ltm4676},
+ 	{}
+@@ -393,8 +394,30 @@ static int ltc2978_get_id(struct i2c_client *client)
+ 	int chip_id;
+ 
+ 	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
+-	if (chip_id < 0)
+-		return chip_id;
++	if (chip_id < 0) {
++		const struct i2c_device_id *id;
++		u8 buf[I2C_SMBUS_BLOCK_MAX];
++		int ret;
 +
-+		if (rdmsrl_safe_on_cpu(cpu, MSR_F15H_PTSC,
-+				       &data->cpu_sw_pwr_ptsc[cu])) {
-+			pr_err("Failed to read performance timestamp counter MSR on core%d\n",
-+			       cpu);
++		if (!i2c_check_functionality(client->adapter,
++					     I2C_FUNC_SMBUS_READ_BLOCK_DATA))
 +			return -ENODEV;
++
++		ret = i2c_smbus_read_block_data(client, PMBUS_MFR_ID, buf);
++		if (ret < 0)
++			return ret;
++		if (ret < 3 || strncmp(buf, "LTC", 3))
++			return -ENODEV;
++
++		ret = i2c_smbus_read_block_data(client, PMBUS_MFR_MODEL, buf);
++		if (ret < 0)
++			return ret;
++		for (id = &ltc2978_id[0]; strlen(id->name); id++) {
++			if (!strncasecmp(id->name, buf, strlen(id->name)))
++				return (int)id->driver_data;
 +		}
- 	}
++		return -ENODEV;
++	}
  
- 	return 0;
+ 	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2)
+ 		return ltc2974;
+@@ -498,6 +521,20 @@ static int ltc2978_probe(struct i2c_client *client,
+ 		  | PMBUS_HAVE_POUT
+ 		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
+ 		break;
++	case ltc3882:
++		info->read_word_data = ltc3880_read_word_data;
++		info->pages = LTC3880_NUM_PAGES;
++		info->func[0] = PMBUS_HAVE_VIN
++		  | PMBUS_HAVE_STATUS_INPUT
++		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
++		  | PMBUS_HAVE_POUT | PMBUS_HAVE_TEMP
++		  | PMBUS_HAVE_TEMP2 | PMBUS_HAVE_STATUS_TEMP;
++		info->func[1] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
++		  | PMBUS_HAVE_POUT
++		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
++		break;
+ 	case ltc3883:
+ 		info->read_word_data = ltc3883_read_word_data;
+ 		info->pages = LTC3883_NUM_PAGES;
+@@ -530,6 +567,7 @@ static const struct of_device_id ltc2978_of_match[] = {
+ 	{ .compatible = "lltc,ltc2977" },
+ 	{ .compatible = "lltc,ltc2978" },
+ 	{ .compatible = "lltc,ltc3880" },
++	{ .compatible = "lltc,ltc3882" },
+ 	{ .compatible = "lltc,ltc3883" },
+ 	{ .compatible = "lltc,ltm4676" },
+ 	{ }
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
