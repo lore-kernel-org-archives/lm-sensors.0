@@ -1,54 +1,99 @@
-From: Huang Rui <ray.huang@amd.com>
-Date: Thu, 27 Aug 2015 08:07:44 +0000
-Subject: [lm-sensors] [PATCH 13/15] hwmon, fam15h_power: add documentation for previous TDP reporting
-Message-Id: <1440662866-28716-14-git-send-email-ray.huang@amd.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 12 Aug 2015 18:18:49 +0000
+Subject: [lm-sensors] [PATCH v2 1/4] hwmon: (ltc2978) Move code to read chip ID into separate function
+Message-Id: <1439403532-30884-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
-In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
+To: lm-sensors@vger.kernel.org
 
-This patch adds description to explain the TDP reporting mechanism of
-fam15h_power driver.
+Verifying the chip type is getting more complicated with new chips,
+since not all chips support the same mechanism to read the chip type.
+Move the code into a separate function to simplify adding support for
+those chips.
 
-Signed-off-by: Huang Rui <ray.huang@amd.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- Documentation/hwmon/fam15h_power | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+v2: Fixed bug handling chip ID if ltc2978_get_id() returns a negative number
 
-diff --git a/Documentation/hwmon/fam15h_power b/Documentation/hwmon/fam15h_power
-index e2b1b69..42bf04e 100644
---- a/Documentation/hwmon/fam15h_power
-+++ b/Documentation/hwmon/fam15h_power
-@@ -10,14 +10,22 @@ Supported chips:
-   Datasheets:
-   BIOS and Kernel Developer's Guide (BKDG) For AMD Family 15h Processors
-   BIOS and Kernel Developer's Guide (BKDG) For AMD Family 16h Processors
-+  AMD64 Architecture Programmer's Manual Volume 2: System Programming
+ drivers/hwmon/pmbus/ltc2978.c | 48 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 33081d1d1c5a..7e10fbf8e133 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -388,10 +388,36 @@ static const struct regulator_desc ltc2978_reg_desc[] = {
+ };
+ #endif /* CONFIG_SENSORS_LTC2978_REGULATOR */
  
- Author: Andreas Herrmann <herrmann.der.user@googlemail.com>
- 
- Description
- -----------
- 
-+1) Processor TDP (Thermal design power)
++static int ltc2978_get_id(struct i2c_client *client)
++{
++	int chip_id;
 +
-+Given a fixed frequency and voltage, the power consumption of a
-+processor varies based on the workload being executed. Derated power
-+is the power consumed when running a specific application. Thermal
-+design power (TDP) is an example of derated power.
++	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
++	if (chip_id < 0)
++		return chip_id;
 +
- This driver permits reading of registers providing power information
--of AMD Family 15h and 16h processors.
-+of AMD Family 15h and 16h processors via TDP algorithm.
++	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2)
++		return ltc2974;
++	else if (chip_id = LTC2977_ID)
++		return ltc2977;
++	else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
++		 chip_id = LTC2978A_ID)
++		return ltc2978;
++	else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID)
++		return ltc3880;
++	else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID)
++		return ltc3883;
++	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID)
++		return ltm4676;
++
++	dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
++	return -ENODEV;
++}
++
+ static int ltc2978_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+-	int chip_id, i;
++	int i, chip_id;
+ 	struct ltc2978_data *data;
+ 	struct pmbus_driver_info *info;
  
- For AMD Family 15h and 16h processors the following power values can
- be calculated using different processor northbridge function
+@@ -404,27 +430,11 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
++	chip_id = ltc2978_get_id(client);
+ 	if (chip_id < 0)
+ 		return chip_id;
+ 
+-	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2) {
+-		data->id = ltc2974;
+-	} else if (chip_id = LTC2977_ID) {
+-		data->id = ltc2977;
+-	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
+-		   chip_id = LTC2978A_ID) {
+-		data->id = ltc2978;
+-	} else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID) {
+-		data->id = ltc3880;
+-	} else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID) {
+-		data->id = ltc3883;
+-	} else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID) {
+-		data->id = ltm4676;
+-	} else {
+-		dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
+-		return -ENODEV;
+-	}
++	data->id = chip_id;
+ 	if (data->id != id->driver_data)
+ 		dev_warn(&client->dev,
+ 			 "Device mismatch: Configured %s, detected %s\n",
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
