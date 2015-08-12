@@ -1,143 +1,85 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Mon, 03 Aug 2015 15:22:58 +0000
-Subject: [lm-sensors] [PATCH v2 10/10] arm64: dts: Create SoC thermal zone for Juno
-Message-Id: <1438615378-14241-11-git-send-email-punit.agrawal@arm.com>
+From: Liviu Dudau <Liviu.Dudau@arm.com>
+Date: Wed, 12 Aug 2015 15:55:00 +0000
+Subject: Re: [lm-sensors] [PATCH v2 10/10] arm64: dts: Create SoC thermal zone for Juno
+Message-Id: <20150812155500.GW20890@e106497-lin.cambridge.arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
-In-Reply-To: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+ <1438615378-14241-11-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-11-git-send-email-punit.agrawal@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@vger.kernel.org
-Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>
 
-Setup a thermal zone driven by the SoC temperature sensor on Juno
-r0. Create passive trip points and bind them to cpufreq cooling
-devices that support the power extensions.
-
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Liviu Dudau <liviu.dudau@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
----
- arch/arm64/boot/dts/arm/juno.dts | 50 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
-
-diff --git a/arch/arm64/boot/dts/arm/juno.dts b/arch/arm64/boot/dts/arm/juno.dts
-index d2e67f3..664961c 100644
---- a/arch/arm64/boot/dts/arm/juno.dts
-+++ b/arch/arm64/boot/dts/arm/juno.dts
-@@ -9,6 +9,7 @@
- /dts-v1/;
- 
- #include <dt-bindings/interrupt-controller/arm-gic.h>
-+#include <dt-bindings/thermal/thermal.h>
- 
- / {
- 	model = "ARM Juno development board (r0)";
-@@ -90,6 +91,8 @@
- 			next-level-cache = <&A57_L2>;
- 			clocks = <&scpi_dvfs 0>;
- 			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
-+			#cooling-cells = <2>;
-+			dynamic-power-coefficient = <530>;
- 		};
- 
- 		A57_1: cpu@1 {
-@@ -100,6 +103,8 @@
- 			next-level-cache = <&A57_L2>;
- 			clocks = <&scpi_dvfs 0>;
- 			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
-+			#cooling-cells = <2>;
-+			dynamic-power-coefficient = <530>;
- 		};
- 
- 		A53_0: cpu@100 {
-@@ -110,6 +115,8 @@
- 			next-level-cache = <&A53_L2>;
- 			clocks = <&scpi_dvfs 1>;
- 			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
-+			#cooling-cells = <2>;
-+			dynamic-power-coefficient = <140>;
- 		};
- 
- 		A53_1: cpu@101 {
-@@ -120,6 +127,8 @@
- 			next-level-cache = <&A53_L2>;
- 			clocks = <&scpi_dvfs 1>;
- 			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
-+			#cooling-cells = <2>;
-+			dynamic-power-coefficient = <140>;
- 		};
- 
- 		A53_2: cpu@102 {
-@@ -130,6 +139,8 @@
- 			next-level-cache = <&A53_L2>;
- 			clocks = <&scpi_dvfs 1>;
- 			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
-+			#cooling-cells = <2>;
-+			dynamic-power-coefficient = <140>;
- 		};
- 
- 		A53_3: cpu@103 {
-@@ -140,6 +151,8 @@
- 			next-level-cache = <&A53_L2>;
- 			clocks = <&scpi_dvfs 1>;
- 			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
-+			#cooling-cells = <2>;
-+			dynamic-power-coefficient = <140>;
- 		};
- 
- 		A57_L2: l2-cache0 {
-@@ -167,5 +180,42 @@
- 				     <&A53_3>;
- 	};
- 
-+	thermal-zones {
-+		soc_thermal {
-+			polling-delay = <1000>;
-+			polling-delay-passive = <100>;
-+			sustainable-power = <2500>;
-+
-+			thermal-sensors = <&scpi_sensors0 3>;
-+
-+			trips {
-+				threshold: trip-point@0 {
-+					temperature = <55000>;
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+				target: trip-point@1 {
-+					temperature = <65000>;
-+					hysteresis = <1000>;
-+					type = "passive";
-+				};
-+			};
-+
-+			cooling-maps {
-+				map0 {
-+					trip = <&target>;
-+					cooling-device = <&A53_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-+					contribution = <2048>;
-+				};
-+				map1 {
-+					trip = <&target>;
-+					cooling-device = <&A57_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-+					contribution = <1024>;
-+				};
-+
-+			};
-+		};
-+	};
-+
- 	#include "juno-base.dtsi"
- };
--- 
-2.1.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCBBdWcgMDMsIDIwMTUgYXQgMDQ6MjI6NThQTSArMDEwMCwgUHVuaXQgQWdyYXdhbCB3
+cm90ZToKPiBTZXR1cCBhIHRoZXJtYWwgem9uZSBkcml2ZW4gYnkgdGhlIFNvQyB0ZW1wZXJhdHVy
+ZSBzZW5zb3Igb24gSnVubwo+IHIwLiBDcmVhdGUgcGFzc2l2ZSB0cmlwIHBvaW50cyBhbmQgYmlu
+ZCB0aGVtIHRvIGNwdWZyZXEgY29vbGluZwo+IGRldmljZXMgdGhhdCBzdXBwb3J0IHRoZSBwb3dl
+ciBleHRlbnNpb25zLgoKSGkgUHVuaXQsCgo+IAo+IFNpZ25lZC1vZmYtYnk6IFB1bml0IEFncmF3
+YWwgPHB1bml0LmFncmF3YWxAYXJtLmNvbT4KPiBDYzogUm9iIEhlcnJpbmcgPHJvYmgrZHRAa2Vy
+bmVsLm9yZz4KPiBDYzogTWFyayBSdXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KPiBDYzog
+TGl2aXUgRHVkYXUgPGxpdml1LmR1ZGF1QGFybS5jb20+Cj4gQ2M6IFN1ZGVlcCBIb2xsYSA8c3Vk
+ZWVwLmhvbGxhQGFybS5jb20+Cj4gLS0tCj4gIGFyY2gvYXJtNjQvYm9vdC9kdHMvYXJtL2p1bm8u
+ZHRzIHwgNTAgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ICAxIGZp
+bGUgY2hhbmdlZCwgNTAgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybTY0
+L2Jvb3QvZHRzL2FybS9qdW5vLmR0cyBiL2FyY2gvYXJtNjQvYm9vdC9kdHMvYXJtL2p1bm8uZHRz
+Cj4gaW5kZXggZDJlNjdmMy4uNjY0OTYxYyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybTY0L2Jvb3Qv
+ZHRzL2FybS9qdW5vLmR0cwo+ICsrKyBiL2FyY2gvYXJtNjQvYm9vdC9kdHMvYXJtL2p1bm8uZHRz
+Cj4gQEAgLTksNiArOSw3IEBACj4gIC9kdHMtdjEvOwo+ICAKPiAgI2luY2x1ZGUgPGR0LWJpbmRp
+bmdzL2ludGVycnVwdC1jb250cm9sbGVyL2FybS1naWMuaD4KPiArI2luY2x1ZGUgPGR0LWJpbmRp
+bmdzL3RoZXJtYWwvdGhlcm1hbC5oPgo+ICAKPiAgLyB7Cj4gIAltb2RlbCA9ICJBUk0gSnVubyBk
+ZXZlbG9wbWVudCBib2FyZCAocjApIjsKPiBAQCAtOTAsNiArOTEsOCBAQAo+ICAJCQluZXh0LWxl
+dmVsLWNhY2hlID0gPCZBNTdfTDI+Owo+ICAJCQljbG9ja3MgPSA8JnNjcGlfZHZmcyAwPjsKPiAg
+CQkJY3B1LWlkbGUtc3RhdGVzID0gPCZDUFVfU0xFRVBfMCAmQ0xVU1RFUl9TTEVFUF8wPjsKPiAr
+CQkJI2Nvb2xpbmctY2VsbHMgPSA8Mj47Cj4gKwkJCWR5bmFtaWMtcG93ZXItY29lZmZpY2llbnQg
+PSA8NTMwPjsKClRoZSBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvdGhlcm1hbC90
+aGVybWFsLnR4dCBkb2N1bWVudCBkZXNjcmliZXMgdHdvIGFkZGl0aW9uYWwKcmVxdWlyZWQgcHJv
+cGVydGllcywgY29vbGluZy1taW4tc3RhdGUgYW5kIGNvb2xpbmctbWF4LXN0YXRlIHdoaWNoIGFy
+ZSBtaXNzaW5nIGhlcmUuCgo+ICAJCX07Cj4gIAo+ICAJCUE1N18xOiBjcHVAMSB7Cj4gQEAgLTEw
+MCw2ICsxMDMsOCBAQAo+ICAJCQluZXh0LWxldmVsLWNhY2hlID0gPCZBNTdfTDI+Owo+ICAJCQlj
+bG9ja3MgPSA8JnNjcGlfZHZmcyAwPjsKPiAgCQkJY3B1LWlkbGUtc3RhdGVzID0gPCZDUFVfU0xF
+RVBfMCAmQ0xVU1RFUl9TTEVFUF8wPjsKPiArCQkJI2Nvb2xpbmctY2VsbHMgPSA8Mj47Cj4gKwkJ
+CWR5bmFtaWMtcG93ZXItY29lZmZpY2llbnQgPSA8NTMwPjsKPiAgCQl9Owo+ICAKPiAgCQlBNTNf
+MDogY3B1QDEwMCB7Cj4gQEAgLTExMCw2ICsxMTUsOCBAQAo+ICAJCQluZXh0LWxldmVsLWNhY2hl
+ID0gPCZBNTNfTDI+Owo+ICAJCQljbG9ja3MgPSA8JnNjcGlfZHZmcyAxPjsKPiAgCQkJY3B1LWlk
+bGUtc3RhdGVzID0gPCZDUFVfU0xFRVBfMCAmQ0xVU1RFUl9TTEVFUF8wPjsKPiArCQkJI2Nvb2xp
+bmctY2VsbHMgPSA8Mj47Cj4gKwkJCWR5bmFtaWMtcG93ZXItY29lZmZpY2llbnQgPSA8MTQwPjsK
+PiAgCQl9Owo+ICAKPiAgCQlBNTNfMTogY3B1QDEwMSB7Cj4gQEAgLTEyMCw2ICsxMjcsOCBAQAo+
+ICAJCQluZXh0LWxldmVsLWNhY2hlID0gPCZBNTNfTDI+Owo+ICAJCQljbG9ja3MgPSA8JnNjcGlf
+ZHZmcyAxPjsKPiAgCQkJY3B1LWlkbGUtc3RhdGVzID0gPCZDUFVfU0xFRVBfMCAmQ0xVU1RFUl9T
+TEVFUF8wPjsKPiArCQkJI2Nvb2xpbmctY2VsbHMgPSA8Mj47Cj4gKwkJCWR5bmFtaWMtcG93ZXIt
+Y29lZmZpY2llbnQgPSA8MTQwPjsKPiAgCQl9Owo+ICAKPiAgCQlBNTNfMjogY3B1QDEwMiB7Cj4g
+QEAgLTEzMCw2ICsxMzksOCBAQAo+ICAJCQluZXh0LWxldmVsLWNhY2hlID0gPCZBNTNfTDI+Owo+
+ICAJCQljbG9ja3MgPSA8JnNjcGlfZHZmcyAxPjsKPiAgCQkJY3B1LWlkbGUtc3RhdGVzID0gPCZD
+UFVfU0xFRVBfMCAmQ0xVU1RFUl9TTEVFUF8wPjsKPiArCQkJI2Nvb2xpbmctY2VsbHMgPSA8Mj47
+Cj4gKwkJCWR5bmFtaWMtcG93ZXItY29lZmZpY2llbnQgPSA8MTQwPjsKPiAgCQl9Owo+ICAKPiAg
+CQlBNTNfMzogY3B1QDEwMyB7Cj4gQEAgLTE0MCw2ICsxNTEsOCBAQAo+ICAJCQluZXh0LWxldmVs
+LWNhY2hlID0gPCZBNTNfTDI+Owo+ICAJCQljbG9ja3MgPSA8JnNjcGlfZHZmcyAxPjsKPiAgCQkJ
+Y3B1LWlkbGUtc3RhdGVzID0gPCZDUFVfU0xFRVBfMCAmQ0xVU1RFUl9TTEVFUF8wPjsKPiArCQkJ
+I2Nvb2xpbmctY2VsbHMgPSA8Mj47Cj4gKwkJCWR5bmFtaWMtcG93ZXItY29lZmZpY2llbnQgPSA8
+MTQwPjsKPiAgCQl9Owo+ICAKPiAgCQlBNTdfTDI6IGwyLWNhY2hlMCB7Cj4gQEAgLTE2Nyw1ICsx
+ODAsNDIgQEAKPiAgCQkJCSAgICAgPCZBNTNfMz47Cj4gIAl9Owo+ICAKPiArCXRoZXJtYWwtem9u
+ZXMgewo+ICsJCXNvY190aGVybWFsIHsKPiArCQkJcG9sbGluZy1kZWxheSA9IDwxMDAwPjsKPiAr
+CQkJcG9sbGluZy1kZWxheS1wYXNzaXZlID0gPDEwMD47Cj4gKwkJCXN1c3RhaW5hYmxlLXBvd2Vy
+ID0gPDI1MDA+Owo+ICsKPiArCQkJdGhlcm1hbC1zZW5zb3JzID0gPCZzY3BpX3NlbnNvcnMwIDM+
+Owo+ICsKPiArCQkJdHJpcHMgewo+ICsJCQkJdGhyZXNob2xkOiB0cmlwLXBvaW50QDAgewoKWW91
+IGFsc28gbmVlZCBhIHJlZz0gcHJvcGVydHkgaWYgeW91IGhhdmUgdGhlIEBpbmRleCB0aGluZy4K
+CkJlc3QgcmVnYXJkcywKTGl2aXUKCj4gKwkJCQkJdGVtcGVyYXR1cmUgPSA8NTUwMDA+Owo+ICsJ
+CQkJCWh5c3RlcmVzaXMgPSA8MTAwMD47Cj4gKwkJCQkJdHlwZSA9ICJwYXNzaXZlIjsKPiArCQkJ
+CX07Cj4gKwkJCQl0YXJnZXQ6IHRyaXAtcG9pbnRAMSB7Cj4gKwkJCQkJdGVtcGVyYXR1cmUgPSA8
+NjUwMDA+Owo+ICsJCQkJCWh5c3RlcmVzaXMgPSA8MTAwMD47Cj4gKwkJCQkJdHlwZSA9ICJwYXNz
+aXZlIjsKPiArCQkJCX07Cj4gKwkJCX07Cj4gKwo+ICsJCQljb29saW5nLW1hcHMgewo+ICsJCQkJ
+bWFwMCB7Cj4gKwkJCQkJdHJpcCA9IDwmdGFyZ2V0PjsKPiArCQkJCQljb29saW5nLWRldmljZSA9
+IDwmQTUzXzAgVEhFUk1BTF9OT19MSU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKPiArCQkJCQljb250
+cmlidXRpb24gPSA8MjA0OD47Cj4gKwkJCQl9Owo+ICsJCQkJbWFwMSB7Cj4gKwkJCQkJdHJpcCA9
+IDwmdGFyZ2V0PjsKPiArCQkJCQljb29saW5nLWRldmljZSA9IDwmQTU3XzAgVEhFUk1BTF9OT19M
+SU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKPiArCQkJCQljb250cmlidXRpb24gPSA8MTAyND47Cj4g
+KwkJCQl9Owo+ICsKPiArCQkJfTsKPiArCQl9Owo+ICsJfTsKPiArCj4gIAkjaW5jbHVkZSAianVu
+by1iYXNlLmR0c2kiCj4gIH07Cj4gLS0gCj4gMi4xLjQKPiAKCi0tIAo9PT09PT09PT09PT09PT09
+PT09PQp8IEkgd291bGQgbGlrZSB0byB8CnwgZml4IHRoZSB3b3JsZCwgIHwKfCBidXQgdGhleSdy
+ZSBub3QgfAp8IGdpdmluZyBtZSB0aGUgICB8CiBcIHNvdXJjZSBjb2RlISAgLwogIC0tLS0tLS0t
+LS0tLS0tLQogICAgwq9cXyjjg4QpXy/CrwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
