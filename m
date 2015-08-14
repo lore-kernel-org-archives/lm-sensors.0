@@ -1,67 +1,53 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 31 Aug 2015 23:57:32 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (nct6775) Swap STEP_UP_TIME and STEP_DOWN_TIME registers for most ch
-Message-Id: <1441065453-23896-1-git-send-email-linux@roeck-us.net>
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Date: Fri, 14 Aug 2015 19:37:13 +0000
+Subject: [lm-sensors] [RFC 0/1] i2c: acpi: revert setting a "stable" device name
+Message-Id: <1439581034-5972-1-git-send-email-dustin@cumulusnetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, jdelvare-IBi9RG/b67k@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-The STEP_UP_TIME and STEP_DOWN_TIME registers are swapped for all chips but
-NCT6775.
+70762ab from 11/2014 (i2c: Use stable dev_name for ACPI enumerated I2C
+slaves) modified the sysfs-visible dev_name() for ACPI enumerated I2C
+devices.  With that change, /sys/bus/i2c/devices/i2c-0-004a, for
+example, became /sys/bus/i2c/devices/i2c-PNPXXXX:xx
 
-Reported-by: Grazvydas Ignotas <notasas@gmail.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/nct6775.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+That causes problems for userspace code such as 'sensors' which does
+this:
 
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 0a08f776a5de..b487a55d02c0 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -252,6 +252,7 @@ static const u16 NCT6775_REG_TARGET[] = {
- 	0x101, 0x201, 0x301, 0x801, 0x901, 0xa01 };
- static const u16 NCT6775_REG_FAN_MODE[] = {
- 	0x102, 0x202, 0x302, 0x802, 0x902, 0xa02 };
-+/* STEP_DOWN_TIME and STEP_UP_TIME regs are swapped for all chips but NCT6775 */
- static const u16 NCT6775_REG_FAN_STEP_DOWN_TIME[] = {
- 	0x103, 0x203, 0x303, 0x803, 0x903, 0xa03 };
- static const u16 NCT6775_REG_FAN_STEP_UP_TIME[] = {
-@@ -3536,8 +3537,8 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->REG_FAN_PULSES = NCT6776_REG_FAN_PULSES;
- 		data->FAN_PULSE_SHIFT = NCT6775_FAN_PULSE_SHIFT;
- 		data->REG_FAN_TIME[0] = NCT6775_REG_FAN_STOP_TIME;
--		data->REG_FAN_TIME[1] = NCT6775_REG_FAN_STEP_UP_TIME;
--		data->REG_FAN_TIME[2] = NCT6775_REG_FAN_STEP_DOWN_TIME;
-+		data->REG_FAN_TIME[1] = NCT6775_REG_FAN_STEP_DOWN_TIME;
-+		data->REG_FAN_TIME[2] = NCT6775_REG_FAN_STEP_UP_TIME;
- 		data->REG_TOLERANCE_H = NCT6776_REG_TOLERANCE_H;
- 		data->REG_PWM[0] = NCT6775_REG_PWM;
- 		data->REG_PWM[1] = NCT6775_REG_FAN_START_OUTPUT;
-@@ -3608,8 +3609,8 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->REG_FAN_PULSES = NCT6779_REG_FAN_PULSES;
- 		data->FAN_PULSE_SHIFT = NCT6775_FAN_PULSE_SHIFT;
- 		data->REG_FAN_TIME[0] = NCT6775_REG_FAN_STOP_TIME;
--		data->REG_FAN_TIME[1] = NCT6775_REG_FAN_STEP_UP_TIME;
--		data->REG_FAN_TIME[2] = NCT6775_REG_FAN_STEP_DOWN_TIME;
-+		data->REG_FAN_TIME[1] = NCT6775_REG_FAN_STEP_DOWN_TIME;
-+		data->REG_FAN_TIME[2] = NCT6775_REG_FAN_STEP_UP_TIME;
- 		data->REG_TOLERANCE_H = NCT6776_REG_TOLERANCE_H;
- 		data->REG_PWM[0] = NCT6775_REG_PWM;
- 		data->REG_PWM[1] = NCT6775_REG_FAN_START_OUTPUT;
-@@ -3685,8 +3686,8 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->REG_FAN_PULSES = NCT6779_REG_FAN_PULSES;
- 		data->FAN_PULSE_SHIFT = NCT6775_FAN_PULSE_SHIFT;
- 		data->REG_FAN_TIME[0] = NCT6775_REG_FAN_STOP_TIME;
--		data->REG_FAN_TIME[1] = NCT6775_REG_FAN_STEP_UP_TIME;
--		data->REG_FAN_TIME[2] = NCT6775_REG_FAN_STEP_DOWN_TIME;
-+		data->REG_FAN_TIME[1] = NCT6775_REG_FAN_STEP_DOWN_TIME;
-+		data->REG_FAN_TIME[2] = NCT6775_REG_FAN_STEP_UP_TIME;
- 		data->REG_TOLERANCE_H = NCT6776_REG_TOLERANCE_H;
- 		data->REG_PWM[0] = NCT6775_REG_PWM;
- 		data->REG_PWM[1] = NCT6775_REG_FAN_START_OUTPUT;
+lib/sysfs.c:665:
+if ((!subsys || !strcmp(subsys, "i2c")) &&
+    sscanf(dev_name, "%hd-%x", &entry.chip.bus.nr,
+           &entry.chip.addr) = 2) {
+...
+
+Therefore, in theory, sensors that were previously visible by running
+'sensors' no longer show up.  On the other hand, there are probably few,
+if any, cases of this because ACPI enumerated I2C hwmon devices are not
+common.
+
+I'm not defending the 'sensors' code, I'm sure there are better ways to
+discover a hwmon I2C device from userspace.  But, I'm also not sure
+70762ab achieved its stated goal in a meaningful way.  Won't
+"i2c-<acpi_dev_name>" also vary with ACPI scan order, BIOS settings,
+firmware upgrades, etc...?
+
+Hence the RFC patch.  To submit a change like this I would need to
+consider the fallout for ALSA SoC.  The other option is to see what can
+be done in 'sensors' to include the ACPI enumerated hwmon devices.
+
+Any opinions on which way to go?
+
+   --Dustin
+
+Dustin Byford (1):
+  i2c: acpi: revert setting a "stable" device name
+
+ drivers/i2c/i2c-core.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
 -- 
 2.1.4
 
