@@ -1,7 +1,7 @@
 From: Il Han <corone.il.han@gmail.com>
-Date: Mon, 10 Aug 2015 15:48:28 +0000
+Date: Mon, 17 Aug 2015 11:31:39 +0000
 Subject: [lm-sensors] [PATCH] hwmon: Driver for Maxim MAX31790
-Message-Id: <1439221708-26453-1-git-send-email-corone.il.han@gmail.com>
+Message-Id: <1439811099-30770-1-git-send-email-corone.il.han@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1438195783-26978-1-git-send-email-corone.il.han@gmail.com>
 In-Reply-To: <1438195783-26978-1-git-send-email-corone.il.han@gmail.com>
@@ -14,20 +14,20 @@ The driver supports the Maxim MAX31790.
 
 Signed-off-by: Il Han <corone.il.han@gmail.com>
 ---
- Documentation/hwmon/max31790 |  35 +++
- drivers/hwmon/Kconfig        |   9 +
+ Documentation/hwmon/max31790 |  37 +++
+ drivers/hwmon/Kconfig        |  10 +
  drivers/hwmon/Makefile       |   1 +
- drivers/hwmon/max31790.c     | 557 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 602 insertions(+)
+ drivers/hwmon/max31790.c     | 556 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 604 insertions(+)
  create mode 100644 Documentation/hwmon/max31790
  create mode 100644 drivers/hwmon/max31790.c
 
 diff --git a/Documentation/hwmon/max31790 b/Documentation/hwmon/max31790
 new file mode 100644
-index 0000000..a86c888
+index 0000000..2e50c53
 --- /dev/null
 +++ b/Documentation/hwmon/max31790
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,37 @@
 +Kernel driver max31790
 +===========
 +
@@ -42,6 +42,8 @@ index 0000000..a86c888
 +
 +Description
 +-----------
++
++This driver implements support for the Maxim MAX31790 chip.
 +
 +The MAX31790 controls the speeds of up to six fans using six independent
 +PWM outputs. The desired fan speeds (or PWM duty cycles) are written
@@ -64,10 +66,10 @@ index 0000000..a86c888
 +pwm[1-6]_enable    RW  regulator mode, 0=disabled, 1=manual mode, 2=rpm mode
 +pwm[1-6]           RW  fan target duty cycle (0-255)
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 7c65b73..fcd1c93 100644
+index 7c65b73..39775f9 100644
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
-@@ -840,6 +840,15 @@ config SENSORS_MAX6697
+@@ -840,6 +840,16 @@ config SENSORS_MAX6697
  	  This driver can also be built as a module.  If so, the module
  	  will be called max6697.
  
@@ -75,7 +77,8 @@ index 7c65b73..fcd1c93 100644
 +	tristate "Maxim MAX31790 sensor chip"
 +	depends on I2C
 +	help
-+	  If you say yes here you get support for the MAX31790 sensor chips.
++	  If you say yes here you get support for 6-Channel PWM-Output
++	  Fan RPM Controller.
 +
 +	  This driver can also be built as a module.  If so, the module
 +	  will be called max31790.
@@ -97,10 +100,10 @@ index 9e0f3dd..01855ee 100644
  obj-$(CONFIG_SENSORS_MENF21BMC_HWMON) += menf21bmc_hwmon.o
 diff --git a/drivers/hwmon/max31790.c b/drivers/hwmon/max31790.c
 new file mode 100644
-index 0000000..3ce8aae
+index 0000000..7f4c4a1
 --- /dev/null
 +++ b/drivers/hwmon/max31790.c
-@@ -0,0 +1,557 @@
+@@ -0,0 +1,556 @@
 +/*
 + * max31790.c - Part of lm_sensors, Linux kernel modules for hardware
 + *             monitoring.
@@ -147,7 +150,6 @@ index 0000000..3ce8aae
 +#define MAX31790_FAN_DYN_SR_MASK	0xE0
 +#define SR_FROM_REG(reg)		(((reg) & MAX31790_FAN_DYN_SR_MASK) \
 +					 >> MAX31790_FAN_DYN_SR_SHIFT)
-+
 +
 +#define FAN_RPM_MIN			120
 +#define FAN_RPM_MAX			7864320
@@ -250,33 +252,24 @@ index 0000000..3ce8aae
 +	return tach_period[SR_FROM_REG(fan_dynamics)];
 +}
 +
-+static int adjust_tach_period(struct i2c_client *client,
-+			      struct max31790_data *data, int index, int rpm)
++static u8 bits_for_tach_period(int rpm)
 +{
-+	int sr;
++	u8 bits;
 +
 +	if (rpm < 500)
-+		sr = 0x0;
++		bits = 0x0;
 +	else if (rpm < 1000)
-+		sr = 0x1;
++		bits = 0x1;
 +	else if (rpm < 2000)
-+		sr = 0x2;
++		bits = 0x2;
 +	else if (rpm < 4000)
-+		sr = 0x3;
++		bits = 0x3;
 +	else if (rpm < 8000)
-+		sr = 0x4;
++		bits = 0x4;
 +	else
-+		sr = 0x5;
++		bits = 0x5;
 +
-+	data->fan_dynamics[index] +			((data->fan_dynamics[index]
-+			 & ~MAX31790_FAN_DYN_SR_MASK)
-+			| (sr << MAX31790_FAN_DYN_SR_SHIFT));
-+
-+	i2c_smbus_write_byte_data(client,
-+			MAX31790_REG_FAN_DYNAMICS(index),
-+			data->fan_dynamics[index]);
-+
-+	return sr;
++	return bits;
 +}
 +
 +static ssize_t get_fan(struct device *dev,
@@ -318,6 +311,7 @@ index 0000000..3ce8aae
 +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct max31790_data *data = i2c_get_clientdata(client);
++	u8 bits;
 +	int sr;
 +	int target_count;
 +	unsigned long rpm;
@@ -330,7 +324,15 @@ index 0000000..3ce8aae
 +	mutex_lock(&data->update_lock);
 +
 +	rpm = clamp_val(rpm, FAN_RPM_MIN, FAN_RPM_MAX);
-+	sr = adjust_tach_period(client, data, attr->index, rpm);
++	bits = bits_for_tach_period(rpm);
++	data->fan_dynamics[attr->index] +			((data->fan_dynamics[attr->index]
++			  & ~MAX31790_FAN_DYN_SR_MASK)
++			 | (bits << MAX31790_FAN_DYN_SR_SHIFT));
++	i2c_smbus_write_byte_data(client,
++			MAX31790_REG_FAN_DYNAMICS(attr->index),
++			data->fan_dynamics[attr->index]);
++
++	sr = get_tach_period(data->fan_dynamics[attr->index]);
 +	target_count = RPM_TO_REG(rpm, sr);
 +	target_count = clamp_val(target_count, 0x1, 0x7FF);
 +
