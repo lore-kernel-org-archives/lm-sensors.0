@@ -1,61 +1,67 @@
-From: Christian Fetzer <fetzer.ch@gmail.com>
-Date: Fri, 28 Aug 2015 08:31:21 +0000
-Subject: [lm-sensors] [PATCH 0/4] Support multiplexed main SMBus interface on SB800
-Message-Id: <1440750685-19172-1-git-send-email-fetzer.ch@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 17 Aug 2015 18:54:40 +0000
+Subject: [lm-sensors] [PATCH 6/8] hwmon: (ltc2978) Add missing chip IDs for LTC2978 and LTC3882
+Message-Id: <1439837682-23748-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've sent this patchset first to the linux-i2c mailing list, but I was told
-to better send it to the lm-sensors list as more interested people
-might find it here.
+Add additional chip ID for an older revision of LTC2978, as well
+as two chip IDs for LTC3882. Turns out the LTC3882 does support the
+LTC2978_MFR_SPECIAL_ID register, and reading it returns its chip ID,
+but the register is undocumented.
 
---
+Suggested-by: Michael Jones <mike@proclivis.com>
+Tested-by: Michael Jones <mike@proclivis.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/ltc2978.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-This is an attempt to upstream the patches created by Thomas Brandon and
-Eddi De Pieri to support the multiplexed main SMBus interface on the SB800
-chipset. (https://www.mail-archive.com/linux-i2c@vger.kernel.org/msg06757.h=
-tml)
-
-I have mainly rebased the latest patch version and tested the driver on a
-HP ProLiant MicroServer G7 N54L (where this patch allows to access sensor d=
-ata
-from a w83795adg).
-
-The patched driver is running stable on the machine, given that ic2_piix4 is
-loaded before jc42 and w83795. If jc42 is loaded before i2c_piix4 calling
-sensors triggers some errors:
-    ERROR: Can't get value of subfeature temp1_min_alarm: Can't read
-
-While the kernel log shows:
-    i2c i2c-1: Transaction (pre): CNT=0C, CMD=05, ADD1, DAT0=03, DAT1=C0
-    i2c i2c-1: Error: no response!
-    i2c i2c-1: Transaction (post): CNT=0C, CMD=05, ADD1, DAT0=FF, DAT1=FF
-Unfortunately I don't know how to tackle this specific issue.
-
-Please review and let me know required changes in order to get this upstream
-finally.
-
-Eddi, Thomas, it would be great if you could verify the changes on your
-machines.
-
-Regards,
-Christian
-
-Christian Fetzer (4):
-  i2c-piix4: Optionally release smba in piix4_adap_remove
-  i2c-piix4: Convert piix4_main_adapter to array
-  i2c-piix4: Add support for multiplexed main adapter in SB800
-  i2c-piix4: Add adapter port name support for SB800 chipset
-
- drivers/i2c/busses/i2c-piix4.c | 151 ++++++++++++++++++++++++++++++++++++-=
-----
- 1 file changed, 134 insertions(+), 17 deletions(-)
-
---=20
-1.9.1
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 491078f499ca..87e3fb67d025 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -31,7 +31,7 @@ enum chips { ltc2974, ltc2975, ltc2977, ltc2978, ltc3880, ltc3882, ltc3883,
+ #define LTC2978_MFR_VOUT_PEAK		0xdd
+ #define LTC2978_MFR_VIN_PEAK		0xde
+ #define LTC2978_MFR_TEMPERATURE_PEAK	0xdf
+-#define LTC2978_MFR_SPECIAL_ID		0xe7	/* Not on LTC3882 */
++#define LTC2978_MFR_SPECIAL_ID		0xe7	/* Undocumented on LTC3882 */
+ 
+ /* LTC2974, LTC2975, LCT2977, and LTC2978 */
+ #define LTC2978_MFR_VOUT_MIN		0xfb
+@@ -61,8 +61,11 @@ enum chips { ltc2974, ltc2975, ltc2977, ltc2978, ltc3880, ltc3882, ltc3883,
+ #define LTC2974_ID			0x0210
+ #define LTC2975_ID			0x0220
+ #define LTC2977_ID			0x0130
+-#define LTC2978_ID			0x0120
++#define LTC2978_ID_REV1			0x0110	/* Early revision */
++#define LTC2978_ID_REV2			0x0120
+ #define LTC3880_ID			0x4000
++#define LTC3882_ID			0x4200
++#define LTC3882_ID_D1			0x4240	/* Dash 1 */
+ #define LTC3883_ID			0x4300
+ #define LTC3887_ID			0x4700
+ #define LTM4676_ID_REV1			0x4400
+@@ -466,10 +469,12 @@ static int ltc2978_get_id(struct i2c_client *client)
+ 		return ltc2975;
+ 	else if (chip_id = LTC2977_ID)
+ 		return ltc2977;
+-	else if (chip_id = LTC2978_ID)
++	else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2)
+ 		return ltc2978;
+ 	else if (chip_id = LTC3880_ID)
+ 		return ltc3880;
++	else if (chip_id = LTC3882_ID || chip_id = LTC3882_ID_D1)
++		return ltc3882;
+ 	else if (chip_id = LTC3883_ID)
+ 		return ltc3883;
+ 	else if (chip_id = LTC3887_ID)
+-- 
+2.1.4
 
 
 _______________________________________________
