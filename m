@@ -1,74 +1,52 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Date: Tue, 25 Aug 2015 16:22:14 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 25 Aug 2015 17:12:24 +0000
 Subject: Re: [lm-sensors] [RFC] i2c: Revert back to old device naming for ACPI enumerated I2C slaves
-Message-Id: <20150825162214.GA8229@katana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4486137623691539183=="
+Message-Id: <55DCA1F8.3050008@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
- <20150825052513.GI1654@sirena.org.uk>
- <20150825145756.GA4066@schokonusskuchen.bad>
- <55DC8746.1060809@roeck-us.net>
- <20150825161850.GA8118@katana>
+References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20150825052513.GI1654@sirena.org.uk> <20150825145756.GA4066@schokonusskuchen.bad> <55DC8746.1060809@roeck-us.net> <20150825161850.GA8118@katana>
 In-Reply-To: <20150825161850.GA8118@katana>
-To: Guenter Roeck <linux@roeck-us.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Wolfram Sang <wsa@the-dreams.de>
 Cc: Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>
 
-
---===============4486137623691539183==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
-Content-Disposition: inline
-
-
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-> > So I am not surprised that this only shows up now.
->=20
+On 08/25/2015 09:18 AM, Wolfram Sang wrote:
+> On Tue, Aug 25, 2015 at 08:18:30AM -0700, Guenter Roeck wrote:
+>> On 08/25/2015 07:57 AM, Wolfram Sang wrote:
+>>> On Tue, Aug 25, 2015 at 06:25:13AM +0100, Mark Brown wrote:
+>>>> On Mon, Aug 24, 2015 at 01:52:02PM +0300, Jarkko Nikula wrote:
+>>>>> Commit 70762abb9f89 ("i2c: Use stable dev_name for ACPI enumerated I2C
+>>>>> slaves") broke the lm-sensors which relies on I2C hwmon slave devices under
+>>>>> /sys/bus/i2c/devices/ to be named as "x-00yz". However if those hwmon
+>>>>> devices are ACPI 5 enumerated their name became "i2c-INTABCD:ij" and sysfs
+>>>>> code in lm-sensors does not find them anymore:
+>>>>
+>>>> Acked-by: Mark Brown <broonie@kernel.org>
+>>>
+>>> Don't you think there will be regressions given that the new naming
+>>> scheme was around for 18 months?
+>>>
+>>
+>> acpi is pretty long term. New bindings don't show up quickly.
+>
+> The key is, there might be userspace applications that got used to our
+> new "export" of ACPI bindings. The bindings were already existing, our
+> "export" did change.
+>
+>> So I am not surprised that this only shows up now.
+>
 > I am, to be honest. It shows running lm-sensors with ACPI on a kernel
 > newer than 18 months. Not a rare scenario, so I thought.
+>
+With i2c (sensor) devices enumerated in acpi ? Yes, I think that is quite rare.
+This is not about the kernel, it is about such device bindings showing up
+in acpi data.
 
-And thanks to Mark's recent post I understand now that this is only
-relevant for ACPI5 enumerated devices. I lost that detail.
+Guenter
 
-
---7JfCtLOvnd9MIVvH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJV3JY1AAoJEBQN5MwUoCm2FA8P/1wYI9bMsAAg7tP0WiWwQeEt
-aKFTzwbmN4vlgvz3RatXZiActfOf+x2mFSbzULoWyw/NcgquwqP+TDdoEq24OM68
-SB9ITK5dmp5/BgFZTDJHmBUntWy85obQaLe5ZZTwnpJ3lMUeyP41q2WGpFNH84V7
-u06KJqYKw611sWTiYPPL4PuhYZTXLpTeQl1yVyrcGvbJUEqQrMTZQG6523bSNE3J
-Yx76L7opbrZe5ftay2mTNMH8/f1yfrdjYzuYHL2kgYvEPw4dWcaPCwiMgbA7eYq7
-BZLBBAPOc75QAXKWA0aLWKF+h0jL1GD121fY2wEGVgxsVmuDwLgW7RLmO5wRpd20
-rJCC5NlVuU2eFPznBVnQ42dou7W30G0aFnM7YPckr4XNMP1PiW/qEwf7b2mNlvv8
-pd4fYtRKJVLbHpHCC6bt7e6Af8Y235ymKPn1mrwE2Fm9iCdVldMQImGeFDuERXaN
-IQwMbaFLtZ4r92Cfknxc87WH7WYaf/oj9Qeq7uFJiHcOEYlA8nB7Z847kFAXTT1s
-UIW1VweOwF8J2/woqcV/UwmoRc/dsU/AoeeK21Iz3mx7nCvyiIQNgUHPbSmwh4d5
-BX2H3WPPeECp/JOdw59JEsoON2RU+zAAxidbvABxkAM7sYJwE5y0TimIz4xl7WJx
-y4+l4E84bcV0EhK+oNjC
-=LDB6
------END PGP SIGNATURE-----
-
---7JfCtLOvnd9MIVvH--
-
-
---===============4486137623691539183==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4486137623691539183==--
