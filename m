@@ -1,62 +1,44 @@
-From: Mark Brown <broonie@kernel.org>
-Date: Tue, 25 Aug 2015 05:25:13 +0000
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Date: Tue, 25 Aug 2015 14:50:08 +0000
 Subject: Re: [lm-sensors] [RFC] i2c: Revert back to old device naming for ACPI enumerated I2C slaves
-Message-Id: <20150825052513.GI1654@sirena.org.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0175039851168914932=="
+Message-Id: <55DC80A0.6010506@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
-In-Reply-To: <1440413522-7855-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dustin Byford <dustin-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
-
-
---===============0175039851168914932==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="r5lq+205vWdkqwtk"
-Content-Disposition: inline
-
-
---r5lq+205vWdkqwtk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Aug 24, 2015 at 01:52:02PM +0300, Jarkko Nikula wrote:
-> Commit 70762abb9f89 ("i2c: Use stable dev_name for ACPI enumerated I2C
-> slaves") broke the lm-sensors which relies on I2C hwmon slave devices under
-> /sys/bus/i2c/devices/ to be named as "x-00yz". However if those hwmon
-> devices are ACPI 5 enumerated their name became "i2c-INTABCD:ij" and sysfs
-> code in lm-sensors does not find them anymore:
-
-Acked-by: Mark Brown <broonie@kernel.org>
-
---r5lq+205vWdkqwtk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV2/wxAAoJECTWi3JdVIfQqAEH/RzBrneVJ4mml8ks/Gr9hA+B
-Gy/2BLyESl/2wYICVZwduC6p07x1UH3mHPPLbt/F9YAOupj6KXDgBXPViiSQQsiv
-oTYuJLAiCnCxT8XrF1TDO3e4T16e6/mjk26mjgDBeHHpidwN16yofs070kAnK++Z
-7/KPVhjhOVwbo7BXXlFXrrmUJ0f7DGE6dUxkpVgabqgO8peCBOWgcPgAXlJ/Dlod
-p34VsGwiRO8oCNGKT12Mb+rhS/7jKdkoSH2khWDPOJSQQB4KHKHJ/FFlGcaolpKF
-EUhpxIm5nvafU9CuLEfLE/3GoMZxfZLmf+XOyF2zBPVVISdhtLv+fkCKpa7KmgM=
-=kKSL
------END PGP SIGNATURE-----
-
---r5lq+205vWdkqwtk--
-
-
---===============0175039851168914932==
-Content-Type: text/plain; charset="us-ascii"
+References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20150825050306.GB21569@cumulusnetworks.com>
+In-Reply-To: <20150825050306.GB21569-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Dustin Byford <dustin-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
+
+On 08/25/2015 08:03 AM, Dustin Byford wrote:
+> On Mon Aug 24 13:52, Jarkko Nikula wrote:
+>
+>> I don't know how common ACPI enumerated I2C hwmon devices are but I guess
+>> they exists since Dustin notices this issue and wrote "With that change,
+>> /sys/bus/i2c/devices/i2c-0-004a, for example, became
+>> /sys/bus/i2c/devices/i2c-PNPXXXX:xx".
+>
+> I wouldn't take my particular use case as evidence they are common, or
+> even they really exist.  I got here because I loaded a hwmon driver
+> using the _DSD/PRP0001 mechanism in ACPI.  In that case, those devices
+> have never worked with 'sensors'  Therefore, in that context, this
+> change is just fixing a bug.
+>
+So does this then fall more into new use case rather than being a 
+regression as such?
+
+What I'm trying to understand what kind of regression we actually do 
+have here? Is it about listing the devices or does it also cease to show 
+for instance temperature sensor readings?
+
+If it requires to add a match table to existing driver in order to 
+trigger this then at least stable tree is not worry here.
+
+-- 
+Jarkko
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0175039851168914932==--
