@@ -1,43 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 07 Aug 2015 17:28:40 +0000
-Subject: Re: [lm-sensors] [PATCH hwmon] watchdog: lpc18xx_wdt_get_timeleft() can be static
-Message-Id: <55C4EAC8.3090005@roeck-us.net>
+From: Huang Rui <ray.huang@amd.com>
+Date: Thu, 27 Aug 2015 08:07:32 +0000
+Subject: [lm-sensors] [PATCH 01/15] hwmon, fam15h_power: add support for AMD Carrizo
+Message-Id: <1440662866-28716-2-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201508080133.jDW20mAc%fengguang.wu@intel.com> <20150807170350.GA92637@athens>
-In-Reply-To: <20150807170350.GA92637@athens>
+References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kbuild test robot <fengguang.wu@intel.com>, Ariel D'Alessandro <ariel@vanguardiasur.com.ar>
-Cc: kbuild-all@01.org, lm-sensors@lm-sensors.org, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "wim@iguana.be" <wim@iguana.be>
+To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
 
-On 08/07/2015 10:03 AM, kbuild test robot wrote:
->
-> Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+AMD Carrizo(Fam15h, M60h) processors can report power1_crit
+(ProcessorPwrWatts) and power1_input (CurrPwrWatts) values.
+And this patch adds support for CZ.
 
-Wrong subsystem (should be watchdog), but still makes sense on top
-of the offending patch. I'll add it to my pull request for Wim.
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+---
+ drivers/hwmon/fam15h_power.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-
-> ---
->   lpc18xx_wdt.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/watchdog/lpc18xx_wdt.c b/drivers/watchdog/lpc18xx_wdt.c
-> index 00ff5bd..ab7b8b1 100644
-> --- a/drivers/watchdog/lpc18xx_wdt.c
-> +++ b/drivers/watchdog/lpc18xx_wdt.c
-> @@ -123,7 +123,7 @@ static int lpc18xx_wdt_set_timeout(struct watchdog_device *wdt_dev,
->   	return 0;
->   }
->
-> -unsigned int lpc18xx_wdt_get_timeleft(struct watchdog_device *wdt_dev)
-> +static unsigned int lpc18xx_wdt_get_timeleft(struct watchdog_device *wdt_dev)
->   {
->   	struct lpc18xx_wdt_dev *lpc18xx_wdt = watchdog_get_drvdata(wdt_dev);
->   	unsigned int val;
->
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 3057dfc..0753810 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -233,6 +233,7 @@ static int fam15h_power_probe(struct pci_dev *pdev,
+ static const struct pci_device_id fam15h_power_id_table[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M30H_NB_F4) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M60H_NB_F4) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F4) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_M30H_NB_F4) },
+ 	{}
+-- 
+1.9.1
 
 
 _______________________________________________
