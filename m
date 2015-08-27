@@ -1,105 +1,106 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Fri, 14 Aug 2015 12:44:31 +0000
-Subject: Re: [lm-sensors] [PATCH v2 10/10] arm64: dts: Create SoC thermal zone for Juno
-Message-Id: <9hhlhdeghu8.fsf@e105922-lin.cambridge.arm.com>
+From: Huang Rui <ray.huang@amd.com>
+Date: Thu, 27 Aug 2015 08:07:41 +0000
+Subject: [lm-sensors] [PATCH 10/15] hwmon, fam15h_power: add compute unit accumulated power
+Message-Id: <1440662866-28716-11-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
-	<1438615378-14241-11-git-send-email-punit.agrawal@arm.com>
-	<20150812155500.GW20890@e106497-lin.cambridge.arm.com>
-	<9hh1tf7i7oi.fsf@e105922-lin.cambridge.arm.com>
-	<9hhsi7mgi44.fsf@e105922-lin.cambridge.arm.com>
-In-Reply-To: <9hhsi7mgi44.fsf@e105922-lin.cambridge.arm.com> (Punit Agrawal's
-	message of "Fri, 14 Aug 2015 13:38:35 +0100")
+References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>
+To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
 
-Apologies for the duplicate, I accidentally Hit send before I finished
-the reply.
+This patch adds a member in fam15h_power_data which specifies the
+compute unit accumulated power.
 
-Punit Agrawal <punit.agrawal@arm.com> writes:
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+---
+ drivers/hwmon/fam15h_power.c | 31 +++++++++++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 4 deletions(-)
 
-> [ adding Eduardo, Rui for their take on OF-thermal bindings ]
->
-> Punit Agrawal <punit.agrawal@arm.com> writes:
->
->> Hi Liviu,
->>
->> Thanks for having a look.
->>
->> Liviu Dudau <Liviu.Dudau@arm.com> writes:
->>
->>> On Mon, Aug 03, 2015 at 04:22:58PM +0100, Punit Agrawal wrote:
->>>> Setup a thermal zone driven by the SoC temperature sensor on Juno
->>>> r0. Create passive trip points and bind them to cpufreq cooling
->>>> devices that support the power extensions.
->>>
->>> Hi Punit,
->>>
->>>> 
->>>> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
->>>> Cc: Rob Herring <robh+dt@kernel.org>
->>>> Cc: Mark Rutland <mark.rutland@arm.com>
->>>> Cc: Liviu Dudau <liviu.dudau@arm.com>
->>>> Cc: Sudeep Holla <sudeep.holla@arm.com>
->>>> ---
->>>>  arch/arm64/boot/dts/arm/juno.dts | 50 ++++++++++++++++++++++++++++++++++++++++
->>>>  1 file changed, 50 insertions(+)
->>>> 
->>>> diff --git a/arch/arm64/boot/dts/arm/juno.dts b/arch/arm64/boot/dts/arm/juno.dts
->>>> index d2e67f3..664961c 100644
->>>> --- a/arch/arm64/boot/dts/arm/juno.dts
->>>> +++ b/arch/arm64/boot/dts/arm/juno.dts
->>>> @@ -9,6 +9,7 @@
->>>>  /dts-v1/;
->>>>  
->>>>  #include <dt-bindings/interrupt-controller/arm-gic.h>
->>>> +#include <dt-bindings/thermal/thermal.h>
->>>>  
->>>>  / {
->>>>  	model = "ARM Juno development board (r0)";
->>>> @@ -90,6 +91,8 @@
->>>>  			next-level-cache = <&A57_L2>;
->>>>  			clocks = <&scpi_dvfs 0>;
->>>>  			cpu-idle-states = <&CPU_SLEEP_0 &CLUSTER_SLEEP_0>;
->>>> +			#cooling-cells = <2>;
->>>> +			dynamic-power-coefficient = <530>;
->>>
->>> The Documentation/devicetree/bindings/thermal/thermal.txt document describes two additional
->>> required properties, cooling-min-state and cooling-max-state which are missing here.
->>>
->>
->> The bindings do suggest that the cooling-*-state are required but I
->> couldn't find any code making use of this property.
->>
->> I'll send a patch with the next version making those properties
->> optional.
->>
->
-> On second thoughts...
->
-> The question about cooling-*-state has come up in another thread as
-> well [0]. I'll re-iterate the question for the thermal maintainers to
-> clarify.
->
-> The cooling-{max,min}-state properties are marked mandatory in the
-> bindings but aren't used in the code anywhere. Can we drop those
-> properties from the binding documentation? Or at the least, make them optional?
->
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index fdfa18e..f5ff48f 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -43,7 +43,9 @@ MODULE_LICENSE("GPL");
+ #define REG_TDP_LIMIT3			0xe8
+ 
+ #define FAM15H_MIN_POWER_GROUPS		2
++#define MAX_CUS				8
+ 
++#define MSR_F15H_CU_PWR_ACCUMULATOR	0xc001007a
+ #define MSR_F15H_CU_MAX_PWR_ACCUMULATOR	0xc001007b
+ 
+ struct fam15h_power_data {
+@@ -54,6 +56,8 @@ struct fam15h_power_data {
+ 	unsigned int cpu_pwr_sample_ratio;
+ 	/* maximum accumulated power of a compute unit */
+ 	u64 max_cu_acc_power;
++	/* accumulated power of the compute units */
++	u64 cu_acc_power[MAX_CUS];
+ };
+ 
+ static ssize_t show_power(struct device *dev,
+@@ -207,6 +211,7 @@ static int fam15h_power_resume(struct pci_dev *pdev)
+ static int fam15h_power_init_data(struct pci_dev *f4,
+ 				  struct fam15h_power_data *data)
+ {
++	int cu_num, cores_per_cu, cpu, cu;
+ 	u32 val, eax, ebx, ecx, edx;
+ 	u64 tmp;
+ 
+@@ -249,6 +254,21 @@ static int fam15h_power_init_data(struct pci_dev *f4,
+ 
+ 	data->max_cu_acc_power = tmp;
+ 
++	cores_per_cu = amd_get_cores_per_cu();
++	cu_num = boot_cpu_data.x86_max_cores / cores_per_cu;
++
++	WARN_ON_ONCE(cu_num > MAX_CUS);
++
++	for (cpu = 0; cpu < cu_num * cores_per_cu; cpu += cores_per_cu) {
++		cu = cpu / cores_per_cu;
++		if (rdmsrl_safe_on_cpu(cpu, MSR_F15H_CU_PWR_ACCUMULATOR,
++				       &data->cu_acc_power[cu])) {
++			pr_err("Failed to read compute unit power accumulator MSR on core%d\n",
++			       cpu);
++			return -ENODEV;
++		}
++	}
++
+ 	return 0;
+ }
+ 
+@@ -258,6 +278,7 @@ static int fam15h_power_probe(struct pci_dev *pdev,
+ 	struct fam15h_power_data *data;
+ 	struct device *dev = &pdev->dev;
+ 	struct device *hwmon_dev;
++	int ret;
+ 
+ 	/*
+ 	 * though we ignore every other northbridge, we still have to
+@@ -273,11 +294,13 @@ static int fam15h_power_probe(struct pci_dev *pdev,
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	if (fam15h_power_init_attrs(pdev))
+-		return -ENOMEM;
++	ret = fam15h_power_init_attrs(pdev);
++	if (ret)
++		return ret;
+ 
+-	if (fam15h_power_init_data(pdev, data))
+-		return -ENODEV;
++	ret = fam15h_power_init_data(pdev, data);
++	if (ret)
++		return ret;
+ 
+ 	data->pdev = pdev;
+ 
+-- 
+1.9.1
 
-Let me know your preferred approach. I can include a fix in the next version.
-
-[0] http://thread.gmane.org/gmane.linux.ports.ppc.embedded/84512/focusc339
-
-> [...]
->
->
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 _______________________________________________
 lm-sensors mailing list
