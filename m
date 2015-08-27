@@ -1,52 +1,89 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 26 Aug 2015 15:26:25 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: The Code Crashes
-Message-Id: <55DDDAA1.6010502@roeck-us.net>
+From: Huang Rui <ray.huang@amd.com>
+Date: Thu, 27 Aug 2015 08:07:43 +0000
+Subject: [lm-sensors] [PATCH 12/15] hwmon, fam15h_power: introduce a cpu accumulated power reporting algorith
+Message-Id: <1440662866-28716-13-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440567719-27643-2-git-send-email-corone.il.han@gmail.com>
-In-Reply-To: <1440567719-27643-2-git-send-email-corone.il.han@gmail.com>
+References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
 
-On 08/26/2015 07:56 AM, Il Han wrote:
-> 2015-08-26 23:06 GMT+09:00 Guenter Roeck <linux@roeck-us.net <mailto:linux@roeck-us.net>>:
->
->     On 08/25/2015 10:41 PM, Il Han wrote:
->
->         The code crashes, since dev is not an i2c client device.
->
->         Signed-off-by: Il Han <corone.il.han@gmail.com <mailto:corone.il.han@gmail.com>>
->
->
->     You lost me a bit here. Why did you make this a separate patch ?
->
->     Also, please version your patches and provide a change log.
->     I am sure I asked for that before.
->
->     Thanks,
->     Guenter
->
->
-> Sorry.
-> Because I'm not accustomed to commit them with git, I made the mistake.
-> confused about making a patch version such as [PATCH v2], providing a change log, etc.
-> I am going to look up about git commit.
-
-You might be looking for
-	git format-patch --subject-prefix="PATCH v2"
-
-Providing a change log doesn't mean to provide separate patches. It means
-to tag the patch with a version number ("PATCH v2" instead of "PATCH"),
-and to describe the changes below the '---' line in the patch.
-This is described in detail in Documentation/SubmittingPatches.
-
-Thanks,
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGFuIGFsZ29yaXRobSB0aGF0IGNvbXB1dGVzIHRoZSBhdmVy
+YWdlIHBvd2VyIGJ5CnJlYWRpbmcgYSBkZWx0YSB2YWx1ZSBvZiDigJxjb3JlIHBvd2VyIGFjY3Vt
+dWxhdG9y4oCdIHJlZ2lzdGVyIGR1cmluZwptZWFzdXJlbWVudCBpbnRlcnZhbCwgYW5kIHRoZW4g
+ZGl2aWRpbmcgZGVsdGEgdmFsdWUgYnkgdGhlIGxlbmd0aCBvZgp0aGUgdGltZSBpbnRlcnZhbC4K
+ClVzZXIgaXMgYWJsZSB0byB1c2UgcG93ZXIxX2FjYyBlbnRyeSB0byBtZWFzdXJlIHRoZSBwcm9j
+ZXNzb3IgcG93ZXIKY29uc3VtcHRpb24gYW5kIHBvd2VyMV9hY2MganVzdCBuZWVkcyB0byBiZSBy
+ZWFkIHR3aWNlIHdpdGggYW4gbmVlZGVkCmludGVydmFsIGluLWJldHdlZW4uCgpBIHNpbXBsZSBl
+eGFtcGxlOgoKJCBjYXQgL3N5cy9idXMvcGNpL2RldmljZXMvMDAwMFw6MDBcOjE4LjQvaHdtb24v
+aHdtb24wL3Bvd2VyMV9hY2MKJCBzbGVlcCAxMDAwMHMKJCBjYXQgL3N5cy9idXMvcGNpL2Rldmlj
+ZXMvMDAwMFw6MDBcOjE4LjQvaHdtb24vaHdtb24wL3Bvd2VyMV9hY2MKClRoZSByZXN1bHQgaXMg
+Y3VycmVudCBhdmVyYWdlIHByb2Nlc3NvciBwb3dlciBjb25zdW1wdGlvbiBpbiAxMDAwMApzZWNv
+bmRzLiBUaGUgdW5pdCBvZiB0aGUgcmVzdWx0IGlzIHVXYXR0LgoKU2lnbmVkLW9mZi1ieTogSHVh
+bmcgUnVpIDxyYXkuaHVhbmdAYW1kLmNvbT4KLS0tCiBkcml2ZXJzL2h3bW9uL2ZhbTE1aF9wb3dl
+ci5jIHwgNjIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEg
+ZmlsZSBjaGFuZ2VkLCA2MiBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21v
+bi9mYW0xNWhfcG93ZXIuYyBiL2RyaXZlcnMvaHdtb24vZmFtMTVoX3Bvd2VyLmMKaW5kZXggZDUy
+OWU0Yi4uM2JhYjc5NyAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9mYW0xNWhfcG93ZXIuYwor
+KysgYi9kcml2ZXJzL2h3bW9uL2ZhbTE1aF9wb3dlci5jCkBAIC02MCw2ICs2MCw3IEBAIHN0cnVj
+dCBmYW0xNWhfcG93ZXJfZGF0YSB7CiAJdTY0IGN1X2FjY19wb3dlcltNQVhfQ1VTXTsKIAkvKiBw
+ZXJmb3JtYW5jZSB0aW1lc3RhbXAgY291bnRlciAqLwogCXU2NCBjcHVfc3dfcHdyX3B0c2NbTUFY
+X0NVU107CisJc3RydWN0IG11dGV4IGFjY19wd3JfbXV0ZXg7CiB9OwogCiBzdGF0aWMgc3NpemVf
+dCBzaG93X3Bvd2VyKHN0cnVjdCBkZXZpY2UgKmRldiwKQEAgLTEyMSwxNyArMTIyLDc0IEBAIHN0
+YXRpYyBERVZJQ0VfQVRUUihwb3dlcjFfY3JpdCwgU19JUlVHTywgc2hvd19wb3dlcl9jcml0LCBO
+VUxMKTsKIHN0YXRpYyBzdHJ1Y3QgYXR0cmlidXRlX2dyb3VwIGZhbTE1aF9wb3dlcl9ncm91cDsK
+IF9fQVRUUklCVVRFX0dST1VQUyhmYW0xNWhfcG93ZXIpOwogCitzdGF0aWMgc3NpemVfdCBzaG93
+X3Bvd2VyX2FjYyhzdHJ1Y3QgZGV2aWNlICpkZXYsCisJCQkgICAgICBzdHJ1Y3QgZGV2aWNlX2F0
+dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQoreworCWludCBjcHUsIGN1LCBjdV9udW0sIGNvcmVz
+X3Blcl9jdTsKKwl1NjQgY3Vycl9jdV9hY2NfcG93ZXJbTUFYX0NVU10sCisJICAgIGN1cnJfcHRz
+Y1tNQVhfQ1VTXSwgamRlbHRhW01BWF9DVVNdOworCXU2NCB0ZGVsdGEsIGF2Z19hY2M7CisJc3Ry
+dWN0IGZhbTE1aF9wb3dlcl9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7CisKKwlj
+b3Jlc19wZXJfY3UgPSBhbWRfZ2V0X2NvcmVzX3Blcl9jdSgpOworCWN1X251bSA9IGJvb3RfY3B1
+X2RhdGEueDg2X21heF9jb3JlcyAvIGNvcmVzX3Blcl9jdTsKKworCWZvciAoY3B1ID0gMCwgYXZn
+X2FjYyA9IDA7IGNwdSA8IGN1X251bSAqIGNvcmVzX3Blcl9jdTsgY3B1ICs9IGNvcmVzX3Blcl9j
+dSkgeworCQljdSA9IGNwdSAvIGNvcmVzX3Blcl9jdTsKKwkJaWYgKHJkbXNybF9zYWZlX29uX2Nw
+dShjcHUsIE1TUl9GMTVIX1BUU0MsICZjdXJyX3B0c2NbY3VdKSkgeworCQkJcHJfZXJyKCJGYWls
+ZWQgdG8gcmVhZCBQVFNDIGNvdW50ZXIgTVNSIG9uIGNvcmUlZFxuIiwKKwkJCSAgICAgICBjcHUp
+OworCQkJcmV0dXJuIDA7CisJCX0KKworCQlpZiAocmRtc3JsX3NhZmVfb25fY3B1KGNwdSwgTVNS
+X0YxNUhfQ1VfUFdSX0FDQ1VNVUxBVE9SLAorCQkJCSAgICAgICAmY3Vycl9jdV9hY2NfcG93ZXJb
+Y3VdKSkgeworCQkJcHJfZXJyKCJGYWlsZWQgdG8gcmVhZCBjb21wdXRlIHVuaXQgcG93ZXIgYWNj
+dW11bGF0b3IgTVNSIG9uIGNvcmUlZFxuIiwKKwkJCSAgICAgICBjcHUpOworCQkJcmV0dXJuIDA7
+CisJCX0KKworCQlpZiAoY3Vycl9jdV9hY2NfcG93ZXJbY3VdIDwgZGF0YS0+Y3VfYWNjX3Bvd2Vy
+W2N1XSkgeworCQkJamRlbHRhW2N1XSA9IGRhdGEtPm1heF9jdV9hY2NfcG93ZXIgKyBjdXJyX2N1
+X2FjY19wb3dlcltjdV07CisJCQlqZGVsdGFbY3VdIC09IGRhdGEtPmN1X2FjY19wb3dlcltjdV07
+CisJCX0gZWxzZSB7CisJCQlqZGVsdGFbY3VdID0gY3Vycl9jdV9hY2NfcG93ZXJbY3VdIC0gZGF0
+YS0+Y3VfYWNjX3Bvd2VyW2N1XTsKKwkJfQorCQl0ZGVsdGEgPSBjdXJyX3B0c2NbY3VdIC0gZGF0
+YS0+Y3B1X3N3X3B3cl9wdHNjW2N1XTsKKwkJamRlbHRhW2N1XSAqPSBkYXRhLT5jcHVfcHdyX3Nh
+bXBsZV9yYXRpbyAqIDEwMDA7CisJCWRvX2RpdihqZGVsdGFbY3VdLCB0ZGVsdGEpOworCisJCW11
+dGV4X2xvY2soJmRhdGEtPmFjY19wd3JfbXV0ZXgpOworCQlkYXRhLT5jdV9hY2NfcG93ZXJbY3Vd
+ID0gY3Vycl9jdV9hY2NfcG93ZXJbY3VdOworCQlkYXRhLT5jcHVfc3dfcHdyX3B0c2NbY3VdID0g
+Y3Vycl9wdHNjW2N1XTsKKwkJbXV0ZXhfdW5sb2NrKCZkYXRhLT5hY2NfcHdyX211dGV4KTsKKwor
+CQkvKiB0aGUgdW5pdCBpcyBtaWNyb1dhdHQgKi8KKwkJYXZnX2FjYyArPSBqZGVsdGFbY3VdOwor
+CX0KKworCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiV1XG4iLCAodW5zaWduZWQgaW50KSBhdmdfYWNj
+KTsKK30KK3N0YXRpYyBERVZJQ0VfQVRUUihwb3dlcjFfYWNjLCBTX0lSVUdPLCBzaG93X3Bvd2Vy
+X2FjYywgTlVMTCk7CisKIHN0YXRpYyBpbnQgZmFtMTVoX3Bvd2VyX2luaXRfYXR0cnMoc3RydWN0
+IHBjaV9kZXYgKnBkZXYpCiB7CiAJaW50IG4gPSBGQU0xNUhfTUlOX1BPV0VSX0dST1VQUzsKIAlz
+dHJ1Y3QgYXR0cmlidXRlICoqZmFtMTVoX3Bvd2VyX2F0dHJzOwogCXN0cnVjdCBjcHVpbmZvX3g4
+NiAqYyA9ICZib290X2NwdV9kYXRhOworCXUzMiBjcHVpZDsKIAogCWlmIChjLT54ODYgPT0gMHgx
+NSAmJgogCSAgICAoKGMtPng4Nl9tb2RlbCA8PSAweGYpIHx8CiAJICAgICAoYy0+eDg2X21vZGVs
+ID49IDB4NjAgJiYgYy0+eDg2X21vZGVsIDw9IDB4NmYpKSkKIAkJbiArPSAxOwogCisJY3B1aWQg
+PSBjcHVpZF9lZHgoMHg4MDAwMDAwNyk7CisKKwkvKiBjaGVjayBpZiBwcm9jZXNzb3Igc3VwcG9y
+dHMgYWNjdW11bGF0ZWQgcG93ZXIgKi8KKwlpZiAoY3B1aWQgJiBCSVQoMTIpKQorCQluICs9IDE7
+CisKIAlmYW0xNWhfcG93ZXJfYXR0cnMgPSBkZXZtX2tjYWxsb2MoJnBkZXYtPmRldiwgbiwKIAkJ
+CQkJICBzaXplb2YoKmZhbTE1aF9wb3dlcl9hdHRycyksCiAJCQkJCSAgR0ZQX0tFUk5FTCk7CkBA
+IC0xNDgsNiArMjA2LDkgQEAgc3RhdGljIGludCBmYW0xNWhfcG93ZXJfaW5pdF9hdHRycyhzdHJ1
+Y3QgcGNpX2RldiAqcGRldikKIAkgICAgIChjLT54ODZfbW9kZWwgPj0gMHg2MCAmJiBjLT54ODZf
+bW9kZWwgPD0gMHg2ZikpKQogCQlmYW0xNWhfcG93ZXJfYXR0cnNbbisrXSA9ICZkZXZfYXR0cl9w
+b3dlcjFfaW5wdXQuYXR0cjsKIAorCWlmIChjcHVpZCAmIEJJVCgxMikpCisJCWZhbTE1aF9wb3dl
+cl9hdHRyc1tuKytdID0gJmRldl9hdHRyX3Bvd2VyMV9hY2MuYXR0cjsKKwogCWZhbTE1aF9wb3dl
+cl9ncm91cC5hdHRycyA9IGZhbTE1aF9wb3dlcl9hdHRyczsKIAogCXJldHVybiAwOwpAQCAtMzEx
+LDYgKzM3Miw3IEBAIHN0YXRpYyBpbnQgZmFtMTVoX3Bvd2VyX3Byb2JlKHN0cnVjdCBwY2lfZGV2
+ICpwZGV2LAogCWlmIChyZXQpCiAJCXJldHVybiByZXQ7CiAKKwltdXRleF9pbml0KCZkYXRhLT5h
+Y2NfcHdyX211dGV4KTsKIAlkYXRhLT5wZGV2ID0gcGRldjsKIAogCWh3bW9uX2RldiA9IGRldm1f
+aHdtb25fZGV2aWNlX3JlZ2lzdGVyX3dpdGhfZ3JvdXBzKGRldiwgImZhbTE1aF9wb3dlciIsCi0t
+IAoxLjkuMQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
