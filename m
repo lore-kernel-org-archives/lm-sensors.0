@@ -1,21 +1,25 @@
-From: =?UTF-8?B?0JDQvdGC0L7QvSDQmtC+0YfQutC+0LI=?= <anton.kochkov@gmail.com>
-Date: Thu, 20 Aug 2015 14:15:47 +0000
-Subject: [lm-sensors] Devices wiki page links are all wrong
-Message-Id: <CA+8M6wkFPfrEFfPHjdWbCUiykcgz0SMa_VWh-0Vrs2p8PvfyiQ@mail.gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 27 Aug 2015 07:22:56 +0000
+Subject: Re: [lm-sensors] Devices wiki page links are all wrong
+Message-Id: <20150827092256.5a594912@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CA+8M6wkFPfrEFfPHjdWbCUiykcgz0SMa_VWh-0Vrs2p8PvfyiQ@mail.gmail.com>
+In-Reply-To: <CA+8M6wkFPfrEFfPHjdWbCUiykcgz0SMa_VWh-0Vrs2p8PvfyiQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello!
-Looks like most of the links to the mailing list on the page
-http://www.lm-sensors.org/wiki/Devices are broken.
-
-Best regards,
-Anton Kochkov.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVGh1LCAyMCBBdWcgMjAxNSAxNzoxNTo0NyArMDMwMCwg0JDQvdGC0L7QvSDQmtC+0YfQutC+
+0LIgd3JvdGU6Cj4gSGVsbG8hCj4gTG9va3MgbGlrZSBtb3N0IG9mIHRoZSBsaW5rcyB0byB0aGUg
+bWFpbGluZyBsaXN0IG9uIHRoZSBwYWdlCj4gaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtp
+L0RldmljZXMgYXJlIGJyb2tlbi4KClNhZGx5LCB5ZXMuIFRoZSBsaXN0IGFyY2hpdmUgd2FzIHJl
+Z2VuZXJhdGVkIGF0IHNvbWUgcG9pbnQgaW4gdGltZSBhbmQKdGhhdCBicm9rZSBtYW55IGxpbmtz
+IDooIEJ1dCBJJ20gbm90IHN1cmUgd2hhdCB0byBkbyBhYm91dCBpdC4gUmVtb3ZpbmcKYWxsIGxp
+bmtzIHdvdWxkIGJlIGJhZCBiZWNhdXNlIHNvbWUgb2YgdGhlbSBhcmUgc3RpbGwgdmFsaWQuIEJ1
+dApjaGVja2luZyBhbmQgZml4aW5nIHRoZW0gbWFudWFsbHkgd291bGQgdGFrZSBhIGxvdCBvZiB0
+aW1lLCBtb3JlIHRoYW4gSQphbSB3aWxsaW5nIG9yIGV2ZW4gYWJsZSB0byBzcGVuZCBhdCB0aGUg
+bW9tZW50LgoKLS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
+CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
+aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
