@@ -1,51 +1,102 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 05 Aug 2015 20:56:59 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: (it87) Add support for IT8732F
-Message-Id: <55C2789B.5000407@roeck-us.net>
+From: Huang Rui <ray.huang@amd.com>
+Date: Thu, 27 Aug 2015 08:07:39 +0000
+Subject: [lm-sensors] [PATCH 08/15] hwmon, fam15h_power: add max compute unit accumulated power
+Message-Id: <1440662866-28716-9-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438804388-21266-1-git-send-email-jmaggard@netgear.com>
-In-Reply-To: <1438804388-21266-1-git-send-email-jmaggard@netgear.com>
+References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
 
-Hi Justin,
+This patch adds a member in fam15h_power_data which specifies the
+maximum accumulated power in a compute unit.
 
-On 08/05/2015 01:50 PM, Justin Maggard wrote:
-> On Wed, Aug 5, 2015 at 1:36 PM, Phil Perry <phil@elrepo.org> wrote:
->> On 05/08/15 20:53, Justin Maggard wrote:
->>> Add support for the IT8732F.  This chip is pretty similar to IT8721F,
->>> with the main difference being that the ADC LSB is 10.9 mV instead of
->>> 12 mV.
->>>
->>> Signed-off-by: Justin Maggard <jmaggard@netgear.com>
->>> ---
-[ ... ]
->>>
->>>   static unsigned short force_id;
->>>   module_param(force_id, ushort, 0);
->>> @@ -147,6 +149,7 @@ static inline void superio_exit(void)
->>>   #define IT8720F_DEVID 0x8720
->>>   #define IT8721F_DEVID 0x8721
->>>   #define IT8726F_DEVID 0x8726
->>> +#define IT8732F_DEVID 0x8732
->>>   #define IT8728F_DEVID 0x8728
->>
->> Nit-picking, but shouldn't these be kept in numerical order?
->>
->
-> Oops...  yes, I'll fix that.
->
-I think you were just testing us :-)
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+---
+ drivers/hwmon/fam15h_power.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-> Anything else for v4? :-)
->
-Not worth a v4 just for that. The patch looks good to me otherwise.
-I fixed this up and applied the patch to hwmon-next.
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index d6efcf6..fdfa18e 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -26,6 +26,7 @@
+ #include <linux/pci.h>
+ #include <linux/bitops.h>
+ #include <asm/processor.h>
++#include <asm/msr.h>
+ 
+ MODULE_DESCRIPTION("AMD Family 15h CPU processor power monitor");
+ MODULE_AUTHOR("Andreas Herrmann <herrmann.der.user@googlemail.com>");
+@@ -43,12 +44,16 @@ MODULE_LICENSE("GPL");
+ 
+ #define FAM15H_MIN_POWER_GROUPS		2
+ 
++#define MSR_F15H_CU_MAX_PWR_ACCUMULATOR	0xc001007b
++
+ struct fam15h_power_data {
+ 	struct pci_dev *pdev;
+ 	unsigned int tdp_to_watts;
+ 	unsigned int base_tdp;
+ 	unsigned int processor_pwr_watts;
+ 	unsigned int cpu_pwr_sample_ratio;
++	/* maximum accumulated power of a compute unit */
++	u64 max_cu_acc_power;
+ };
+ 
+ static ssize_t show_power(struct device *dev,
+@@ -199,8 +204,8 @@ static int fam15h_power_resume(struct pci_dev *pdev)
+ #define fam15h_power_resume NULL
+ #endif
+ 
+-static void fam15h_power_init_data(struct pci_dev *f4,
+-					     struct fam15h_power_data *data)
++static int fam15h_power_init_data(struct pci_dev *f4,
++				  struct fam15h_power_data *data)
+ {
+ 	u32 val, eax, ebx, ecx, edx;
+ 	u64 tmp;
+@@ -228,7 +233,7 @@ static void fam15h_power_init_data(struct pci_dev *f4,
+ 
+ 	/* CPUID Fn8000_0007:EDX[12] indicates to support accumulated power */
+ 	if (!(edx & BIT(12)))
+-		return;
++		return 0;
+ 
+ 	/*
+ 	 * detemine the ratio of the compute unit power accumulator
+@@ -236,6 +241,15 @@ static void fam15h_power_init_data(struct pci_dev *f4,
+ 	 * Fn8000_0007:ECX
+ 	 */
+ 	data->cpu_pwr_sample_ratio = ecx;
++
++	if (rdmsrl_safe(MSR_F15H_CU_MAX_PWR_ACCUMULATOR, &tmp)) {
++		pr_err("Failed to read max compute unit power accumulator MSR\n");
++		return -ENODEV;
++	}
++
++	data->max_cu_acc_power = tmp;
++
++	return 0;
+ }
+ 
+ static int fam15h_power_probe(struct pci_dev *pdev,
+@@ -262,7 +276,9 @@ static int fam15h_power_probe(struct pci_dev *pdev,
+ 	if (fam15h_power_init_attrs(pdev))
+ 		return -ENOMEM;
+ 
+-	fam15h_power_init_data(pdev, data);
++	if (fam15h_power_init_data(pdev, data))
++		return -ENODEV;
++
+ 	data->pdev = pdev;
+ 
+ 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "fam15h_power",
+-- 
+1.9.1
 
 
 _______________________________________________
