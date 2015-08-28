@@ -1,95 +1,214 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 17 Aug 2015 18:54:39 +0000
-Subject: [lm-sensors] [PATCH 5/8] hwmon: (ltc2978) Use correct ID mask to detect all chips
-Message-Id: <1439837682-23748-5-git-send-email-linux@roeck-us.net>
+From: Christian Fetzer <fetzer.ch@gmail.com>
+Date: Fri, 28 Aug 2015 08:31:24 +0000
+Subject: [lm-sensors] [PATCH 3/4] i2c-piix4: Add support for multiplexed main adapter in SB800
+Message-Id: <1440750685-19172-4-git-send-email-fetzer.ch@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Per information from Linear Technologies, the ID mask is 12 bit
-for all chips of this series. Use this mask to detect chips to ensure
-that all chip revisions are detected.
+The SB800 chipset supports a multiplexed main SMBus controller with
+four ports. The multiplexed ports share the same SMBus address and
+register set. The port is selected by bits 2:1 of the smb_en register
+(0x2C).
 
-Suggested-by: Michael Jones <mike@proclivis.com>
-Tested-by: Michael Jones <mike@proclivis.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Only one port can be active at any point in time therefore a mutex is
+needed in order to synchronize access.
+
+Tested on HP ProLiant MicroServer G7 N54L (where this patch adds
+support to access sensor data from the w83795adg).
+
+Cc: Thomas Brandon <tbrandonau@gmail.com>
+Cc: Eddi De Pieri <eddi@depieri.net>
+Signed-off-by: Christian Fetzer <fetzer.ch@gmail.com>
 ---
- drivers/hwmon/pmbus/ltc2978.c | 37 ++++++++++++++++---------------------
- 1 file changed, 16 insertions(+), 21 deletions(-)
+ drivers/i2c/busses/i2c-piix4.c | 114 ++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 107 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index c3b71668a47f..491078f499ca 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -56,23 +56,18 @@ enum chips { ltc2974, ltc2975, ltc2977, ltc2978, ltc3880, ltc3882, ltc3883,
- #define LTC2975_MFR_PIN_PEAK		0xc6
- #define LTC2975_MFR_PIN_MIN		0xc7
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+index 8934a32..e344abd 100644
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -23,6 +23,9 @@
  
--#define LTC2974_ID_REV1			0x0212
--#define LTC2974_ID_REV2			0x0213
--#define LTC2975_ID			0x0223
-+#define LTC2978_ID_MASK			0xfff0
+    Note: we assume there can only be one device, with one or more
+    SMBus interfaces.
++   The device can register multiple i2c_adapters (up to PIIX4_MAX_ADAPTERS).
++   For devices supporting multiple ports the i2c_adapter should provide
++   an i2c_algorithm to access them.
+ */
+ 
+ #include <linux/module.h>
+@@ -37,6 +40,7 @@
+ #include <linux/dmi.h>
+ #include <linux/acpi.h>
+ #include <linux/io.h>
++#include <linux/mutex.h>
+ 
+ 
+ /* PIIX4 SMBus address offsets */
+@@ -125,8 +129,12 @@ static const struct dmi_system_id piix4_dmi_ibm[] = {
+ 	{ },
+ };
+ 
++/* SB800 globals */
++DEFINE_MUTEX(piix4_mutex_sb800);
 +
-+#define LTC2974_ID			0x0210
-+#define LTC2975_ID			0x0220
- #define LTC2977_ID			0x0130
--#define LTC2978_ID_REV1			0x0121
--#define LTC2978_ID_REV2			0x0122
--#define LTC2978A_ID			0x0124
-+#define LTC2978_ID			0x0120
- #define LTC3880_ID			0x4000
--#define LTC3880_ID_MASK			0xff00
- #define LTC3883_ID			0x4300
--#define LTC3883_ID_MASK			0xff00
- #define LTC3887_ID			0x4700
--#define LTC3887_ID_MASK			0xff00
--#define LTM4676_ID			0x4400
--#define LTM4676_ID_2			0x4480
-+#define LTM4676_ID_REV1			0x4400
-+#define LTM4676_ID_REV2			0x4480
- #define LTM4676A_ID			0x47e0
--#define LTM4676_ID_MASK			0xfff0
+ struct i2c_piix4_adapdata {
+ 	unsigned short smba;
++	unsigned short port;
+ };
  
- #define LTC2974_NUM_PAGES		4
- #define LTC2978_NUM_PAGES		8
-@@ -463,24 +458,24 @@ static int ltc2978_get_id(struct i2c_client *client)
- 		return -ENODEV;
- 	}
+ static int piix4_setup(struct pci_dev *PIIX4_dev,
+@@ -313,6 +321,8 @@ static int piix4_setup_sb800(struct pci_dev *PIIX4_dev,
+ 	else
+ 		dev_dbg(&PIIX4_dev->dev, "Using SMI# for SMBus\n");
  
--	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2)
-+	chip_id &= LTC2978_ID_MASK;
++	mutex_init(&piix4_mutex_sb800);
 +
-+	if (chip_id = LTC2974_ID)
- 		return ltc2974;
- 	else if (chip_id = LTC2975_ID)
- 		return ltc2975;
- 	else if (chip_id = LTC2977_ID)
- 		return ltc2977;
--	else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
--		 chip_id = LTC2978A_ID)
-+	else if (chip_id = LTC2978_ID)
- 		return ltc2978;
--	else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID)
-+	else if (chip_id = LTC3880_ID)
- 		return ltc3880;
--	else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID)
-+	else if (chip_id = LTC3883_ID)
- 		return ltc3883;
--	else if ((chip_id & LTC3887_ID_MASK) = LTC3887_ID)
-+	else if (chip_id = LTC3887_ID)
- 		return ltc3887;
--	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID ||
--		 (chip_id & LTM4676_ID_MASK) = LTM4676_ID_2 ||
--		 (chip_id & LTM4676_ID_MASK) = LTM4676A_ID)
-+	else if (chip_id = LTM4676_ID_REV1 || chip_id = LTM4676_ID_REV2 ||
-+		 chip_id = LTM4676A_ID)
- 		return ltm4676;
+ 	dev_info(&PIIX4_dev->dev,
+ 		 "SMBus Host Controller at 0x%x, revision %d\n",
+ 		 piix4_smba, i2ccfg >> 4);
+@@ -527,6 +537,49 @@ static s32 piix4_access(struct i2c_adapter * adap, u16 addr,
+ 	return 0;
+ }
  
- 	dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
++/* Handles access to multiple SMBus ports on the SB800.
++ * The port is selected by bits 2:1 of the smb_en register (0x2C).
++ * NOTE: The selected port must be returned to the initial selection to
++ * avoid problems on certain systems.
++ * Return negative errno on error.
++ */
++static s32 piix4_access_sb800(struct i2c_adapter *adap, u16 addr,
++		 unsigned short flags, char read_write,
++		 u8 command, int size, union i2c_smbus_data *data)
++{
++	struct i2c_piix4_adapdata *adapdata = i2c_get_adapdata(adap);
++	unsigned short smba_idx = 0xcd6;
++	u8 smba_en_lo, smb_en = 0x2c;
++	u8 port;
++	int retval;
++
++	mutex_lock(&piix4_mutex_sb800);
++
++	if (!request_region(smba_idx, 2, "smba_idx")) {
++		dev_err(&adap->dev, "SMBus base address index region "
++				"0x%x already in use!\n", smba_idx);
++		retval = -EBUSY;
++		goto ERROR;
++	}
++	outb_p(smb_en, smba_idx);
++	smba_en_lo = inb_p(smba_idx + 1);
++
++	port = adapdata->port;
++	if ((smba_en_lo & 6) != (port << 1))
++		outb_p((smba_en_lo & ~6) | (port << 1), smba_idx + 1);
++
++	retval = piix4_access(adap, addr, flags, read_write,
++			      command, size, data);
++
++	outb_p(smba_en_lo, smba_idx + 1);
++	release_region(smba_idx, 2);
++
++ERROR:
++	mutex_unlock(&piix4_mutex_sb800);
++
++	return retval;
++}
++
+ static u32 piix4_func(struct i2c_adapter *adapter)
+ {
+ 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+@@ -539,6 +592,11 @@ static const struct i2c_algorithm smbus_algorithm = {
+ 	.functionality	= piix4_func,
+ };
+ 
++static const struct i2c_algorithm piix4_smbus_algorithm_sb800 = {
++	.smbus_xfer	= piix4_access_sb800,
++	.functionality	= piix4_func,
++};
++
+ static const struct pci_device_id piix4_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB_3) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443MX_3) },
+@@ -614,6 +672,41 @@ static int piix4_add_adapter(struct pci_dev *dev, unsigned short smba,
+ 	return 0;
+ }
+ 
++static int piix4_add_adapters_sb800(struct pci_dev *dev, unsigned short smba)
++{
++	unsigned short port;
++	int retval;
++	struct i2c_piix4_adapdata *adapdata;
++
++	for (port = 0; port < PIIX4_MAX_ADAPTERS; port++) {
++		retval = piix4_add_adapter(dev, smba, &piix4_main_adapters[port]);
++		if (retval < 0)
++			goto ERROR;
++
++		piix4_main_adapters[port]->algo = &piix4_smbus_algorithm_sb800;
++
++		adapdata = i2c_get_adapdata(piix4_main_adapters[port]);
++		adapdata->port = port;
++	}
++
++	return retval;
++
++ERROR:
++	dev_err(&dev->dev, "Error setting up SB800 adapters. "
++		"Unregistering all adapters!\n");
++	for (port--; port >= 0; port--) {
++		adapdata = i2c_get_adapdata(piix4_main_adapters[port]);
++		if (adapdata->smba) {
++			i2c_del_adapter(piix4_main_adapters[port]);
++			kfree(adapdata);
++			kfree(piix4_main_adapters[port]);
++			piix4_main_adapters[port] = NULL;
++		}
++	}
++
++	return retval;
++}
++
+ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ {
+ 	int retval;
+@@ -621,18 +714,25 @@ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 	if ((dev->vendor = PCI_VENDOR_ID_ATI &&
+ 	     dev->device = PCI_DEVICE_ID_ATI_SBX00_SMBUS &&
+ 	     dev->revision >= 0x40) ||
+-	    dev->vendor = PCI_VENDOR_ID_AMD)
++	    dev->vendor = PCI_VENDOR_ID_AMD) {
+ 		/* base address location etc changed in SB800 */
+ 		retval = piix4_setup_sb800(dev, id, 0);
+-	else
++		if (retval < 0)
++			return retval;
++
++		/* Try to register multiplexed main SMBus adapter,
++		 * give up if we can't */
++		retval = piix4_add_adapters_sb800(dev, retval);
++	} else {
+ 		retval = piix4_setup(dev, id);
++		if (retval < 0)
++			return retval;
+ 
+-	/* If no main SMBus found, give up */
+-	if (retval < 0)
+-		return retval;
++		/* Try to register main SMBus adapter, give up if we can't */
++		retval = piix4_add_adapter(dev, retval, &piix4_main_adapters[0]);
++	}
+ 
+-	/* Try to register main SMBus adapter, give up if we can't */
+-	retval = piix4_add_adapter(dev, retval, &piix4_main_adapters[0]);
++	/* If no main SMBus found, give up */
+ 	if (retval < 0)
+ 		return retval;
+ 
 -- 
-2.1.4
+1.9.1
 
 
 _______________________________________________
