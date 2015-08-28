@@ -1,42 +1,87 @@
-From: Huang Rui <ray.huang@amd.com>
-Date: Thu, 27 Aug 2015 08:07:46 +0000
-Subject: [lm-sensors] [PATCH 15/15] MAINTAINERS: change the maintainer of fam15h_power driver
-Message-Id: <1440662866-28716-16-git-send-email-ray.huang@amd.com>
+From: Christian Fetzer <fetzer.ch@gmail.com>
+Date: Fri, 28 Aug 2015 08:31:25 +0000
+Subject: [lm-sensors] [PATCH 4/4] i2c-piix4: Add adapter port name support for SB800 chipset
+Message-Id: <1440750685-19172-5-git-send-email-fetzer.ch@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
-In-Reply-To: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Weisbecker?= <fweisbec@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, Huang Rui <ray.huang@amd.com>
+To: lm-sensors@vger.kernel.org
 
-Andreas Herrmann won't take the maintainer of fam15h_power driver. I
-will take it and appreciate him for the great contributions on this
-driver.
+This patch adds support for port names for the SB800 chipset.
+Since the chipset supports a multiplexed main SMBus controller, adding
+the channel name to the adapter name is necessary to differentiate the
+ports better (for example in sensors output).
 
-Signed-off-by: Huang Rui <ray.huang@amd.com>
-Cc: Andreas Herrmann <herrmann.der.user@googlemail.com>
+Signed-off-by: Christian Fetzer <fetzer.ch@gmail.com>
 ---
- MAINTAINERS | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-piix4.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 941d7b7..241d45e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -601,9 +601,9 @@ F:	drivers/crypto/ccp/
- F:	include/linux/ccp.h
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+index e344abd..366878e 100644
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -131,6 +131,10 @@ static const struct dmi_system_id piix4_dmi_ibm[] = {
  
- AMD FAM15H PROCESSOR POWER MONITORING DRIVER
--M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
-+M:	Huang Rui <ray.huang@amd.com>
- L:	lm-sensors@lm-sensors.org
--S:	Maintained
-+S:	Supported
- F:	Documentation/hwmon/fam15h_power
- F:	drivers/hwmon/fam15h_power.c
+ /* SB800 globals */
+ DEFINE_MUTEX(piix4_mutex_sb800);
++static const char *piix4_main_port_names_sb800[4] = {
++	"SDA0", "SDA2", "SDA3", "SDA4"
++};
++static const char *piix4_aux_port_name_sb800 = "SDA1";
  
+ struct i2c_piix4_adapdata {
+ 	unsigned short smba;
+@@ -626,7 +630,7 @@ static struct i2c_adapter *piix4_main_adapters[PIIX4_MAX_ADAPTERS];
+ static struct i2c_adapter *piix4_aux_adapter;
+ 
+ static int piix4_add_adapter(struct pci_dev *dev, unsigned short smba,
+-			     struct i2c_adapter **padap)
++			     const char *name, struct i2c_adapter **padap)
+ {
+ 	struct i2c_adapter *adap;
+ 	struct i2c_piix4_adapdata *adapdata;
+@@ -655,7 +659,7 @@ static int piix4_add_adapter(struct pci_dev *dev, unsigned short smba,
+ 	adap->dev.parent = &dev->dev;
+ 
+ 	snprintf(adap->name, sizeof(adap->name),
+-		"SMBus PIIX4 adapter at %04x", smba);
++		"SMBus PIIX4 adapter %s at %04x", name, smba);
+ 
+ 	i2c_set_adapdata(adap, adapdata);
+ 
+@@ -679,7 +683,9 @@ static int piix4_add_adapters_sb800(struct pci_dev *dev, unsigned short smba)
+ 	struct i2c_piix4_adapdata *adapdata;
+ 
+ 	for (port = 0; port < PIIX4_MAX_ADAPTERS; port++) {
+-		retval = piix4_add_adapter(dev, smba, &piix4_main_adapters[port]);
++		retval = piix4_add_adapter(dev, smba,
++					   piix4_main_port_names_sb800[port],
++					   &piix4_main_adapters[port]);
+ 		if (retval < 0)
+ 			goto ERROR;
+ 
+@@ -729,7 +735,8 @@ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 			return retval;
+ 
+ 		/* Try to register main SMBus adapter, give up if we can't */
+-		retval = piix4_add_adapter(dev, retval, &piix4_main_adapters[0]);
++		retval = piix4_add_adapter(dev, retval, "",
++					   &piix4_main_adapters[0]);
+ 	}
+ 
+ 	/* If no main SMBus found, give up */
+@@ -757,7 +764,8 @@ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 	if (retval > 0) {
+ 		/* Try to add the aux adapter if it exists,
+ 		 * piix4_add_adapter will clean up if this fails */
+-		piix4_add_adapter(dev, retval, &piix4_aux_adapter);
++		piix4_add_adapter(dev, retval, piix4_aux_port_name_sb800,
++				  &piix4_aux_adapter);
+ 	}
+ 
+ 	return 0;
 -- 
 1.9.1
 
