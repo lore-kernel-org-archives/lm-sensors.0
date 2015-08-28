@@ -1,104 +1,78 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 07 Aug 2015 08:44:16 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (ltc2978) Move code to read chip ID into separate function
-Message-Id: <1438937057-1598-1-git-send-email-linux@roeck-us.net>
+From: Christian Fetzer <fetzer.ch@gmail.com>
+Date: Fri, 28 Aug 2015 08:31:23 +0000
+Subject: [lm-sensors] [PATCH 2/4] i2c-piix4: Convert piix4_main_adapter to array
+Message-Id: <1440750685-19172-3-git-send-email-fetzer.ch@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Verifying the chip type is getting more complicated with new chips,
-since not all chips support the same mechanism to read the chip type.
-Move the code into a separate function to simplify adding support for
-those chips.
+The SB800 chipset supports a multiplexed main SMBus controller with
+four ports. Therefore the static variable piix4_main_adapter is
+converted into a piix4_main_adapters array that can hold one
+i2c_adapter for each multiplexed port.
 
-Cc: Ananda Babu Nettam <anandab@juniper.net>
-Cc: Amit U Jain <amjain@juniper.net>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+The auxiliary adapter remains unchanged since it represents the second
+(not multiplexed) SMBus controller on the SB800 chipset.
+
+Signed-off-by: Christian Fetzer <fetzer.ch@gmail.com>
 ---
-I just realized that the LTM4676 patch depends on two other patches
-which I did not send out yet. These two patches have to be applied
-first.
+ drivers/i2c/busses/i2c-piix4.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
- drivers/hwmon/pmbus/ltc2978.c | 51 +++++++++++++++++++++++++------------------
- 1 file changed, 30 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index 33081d1d1c5a..a27debafaad9 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -388,10 +388,36 @@ static const struct regulator_desc ltc2978_reg_desc[] = {
- };
- #endif /* CONFIG_SENSORS_LTC2978_REGULATOR */
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+index 97d2165..8934a32 100644
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -75,6 +75,9 @@
+ #define PIIX4_WORD_DATA		0x0C
+ #define PIIX4_BLOCK_DATA	0x14
  
-+static int ltc2978_get_id(struct i2c_client *client)
-+{
-+	int chip_id;
++/* Multi-port constants */
++#define PIIX4_MAX_ADAPTERS 4
 +
-+	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
-+	if (chip_id < 0)
-+		return chip_id;
-+
-+	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2)
-+		return ltc2974;
-+	else if (chip_id = LTC2977_ID)
-+		return ltc2977;
-+	else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
-+		 chip_id = LTC2978A_ID)
-+		return ltc2978;
-+	else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID)
-+		return ltc3880;
-+	else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID)
-+		return ltc3883;
-+	else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID)
-+		return ltm4676;
-+
-+	dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
-+	return -ENODEV;
-+}
-+
- static int ltc2978_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
+ /* insmod parameters */
+ 
+ /* If force is set to anything different from 0, we forcibly enable the
+@@ -561,7 +564,7 @@ static const struct pci_device_id piix4_ids[] = {
+ 
+ MODULE_DEVICE_TABLE (pci, piix4_ids);
+ 
+-static struct i2c_adapter *piix4_main_adapter;
++static struct i2c_adapter *piix4_main_adapters[PIIX4_MAX_ADAPTERS];
+ static struct i2c_adapter *piix4_aux_adapter;
+ 
+ static int piix4_add_adapter(struct pci_dev *dev, unsigned short smba,
+@@ -629,7 +632,7 @@ static int piix4_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 		return retval;
+ 
+ 	/* Try to register main SMBus adapter, give up if we can't */
+-	retval = piix4_add_adapter(dev, retval, &piix4_main_adapter);
++	retval = piix4_add_adapter(dev, retval, &piix4_main_adapters[0]);
+ 	if (retval < 0)
+ 		return retval;
+ 
+@@ -675,9 +678,14 @@ static void piix4_adap_remove(struct i2c_adapter *adap, int free_smba)
+ 
+ static void piix4_remove(struct pci_dev *dev)
  {
--	int chip_id, i;
-+	int i;
- 	struct ltc2978_data *data;
- 	struct pmbus_driver_info *info;
+-	if (piix4_main_adapter) {
+-		piix4_adap_remove(piix4_main_adapter, 1);
+-		piix4_main_adapter = NULL;
++	int port;
++
++	for (port = 0; port < PIIX4_MAX_ADAPTERS; port++) {
++		if (piix4_main_adapters[port]) {
++			piix4_adap_remove(piix4_main_adapters[port],
++					  port = 0);
++			piix4_main_adapters[port] = NULL;
++		}
+ 	}
  
-@@ -404,27 +430,10 @@ static int ltc2978_probe(struct i2c_client *client,
- 	if (!data)
- 		return -ENOMEM;
- 
--	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
--	if (chip_id < 0)
--		return chip_id;
-+	data->id = ltc2978_get_id(client);
-+	if (data->id < 0)
-+		return data->id;
- 
--	if (chip_id = LTC2974_ID_REV1 || chip_id = LTC2974_ID_REV2) {
--		data->id = ltc2974;
--	} else if (chip_id = LTC2977_ID) {
--		data->id = ltc2977;
--	} else if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2 ||
--		   chip_id = LTC2978A_ID) {
--		data->id = ltc2978;
--	} else if ((chip_id & LTC3880_ID_MASK) = LTC3880_ID) {
--		data->id = ltc3880;
--	} else if ((chip_id & LTC3883_ID_MASK) = LTC3883_ID) {
--		data->id = ltc3883;
--	} else if ((chip_id & LTM4676_ID_MASK) = LTM4676_ID) {
--		data->id = ltm4676;
--	} else {
--		dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
--		return -ENODEV;
--	}
- 	if (data->id != id->driver_data)
- 		dev_warn(&client->dev,
- 			 "Device mismatch: Configured %s, detected %s\n",
+ 	if (piix4_aux_adapter) {
 -- 
-2.1.4
+1.9.1
 
 
 _______________________________________________
