@@ -1,62 +1,51 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Tue, 04 Aug 2015 11:00:41 +0000
-Subject: Re: [lm-sensors] [PATCH v2 04/10] thermal: Fix thermal_zone_of_sensor_register to match documentatio
-Message-Id: <9hha8u7mi7a.fsf@e105922-lin.cambridge.arm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 29 Aug 2015 16:33:54 +0000
+Subject: Re: [lm-sensors] [15/15] MAINTAINERS: change the maintainer of fam15h_power driver
+Message-Id: <20150829163354.GA22327@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
-	<1438615378-14241-5-git-send-email-punit.agrawal@arm.com>
-	<55BF8F25.9010305@roeck-us.net>
-In-Reply-To: <55BF8F25.9010305@roeck-us.net> (Guenter Roeck's message of "Mon,
-	03 Aug 2015 08:56:21 -0700")
+References: <1440662866-28716-16-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1440662866-28716-16-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>
+To: Huang Rui <ray.huang@amd.com>
+Cc: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Weisbecker <fweisbec@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Borislav Petkov <bp@alien8.de>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Fengguang Wu <fengguang.wu@intel.com>
 
-Guenter Roeck <linux@roeck-us.net> writes:
+On Thu, Aug 27, 2015 at 04:07:46PM +0800, Huang Rui wrote:
+> Andreas Herrmann won't take the maintainer of fam15h_power driver. I
+> will take it and appreciate him for the great contributions on this
+> driver.
+> 
+> Signed-off-by: Huang Rui <ray.huang@amd.com>
+> Cc: Andreas Herrmann <herrmann.der.user@googlemail.com>
 
-> On 08/03/2015 08:22 AM, Punit Agrawal wrote:
->> thermal_zone_of_sensor_register is documented as returning a pointer
->> to either a valid thermal_zone_device on success, or a corresponding
->> ERR_PTR() value.
->>
->> In contrast, the function returns NULL when THERMAL_OF is configured
->> off. Fix this.
->>
->> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
->> Cc: Guenter Roeck <linux@roeck-us.net>
->> Cc: Eduardo Valentin <edubezval@gmail.com>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->
-> Acked-by: Guenter Roeck <linux@roeck-us.net>
->
+Please add Andreas to CREDITS.
 
-Thanks, Guenter.
+Andreas, can you Ack this change ?
 
->> ---
->>   include/linux/thermal.h | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
->> index 037e9df..a47b34a 100644
->> --- a/include/linux/thermal.h
->> +++ b/include/linux/thermal.h
->> @@ -364,7 +364,7 @@ static inline struct thermal_zone_device *
->>   thermal_zone_of_sensor_register(struct device *dev, int id, void *data,
->>   				const struct thermal_zone_of_device_ops *ops)
->>   {
->> -	return NULL;
->> +	return ERR_PTR(-ENOSYS);
->>   }
->>
->>   static inline
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Guenter
+
+> ---
+>  MAINTAINERS | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 941d7b7..241d45e 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -601,9 +601,9 @@ F:	drivers/crypto/ccp/
+>  F:	include/linux/ccp.h
+>  
+>  AMD FAM15H PROCESSOR POWER MONITORING DRIVER
+> -M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
+> +M:	Huang Rui <ray.huang@amd.com>
+>  L:	lm-sensors@lm-sensors.org
+> -S:	Maintained
+> +S:	Supported
+>  F:	Documentation/hwmon/fam15h_power
+>  F:	drivers/hwmon/fam15h_power.c
+>  
 
 _______________________________________________
 lm-sensors mailing list
