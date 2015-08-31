@@ -1,116 +1,72 @@
-From: Huang Rui <ray.huang@amd.com>
-Date: Mon, 31 Aug 2015 13:11:07 +0000
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Mon, 31 Aug 2015 13:25:35 +0000
 Subject: Re: [lm-sensors] [PATCH 12/15] hwmon, fam15h_power: introduce a cpu accumulated power reporting algo
-Message-Id: <20150831131107.GB15543@hr-slim.amd.com>
+Message-Id: <20150831132535.GK19282@twins.programming.kicks-ass.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1440662866-28716-1-git-send-email-ray.huang@amd.com>
  <1440662866-28716-13-git-send-email-ray.huang@amd.com>
- <20150827173043.GB27452@roeck-us.net>
- <20150828104525.GD4191@hr-slim.amd.com>
- <55E06A99.7070800@roeck-us.net>
- <20150831041607.GA15543@hr-slim.amd.com>
- <55E3D864.6090500@roeck-us.net>
-In-Reply-To: <55E3D864.6090500@roeck-us.net>
+In-Reply-To: <1440662866-28716-13-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Weisbecker <fweisbec@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>
+To: Huang Rui <ray.huang@amd.com>
+Cc: Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Weisbecker <fweisbec@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>
 
-T24gU3VuLCBBdWcgMzAsIDIwMTUgYXQgMDk6MzA6MjhQTSAtMDcwMCwgR3VlbnRlciBSb2VjayB3
-cm90ZToKPiBPbiAwOC8zMC8yMDE1IDA5OjE2IFBNLCBIdWFuZyBSdWkgd3JvdGU6Cj4gPk9uIEZy
-aSwgQXVnIDI4LCAyMDE1IGF0IDA3OjA1OjEzQU0gLTA3MDAsIEd1ZW50ZXIgUm9lY2sgd3JvdGU6
-Cj4gPj5PbiAwOC8yOC8yMDE1IDAzOjQ1IEFNLCBIdWFuZyBSdWkgd3JvdGU6Cj4gPj4+T24gVGh1
-LCBBdWcgMjcsIDIwMTUgYXQgMTA6MzA6NDNBTSAtMDcwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
-PiA+Pj4+T24gVGh1LCBBdWcgMjcsIDIwMTUgYXQgMDQ6MDc6NDNQTSArMDgwMCwgSHVhbmcgUnVp
-IHdyb3RlOgo+ID4+Pj4+VGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGFuIGFsZ29yaXRobSB0aGF0IGNv
-bXB1dGVzIHRoZSBhdmVyYWdlIHBvd2VyIGJ5Cj4gPj4+Pj5yZWFkaW5nIGEgZGVsdGEgdmFsdWUg
-b2Yg4oCcY29yZSBwb3dlciBhY2N1bXVsYXRvcuKAnSByZWdpc3RlciBkdXJpbmcKPiA+Pj4+Pm1l
-YXN1cmVtZW50IGludGVydmFsLCBhbmQgdGhlbiBkaXZpZGluZyBkZWx0YSB2YWx1ZSBieSB0aGUg
-bGVuZ3RoIG9mCj4gPj4+Pj50aGUgdGltZSBpbnRlcnZhbC4KPiA+Pj4+Pgo+ID4+Pj4+VXNlciBp
-cyBhYmxlIHRvIHVzZSBwb3dlcjFfYWNjIGVudHJ5IHRvIG1lYXN1cmUgdGhlIHByb2Nlc3NvciBw
-b3dlcgo+ID4+Pj4+Y29uc3VtcHRpb24gYW5kIHBvd2VyMV9hY2MganVzdCBuZWVkcyB0byBiZSBy
-ZWFkIHR3aWNlIHdpdGggYW4gbmVlZGVkCj4gPj4+Pj5pbnRlcnZhbCBpbi1iZXR3ZWVuLgo+ID4+
-Pj4+Cj4gPj4+Pj5BIHNpbXBsZSBleGFtcGxlOgo+ID4+Pj4+Cj4gPj4+Pj4kIGNhdCAvc3lzL2J1
-cy9wY2kvZGV2aWNlcy8wMDAwXDowMFw6MTguNC9od21vbi9od21vbjAvcG93ZXIxX2FjYwo+ID4+
-Pj4+JCBzbGVlcCAxMDAwMHMKPiA+Pj4+PiQgY2F0IC9zeXMvYnVzL3BjaS9kZXZpY2VzLzAwMDBc
-OjAwXDoxOC40L2h3bW9uL2h3bW9uMC9wb3dlcjFfYWNjCj4gPj4+Pj4KPiA+Pj4+PlRoZSByZXN1
-bHQgaXMgY3VycmVudCBhdmVyYWdlIHByb2Nlc3NvciBwb3dlciBjb25zdW1wdGlvbiBpbiAxMDAw
-MAo+ID4+Pj4+c2Vjb25kcy4gVGhlIHVuaXQgb2YgdGhlIHJlc3VsdCBpcyB1V2F0dC4KPiA+Pj4+
-Pgo+ID4+Pj4+U2lnbmVkLW9mZi1ieTogSHVhbmcgUnVpIDxyYXkuaHVhbmdAYW1kLmNvbT4KPiA+
-Pj4+Pi0tLQo+ID4+Pj4+ICBkcml2ZXJzL2h3bW9uL2ZhbTE1aF9wb3dlci5jIHwgNjIgKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+Pj4+PiAgMSBmaWxlIGNo
-YW5nZWQsIDYyIGluc2VydGlvbnMoKykKPiA+Pj4+Pgo+ID4+Pj4+ZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvaHdtb24vZmFtMTVoX3Bvd2VyLmMgYi9kcml2ZXJzL2h3bW9uL2ZhbTE1aF9wb3dlci5jCj4g
-Pj4+Pj5pbmRleCBkNTI5ZTRiLi4zYmFiNzk3IDEwMDY0NAo+ID4+Pj4+LS0tIGEvZHJpdmVycy9o
-d21vbi9mYW0xNWhfcG93ZXIuYwo+ID4+Pj4+KysrIGIvZHJpdmVycy9od21vbi9mYW0xNWhfcG93
-ZXIuYwo+ID4+Pj4+QEAgLTYwLDYgKzYwLDcgQEAgc3RydWN0IGZhbTE1aF9wb3dlcl9kYXRhIHsK
-PiA+Pj4+PiAgCXU2NCBjdV9hY2NfcG93ZXJbTUFYX0NVU107Cj4gPj4+Pj4gIAkvKiBwZXJmb3Jt
-YW5jZSB0aW1lc3RhbXAgY291bnRlciAqLwo+ID4+Pj4+ICAJdTY0IGNwdV9zd19wd3JfcHRzY1tN
-QVhfQ1VTXTsKPiA+Pj4+PisJc3RydWN0IG11dGV4IGFjY19wd3JfbXV0ZXg7Cj4gPj4+Pj4gIH07
-Cj4gPj4+Pj4KPiA+Pj4+PiAgc3RhdGljIHNzaXplX3Qgc2hvd19wb3dlcihzdHJ1Y3QgZGV2aWNl
-ICpkZXYsCj4gPj4+Pj5AQCAtMTIxLDE3ICsxMjIsNzQgQEAgc3RhdGljIERFVklDRV9BVFRSKHBv
-d2VyMV9jcml0LCBTX0lSVUdPLCBzaG93X3Bvd2VyX2NyaXQsIE5VTEwpOwo+ID4+Pj4+ICBzdGF0
-aWMgc3RydWN0IGF0dHJpYnV0ZV9ncm91cCBmYW0xNWhfcG93ZXJfZ3JvdXA7Cj4gPj4+Pj4gIF9f
-QVRUUklCVVRFX0dST1VQUyhmYW0xNWhfcG93ZXIpOwo+ID4+Pj4+Cj4gPj4+Pj4rc3RhdGljIHNz
-aXplX3Qgc2hvd19wb3dlcl9hY2Moc3RydWN0IGRldmljZSAqZGV2LAo+ID4+Pj4+KwkJCSAgICAg
-IHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpCj4gPj4+Pj4rewo+ID4+
-Pj4+KwlpbnQgY3B1LCBjdSwgY3VfbnVtLCBjb3Jlc19wZXJfY3U7Cj4gPj4+Pj4rCXU2NCBjdXJy
-X2N1X2FjY19wb3dlcltNQVhfQ1VTXSwKPiA+Pj4+PisJICAgIGN1cnJfcHRzY1tNQVhfQ1VTXSwg
-amRlbHRhW01BWF9DVVNdOwo+ID4+Pj4+Kwl1NjQgdGRlbHRhLCBhdmdfYWNjOwo+ID4+Pj4+Kwlz
-dHJ1Y3QgZmFtMTVoX3Bvd2VyX2RhdGEgKmRhdGEgPSBkZXZfZ2V0X2RydmRhdGEoZGV2KTsKPiA+
-Pj4+PisKPiA+Pj4+PisJY29yZXNfcGVyX2N1ID0gYW1kX2dldF9jb3Jlc19wZXJfY3UoKTsKPiA+
-Pj4+PisJY3VfbnVtID0gYm9vdF9jcHVfZGF0YS54ODZfbWF4X2NvcmVzIC8gY29yZXNfcGVyX2N1
-Owo+ID4+Pj4+Kwo+ID4+Pj4+Kwlmb3IgKGNwdSA9IDAsIGF2Z19hY2MgPSAwOyBjcHUgPCBjdV9u
-dW0gKiBjb3Jlc19wZXJfY3U7IGNwdSArPSBjb3Jlc19wZXJfY3UpIHsKPiA+Pj4+PisJCWN1ID0g
-Y3B1IC8gY29yZXNfcGVyX2N1Owo+ID4+Pj4+KwkJaWYgKHJkbXNybF9zYWZlX29uX2NwdShjcHUs
-IE1TUl9GMTVIX1BUU0MsICZjdXJyX3B0c2NbY3VdKSkgewo+ID4+Pj4+KwkJCXByX2VycigiRmFp
-bGVkIHRvIHJlYWQgUFRTQyBjb3VudGVyIE1TUiBvbiBjb3JlJWRcbiIsCj4gPj4+Pj4rCQkJICAg
-ICAgIGNwdSk7Cj4gPj4+Pj4rCQkJcmV0dXJuIDA7Cj4gPj4+Pj4rCQl9Cj4gPj4+Pj4rCj4gPj4+
-Pj4rCQlpZiAocmRtc3JsX3NhZmVfb25fY3B1KGNwdSwgTVNSX0YxNUhfQ1VfUFdSX0FDQ1VNVUxB
-VE9SLAo+ID4+Pj4+KwkJCQkgICAgICAgJmN1cnJfY3VfYWNjX3Bvd2VyW2N1XSkpIHsKPiA+Pj4+
-PisJCQlwcl9lcnIoIkZhaWxlZCB0byByZWFkIGNvbXB1dGUgdW5pdCBwb3dlciBhY2N1bXVsYXRv
-ciBNU1Igb24gY29yZSVkXG4iLAo+ID4+Pj4+KwkJCSAgICAgICBjcHUpOwo+ID4+Pj4+KwkJCXJl
-dHVybiAwOwo+ID4+Pj4+KwkJfQo+ID4+Pj4+Kwo+ID4+Pj4+KwkJaWYgKGN1cnJfY3VfYWNjX3Bv
-d2VyW2N1XSA8IGRhdGEtPmN1X2FjY19wb3dlcltjdV0pIHsKPiA+Pj4+PisJCQlqZGVsdGFbY3Vd
-ID0gZGF0YS0+bWF4X2N1X2FjY19wb3dlciArIGN1cnJfY3VfYWNjX3Bvd2VyW2N1XTsKPiA+Pj4+
-PisJCQlqZGVsdGFbY3VdIC09IGRhdGEtPmN1X2FjY19wb3dlcltjdV07Cj4gPj4+Pj4rCQl9IGVs
-c2Ugewo+ID4+Pj4+KwkJCWpkZWx0YVtjdV0gPSBjdXJyX2N1X2FjY19wb3dlcltjdV0gLSBkYXRh
-LT5jdV9hY2NfcG93ZXJbY3VdOwo+ID4+Pj4+KwkJfQo+ID4+Pj4+KwkJdGRlbHRhID0gY3Vycl9w
-dHNjW2N1XSAtIGRhdGEtPmNwdV9zd19wd3JfcHRzY1tjdV07Cj4gPj4+Pj4rCQlqZGVsdGFbY3Vd
-ICo9IGRhdGEtPmNwdV9wd3Jfc2FtcGxlX3JhdGlvICogMTAwMDsKPiA+Pj4+PisJCWRvX2Rpdihq
-ZGVsdGFbY3VdLCB0ZGVsdGEpOwo+ID4+Pj4+Kwo+ID4+Pj4+KwkJbXV0ZXhfbG9jaygmZGF0YS0+
-YWNjX3B3cl9tdXRleCk7Cj4gPj4+Pj4rCQlkYXRhLT5jdV9hY2NfcG93ZXJbY3VdID0gY3Vycl9j
-dV9hY2NfcG93ZXJbY3VdOwo+ID4+Pj4+KwkJZGF0YS0+Y3B1X3N3X3B3cl9wdHNjW2N1XSA9IGN1
-cnJfcHRzY1tjdV07Cj4gPj4+Pj4rCQltdXRleF91bmxvY2soJmRhdGEtPmFjY19wd3JfbXV0ZXgp
-Owo+ID4+Pj4+Kwo+ID4+Pj4+KwkJLyogdGhlIHVuaXQgaXMgbWljcm9XYXR0ICovCj4gPj4+Pj4r
-CQlhdmdfYWNjICs9IGpkZWx0YVtjdV07Cj4gPj4+Pj4rCX0KPiA+Pj4+PisKPiA+Pj4+PisJcmV0
-dXJuIHNwcmludGYoYnVmLCAiJXVcbiIsICh1bnNpZ25lZCBpbnQpIGF2Z19hY2MpOwo+ID4+Pj4+
-K30KPiA+Pj4+PitzdGF0aWMgREVWSUNFX0FUVFIocG93ZXIxX2FjYywgU19JUlVHTywgc2hvd19w
-b3dlcl9hY2MsIE5VTEwpOwo+ID4+Pj4KPiA+Pj4+SSBhbSBub3QgcmVhbGx5IGEgZnJpZW5kIG9m
-IGludHJvZHVjaW5nIGEgbm9uLXN0YW5kYXJkIGF0dHJpYnV0ZS4KPiA+Pj4+RG9lcyB0aGUgZW5l
-cmd5IGF0dHJpYnV0ZSBub3Qgd29yayBoZXJlID8KPiA+Pj4+Cj4gPj4+Cj4gPj4+WW91J3JlIHJp
-Z2h0LiBOb24tc3RhbmRhcmQgYXR0cmlidXRlIG1pZ2h0IG5vdCBiZSBnb29kLiBDb3VsZCB5b3UK
-PiA+Pj5wbGVhc2UgZ2l2ZSBtZSBzb21lIGhpbnRzIGlmIEkgdXNlICJlbmVyZ3kiIGluc3RlYWQ/
-Cj4gPj4+Cj4gPj4xIEpvdWxlID0gMSBXYXR0LXNlY29uZC4KPiA+Pgo+ID4+U29tZXRoaW5nIGVs
-c2UsIHRob3VnaCAtIGRpZCB5b3UgbWFrZSBzdXJlIHRoYXQgeW91ciBjb2RlIGRvZXNuJ3Qgb3Zl
-cmZsb3cgPwo+ID4+RXZlbiB0aG91Z2ggeW91IGNhbGN1bGF0ZSB0aGUgYXZlcmFnZSBpbiBhbiB1
-NjQsIHlvdSBkaXNwbGF5IGl0IGFzIHVuc2lnbmVkLgo+ID4+Cj4gPgo+ID5UaGFua3MgdG8geW91
-ciByZW1pbmRlci4gSXQgc2hvdWxkIG5vdCBiZSBvdmVyZmxvdy4gVGhlIG1heGltdW0gcG93ZXIK
-PiA+Y29uc3VtcHRpb24gb2YgcHJvY2Vzc29yIChBTUQgQ1ogYW5kIGZ1dHVyZSAxNWgpIGlzIGFi
-b3V0IDE1IFdhdHRzID0KPiA+MTUsMDAwLDAwMCB1V2F0dHMgPSAweEU0RTFDMCB1V2F0dHMsIHRo
-ZSBzaXplIGlzIDI0IDwgMzIgPCA2NCBiaXRzLgo+ID4KPiA+QWN0dWFsbHksIHRoZSB1bml0IG9m
-IGpkZWx0YSBpcyBub3QgSm91bGUuIEJlY2F1c2UgdGhlIHRkZWx0YSBpcyB0aGUKPiA+bG9vcHMg
-KGN5Y2xlcykgdGhhdCBQVFNDIGNvdW50ZXIgKHRoZSBmcmVxZW5jeSBpcyBhYm91dCAxMDAgTUh6
-KQo+ID5jb3VudHMgbm90IHNlY29uZHMuCj4gPgo+ID5TbyBhdmdfYWNjIGlzIHRoZSBhdmVyYWdl
-IHBvd2VyIGNvbnN1bXB0aW9uIG5vdCB0aGUgYWNjdW11bGF0ZWQgZW5lcmd5Lgo+ID4KPiAKPiBX
-b3VsZCBwb3dlcjFfYXZlcmFnZSB0aGVuIGJlIGJldHRlciBzdWl0YWJsZSBmb3IgdGhlIGF0dHJp
-YnV0ZSA/Cj4gVGhlcmUgaXMgYWxzbyBwb3dlcjFfYXZlcmFnZV9pbnRlcnZhbCB3aGljaCBjb3Vs
-ZCBiZSB1c2VkIHRvIG1ha2UKPiB0aGUgaW50ZXJ2YWwgY29uZmlndXJhYmxlLgo+IAoKcG93ZXIx
-X2F2ZXJhZ2UgYW5kIHBvd2VyMV9hdmVyYWdlX2ludGVydmFsIGxvb2tzIGJldHRlciBleGNlcHQg
-d2UKbWlnaHQgdXNlIGEgY29udmVyc2lvbiB0aGF0IG1ha2UgaW50ZXJ2YWwgZnJvbSBtaWxsaXNl
-Y29uZHMgdG8gUFRTQwpjeWNsZXMgaW5zdGVhZCBvZiAiY2F0LXRpbmciIHRoZSBzeXNmcyBmaWxl
-IHR3aWNlLCByaWdodD8gCgpUaGFua3MsClJ1aQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
-bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
-by9sbS1zZW5zb3Jz
+On Thu, Aug 27, 2015 at 04:07:43PM +0800, Huang Rui wrote:
+> +static ssize_t show_power_acc(struct device *dev,
+> +			      struct device_attribute *attr, char *buf)
+> +{
+> +	int cpu, cu, cu_num, cores_per_cu;
+> +	u64 curr_cu_acc_power[MAX_CUS],
+> +	    curr_ptsc[MAX_CUS], jdelta[MAX_CUS];
+> +	u64 tdelta, avg_acc;
+> +	struct fam15h_power_data *data = dev_get_drvdata(dev);
+> +
+> +	cores_per_cu = amd_get_cores_per_cu();
+> +	cu_num = boot_cpu_data.x86_max_cores / cores_per_cu;
+> +
+> +	for (cpu = 0, avg_acc = 0; cpu < cu_num * cores_per_cu; cpu += cores_per_cu) {
+> +		cu = cpu / cores_per_cu;
+> +		if (rdmsrl_safe_on_cpu(cpu, MSR_F15H_PTSC, &curr_ptsc[cu])) {
+> +			pr_err("Failed to read PTSC counter MSR on core%d\n",
+> +			       cpu);
+> +			return 0;
+> +		}
+> +
+> +		if (rdmsrl_safe_on_cpu(cpu, MSR_F15H_CU_PWR_ACCUMULATOR,
+> +				       &curr_cu_acc_power[cu])) {
+> +			pr_err("Failed to read compute unit power accumulator MSR on core%d\n",
+> +			       cpu);
+> +			return 0;
+> +		}
+> +
+> +		if (curr_cu_acc_power[cu] < data->cu_acc_power[cu]) {
+> +			jdelta[cu] = data->max_cu_acc_power + curr_cu_acc_power[cu];
+> +			jdelta[cu] -= data->cu_acc_power[cu];
+> +		} else {
+> +			jdelta[cu] = curr_cu_acc_power[cu] - data->cu_acc_power[cu];
+> +		}
+> +		tdelta = curr_ptsc[cu] - data->cpu_sw_pwr_ptsc[cu];
+> +		jdelta[cu] *= data->cpu_pwr_sample_ratio * 1000;
+> +		do_div(jdelta[cu], tdelta);
+> +
+> +		mutex_lock(&data->acc_pwr_mutex);
+> +		data->cu_acc_power[cu] = curr_cu_acc_power[cu];
+> +		data->cpu_sw_pwr_ptsc[cu] = curr_ptsc[cu];
+> +		mutex_unlock(&data->acc_pwr_mutex);
+> +
+> +		/* the unit is microWatt */
+> +		avg_acc += jdelta[cu];
+> +	}
+> +
+> +	return sprintf(buf, "%u\n", (unsigned int) avg_acc);
+> +}
+> +static DEVICE_ATTR(power1_acc, S_IRUGO, show_power_acc, NULL);
+
+This is a world readable file that sprays IPIs across the entire system,
+how is that a good idea?
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
