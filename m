@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 27 Aug 2015 03:06:16 +0000
+Date: Mon, 31 Aug 2015 02:59:54 +0000
 Subject: Re: [lm-sensors] NCT6793D
-Message-Id: <55DE7EA8.2020008@roeck-us.net>
+Message-Id: <55E3C32A.9010803@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CANOLnOOtAJH9fcZCTRu9fa4cPM-mrBKB37t1pwDYs-JcgF7Oew@mail.gmail.com>
 In-Reply-To: <CANOLnOOtAJH9fcZCTRu9fa4cPM-mrBKB37t1pwDYs-JcgF7Oew@mail.gmail.com>
@@ -34,17 +34,16 @@ On 08/26/2015 05:57 PM, Grazvydas Ignotas wrote:
 > All in all it seems to be useful on this chip, probably worth enabling
 > in mainline. Feel free to CC me when/if there are any patches to test.
 >
-> [1] http://notaz.gp2x.de/img/mess/hw/NCT6793D.jpg
->
 
-We'll need a little more information. It may well be that the chip is
-all the same as the NCT6792D, but who knows.
+Turns out the NCT6793D is almost register compatible to NCT6792D. Only
+difference I can find is that the NCT6792D has "3-wire enable" registers
+for each fan. Those registers do not exist on NCT6793D.
 
-I'll try to get a datasheet. We'll see how it goes.
+Please try the driver at https://github.com/groeck/nct6775 and let me know
+if it works.
 
 Thanks,
 Guenter
-
 
 
 _______________________________________________
