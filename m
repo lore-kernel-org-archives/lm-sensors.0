@@ -1,7 +1,7 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Date: Mon, 31 Aug 2015 22:33:21 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 31 Aug 2015 22:55:20 +0000
 Subject: Re: [lm-sensors] NCT6793D
-Message-Id: <CANOLnOO0dX9s3WwPSkmzB+57aiADBT5HWxcQhVhWvcDbrPgmVA@mail.gmail.com>
+Message-Id: <55E4DB58.7020000@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CANOLnOOtAJH9fcZCTRu9fa4cPM-mrBKB37t1pwDYs-JcgF7Oew@mail.gmail.com>
 In-Reply-To: <CANOLnOOtAJH9fcZCTRu9fa4cPM-mrBKB37t1pwDYs-JcgF7Oew@mail.gmail.com>
@@ -10,17 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gTW9uLCBBdWcgMzEsIDIwMTUgYXQgNTo1OSBBTSwgR3VlbnRlciBSb2VjayA8bGludXhAcm9l
-Y2stdXMubmV0PiB3cm90ZToKPiBUdXJucyBvdXQgdGhlIE5DVDY3OTNEIGlzIGFsbW9zdCByZWdp
-c3RlciBjb21wYXRpYmxlIHRvIE5DVDY3OTJELiBPbmx5Cj4gZGlmZmVyZW5jZSBJIGNhbiBmaW5k
-IGlzIHRoYXQgdGhlIE5DVDY3OTJEIGhhcyAiMy13aXJlIGVuYWJsZSIgcmVnaXN0ZXJzCj4gZm9y
-IGVhY2ggZmFuLiBUaG9zZSByZWdpc3RlcnMgZG8gbm90IGV4aXN0IG9uIE5DVDY3OTNELgo+Cj4g
-UGxlYXNlIHRyeSB0aGUgZHJpdmVyIGF0IGh0dHBzOi8vZ2l0aHViLmNvbS9ncm9lY2svbmN0Njc3
-NSBhbmQgbGV0IG1lIGtub3cKPiBpZiBpdCB3b3Jrcy4KCkl0IGRvZXNuJ3QsIHN0aWxsIHNheXMg
-InVuc3VwcG9ydGVkIGNoaXAgSUQ6IDB4ZDEyMSIuCgpXaXRoIHBhdGNoZWQgSUQgY2hlY2sgSSd2
-ZSBhbHNvIG5vdGljZWQgdGhhdCBwd21YX3N0ZXBfZG93bl90aW1lIGFuZApwd21YX3N0ZXBfdXBf
-dGltZSBhcmUgbWl4ZWQgdXAsIGRvbid0IGtub3cgaWYgdGhpcyBpcyBzb21ldGhpbmcKTkNUNjc5
-M0Qgc3BlY2lmaWMsIGxvb2tzIG1vcmUgbGlrZSBnZW5lcmFsIGRyaXZlciBidWcuCgpHcmHFvnZ5
-ZGFzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On 08/31/2015 03:33 PM, Grazvydas Ignotas wrote:
+> On Mon, Aug 31, 2015 at 5:59 AM, Guenter Roeck <linux@roeck-us.net> wrote:
+>> Turns out the NCT6793D is almost register compatible to NCT6792D. Only
+>> difference I can find is that the NCT6792D has "3-wire enable" registers
+>> for each fan. Those registers do not exist on NCT6793D.
+>>
+>> Please try the driver at https://github.com/groeck/nct6775 and let me know
+>> if it works.
+>
+> It doesn't, still says "unsupported chip ID: 0xd121".
+>
+Oops - sorry, now fixed.
+
+> With patched ID check I've also noticed that pwmX_step_down_time and
+> pwmX_step_up_time are mixed up, don't know if this is something
+> NCT6793D specific, looks more like general driver bug.
+>
+Thanks for noticing. I'll look into it.
+
+Thanks,
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
