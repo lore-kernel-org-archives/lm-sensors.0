@@ -1,37 +1,72 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 01 Sep 2015 16:06:52 +0000
-Subject: Re: [lm-sensors] [PATCH 09/15] x86, amd: add accessor for number of cores per compute unit
-Message-Id: <55E5CD1C.4070502@roeck-us.net>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Date: Thu, 03 Sep 2015 15:08:06 +0000
+Subject: Re: [lm-sensors] [PATCH v2 05/10] Documentation: add DT bindings for ARM SCPI sensors
+Message-Id: <9hhsi6vilrd.fsf@e105922-lin.cambridge.arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1440662866-28716-10-git-send-email-ray.huang@amd.com> <20150828064814.GB20153@nazgul.tnic> <20150828080418.GB13309@gmail.com> <20150829091914.GA8878@gmail.com> <20150830155322.GA26370@nazgul.tnic> <20150831083821.GE16853@twins.programming.kicks-ass.net> <20150831160622.GA29830@nazgul.tnic> <55E47E88.7080202@roeck-us.net> <20150831204426.GI16853@twins.programming.kicks-ass.net> <55E4C5F8.6050303@roeck-us.net> <20150901155600.GA8497@nazgul.tnic>
-In-Reply-To: <20150901155600.GA8497@nazgul.tnic>
+References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
+	<1438615378-14241-6-git-send-email-punit.agrawal@arm.com>
+In-Reply-To: <1438615378-14241-6-git-send-email-punit.agrawal@arm.com> (Punit
+	Agrawal's message of "Mon, 3 Aug 2015 16:22:53 +0100")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Borislav Petkov <bp@alien8.de>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Huang Rui <ray.huang@amd.com>, Borislav Petkov <bp@suse.de>, Jean Delvare <jdelvare@suse.de>, Andy Lutomirski <luto@amacapital.net>, Andreas Herrmann <herrmann.der.user@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, John Stultz <john.stultz@linaro.org>, =?UTF-8?B?RnLDqWTDqXJpYyBXZWlzYmVja2Vy?= <fweisbec@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, x86@kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Fengguang Wu <fengguang.wu@intel.com>, Aaron Lu <aaron.lu@intel.com>, Tony Li <tony.li@amd.com>
+To: linux-pm@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
 
-On 09/01/2015 08:56 AM, Borislav Petkov wrote:
-> On Mon, Aug 31, 2015 at 02:24:08PM -0700, Guenter Roeck wrote:
->> That is a matter of driver implementation. Very commonly hwmon drivers
->> implement value caching, where data from the device is only read at
->> minimum intervals, and the cached values are reported if the information
->> is polled too rapidly.
+Punit Agrawal <punit.agrawal@arm.com> writes:
+
+> The System Control Processor (SCP) provides access to SoC sensors via
+> the System Control and Power Interface (SCPI) Message Protocol. Add
+> bindings to allow probing of these sensors. Also support referencing
+> of the sensors for setting up thermal zones via the thermal DT
+> bindings.
 >
-> I don't see how we can use cached values in that case as they'd be
-> basically a lie as to how much power the CU/processor has consumed. I
-> guess it would be fairer to the user to warn instead and not issue any
-> values or to simply delay the read to a min timeout...
+> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+
+Gentle ping for the bindings review.
+
+> ---
+>  Documentation/devicetree/bindings/arm/arm,scpi.txt | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
 >
-
-This is all a matter of ABI description. I personally don't see the
-harm in caching values for up to <n> milliseconds and documenting that
-readings may reflect power consumption from <n> milliseconds ago.
-However, I don't mind any other solution either if that is considered
-unacceptable, as long as that solution doesn't break the ABI.
-
-Guenter
-
+> diff --git a/Documentation/devicetree/bindings/arm/arm,scpi.txt b/Documentation/devicetree/bindings/arm/arm,scpi.txt
+> index e309249..8ead68a 100644
+> --- a/Documentation/devicetree/bindings/arm/arm,scpi.txt
+> +++ b/Documentation/devicetree/bindings/arm/arm,scpi.txt
+> @@ -72,8 +72,18 @@ Required sub-node properties:
+>  - compatible : should be "arm,juno-scp-shmem" for Non-secure SRAM based
+>  	       shared memory on Juno platforms
+>  
+> +Sensor bindings for the sensors based on SCPI Message Protocol
+> +--------------------------------------------------------------
+> +SCPI provides an API to access the various sensors on the SoC.
+> +
+> +Required properties:
+> +- compatible : should be "arm,scpi-sensors".
+> +- #thermal-sensor-cells: should be set to 1. This property follows the
+> +			 thermal device tree bindings[2].
+> +
+>  [0] http://community.arm.com/servlet/JiveServlet/download/8401-45-18326/DUI0922B_scp_message_interface.pdf
+>  [1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+> +[2] Documentation/devicetree/bindings/thermal/thermal.txt
+>  
+>  Example:
+>  
+> @@ -122,6 +132,11 @@ scpi_protocol: scpi@2e000000 {
+>  			clock-output-names = "pxlclk0", "pxlclk1";
+>  		};
+>  	};
+> +
+> +	scpi_sensors0: sensors {
+> +		compatible = "arm,scpi-sensors";
+> +		#thermal-sensor-cells = <1>;
+> +	};
+>  };
+>  
+>  cpu@0 {
 
 _______________________________________________
 lm-sensors mailing list
