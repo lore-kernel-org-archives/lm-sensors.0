@@ -1,72 +1,81 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Thu, 03 Sep 2015 15:08:06 +0000
-Subject: Re: [lm-sensors] [PATCH v2 05/10] Documentation: add DT bindings for ARM SCPI sensors
-Message-Id: <9hhsi6vilrd.fsf@e105922-lin.cambridge.arm.com>
+From: Ben Gardner <gardner.ben@gmail.com>
+Date: Thu, 08 Oct 2015 02:55:20 +0000
+Subject: [lm-sensors] [PATCH] lm75: Add support for the TMP75C
+Message-Id: <1444272920-5852-1-git-send-email-gardner.ben@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1438615378-14241-1-git-send-email-punit.agrawal@arm.com>
-	<1438615378-14241-6-git-send-email-punit.agrawal@arm.com>
-In-Reply-To: <1438615378-14241-6-git-send-email-punit.agrawal@arm.com> (Punit
-	Agrawal's message of "Mon, 3 Aug 2015 16:22:53 +0100")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, liviu.dudau@arm.com, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
+To: lm-sensors@vger.kernel.org
 
-Punit Agrawal <punit.agrawal@arm.com> writes:
+The TMP75C has a different control register layout and only supports
+12-bit temperature samples (0.0625 deg C).
+The continuous sample rate is ~12 Hz.
 
-> The System Control Processor (SCP) provides access to SoC sensors via
-> the System Control and Power Interface (SCPI) Message Protocol. Add
-> bindings to allow probing of these sensors. Also support referencing
-> of the sensors for setting up thermal zones via the thermal DT
-> bindings.
->
-> Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Ben Gardner <gardner.ben@gmail.com>
+---
+ Documentation/hwmon/lm75 | 5 +++--
+ drivers/hwmon/lm75.c     | 7 +++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-Gentle ping for the bindings review.
+diff --git a/Documentation/hwmon/lm75 b/Documentation/hwmon/lm75
+index 67691a0..ac95edf 100644
+--- a/Documentation/hwmon/lm75
++++ b/Documentation/hwmon/lm75
+@@ -42,8 +42,8 @@ Supported chips:
+     Addresses scanned: none
+     Datasheet: Publicly available at the ST website
+                http://www.st.com/internet/analog/product/121769.jsp
+-  * Texas Instruments TMP100, TMP101, TMP105, TMP112, TMP75, TMP175, TMP275
+-    Prefixes: 'tmp100', 'tmp101', 'tmp105', 'tmp112', 'tmp175', 'tmp75', 'tmp275'
++  * Texas Instruments TMP100, TMP101, TMP105, TMP112, TMP75, TMP75C, TMP175, TMP275
++    Prefixes: 'tmp100', 'tmp101', 'tmp105', 'tmp112', 'tmp175', 'tmp75', 'tmp75c', 'tmp275'
+     Addresses scanned: none
+     Datasheet: Publicly available at the Texas Instruments website
+                http://www.ti.com/product/tmp100
+@@ -51,6 +51,7 @@ Supported chips:
+                http://www.ti.com/product/tmp105
+                http://www.ti.com/product/tmp112
+                http://www.ti.com/product/tmp75
++               http://www.ti.com/product/tmp75c
+                http://www.ti.com/product/tmp175
+                http://www.ti.com/product/tmp275
+   * NXP LM75B
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index fe41d5a..84b6ccc 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -57,6 +57,7 @@ enum lm75_type {		/* keep sorted in alphabetical order */
+ 	tmp175,
+ 	tmp275,
+ 	tmp75,
++	tmp75c,
+ };
+ 
+ /* Addresses scanned */
+@@ -280,6 +281,11 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		data->resolution = 12;
+ 		data->sample_time = HZ / 2;
+ 		break;
++	case tmp75c:
++		clr_mask |= 1 << 5;		/* not one-shot mode */
++		data->resolution = 12;
++		data->sample_time = HZ / 4;
++		break;
+ 	}
+ 
+ 	/* configure as specified */
+@@ -343,6 +349,7 @@ static const struct i2c_device_id lm75_ids[] = {
+ 	{ "tmp175", tmp175, },
+ 	{ "tmp275", tmp275, },
+ 	{ "tmp75", tmp75, },
++	{ "tmp75c", tmp75c, },
+ 	{ /* LIST END */ }
+ };
+ MODULE_DEVICE_TABLE(i2c, lm75_ids);
+-- 
+1.9.1
 
-> ---
->  Documentation/devicetree/bindings/arm/arm,scpi.txt | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/arm/arm,scpi.txt b/Documentation/devicetree/bindings/arm/arm,scpi.txt
-> index e309249..8ead68a 100644
-> --- a/Documentation/devicetree/bindings/arm/arm,scpi.txt
-> +++ b/Documentation/devicetree/bindings/arm/arm,scpi.txt
-> @@ -72,8 +72,18 @@ Required sub-node properties:
->  - compatible : should be "arm,juno-scp-shmem" for Non-secure SRAM based
->  	       shared memory on Juno platforms
->  
-> +Sensor bindings for the sensors based on SCPI Message Protocol
-> +--------------------------------------------------------------
-> +SCPI provides an API to access the various sensors on the SoC.
-> +
-> +Required properties:
-> +- compatible : should be "arm,scpi-sensors".
-> +- #thermal-sensor-cells: should be set to 1. This property follows the
-> +			 thermal device tree bindings[2].
-> +
->  [0] http://community.arm.com/servlet/JiveServlet/download/8401-45-18326/DUI0922B_scp_message_interface.pdf
->  [1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-> +[2] Documentation/devicetree/bindings/thermal/thermal.txt
->  
->  Example:
->  
-> @@ -122,6 +132,11 @@ scpi_protocol: scpi@2e000000 {
->  			clock-output-names = "pxlclk0", "pxlclk1";
->  		};
->  	};
-> +
-> +	scpi_sensors0: sensors {
-> +		compatible = "arm,scpi-sensors";
-> +		#thermal-sensor-cells = <1>;
-> +	};
->  };
->  
->  cpu@0 {
 
 _______________________________________________
 lm-sensors mailing list
