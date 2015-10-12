@@ -1,62 +1,41 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 24 Oct 2015 12:45:10 +0000
-Subject: Re: [lm-sensors] [RFC] hwmon: ina2xx: port to using remap, improve bandwidth.
-Message-Id: <562B7D56.3010700@roeck-us.net>
+From: Lukasz Odzioba <lukasz.odzioba@intel.com>
+Date: Mon, 12 Oct 2015 11:53:32 +0000
+Subject: [lm-sensors] [PATCH 1/1] Bumps limit of maximum core ID from 32 to 128.
+Message-Id: <1444650812-17398-1-git-send-email-lukasz.odzioba@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <56263973.300@roeck-us.net>
- <1445616800-21329-1-git-send-email-mtitinger@baylibre.com>
- <562A65D3.8090306@roeck-us.net> <562A9A0A.5040503@baylibre.com>
-In-Reply-To: <562A9A0A.5040503@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marc Titinger <mtitinger@baylibre.com>, jdelvare@suse.com
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, mturquette@baylibre.com, bcousson@baylibre.com
+To: fenghua.yu@intel.com
+Cc: jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Lukasz Odzioba <lukasz.odzioba@intel.com>
 
-On 10/23/2015 01:35 PM, Marc Titinger wrote:
-> Hi Guenter
->
-> thanks for the review, answers bellow.
->
-[ ... ]
+A new limit selected arbitrarily as power of two greater than
+required minimum for Xeon Phi processor.
 
->>>   /* shunt voltage */
->>> -static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_value, NULL,
->>> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_shunt, NULL,
->>>                 INA2XX_SHUNT_VOLTAGE);
->>
->> If you no longer use the register parameter, there is no need to provide it.
->> But then I'll have to spend some time trying to understand _why_ you don't
->> use it anymore and why you introduced separate show functions.
->> Some explanation might help.
->>
-> The interval value is no longer needed to compute a read "gard" delay, but the client Application may still need to set a different averaging value through this interval setting, based on the DUT characteristics.
+Currently driver is not able to handle cores with core ID greater than 32.
+Such attempt ends up with the following error in dmesg:
+coretemp coretemp.0: Adding Core XXX failed
 
-I don't really understand what you are saying here, sorry, and what it has
-to do with the switch from a single to multiple show functions.
+Signed-off-by: Lukasz Odzioba <lukasz.odzioba@intel.com>
+---
+ drivers/hwmon/coretemp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> As of using separate functions, it fits better in the new logic of "per-register" accesses. It does not bloat the code either.
->
-"It does not bloat the code" is not a valid reason for making such a change,
-nor "it fits better" (because that is an opinion). Reducing code size,
-or simplifying the code, could be valid reasons.
-The change is also technically unrelated to the switch to regmap.
-Also, while it may not bloat the code, it definitely bloats the patch size
-and makes it much more difficult to review the patch.
-
-Please make only one logical change per patch. So far, we have identified
-three independent sets of changes:
-- switch to regmap
-- switch to separate show functions
-- switch to prioritize devicetree data over platform data
-
-and I am not sure if there are more, given the complexity of the patch.
-
-I would expect separate patches to address those changes. Please split
-the patch accordingly.
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 3e03379..6a27eb2 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -52,7 +52,7 @@ module_param_named(tjmax, force_tjmax, int, 0444);
+ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+ 
+ #define BASE_SYSFS_ATTR_NO	2	/* Sysfs Base attr no for coretemp */
+-#define NUM_REAL_CORES		32	/* Number of Real cores per cpu */
++#define NUM_REAL_CORES		128	/* Number of Real cores per cpu */
+ #define CORETEMP_NAME_LENGTH	19	/* String Length of attrs */
+ #define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
+ #define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
+-- 
+1.7.1
 
 
 _______________________________________________
