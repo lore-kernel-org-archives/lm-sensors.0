@@ -1,26 +1,217 @@
-From: "Odzioba, Lukasz" <lukasz.odzioba@intel.com>
-Date: Thu, 15 Oct 2015 22:08:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/1] Bumps limit of maximum core ID from 32 to 128.
-Message-Id: <D6EDEBF1F91015459DB866AC4EE162CC02317DFF@IRSMSX103.ger.corp.intel.com>
+From: Marc Titinger <mtitinger@baylibre.com>
+Date: Mon, 19 Oct 2015 16:21:56 +0000
+Subject: [lm-sensors] [RFC] hwmon: ina2xx: allow for actual measurement bandwidth above 160 Hz
+Message-Id: <1445271716-15434-1-git-send-email-mtitinger@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1444650812-17398-1-git-send-email-lukasz.odzioba@intel.com>
- <561DAD1B.9010101@roeck-us.net>
- <D6EDEBF1F91015459DB866AC4EE162CC02317564@IRSMSX103.ger.corp.intel.com>
- <561E60D0.8040606@roeck-us.net>
-In-Reply-To: <561E60D0.8040606@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: "jdelvare@suse.de" <jdelvare@suse.de>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>
+To: linux@roeck-us.net, jdelvare@suse.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Marc Titinger <mtitinger@baylibre.com>
 
-On Wednesday, October 14, 2014 at 4:04 PM, Guenter Roeck wrote:
-> That is just in the comment. The actual limit is still 128.
+With the current implementation, the driver will prevent a readout at a
+pace faster than the default conversion time (2ms) times the averaging
+setting, min AVG being 1:1.
 
-Ok, sure. Thank you for your help in driving this change upstream.
+Any sysfs "show" read access from the client app faster than 500 Hz will be
+'cached' by the driver, but actually since do_update reads all 8 registers,
+the best achievable measurement rate is roughly 8*800 us (for the time
+spent in i2c-core) i.e. <= 156Hz with Beagle Bone Black.
 
-Thanks,
-Lukas
+This change set uses a register mask to allow for the readout of a single
+i2c register at a time. Furthermore, performing subsequent reads on the
+same register will make use of the ability of the i2c chip to retain the
+last reg offset, hence use a shorter i2c message (roughly 400us instead of
+800us spent in i2c-core.c).
+
+The best readout rate for a single measurement is now around 2kHz. And for
+four measurements around (1/(4*800us) = 312 Hz. Since for any readout rate
+faster than 160 Hz the interval is set by the i2c transactions completion,
+the 'last-update' anti-flooding code will not have a limiting effect in
+practice. Hence I also remove the elapsed time checking in the hwmon driver
+for ina2xx.
+
+To summarize, the patch provides a max bandwidth improvement with hwmon
+client apps from ~160 Hz to ~320 Hz, and better in single-channel
+polling mode.
+
+Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 90 +++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 71 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 4d28150..ce3a2ee 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -48,6 +48,8 @@
+ #define INA2XX_CURRENT			0x04 /* readonly */
+ #define INA2XX_CALIBRATION		0x05
+ 
++#define BITPOS_TO_MASK(x) (1L << x)
++
+ /* INA226 register definitions */
+ #define INA226_MASK_ENABLE		0x06
+ #define INA226_ALERT_LIMIT		0x07
+@@ -105,9 +107,14 @@ struct ina2xx_data {
+ 
+ 	struct mutex update_lock;
+ 	bool valid;
+-	unsigned long last_updated;
+ 	int update_interval; /* in jiffies */
+ 
++	/* Last read register (slave address already set
++	 * reading out from this same register repeatedly will
++	 * be significantly faster!
++	 */
++	int last_reg;
++
+ 	int kind;
+ 	const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
+ 	u16 regs[INA2XX_MAX_REGISTERS];
+@@ -203,21 +210,63 @@ static int ina2xx_init(struct ina2xx_data *data)
+ 	return ina2xx_calibrate(data);
+ }
+ 
+-static int ina2xx_do_update(struct device *dev)
++/*
++ * Most I2c chips will allow reading from the current register pointer
++ * w/o setting the register offset again.
++ */
++static inline s32 __i2c_read_same_word(const struct i2c_client *client)
++{
++	unsigned char msgbuf[2];
++
++	struct i2c_msg msg = {
++		.addr = client->addr,
++		.flags = client->flags | I2C_M_RD,
++		.len = 2,
++		.buf = msgbuf,
++		};
++
++	int status = i2c_transfer(client->adapter, &msg, 1);
++
++	return (status < 0) ? status : (msgbuf[1]|(msgbuf[0]<<8));
++}
++
++static int ina2xx_do_update(struct device *dev, int reg_mask)
+ {
+ 	struct ina2xx_data *data = dev_get_drvdata(dev);
+ 	struct i2c_client *client = data->client;
+-	int i, rv, retry;
++	int i = 0, rv, retry;
+ 
+ 	dev_dbg(&client->dev, "Starting ina2xx update\n");
+ 
+ 	for (retry = 5; retry; retry--) {
+-		/* Read all registers */
+-		for (i = 0; i < data->config->registers; i++) {
+-			rv = i2c_smbus_read_word_swapped(client, i);
++
++		/* Try to issue a shorter i2c message */
++		if (reg_mask & (1 << data->last_reg)) {
++			rv = __i2c_read_same_word(client);
+ 			if (rv < 0)
+ 				return rv;
+-			data->regs[i] = rv;
++
++			reg_mask &= ~(1 << data->last_reg);
++			data->regs[data->last_reg] = rv;
++
++			dev_dbg(&client->dev, "%d, rv = %x, (last_reg)\n",
++						data->last_reg,
++						data->regs[data->last_reg]);
++		}
++
++		/* Check for remaining registers in mask. */
++		while (reg_mask && i < data->config->registers) {
++			if (reg_mask & (1L << i)) {
++				rv = i2c_smbus_read_word_swapped(client, i);
++				if (rv < 0)
++					return rv;
++				data->regs[i] = rv;
++				data->last_reg = i;
++
++				dev_dbg(&client->dev, "%d, rv = %x\n", i,
++							data->regs[i]);
++			}
++			i++;
+ 		}
+ 
+ 		/*
+@@ -240,8 +289,6 @@ static int ina2xx_do_update(struct device *dev)
+ 			msleep(INA2XX_MAX_DELAY);
+ 			continue;
+ 		}
+-
+-		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 
+ 		return 0;
+@@ -256,22 +303,24 @@ static int ina2xx_do_update(struct device *dev)
+ 	return -ENODEV;
+ }
+ 
+-static struct ina2xx_data *ina2xx_update_device(struct device *dev)
++static struct ina2xx_data *ina2xx_update_device(struct device *dev,
++						int reg_mask)
+ {
+ 	struct ina2xx_data *data = dev_get_drvdata(dev);
+ 	struct ina2xx_data *ret = data;
+-	unsigned long after;
+ 	int rv;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	after = data->last_updated + data->update_interval;
+-	if (time_after(jiffies, after) || !data->valid) {
+-		rv = ina2xx_do_update(dev);
+-		if (rv < 0)
+-			ret = ERR_PTR(rv);
++	if (!data->valid) {
++		reg_mask = 0xff; /* do all regs */
++		data->last_reg = 0xff;
+ 	}
+ 
++	rv = ina2xx_do_update(dev, reg_mask);
++	if (rv < 0)
++		ret = ERR_PTR(rv);
++
+ 	mutex_unlock(&data->update_lock);
+ 	return ret;
+ }
+@@ -316,7 +365,8 @@ static ssize_t ina2xx_show_value(struct device *dev,
+ 				 struct device_attribute *da, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+-	struct ina2xx_data *data = ina2xx_update_device(dev);
++	struct ina2xx_data *data = ina2xx_update_device(dev,
++						BITPOS_TO_MASK(attr->index));
+ 
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
+@@ -329,7 +379,8 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
+ 				struct device_attribute *da,
+ 				const char *buf, size_t count)
+ {
+-	struct ina2xx_data *data = ina2xx_update_device(dev);
++	struct ina2xx_data *data = ina2xx_update_device(dev,
++					BITPOS_TO_MASK(INA2XX_CONFIG));
+ 	unsigned long val;
+ 	int status;
+ 
+@@ -390,7 +441,8 @@ static ssize_t ina226_set_interval(struct device *dev,
+ static ssize_t ina226_show_interval(struct device *dev,
+ 				    struct device_attribute *da, char *buf)
+ {
+-	struct ina2xx_data *data = ina2xx_update_device(dev);
++	struct ina2xx_data *data = ina2xx_update_device(dev,
++						BITPOS_TO_MASK(INA2XX_CONFIG));
+ 
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
+-- 
+1.9.1
 
 
 _______________________________________________
