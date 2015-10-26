@@ -1,43 +1,395 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 06 Oct 2015 14:59:18 +0000
-Subject: Re: [lm-sensors] nct5573D missing fans
-Message-Id: <5613E1C6.2020308@roeck-us.net>
+From: Marc Titinger <mtitinger@baylibre.com>
+Date: Mon, 26 Oct 2015 16:24:32 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: ina2xx: convert driver to using regmap
+Message-Id: <1445876673-32180-2-git-send-email-mtitinger@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAL_Kpj0HDwHZ1bwQZXYWwV0-Acnoqjfe8hzZiGSzUkMBzcRD2A@mail.gmail.com>
-In-Reply-To: <CAL_Kpj0HDwHZ1bwQZXYWwV0-Acnoqjfe8hzZiGSzUkMBzcRD2A@mail.gmail.com>
+References: <1445876673-32180-1-git-send-email-mtitinger@baylibre.com>
+In-Reply-To: <1445876673-32180-1-git-send-email-mtitinger@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Marc Titinger <mtitinger@baylibre.com>
 
-On 10/06/2015 03:43 AM, Alexey Orishko wrote:
-> Hi guys,
->
-> Asrock mobo C2550D4I has NCT5573D chip (at least they say in the mobo manual) and here is sensors-detect output:
-> Found `Nuvoton NCT5577D/NCT6776F Super IO Sensors'          Success!
->      (address 0x290, driver `nct6775')
->
-> Motherboard has 6 fan connectors cpu1&2, front 1&2 and rear 1&2, but if I load nct6775 driver on ubuntu 14.04.3-64bit, I do see only fan1 and fan2 (and pwm1 and pwm2) and I have a trouble to control them (manual mode, 4-wire fan). If I use sensor monitoring in build-in BMC web interface, I could at least see all 6 fans...
->
-> Is there anything that could be done in the config file or driver changes are required to support this motherboard?
->
+Any sysfs "show" read access from the client app will result in reading
+all registers (8 with ina226). Depending on the host this can limit the
+best achievable read rate.
 
-ASRock uses gpio multiplexers to switch fan inputs. Configuring those
-is tricky. See https://github.com/groeck/nct6775/blob/master/README.ASRock
-for some examples. Unfortunately this depends on the board. On top of that,
-if BMC accesses the chip, the BMC likely reprograms the multiplexers as
-needed, meaning the kernel would never be in full control even if it tried.
+This changeset allows for individual register accesses through regmap.
 
-Maybe this could somehow be handled, but I have no idea how.
+Tested with BeagleBone Black (Baylibre-ACME) and ina226.
 
-> Regards,
-> Alexey
->
-> PS. do you have any info why lm-sensors.org <http://lm-sensors.org> is down?
+Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
+---
+ drivers/hwmon/ina2xx.c | 187 ++++++++++++++++++-------------------------------
+ 1 file changed, 69 insertions(+), 118 deletions(-)
 
-The web site owner moved to Greece and does not respond to queries.
-
-Guenter
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 4d28150..3edd163 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -37,6 +37,7 @@
+ #include <linux/of.h>
+ #include <linux/delay.h>
+ #include <linux/util_macros.h>
++#include <linux/regmap.h>
+ 
+ #include <linux/platform_data/ina2xx.h>
+ 
+@@ -84,6 +85,11 @@
+  */
+ #define INA226_TOTAL_CONV_TIME_DEFAULT	2200
+ 
++static struct regmap_config ina2xx_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 16,
++};
++
+ enum ina2xx_ids { ina219, ina226 };
+ 
+ struct ina2xx_config {
+@@ -101,16 +107,10 @@ struct ina2xx_data {
+ 	const struct ina2xx_config *config;
+ 
+ 	long rshunt;
+-	u16 curr_config;
+-
+-	struct mutex update_lock;
+-	bool valid;
+-	unsigned long last_updated;
+-	int update_interval; /* in jiffies */
++	struct regmap *regmap;
+ 
+ 	int kind;
+ 	const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
+-	u16 regs[INA2XX_MAX_REGISTERS];
+ };
+ 
+ static const struct ina2xx_config ina2xx_config[] = {
+@@ -153,7 +153,11 @@ static int ina226_reg_to_interval(u16 config)
+ 	return DIV_ROUND_CLOSEST(avg * INA226_TOTAL_CONV_TIME_DEFAULT, 1000);
+ }
+ 
+-static u16 ina226_interval_to_reg(int interval, u16 config)
++/*
++ * Return the new, shifted AVG field value of CONFIG register,
++ * to use with regmap_update_bits
++ */
++static u16 ina226_interval_to_reg(int interval)
+ {
+ 	int avg, avg_bits;
+ 
+@@ -162,15 +166,7 @@ static u16 ina226_interval_to_reg(int interval, u16 config)
+ 	avg_bits = find_closest(avg, ina226_avg_tab,
+ 				ARRAY_SIZE(ina226_avg_tab));
+ 
+-	return (config & ~INA226_AVG_RD_MASK) | INA226_SHIFT_AVG(avg_bits);
+-}
+-
+-static void ina226_set_update_interval(struct ina2xx_data *data)
+-{
+-	int ms;
+-
+-	ms = ina226_reg_to_interval(data->curr_config);
+-	data->update_interval = msecs_to_jiffies(ms);
++	return INA226_SHIFT_AVG(avg_bits);
+ }
+ 
+ static int ina2xx_calibrate(struct ina2xx_data *data)
+@@ -187,12 +183,8 @@ static int ina2xx_calibrate(struct ina2xx_data *data)
+  */
+ static int ina2xx_init(struct ina2xx_data *data)
+ {
+-	struct i2c_client *client = data->client;
+-	int ret;
+-
+-	/* device configuration */
+-	ret = i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
+-					   data->curr_config);
++	int ret = regmap_write(data->regmap, INA2XX_CONFIG,
++			       data->config->config_default);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -203,35 +195,40 @@ static int ina2xx_init(struct ina2xx_data *data)
+ 	return ina2xx_calibrate(data);
+ }
+ 
+-static int ina2xx_do_update(struct device *dev)
++static int ina2xx_do_update(struct device *dev, int reg, unsigned int *rv)
+ {
+ 	struct ina2xx_data *data = dev_get_drvdata(dev);
+-	struct i2c_client *client = data->client;
+-	int i, rv, retry;
++	int ret, retry;
+ 
+-	dev_dbg(&client->dev, "Starting ina2xx update\n");
++	dev_dbg(dev, "Starting ina2xx update\n");
+ 
+ 	for (retry = 5; retry; retry--) {
+-		/* Read all registers */
+-		for (i = 0; i < data->config->registers; i++) {
+-			rv = i2c_smbus_read_word_swapped(client, i);
+-			if (rv < 0)
+-				return rv;
+-			data->regs[i] = rv;
+-		}
++
++		ret = regmap_read(data->regmap, reg, rv);
++		if (ret < 0)
++			return ret;
++
++		dev_dbg(dev, "read %d, val = 0x%04x\n", reg, *rv);
+ 
+ 		/*
+ 		 * If the current value in the calibration register is 0, the
+ 		 * power and current registers will also remain at 0. In case
+ 		 * the chip has been reset let's check the calibration
+ 		 * register and reinitialize if needed.
++		 * We do that extra read of the calibration register if there
++		 * is some hint of a chip reset.
+ 		 */
+-		if (data->regs[INA2XX_CALIBRATION] = 0) {
+-			dev_warn(dev, "chip not calibrated, reinitializing\n");
++		if (*rv = 0) {
++			unsigned int cal;
++
++			regmap_read(data->regmap, INA2XX_CALIBRATION, &cal);
++
++			if (cal = 0) {
++				dev_warn(dev, "chip not calibrated, reinitializing\n");
+ 
+-			rv = ina2xx_init(data);
+-			if (rv < 0)
+-				return rv;
++				ret = ina2xx_init(data);
++				if (ret < 0)
++					return ret;
+ 
+ 			/*
+ 			 * Let's make sure the power and current registers
+@@ -239,11 +236,8 @@ static int ina2xx_do_update(struct device *dev)
+ 			 */
+ 			msleep(INA2XX_MAX_DELAY);
+ 			continue;
++			}
+ 		}
+-
+-		data->last_updated = jiffies;
+-		data->valid = 1;
+-
+ 		return 0;
+ 	}
+ 
+@@ -256,51 +250,29 @@ static int ina2xx_do_update(struct device *dev)
+ 	return -ENODEV;
+ }
+ 
+-static struct ina2xx_data *ina2xx_update_device(struct device *dev)
+-{
+-	struct ina2xx_data *data = dev_get_drvdata(dev);
+-	struct ina2xx_data *ret = data;
+-	unsigned long after;
+-	int rv;
+-
+-	mutex_lock(&data->update_lock);
+-
+-	after = data->last_updated + data->update_interval;
+-	if (time_after(jiffies, after) || !data->valid) {
+-		rv = ina2xx_do_update(dev);
+-		if (rv < 0)
+-			ret = ERR_PTR(rv);
+-	}
+-
+-	mutex_unlock(&data->update_lock);
+-	return ret;
+-}
+-
+-static int ina2xx_get_value(struct ina2xx_data *data, u8 reg)
++static int ina2xx_get_value(struct ina2xx_data *data, u8 reg, unsigned int rv)
+ {
+ 	int val;
+ 
+ 	switch (reg) {
+ 	case INA2XX_SHUNT_VOLTAGE:
+ 		/* signed register */
+-		val = DIV_ROUND_CLOSEST((s16)data->regs[reg],
+-					data->config->shunt_div);
++		val = DIV_ROUND_CLOSEST((s16)rv, data->config->shunt_div);
+ 		break;
+ 	case INA2XX_BUS_VOLTAGE:
+-		val = (data->regs[reg] >> data->config->bus_voltage_shift)
++		val = (rv >> data->config->bus_voltage_shift)
+ 		  * data->config->bus_voltage_lsb;
+ 		val = DIV_ROUND_CLOSEST(val, 1000);
+ 		break;
+ 	case INA2XX_POWER:
+-		val = data->regs[reg] * data->config->power_lsb;
++		val = rv * data->config->power_lsb;
+ 		break;
+ 	case INA2XX_CURRENT:
+ 		/* signed register, LSB=1mA (selected), in mA */
+-		val = (s16)data->regs[reg];
++		val = (s16)rv;
+ 		break;
+ 	case INA2XX_CALIBRATION:
+-		val = DIV_ROUND_CLOSEST(data->config->calibration_factor,
+-					data->regs[reg]);
++		val = DIV_ROUND_CLOSEST(data->config->calibration_factor, rv);
+ 		break;
+ 	default:
+ 		/* programmer goofed */
+@@ -316,25 +288,25 @@ static ssize_t ina2xx_show_value(struct device *dev,
+ 				 struct device_attribute *da, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+-	struct ina2xx_data *data = ina2xx_update_device(dev);
++	struct ina2xx_data *data = dev_get_drvdata(dev);
++	unsigned int rv;
+ 
+-	if (IS_ERR(data))
+-		return PTR_ERR(data);
++	int err = ina2xx_do_update(dev, attr->index, &rv);
++
++	if (err < 0)
++		return err;
+ 
+ 	return snprintf(buf, PAGE_SIZE, "%d\n",
+-			ina2xx_get_value(data, attr->index));
++			ina2xx_get_value(data, attr->index, rv));
+ }
+ 
+ static ssize_t ina2xx_set_shunt(struct device *dev,
+ 				struct device_attribute *da,
+ 				const char *buf, size_t count)
+ {
+-	struct ina2xx_data *data = ina2xx_update_device(dev);
+ 	unsigned long val;
+ 	int status;
+-
+-	if (IS_ERR(data))
+-		return PTR_ERR(data);
++	struct ina2xx_data *data = dev_get_drvdata(dev);
+ 
+ 	status = kstrtoul(buf, 10, &val);
+ 	if (status < 0)
+@@ -345,10 +317,8 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
+ 	    val > data->config->calibration_factor)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&data->update_lock);
+ 	data->rshunt = val;
+ 	status = ina2xx_calibrate(data);
+-	mutex_unlock(&data->update_lock);
+ 	if (status < 0)
+ 		return status;
+ 
+@@ -370,17 +340,9 @@ static ssize_t ina226_set_interval(struct device *dev,
+ 	if (val > INT_MAX || val = 0)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&data->update_lock);
+-	data->curr_config = ina226_interval_to_reg(val,
+-						   data->regs[INA2XX_CONFIG]);
+-	status = i2c_smbus_write_word_swapped(data->client,
+-					      INA2XX_CONFIG,
+-					      data->curr_config);
+-
+-	ina226_set_update_interval(data);
+-	/* Make sure the next access re-reads all registers. */
+-	data->valid = 0;
+-	mutex_unlock(&data->update_lock);
++	status = regmap_update_bits(data->regmap, INA2XX_CONFIG,
++				    INA226_AVG_RD_MASK,
++				    ina226_interval_to_reg(val));
+ 	if (status < 0)
+ 		return status;
+ 
+@@ -390,18 +352,15 @@ static ssize_t ina226_set_interval(struct device *dev,
+ static ssize_t ina226_show_interval(struct device *dev,
+ 				    struct device_attribute *da, char *buf)
+ {
+-	struct ina2xx_data *data = ina2xx_update_device(dev);
++	struct ina2xx_data *data = dev_get_drvdata(dev);
++	int status;
++	unsigned int rv;
+ 
+-	if (IS_ERR(data))
+-		return PTR_ERR(data);
++	status = regmap_read(data->regmap, INA2XX_CONFIG, &rv);
++	if (status)
++		return status;
+ 
+-	/*
+-	 * We don't use data->update_interval here as we want to display
+-	 * the actual interval used by the chip and jiffies_to_msecs()
+-	 * doesn't seem to be accurate enough.
+-	 */
+-	return snprintf(buf, PAGE_SIZE, "%d\n",
+-			ina226_reg_to_interval(data->regs[INA2XX_CONFIG]));
++	return snprintf(buf, PAGE_SIZE, "%d\n", ina226_reg_to_interval(rv));
+ }
+ 
+ /* shunt voltage */
+@@ -455,7 +414,6 @@ static const struct attribute_group ina226_group = {
+ static int ina2xx_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+-	struct i2c_adapter *adapter = client->adapter;
+ 	struct ina2xx_platform_data *pdata;
+ 	struct device *dev = &client->dev;
+ 	struct ina2xx_data *data;
+@@ -463,9 +421,6 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	u32 val;
+ 	int ret, group = 0;
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+-		return -ENODEV;
+-
+ 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+@@ -483,30 +438,26 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	/* set the device type */
+ 	data->kind = id->driver_data;
+ 	data->config = &ina2xx_config[data->kind];
+-	data->curr_config = data->config->config_default;
+ 	data->client = client;
+ 
+-	/*
+-	 * Ina226 has a variable update_interval. For ina219 we
+-	 * use a constant value.
+-	 */
+-	if (data->kind = ina226)
+-		ina226_set_update_interval(data);
+-	else
+-		data->update_interval = HZ / INA2XX_CONVERSION_RATE;
+-
+ 	if (data->rshunt <= 0 ||
+ 	    data->rshunt > data->config->calibration_factor)
+ 		return -ENODEV;
+ 
++	ina2xx_regmap_config.max_register = data->config->registers;
++
++	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
++	if (IS_ERR(data->regmap)) {
++		dev_err(dev, "failed to allocate register map\n");
++		return PTR_ERR(data->regmap);
++	}
++
+ 	ret = ina2xx_init(data);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error configuring the device: %d\n", ret);
+ 		return -ENODEV;
+ 	}
+ 
+-	mutex_init(&data->update_lock);
+-
+ 	data->groups[group++] = &ina2xx_group;
+ 	if (data->kind = ina226)
+ 		data->groups[group++] = &ina226_group;
+-- 
+1.9.1
 
 
 _______________________________________________
