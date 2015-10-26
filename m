@@ -1,251 +1,285 @@
-From: Marc Titinger <mtitinger@baylibre.com>
-Date: Tue, 20 Oct 2015 07:58:41 +0000
-Subject: Re: [lm-sensors] [RFC] hwmon: ina2xx: allow for actual measurement bandwidth above 160 Hz
-Message-Id: <5625F431.5070501@baylibre.com>
+From: Constantine Shulyupin <const@makelinux.com>
+Date: Mon, 26 Oct 2015 20:46:38 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: (nct7802) Add device tree support
+Message-Id: <1445892399-3291-1-git-send-email-const@makelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1445271716-15434-1-git-send-email-mtitinger@baylibre.com>
- <56259997.6080706@roeck-us.net>
-In-Reply-To: <56259997.6080706@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, jdelvare@suse.com
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, "open list:HARDWARE MONITORING" <lm-sensors@lm-sensors.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Constantine Shulyupin <const@makelinux.com>
 
-On 20/10/2015 03:32, Guenter Roeck wrote:
-> On 10/19/2015 09:21 AM, Marc Titinger wrote:
->> With the current implementation, the driver will prevent a readout at a
->> pace faster than the default conversion time (2ms) times the averaging
->> setting, min AVG being 1:1.
->>
->> Any sysfs "show" read access from the client app faster than 500 Hz
->> will be
->> 'cached' by the driver, but actually since do_update reads all 8
->> registers,
->> the best achievable measurement rate is roughly 8*800 us (for the time
->> spent in i2c-core) i.e. <= 156Hz with Beagle Bone Black.
->>
->> This change set uses a register mask to allow for the readout of a single
->> i2c register at a time. Furthermore, performing subsequent reads on the
->> same register will make use of the ability of the i2c chip to retain the
->> last reg offset, hence use a shorter i2c message (roughly 400us
->> instead of
->> 800us spent in i2c-core.c).
->>
->> The best readout rate for a single measurement is now around 2kHz. And
->> for
->> four measurements around (1/(4*800us) = 312 Hz. Since for any readout
->> rate
->> faster than 160 Hz the interval is set by the i2c transactions
->> completion,
->> the 'last-update' anti-flooding code will not have a limiting effect in
->> practice. Hence I also remove the elapsed time checking in the hwmon
->> driver
->> for ina2xx.
->>
->> To summarize, the patch provides a max bandwidth improvement with hwmon
->> client apps from ~160 Hz to ~320 Hz, and better in single-channel
->> polling mode.
->>
->
-Hi Guenter,
+From: Constantine Shulyupin <const@MakeLinux.com>
 
-> I really dislike that complexity. Maybe we should drop caching entirely
-> in this driver ? Maybe even convert it to use regmap ?
+Introduced nct7802_platform_data, nct7802_parse_dt,
+nct7802_platform_data_set.
 
-I dropped caching completely with this patch. The only (mild!) 
-complexity added is to keep track of the current register pointer
-set in the chip, to issue a shorter i2c message.
+Parsing of DT nodes
+ - compatible = "nuvoton,nct7802-sensor",
+	with "sensor-type" = "thermal-diode" | "thermistor" | "voltage" |
+				"local" | "vcc" | "vcore"
+ - compatible = "nuvoton,nct7802-fan",
+	with boolen properties "direct-current", "invert", "invert"
+ - compatible = "nuvoton,nct7802-peci"
 
-Thanks for the hint re. regmap, is there a driver file you recommend I 
-look into (because the i2c caps were close to in2xx) ?
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+---
+Changed in v3:
+- Removed nuvoton,sensorX-type
+- Introduced nct7802_platform_data, new DT parser for sensors, fans, peci,
+  vcc, vcore
 
-Many thanks,
-Marc.
+Changed in v2:
+- removed tempX_type
+- introduced nuvoton,sensorX-type with string values
 
+Changed in v1:
+- Introduced tempX_type with numerical values
+---
+ drivers/hwmon/nct7802.c | 186 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 185 insertions(+), 1 deletion(-)
 
->
-> Guenter
->
->> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
->> ---
->>   drivers/hwmon/ina2xx.c | 90
->> +++++++++++++++++++++++++++++++++++++++-----------
->>   1 file changed, 71 insertions(+), 19 deletions(-)
->>
->> diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
->> index 4d28150..ce3a2ee 100644
->> --- a/drivers/hwmon/ina2xx.c
->> +++ b/drivers/hwmon/ina2xx.c
->> @@ -48,6 +48,8 @@
->>   #define INA2XX_CURRENT            0x04 /* readonly */
->>   #define INA2XX_CALIBRATION        0x05
->>
->> +#define BITPOS_TO_MASK(x) (1L << x)
->> +
->>   /* INA226 register definitions */
->>   #define INA226_MASK_ENABLE        0x06
->>   #define INA226_ALERT_LIMIT        0x07
->> @@ -105,9 +107,14 @@ struct ina2xx_data {
->>
->>       struct mutex update_lock;
->>       bool valid;
->> -    unsigned long last_updated;
->>       int update_interval; /* in jiffies */
->>
->> +    /* Last read register (slave address already set
->> +     * reading out from this same register repeatedly will
->> +     * be significantly faster!
->> +     */
->> +    int last_reg;
->> +
->>       int kind;
->>       const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
->>       u16 regs[INA2XX_MAX_REGISTERS];
->> @@ -203,21 +210,63 @@ static int ina2xx_init(struct ina2xx_data *data)
->>       return ina2xx_calibrate(data);
->>   }
->>
->> -static int ina2xx_do_update(struct device *dev)
->> +/*
->> + * Most I2c chips will allow reading from the current register pointer
->> + * w/o setting the register offset again.
->> + */
->> +static inline s32 __i2c_read_same_word(const struct i2c_client *client)
->> +{
->> +    unsigned char msgbuf[2];
->> +
->> +    struct i2c_msg msg = {
->> +        .addr = client->addr,
->> +        .flags = client->flags | I2C_M_RD,
->> +        .len = 2,
->> +        .buf = msgbuf,
->> +        };
->> +
->> +    int status = i2c_transfer(client->adapter, &msg, 1);
->> +
->> +    return (status < 0) ? status : (msgbuf[1]|(msgbuf[0]<<8));
->> +}
->> +
->> +static int ina2xx_do_update(struct device *dev, int reg_mask)
->>   {
->>       struct ina2xx_data *data = dev_get_drvdata(dev);
->>       struct i2c_client *client = data->client;
->> -    int i, rv, retry;
->> +    int i = 0, rv, retry;
->>
->>       dev_dbg(&client->dev, "Starting ina2xx update\n");
->>
->>       for (retry = 5; retry; retry--) {
->> -        /* Read all registers */
->> -        for (i = 0; i < data->config->registers; i++) {
->> -            rv = i2c_smbus_read_word_swapped(client, i);
->> +
->> +        /* Try to issue a shorter i2c message */
->> +        if (reg_mask & (1 << data->last_reg)) {
->> +            rv = __i2c_read_same_word(client);
->>               if (rv < 0)
->>                   return rv;
->> -            data->regs[i] = rv;
->> +
->> +            reg_mask &= ~(1 << data->last_reg);
->> +            data->regs[data->last_reg] = rv;
->> +
->> +            dev_dbg(&client->dev, "%d, rv = %x, (last_reg)\n",
->> +                        data->last_reg,
->> +                        data->regs[data->last_reg]);
->> +        }
->> +
->> +        /* Check for remaining registers in mask. */
->> +        while (reg_mask && i < data->config->registers) {
->> +            if (reg_mask & (1L << i)) {
->> +                rv = i2c_smbus_read_word_swapped(client, i);
->> +                if (rv < 0)
->> +                    return rv;
->> +                data->regs[i] = rv;
->> +                data->last_reg = i;
->> +
->> +                dev_dbg(&client->dev, "%d, rv = %x\n", i,
->> +                            data->regs[i]);
->> +            }
->> +            i++;
->>           }
->>
->>           /*
->> @@ -240,8 +289,6 @@ static int ina2xx_do_update(struct device *dev)
->>               msleep(INA2XX_MAX_DELAY);
->>               continue;
->>           }
->> -
->> -        data->last_updated = jiffies;
->>           data->valid = 1;
->>
->>           return 0;
->> @@ -256,22 +303,24 @@ static int ina2xx_do_update(struct device *dev)
->>       return -ENODEV;
->>   }
->>
->> -static struct ina2xx_data *ina2xx_update_device(struct device *dev)
->> +static struct ina2xx_data *ina2xx_update_device(struct device *dev,
->> +                        int reg_mask)
->>   {
->>       struct ina2xx_data *data = dev_get_drvdata(dev);
->>       struct ina2xx_data *ret = data;
->> -    unsigned long after;
->>       int rv;
->>
->>       mutex_lock(&data->update_lock);
->>
->> -    after = data->last_updated + data->update_interval;
->> -    if (time_after(jiffies, after) || !data->valid) {
->> -        rv = ina2xx_do_update(dev);
->> -        if (rv < 0)
->> -            ret = ERR_PTR(rv);
->> +    if (!data->valid) {
->> +        reg_mask = 0xff; /* do all regs */
->> +        data->last_reg = 0xff;
->>       }
->>
->> +    rv = ina2xx_do_update(dev, reg_mask);
->> +    if (rv < 0)
->> +        ret = ERR_PTR(rv);
->> +
->>       mutex_unlock(&data->update_lock);
->>       return ret;
->>   }
->> @@ -316,7 +365,8 @@ static ssize_t ina2xx_show_value(struct device *dev,
->>                    struct device_attribute *da, char *buf)
->>   {
->>       struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
->> -    struct ina2xx_data *data = ina2xx_update_device(dev);
->> +    struct ina2xx_data *data = ina2xx_update_device(dev,
->> +                        BITPOS_TO_MASK(attr->index));
->>
->>       if (IS_ERR(data))
->>           return PTR_ERR(data);
->> @@ -329,7 +379,8 @@ static ssize_t ina2xx_set_shunt(struct device *dev,
->>                   struct device_attribute *da,
->>                   const char *buf, size_t count)
->>   {
->> -    struct ina2xx_data *data = ina2xx_update_device(dev);
->> +    struct ina2xx_data *data = ina2xx_update_device(dev,
->> +                    BITPOS_TO_MASK(INA2XX_CONFIG));
->>       unsigned long val;
->>       int status;
->>
->> @@ -390,7 +441,8 @@ static ssize_t ina226_set_interval(struct device
->> *dev,
->>   static ssize_t ina226_show_interval(struct device *dev,
->>                       struct device_attribute *da, char *buf)
->>   {
->> -    struct ina2xx_data *data = ina2xx_update_device(dev);
->> +    struct ina2xx_data *data = ina2xx_update_device(dev,
->> +                        BITPOS_TO_MASK(INA2XX_CONFIG));
->>
->>       if (IS_ERR(data))
->>           return PTR_ERR(data);
->>
->
+diff --git a/drivers/hwmon/nct7802.c b/drivers/hwmon/nct7802.c
+index 3ce33d2..dee9eb3 100644
+--- a/drivers/hwmon/nct7802.c
++++ b/drivers/hwmon/nct7802.c
+@@ -53,6 +53,8 @@ static const u8 REG_VOLTAGE_LIMIT_MSB_SHIFT[2][5] = {
+ #define REG_PECI_ENABLE		0x23
+ #define REG_FAN_ENABLE		0x24
+ #define REG_VMON_ENABLE		0x25
++#define REG_FAN_TYPE		0x5e
++#define REG_FAN_MODE		0x5f
+ #define REG_PWM(x)		(0x60 + (x))
+ #define REG_SMARTFAN_EN(x)      (0x64 + (x) / 2)
+ #define SMARTFAN_EN_SHIFT(x)    ((x) % 2 * 4)
+@@ -69,6 +71,18 @@ struct nct7802_data {
+ 	struct mutex access_lock; /* for multi-byte read and write operations */
+ };
+ 
++struct nct7802_platform_data {
++	s8 sensor_type[3];
++	s8 local_temp_enable;
++	s8 vcc_enable;
++	s8 vcore_enable;
++	s8 fan_enable[3];
++	s8 fan_dc[2];	/* direct current instead PWM */
++	s8 fan_od[3];	/* open drain */
++	s8 fan_inv[3];	/* inverted polarity */
++	s8 peci_enable[2];
++};
++
+ static ssize_t show_temp_type(struct device *dev, struct device_attribute *attr,
+ 			      char *buf)
+ {
+@@ -1077,6 +1091,151 @@ static const struct regmap_config nct7802_regmap_config = {
+ 	.volatile_reg = nct7802_regmap_is_volatile,
+ };
+ 
++static int nct7802_parse_dt(struct device_node *node,
++			    struct nct7802_platform_data *pdata)
++{
++	struct device_node *child;
++	const char *sen_type;
++	int ret;
++	int i;
++
++	for_each_child_of_node(node, child) {
++		u32 reg = 0xFF;
++
++		of_property_read_u32(child, "reg", &reg);
++		if (of_device_is_compatible(child, "nuvoton,nct7802-sensor")) {
++			ret = of_property_read_string(child,
++						      "sensor-type", &sen_type);
++			if (ret < 0) {
++				pr_err("%s: expected property sensor-type\n",
++				       child->full_name);
++				return -EINVAL;
++			}
++			if (!strcmp(sen_type, "local")) {
++				pdata->local_temp_enable = 1;
++				continue;
++			} else if (!strcmp(sen_type, "vcc")) {
++				pdata->vcc_enable = 1;
++				continue;
++			} else if (!strcmp(sen_type, "vcore")) {
++				pdata->vcore_enable = 1;
++				continue;
++			}
++			if (reg >= ARRAY_SIZE(pdata->sensor_type)) {
++				pr_err("%s: invalid value: reg=%d\n",
++				       child->full_name, reg);
++				return -EINVAL;
++			}
++			if (!strcmp(sen_type, "thermal-diode")) {
++				pdata->sensor_type[reg] = 1;
++			} else if (!strcmp(sen_type, "thermistor")) {
++				pdata->sensor_type[reg] = 2;
++			} else if (!strcmp(sen_type, "voltage")) {
++				pdata->sensor_type[reg] = 3;
++			} else {
++				pr_err("%s: invalid sensor-type=\"%s\"\n",
++				       child->full_name, sen_type);
++				return -EINVAL;
++			}
++		} else if (of_device_is_compatible(child,
++						   "nuvoton,nct7802-fan")) {
++			if (reg >= ARRAY_SIZE(pdata->fan_enable)) {
++				pr_err("%s: invalid value: %s=%d\n",
++				       child->full_name, "reg", reg);
++				return -EINVAL;
++			}
++			pdata->fan_enable[reg] = 1;
++			if (of_property_read_bool(child, "direct-current")) {
++				if (reg >= ARRAY_SIZE(pdata->fan_dc)) {
++					pr_err("%s: invalid value: %s=%d\n",
++					       child->full_name, "reg", reg);
++					return -EINVAL;
++				}
++				pdata->fan_dc[reg] = 1;
++			}
++			pdata->fan_od[reg] +				of_property_read_bool(child, "open-drain");
++			pdata->fan_inv[reg] +				of_property_read_bool(child, "invert");
++		} else if (of_device_is_compatible(child,
++						   "nuvoton,nct7802-peci")) {
++			if (reg >= ARRAY_SIZE(pdata->peci_enable)) {
++				pr_err("%s: invalid value: reg=%d\n",
++				       child->full_name, reg);
++				return -EINVAL;
++			}
++			pdata->peci_enable[reg] = 1;
++		}
++	}
++
++	return 0;
++}
++
++static int nct7802_platform_data_set(struct nct7802_data *data,
++				     struct nct7802_platform_data *pdata)
++{
++	int ret;
++	int i;
++
++	/* Enable ADC */
++	ret = regmap_update_bits(data->regmap, REG_START, 1, 1);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < ARRAY_SIZE(pdata->sensor_type); i++) {
++		ret = regmap_update_bits(data->regmap, REG_MODE,
++					 3 << 2 * i,
++					 pdata->sensor_type[i] << 2 * i);
++		if (ret)
++			return ret;
++	}
++	ret = regmap_update_bits(data->regmap, REG_MODE,
++				 1 << 6,
++				 pdata->local_temp_enable << 6);
++	if (ret)
++		return ret;
++	for (i = 0; i < ARRAY_SIZE(pdata->fan_enable); i++) {
++		ret = regmap_update_bits(data->regmap, REG_FAN_ENABLE,
++					 1 << i, pdata->fan_enable[i] << i);
++	}
++	for (i = 0; i < ARRAY_SIZE(pdata->peci_enable); i++) {
++		ret = regmap_update_bits(data->regmap, REG_PECI_ENABLE,
++					 1 << i, pdata->peci_enable[i] << i);
++		if (ret)
++			return ret;
++	}
++	ret = regmap_update_bits(data->regmap, REG_VMON_ENABLE, 1,
++				 pdata->vcc_enable);
++	if (ret)
++		return ret;
++
++	ret = regmap_update_bits(data->regmap, REG_VMON_ENABLE, 1 << 1,
++				 pdata->vcore_enable << 1);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < ARRAY_SIZE(pdata->fan_dc); i++) {
++		ret = regmap_update_bits(data->regmap, REG_FAN_TYPE, 1 << i,
++					 pdata->fan_dc[i] << i);
++		if (ret)
++			return ret;
++	}
++	for (i = 0; i < ARRAY_SIZE(pdata->fan_od); i++) {
++		ret = regmap_update_bits(data->regmap, REG_FAN_MODE, 1 << i,
++					 pdata->fan_od[i] << i);
++		if (ret)
++			return ret;
++	}
++	for (i = 0; i < ARRAY_SIZE(pdata->fan_inv); i++) {
++		ret = regmap_update_bits(data->regmap, REG_FAN_MODE,
++					 1 << (i + 4),
++					 pdata->fan_inv[i] << (i + 4));
++		if (ret)
++			return ret;
++	}
++	return 0;
++}
++
+ static int nct7802_init_chip(struct nct7802_data *data)
+ {
+ 	int err;
+@@ -1098,11 +1257,27 @@ static int nct7802_init_chip(struct nct7802_data *data)
+ static int nct7802_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
++	struct nct7802_platform_data *pdata;
+ 	struct device *dev = &client->dev;
+ 	struct nct7802_data *data;
+ 	struct device *hwmon_dev;
+ 	int ret;
+ 
++	pdata = dev_get_platdata(dev);
++#ifdef CONFIG_OF
++	if (dev->of_node) {
++		pdata = devm_kzalloc(dev, sizeof(struct nct7802_platform_data),
++				     GFP_KERNEL);
++		if (!pdata)
++			return -ENOMEM;
++		ret = nct7802_parse_dt(dev->of_node, pdata);
++		if (ret < 0) {
++			devm_kfree(dev, pdata);
++			return ret;
++		}
++	}
++#endif
++
+ 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+ 	if (data = NULL)
+ 		return -ENOMEM;
+@@ -1113,7 +1288,10 @@ static int nct7802_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&data->access_lock);
+ 
+-	ret = nct7802_init_chip(data);
++	if (pdata)
++		ret = nct7802_platform_data_set(data, pdata);
++	else
++		ret = nct7802_init_chip(data);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1133,10 +1311,16 @@ static const struct i2c_device_id nct7802_idtable[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, nct7802_idtable);
+ 
++static const struct __maybe_unused of_device_id nct7802_dt_match[] = {
++	{ .compatible = "nuvoton,nct7802" },
++	{ },
++};
++
+ static struct i2c_driver nct7802_driver = {
+ 	.class = I2C_CLASS_HWMON,
+ 	.driver = {
+ 		.name = DRVNAME,
++		.of_match_table = of_match_ptr(nct7802_dt_match),
+ 	},
+ 	.detect = nct7802_detect,
+ 	.probe = nct7802_probe,
+-- 
+1.9.1
 
 
 _______________________________________________
