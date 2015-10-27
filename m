@@ -1,74 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 30 Oct 2015 14:36:42 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (nct6775) NCT6791D and NCT6792D have an additional temperature source
-Message-Id: <1446215802-15097-1-git-send-email-linux@roeck-us.net>
+From: Marc Titinger <mtitinger@baylibre.com>
+Date: Tue, 27 Oct 2015 09:51:08 +0000
+Subject: [lm-sensors] [PATCH v2 2/2] hwmon: ina2xx: give precedence to DT over checking for platform data.
+Message-Id: <1445939468-21755-2-git-send-email-mtitinger@baylibre.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1445939468-21755-1-git-send-email-mtitinger@baylibre.com>
+In-Reply-To: <1445939468-21755-1-git-send-email-mtitinger@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux@roeck-us.net, jdelvare@suse.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, mturquette@baylibre.com, bcousson@baylibre.com, ptitiano@baylibre.com, Marc Titinger <mtitinger@baylibre.com>
 
-Both NCT6791D and NCT6792D permit selection of a 'virtual' temperature
-register as temperature source. The virtual temperature registers are
-registers 0xea to 0xef in bank 0 and can be written by software.
+when checking for the value of the shunt resistor.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
 ---
- drivers/hwmon/nct6775.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 8b4fa55e46c6..724401a368f7 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -515,16 +515,24 @@ static const char *const nct6779_temp_label[] = {
- 	"PCH_DIM1_TEMP",
- 	"PCH_DIM2_TEMP",
- 	"PCH_DIM3_TEMP",
--	"BYTE_TEMP"
-+	"BYTE_TEMP",
-+	"",
-+	"",
-+	"",
-+	"",
-+	"Virtual_TEMP"
- };
+ v2:
+	- do part type init earlier to regroup rshunt value checking
+	  and assignement.
+
+ drivers/hwmon/ina2xx.c | 25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 5e7ada8..5fe742b 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -417,7 +417,6 @@ static const struct attribute_group ina226_group = {
+ static int ina2xx_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+-	struct ina2xx_platform_data *pdata;
+ 	struct device *dev = &client->dev;
+ 	struct ina2xx_data *data;
+ 	struct device *hwmon_dev;
+@@ -428,24 +427,24 @@ static int ina2xx_probe(struct i2c_client *client,
+ 	if (!data)
+ 		return -ENOMEM;
  
--static const u16 NCT6779_REG_TEMP_ALTERNATE[ARRAY_SIZE(nct6779_temp_label) - 1]
-+#define NCT6779_NUM_LABELS	(ARRAY_SIZE(nct6779_temp_label) - 5)
-+#define NCT6791_NUM_LABELS	ARRAY_SIZE(nct6779_temp_label)
+-	if (dev_get_platdata(dev)) {
+-		pdata = dev_get_platdata(dev);
+-		data->rshunt = pdata->shunt_uohms;
+-	} else if (!of_property_read_u32(dev->of_node,
+-					 "shunt-resistor", &val)) {
+-		data->rshunt = val;
+-	} else {
+-		data->rshunt = INA2XX_RSHUNT_DEFAULT;
+-	}
+-
+ 	/* set the device type */
+ 	data->kind = id->driver_data;
+ 	data->config = &ina2xx_config[data->kind];
+ 
+-	if (data->rshunt <= 0 ||
+-	    data->rshunt > data->config->calibration_factor)
++	if (of_property_read_u32(dev->of_node, "shunt-resistor", &val) < 0) {
++		struct ina2xx_platform_data *pdata = dev_get_platdata(dev);
 +
-+static const u16 NCT6779_REG_TEMP_ALTERNATE[NCT6791_NUM_LABELS - 1]
- 	= { 0x490, 0x491, 0x492, 0x493, 0x494, 0x495, 0, 0,
- 	    0, 0, 0, 0, 0, 0, 0, 0,
- 	    0, 0x400, 0x401, 0x402, 0x404, 0x405, 0x406, 0x407,
- 	    0x408, 0 };
++		if (pdata)
++			val = pdata->shunt_uohms;
++		else
++			val = INA2XX_RSHUNT_DEFAULT;
++	}
++
++	if (val <= 0 || val > data->config->calibration_factor)
+ 		return -ENODEV;
  
--static const u16 NCT6779_REG_TEMP_CRIT[ARRAY_SIZE(nct6779_temp_label) - 1]
-+static const u16 NCT6779_REG_TEMP_CRIT[NCT6791_NUM_LABELS - 1]
- 	= { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x709, 0x70a };
++	data->rshunt = val;
++
+ 	ina2xx_regmap_config.max_register = data->config->registers;
  
- /* NCT6791 specific data */
-@@ -3605,7 +3613,7 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->speed_tolerance_limit = 63;
- 
- 		data->temp_label = nct6779_temp_label;
--		data->temp_label_num = ARRAY_SIZE(nct6779_temp_label);
-+		data->temp_label_num = NCT6779_NUM_LABELS;
- 
- 		data->REG_CONFIG = NCT6775_REG_CONFIG;
- 		data->REG_VBAT = NCT6775_REG_VBAT;
-@@ -3683,7 +3691,7 @@ static int nct6775_probe(struct platform_device *pdev)
- 		data->speed_tolerance_limit = 63;
- 
- 		data->temp_label = nct6779_temp_label;
--		data->temp_label_num = ARRAY_SIZE(nct6779_temp_label);
-+		data->temp_label_num = NCT6791_NUM_LABELS;
- 
- 		data->REG_CONFIG = NCT6775_REG_CONFIG;
- 		data->REG_VBAT = NCT6775_REG_VBAT;
+ 	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
 -- 
-2.1.4
+1.9.1
 
 
 _______________________________________________
