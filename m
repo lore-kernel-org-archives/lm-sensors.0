@@ -1,31 +1,36 @@
-From: Michal Marek <mmarek@suse.cz>
-Date: Wed, 28 Oct 2015 11:15:16 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 28 Oct 2015 12:15:58 +0000
 Subject: Re: [lm-sensors] Duplicate htu21 drivers
-Message-Id: <5630AE44.3040803@suse.cz>
+Message-Id: <20151028121558.GB10739@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <56309D5C.30008@suse.cz> <20151028105128.770BF1E93@relay1.suse.de>
-In-Reply-To: <20151028105128.770BF1E93@relay1.suse.de>
+References: <56309D5C.30008@suse.cz>
+ <20151028105128.770BF1E93@relay1.suse.de>
+ <5630AE44.3040803@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "ludovic.tancerel@maplehightech.com" <ludovic.tancerel@maplehightech.com>
-Cc: William Markezana <william.markezana@meas-spec.com>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, Jonathan Cameron <jic23@kernel.org>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+Cc: Michal Marek <mmarek@suse.cz>, William Markezana <william.markezana@meas-spec.com>, Jean Delvare <jdelvare@suse.com>, Jonathan Cameron <jic23@kernel.org>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-Dne 28.10.2015 v 11:52 ludovic.tancerel@maplehightech.com napsal(a):
-> Hello Michal,
-> 
-> the plan discussed with Jonathan and Guenter was to remove the driver
-> in hwmon once the iio one was introduced.
-> 
-> Should I  provide a patch in Kconfig to make them conflict as of now
-> ?
-
-Then you can either execute your plan :), or make the hwmon driver
-depend on HTU21=n.
-
-Michal
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCBPY3QgMjgsIDIwMTUgYXQgMTI6NTM6MTJQTSArMDEwMCwgbHVkb3ZpYy50YW5jZXJl
+bEBtYXBsZWhpZ2h0ZWNoLmNvbSB3cm90ZToKPiBJIHdhcyBub3Qgc3VyZSBhYm91dCB0aGUgdGlt
+aW5nIGZvciB0aGUgcGxhbiDigKYgOikKPiBOb3cgdGhhdCB0aGUgcGF0Y2ggaGFzIGJlZW4gYXBw
+cm92ZWQgZm9yIElJTywgdGhlbiBpbmRlZWQgSSBjYW4gcmVtb3ZlIHRoZSBwYXRjaCBmb3IgaHR1
+MjEgaW4gaHdtb24uCgpZZXMsIHRoZSBkcml2ZXIgaW4gaHdtb24gbmVlZHMgdG8gYmUgcmVtb3Zl
+ZC4gUGF0Y2ggd2VsY29tZS4KCkd1ZW50ZXIKCj4gVGhhbmtzLAo+IEx1ZG92aWMKPiAKPiAKPiAK
+PiA+IExlIDI4IG9jdC4gMjAxNSDDoCAxMjoxNSwgTWljaGFsIE1hcmVrIDxtbWFyZWtAc3VzZS5j
+ej4gYSDDqWNyaXQgOgo+ID4gCj4gPiBEbmUgMjguMTAuMjAxNSB2IDExOjUyIGx1ZG92aWMudGFu
+Y2VyZWxAbWFwbGVoaWdodGVjaC5jb20gbmFwc2FsKGEpOgo+ID4+IEhlbGxvIE1pY2hhbCwKPiA+
+PiAKPiA+PiB0aGUgcGxhbiBkaXNjdXNzZWQgd2l0aCBKb25hdGhhbiBhbmQgR3VlbnRlciB3YXMg
+dG8gcmVtb3ZlIHRoZSBkcml2ZXIKPiA+PiBpbiBod21vbiBvbmNlIHRoZSBpaW8gb25lIHdhcyBp
+bnRyb2R1Y2VkLgo+ID4+IAo+ID4+IFNob3VsZCBJICBwcm92aWRlIGEgcGF0Y2ggaW4gS2NvbmZp
+ZyB0byBtYWtlIHRoZW0gY29uZmxpY3QgYXMgb2Ygbm93Cj4gPj4gPwo+ID4gCj4gPiBUaGVuIHlv
+dSBjYW4gZWl0aGVyIGV4ZWN1dGUgeW91ciBwbGFuIDopLCBvciBtYWtlIHRoZSBod21vbiBkcml2
+ZXIKPiA+IGRlcGVuZCBvbiBIVFUyMT1uLgo+ID4gCj4gPiBNaWNoYWwKPiA+IC0tCj4gPiBUbyB1
+bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
+dXgtaWlvIiBpbgo+ID4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtl
+cm5lbC5vcmcKPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
+cmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3Jz
