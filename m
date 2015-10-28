@@ -1,84 +1,110 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 27 Oct 2015 01:10:08 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: ina2xx: give precedence to DT over checking for platform data.
-Message-Id: <20151027011008.GB31838@roeck-us.net>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Date: Wed, 28 Oct 2015 14:08:03 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (scpi) skip unsupported sensors properly
+Message-Id: <1446041283-19702-1-git-send-email-sudeep.holla@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <562B7D56.3010700@roeck-us.net>
- <1445876673-32180-3-git-send-email-mtitinger@baylibre.com>
-In-Reply-To: <1445876673-32180-3-git-send-email-mtitinger@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marc Titinger <mtitinger@baylibre.com>
-Cc: jdelvare@suse.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Punit Agrawal <punit.agrawal@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, lm-sensors@lm-sensors.org, Jean Delvare <jdelvare@suse.com>
 
-On Mon, Oct 26, 2015 at 05:24:33PM +0100, Marc Titinger wrote:
-> when checking for the value of the shunt resistor.
-> 
-> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
-> ---
->  drivers/hwmon/ina2xx.c | 21 ++++++++++-----------
->  1 file changed, 10 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-> index 3edd163..1946433 100644
-> --- a/drivers/hwmon/ina2xx.c
-> +++ b/drivers/hwmon/ina2xx.c
-> @@ -414,7 +414,6 @@ static const struct attribute_group ina226_group = {
->  static int ina2xx_probe(struct i2c_client *client,
->  			const struct i2c_device_id *id)
->  {
-> -	struct ina2xx_platform_data *pdata;
->  	struct device *dev = &client->dev;
->  	struct ina2xx_data *data;
->  	struct device *hwmon_dev;
-> @@ -425,14 +424,13 @@ static int ina2xx_probe(struct i2c_client *client,
->  	if (!data)
->  		return -ENOMEM;
->  
-> -	if (dev_get_platdata(dev)) {
-> -		pdata = dev_get_platdata(dev);
-> -		data->rshunt = pdata->shunt_uohms;
-> -	} else if (!of_property_read_u32(dev->of_node,
-> -					 "shunt-resistor", &val)) {
-> -		data->rshunt = val;
-> -	} else {
-> -		data->rshunt = INA2XX_RSHUNT_DEFAULT;
-> +	if (of_property_read_u32(dev->of_node, "shunt-resistor", &val) < 0) {
-> +		struct ina2xx_platform_data *pdata = dev_get_platdata(dev);
-> +
-> +		if (pdata)
-> +			val = pdata->shunt_uohms;
-> +		else
-> +			val = INA2XX_RSHUNT_DEFAULT;
->  	}
->  
->  	/* set the device type */
-> @@ -440,10 +438,11 @@ static int ina2xx_probe(struct i2c_client *client,
->  	data->config = &ina2xx_config[data->kind];
->  	data->client = client;
->  
-> -	if (data->rshunt <= 0 ||
-> -	    data->rshunt > data->config->calibration_factor)
-> +	if (val <= 0 || val > data->config->calibration_factor)
->  		return -ENODEV;
->  
-> +	data->rshunt = val;
-> +
+Currently it's assumed that firmware exports only the class of sensors
+supported by the driver. However with newer firmware or SCPI protocol
+revision, support for newer classes of sensors can be present.
 
-I think it would be better to rearrange the code a bit. 
-The code now looks odd, with value being assigned, then the assignment
-of data->kind etc, followed by checking val.
+The driver fails to probe with the following warning if an unsupported
+class of sensor is encountered in the firmware.
 
-It might be better to do the assignments first, then calculate val,
-and check its range immediately.
+sysfs: cannot create duplicate filename
+	'/devices/platform/scpi/scpi:sensors/hwmon/hwmon0/'
+------------[ cut here ]------------
+WARNING: at fs/sysfs/dir.c:31
+Modules linked in:
 
->  	ina2xx_regmap_config.max_register = data->config->registers;
->  
->  	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
-> -- 
-> 1.9.1
-> 
+CPU: 0 PID: 6 Comm: kworker/u12:0 Not tainted 4.3.0-rc7 #137
+Hardware name: ARM Juno development board (r0) (DT)
+Workqueue: deferwq deferred_probe_work_func
+PC is at sysfs_warn_dup+0x54/0x78
+LR is at sysfs_warn_dup+0x54/0x78
+
+This patch fixes the above issue by skipping through the unsupported
+class of SCPI sensors.
+
+Fixes: 68acc77a2d51 ("hwmon: Support thermal zones registration for SCP temperature sensors")
+Fixes: ea98b29a05e9 ("hwmon: Support sensors exported via ARM SCP interface")
+Cc: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/hwmon/scpi-hwmon.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/hwmon/scpi-hwmon.c b/drivers/hwmon/scpi-hwmon.c
+index 2c1241bbf9af..5b80cd7f5c86 100644
+--- a/drivers/hwmon/scpi-hwmon.c
++++ b/drivers/hwmon/scpi-hwmon.c
+@@ -117,7 +117,7 @@ static int scpi_hwmon_probe(struct platform_device *pdev)
+ 	struct scpi_ops *scpi_ops;
+ 	struct device *hwdev, *dev = &pdev->dev;
+ 	struct scpi_sensors *scpi_sensors;
+-	int ret;
++	int ret, idx;
+
+ 	scpi_ops = get_scpi_ops();
+ 	if (!scpi_ops)
+@@ -146,8 +146,8 @@ static int scpi_hwmon_probe(struct platform_device *pdev)
+
+ 	scpi_sensors->scpi_ops = scpi_ops;
+
+-	for (i = 0; i < nr_sensors; i++) {
+-		struct sensor_data *sensor = &scpi_sensors->data[i];
++	for (i = 0, idx = 0; i < nr_sensors; i++) {
++		struct sensor_data *sensor = &scpi_sensors->data[idx];
+
+ 		ret = scpi_ops->sensor_get_info(i, &sensor->info);
+ 		if (ret)
+@@ -183,7 +183,7 @@ static int scpi_hwmon_probe(struct platform_device *pdev)
+ 			num_power++;
+ 			break;
+ 		default:
+-			break;
++			continue;
+ 		}
+
+ 		sensor->dev_attr_input.attr.mode = S_IRUGO;
+@@ -194,11 +194,12 @@ static int scpi_hwmon_probe(struct platform_device *pdev)
+ 		sensor->dev_attr_label.show = scpi_show_label;
+ 		sensor->dev_attr_label.attr.name = sensor->label;
+
+-		scpi_sensors->attrs[i << 1] = &sensor->dev_attr_input.attr;
+-		scpi_sensors->attrs[(i << 1) + 1] = &sensor->dev_attr_label.attr;
++		scpi_sensors->attrs[idx << 1] = &sensor->dev_attr_input.attr;
++		scpi_sensors->attrs[(idx << 1) + 1] = &sensor->dev_attr_label.attr;
+
+-		sysfs_attr_init(scpi_sensors->attrs[i << 1]);
+-		sysfs_attr_init(scpi_sensors->attrs[(i << 1) + 1]);
++		sysfs_attr_init(scpi_sensors->attrs[idx << 1]);
++		sysfs_attr_init(scpi_sensors->attrs[(idx << 1) + 1]);
++		idx++;
+ 	}
+
+ 	scpi_sensors->group.attrs = scpi_sensors->attrs;
+@@ -234,9 +235,9 @@ static int scpi_hwmon_probe(struct platform_device *pdev)
+ 			goto unregister_tzd;
+ 		}
+
+-		zone->sensor_id = i;
++		zone->sensor_id = sensor->info.sensor_id;
+ 		zone->scpi_sensors = scpi_sensors;
+-		zone->tzd = thermal_zone_of_sensor_register(dev, i, zone,
++		zone->tzd = thermal_zone_of_sensor_register(dev, zone->sensor_id, zone,
+ 							    &scpi_sensor_ops);
+ 		/*
+ 		 * The call to thermal_zone_of_sensor_register returns
+--
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
