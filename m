@@ -1,36 +1,77 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 28 Oct 2015 12:15:58 +0000
-Subject: Re: [lm-sensors] Duplicate htu21 drivers
-Message-Id: <20151028121558.GB10739@roeck-us.net>
+Date: Fri, 30 Oct 2015 14:36:42 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (nct6775) NCT6791D and NCT6792D have an additional temperature source
+Message-Id: <1446215802-15097-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <56309D5C.30008@suse.cz>
- <20151028105128.770BF1E93@relay1.suse.de>
- <5630AE44.3040803@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "ludovic.tancerel@maplehightech.com" <ludovic.tancerel@maplehightech.com>
-Cc: Michal Marek <mmarek@suse.cz>, William Markezana <william.markezana@meas-spec.com>, Jean Delvare <jdelvare@suse.com>, Jonathan Cameron <jic23@kernel.org>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCBPY3QgMjgsIDIwMTUgYXQgMTI6NTM6MTJQTSArMDEwMCwgbHVkb3ZpYy50YW5jZXJl
-bEBtYXBsZWhpZ2h0ZWNoLmNvbSB3cm90ZToKPiBJIHdhcyBub3Qgc3VyZSBhYm91dCB0aGUgdGlt
-aW5nIGZvciB0aGUgcGxhbiDigKYgOikKPiBOb3cgdGhhdCB0aGUgcGF0Y2ggaGFzIGJlZW4gYXBw
-cm92ZWQgZm9yIElJTywgdGhlbiBpbmRlZWQgSSBjYW4gcmVtb3ZlIHRoZSBwYXRjaCBmb3IgaHR1
-MjEgaW4gaHdtb24uCgpZZXMsIHRoZSBkcml2ZXIgaW4gaHdtb24gbmVlZHMgdG8gYmUgcmVtb3Zl
-ZC4gUGF0Y2ggd2VsY29tZS4KCkd1ZW50ZXIKCj4gVGhhbmtzLAo+IEx1ZG92aWMKPiAKPiAKPiAK
-PiA+IExlIDI4IG9jdC4gMjAxNSDDoCAxMjoxNSwgTWljaGFsIE1hcmVrIDxtbWFyZWtAc3VzZS5j
-ej4gYSDDqWNyaXQgOgo+ID4gCj4gPiBEbmUgMjguMTAuMjAxNSB2IDExOjUyIGx1ZG92aWMudGFu
-Y2VyZWxAbWFwbGVoaWdodGVjaC5jb20gbmFwc2FsKGEpOgo+ID4+IEhlbGxvIE1pY2hhbCwKPiA+
-PiAKPiA+PiB0aGUgcGxhbiBkaXNjdXNzZWQgd2l0aCBKb25hdGhhbiBhbmQgR3VlbnRlciB3YXMg
-dG8gcmVtb3ZlIHRoZSBkcml2ZXIKPiA+PiBpbiBod21vbiBvbmNlIHRoZSBpaW8gb25lIHdhcyBp
-bnRyb2R1Y2VkLgo+ID4+IAo+ID4+IFNob3VsZCBJICBwcm92aWRlIGEgcGF0Y2ggaW4gS2NvbmZp
-ZyB0byBtYWtlIHRoZW0gY29uZmxpY3QgYXMgb2Ygbm93Cj4gPj4gPwo+ID4gCj4gPiBUaGVuIHlv
-dSBjYW4gZWl0aGVyIGV4ZWN1dGUgeW91ciBwbGFuIDopLCBvciBtYWtlIHRoZSBod21vbiBkcml2
-ZXIKPiA+IGRlcGVuZCBvbiBIVFUyMT1uLgo+ID4gCj4gPiBNaWNoYWwKPiA+IC0tCj4gPiBUbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtaWlvIiBpbgo+ID4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtl
-cm5lbC5vcmcKPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
-cmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
-ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-bS1zZW5zb3Jz
+Both NCT6791D and NCT6792D permit selection of a 'virtual' temperature
+register as temperature source. The virtual temperature registers are
+registers 0xea to 0xef in bank 0 and can be written by software.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6775.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 8b4fa55e46c6..724401a368f7 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -515,16 +515,24 @@ static const char *const nct6779_temp_label[] = {
+ 	"PCH_DIM1_TEMP",
+ 	"PCH_DIM2_TEMP",
+ 	"PCH_DIM3_TEMP",
+-	"BYTE_TEMP"
++	"BYTE_TEMP",
++	"",
++	"",
++	"",
++	"",
++	"Virtual_TEMP"
+ };
+ 
+-static const u16 NCT6779_REG_TEMP_ALTERNATE[ARRAY_SIZE(nct6779_temp_label) - 1]
++#define NCT6779_NUM_LABELS	(ARRAY_SIZE(nct6779_temp_label) - 5)
++#define NCT6791_NUM_LABELS	ARRAY_SIZE(nct6779_temp_label)
++
++static const u16 NCT6779_REG_TEMP_ALTERNATE[NCT6791_NUM_LABELS - 1]
+ 	= { 0x490, 0x491, 0x492, 0x493, 0x494, 0x495, 0, 0,
+ 	    0, 0, 0, 0, 0, 0, 0, 0,
+ 	    0, 0x400, 0x401, 0x402, 0x404, 0x405, 0x406, 0x407,
+ 	    0x408, 0 };
+ 
+-static const u16 NCT6779_REG_TEMP_CRIT[ARRAY_SIZE(nct6779_temp_label) - 1]
++static const u16 NCT6779_REG_TEMP_CRIT[NCT6791_NUM_LABELS - 1]
+ 	= { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x709, 0x70a };
+ 
+ /* NCT6791 specific data */
+@@ -3605,7 +3613,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->speed_tolerance_limit = 63;
+ 
+ 		data->temp_label = nct6779_temp_label;
+-		data->temp_label_num = ARRAY_SIZE(nct6779_temp_label);
++		data->temp_label_num = NCT6779_NUM_LABELS;
+ 
+ 		data->REG_CONFIG = NCT6775_REG_CONFIG;
+ 		data->REG_VBAT = NCT6775_REG_VBAT;
+@@ -3683,7 +3691,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->speed_tolerance_limit = 63;
+ 
+ 		data->temp_label = nct6779_temp_label;
+-		data->temp_label_num = ARRAY_SIZE(nct6779_temp_label);
++		data->temp_label_num = NCT6791_NUM_LABELS;
+ 
+ 		data->REG_CONFIG = NCT6775_REG_CONFIG;
+ 		data->REG_VBAT = NCT6775_REG_VBAT;
+-- 
+2.1.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
