@@ -1,68 +1,44 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Date: Mon, 16 Nov 2015 19:37:14 +0000
-Subject: Re: [lm-sensors] [v2] hwmon: (scpi) skip unsupported sensors properly
-Message-Id: <9hh1tbprb11.fsf@e105922-lin.cambridge.arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 16 Nov 2015 16:56:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: scpi: add thermal-of dependency
+Message-Id: <4264967.aVlONpCXFM@wuerfel>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1446052651-9024-1-git-send-email-sudeep.holla@arm.com>
-	<20151116175920.GA15811@roeck-us.net>
-In-Reply-To: <20151116175920.GA15811@roeck-us.net> (Guenter Roeck's message of
-	"Mon, 16 Nov 2015 09:59:20 -0800")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.com>
+Cc: Punit Agrawal <punit.agrawal@arm.com>, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Guenter Roeck <linux@roeck-us.net> writes:
+The newly added scpi thermal support is broken when the scpi driver
+is built-in but the thermal driver is a loadable module:
 
-> On Wed, Oct 28, 2015 at 05:17:31PM +0000, Sudeep Holla wrote:
->> Currently it's assumed that firmware exports only the class of sensors
->> supported by the driver. However with newer firmware or SCPI protocol
->> revision, support for newer classes of sensors can be present.
->> 
->> The driver fails to probe with the following warning if an unsupported
->> class of sensor is encountered in the firmware.
->> 
->> sysfs: cannot create duplicate filename
->> 	'/devices/platform/scpi/scpi:sensors/hwmon/hwmon0/'
->> ------------[ cut here ]------------
->> WARNING: at fs/sysfs/dir.c:31
->> Modules linked in:
->> 
->> CPU: 0 PID: 6 Comm: kworker/u12:0 Not tainted 4.3.0-rc7 #137
->> Hardware name: ARM Juno development board (r0) (DT)
->> Workqueue: deferwq deferred_probe_work_func
->> PC is at sysfs_warn_dup+0x54/0x78
->> LR is at sysfs_warn_dup+0x54/0x78
->> 
->> This patch fixes the above issue by skipping through the unsupported
->> class of SCPI sensors.
->> 
->> Fixes: 68acc77a2d51 ("hwmon: Support thermal zones registration for SCP temperature sensors")
->> Fixes: ea98b29a05e9 ("hwmon: Support sensors exported via ARM SCP interface")
->> Cc: Guenter Roeck <linux@roeck-us.net>
->> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> Acked-by: Guenter Roeck <linux@roeck-us.net>
->
-> In the assumption that this patch can now be applied, I queued it up
-> for the next -rc.
+drivers/built-in.o: In function `scpi_hwmon_probe':
+(.text+0x444d70): undefined reference to `thermal_zone_of_sensor_unregister'
+(.text+0x444d94): undefined reference to `thermal_zone_of_sensor_register'
+drivers/built-in.o: In function `scpi_hwmon_remove':
+(text+0x444e6c): undefined reference to `thermal_zone_of_sensor_unregister'
 
-Looks like our emails crossed on the wire. :)
+This uses the same Kconfig trick that we have in a couple of other
+drivers already to ensure we can only select the driver in valid
+configurations when either THERMAL_OF is disabled, or when with a
+dependency on CONFIG_THERMAL that can force SCPI to be a loadable
+module in the case I was hitting.
 
-Thanks for applying the patch.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 68acc77a2d51 ("hwmon: Support thermal zones registration for SCP temperature sensors")
 
-Punit
-
->
-> Guenter
->
->> ---
->>  drivers/hwmon/scpi-hwmon.c | 21 +++++++++++----------
->>  1 file changed, 11 insertions(+), 10 deletions(-)
->> 
-
-[...]
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 842b0043ad94..597814177f50 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -324,6 +324,7 @@ config SENSORS_APPLESMC
+ config SENSORS_ARM_SCPI
+ 	tristate "ARM SCPI Sensors"
+ 	depends on ARM_SCPI_PROTOCOL
++	depends on THERMAL || !THERMAL_OF
+ 	help
+ 	  This driver provides support for temperature, voltage, current
+ 	  and power sensors available on ARM Ltd's SCP based platforms. The
 
 
 _______________________________________________
