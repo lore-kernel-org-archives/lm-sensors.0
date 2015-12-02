@@ -1,61 +1,43 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 01 Dec 2015 15:02:55 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] iio: ina2xx: add support for TI INA2xx Power Monitors
-Message-Id: <565DB69F.9000406@roeck-us.net>
+From: Another Sillyname <anothersname@googlemail.com>
+Date: Wed, 02 Dec 2015 09:19:33 +0000
+Subject: [lm-sensors] Asus Gene VI and Gene VII...same chip.....different outcomes.....BIOS settings?
+Message-Id: <CAOS+5GFZRvm+sxU52D4py88Ny7BXcTwGa61M4VoYkiCZ1kYvSw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1448450896-24387-1-git-send-email-mtitinger@baylibre.com>
- <1448450896-24387-2-git-send-email-mtitinger@baylibre.com>
- <565B287B.6010008@kernel.org> <565B381F.7000208@roeck-us.net>
- <565D7014.4020806@baylibre.com>
-In-Reply-To: <565D7014.4020806@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marc Titinger <mtitinger@baylibre.com>, Jonathan Cameron <jic23@kernel.org>, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, jdelvare@suse.com
-Cc: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On 12/01/2015 02:01 AM, Marc Titinger wrote:
-> On 29/11/2015 18:38, Guenter Roeck wrote:
->> On 11/29/2015 08:31 AM, Jonathan Cameron wrote:
->>> On 25/11/15 11:28, Marc Titinger wrote:
->>>> in SOFTWARE buffer mode, a kthread will capture the active scan_elements
->>>> into a kfifo, then compute the remaining time until the next capture
->>>> tick
->>>> and do an active wait (udelay).
->>>>
->>>> This will produce a stream of up to fours channels plus a 64bits
->>>> timestamps (ns).
->>>>
->>>> Tested with ina226, on BeagleBoneBlack.
->>>>
->>>> Datasheet: http://www.ti.com/lit/gpn/ina226
->>>>
->>>> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
->>> A few more bits from me, but basically looking good.
->>>
->>> We do however, need to make the hwmon guys aware this is going on.
->>> Please cc their list on the next version.
->>>
->>> Last thing we want is for this to turn up as a surprise!
->>>
->>
->> I have seen the original patch, so no surprise here. Just not sure
->> if we should remove the hwmon driver after the iio driver is accepted.
->> Even though the stated goal is different, it seems to me that having
->> two drivers really does not make sense. Any thoughts ?
->
-> Hi Guenter,
->
-> we for instance have two completely unrelated projects both using this chip, on one side we wish to measure power consumption on the host board and hwmon has the apis and tool ecosystem for it, while on the "ACME" system we needed IIO because it's buffer streaming scheme and remote features saves the day to create a lab instrument. But really both have their use, I'd recommend keeping the hwmon driver for now. I doubt those drivers will generate much maintenance work in the future either.
->
+I have both an Asus Gene Vi and a Gene VII.
 
-Marc,
+Both have the NCT6791D chip.
 
-You can use the iio-hwmon bridge to get the hwmon ABI from the iio driver.
-There is no need to keep the hwmon driver as a separate entity for that.
+On the VI all the fan, temp and voltage sensors show and dmesg reports
+no acpi conflicts.
 
-Guenter
+On the VII dmesg reports the usual acpi conflict......
 
+nct6775: Enabling hardware monitor logical device mappings.
+nct6775: Found NCT6791D or compatible chip at 0x2e:0x290
+ACPI Warning: SystemIO range 0x0000000000000295-0x0000000000000296
+conflicts with OpRegion 0x0000000000000290-0x0000000000000299
+(\_GPE.HWM_) (20150619/utaddress-254)
+ACPI: If an ACPI driver is available for this device, you should use
+it instead of the native driver
+
+
+As this is outside my experience I have to ask is there a BIOS setting
+or anything that would cause the difference?
+
+I'm a bit loath to use the acpi=lax kernel option as this box is going
+to be a raid file server and I don't want to find after 3 months it's
+been slowly corrupting data and I didn't notice.
+
+All ideas and suggestions welcome....
+
+If anyone wants anything in the way of debugs from the VII let me know
+as it's currently in burn in test till January before going into
+production.
 
 _______________________________________________
 lm-sensors mailing list
