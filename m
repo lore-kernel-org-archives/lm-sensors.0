@@ -1,61 +1,67 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 01 Dec 2015 21:06:24 +0000
-Subject: Re: [lm-sensors] [PATCH V2] hwmon: (tmp102) Force wait for conversion time for the first valid data
-Message-Id: <20151201210624.GA9177@roeck-us.net>
+From: Huang Rui <ray.huang@amd.com>
+Date: Thu, 10 Dec 2015 03:56:11 +0000
+Subject: [lm-sensors] [PATCH 2/2] MAINTAINERS: change the maintainer of fam15h_power driver
+Message-Id: <1449719771-12837-3-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1448943955-2385-1-git-send-email-nm@ti.com>
- <1448986221-6190-1-git-send-email-nm@ti.com>
-In-Reply-To: <1448986221-6190-1-git-send-email-nm@ti.com>
+References: <1449719771-12837-1-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1449719771-12837-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nishanth Menon <nm@ti.com>
-Cc: Jean Delvare <jdelvare@suse.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Eduardo Valentin <edubezval@gmail.com>
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>, Andreas Herrmann <herrmann.der.user@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Andreas Herrmann <herrmann.der.user@googlemail.com>, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>
 
-On Tue, Dec 01, 2015 at 10:10:21AM -0600, Nishanth Menon wrote:
-> TMP102 works based on conversions done periodically. However, as per
-> the TMP102 data sheet[1] the first conversion is triggered immediately
-> after we program the configuration register. The temperature data
-> registers do not reflect proper data until the first conversion is
-> complete (in our case HZ/4).
-> 
-> The driver currently sets the last_update to be jiffies - HZ, just
-> after the configuration is complete. When TMP102 driver registers
-> with the thermal framework, it immediately tries to read the sensor
-> temperature data. This takes place even before the conversion on the
-> TMP102 is complete and results in an invalid temperature read.
-> 
-> Depending on the value read, this may cause thermal framework to
-> assume that a critical temperature event has occurred and attempts to
-> shutdown the system.
-> 
-> Instead of causing an invalid mid-conversion value to be read
-> erroneously, we mark the last_update to be in-line with the current
-> jiffies. This allows the tmp102_update_device function to skip update
-> until the required conversion time is complete. Further, we ensure to
-> return -EAGAIN result instead of returning spurious temperature (such
-> as 0C) values to the caller to prevent any wrong decisions made with
-> such values. NOTE: this allows the read functions not to be blocking
-> and allows the callers to make the decision if they would like to
-> block or try again later. At least the current user(thermal) seems to
-> handle this by retrying later.
-> 
-> A simpler alternative approach could be to sleep in the probe for the
-> duration required, but that will result in latency that is undesirable
-> and delay boot sequence un-necessarily.
-> 
-> [1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
-> 
-> Cc: Eduardo Valentin <edubezval@gmail.com>
-> Reported-by: Aparna Balasubramanian <aparnab@ti.com>
-> Reported-by: Elvita Lobo <elvita@ti.com>
-> Reported-by: Yan Liu <yan-liu@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Andreas Herrmann won't take the maintainer of fam15h_power driver. I
+will take it and appreciate him for the great contributions on this
+driver.
 
-Applied.
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+Acked-by: Andreas Herrmann <herrmann.der.user@googlemail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>
+---
+ CREDITS     | 8 ++++++++
+ MAINTAINERS | 4 ++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/CREDITS b/CREDITS
+index 8207cc6..30bdce8 100644
+--- a/CREDITS
++++ b/CREDITS
+@@ -1507,6 +1507,14 @@ S: 312/107 Canberra Avenue
+ S: Griffith, ACT 2603 
+ S: Australia
+ 
++N: Andreas Herrmann
++E: herrmann.der.user@gmail.com
++E: herrmann.der.user@googlemail.com
++D: Key developer of x86/AMD64
++D: Author of AMD family 15h processor power monintoring driver
++D: Maintainer of AMD Athlon 64 and Opteron processor frequency driver
++S: Germany
++
+ N: Sebastian Hetze
+ E: she@lunetix.de
+ D: German Linux Documentation,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cba790b..c99dd93 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -614,9 +614,9 @@ F:	drivers/crypto/ccp/
+ F:	include/linux/ccp.h
+ 
+ AMD FAM15H PROCESSOR POWER MONITORING DRIVER
+-M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
++M:	Huang Rui <ray.huang@amd.com>
+ L:	lm-sensors@lm-sensors.org
+-S:	Maintained
++S:	Supported
+ F:	Documentation/hwmon/fam15h_power
+ F:	drivers/hwmon/fam15h_power.c
+ 
+-- 
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
