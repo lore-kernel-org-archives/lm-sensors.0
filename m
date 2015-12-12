@@ -1,54 +1,127 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 18 Dec 2015 20:06:52 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.4-rc6
-Message-Id: <1450469212-31015-1-git-send-email-linux@roeck-us.net>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Date: Sat, 12 Dec 2015 16:36:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: constify sensor_template_group structures
+Message-Id: <1449938199-26314-1-git-send-email-Julia.Lawall@lip6.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Jean Delvare <jdelvare@suse.com>
+Cc: kernel-janitors@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+The sensor_template_group structures are never modified, so declare them as
+const.
 
-Please pull hwmon fixes for Linux v4.4-rc6 from signed tag:
+Done with the help of Coccinelle.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.4-rc6
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Thanks,
-Guenter
-------
+---
+ drivers/hwmon/nct6683.c |   11 ++++++-----
+ drivers/hwmon/nct6775.c |   11 ++++++-----
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
-The following changes since commit 527e9316f8ec44bd53d90fb9f611fa7ffff52bb9:
+diff --git a/drivers/hwmon/nct6683.c b/drivers/hwmon/nct6683.c
+index 37f0170..6cf392c 100644
+--- a/drivers/hwmon/nct6683.c
++++ b/drivers/hwmon/nct6683.c
+@@ -394,7 +394,8 @@ struct sensor_template_group {
+ };
+ 
+ static struct attribute_group *
+-nct6683_create_attr_group(struct device *dev, struct sensor_template_group *tg,
++nct6683_create_attr_group(struct device *dev,
++			  const struct sensor_template_group *tg,
+ 			  int repeat)
+ {
+ 	struct sensor_device_attribute_2 *a2;
+@@ -703,7 +704,7 @@ static struct sensor_device_template *nct6683_attributes_in_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6683_in_template_group = {
++static const struct sensor_template_group nct6683_in_template_group = {
+ 	.templates = nct6683_attributes_in_template,
+ 	.is_visible = nct6683_in_is_visible,
+ };
+@@ -774,7 +775,7 @@ static struct sensor_device_template *nct6683_attributes_fan_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6683_fan_template_group = {
++static const struct sensor_template_group nct6683_fan_template_group = {
+ 	.templates = nct6683_attributes_fan_template,
+ 	.is_visible = nct6683_fan_is_visible,
+ 	.base = 1,
+@@ -902,7 +903,7 @@ static struct sensor_device_template *nct6683_attributes_temp_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6683_temp_template_group = {
++static const struct sensor_template_group nct6683_temp_template_group = {
+ 	.templates = nct6683_attributes_temp_template,
+ 	.is_visible = nct6683_temp_is_visible,
+ 	.base = 1,
+@@ -938,7 +939,7 @@ static struct sensor_device_template *nct6683_attributes_pwm_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6683_pwm_template_group = {
++static const struct sensor_template_group nct6683_pwm_template_group = {
+ 	.templates = nct6683_attributes_pwm_template,
+ 	.is_visible = nct6683_pwm_is_visible,
+ 	.base = 1,
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index d7ebdf8..d087a8e 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -1045,7 +1045,8 @@ struct sensor_template_group {
+ };
+ 
+ static struct attribute_group *
+-nct6775_create_attr_group(struct device *dev, struct sensor_template_group *tg,
++nct6775_create_attr_group(struct device *dev,
++			  const struct sensor_template_group *tg,
+ 			  int repeat)
+ {
+ 	struct attribute_group *group;
+@@ -1827,7 +1828,7 @@ static struct sensor_device_template *nct6775_attributes_in_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6775_in_template_group = {
++static const struct sensor_template_group nct6775_in_template_group = {
+ 	.templates = nct6775_attributes_in_template,
+ 	.is_visible = nct6775_in_is_visible,
+ };
+@@ -2046,7 +2047,7 @@ static struct sensor_device_template *nct6775_attributes_fan_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6775_fan_template_group = {
++static const struct sensor_template_group nct6775_fan_template_group = {
+ 	.templates = nct6775_attributes_fan_template,
+ 	.is_visible = nct6775_fan_is_visible,
+ 	.base = 1,
+@@ -2255,7 +2256,7 @@ static struct sensor_device_template *nct6775_attributes_temp_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6775_temp_template_group = {
++static const struct sensor_template_group nct6775_temp_template_group = {
+ 	.templates = nct6775_attributes_temp_template,
+ 	.is_visible = nct6775_temp_is_visible,
+ 	.base = 1,
+@@ -3117,7 +3118,7 @@ static struct sensor_device_template *nct6775_attributes_pwm_template[] = {
+ 	NULL
+ };
+ 
+-static struct sensor_template_group nct6775_pwm_template_group = {
++static const struct sensor_template_group nct6775_pwm_template_group = {
+ 	.templates = nct6775_attributes_pwm_template,
+ 	.is_visible = nct6775_pwm_is_visible,
+ 	.base = 1,
 
-  Linux 4.4-rc4 (2015-12-06 15:43:12 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.4-rc6
-
-for you to fetch changes up to a3a316cfc41ab3e7b9e0079338f8ea9dff911d88:
-
-  hwmon: (sht15) Select CONFIG_BITREVERSE (2015-12-18 08:19:52 -0800)
-
-----------------------------------------------------------------
-hwmon fixes for v4.4-rc6
-
-- Select CONFIG_BITREVERSE for sht15 driver to avoid build failure
-  if it is not configured.
-- Force wait for conversion time for the first valid data in tmp102
-  driver to avoid reporting erroneous data to the thermal subsystem.
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      hwmon: (sht15) Select CONFIG_BITREVERSE
-
-Nishanth Menon (1):
-      hwmon: (tmp102) Force wait for conversion time for the first valid data
-
- drivers/hwmon/Kconfig  |  1 +
- drivers/hwmon/tmp102.c | 16 +++++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
 
 _______________________________________________
 lm-sensors mailing list
