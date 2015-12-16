@@ -1,49 +1,14 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 18 Dec 2015 16:20:30 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: sht15 needs CONFIG_BITREVERSE
-Message-Id: <5674324E.6050908@roeck-us.net>
+From: Sverd Johnsen <sverd.johnsen@googlemail.com>
+Date: Wed, 16 Dec 2015 23:30:12 +0000
+Subject: Re: [lm-sensors] it87 IT8620F support?
+Message-Id: <CAGmahrS_-uub5yYmj3f683vPeE-_K2aqz9fPK6kXCrZw9FFxWg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1562989.nyG23Y3QQo@wuerfel>
-In-Reply-To: <1562989.nyG23Y3QQo@wuerfel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: yalin wang <yalin.wang2010@gmail.com>, Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-On 12/18/2015 06:52 AM, Arnd Bergmann wrote:
-> If CONFIG_BITREVERSE is not built-in, the sht15 driver fails to link:
->
-> drivers/built-in.o: In function `sht15_crc8':
-> drivers/hwmon/sht15.c:195: undefined reference to `byte_rev_table'
->
-> This adds a Kconfig 'select' statement, like all other users of
-> bitrev.h have it.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 33836ee98533 ("hwmon:change sht15_reverse()")
-
-Good catch. Applied.
-
-Thanks,
-Guenter
-
->
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 4a6e7c217329..60fb80bd353d 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1207,6 +1207,7 @@ config SENSORS_PWM_FAN
->   config SENSORS_SHT15
->   	tristate "Sensiron humidity and temperature sensors. SHT15 and compat."
->   	depends on GPIOLIB || COMPILE_TEST
-> +	select BITREVERSE
->   	help
->   	  If you say yes here you get support for the Sensiron SHT10, SHT11,
->   	  SHT15, SHT71, SHT75 humidity and temperature sensors.
->
->
-
+FYI, I made a mistake identifying the chip, its a IT8628E not IT8620F.
 
 _______________________________________________
 lm-sensors mailing list
