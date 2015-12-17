@@ -1,57 +1,39 @@
-From: Andreas Werner <andreas.werner@men.de>
-Date: Tue, 15 Dec 2015 15:11:24 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 17 Dec 2015 11:48:08 +0000
 Subject: Re: [lm-sensors] LM90 driver and ti tmp461 detection
-Message-Id: <20151215151123.GA2349@awelinux>
+Message-Id: <20151217124808.63f8f54f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20151210120856.GA27765@awelinux>
- <5669AB55.5030309@roeck-us.net>
- <20151210171231.GA28022@awelinux>
- <20151212110842.10e7693e@endymion.delvare>
-In-Reply-To: <20151212110842.10e7693e@endymion.delvare>
+	<5669AB55.5030309@roeck-us.net>
+	<20151210171231.GA28022@awelinux>
+	<20151212110842.10e7693e@endymion.delvare>
+	<20151215151123.GA2349@awelinux>
+In-Reply-To: <20151215151123.GA2349@awelinux>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Andreas Werner <andreas.werner@men.de>, Guenter Roeck <linux@roeck-us.net>, wni@nvidia.com, jdelvare@suse.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Andreas Werner <andreas.werner@men.de>
+Cc: Guenter Roeck <linux@roeck-us.net>, wni@nvidia.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Sat, Dec 12, 2015 at 11:08:42AM +0100, Jean Delvare wrote:
-> Hallo Andreas,
-> 
-> On Thu, 10 Dec 2015 18:12:31 +0100, Andreas Werner wrote:
-> > thanks for the register dump :-)
-> 
-> Can you please share the register dump of your TMP461 with us?
-> 
-> Thanks,
-> -- 
-> Jean Delvare
-> SUSE L3 Support
+Hi Andreas,
 
-Hi,
-here is the register dump of the tmp461.
-It seemse that we really cannot detect if it is a tmp461 or a tmp451.
-Also the magic "ID Register" offset 0xff is 0x00 for both devices.
+On Tue, 15 Dec 2015 16:11:24 +0100, Andreas Werner wrote:
+> here is the register dump of the tmp461.
 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 5a 00 2c 00 05 7f 80 7f 80 00 00 00 00 00 00 00    Z.,.?????.......
-10: 00 00 00 f0 00 80 03 00 00 7f 00 00 00 00 00 00    ...?.??..?......
-20: 7f 0a 01 00 00 XX 00 00 00 00 0e 00 00 00 40 00    ???..X....?...@.
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 55 00    ..............U.
+Thanks.
 
-Regards
-Andy
+> It seemse that we really cannot detect if it is a tmp461 or a tmp451.
+> Also the magic "ID Register" offset 0xff is 0x00 for both devices.
+
+I would use register 0x16, which doesn't exist but reads 0x00 on the
+TMP451. It could in theory also read 0x00 on the TMP461 but only if
+both channels are disabled, which makes little sense. More likely at
+least one channel will be enabled so you'll have value 0x01-0x03 if
+this is a TMP461.
+
+-- 
+Jean Delvare
+SUSE L3 Support
 
 _______________________________________________
 lm-sensors mailing list
