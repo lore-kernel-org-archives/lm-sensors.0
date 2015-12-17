@@ -1,7 +1,7 @@
-From: Andreas Werner <andreas.werner@men.de>
-Date: Thu, 17 Dec 2015 11:54:20 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 17 Dec 2015 14:57:51 +0000
 Subject: Re: [lm-sensors] LM90 driver and ti tmp461 detection
-Message-Id: <20151217115420.GB2349@awelinux>
+Message-Id: <20151217145751.GA21030@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20151210120856.GA27765@awelinux>
  <5669AB55.5030309@roeck-us.net>
@@ -14,7 +14,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <jdelvare@suse.de>
-Cc: Andreas Werner <andreas.werner@men.de>, Guenter Roeck <linux@roeck-us.net>, wni@nvidia.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Andreas Werner <andreas.werner@men.de>, wni@nvidia.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
 On Thu, Dec 17, 2015 at 12:48:08PM +0100, Jean Delvare wrote:
 > Hi Andreas,
@@ -32,14 +32,10 @@ On Thu, Dec 17, 2015 at 12:48:08PM +0100, Jean Delvare wrote:
 > both channels are disabled, which makes little sense. More likely at
 > least one channel will be enabled so you'll have value 0x01-0x03 if
 > this is a TMP461.
->
+> 
+Excellent idea!
 
-Yes you are right. Both channels are enabled during POR, so the chance
-to have a 0x00 as in the TMP451 will be very low.
- 
-> -- 
-> Jean Delvare
-> SUSE L3 Support
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
