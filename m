@@ -1,60 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 18 Nov 2015 16:30:56 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.4-rc2
-Message-Id: <1447864256-8985-1-git-send-email-linux@roeck-us.net>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 18 Dec 2015 14:52:28 +0000
+Subject: [lm-sensors] [PATCH] hwmon: sht15 needs CONFIG_BITREVERSE
+Message-Id: <1562989.nyG23Y3QQo@wuerfel>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: yalin wang <yalin.wang2010@gmail.com>, Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Linus,
+If CONFIG_BITREVERSE is not built-in, the sht15 driver fails to link:
 
-Please pull hwmon fixes for Linux v4.4-rc2 from signed tag:
+drivers/built-in.o: In function `sht15_crc8':
+drivers/hwmon/sht15.c:195: undefined reference to `byte_rev_table'
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.4-rc2
+This adds a Kconfig 'select' statement, like all other users of
+bitrev.h have it.
 
-Thanks,
-Guenter
-------
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 33836ee98533 ("hwmon:change sht15_reverse()")
 
-The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7130bec:
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4a6e7c217329..60fb80bd353d 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1207,6 +1207,7 @@ config SENSORS_PWM_FAN
+ config SENSORS_SHT15
+ 	tristate "Sensiron humidity and temperature sensors. SHT15 and compat."
+ 	depends on GPIOLIB || COMPILE_TEST
++	select BITREVERSE
+ 	help
+ 	  If you say yes here you get support for the Sensiron SHT10, SHT11,
+ 	  SHT15, SHT71, SHT75 humidity and temperature sensors.
 
-  Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.4-rc2
-
-for you to fetch changes up to cef03d7e66bd70c4baf61dd2431cf8de250834de:
-
-  hwmon: (scpi) skip unsupported sensors properly (2015-11-16 09:59:50 -0800)
-
-----------------------------------------------------------------
-hwmon fixes for v4.4-rc2
-
-Fix build issues in scpi and ina2xx drivers, update scpi driver to
-support recent firmware, and fix an uninitialized variable warning
-in applesmc driver.
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      hwmon: (scpi) add thermal-of dependency
-
-Li Yang (1):
-      hwmon: (ina2xx) Fix build issue by selecting REGMAP_I2C
-
-Shuah Khan (1):
-      hwmon : (applesmc) Fix uninitialized variables warnings
-
-Sudeep Holla (1):
-      hwmon: (scpi) skip unsupported sensors properly
-
- drivers/hwmon/Kconfig      |  2 ++
- drivers/hwmon/applesmc.c   |  2 +-
- drivers/hwmon/scpi-hwmon.c | 21 +++++++++++----------
- 3 files changed, 14 insertions(+), 11 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
