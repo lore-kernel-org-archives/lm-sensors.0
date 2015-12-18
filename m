@@ -1,152 +1,54 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Date: Sat, 12 Dec 2015 15:56:11 +0000
-Subject: Re: [lm-sensors] [PATCH v3 2/2] iio: ina2xx: provide a sysfs parameter to allow async readout of the
-Message-Id: <566C439B.5080406@kernel.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 18 Dec 2015 20:06:52 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.4-rc6
+Message-Id: <1450469212-31015-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1449479375-4061-1-git-send-email-mtitinger@baylibre.com>
- <1449479375-4061-3-git-send-email-mtitinger@baylibre.com>
-In-Reply-To: <1449479375-4061-3-git-send-email-mtitinger@baylibre.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marc Titinger <mtitinger@baylibre.com>, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, linux@roeck-us.net, jdelvare@suse.com
-Cc: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: torvalds@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On 07/12/15 09:09, Marc Titinger wrote:
-> This can lead to repeated or skipped samples depending on the clock beat
-> between the capture thread and the chip sampling clock, but will also spare
-> reading/waiting for the Capture Ready Flag and improve the available i2c
-> bandwidth for reading measurements.
-> 
-> Output of iio_info:
-> ...snip...
-> 4 device-specific attributes found:
->   attr 0: in_oversampling_ratio value: 4
->   attr 1: in_allow_async_readout value: 0
->   attr 2: integration_time_available value: 140 204 332 588 1100 2116...
->   attr 3: in_sampling_frequency value: 114
-> 
-> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
-Applied to the togreg branch of iio.git - initially pushed out as testing for the autobuilders
-to play with it.
+Hi Linus,
 
-Could you prepare a follow up patch adding abi docs to
-Documentation/ABI/testing/sysfs-bus-iio-ina2xx-adc 
-please.
+Please pull hwmon fixes for Linux v4.4-rc6 from signed tag:
 
-I didn't want to hold this up by insisting on docs now, but it does need
-doing asap.
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.4-rc6
 
-Jonathan
-> ---
->  drivers/iio/adc/ina2xx-adc.c | 54 ++++++++++++++++++++++++++++++++++++--------
->  1 file changed, 45 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/iio/adc/ina2xx-adc.c b/drivers/iio/adc/ina2xx-adc.c
-> index 0e7c474..615c203 100644
-> --- a/drivers/iio/adc/ina2xx-adc.c
-> +++ b/drivers/iio/adc/ina2xx-adc.c
-> @@ -111,6 +111,7 @@ struct ina2xx_chip_info {
->  	s64 prev_ns;	/* track buffer capture time, check for underruns*/
->  	int int_time_vbus; /* Bus voltage integration time uS */
->  	int int_time_vshunt; /* Shunt voltage integration time uS */
-> +	bool allow_async_readout;
->  };
->  
->  static const struct ina2xx_config ina2xx_config[] = {
-> @@ -326,6 +327,33 @@ _err:
->  }
->  
->  
-> +static ssize_t ina2xx_allow_async_readout_show(struct device *dev,
-> +					   struct device_attribute *attr,
-> +					   char *buf)
-> +{
-> +	struct ina2xx_chip_info *chip = iio_priv(dev_to_iio_dev(dev));
-> +
-> +	return sprintf(buf, "%d\n", chip->allow_async_readout);
-> +}
-> +
-> +static ssize_t ina2xx_allow_async_readout_store(struct device *dev,
-> +				struct device_attribute *attr,
-> +				const char *buf, size_t len)
-> +{
-> +	struct ina2xx_chip_info *chip = iio_priv(dev_to_iio_dev(dev));
-> +	bool val;
-> +	int ret;
-> +
-> +	ret = strtobool((const char *) buf, &val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	chip->allow_async_readout = val;
-> +
-> +	return len;
-> +}
-> +
-> +
->  #define INA2XX_CHAN(_type, _index, _address) { \
->  	.type = (_type), \
->  	.address = (_address), \
-> @@ -392,16 +420,17 @@ static int ina2xx_work_buffer(struct iio_dev *indio_dev)
->  	 * GPIO a triggered buffer could be used instead.
->  	 * For now, we pay for that extra read of the ALERT register
->  	 */
-> -	do {
-> -		ret = regmap_read(chip->regmap, INA226_ALERT_MASK,
-> -				  &alert);
-> -		if (ret < 0)
-> -			return ret;
-> +	if (!chip->allow_async_readout)
-> +		do {
-> +			ret = regmap_read(chip->regmap, INA226_ALERT_MASK,
-> +					  &alert);
-> +			if (ret < 0)
-> +				return ret;
->  
-> -		alert &= INA266_CVRF;
-> -		trace_printk("Conversion ready: %d\n", !!alert);
-> +			alert &= INA266_CVRF;
-> +			trace_printk("Conversion ready: %d\n", !!alert);
->  
-> -	} while (!alert);
-> +		} while (!alert);
->  
->  	/*
->  	 * Single register reads: bulk_read will not work with ina226
-> @@ -446,7 +475,8 @@ static int ina2xx_capture_thread(void *data)
->  	 * Poll a bit faster than the chip internal Fs, in case
->  	 * we wish to sync with the conversion ready flag.
->  	 */
-> -	sampling_us -= 200;
-> +	if (!chip->allow_async_readout)
-> +		sampling_us -= 200;
->  
->  	do {
->  		buffer_us = ina2xx_work_buffer(indio_dev);
-> @@ -471,6 +501,7 @@ int ina2xx_buffer_enable(struct iio_dev *indio_dev)
->  		     1000000/sampling_us, chip->avg);
->  
->  	trace_printk("Expected work period: %u us\n", sampling_us);
-> +	trace_printk("Async readout mode: %d\n", chip->allow_async_readout);
->  
->  	chip->prev_ns = iio_get_time_ns();
->  
-> @@ -512,7 +543,12 @@ static int ina2xx_debug_reg(struct iio_dev *indio_dev,
->  static IIO_CONST_ATTR_INT_TIME_AVAIL \
->   ("0.000140 0.000204 0.000332 0.000588 0.001100 0.002116 0.004156 0.008244");
->  
-> +static IIO_DEVICE_ATTR(in_allow_async_readout, S_IRUGO | S_IWUSR,
-> +		       ina2xx_allow_async_readout_show,
-> +		       ina2xx_allow_async_readout_store, 0);
-> +
->  static struct attribute *ina2xx_attributes[] = {
-> +	&iio_dev_attr_in_allow_async_readout.dev_attr.attr,
->  	&iio_const_attr_integration_time_available.dev_attr.attr,
->  	NULL,
->  };
-> 
+Thanks,
+Guenter
+------
 
+The following changes since commit 527e9316f8ec44bd53d90fb9f611fa7ffff52bb9:
+
+  Linux 4.4-rc4 (2015-12-06 15:43:12 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.4-rc6
+
+for you to fetch changes up to a3a316cfc41ab3e7b9e0079338f8ea9dff911d88:
+
+  hwmon: (sht15) Select CONFIG_BITREVERSE (2015-12-18 08:19:52 -0800)
+
+----------------------------------------------------------------
+hwmon fixes for v4.4-rc6
+
+- Select CONFIG_BITREVERSE for sht15 driver to avoid build failure
+  if it is not configured.
+- Force wait for conversion time for the first valid data in tmp102
+  driver to avoid reporting erroneous data to the thermal subsystem.
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      hwmon: (sht15) Select CONFIG_BITREVERSE
+
+Nishanth Menon (1):
+      hwmon: (tmp102) Force wait for conversion time for the first valid data
+
+ drivers/hwmon/Kconfig  |  1 +
+ drivers/hwmon/tmp102.c | 16 +++++++++++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
 _______________________________________________
 lm-sensors mailing list
