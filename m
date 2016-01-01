@@ -1,95 +1,95 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 28 Jan 2016 05:48:24 +0000
-Subject: Re: [lm-sensors] Problems with lm-sensors web site / Wiki
-Message-Id: <56A9ABA8.6020008@roeck-us.net>
+From: PhiLLip Pi <ant@zimage.com>
+Date: Fri, 01 Jan 2016 18:45:41 +0000
+Subject: Re: [lm-sensors] adt7473 for NVIDIA
+Message-Id: <20160101184541.GA18310@beta.zimage.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <56A78A98.9040208@sat.dundee.ac.uk>
-In-Reply-To: <56A78A98.9040208@sat.dundee.ac.uk>
+References: <20100316155203.GD25138@alpha.zimage.com>
+In-Reply-To: <20100316155203.GD25138@alpha.zimage.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 01/27/2016 10:06 AM, phil@philedelbrock.com wrote:
->
->> On Jan 27, 2016, at 9:12 AM, Guenter Roeck <linux@roeck-us.net> wrote:
->>
->> On 01/27/2016 01:17 AM, Philip Edelbrock wrote:
->>>
->>>> On Jan 26, 2016, at 7:33 AM, Guenter Roeck <linux@roeck-us.net> wrote:
->>>>
->>>> On 01/26/2016 07:02 AM, Paul Crawford wrote:
->>>>> I was just checking the wiki (that used to be) on the www.lm-sensors.=
-org
->>>>> site and it looks as if someone has messed up the Apache web server, =
-as
->>>>> it only has a directory 'ht' with a .rpm file in it.
->>>>>
->>>>> Does anyone know who is looking after the site and/or if this is being
->>>>> fixed?
->>>>>
->>>>
->>>> The maintainer is not reachable. I think we'll have to re-create the s=
-ite
->>>> from scratch.
->>>>
->>>> Guenter
->>>
->>>
->>> Yes, unfortunately.  I see www.lm-sensors.org is pointing to the httptu=
-nnel project, which is definitely not us.
->>>
->>> I just wish we had a copy of the Trac and database with all the pages a=
-nd such=85 ugggg.  That=92s a bit upsetting.
->>>
->> Most or at least some of it can be found in web caches, though it will b=
-e a bit of work.
->>
->>> I could set something up where the web files are on Github and we can h=
-ave multiple authors.  If nothing else, somebody could always take the Gith=
-ub files and run with them without having to track down a former MIA admin.
->>>
->>> It probably won=92t be too soon, though, I=92m a bit swamped with my da=
-y job but I=92ll try to get something going soon with multiple admins.  I=
-=92m open to other ideas, too.  I own lm-sensors.org and can get the DNS to=
- point anywhere.
->>>
->>
->> Is it possible to set up a wiki ? No idea how the back-end storage would=
- work, though.
->> We'll definitely want it backed up this time.
->>
->> Guenter
->>
->
->
-> Most recent Internet Archive for lm-sensors.org is here: https://web.arch=
-ive.org/web/20150905145034/http://www.lm-sensors.org/
->
-> Plenty of good stuff there to copy and paste from.
->
-> And I definitely agree with the sentiment on backing things up! ;=92)
->
-> For hosting, I=92ll get an instance of Heroku going with a basic Ruby on =
-Rails app (it can serve static pages, too, which is probably all we=92ll ne=
-ed to start with): https://www.heroku.com
->
-> It is free for a =91hobby=92 account which includes a PostgreSQL database=
- (up to 10,000 rows for free, I think).  They are actually an Amazon AWS re=
-seller.  It pulls right from a GitHub project I'll create.  Even if all the=
- admins go MIA, the project could be cloned from github by anyone and keep =
-things going.
->
-> In between other work I=92ll try to get something going and give people a=
-ccess to it who want to contribute.  Perhaps even this week.
->
+On Tue, Mar 16, 2010 at 05:30:31PM +0100, Jean Delvare wrote:
+> On Tue, 16 Mar 2010 08:52:03 -0700, Phillip Pi wrote:
+> > Reply-To:=20
+> > In-Reply-To: <20100316163333.7f5911f7@hyperion.delvare>
+> >=20
+> > > > I noticed this kernel upgrade detected something new:=20
+> > > > http://pastie.org/872083 (too long to post in here). It never detec=
+ted=20
+> > > > adt7473 module, but it never show it in sensors command. What is it=
+?=20
+> > > > From a quick Google search, it seems to be fan controls or somethin=
+g?
+> > >=20
+> > > Hardware monitoring chip, on your graphics adapter. Getting these to
+> > > work if often tedious because nVidia is not cooperating. Try the
+> > > following (as root):
+> > >=20
+> > > # echo adt7473 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
+> > >=20
+> > > Then "sensors" might show more.
+> >=20
+> > # echo adt7473 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
+> > # sensors
+> > acpitz-virtual-0
+> > Adapter: Virtual device
+> > temp1:       +21.8=B0C  (crit =3D +96.8=B0C)                 =20
+> >=20
+> > k8temp-pci-00c3
+> > Adapter: PCI adapter
+> > Core0 Temp:  +39.0=B0C                                   =20
+> > Core1 Temp:  +27.0=B0C                                   =20
+> >=20
+> > adt7473-i2c-4-2e
+> > Adapter: NVIDIA i2c adapter=20
+> > in1:         +2.99 V  (min =3D  +0.00 V, max =3D  +2.99 V)  =20
+> > +3.3V:       +3.21 V  (min =3D  +0.00 V, max =3D  +4.38 V)  =20
+> > fan1:       1511 RPM  (min =3D    0 RPM)
+> > fan2:          0 RPM  (min =3D    0 RPM)
+> > fan3:          0 RPM  (min =3D  164 RPM)  ALARM
+> > fan4:          0 RPM  (min =3D    0 RPM)
+> > temp1:       +60.0=B0C  (low  =3D +65.0=B0C, high =3D +85.0=B0C)  ALARM=
+ =20
+> > Board Temp:  +53.0=B0C  (low  =3D +20.0=B0C, high =3D +60.0=B0C) =20
+> > temp3:       +59.0=B0C  (low  =3D +80.0=B0C, high =3D +105.0=B0C)  ALARM
+> >=20
+> > Thanks. Do I have to add this line to my /etc/rc.local or something to =
 
-Sounds good.
+> > get this to work all the time? Or does it change often? BTW, I am using=
+=20
+> > the latest NVIDIA beta driver.
+>=20
+> Yes, you have to add it to some init script, otherwise you'll lose the
+> device at reboot. Now the problem is that the bus number (4 in your
+> case) could indeed change over time. And once again nVidia make it hard
+> for us by not giving unique names to their I2C adapters, so we can't
+> even select by name. All you can do is hope that the numbers won't
+> change.
+>=20
+> WRT to the output itself, I doubt that your card has more than one fan,
+> so you can probably add ignore statements for fan2, fan3 and fan4 to
+> your configuration file. The rest looks reasonable.
 
-Thanks!
+Hello again and happy new year!
 
-Guenter
+$ sudo echo adt7473 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
+-bash: /sys/bus/i2c/devices/i2c-4/new_device: Permission denied
 
+I assume it changed. How do I make this work so I can see my NVIDIA=20
+GeForce 8800 GT video's card's sensors?
+
+Thank you in advance. :)
+--=20
+:) New Yr.
+Note: A fixed width font (Courier, Monospace, etc.) is required to see this=
+ signature correctly.
+  /\___/\    Phil./Ant(Dude) @ http://antfarm.ma.cx (Personal Web Site)
+ / /\ /\ \                 Ant's Quality Foraged Links: http://aqfl.net
+| |o   o| |                 E-mail: philpi@earthlink.net/ant@zimage.com
+   \ _ /              If crediting, then please kindly use Ant nickname
+    ( )                                              and AQFL URL/link.
 
 _______________________________________________
 lm-sensors mailing list
