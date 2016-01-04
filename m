@@ -1,84 +1,35 @@
-From: Lew Pitcher <lew.pitcher@digitalfreehold.ca>
-Date: Sat, 02 Jan 2016 03:02:11 +0000
-Subject: [lm-sensors] Website down
-Message-Id: <201601012202.19729.lew.pitcher@digitalfreehold.ca>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7354497585367633508=="
+From: Jean Delvare <jdelvare@suse.de>
+Date: Mon, 04 Jan 2016 07:53:13 +0000
+Subject: Re: [lm-sensors] Website down
+Message-Id: <1451893993.4612.5.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201601012202.19729.lew.pitcher@digitalfreehold.ca>
+In-Reply-To: <201601012202.19729.lew.pitcher@digitalfreehold.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============7354497585367633508==
-Content-Type: multipart/signed;
-  boundary="nextPart1723912.pm1I21oZMY";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-
---nextPart1723912.pm1I21oZMY
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hi, guys
-
-It appears that http://www.lm-sensors.org/ is no longer available. While th=
-e=20
-website /does/ respond, it replies with default filesystem directory page=20
-that looks like
-
-> <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-> <html>
->  <head>
->   <title>Index of /</title>
->  </head>
->  <body>
-> <h1>Index of /</h1>
-> <table><tr><th><img src=3D"/icons/blank.gif" alt=3D"[ICO]"></th><th>
-> <a href=3D"?C=3DN;O=3DD">Name</a></th><th>
-> <a href=3D"?C=3DM;O=3DA">Last modified</a></th><th>
-> <a href=3D"?C=3DS;O=3DA">Size</a></th><th>
-> <a href=3D"?C=3DD;O=3DA">Description</a></th></tr><tr>
-> <th colspan=3D"5"><hr></th></tr>
->
-> <tr><th colspan=3D"5"><hr></th></tr>
-> </table>
-> <address>
-> Apache/2.2.15 (Fedora) Server at www.lm-sensors.org Port 80
-> </address> </body></html>=20
-
-Is this intentional? Is lm-sensors.org deliberately down?
-
-=2D-=20
-Lew Pitcher
-"In Skills, We Trust"
-PGP public key available upon request
-
-
---nextPart1723912.pm1I21oZMY
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-Comment: Armoured with GnuPG
-
-iEYEABECAAYFAlaHPbMACgkQagVFX4UWr64/UQCfffHoqRx4MD5EIvQoLNEnq1gG
-vZsAnR05q92qU/v4Damemk6rb7m6CI30
-=LO3z
------END PGP SIGNATURE-----
-
---nextPart1723912.pm1I21oZMY--
-
-
---===============7354497585367633508==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7354497585367633508==--
+SGkgTGV3LAoKTGUgRnJpZGF5IDAxIEphbnVhcnkgMjAxNiDDoCAyMjowMiAtMDUwMCwgTGV3IFBp
+dGNoZXIgYSDDqWNyaXQgOgo+IEl0IGFwcGVhcnMgdGhhdCBodHRwOi8vd3d3LmxtLXNlbnNvcnMu
+b3JnLyBpcyBubyBsb25nZXIgYXZhaWxhYmxlLiBXaGlsZSB0aGUgCj4gd2Vic2l0ZSAvZG9lcy8g
+cmVzcG9uZCwgaXQgcmVwbGllcyB3aXRoIGRlZmF1bHQgZmlsZXN5c3RlbSBkaXJlY3RvcnkgcGFn
+ZSAKPiB0aGF0IGxvb2tzIGxpa2UKPiAKPiA+IDwhRE9DVFlQRSBIVE1MIFBVQkxJQyAiLS8vVzND
+Ly9EVEQgSFRNTCAzLjIgRmluYWwvL0VOIj4KPiA+IDxodG1sPgo+ID4gIDxoZWFkPgo+ID4gICA8
+dGl0bGU+SW5kZXggb2YgLzwvdGl0bGU+Cj4gPiAgPC9oZWFkPgo+ID4gIDxib2R5Pgo+ID4gPGgx
+PkluZGV4IG9mIC88L2gxPgo+ID4gPHRhYmxlPjx0cj48dGg+PGltZyBzcmM9Ii9pY29ucy9ibGFu
+ay5naWYiIGFsdD0iW0lDT10iPjwvdGg+PHRoPgo+ID4gPGEgaHJlZj0iP0M9TjtPPUQiPk5hbWU8
+L2E+PC90aD48dGg+Cj4gPiA8YSBocmVmPSI/Qz1NO089QSI+TGFzdCBtb2RpZmllZDwvYT48L3Ro
+Pjx0aD4KPiA+IDxhIGhyZWY9Ij9DPVM7Tz1BIj5TaXplPC9hPjwvdGg+PHRoPgo+ID4gPGEgaHJl
+Zj0iP0M9RDtPPUEiPkRlc2NyaXB0aW9uPC9hPjwvdGg+PC90cj48dHI+Cj4gPiA8dGggY29sc3Bh
+bj0iNSI+PGhyPjwvdGg+PC90cj4KPiA+Cj4gPiA8dHI+PHRoIGNvbHNwYW49IjUiPjxocj48L3Ro
+PjwvdHI+Cj4gPiA8L3RhYmxlPgo+ID4gPGFkZHJlc3M+Cj4gPiBBcGFjaGUvMi4yLjE1IChGZWRv
+cmEpIFNlcnZlciBhdCB3d3cubG0tc2Vuc29ycy5vcmcgUG9ydCA4MAo+ID4gPC9hZGRyZXNzPiA8
+L2JvZHk+PC9odG1sPiAKPiAKPiBJcyB0aGlzIGludGVudGlvbmFsPyBJcyBsbS1zZW5zb3JzLm9y
+ZyBkZWxpYmVyYXRlbHkgZG93bj8KCkl0IGlzIG5vdCBpbnRlbnRpb25hbCwgdGhlIHNpdGUgaGFz
+IGJlZW4gZG93biBmb3IgbW9udGhzIGFuZCBzYWRseSB3ZQphcmUgYXQgdGhpcyBwb2ludCB1bmFi
+bGUgdG8gZml4IGl0IGR1ZSB0byB0aGUgc2VydmVyIGFkbWl0IGJlaW5nCnVucmVhY2hhYmxlLgoK
+LS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
+b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xtLXNlbnNvcnM
