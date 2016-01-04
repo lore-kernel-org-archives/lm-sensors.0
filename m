@@ -1,109 +1,34 @@
-From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:25 +0000
-Subject: [lm-sensors] [PATCH v3 01/25] hwmon: (it87) Add feature flag for AVCC3 support
-Message-Id: <1453860229-23614-2-git-send-email-patchwork@patchwork.roeck-us.net>
+From: David Binderman <dcb314@hotmail.com>
+Date: Mon, 04 Jan 2016 17:56:47 +0000
+Subject: [lm-sensors] linux-4.4-rc8/drivers/hwmon/lm93.c:398: possible int/long mixup ?
+Message-Id: <DUB128-W1671C249B3641DADF3A70A9CF20@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
+Hello there,
 
-AVCC3 is supported on IT8620E, similar to IT8603E. Add feature flag
-to indicate AVCC3 support. Don't enable it for now on IT8620E since
-it is unclear if this chip supports it correctly.
+[linux-4.4-rc8/drivers/hwmon/lm93.c:398]: (style) int result is assigned to=
+ long variable. If the variable is long to avoid loss of information, then =
+you have loss of information.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+Source code is
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 1896e26df634..146f93584cde 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -233,6 +233,8 @@ static const u8 IT87_REG_TEMP_OFFSET[] = { 0x56, 0x57, 0x59 };
- #define IT87_REG_VIN(nr)       (0x20 + (nr))
- #define IT87_REG_TEMP(nr)      (0x29 + (nr))
- 
-+#define IT87_REG_AVCC3		0x2f
-+
- #define IT87_REG_VIN_MAX(nr)   (0x30 + (nr) * 2)
- #define IT87_REG_VIN_MIN(nr)   (0x31 + (nr) * 2)
- #define IT87_REG_TEMP_HIGH(nr) (0x40 + (nr) * 2)
-@@ -269,6 +271,7 @@ struct it87_devices {
- #define FEAT_IN7_INTERNAL	(1 << 10)	/* Set if in7 is internal */
- #define FEAT_SIX_FANS		(1 << 11)	/* Supports six fans */
- #define FEAT_10_9MV_ADC		(1 << 12)
-+#define FEAT_AVCC3		(1 << 13)	/* Chip supports in9/AVCC3 */
- 
- static const struct it87_devices it87_devices[] = {
- 	[it87] = {
-@@ -389,7 +392,8 @@ static const struct it87_devices it87_devices[] = {
- 		.name = "it8603",
- 		.suffix = "E",
- 		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
--		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL,
-+		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_IN7_INTERNAL
-+		  | FEAT_AVCC3,
- 		.peci_mask = 0x07,
- 	},
- 	[it8620] = {
-@@ -419,6 +423,7 @@ static const struct it87_devices it87_devices[] = {
- #define has_vid(data)		((data)->features & FEAT_VID)
- #define has_in7_internal(data)	((data)->features & FEAT_IN7_INTERNAL)
- #define has_six_fans(data)	((data)->features & FEAT_SIX_FANS)
-+#define has_avcc3(data)		((data)->features & FEAT_AVCC3)
- 
- struct it87_sio_data {
- 	enum chips type;
-@@ -1548,7 +1553,7 @@ static ssize_t show_label(struct device *dev, struct device_attribute *attr,
- static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, show_label, NULL, 0);
- static SENSOR_DEVICE_ATTR(in7_label, S_IRUGO, show_label, NULL, 1);
- static SENSOR_DEVICE_ATTR(in8_label, S_IRUGO, show_label, NULL, 2);
--/* special AVCC3 IT8603E in9 */
-+/* AVCC3 */
- static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, show_label, NULL, 0);
- 
- static ssize_t show_name(struct device *dev, struct device_attribute
-@@ -1944,8 +1949,10 @@ static int __init it87_find(unsigned short *address,
- 	/* in8 (Vbat) is always internal */
- 	sio_data->internal |= (1 << 2);
- 
--	/* Only the IT8603E has in9 */
--	if (sio_data->type != it8603)
-+	/* in9 (AVCC3), always internal if supported */
-+	if (has_avcc3(config))
-+		sio_data->internal |= (1 << 3); /* in9 is AVCC */
-+	else
- 		sio_data->skip_in |= (1 << 9);
- 
- 	if (!has_vid(config))
-@@ -2044,8 +2051,6 @@ static int __init it87_find(unsigned short *address,
- 		sio_data->skip_in |= (1 << 5); /* No VIN5 */
- 		sio_data->skip_in |= (1 << 6); /* No VIN6 */
- 
--		sio_data->internal |= (1 << 3); /* in9 is AVCC */
--
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	} else if (sio_data->type = it8620) {
- 		int reg;
-@@ -2689,8 +2694,8 @@ static struct it87_data *it87_update_device(struct device *dev)
- 		}
- 		/* in8 (battery) has no limit registers */
- 		data->in[8][0] = it87_read_value(data, IT87_REG_VIN(8));
--		if (data->type = it8603)
--			data->in[9][0] = it87_read_value(data, 0x2f);
-+		if (has_avcc3(data))
-+			data->in[9][0] = it87_read_value(data, IT87_REG_AVCC3);
- 
- 		for (i = 0; i < 6; i++) {
- 			/* Skip disabled fans */
--- 
-2.1.4
+=A0=A0=A0 const long uv_vid =3D vid * 1000;
 
+Suggest new code
 
+=A0=A0=A0 const long uv_vid =3D vid * 1000L;
+
+to make sure that integer overflow will not occur.
+
+Regards
+
+David Binderman
+
+ 		 	   		 =20
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
