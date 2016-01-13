@@ -1,134 +1,72 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 08 Jan 2016 15:09:37 +0000
+From: Mike Looijmans <mike.looijmans@topic.nl>
+Date: Wed, 13 Jan 2016 11:22:58 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add LTC2990 sensor driver
-Message-Id: <568FD131.4080308@roeck-us.net>
+Message-Id: <56963392.9080101@topic.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1452067627-24939-1-git-send-email-mike.looijmans@topic.nl>
  <568D3127.5090901@roeck-us.net> <568EB58C.3090701@topic.nl>
-In-Reply-To: <568EB58C.3090701@topic.nl>
+ <568FD131.4080308@roeck-us.net>
+In-Reply-To: <568FD131.4080308@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Looijmans <mike.looijmans@topic.nl>, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 Cc: jdelvare@suse.com, linux-kernel@vger.kernel.org
 
-On 01/07/2016 10:59 AM, Mike Looijmans wrote:
-> Thank you very much for your review comments, I'll update the driver and post a v2 patch.
->
-> Inlined some replies below. Assume that I "will do" for all comments I didn't comment on inline...
->
-> On 06-01-16 16:22, Guenter Roeck wrote:
->> Hello Mike,
->>
->> On 01/06/2016 12:07 AM, Mike Looijmans wrote:
->>> This adds support for the Linear Technology LTC2990  I2C System Monitor.
->>
->> s/  / /
->>
->>> The LTC2990 supports a combination of voltage, current and temperature
->>> monitoring, but this driver currently only supports reading two currents
->>> by measuring two differential voltages across series resistors.
->>>
->> Plus VCC, plus the internal temperature.
->
-> Yeah, I should give myself more credit :) I'll add that in Kconfig too.
->
->>> This is sufficient to support the Topic Miami SOM which uses this chip
->>> to monitor the currents flowing into the FPGA and the CPU parts.
->>>
->>> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
->>> ---
->>>   drivers/hwmon/Kconfig   |  15 +++
->>>   drivers/hwmon/Makefile  |   1 +
->>>   drivers/hwmon/ltc2990.c | 273
->>> ++++++++++++++++++++++++++++++++++++++++++++++++
->>
-
-[ ... ]
-
->>> +}
->>> +
->>> +static struct ltc2990_data *ltc2990_update_device(struct device *dev)
->>> +{
->>> +    struct i2c_client *i2c = to_i2c_client(dev);
->>> +    struct ltc2990_data *data = i2c_get_clientdata(i2c);
->>> +    struct ltc2990_data *ret = data;
->>> +    unsigned int timeout;
->>> +
->>> +    mutex_lock(&data->update_lock);
->>> +
->>> +    /* Update about 4 times per second max */
->>> +    if (time_after(jiffies, data->last_updated + HZ / 4) ||
->>> !data->valid) {
->>> +        int val;
->>> +        int i;
->>> +
->>
->> Please consider using continuous conversion. This would simplify the
->> code significantly
->> and reduce read delays.
->
-> It might increase power consumption though, as typically some user program would poll this every 10 seconds or so. I'll check the data sheet.
->
-
-I suspect that the power savings will be less than the added power
-consumed by the CPU due to the more complex code.
-
-Really, unless you have an application where a few mW power savings
-are essential and warrant the additional code complexity, this is
-the wrong approach.
-
->>> +        /* Trigger ADC, any value will do */
->>> +        val = ltc2990_write(i2c, LTC2990_TRIGGER, 1);
->>> +        if (unlikely(val < 0)) {
->>> +            ret = ERR_PTR(val);
->>> +            goto abort;
->>> +        }
->>> +
->>> +        /* Wait for conversion complete */
->>> +        timeout = 200;
->>> +        for (;;) {
->>> +            usleep_range(2000, 4000);
->>> +            val = ltc2990_read_byte(i2c, LTC2990_STATUS);
->>> +            if (unlikely(val < 0)) {
->>> +                ret = ERR_PTR(val);
->>> +                goto abort;
->>> +            }
->>> +            /* Single-shot mode, wait for conversion to complete */
->>> +            if ((val & LTC2990_STATUS_BUSY) = 0)
->>
->>              if (!(...))
->>
->>> +                break;
->>> +            if (--timeout = 0) {
->>> +                ret = ERR_PTR(-ETIMEDOUT);
->>> +                goto abort;
->>> +            }
->>> +        }
->>
->> Again, please consider using continuous conversion mode.
->>
->> If this is not feasible for some reason, you might as well just wait for
->> the
->> minimum conversion time before trying to read for the first time. If so,
->> please use a fixed timeout by comparing the elapsed time instead of looping
->> for a maximum number of times. Not even counting the time for executing the
->> code, the maximum delay is between 400 ms and 800 ms, which is way too high
->> (chip spec says 167 ms worst case, if three temperature sensors are
->> configured).
->
-> Or maybe I should just sleep for 167ms and be done with it. Though I think I'l got with your minimal time first suggestion.
->
-
-Keep in mind that any user space program using this driver would effectively
-go to sleep for the wait time. Maybe that doesn't matter in your application,
-but it may be a problem for others. A fixed large delay would make the situation
-even worse.
-
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+77u/T24gMDgtMDEtMTYgMTY6MDksIEd1ZW50ZXIgUm9lY2sgd3JvdGU6Cj4gT24gMDEvMDcvMjAx
+NiAxMDo1OSBBTSwgTWlrZSBMb29pam1hbnMgd3JvdGU6Cj4+IFRoYW5rIHlvdSB2ZXJ5IG11Y2gg
+Zm9yIHlvdXIgcmV2aWV3IGNvbW1lbnRzLCBJJ2xsIHVwZGF0ZSB0aGUgZHJpdmVyIGFuZAo+PiBw
+b3N0IGEgdjIgcGF0Y2guCj4+Cj4+IElubGluZWQgc29tZSByZXBsaWVzIGJlbG93LiBBc3N1bWUg
+dGhhdCBJICJ3aWxsIGRvIiBmb3IgYWxsIGNvbW1lbnRzIEkKPj4gZGlkbid0IGNvbW1lbnQgb24g
+aW5saW5lLi4uCj4+Cj4+IE9uIDA2LTAxLTE2IDE2OjIyLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
+Pj4gSGVsbG8gTWlrZSwKPj4+Cj4+PiBPbiAwMS8wNi8yMDE2IDEyOjA3IEFNLCBNaWtlIExvb2lq
+bWFucyB3cm90ZToKPj4+PiBUaGlzIGFkZHMgc3VwcG9ydCBmb3IgdGhlIExpbmVhciBUZWNobm9s
+b2d5IExUQzI5OTAgIEkyQyBTeXN0ZW0gTW9uaXRvci4KPj4+Cj4+PiBzLyAgLyAvCj4+Pgo+Pj4+
+IFRoZSBMVEMyOTkwIHN1cHBvcnRzIGEgY29tYmluYXRpb24gb2Ygdm9sdGFnZSwgY3VycmVudCBh
+bmQgdGVtcGVyYXR1cmUKPj4+PiBtb25pdG9yaW5nLCBidXQgdGhpcyBkcml2ZXIgY3VycmVudGx5
+IG9ubHkgc3VwcG9ydHMgcmVhZGluZyB0d28gY3VycmVudHMKPj4+PiBieSBtZWFzdXJpbmcgdHdv
+IGRpZmZlcmVudGlhbCB2b2x0YWdlcyBhY3Jvc3Mgc2VyaWVzIHJlc2lzdG9ycy4KPj4+Pgo+Pj4g
+UGx1cyBWQ0MsIHBsdXMgdGhlIGludGVybmFsIHRlbXBlcmF0dXJlLgo+Pgo+PiBZZWFoLCBJIHNo
+b3VsZCBnaXZlIG15c2VsZiBtb3JlIGNyZWRpdCA6KSBJJ2xsIGFkZCB0aGF0IGluIEtjb25maWcg
+dG9vLgo+Pgo+Pj4+IFRoaXMgaXMgc3VmZmljaWVudCB0byBzdXBwb3J0IHRoZSBUb3BpYyBNaWFt
+aSBTT00gd2hpY2ggdXNlcyB0aGlzIGNoaXAKPj4+PiB0byBtb25pdG9yIHRoZSBjdXJyZW50cyBm
+bG93aW5nIGludG8gdGhlIEZQR0EgYW5kIHRoZSBDUFUgcGFydHMuCj4+Pj4KPj4+PiBTaWduZWQt
+b2ZmLWJ5OiBNaWtlIExvb2lqbWFucyA8bWlrZS5sb29pam1hbnNAdG9waWMubmw+Cj4+Pj4gLS0t
+Cj4+Pj4gICBkcml2ZXJzL2h3bW9uL0tjb25maWcgICB8ICAxNSArKysKPj4+PiAgIGRyaXZlcnMv
+aHdtb24vTWFrZWZpbGUgIHwgICAxICsKPj4+PiAgIGRyaXZlcnMvaHdtb24vbHRjMjk5MC5jIHwg
+MjczCj4+Pj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+Cj4+Pgo+Cj4gWyAuLi4gXQo+Cj4+Pj4gK30KPj4+PiArCj4+Pj4gK3N0YXRpYyBzdHJ1Y3QgbHRj
+Mjk5MF9kYXRhICpsdGMyOTkwX3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQo+Pj4+
+ICt7Cj4+Pj4gKyAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqaTJjID0gdG9faTJjX2NsaWVudChkZXYp
+Owo+Pj4+ICsgICAgc3RydWN0IGx0YzI5OTBfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0
+YShpMmMpOwo+Pj4+ICsgICAgc3RydWN0IGx0YzI5OTBfZGF0YSAqcmV0ID0gZGF0YTsKPj4+PiAr
+ICAgIHVuc2lnbmVkIGludCB0aW1lb3V0Owo+Pj4+ICsKPj4+PiArICAgIG11dGV4X2xvY2soJmRh
+dGEtPnVwZGF0ZV9sb2NrKTsKPj4+PiArCj4+Pj4gKyAgICAvKiBVcGRhdGUgYWJvdXQgNCB0aW1l
+cyBwZXIgc2Vjb25kIG1heCAqLwo+Pj4+ICsgICAgaWYgKHRpbWVfYWZ0ZXIoamlmZmllcywgZGF0
+YS0+bGFzdF91cGRhdGVkICsgSFogLyA0KSB8fAo+Pj4+ICFkYXRhLT52YWxpZCkgewo+Pj4+ICsg
+ICAgICAgIGludCB2YWw7Cj4+Pj4gKyAgICAgICAgaW50IGk7Cj4+Pj4gKwo+Pj4KPj4+IFBsZWFz
+ZSBjb25zaWRlciB1c2luZyBjb250aW51b3VzIGNvbnZlcnNpb24uIFRoaXMgd291bGQgc2ltcGxp
+ZnkgdGhlCj4+PiBjb2RlIHNpZ25pZmljYW50bHkKPj4+IGFuZCByZWR1Y2UgcmVhZCBkZWxheXMu
+Cj4+Cj4+IEl0IG1pZ2h0IGluY3JlYXNlIHBvd2VyIGNvbnN1bXB0aW9uIHRob3VnaCwgYXMgdHlw
+aWNhbGx5IHNvbWUgdXNlciBwcm9ncmFtCj4+IHdvdWxkIHBvbGwgdGhpcyBldmVyeSAxMCBzZWNv
+bmRzIG9yIHNvLiBJJ2xsIGNoZWNrIHRoZSBkYXRhIHNoZWV0Lgo+Pgo+Cj4gSSBzdXNwZWN0IHRo
+YXQgdGhlIHBvd2VyIHNhdmluZ3Mgd2lsbCBiZSBsZXNzIHRoYW4gdGhlIGFkZGVkIHBvd2VyCj4g
+Y29uc3VtZWQgYnkgdGhlIENQVSBkdWUgdG8gdGhlIG1vcmUgY29tcGxleCBjb2RlLgo+Cj4gUmVh
+bGx5LCB1bmxlc3MgeW91IGhhdmUgYW4gYXBwbGljYXRpb24gd2hlcmUgYSBmZXcgbVcgcG93ZXIg
+c2F2aW5ncwo+IGFyZSBlc3NlbnRpYWwgYW5kIHdhcnJhbnQgdGhlIGFkZGl0aW9uYWwgY29kZSBj
+b21wbGV4aXR5LCB0aGlzIGlzCj4gdGhlIHdyb25nIGFwcHJvYWNoLgoKWWVhaCwgeW91J3JlIHJp
+Z2h0LCBjaGVja2VkIHRoZSBkYXRhc2hlZXQgYW5kIGl0IHJlcG9ydHMgYSAxbUEgdHlwaWNhbCBw
+b3dlciAKdXNhZ2Ugd2hlbiBjb252ZXJ0aW5nLiBOb3Qgd29ydGggdGhlIHRyb3VibGUuCgpDb250
+aW51b3VzIGNvbnZlcnNpb24gbWFkZSB0aGUgZHJpdmVyIGEgTE9UIHNpbXBsZXIsIGNvdWxkIGV2
+ZW4gY29tcGxldGVseSAKZHJvcCB0aGUgcHJpdmF0ZSBkYXRhIHN0cnVjdHVyZS4KCkkgc2VudCB2
+MiBhbHJlYWR5LCBidXQganVzdCBub3RpY2VkIHRoYXQgc29tZSBvZiB0aGUgI2luY2x1ZGVzIHdl
+cmUgbm8gbG9uZ2VyCm5lZWRlZCwgc28gSSdsbCBzZW5kIGEgdjMgdG8gZml4IHRoYXQuCgouLi4K
+CgpLaW5kIHJlZ2FyZHMsCgpNaWtlIExvb2lqbWFucwpTeXN0ZW0gRXhwZXJ0CgpUT1BJQyBFbWJl
+ZGRlZCBQcm9kdWN0cwpFaW5kaG92ZW5zZXdlZyAzMi1DLCBOTC01NjgzIEtIIEJlc3QKUG9zdGJ1
+cyA0NDAsIE5MLTU2ODAgQUsgQmVzdApUZWxlZm9vbjogKzMxICgwKSA0OTkgMzMgNjkgNzkKRS1t
+YWlsOiBtaWtlLmxvb2lqbWFuc0B0b3BpY3Byb2R1Y3RzLmNvbQpXZWJzaXRlOiB3d3cudG9waWNw
+cm9kdWN0cy5jb20KClBsZWFzZSBjb25zaWRlciB0aGUgZW52aXJvbm1lbnQgYmVmb3JlIHByaW50
+aW5nIHRoaXMgZS1tYWlsCgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
+cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
+c29ycw=
