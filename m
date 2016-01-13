@@ -1,53 +1,58 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 13 Jan 2016 13:57:28 +0000
+From: Mike Looijmans <mike.looijmans@topic.nl>
+Date: Wed, 13 Jan 2016 14:03:41 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon: Add LTC2990 sensor driver
-Message-Id: <569657C8.6070607@roeck-us.net>
+Message-Id: <5696593D.8030908@topic.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <568FD131.4080308@roeck-us.net>
  <1452067627-24939-1-git-send-email-mike.looijmans@topic.nl>
  <1452683150-27747-1-git-send-email-mike.looijmans@topic.nl>
  <5696500E.4090905@roeck-us.net> <56965661.2010307@topic.nl>
-In-Reply-To: <56965661.2010307@topic.nl>
+ <569657C8.6070607@roeck-us.net>
+In-Reply-To: <569657C8.6070607@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Looijmans <mike.looijmans@topic.nl>, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 Cc: jdelvare@suse.com, linux-kernel@vger.kernel.org
 
-On 01/13/2016 05:51 AM, Mike Looijmans wrote:
-> On 13-01-16 14:24, Guenter Roeck wrote:
->> On 01/13/2016 03:05 AM, Mike Looijmans wrote:
->>> This adds support for the Linear Technology LTC2990  I2C System Monitor.
->>> The LTC2990 supports a combination of voltage, current and temperature
->>> monitoring. This driver currently only supports reading two currents
->>> by measuring two differential voltages across series resistors, in
->>> addition to the Vcc supply voltage and internal temperature.
->>>
->>> This is sufficient to support the Topic Miami SOM which uses this chip
->>> to monitor the currents flowing into the FPGA and the CPU parts.
->>>
->>> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
->>
->> Mike,
->>
->> That looks much better. Can you send me the output of i2cdump for the chip ?
->> That would help me writing module test code for it.
->
-> I'm kinda interested into how that would work.
->
-https://github.com/groeck/module-tests
-
-> I'll have to remove the driver first to get i2cdump to work on the chip. I cannot force a device removal from user space while running, can I?
-> And i suppose you want a dump of a chip in running status? (On boot, all are registers are simply set to zero)
->
-
-Just use i2cdump -f while the driver is active.
-
-Thanks,
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+77u/T24gMTMtMDEtMTYgMTQ6NTcsIEd1ZW50ZXIgUm9lY2sgd3JvdGU6Cj4gT24gMDEvMTMvMjAx
+NiAwNTo1MSBBTSwgTWlrZSBMb29pam1hbnMgd3JvdGU6Cj4+IE9uIDEzLTAxLTE2IDE0OjI0LCBH
+dWVudGVyIFJvZWNrIHdyb3RlOgo+Pj4gT24gMDEvMTMvMjAxNiAwMzowNSBBTSwgTWlrZSBMb29p
+am1hbnMgd3JvdGU6Cj4+Pj4gVGhpcyBhZGRzIHN1cHBvcnQgZm9yIHRoZSBMaW5lYXIgVGVjaG5v
+bG9neSBMVEMyOTkwICBJMkMgU3lzdGVtIE1vbml0b3IuCj4+Pj4gVGhlIExUQzI5OTAgc3VwcG9y
+dHMgYSBjb21iaW5hdGlvbiBvZiB2b2x0YWdlLCBjdXJyZW50IGFuZCB0ZW1wZXJhdHVyZQo+Pj4+
+IG1vbml0b3JpbmcuIFRoaXMgZHJpdmVyIGN1cnJlbnRseSBvbmx5IHN1cHBvcnRzIHJlYWRpbmcg
+dHdvIGN1cnJlbnRzCj4+Pj4gYnkgbWVhc3VyaW5nIHR3byBkaWZmZXJlbnRpYWwgdm9sdGFnZXMg
+YWNyb3NzIHNlcmllcyByZXNpc3RvcnMsIGluCj4+Pj4gYWRkaXRpb24gdG8gdGhlIFZjYyBzdXBw
+bHkgdm9sdGFnZSBhbmQgaW50ZXJuYWwgdGVtcGVyYXR1cmUuCj4+Pj4KPj4+PiBUaGlzIGlzIHN1
+ZmZpY2llbnQgdG8gc3VwcG9ydCB0aGUgVG9waWMgTWlhbWkgU09NIHdoaWNoIHVzZXMgdGhpcyBj
+aGlwCj4+Pj4gdG8gbW9uaXRvciB0aGUgY3VycmVudHMgZmxvd2luZyBpbnRvIHRoZSBGUEdBIGFu
+ZCB0aGUgQ1BVIHBhcnRzLgo+Pj4+Cj4+Pj4gU2lnbmVkLW9mZi1ieTogTWlrZSBMb29pam1hbnMg
+PG1pa2UubG9vaWptYW5zQHRvcGljLm5sPgo+Pj4KPj4+IE1pa2UsCj4+Pgo+Pj4gVGhhdCBsb29r
+cyBtdWNoIGJldHRlci4gQ2FuIHlvdSBzZW5kIG1lIHRoZSBvdXRwdXQgb2YgaTJjZHVtcCBmb3Ig
+dGhlIGNoaXAgPwo+Pj4gVGhhdCB3b3VsZCBoZWxwIG1lIHdyaXRpbmcgbW9kdWxlIHRlc3QgY29k
+ZSBmb3IgaXQuCj4+Cj4+IEknbSBraW5kYSBpbnRlcmVzdGVkIGludG8gaG93IHRoYXQgd291bGQg
+d29yay4KPj4KPiBodHRwczovL2dpdGh1Yi5jb20vZ3JvZWNrL21vZHVsZS10ZXN0cwo+Cj4+IEkn
+bGwgaGF2ZSB0byByZW1vdmUgdGhlIGRyaXZlciBmaXJzdCB0byBnZXQgaTJjZHVtcCB0byB3b3Jr
+IG9uIHRoZSBjaGlwLiBJCj4+IGNhbm5vdCBmb3JjZSBhIGRldmljZSByZW1vdmFsIGZyb20gdXNl
+ciBzcGFjZSB3aGlsZSBydW5uaW5nLCBjYW4gST8KPj4gQW5kIGkgc3VwcG9zZSB5b3Ugd2FudCBh
+IGR1bXAgb2YgYSBjaGlwIGluIHJ1bm5pbmcgc3RhdHVzPyAoT24gYm9vdCwgYWxsIGFyZQo+PiBy
+ZWdpc3RlcnMgYXJlIHNpbXBseSBzZXQgdG8gemVybykKPj4KPgo+IEp1c3QgdXNlIGkyY2R1bXAg
+LWYgd2hpbGUgdGhlIGRyaXZlciBpcyBhY3RpdmUuCgpIZXJlJ3MgdGhlIGR1bXAgKHR3aWNlIHNv
+IHlvdSBjYW4gc2VlIHRoZSBBL0QgY29udmVydGVyIGlzIGFjdHVhbGx5IHJ1bm5pbmcpOgoKcm9v
+dEB0b3BpYy1taWFtaS1mbG9yaWRhLXBjaS14Yzd6MDE1On4jIGkyY2R1bXAgLXkgLWYgLXIgMC0w
+eGYgMSAweDRjIGIKICAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAg
+ZCAgZSAgZiAgICAwMTIzNDU2Nzg5YWJjZGVmCjAwOiA3ZiAxZSA3ZiA3ZiA4MiA1ZiA4MCA0NCA4
+MCA0NCA4MCAzZiA4MCAzZiA4OSBiNSAgICA/Pz8/P18/RD9EPz8/Pz8/CnJvb3RAdG9waWMtbWlh
+bWktZmxvcmlkYS1wY2kteGM3ejAxNTp+IyBpMmNkdW1wIC15IC1mIC1yIDAtMHhmIDEgMHg0YyBi
+CiAgICAgIDAgIDEgIDIgIDMgIDQgIDUgIDYgIDcgIDggIDkgIGEgIGIgIGMgIGQgIGUgIGYgICAg
+MDEyMzQ1Njc4OWFiY2RlZgowMDogN2YgMWUgN2YgN2YgODIgNjUgODAgNDIgODAgNDIgODAgM2Qg
+ODAgM2QgODkgYjQgICAgPz8/Pz9lP0I/Qj89Pz0/PwoKCgoKS2luZCByZWdhcmRzLAoKTWlrZSBM
+b29pam1hbnMKU3lzdGVtIEV4cGVydAoKVE9QSUMgRW1iZWRkZWQgUHJvZHVjdHMKRWluZGhvdmVu
+c2V3ZWcgMzItQywgTkwtNTY4MyBLSCBCZXN0ClBvc3RidXMgNDQwLCBOTC01NjgwIEFLIEJlc3QK
+VGVsZWZvb246ICszMSAoMCkgNDk5IDMzIDY5IDc5CkUtbWFpbDogbWlrZS5sb29pam1hbnNAdG9w
+aWNwcm9kdWN0cy5jb20KV2Vic2l0ZTogd3d3LnRvcGljcHJvZHVjdHMuY29tCgpQbGVhc2UgY29u
+c2lkZXIgdGhlIGVudmlyb25tZW50IGJlZm9yZSBwcmludGluZyB0aGlzIGUtbWFpbAoKCgoKCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
+IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
+ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
