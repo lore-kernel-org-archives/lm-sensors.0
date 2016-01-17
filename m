@@ -1,58 +1,34 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Sat, 23 Jan 2016 13:52:50 +0000
-Subject: Re: [lm-sensors] [PATCH v2] rtc: rtc-ds1307: add temperature sensor support for ds3231
-Message-Id: <CAC5umyhVcZLHJBX38Tu4+qLRfJRg4W=A3Vj1n1OjMZ-P65aY_w@mail.gmail.com>
+From: Thorsten Leemhuis <linux@leemhuis.info>
+Date: Sun, 17 Jan 2016 15:03:04 +0000
+Subject: [lm-sensors] [PATCH] dell-smm: Blacklist Dell Studio XPS 8000
+Message-Id: <569BAD28.3060701@leemhuis.info>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1453485441-11667-1-git-send-email-akinobu.mita@gmail.com>
-	<56A2CF6D.9040300@roeck-us.net>
-In-Reply-To: <56A2CF6D.9040300@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-2016-01-23 9:55 GMT+09:00 Guenter Roeck <linux@roeck-us.net>:
-> On 01/22/2016 09:57 AM, Akinobu Mita wrote:
->>
->> DS3231 has the temperature registers with a resolution of 0.25
->> degree celsius.  This enables to get the value through hwmon.
->>
->>         # cat /sys/class/i2c-adapter/i2c-2/2-0068/hwmon/hwmon0/temp1_input
->>         21000
->>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> Cc: Alessandro Zummo <a.zummo@towertech.it>
->> Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
->> Cc: rtc-linux@googlegroups.com
->> Cc: Jean Delvare <jdelvare@suse.com>
->> Cc: Guenter Roeck <linux@roeck-us.net>
->> Cc: lm-sensors@lm-sensors.org
->> ---
->> * v2
->> - convert to use hwmon framework, suggested by Alexandre Belloni
->>
->>   drivers/rtc/rtc-ds1307.c | 122
->> +++++++++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 122 insertions(+)
->>
->> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
->
->
-> Something else, on top of my previous comments.
->
->> +#if IS_ENABLED(CONFIG_HWMON)
->
->
-> I don't think this will work as intended. It will fail if the ds1307 driver
-> is built into the kernel but hwmon is built as module.
->
-> Check configurations such as BE2NET_HWMON or NET_DSA_HWMON for ideas
-> on how to handle this problem.
-
-OK.  I'll add CONFIG_RTC_DRV_DS1307_HWMON and do something similar.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U2luY2UgTGludXggNC4wIHRoZSBDUFUgZmFuIHNwZWVkIGlzIGdvaW5nIHVwIGFuZCBkb3duIG9u
+IERlbGwgU3R1ZGlvClhQUyA4MDAwIGFuZCA4MTAwIGZvciB1bmtub3duIHJlYXNvbnMuIFRoZSA4
+MTAwIHdhcyBhbHJlYWR5CmJsYWNrbGlzdGVkIGluIENvbW1pdCBhNGI0NWIyNWYxIFRoaXMgcGF0
+Y2ggYmxhY2tsaXN0cyB0aGUgWFBTIDgwMDAuCgpXaXRob3V0IGZ1cnRoZXIgZGVidWdnaW5nIG9u
+IHRoZSBhZmZlY3RlZCBtYWNoaW5lLCBpdCBpcyBub3QgcG9zc2libGUKdG8gZmluZCB0aGUgcHJv
+YmxlbS4gRm9yIG1vcmUgZGV0YWlscyBzZWUgCmh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9z
+aG93X2J1Zy5jZ2k/aWQ9MTAwMTIxCgpTaWduZWQtb2ZmLWJ5OiBUaG9yc3RlbiBMZWVtaHVpcyA8
+bGludXhAbGVlbWh1aXMuaW5mbz4KQWNrZWQtYnk6IFBhbGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdt
+YWlsLmNvbT4KQ2M6IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcgIyB2NC4wKywgd2lsbCBuZWVkIGJh
+Y2twb3J0CgotLS0gbGludXgtNC40Lm9yZy9kcml2ZXJzL2h3bW9uL2RlbGwtc21tLWh3bW9uLmMJ
+MjAxNi0wMS0xMSAwMDowMTozMi4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LTQuNC5vcmcvZHJp
+dmVycy9od21vbi9kZWxsLXNtbS1od21vbi5jCTIwMTYtMDEtMTMgMDg6NDg6NTYuOTU3MjA4NTA2
+ICswMTAwCkBAIC05MzIsNiArOTMyLDE3IEBAIAogc3RhdGljIHN0cnVjdCBkbWlfc3lzdGVtX2lk
+IGk4a19ibGFja2xpc3RfZG1pX3RhYmxlW10gX19pbml0ZGF0YSA9IHsKIAl7CiAJCS8qCisJCSAq
+IENQVSBmYW4gc3BlZWQgZ29pbmcgdXAgYW5kIGRvd24gb24gRGVsbCBTdHVkaW8gWFBTIDgwMDAK
+KwkJICogZm9yIHVua25vd24gcmVhc29ucy4KKwkJICovCisJCS5pZGVudCA9ICJEZWxsIFN0dWRp
+byBYUFMgODAwMCIsCisJCS5tYXRjaGVzID0geworCQkJRE1JX0VYQUNUX01BVENIKERNSV9TWVNf
+VkVORE9SLCAiRGVsbCBJbmMuIiksCisJCQlETUlfRVhBQ1RfTUFUQ0goRE1JX1BST0RVQ1RfTkFN
+RSwgIlN0dWRpbyBYUFMgODAwMCIpLAorCQl9LAorCX0sCisJeworCQkvKgogCQkgKiBDUFUgZmFu
+IHNwZWVkIGdvaW5nIHVwIGFuZCBkb3duIG9uIERlbGwgU3R1ZGlvIFhQUyA4MTAwCiAJCSAqIGZv
+ciB1bmtub3duIHJlYXNvbnMuCiAJCSAqLwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3Jz
