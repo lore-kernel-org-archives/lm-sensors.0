@@ -1,38 +1,81 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 17 Jan 2016 16:36:21 +0000
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Date: Sun, 17 Jan 2016 16:51:33 +0000
 Subject: Re: [lm-sensors] [PATCH] dell-smm: Blacklist Dell Studio XPS 8000
-Message-Id: <569BC305.4070605@roeck-us.net>
+Message-Id: <201601171751.33737@pali>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6457479094887212942=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <569BAD28.3060701@leemhuis.info>
 In-Reply-To: <569BAD28.3060701@leemhuis.info>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gMDEvMTcvMjAxNiAwNzowMyBBTSwgVGhvcnN0ZW4gTGVlbWh1aXMgd3JvdGU6Cj4gU2luY2Ug
-TGludXggNC4wIHRoZSBDUFUgZmFuIHNwZWVkIGlzIGdvaW5nIHVwIGFuZCBkb3duIG9uIERlbGwg
-U3R1ZGlvCj4gWFBTIDgwMDAgYW5kIDgxMDAgZm9yIHVua25vd24gcmVhc29ucy4gVGhlIDgxMDAg
-d2FzIGFscmVhZHkKPiBibGFja2xpc3RlZCBpbiBDb21taXQgYTRiNDViMjVmMSBUaGlzIHBhdGNo
-IGJsYWNrbGlzdHMgdGhlIFhQUyA4MDAwLgo+Cj4gV2l0aG91dCBmdXJ0aGVyIGRlYnVnZ2luZyBv
-biB0aGUgYWZmZWN0ZWQgbWFjaGluZSwgaXQgaXMgbm90IHBvc3NpYmxlCj4gdG8gZmluZCB0aGUg
-cHJvYmxlbS4gRm9yIG1vcmUgZGV0YWlscyBzZWUKPiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5v
-cmcvc2hvd19idWcuY2dpP2lkPTEwMDEyMQo+Cj4gU2lnbmVkLW9mZi1ieTogVGhvcnN0ZW4gTGVl
-bWh1aXMgPGxpbnV4QGxlZW1odWlzLmluZm8+Cj4gQWNrZWQtYnk6IFBhbGkgUm9ow6FyIDxwYWxp
-LnJvaGFyQGdtYWlsLmNvbT4KPiBDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZyAjIHY0LjArLCB3
-aWxsIG5lZWQgYmFja3BvcnQKPgpBcHBsaWVkLgoKVGhhbmtzLApHdWVudGVyCgo+IC0tLSBsaW51
-eC00LjQub3JnL2RyaXZlcnMvaHdtb24vZGVsbC1zbW0taHdtb24uYwkyMDE2LTAxLTExIDAwOjAx
-OjMyLjAwMDAwMDAwMCArMDEwMAo+ICsrKyBsaW51eC00LjQub3JnL2RyaXZlcnMvaHdtb24vZGVs
-bC1zbW0taHdtb24uYwkyMDE2LTAxLTEzIDA4OjQ4OjU2Ljk1NzIwODUwNiArMDEwMAo+IEBAIC05
-MzIsNiArOTMyLDE3IEBACj4gICBzdGF0aWMgc3RydWN0IGRtaV9zeXN0ZW1faWQgaThrX2JsYWNr
-bGlzdF9kbWlfdGFibGVbXSBfX2luaXRkYXRhID0gewo+ICAgCXsKPiAgIAkJLyoKPiArCQkgKiBD
-UFUgZmFuIHNwZWVkIGdvaW5nIHVwIGFuZCBkb3duIG9uIERlbGwgU3R1ZGlvIFhQUyA4MDAwCj4g
-KwkJICogZm9yIHVua25vd24gcmVhc29ucy4KPiArCQkgKi8KPiArCQkuaWRlbnQgPSAiRGVsbCBT
-dHVkaW8gWFBTIDgwMDAiLAo+ICsJCS5tYXRjaGVzID0gewo+ICsJCQlETUlfRVhBQ1RfTUFUQ0go
-RE1JX1NZU19WRU5ET1IsICJEZWxsIEluYy4iKSwKPiArCQkJRE1JX0VYQUNUX01BVENIKERNSV9Q
-Uk9EVUNUX05BTUUsICJTdHVkaW8gWFBTIDgwMDAiKSwKPiArCQl9LAo+ICsJfSwKPiArCXsKPiAr
-CQkvKgo+ICAgCQkgKiBDUFUgZmFuIHNwZWVkIGdvaW5nIHVwIGFuZCBkb3duIG9uIERlbGwgU3R1
-ZGlvIFhQUyA4MTAwCj4gICAJCSAqIGZvciB1bmtub3duIHJlYXNvbnMuCj4gICAJCSAqLwo+CgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
-cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
-c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+--===============6457479094887212942==
+Content-Type: multipart/signed;
+  boundary="nextPart3998679.jYdiV9QCW7";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart3998679.jYdiV9QCW7
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sunday 17 January 2016 17:36:21 Guenter Roeck wrote:
+> On 01/17/2016 07:03 AM, Thorsten Leemhuis wrote:
+> > Since Linux 4.0 the CPU fan speed is going up and down on Dell
+> > Studio XPS 8000 and 8100 for unknown reasons. The 8100 was already
+> > blacklisted in Commit a4b45b25f1 This patch blacklists the XPS
+> > 8000.
+> >=20
+> > Without further debugging on the affected machine, it is not
+> > possible to find the problem. For more details see
+> > https://bugzilla.kernel.org/show_bug.cgi?id=3D100121
+> >=20
+> > Signed-off-by: Thorsten Leemhuis <linux@leemhuis.info>
+> > Acked-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > Cc: stable@vger.kernel.org # v4.0+, will need backport
+>=20
+> Applied.
+>=20
+> Thanks,
+> Guenter
+>=20
+
+Anyway, I would be more happy if somebody with that machine could debug=20
+this issue or at least find part/code/function which cause this problem.
+
+Adding another machine on blacklist is just hot-fix for this problem.=20
+But as stated in commit message, it is really impossible to debug it=20
+without that problematic machine...
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3998679.jYdiV9QCW7
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlabxpUACgkQi/DJPQPkQ1LV+QCghK/m4QdMMJql9lWTw9BEEn6T
+KW0An0/j6jxAbEilA45jApi8HnDHsCCO
+=9558
+-----END PGP SIGNATURE-----
+
+--nextPart3998679.jYdiV9QCW7--
+
+
+--===============6457479094887212942==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6457479094887212942==--
