@@ -1,202 +1,131 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 23 Jan 2016 20:21:29 +0000
-Subject: Re: [lm-sensors] [PATCH v3] rtc: rtc-ds1307: add temperature sensor support for ds3231
-Message-Id: <56A3E0C9.609@roeck-us.net>
+Date: Fri, 22 Jan 2016 14:53:44 +0000
+Subject: Re: [lm-sensors] [PATCH 2/3] lm90: initialize parameters from devicetree
+Message-Id: <56A24278.8050909@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1453574832-21908-1-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1453574832-21908-1-git-send-email-akinobu.mita@gmail.com>
+References: <1453404877-17897-1-git-send-email-stephan@kochen.nl>
+ <1453404877-17897-3-git-send-email-stephan@kochen.nl>
+In-Reply-To: <1453404877-17897-3-git-send-email-stephan-j6uo2F6POYhmR6Xm/wNWPw@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Akinobu Mita <akinobu.mita@gmail.com>, rtc-linux@googlegroups.com
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org
+To: =?UTF-8?Q?St=c3=a9phan_Kochen?= <stephan-j6uo2F6POYhmR6Xm/wNWPw@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On 01/23/2016 10:47 AM, Akinobu Mita wrote:
-> DS3231 has the temperature registers with a resolution of 0.25
-> degree celsius.  This enables to get the value through hwmon.
->
-> 	# cat /sys/class/i2c-adapter/i2c-2/2-0068/hwmon/hwmon0/temp1_input
-> 	21000
->
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> Cc: Alessandro Zummo <a.zummo@towertech.it>
-> Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-> Cc: rtc-linux@googlegroups.com
-> Cc: Jean Delvare <jdelvare@suse.com>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: lm-sensors@lm-sensors.org
-
-[ I would suggest to drop the Cc: mailing lists for future submissions.
-   Sure, you want to send the patch to the lists, but that doesn't mean
-   that the lists should be in the commit log. ]
-
-Much better. Couple of nitpicks below. Feel free to resubmit or not
-with those changed. Either case,
-
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-
-> ---
-> * v3 (all changes are suggested by Guenter Roeck)
-> - add RTC_DRV_DS1307_HWMON config option to fix an issue when the ds1307
->    driver is built into the kernel but hwmon is built as module.
-> - don't start user-initiated temperature conversion when reading temperature,
->    just relying on internal/automatic conversions.
->
->   drivers/rtc/Kconfig      |  9 +++++
->   drivers/rtc/rtc-ds1307.c | 93 ++++++++++++++++++++++++++++++++++++++++++++++++
->   2 files changed, 102 insertions(+)
->
-> diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-> index 2a52424..73a7e51 100644
-> --- a/drivers/rtc/Kconfig
-> +++ b/drivers/rtc/Kconfig
-> @@ -212,6 +212,15 @@ config RTC_DRV_DS1307
->   	  This driver can also be built as a module. If so, the module
->   	  will be called rtc-ds1307.
->
-> +config RTC_DRV_DS1307_HWMON
-> +	bool "HWMON support for rtc-ds1307"
-> +	depends on RTC_DRV_DS1307 && HWMON
-> +	depends on !(RTC_DRV_DS1307=y && HWMON=m)
-> +	default y
-> +	help
-> +	  Say Y here if you want to expose temperature sensor data on
-> +	  rtc-ds1307 (only DS3231)
-> +
->   config RTC_DRV_DS1374
->   	tristate "Dallas/Maxim DS1374"
->   	help
-> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-> index aa705bb..3712fb3 100644
-> --- a/drivers/rtc/rtc-ds1307.c
-> +++ b/drivers/rtc/rtc-ds1307.c
-> @@ -19,6 +19,9 @@
->   #include <linux/rtc.h>
->   #include <linux/slab.h>
->   #include <linux/string.h>
-> +#include <linux/delay.h>
-
-Now unnecessary.
-
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
->
->   /*
->    * We can't determine type by probing, but if we expect pre-Linux code
-> @@ -851,6 +854,94 @@ out:
->   	return;
->   }
->
-> +/*----------------------------------------------------------------------*/
-> +
-> +#ifdef CONFIG_RTC_DRV_DS1307_HWMON
-> +
-> +/*
-> + * Temperature sensor support for ds3231 devices.
-> + */
-> +
-> +#define DS3231_REG_TEMPERATURE	0x11
-> +
-> +/*
-> + * A user-initiated temperature conversion is not started by this function,
-> + * so the temperature is updated once every 64 seconds.
-> + */
-> +static int ds3231_hwmon_read_temp(struct device *dev, s16 *mC)
-> +{
-> +	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-> +	u8 temp_buf[2];
-> +	s16 temp;
-> +	s32 ret;
-
-int ret ?
-
-> +
-> +	ret = ds1307->read_block_data(ds1307->client, DS3231_REG_TEMPERATURE,
-> +					sizeof(temp_buf), temp_buf);
-> +	if (ret < 0)
-> +		return ret;
-> +	if (ret != sizeof(temp_buf))
-> +		return -EIO;
-> +
-> +	/*
-> +	 * Temperature is represented as a 10-bit code with a resolution of
-> +	 * 0.25 degree celsius and encoded in two's complement format.
-> +	 */
-> +	temp = (temp_buf[0] << 8) | temp_buf[1];
-> +	temp >>= 6;
-> +	*mC = temp * 250;
-> +
-> +	return 0;
-> +}
-> +
-> +static ssize_t ds3231_hwmon_show_temp(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	int ret;
-> +	s16 temp;
-> +
-> +	ret = ds3231_hwmon_read_temp(dev, &temp);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return sprintf(buf, "%d\n", temp);
-> +}
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ds3231_hwmon_show_temp,
-> +			NULL, 0);
-> +
-> +static struct attribute *ds3231_hwmon_attrs[] = {
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	NULL,
-> +};
-> +ATTRIBUTE_GROUPS(ds3231_hwmon);
-> +
-> +static int ds1307_hwmon_register(struct ds1307 *ds1307)
-
-The return value is never used, so you might as well return void.
-
-> +{
-> +	struct device *dev;
-> +
-> +	if (ds1307->type != ds_3231)
-> +		return 0;
-> +
-> +	dev = devm_hwmon_device_register_with_groups(&ds1307->client->dev,
-> +						ds1307->client->name,
-> +						ds1307, ds3231_hwmon_groups);
-> +	if (IS_ERR(dev)) {
-> +		dev_warn(&ds1307->client->dev,
-> +			"unable to register hwmon device %ld\n", PTR_ERR(dev));
-> +		return PTR_ERR(dev);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +#else
-> +
-> +static int ds1307_hwmon_register(struct ds1307 *ds1307)
-> +{
-> +	return 0;
-> +}
-> +
-> +#endif
-> +
->   static int ds1307_probe(struct i2c_client *client,
->   			const struct i2c_device_id *id)
->   {
-> @@ -1191,6 +1282,8 @@ read_rtc:
->   		}
->   	}
->
-> +	ds1307_hwmon_register(ds1307);
-> +
->   	return 0;
->
->   exit:
->
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMDEvMjEvMjAxNiAxMTozNCBBTSwgU3TDqXBoYW4gS29jaGVuIHdyb3RlOgo+IEFsbG93IGEg
+ZGV2aWNlIHRyZWUgdG8gc2V0IGluaXRpYWwgdGVtcGVyYXR1cmUgc2Vuc29yIHBhcmFtZXRlcnMu
+Cj4KPiBVc2Vyc3BhY2UgY2FuIHN0aWxsIG92ZXJyaWRlIGFjdHVhbCB2YWx1ZXMgdGhyb3VnaCBz
+eXNmcy4KPgo+IFNpZ25lZC1vZmYtYnk6IFN0w6lwaGFuIEtvY2hlbiA8c3RlcGhhbkBrb2NoZW4u
+bmw+Cj4gLS0tCj4gICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvaHdtb24vbG05
+MC50eHQgfCA0MCArKysrKysrKysrKysrKysrKwo+ICAgZHJpdmVycy9od21vbi9sbTkwLmMgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgNTUgKysrKysrKysrKysrKysrKysrKysrKy0tCj4g
+ICAyIGZpbGVzIGNoYW5nZWQsIDkyIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCj4KPiBk
+aWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2h3bW9uL2xtOTAu
+dHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2h3bW9uL2xtOTAudHh0Cj4g
+aW5kZXggZTg2MzI0OC4uMDQ1ZTk0YiAxMDA2NDQKPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2Rldmlj
+ZXRyZWUvYmluZGluZ3MvaHdtb24vbG05MC50eHQKPiArKysgYi9Eb2N1bWVudGF0aW9uL2Rldmlj
+ZXRyZWUvYmluZGluZ3MvaHdtb24vbG05MC50eHQKPiBAQCAtMzMsNiArMzMsMzggQEAgT3B0aW9u
+YWwgcHJvcGVydGllczoKPiAgICAgICAgICAgICAgICAgTE05MCAiLUFMRVJUIiBwaW4gb3V0cHV0
+Lgo+ICAgICAgICAgICAgICAgICBTZWUgaW50ZXJydXB0LWNvbnRyb2xsZXIvaW50ZXJydXB0cy50
+eHQgZm9yIHRoZSBmb3JtYXQuCj4KPiArLSB1cGRhdGUtaW50ZXJ2YWw6IEludGVydmFsIGF0IHdo
+aWNoIHRlbXBlcmF0dXJlcyBhcmUgc2FtcGxlZCwKPiArICBUeXBlOiB1bnNpZ25lZCAgIGluIG1p
+bGxpc2Vjb25kcy4KPiArICBTaXplOiBvbmUgY2VsbAo+ICsKPiArLSBsb2NhbC1sb3c6ICAgICAg
+VmFsaWQgdGVtcGVyYXR1cmUgcmFuZ2UgZm9yIHRoZSBjaGlwIGludGVybmFsIHNlbnNvciwKPiAr
+ICBsb2NhbC1oaWdoOiAgICAgb3V0c2lkZSB3aGljaCB0aGUgYWxlcnQgd2lsbCBiZSBzZXQuIFZh
+bHVlcyBhcmUgaW4KPiArICBsb2NhbC1jcml0aWNhbDogbWlsbGljZWxjaXVzLgo+ICsgIFR5cGU6
+IHNpZ25lZAo+ICsgIFNpemU6IG9uZSBjZWxsCj4gKwo+ICstIHJlbW90ZS1sb3c6ICAgICAgVmFs
+aWQgdGVtcGVyYXR1cmUgcmFuZ2UgZm9yIHRoZSBleHRlcm5hbCBzZW5zb3IsCj4gKyAgcmVtb3Rl
+LWhpZ2g6ICAgICBvdXRzaWRlIHdoaWNoIHRoZSBhbGVydCB3aWxsIGJlIHNldC4gVmFsdWVzIGFy
+ZSBpbgo+ICsgIHJlbW90ZS1jcml0aWNhbDogbWlsbGljZWxjaWl1cy4KPiArICBUeXBlOiBzaWdu
+ZWQKPiArICBTaXplOiBvbmUgY2VsbAo+ICsKPiArLSByZW1vdGUtb2Zmc2V0OiAgIFdoZXJlIGF2
+YWlsYWJsZSwgYW4gZXh0ZXJuYWwgc2Vuc29yIHRlbXBlcmF0dXJlIG9mZnNldC4KPiArICBUeXBl
+OiBzaWduZWQKPiArICBTaXplOiBvbmUgY2VsbAo+ICsKPiArLSBsb2NhbC1lbWVyZ2VuY3k6ICBP
+biBtYXg2NjU5LCBtYXg2Njk1IGFuZCBtYXg2Njk2LCBhIGNvbmZpZ3VyYWJsZQo+ICsgIHJlbW90
+ZS1lbWVyZ2VuY3k6IDNyZCB1cHBlciBib3VuZCBvbiB0ZW1wZXJhdHVyZS4KPiArICBUeXBlOiBz
+aWduZWQKPiArICBTaXplOiBvbmUgY2VsbAo+ICsKPiArLSByZW1vdGUyLWxvdzogICAgICBPbiBt
+YXg2Njk1IGFuZCBtYXg2Njk2LCBhIHNlY29uZCBleHRlcm5hbCBzZW5zb3IuCj4gKyAgcmVtb3Rl
+Mi1oaWdoOgo+ICsgIHJlbW90ZTItY3JpdGljYWw6Cj4gKyAgcmVtb3RlMi1lbWVyZ2VuY3k6Cj4g
+KyAgVHlwZTogc2lnbmVkCj4gKyAgU2l6ZTogb25lIGNlbGwKPiArCgpUaGlzIHZlcnkgbXVjaCBz
+bWVsbHMgbGlrZSBjb25maWd1cmF0aW9uLCBub3QgaGFyZHdhcmUgZGVzY3JpcHRpb24uCgpIYXZp
+bmcgc2FpZCB0aGF0LCB0aGUgdGhlcm1hbCBzdWJzeXN0ZW0gZG9lcyBzb21ldGhpbmcgc2ltaWxh
+ci4gVGhpcyByYWlzZXMgZXZlbiBtb3JlCnF1ZXN0aW9ucywgdGhvdWdoLiBTaW5jZSBwYXRjaCAz
+IG9mIHRoZSBzZXJpZXMgaW50cm9kdWNlcyByZWdpc3RyYXRpb24gd2l0aCB0aGUgdGhlcm1hbApz
+dWJzeXN0ZW0sIGl0IHNlZW1zIHRvIG1lIHRoYXQgdGhlIHRoZXJtYWwgc3Vic3lzdGVtIHNob3Vs
+ZCBwcm92aWRlIGFueSBsaW1pdHMgdXNlZAp0byBwcm9ncmFtIHRoZSBjaGlwcywgYW5kIHRoYXQg
+dGhlcmUgc2hvdWxkIGJlIGEgbWVjaGFuaXNtIGZvciB0aGUgdGhlcm1hbCBzdWJzeXN0ZW0KdG8g
+aW50ZXJhY3Qgd2l0aCB0aGUgZHJpdmVyIHRvIGJvdGggc2V0IHRoZSBsaW1pdHMgYW5kIHRvIGJl
+IGluZm9ybWVkIGlmIGEgbGltaXQKaXMgZXhjZWVkZWQuCgpBbHNvLCBfaWZfIHN1Y2ggYSBzZXQg
+b2YgcHJvcGVydGllcyBpcyBpbnRyb2R1Y2VkIGFuZCBhY2NlcHRlZCBieSB0aGUgZGV2aWNldHJl
+ZQpyZXZpZXdlcnMsIGl0IHNob3VsZCBwcm9iYWJseSBiZSBhIHNldCBvZiBwcm9wZXJ0aWVzIHdo
+aWNoIGFwcGxpZXMgdG8gX2FsbF8gaGFyZHdhcmUKbW9uaXRvcmluZyBkcml2ZXJzLCBub3QganVz
+dCB0byBvbmUuIEV2ZW4gaWYgc3VwcG9ydCBpcyBub3QgaW1wbGVtZW50ZWQgaW1tZWRpYXRlbHkK
+aW4gdGhlIGh3bW9uIGNvcmUsIHRoZSBwcm9wZXJ0aWVzIHNob3VsZCBiZSB1c2FibGUgaW4gYSBn
+ZW5lcmljIHdheSwgYW5kIG5vdApyZWZsZWN0IHN5c2ZzIGF0dHJpYnV0ZSBuYW1lcyB1c2VkIGJ5
+IHRoZSBod21vbiBzdWJzeXN0ZW0uCgpUaGFua3MsCkd1ZW50ZXIKCj4gICBFeGFtcGxlIExNOTAg
+bm9kZToKPgo+ICAgdGVtcC1zZW5zb3Igewo+IEBAIC00MSw0ICs3MywxMiBAQCB0ZW1wLXNlbnNv
+ciB7Cj4gICAJdmNjLXN1cHBseSA9IDwmcGFsbWFzX2xkbzZfcmVnPjsKPiAgIAlpbnRlcnJ1cHQt
+cGFyZW50ID0gPCZncGlvPjsKPiAgIAlpbnRlcnJ1cHRzID0gPFRFR1JBX0dQSU8oTywgNCkgSVJR
+X1RZUEVfTEVWRUxfTE9XPjsKPiArCXVwZGF0ZS1pbnRlcnZhbCA9IDw1MDA+Owo+ICsJbG9jYWwt
+bG93ID0gPDUwMDA+Owo+ICsJbG9jYWwtaGlnaCA9IDw4MDAwMD47Cj4gKwlsb2NhbC1jcml0aWNh
+bCA9IDw5MDAwMD47Cj4gKwlyZW1vdGUtbG93ID0gPDUwMDA+Owo+ICsJcmVtb3RlLWhpZ2ggPSA8
+ODAwMDA+Owo+ICsJcmVtb3RlLWNyaXRpY2FsID0gPDkwMDAwPjsKPiArCXJlbW90ZS1vZmZzZXQg
+PSA8KC02MjEyNSk+Owo+ICAgfQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2xtOTAuYyBi
+L2RyaXZlcnMvaHdtb24vbG05MC5jCj4gaW5kZXggODhkYWY3Mi4uOGFlODc5MSAxMDA2NDQKPiAt
+LS0gYS9kcml2ZXJzL2h3bW9uL2xtOTAuYwo+ICsrKyBiL2RyaXZlcnMvaHdtb24vbG05MC5jCj4g
+QEAgLTkzLDYgKzkzLDcgQEAKPiAgICNpbmNsdWRlIDxsaW51eC9od21vbi5oPgo+ICAgI2luY2x1
+ZGUgPGxpbnV4L2Vyci5oPgo+ICAgI2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+Cj4gKyNpbmNsdWRl
+IDxsaW51eC9vZi5oPgo+ICAgI2luY2x1ZGUgPGxpbnV4L3N5c2ZzLmg+Cj4gICAjaW5jbHVkZSA8
+bGludXgvaW50ZXJydXB0Lmg+Cj4gICAjaW5jbHVkZSA8bGludXgvcmVndWxhdG9yL2NvbnN1bWVy
+Lmg+Cj4gQEAgLTE1MDQsOCArMTUwNSwxNiBAQCBzdGF0aWMgdm9pZCBsbTkwX3Jlc3RvcmVfY29u
+ZihzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBzdHJ1Y3QgbG05MF9kYXRhICpkYXRhKQo+ICAg
+c3RhdGljIHZvaWQgbG05MF9pbml0X2NsaWVudChzdHJ1Y3QgbG05MF9kYXRhICpkYXRhKQo+ICAg
+ewo+ICAgCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSBkYXRhLT5jbGllbnQ7Cj4gKwlzdHJ1
+Y3QgZGV2aWNlICpkZXYgPSAmY2xpZW50LT5kZXY7Cj4gICAJdTggY29uZmlnLCBjb252cmF0ZTsK
+PiArCXUzMiBtczsKPiArI2lmZGVmIENPTkZJR19PRgo+ICsJczMyIHRlbXA7Cj4gKyNlbmRpZgo+
+Cj4gKwkvKgo+ICsJICogU2F2ZSBvbGQgY29udmVyc2lvbiByYXRlLgo+ICsJICovCj4gICAJaWYg
+KGxtOTBfcmVhZF9yZWcoY2xpZW50LCBMTTkwX1JFR19SX0NPTlZSQVRFLCAmY29udnJhdGUpIDwg
+MCkgewo+ICAgCQlkZXZfd2FybigmY2xpZW50LT5kZXYsICJGYWlsZWQgdG8gcmVhZCBjb252cmF0
+ZSByZWdpc3RlciFcbiIpOwo+ICAgCQljb252cmF0ZSA9IExNOTBfREVGX0NPTlZSQVRFX1JWQUw7
+Cj4gQEAgLTE1MTUsMTQgKzE1MjQsMjQgQEAgc3RhdGljIHZvaWQgbG05MF9pbml0X2NsaWVudChz
+dHJ1Y3QgbG05MF9kYXRhICpkYXRhKQo+ICAgCS8qCj4gICAJICogU3RhcnQgdGhlIGNvbnZlcnNp
+b25zLgo+ICAgCSAqLwo+IC0JbG05MF9zZXRfY29udnJhdGVfbG9ja2VkKGRhdGEsIDUwMCk7ICAv
+KiA1MDBtcyAvIDJIeiAgKi8KPiArI2lmZGVmIENPTkZJR19PRgo+ICsJaWYgKG9mX3Byb3BlcnR5
+X3JlYWRfdTMyKGRldi0+b2Zfbm9kZSwgInVwZGF0ZS1pbnRlcnZhbCIsICZtcykgPCAwKQo+ICsj
+ZW5kaWYKPiArCQltcyA9IDUwMDsgIC8qIGRlZmF1bHQgcmF0ZTogMkh6ICovCj4gKwlsbTkwX3Nl
+dF9jb252cmF0ZV9sb2NrZWQoZGF0YSwgbXMpOwo+ICsKPiArCS8qCj4gKwkgKiBTYXZlIG9sZCBj
+b25maWcKPiArCSAqLwo+ICAgCWlmIChsbTkwX3JlYWRfcmVnKGNsaWVudCwgTE05MF9SRUdfUl9D
+T05GSUcxLCAmY29uZmlnKSA8IDApIHsKPiAtCQlkZXZfd2FybigmY2xpZW50LT5kZXYsICJJbml0
+aWFsaXphdGlvbiBmYWlsZWQhXG4iKTsKPiArCQlkZXZfd2FybihkZXYsICJJbml0aWFsaXphdGlv
+biBmYWlsZWQhXG4iKTsKPiAgIAkJcmV0dXJuOwo+ICAgCX0KPiAgIAlkYXRhLT5jb25maWdfb3Jp
+ZyA9IGNvbmZpZzsKPgo+IC0JLyogQ2hlY2sgVGVtcGVyYXR1cmUgUmFuZ2UgU2VsZWN0ICovCj4g
+KwkvKgo+ICsJICogQ2hlY2sgVGVtcGVyYXR1cmUgUmFuZ2UgU2VsZWN0Cj4gKwkgKi8KPiAgIAlp
+ZiAoZGF0YS0+a2luZCA9PSBhZHQ3NDYxIHx8IGRhdGEtPmtpbmQgPT0gdG1wNDUxKSB7Cj4gICAJ
+CWlmIChjb25maWcgJiAweDA0KQo+ICAgCQkJZGF0YS0+ZmxhZ3MgfD0gTE05MF9GTEFHX0FEVDc0
+NjFfRVhUOwo+IEBAIC0xNTQ1LDYgKzE1NjQsMzYgQEAgc3RhdGljIHZvaWQgbG05MF9pbml0X2Ns
+aWVudChzdHJ1Y3QgbG05MF9kYXRhICpkYXRhKQo+ICAgCWNvbmZpZyAmPSAweEJGOwkvKiBydW4g
+Ki8KPiAgIAlpZiAoY29uZmlnICE9IGRhdGEtPmNvbmZpZ19vcmlnKSAvKiBPbmx5IHdyaXRlIGlm
+IGNoYW5nZWQgKi8KPiAgIAkJaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0YShjbGllbnQsIExNOTBf
+UkVHX1dfQ09ORklHMSwgY29uZmlnKTsKPiArCj4gKyNpZmRlZiBDT05GSUdfT0YKPiArCS8qCj4g
+KwkgKiBTZXQgaW5pdGlhbCB2YWx1ZXMgZnJvbSBkZXZpY2V0cmVlCj4gKwkgKi8KPiArI2RlZmlu
+ZSBJTklUX1JFRyhfcHJvcGVydHksIF9pbmRleCwgX2JpdHMpIHsgXAo+ICsJaWYgKG9mX3Byb3Bl
+cnR5X3JlYWRfczMyKGRldi0+b2Zfbm9kZSwgX3Byb3BlcnR5LCAmdGVtcCkgPT0gMCkgXAo+ICsJ
+CWxtOTBfc2V0X3RlbXAjI19iaXRzIyNfbG9ja2VkKGRhdGEsIF9pbmRleCwgdGVtcCk7IFwKPiAr
+fQo+ICsJSU5JVF9SRUcoImxvY2FsLWxvdyIsIExPQ0FMX0xPVywgOCk7Cj4gKwlJTklUX1JFRygi
+bG9jYWwtaGlnaCIsIExPQ0FMX0hJR0gsIDgpOwo+ICsJSU5JVF9SRUcoImxvY2FsLWNyaXRpY2Fs
+IiwgTE9DQUxfQ1JJVCwgOCk7Cj4gKwlJTklUX1JFRygicmVtb3RlLWxvdyIsIFJFTU9URV9MT1cs
+IDExKTsKPiArCUlOSVRfUkVHKCJyZW1vdGUtaGlnaCIsIFJFTU9URV9ISUdILCAxMSk7Cj4gKwlJ
+TklUX1JFRygicmVtb3RlLWNyaXRpY2FsIiwgUkVNT1RFX0NSSVQsIDgpOwo+ICsJaWYgKGRhdGEt
+PmZsYWdzICYgTE05MF9IQVZFX09GRlNFVCkgewo+ICsJCUlOSVRfUkVHKCJyZW1vdGUtb2Zmc2V0
+IiwgUkVNT1RFX09GRlNFVCwgMTEpOwo+ICsJfQo+ICsJaWYgKGRhdGEtPmZsYWdzICYgTE05MF9I
+QVZFX0VNRVJHRU5DWSkgewo+ICsJCUlOSVRfUkVHKCJsb2NhbC1lbWVyZ2VuY3kiLCBMT0NBTF9F
+TUVSRywgOCk7Cj4gKwkJSU5JVF9SRUcoInJlbW90ZS1lbWVyZ2VuY3kiLCBSRU1PVEVfRU1FUkcs
+IDgpOwo+ICsJfQo+ICsJaWYgKGRhdGEtPmZsYWdzICYgTE05MF9IQVZFX1RFTVAzKSB7Cj4gKwkJ
+SU5JVF9SRUcoInJlbW90ZTItbG93IiwgUkVNT1RFMl9MT1csIDExKTsKPiArCQlJTklUX1JFRygi
+cmVtb3RlMi1oaWdoIiwgUkVNT1RFMl9ISUdILCAxMSk7Cj4gKwkJSU5JVF9SRUcoInJlbW90ZTIt
+Y3JpdGljYWwiLCBSRU1PVEUyX0NSSVQsIDgpOwo+ICsJCUlOSVRfUkVHKCJyZW1vdGUyLWVtZXJn
+ZW5jeSIsIFJFTU9URTJfRU1FUkcsIDgpOwo+ICsJfQo+ICsjdW5kZWYgSU5JVF9SRUcKPiArI2Vu
+ZGlmCj4gICB9Cj4KPiAgIHN0YXRpYyBib29sIGxtOTBfaXNfdHJpcHBlZChzdHJ1Y3QgaTJjX2Ns
+aWVudCAqY2xpZW50LCB1MTYgKnN0YXR1cykKPgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
