@@ -1,35 +1,200 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Mon, 04 Jan 2016 07:53:13 +0000
-Subject: Re: [lm-sensors] Website down
-Message-Id: <1451893993.4612.5.camel@chaos.site>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Fri, 22 Jan 2016 17:57:21 +0000
+Subject: [lm-sensors] [PATCH v2] rtc: rtc-ds1307: add temperature sensor support for ds3231
+Message-Id: <1453485441-11667-1-git-send-email-akinobu.mita@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201601012202.19729.lew.pitcher@digitalfreehold.ca>
-In-Reply-To: <201601012202.19729.lew.pitcher@digitalfreehold.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: rtc-linux@googlegroups.com
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-SGkgTGV3LAoKTGUgRnJpZGF5IDAxIEphbnVhcnkgMjAxNiDDoCAyMjowMiAtMDUwMCwgTGV3IFBp
-dGNoZXIgYSDDqWNyaXQgOgo+IEl0IGFwcGVhcnMgdGhhdCBodHRwOi8vd3d3LmxtLXNlbnNvcnMu
-b3JnLyBpcyBubyBsb25nZXIgYXZhaWxhYmxlLiBXaGlsZSB0aGUgCj4gd2Vic2l0ZSAvZG9lcy8g
-cmVzcG9uZCwgaXQgcmVwbGllcyB3aXRoIGRlZmF1bHQgZmlsZXN5c3RlbSBkaXJlY3RvcnkgcGFn
-ZSAKPiB0aGF0IGxvb2tzIGxpa2UKPiAKPiA+IDwhRE9DVFlQRSBIVE1MIFBVQkxJQyAiLS8vVzND
-Ly9EVEQgSFRNTCAzLjIgRmluYWwvL0VOIj4KPiA+IDxodG1sPgo+ID4gIDxoZWFkPgo+ID4gICA8
-dGl0bGU+SW5kZXggb2YgLzwvdGl0bGU+Cj4gPiAgPC9oZWFkPgo+ID4gIDxib2R5Pgo+ID4gPGgx
-PkluZGV4IG9mIC88L2gxPgo+ID4gPHRhYmxlPjx0cj48dGg+PGltZyBzcmM9Ii9pY29ucy9ibGFu
-ay5naWYiIGFsdD0iW0lDT10iPjwvdGg+PHRoPgo+ID4gPGEgaHJlZj0iP0M9TjtPPUQiPk5hbWU8
-L2E+PC90aD48dGg+Cj4gPiA8YSBocmVmPSI/Qz1NO089QSI+TGFzdCBtb2RpZmllZDwvYT48L3Ro
-Pjx0aD4KPiA+IDxhIGhyZWY9Ij9DPVM7Tz1BIj5TaXplPC9hPjwvdGg+PHRoPgo+ID4gPGEgaHJl
-Zj0iP0M9RDtPPUEiPkRlc2NyaXB0aW9uPC9hPjwvdGg+PC90cj48dHI+Cj4gPiA8dGggY29sc3Bh
-bj0iNSI+PGhyPjwvdGg+PC90cj4KPiA+Cj4gPiA8dHI+PHRoIGNvbHNwYW49IjUiPjxocj48L3Ro
-PjwvdHI+Cj4gPiA8L3RhYmxlPgo+ID4gPGFkZHJlc3M+Cj4gPiBBcGFjaGUvMi4yLjE1IChGZWRv
-cmEpIFNlcnZlciBhdCB3d3cubG0tc2Vuc29ycy5vcmcgUG9ydCA4MAo+ID4gPC9hZGRyZXNzPiA8
-L2JvZHk+PC9odG1sPiAKPiAKPiBJcyB0aGlzIGludGVudGlvbmFsPyBJcyBsbS1zZW5zb3JzLm9y
-ZyBkZWxpYmVyYXRlbHkgZG93bj8KCkl0IGlzIG5vdCBpbnRlbnRpb25hbCwgdGhlIHNpdGUgaGFz
-IGJlZW4gZG93biBmb3IgbW9udGhzIGFuZCBzYWRseSB3ZQphcmUgYXQgdGhpcyBwb2ludCB1bmFi
-bGUgdG8gZml4IGl0IGR1ZSB0byB0aGUgc2VydmVyIGFkbWl0IGJlaW5nCnVucmVhY2hhYmxlLgoK
-LS0gCkplYW4gRGVsdmFyZQpTVVNFIEwzIFN1cHBvcnQKCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
-b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xtLXNlbnNvcnM
+DS3231 has the temperature registers with a resolution of 0.25
+degree celsius.  This enables to get the value through hwmon.
+
+	# cat /sys/class/i2c-adapter/i2c-2/2-0068/hwmon/hwmon0/temp1_input
+	21000
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: rtc-linux@googlegroups.com
+Cc: Jean Delvare <jdelvare@suse.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+---
+* v2
+- convert to use hwmon framework, suggested by Alexandre Belloni
+
+ drivers/rtc/rtc-ds1307.c | 122 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 122 insertions(+)
+
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index aa705bb..e0d4ce5 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -19,6 +19,9 @@
+ #include <linux/rtc.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/delay.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ 
+ /*
+  * We can't determine type by probing, but if we expect pre-Linux code
+@@ -75,6 +78,7 @@ enum ds_type {
+ #	define DS1337_BIT_nEOSC		0x80
+ #	define DS1339_BIT_BBSQI		0x20
+ #	define DS3231_BIT_BBSQW		0x40 /* same as BBSQI */
++#	define DS3231_BIT_CONV		0x20
+ #	define DS1337_BIT_RS2		0x10
+ #	define DS1337_BIT_RS1		0x08
+ #	define DS1337_BIT_INTCN		0x04
+@@ -89,6 +93,7 @@ enum ds_type {
+ #	define DS1340_BIT_OSF		0x80
+ #define DS1337_REG_STATUS	0x0f
+ #	define DS1337_BIT_OSF		0x80
++#	define DS3231_BIT_BSY		0x04
+ #	define DS1337_BIT_A2I		0x02
+ #	define DS1337_BIT_A1I		0x01
+ #define DS1339_REG_ALARM1_SECS	0x07
+@@ -851,6 +856,121 @@ out:
+ 	return;
+ }
+ 
++/*----------------------------------------------------------------------*/
++
++#if IS_ENABLED(CONFIG_HWMON)
++
++/*
++ * Temperature sensor support for ds3231 devices.
++ */
++
++#define DS3231_REG_TEMPERATURE	0x11
++
++static ssize_t ds3231_hwmon_show_temp(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct ds1307	*ds1307 = dev_get_drvdata(dev);
++	struct i2c_client *client = ds1307->client;
++	u8 temp_buf[2];
++	s16 temp;
++	int control;
++	int status;
++	s32 ret;
++	unsigned long timeout;
++
++	status = i2c_smbus_read_byte_data(client, DS1337_REG_STATUS);
++	if (status < 0)
++		return status;
++
++	/*
++	 * Start user-initiated temperature conversion
++	 */
++	if (!(status & DS3231_BIT_BSY)) {
++		struct mutex	*lock = &ds1307->rtc->ops_lock;
++
++		mutex_lock(lock);
++
++		control = i2c_smbus_read_byte_data(client, DS1337_REG_CONTROL);
++		if (control < 0) {
++			mutex_unlock(lock);
++			return control;
++		}
++		ret = i2c_smbus_write_byte_data(client, DS1337_REG_CONTROL,
++						control | DS3231_BIT_CONV);
++		if (ret)
++			return ret;
++
++		mutex_unlock(lock);
++
++		/*
++		 * A user-initiated temperature conversion does not affect
++		 * the BSY bit for approximately 2ms.
++		 */
++		usleep_range(2000, 3000);
++	}
++
++	/*
++	 * Wait until the conversion is finished
++	 */
++	timeout = jiffies + HZ;
++
++	do {
++		control = i2c_smbus_read_byte_data(client, DS1337_REG_CONTROL);
++		if (control < 0)
++			return control;
++		if (!(control & DS3231_BIT_CONV))
++			break;
++		if (time_after(jiffies, timeout))
++			return -EIO;
++		usleep_range(2000, 3000);
++	} while (1);
++
++	ret = ds1307->read_block_data(ds1307->client, DS3231_REG_TEMPERATURE,
++					sizeof(temp_buf), temp_buf);
++	if (ret < 0)
++		return ret;
++	if (ret != sizeof(temp_buf))
++		return -EIO;
++
++	/*
++	 * Temperature is represented as a 10-bit code with a resolution of
++	 * 0.25 degree celsius and encoded in two's complement format.
++	 */
++	temp = (temp_buf[0] << 8) | temp_buf[1];
++	temp >>= 6;
++
++	return sprintf(buf, "%d\n", temp * 250);
++}
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ds3231_hwmon_show_temp,
++			NULL, 0);
++
++static struct attribute *ds3231_hwmon_attrs[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(ds3231_hwmon);
++
++static int ds1307_hwmon_register(struct ds1307 *ds1307)
++{
++	if (ds1307->type != ds_3231)
++		return 0;
++
++	devm_hwmon_device_register_with_groups(&ds1307->client->dev,
++						ds1307->client->name,
++						ds1307, ds3231_hwmon_groups);
++
++	return 0;
++}
++
++#else
++
++static int ds1307_hwmon_register(struct ds1307 *ds1307)
++{
++	return 0;
++}
++
++#endif
++
+ static int ds1307_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -1191,6 +1311,8 @@ read_rtc:
+ 		}
+ 	}
+ 
++	ds1307_hwmon_register(ds1307);
++
+ 	return 0;
+ 
+ exit:
+-- 
+2.5.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
