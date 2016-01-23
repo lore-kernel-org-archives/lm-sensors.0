@@ -1,95 +1,179 @@
-From: PhiLLip Pi <ant@zimage.com>
-Date: Fri, 01 Jan 2016 18:45:41 +0000
-Subject: Re: [lm-sensors] adt7473 for NVIDIA
-Message-Id: <20160101184541.GA18310@beta.zimage.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Sat, 23 Jan 2016 18:47:12 +0000
+Subject: [lm-sensors] [PATCH v3] rtc: rtc-ds1307: add temperature sensor support for ds3231
+Message-Id: <1453574832-21908-1-git-send-email-akinobu.mita@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100316155203.GD25138@alpha.zimage.com>
-In-Reply-To: <20100316155203.GD25138@alpha.zimage.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: rtc-linux@googlegroups.com
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
 
-On Tue, Mar 16, 2010 at 05:30:31PM +0100, Jean Delvare wrote:
-> On Tue, 16 Mar 2010 08:52:03 -0700, Phillip Pi wrote:
-> > Reply-To:=20
-> > In-Reply-To: <20100316163333.7f5911f7@hyperion.delvare>
-> >=20
-> > > > I noticed this kernel upgrade detected something new:=20
-> > > > http://pastie.org/872083 (too long to post in here). It never detec=
-ted=20
-> > > > adt7473 module, but it never show it in sensors command. What is it=
-?=20
-> > > > From a quick Google search, it seems to be fan controls or somethin=
-g?
-> > >=20
-> > > Hardware monitoring chip, on your graphics adapter. Getting these to
-> > > work if often tedious because nVidia is not cooperating. Try the
-> > > following (as root):
-> > >=20
-> > > # echo adt7473 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
-> > >=20
-> > > Then "sensors" might show more.
-> >=20
-> > # echo adt7473 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
-> > # sensors
-> > acpitz-virtual-0
-> > Adapter: Virtual device
-> > temp1:       +21.8=B0C  (crit =3D +96.8=B0C)                 =20
-> >=20
-> > k8temp-pci-00c3
-> > Adapter: PCI adapter
-> > Core0 Temp:  +39.0=B0C                                   =20
-> > Core1 Temp:  +27.0=B0C                                   =20
-> >=20
-> > adt7473-i2c-4-2e
-> > Adapter: NVIDIA i2c adapter=20
-> > in1:         +2.99 V  (min =3D  +0.00 V, max =3D  +2.99 V)  =20
-> > +3.3V:       +3.21 V  (min =3D  +0.00 V, max =3D  +4.38 V)  =20
-> > fan1:       1511 RPM  (min =3D    0 RPM)
-> > fan2:          0 RPM  (min =3D    0 RPM)
-> > fan3:          0 RPM  (min =3D  164 RPM)  ALARM
-> > fan4:          0 RPM  (min =3D    0 RPM)
-> > temp1:       +60.0=B0C  (low  =3D +65.0=B0C, high =3D +85.0=B0C)  ALARM=
- =20
-> > Board Temp:  +53.0=B0C  (low  =3D +20.0=B0C, high =3D +60.0=B0C) =20
-> > temp3:       +59.0=B0C  (low  =3D +80.0=B0C, high =3D +105.0=B0C)  ALARM
-> >=20
-> > Thanks. Do I have to add this line to my /etc/rc.local or something to =
+DS3231 has the temperature registers with a resolution of 0.25
+degree celsius.  This enables to get the value through hwmon.
 
-> > get this to work all the time? Or does it change often? BTW, I am using=
-=20
-> > the latest NVIDIA beta driver.
->=20
-> Yes, you have to add it to some init script, otherwise you'll lose the
-> device at reboot. Now the problem is that the bus number (4 in your
-> case) could indeed change over time. And once again nVidia make it hard
-> for us by not giving unique names to their I2C adapters, so we can't
-> even select by name. All you can do is hope that the numbers won't
-> change.
->=20
-> WRT to the output itself, I doubt that your card has more than one fan,
-> so you can probably add ignore statements for fan2, fan3 and fan4 to
-> your configuration file. The rest looks reasonable.
+	# cat /sys/class/i2c-adapter/i2c-2/2-0068/hwmon/hwmon0/temp1_input
+	21000
 
-Hello again and happy new year!
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: rtc-linux@googlegroups.com
+Cc: Jean Delvare <jdelvare@suse.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+---
+* v3 (all changes are suggested by Guenter Roeck)
+- add RTC_DRV_DS1307_HWMON config option to fix an issue when the ds1307
+  driver is built into the kernel but hwmon is built as module.
+- don't start user-initiated temperature conversion when reading temperature,
+  just relying on internal/automatic conversions.
 
-$ sudo echo adt7473 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
--bash: /sys/bus/i2c/devices/i2c-4/new_device: Permission denied
+ drivers/rtc/Kconfig      |  9 +++++
+ drivers/rtc/rtc-ds1307.c | 93 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 102 insertions(+)
 
-I assume it changed. How do I make this work so I can see my NVIDIA=20
-GeForce 8800 GT video's card's sensors?
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 2a52424..73a7e51 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -212,6 +212,15 @@ config RTC_DRV_DS1307
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1307.
+ 
++config RTC_DRV_DS1307_HWMON
++	bool "HWMON support for rtc-ds1307"
++	depends on RTC_DRV_DS1307 && HWMON
++	depends on !(RTC_DRV_DS1307=y && HWMON=m)
++	default y
++	help
++	  Say Y here if you want to expose temperature sensor data on
++	  rtc-ds1307 (only DS3231)
++
+ config RTC_DRV_DS1374
+ 	tristate "Dallas/Maxim DS1374"
+ 	help
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index aa705bb..3712fb3 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -19,6 +19,9 @@
+ #include <linux/rtc.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/delay.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ 
+ /*
+  * We can't determine type by probing, but if we expect pre-Linux code
+@@ -851,6 +854,94 @@ out:
+ 	return;
+ }
+ 
++/*----------------------------------------------------------------------*/
++
++#ifdef CONFIG_RTC_DRV_DS1307_HWMON
++
++/*
++ * Temperature sensor support for ds3231 devices.
++ */
++
++#define DS3231_REG_TEMPERATURE	0x11
++
++/*
++ * A user-initiated temperature conversion is not started by this function,
++ * so the temperature is updated once every 64 seconds.
++ */
++static int ds3231_hwmon_read_temp(struct device *dev, s16 *mC)
++{
++	struct ds1307 *ds1307 = dev_get_drvdata(dev);
++	u8 temp_buf[2];
++	s16 temp;
++	s32 ret;
++
++	ret = ds1307->read_block_data(ds1307->client, DS3231_REG_TEMPERATURE,
++					sizeof(temp_buf), temp_buf);
++	if (ret < 0)
++		return ret;
++	if (ret != sizeof(temp_buf))
++		return -EIO;
++
++	/*
++	 * Temperature is represented as a 10-bit code with a resolution of
++	 * 0.25 degree celsius and encoded in two's complement format.
++	 */
++	temp = (temp_buf[0] << 8) | temp_buf[1];
++	temp >>= 6;
++	*mC = temp * 250;
++
++	return 0;
++}
++
++static ssize_t ds3231_hwmon_show_temp(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int ret;
++	s16 temp;
++
++	ret = ds3231_hwmon_read_temp(dev, &temp);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", temp);
++}
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ds3231_hwmon_show_temp,
++			NULL, 0);
++
++static struct attribute *ds3231_hwmon_attrs[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(ds3231_hwmon);
++
++static int ds1307_hwmon_register(struct ds1307 *ds1307)
++{
++	struct device *dev;
++
++	if (ds1307->type != ds_3231)
++		return 0;
++
++	dev = devm_hwmon_device_register_with_groups(&ds1307->client->dev,
++						ds1307->client->name,
++						ds1307, ds3231_hwmon_groups);
++	if (IS_ERR(dev)) {
++		dev_warn(&ds1307->client->dev,
++			"unable to register hwmon device %ld\n", PTR_ERR(dev));
++		return PTR_ERR(dev);
++	}
++
++	return 0;
++}
++
++#else
++
++static int ds1307_hwmon_register(struct ds1307 *ds1307)
++{
++	return 0;
++}
++
++#endif
++
+ static int ds1307_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -1191,6 +1282,8 @@ read_rtc:
+ 		}
+ 	}
+ 
++	ds1307_hwmon_register(ds1307);
++
+ 	return 0;
+ 
+ exit:
+-- 
+2.5.0
 
-Thank you in advance. :)
---=20
-:) New Yr.
-Note: A fixed width font (Courier, Monospace, etc.) is required to see this=
- signature correctly.
-  /\___/\    Phil./Ant(Dude) @ http://antfarm.ma.cx (Personal Web Site)
- / /\ /\ \                 Ant's Quality Foraged Links: http://aqfl.net
-| |o   o| |                 E-mail: philpi@earthlink.net/ant@zimage.com
-   \ _ /              If crediting, then please kindly use Ant nickname
-    ( )                                              and AQFL URL/link.
 
 _______________________________________________
 lm-sensors mailing list
