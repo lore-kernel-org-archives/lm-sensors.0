@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 22 Jan 2016 18:50:57 +0000
+Date: Sat, 23 Jan 2016 00:55:09 +0000
 Subject: Re: [lm-sensors] [PATCH v2] rtc: rtc-ds1307: add temperature sensor support for ds3231
-Message-Id: <56A27A11.1010805@roeck-us.net>
+Message-Id: <56A2CF6D.9040300@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1453485441-11667-1-git-send-email-akinobu.mita@gmail.com>
 In-Reply-To: <1453485441-11667-1-git-send-email-akinobu.mita@gmail.com>
@@ -33,197 +33,19 @@ On 01/22/2016 09:57 AM, Akinobu Mita wrote:
 >   1 file changed, 122 insertions(+)
 >
 > diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-> index aa705bb..e0d4ce5 100644
-> --- a/drivers/rtc/rtc-ds1307.c
-> +++ b/drivers/rtc/rtc-ds1307.c
-> @@ -19,6 +19,9 @@
->   #include <linux/rtc.h>
->   #include <linux/slab.h>
->   #include <linux/string.h>
-> +#include <linux/delay.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
->
->   /*
->    * We can't determine type by probing, but if we expect pre-Linux code
-> @@ -75,6 +78,7 @@ enum ds_type {
->   #	define DS1337_BIT_nEOSC		0x80
->   #	define DS1339_BIT_BBSQI		0x20
->   #	define DS3231_BIT_BBSQW		0x40 /* same as BBSQI */
-> +#	define DS3231_BIT_CONV		0x20
->   #	define DS1337_BIT_RS2		0x10
->   #	define DS1337_BIT_RS1		0x08
->   #	define DS1337_BIT_INTCN		0x04
-> @@ -89,6 +93,7 @@ enum ds_type {
->   #	define DS1340_BIT_OSF		0x80
->   #define DS1337_REG_STATUS	0x0f
->   #	define DS1337_BIT_OSF		0x80
-> +#	define DS3231_BIT_BSY		0x04
->   #	define DS1337_BIT_A2I		0x02
->   #	define DS1337_BIT_A1I		0x01
->   #define DS1339_REG_ALARM1_SECS	0x07
-> @@ -851,6 +856,121 @@ out:
->   	return;
->   }
->
-> +/*----------------------------------------------------------------------*/
-> +
+
+Something else, on top of my previous comments.
+
 > +#if IS_ENABLED(CONFIG_HWMON)
-> +
-> +/*
-> + * Temperature sensor support for ds3231 devices.
-> + */
-> +
-> +#define DS3231_REG_TEMPERATURE	0x11
-> +
-> +static ssize_t ds3231_hwmon_show_temp(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct ds1307	*ds1307 = dev_get_drvdata(dev);
 
-space instead of tab ?
+I don't think this will work as intended. It will fail if the ds1307 driver
+is built into the kernel but hwmon is built as module.
 
-> +	struct i2c_client *client = ds1307->client;
-> +	u8 temp_buf[2];
-> +	s16 temp;
-> +	int control;
-> +	int status;
-> +	s32 ret;
-> +	unsigned long timeout;
-> +
-> +	status = i2c_smbus_read_byte_data(client, DS1337_REG_STATUS);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	/*
-> +	 * Start user-initiated temperature conversion
-> +	 */
-> +	if (!(status & DS3231_BIT_BSY)) {
-> +		struct mutex	*lock = &ds1307->rtc->ops_lock;
-> +
-> +		mutex_lock(lock);
-> +
-> +		control = i2c_smbus_read_byte_data(client, DS1337_REG_CONTROL);
-> +		if (control < 0) {
-> +			mutex_unlock(lock);
-> +			return control;
-> +		}
-> +		ret = i2c_smbus_write_byte_data(client, DS1337_REG_CONTROL,
-> +						control | DS3231_BIT_CONV);
-> +		if (ret)
-> +			return ret;
-> +
-Leaks the lock. It might be better to define error abort handling with a label.
+Check configurations such as BE2NET_HWMON or NET_DSA_HWMON for ideas
+on how to handle this problem.
 
-> +		mutex_unlock(lock);
-
-Another conversion could be initiated at this point.
-It might be better to keep the lock until the sequence is complete.
-
-> +
-> +		/*
-> +		 * A user-initiated temperature conversion does not affect
-> +		 * the BSY bit for approximately 2ms.
-> +		 */
-> +		usleep_range(2000, 3000);
-> +	}
-> +
-> +	/*
-> +	 * Wait until the conversion is finished
-> +	 */
-> +	timeout = jiffies + HZ;
-
-Can it really take that long ? Datashet gives a maximum of 200 ms.
-
-> +
-> +	do {
-> +		control = i2c_smbus_read_byte_data(client, DS1337_REG_CONTROL);
-> +		if (control < 0)
-> +			return control;
-> +		if (!(control & DS3231_BIT_CONV))
-> +			break;
-> +		if (time_after(jiffies, timeout))
-> +			return -EIO;
-> +		usleep_range(2000, 3000);
-> +	} while (1);
-> +
-> +	ret = ds1307->read_block_data(ds1307->client, DS3231_REG_TEMPERATURE,
-> +					sizeof(temp_buf), temp_buf);
-
-I am not sure if using read_block_data() is worth the complexity.
-Two individual calls to i2c_smbus_read_byte_data() seem to be
-much more straightforward.
-
-> +	if (ret < 0)
-> +		return ret;
-> +	if (ret != sizeof(temp_buf))
-> +		return -EIO;
-
-[ ... and would also avoid the odd -EIO here ]
-
-Please consider just relying on internal/automatic conversions. True,
-those only occur every 64 seconds, but given the accuracy of +- 3
-degrees C I don't think the gain of an immediate conversion outweighs
-the additional code complexity and the resulting delay.
-
-> +
-> +	/*
-> +	 * Temperature is represented as a 10-bit code with a resolution of
-> +	 * 0.25 degree celsius and encoded in two's complement format.
-> +	 */
-> +	temp = (temp_buf[0] << 8) | temp_buf[1];
-> +	temp >>= 6;
-> +
-> +	return sprintf(buf, "%d\n", temp * 250);
-> +}
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ds3231_hwmon_show_temp,
-> +			NULL, 0);
-> +
-> +static struct attribute *ds3231_hwmon_attrs[] = {
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	NULL,
-> +};
-> +ATTRIBUTE_GROUPS(ds3231_hwmon);
-> +
-> +static int ds1307_hwmon_register(struct ds1307 *ds1307)
-> +{
-> +	if (ds1307->type != ds_3231)
-> +		return 0;
-> +
-> +	devm_hwmon_device_register_with_groups(&ds1307->client->dev,
-> +						ds1307->client->name,
-> +						ds1307, ds3231_hwmon_groups);
-> +
-No error check ?
-
-It might make sense to not fail registration if this call fails,
-but maybe a warning in the console log would make sense.
-
-> +	return 0;
-> +}
-> +
-> +#else
-> +
-> +static int ds1307_hwmon_register(struct ds1307 *ds1307)
-> +{
-> +	return 0;
-> +}
-> +
-> +#endif
-> +
->   static int ds1307_probe(struct i2c_client *client,
->   			const struct i2c_device_id *id)
->   {
-> @@ -1191,6 +1311,8 @@ read_rtc:
->   		}
->   	}
->
-> +	ds1307_hwmon_register(ds1307);
-> +
->   	return 0;
->
->   exit:
->
+Thanks,
+Guenter
 
 
 _______________________________________________
