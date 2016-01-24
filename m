@@ -1,58 +1,176 @@
-From: Mike Looijmans <mike.looijmans@topic.nl>
-Date: Wed, 13 Jan 2016 14:03:41 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: Add LTC2990 sensor driver
-Message-Id: <5696593D.8030908@topic.nl>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Sun, 24 Jan 2016 15:22:16 +0000
+Subject: [lm-sensors] [PATCH v4] rtc: rtc-ds1307: add temperature sensor support for ds3231
+Message-Id: <1453648936-17017-1-git-send-email-akinobu.mita@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <568FD131.4080308@roeck-us.net>
- <1452067627-24939-1-git-send-email-mike.looijmans@topic.nl>
- <1452683150-27747-1-git-send-email-mike.looijmans@topic.nl>
- <5696500E.4090905@roeck-us.net> <56965661.2010307@topic.nl>
- <569657C8.6070607@roeck-us.net>
-In-Reply-To: <569657C8.6070607@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org
-Cc: jdelvare@suse.com, linux-kernel@vger.kernel.org
+To: rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>
 
-77u/T24gMTMtMDEtMTYgMTQ6NTcsIEd1ZW50ZXIgUm9lY2sgd3JvdGU6Cj4gT24gMDEvMTMvMjAx
-NiAwNTo1MSBBTSwgTWlrZSBMb29pam1hbnMgd3JvdGU6Cj4+IE9uIDEzLTAxLTE2IDE0OjI0LCBH
-dWVudGVyIFJvZWNrIHdyb3RlOgo+Pj4gT24gMDEvMTMvMjAxNiAwMzowNSBBTSwgTWlrZSBMb29p
-am1hbnMgd3JvdGU6Cj4+Pj4gVGhpcyBhZGRzIHN1cHBvcnQgZm9yIHRoZSBMaW5lYXIgVGVjaG5v
-bG9neSBMVEMyOTkwICBJMkMgU3lzdGVtIE1vbml0b3IuCj4+Pj4gVGhlIExUQzI5OTAgc3VwcG9y
-dHMgYSBjb21iaW5hdGlvbiBvZiB2b2x0YWdlLCBjdXJyZW50IGFuZCB0ZW1wZXJhdHVyZQo+Pj4+
-IG1vbml0b3JpbmcuIFRoaXMgZHJpdmVyIGN1cnJlbnRseSBvbmx5IHN1cHBvcnRzIHJlYWRpbmcg
-dHdvIGN1cnJlbnRzCj4+Pj4gYnkgbWVhc3VyaW5nIHR3byBkaWZmZXJlbnRpYWwgdm9sdGFnZXMg
-YWNyb3NzIHNlcmllcyByZXNpc3RvcnMsIGluCj4+Pj4gYWRkaXRpb24gdG8gdGhlIFZjYyBzdXBw
-bHkgdm9sdGFnZSBhbmQgaW50ZXJuYWwgdGVtcGVyYXR1cmUuCj4+Pj4KPj4+PiBUaGlzIGlzIHN1
-ZmZpY2llbnQgdG8gc3VwcG9ydCB0aGUgVG9waWMgTWlhbWkgU09NIHdoaWNoIHVzZXMgdGhpcyBj
-aGlwCj4+Pj4gdG8gbW9uaXRvciB0aGUgY3VycmVudHMgZmxvd2luZyBpbnRvIHRoZSBGUEdBIGFu
-ZCB0aGUgQ1BVIHBhcnRzLgo+Pj4+Cj4+Pj4gU2lnbmVkLW9mZi1ieTogTWlrZSBMb29pam1hbnMg
-PG1pa2UubG9vaWptYW5zQHRvcGljLm5sPgo+Pj4KPj4+IE1pa2UsCj4+Pgo+Pj4gVGhhdCBsb29r
-cyBtdWNoIGJldHRlci4gQ2FuIHlvdSBzZW5kIG1lIHRoZSBvdXRwdXQgb2YgaTJjZHVtcCBmb3Ig
-dGhlIGNoaXAgPwo+Pj4gVGhhdCB3b3VsZCBoZWxwIG1lIHdyaXRpbmcgbW9kdWxlIHRlc3QgY29k
-ZSBmb3IgaXQuCj4+Cj4+IEknbSBraW5kYSBpbnRlcmVzdGVkIGludG8gaG93IHRoYXQgd291bGQg
-d29yay4KPj4KPiBodHRwczovL2dpdGh1Yi5jb20vZ3JvZWNrL21vZHVsZS10ZXN0cwo+Cj4+IEkn
-bGwgaGF2ZSB0byByZW1vdmUgdGhlIGRyaXZlciBmaXJzdCB0byBnZXQgaTJjZHVtcCB0byB3b3Jr
-IG9uIHRoZSBjaGlwLiBJCj4+IGNhbm5vdCBmb3JjZSBhIGRldmljZSByZW1vdmFsIGZyb20gdXNl
-ciBzcGFjZSB3aGlsZSBydW5uaW5nLCBjYW4gST8KPj4gQW5kIGkgc3VwcG9zZSB5b3Ugd2FudCBh
-IGR1bXAgb2YgYSBjaGlwIGluIHJ1bm5pbmcgc3RhdHVzPyAoT24gYm9vdCwgYWxsIGFyZQo+PiBy
-ZWdpc3RlcnMgYXJlIHNpbXBseSBzZXQgdG8gemVybykKPj4KPgo+IEp1c3QgdXNlIGkyY2R1bXAg
-LWYgd2hpbGUgdGhlIGRyaXZlciBpcyBhY3RpdmUuCgpIZXJlJ3MgdGhlIGR1bXAgKHR3aWNlIHNv
-IHlvdSBjYW4gc2VlIHRoZSBBL0QgY29udmVydGVyIGlzIGFjdHVhbGx5IHJ1bm5pbmcpOgoKcm9v
-dEB0b3BpYy1taWFtaS1mbG9yaWRhLXBjaS14Yzd6MDE1On4jIGkyY2R1bXAgLXkgLWYgLXIgMC0w
-eGYgMSAweDRjIGIKICAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAg
-ZCAgZSAgZiAgICAwMTIzNDU2Nzg5YWJjZGVmCjAwOiA3ZiAxZSA3ZiA3ZiA4MiA1ZiA4MCA0NCA4
-MCA0NCA4MCAzZiA4MCAzZiA4OSBiNSAgICA/Pz8/P18/RD9EPz8/Pz8/CnJvb3RAdG9waWMtbWlh
-bWktZmxvcmlkYS1wY2kteGM3ejAxNTp+IyBpMmNkdW1wIC15IC1mIC1yIDAtMHhmIDEgMHg0YyBi
-CiAgICAgIDAgIDEgIDIgIDMgIDQgIDUgIDYgIDcgIDggIDkgIGEgIGIgIGMgIGQgIGUgIGYgICAg
-MDEyMzQ1Njc4OWFiY2RlZgowMDogN2YgMWUgN2YgN2YgODIgNjUgODAgNDIgODAgNDIgODAgM2Qg
-ODAgM2QgODkgYjQgICAgPz8/Pz9lP0I/Qj89Pz0/PwoKCgoKS2luZCByZWdhcmRzLAoKTWlrZSBM
-b29pam1hbnMKU3lzdGVtIEV4cGVydAoKVE9QSUMgRW1iZWRkZWQgUHJvZHVjdHMKRWluZGhvdmVu
-c2V3ZWcgMzItQywgTkwtNTY4MyBLSCBCZXN0ClBvc3RidXMgNDQwLCBOTC01NjgwIEFLIEJlc3QK
-VGVsZWZvb246ICszMSAoMCkgNDk5IDMzIDY5IDc5CkUtbWFpbDogbWlrZS5sb29pam1hbnNAdG9w
-aWNwcm9kdWN0cy5jb20KV2Vic2l0ZTogd3d3LnRvcGljcHJvZHVjdHMuY29tCgpQbGVhc2UgY29u
-c2lkZXIgdGhlIGVudmlyb25tZW50IGJlZm9yZSBwcmludGluZyB0aGlzIGUtbWFpbAoKCgoKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
-IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
-ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+DS3231 has the temperature registers with a resolution of 0.25
+degree celsius.  This enables to get the value through hwmon.
+
+	# cat /sys/class/i2c-adapter/i2c-2/2-0068/hwmon/hwmon0/temp1_input
+	21000
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Jean Delvare <jdelvare@suse.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+---
+* v4 (all changes are suggested by Guenter Roeck)
+- drop the Cc: mailing lists in commit log
+- add Acked-by line
+- remove unnecessary header include
+- s/s32/int/
+- make ds1307_hwmon_register() a void function as the return value is not used
+
+ drivers/rtc/Kconfig      |  9 +++++
+ drivers/rtc/rtc-ds1307.c | 88 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 97 insertions(+)
+
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 2a52424..73a7e51 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -212,6 +212,15 @@ config RTC_DRV_DS1307
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1307.
+ 
++config RTC_DRV_DS1307_HWMON
++	bool "HWMON support for rtc-ds1307"
++	depends on RTC_DRV_DS1307 && HWMON
++	depends on !(RTC_DRV_DS1307=y && HWMON=m)
++	default y
++	help
++	  Say Y here if you want to expose temperature sensor data on
++	  rtc-ds1307 (only DS3231)
++
+ config RTC_DRV_DS1374
+ 	tristate "Dallas/Maxim DS1374"
+ 	help
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index aa705bb..34d92a0 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -19,6 +19,8 @@
+ #include <linux/rtc.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ 
+ /*
+  * We can't determine type by probing, but if we expect pre-Linux code
+@@ -851,6 +853,90 @@ out:
+ 	return;
+ }
+ 
++/*----------------------------------------------------------------------*/
++
++#ifdef CONFIG_RTC_DRV_DS1307_HWMON
++
++/*
++ * Temperature sensor support for ds3231 devices.
++ */
++
++#define DS3231_REG_TEMPERATURE	0x11
++
++/*
++ * A user-initiated temperature conversion is not started by this function,
++ * so the temperature is updated once every 64 seconds.
++ */
++static int ds3231_hwmon_read_temp(struct device *dev, s16 *mC)
++{
++	struct ds1307 *ds1307 = dev_get_drvdata(dev);
++	u8 temp_buf[2];
++	s16 temp;
++	int ret;
++
++	ret = ds1307->read_block_data(ds1307->client, DS3231_REG_TEMPERATURE,
++					sizeof(temp_buf), temp_buf);
++	if (ret < 0)
++		return ret;
++	if (ret != sizeof(temp_buf))
++		return -EIO;
++
++	/*
++	 * Temperature is represented as a 10-bit code with a resolution of
++	 * 0.25 degree celsius and encoded in two's complement format.
++	 */
++	temp = (temp_buf[0] << 8) | temp_buf[1];
++	temp >>= 6;
++	*mC = temp * 250;
++
++	return 0;
++}
++
++static ssize_t ds3231_hwmon_show_temp(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int ret;
++	s16 temp;
++
++	ret = ds3231_hwmon_read_temp(dev, &temp);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", temp);
++}
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ds3231_hwmon_show_temp,
++			NULL, 0);
++
++static struct attribute *ds3231_hwmon_attrs[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(ds3231_hwmon);
++
++static void ds1307_hwmon_register(struct ds1307 *ds1307)
++{
++	struct device *dev;
++
++	if (ds1307->type != ds_3231)
++		return;
++
++	dev = devm_hwmon_device_register_with_groups(&ds1307->client->dev,
++						ds1307->client->name,
++						ds1307, ds3231_hwmon_groups);
++	if (IS_ERR(dev)) {
++		dev_warn(&ds1307->client->dev,
++			"unable to register hwmon device %ld\n", PTR_ERR(dev));
++	}
++}
++
++#else
++
++static void ds1307_hwmon_register(struct ds1307 *ds1307)
++{
++}
++
++#endif
++
+ static int ds1307_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -1191,6 +1277,8 @@ read_rtc:
+ 		}
+ 	}
+ 
++	ds1307_hwmon_register(ds1307);
++
+ 	return 0;
+ 
+ exit:
+-- 
+2.5.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
