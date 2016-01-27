@@ -1,77 +1,79 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 11 Jan 2016 04:15:24 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for v4.5
-Message-Id: <1452485724-3889-1-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:48 +0000
+Subject: [lm-sensors] [PATCH v3 24/25] hwmon: (it87) Fix pwm_temp_map for system with 6 pwm channels
+Message-Id: <1453860229-23614-25-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+From: Guenter Roeck <linux@roeck-us.net>
 
-Please pull hwmon updates for Linux v4.5 from signed tag:
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.5
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index e3fbcf49afdb..cde53c1109ea 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -655,8 +655,7 @@ static void it87_update_pwm_ctrl(struct it87_data *data, int nr)
+ {
+ 	data->pwm_ctrl[nr] = it87_read_value(data, IT87_REG_PWM[nr]);
+ 	if (has_newer_autopwm(data)) {
+-		data->pwm_temp_map[nr] = (data->pwm_ctrl[nr] & 0x03) +
+-			nr < 3 ? 0 : 3;
++		data->pwm_temp_map[nr] = data->pwm_ctrl[nr] & 0x03;
+ 		data->pwm_duty[nr] = it87_read_value(data,
+ 						     IT87_REG_PWM_DUTY[nr]);
+ 	} else {
+@@ -790,8 +789,11 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 		data->fan_main_ctrl = it87_read_value(data,
+ 				IT87_REG_FAN_MAIN_CTRL);
+ 		data->fan_ctl = it87_read_value(data, IT87_REG_FAN_CTL);
+-		for (i = 0; i < NUM_PWM; i++)
++		for (i = 0; i < NUM_PWM; i++) {
++			if (!(data->has_pwm & BIT(i)))
++				continue;
+ 			it87_update_pwm_ctrl(data, i);
++		}
+ 
+ 		data->sensor = it87_read_value(data, IT87_REG_TEMP_ENABLE);
+ 		data->extra = it87_read_value(data, IT87_REG_TEMP_EXTRA);
+@@ -1403,11 +1405,13 @@ static ssize_t show_pwm_temp_map(struct device *dev,
+ 	int nr = sensor_attr->index;
+ 	int map;
+ 
+-	if (data->pwm_temp_map[nr] < 3)
+-		map = BIT(data->pwm_temp_map[nr]);
+-	else
+-		map = 0;			/* Should never happen */
+-	return sprintf(buf, "%d\n", map);
++	map = data->pwm_temp_map[nr];
++	if (map >= 3)
++		map = 0;	/* Should never happen */
++	if (nr >= 3)		/* pwm channels 3..6 map to temp4..6 */
++		map += 3;
++
++	return sprintf(buf, "%d\n", (int)BIT(map));
+ }
+ 
+ static ssize_t set_pwm_temp_map(struct device *dev,
+@@ -1423,6 +1427,9 @@ static ssize_t set_pwm_temp_map(struct device *dev,
+ 	if (kstrtol(buf, 10, &val) < 0)
+ 		return -EINVAL;
+ 
++	if (nr >= 3)
++		val -= 3;
++
+ 	switch (val) {
+ 	case BIT(0):
+ 		reg = 0x00;
+-- 
+2.1.4
 
-Thanks,
-Guenter
-------
-
-The following changes since commit a3a316cfc41ab3e7b9e0079338f8ea9dff911d88:
-
-  hwmon: (sht15) Select CONFIG_BITREVERSE (2015-12-18 08:19:52 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.5
-
-for you to fetch changes up to 91918d13eb17b8c11a9b6b76bfdd7cc0efab4f50:
-
-  hwmon: (nct6683) Add basic support for NCT6683 on Mitac boards (2016-01-09 07:31:58 -0800)
-
-----------------------------------------------------------------
-Notable hwmon updates for v4.5:
-
-Add basic support for NCT6683 on Mitac boards
-Add support for AMD new 15h processors to fam15h_power driver
-Add pmbus client driver for LTC3815
-Remove htu21 driver (now supported by iio subsystem)
-
-----------------------------------------------------------------
-Guenter Roeck (3):
-      hwmon: (htu21) Remove driver
-      hwmon: (pmbus) Add client driver for LTC3815
-      hwmon: (nct6683) Add basic support for NCT6683 on Mitac boards
-
-Huang Rui (2):
-      hwmon: (fam15h_power) Add support for AMD new 15h processors
-      MAINTAINERS: change the maintainer of fam15h_power driver
-
-Julia Lawall (2):
-      hwmon: (nct6683,nct6775) constify sensor_template_group structures
-      hwmon: (ibmaem) constify aem_rw_sensor_template and aem_ro_sensor_template structures
-
- CREDITS                       |   8 ++
- Documentation/hwmon/htu21     |  46 ---------
- Documentation/hwmon/ltc3815   |  61 ++++++++++++
- MAINTAINERS                   |   4 +-
- drivers/hwmon/Kconfig         |  10 --
- drivers/hwmon/Makefile        |   1 -
- drivers/hwmon/fam15h_power.c  |   7 +-
- drivers/hwmon/htu21.c         | 174 ----------------------------------
- drivers/hwmon/ibmaem.c        |  12 +--
- drivers/hwmon/nct6683.c       |  89 ++++++++++++-----
- drivers/hwmon/nct6775.c       |  11 ++-
- drivers/hwmon/pmbus/Kconfig   |  10 ++
- drivers/hwmon/pmbus/Makefile  |   1 +
- drivers/hwmon/pmbus/ltc3815.c | 215 ++++++++++++++++++++++++++++++++++++++++++
- 14 files changed, 381 insertions(+), 268 deletions(-)
- delete mode 100644 Documentation/hwmon/htu21
- create mode 100644 Documentation/hwmon/ltc3815
- delete mode 100644 drivers/hwmon/htu21.c
- create mode 100644 drivers/hwmon/pmbus/ltc3815.c
 
 _______________________________________________
 lm-sensors mailing list
