@@ -1,7 +1,7 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:34 +0000
-Subject: [lm-sensors] [PATCH v3 10/25] hwmon: (it87) Use is_visible for temperature sensors
-Message-Id: <1453860229-23614-11-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:49 +0000
+Subject: [lm-sensors] [PATCH v3 25/25] hwmon: (it87) Add support for IT8628E
+Message-Id: <1453860229-23614-26-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,152 +10,140 @@ To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
-Simplify code and reduce object size by more than 200 bytes on x86_64.
+IT8628E is functionally identical to IT8620E.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 87 ++++++++++++++++++++++------------------------------
- 1 file changed, 36 insertions(+), 51 deletions(-)
+ Documentation/hwmon/it87 | 15 +++++++++------
+ drivers/hwmon/Kconfig    |  3 ++-
+ drivers/hwmon/it87.c     | 18 ++++++++++++++++--
+ 3 files changed, 27 insertions(+), 9 deletions(-)
 
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 733296d65449..fff6f6bf55bc 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -9,6 +9,9 @@ Supported chips:
+   * IT8620E
+     Prefix: 'it8620'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
++  * IT8628E
++    Prefix: 'it8628'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: Not publicly available
+   * IT8705F
+     Prefix: 'it87'
+@@ -114,8 +117,8 @@ motherboard models.
+ Description
+ -----------
+ 
+-This driver implements support for the IT8603E, IT8620E, IT8623E, IT8705F,
+-IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8732F,
++This driver implements support for the IT8603E, IT8620E, IT8623E, IT8628E,
++IT8705F, IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8732F,
+ IT8758E, IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E, and
+ SiS950 chips.
+ 
+@@ -158,8 +161,8 @@ The IT8603E/IT8623E is a custom design, hardware monitoring part is similar to
+ IT8728F. It only supports 3 fans, 16-bit fan mode, and the full speed mode
+ of the fan is not supported (value 0 of pwmX_enable).
+ 
+-The IT8620E is another custom design, hardware monitoring part is similar to
+-IT8728F. It only supports 16-bit fan mode.
++The IT8620E and IT8628E are custom designs, hardware monitoring part is similar
++to IT8728F. It only supports 16-bit fan mode. Both chips support up to 6 fans.
+ 
+ The IT8790E supports up to 3 fans. 16-bit fan mode is always enabled.
+ 
+@@ -187,8 +190,8 @@ of 0.016 volt.  IT8603E, IT8721F/IT8758E and IT8728F can measure between 0 and
+ 2.8 volts with a resolution of 0.0109 volt.  The battery voltage in8 does not
+ have limit registers.
+ 
+-On the IT8603E, IT8721F/IT8758E, IT8732F, IT8781F, IT8782F, and IT8783E/F, some
+-voltage inputs are internal and scaled inside the chip:
++On the IT8603E, IT8620E, IT8628E, IT8721F/IT8758E, IT8732F, IT8781F, IT8782F,
++and IT8783E/F, some voltage inputs are internal and scaled inside the chip:
+ * in3 (optional)
+ * in7 (optional for IT8781F, IT8782F, and IT8783E/F)
+ * in8 (always)
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 852c8a85e1e8..ac22e3bbfecc 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -621,7 +621,8 @@ config SENSORS_IT87
+ 	  If you say yes here you get support for ITE IT8705F, IT8712F, IT8716F,
+ 	  IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8732F, IT8758E,
+ 	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E,
+-	  IT8603E, IT8620E, and IT8623E sensor chips, and the SiS950 clone.
++	  IT8603E, IT8620E, IT8623E, and IT8628E sensor chips, and the SiS950
++	  clone.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 81c11d1d67e2..c7feea9a6f80 100644
+index cde53c1109ea..730d84028260 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -1834,40 +1834,57 @@ static const struct attribute_group it87_group_in = {
- 	.is_visible = it87_in_is_visible,
+@@ -13,6 +13,7 @@
+  *  Supports: IT8603E  Super I/O chip w/LPC interface
+  *            IT8620E  Super I/O chip w/LPC interface
+  *            IT8623E  Super I/O chip w/LPC interface
++ *            IT8628E  Super I/O chip w/LPC interface
+  *            IT8705F  Super I/O chip w/LPC interface
+  *            IT8712F  Super I/O chip w/LPC interface
+  *            IT8716F  Super I/O chip w/LPC interface
+@@ -69,7 +70,7 @@
+ 
+ enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8732,
+ 	     it8771, it8772, it8781, it8782, it8783, it8786, it8790, it8603,
+-	     it8620 };
++	     it8620, it8628 };
+ 
+ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+@@ -160,6 +161,7 @@ static inline void superio_exit(int ioreg)
+ #define IT8603E_DEVID 0x8603
+ #define IT8620E_DEVID 0x8620
+ #define IT8623E_DEVID 0x8623
++#define IT8628E_DEVID 0x8628
+ #define IT87_ACT_REG  0x30
+ #define IT87_BASE_REG 0x60
+ 
+@@ -434,6 +436,15 @@ static const struct it87_devices it87_devices[] = {
+ 		  | FEAT_SIX_TEMP,
+ 		.peci_mask = 0x07,
+ 	},
++	[it8628] = {
++		.name = "it8628",
++		.suffix = "E",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
++		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
++		  | FEAT_IN7_INTERNAL | FEAT_SIX_PWM | FEAT_PWM_FREQ2
++		  | FEAT_SIX_TEMP,
++		.peci_mask = 0x07,
++	},
  };
  
--static struct attribute *it87_attributes_temp[3][6] = {
-+static umode_t it87_temp_is_visible(struct kobject *kobj,
-+				    struct attribute *attr, int index)
- {
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct it87_data *data = dev_get_drvdata(dev);
-+	int i = index / 7;	/* temperature index */
-+	int a = index % 7;	/* attribute index */
-+
-+	if (!(data->has_temp & (1 << i)))
-+		return 0;
-+
-+	if (a = 5 && !has_temp_offset(data))
-+		return 0;
-+
-+	if (a = 6 && !data->has_beep)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static struct attribute *it87_attributes_temp[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
- 	&sensor_dev_attr_temp1_type.dev_attr.attr,
- 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
--	NULL
--} , {
-+	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
-+	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
-+
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_type.dev_attr.attr,
- 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
--	NULL
--} , {
-+	&sensor_dev_attr_temp2_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp2_beep.dev_attr.attr,
-+
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_type.dev_attr.attr,
- 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
--	NULL
--} };
-+	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+ #define has_16bit_fans(data)	((data)->features & FEAT_16BIT_FANS)
+@@ -2402,6 +2413,9 @@ static int __init it87_find(int sioaddr, unsigned short *address,
+ 	case IT8620E_DEVID:
+ 		sio_data->type = it8620;
+ 		break;
++	case IT8628E_DEVID:
++		sio_data->type = it8628;
++		break;
+ 	case 0xffff:	/* No device at all */
+ 		goto exit;
+ 	default:
+@@ -2546,7 +2560,7 @@ static int __init it87_find(int sioaddr, unsigned short *address,
  
--static const struct attribute_group it87_group_temp[3] = {
--	{ .attrs = it87_attributes_temp[0] },
--	{ .attrs = it87_attributes_temp[1] },
--	{ .attrs = it87_attributes_temp[2] },
-+	NULL
- };
+ 		sio_data->beep_pin = superio_inb(sioaddr,
+ 						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+-	} else if (sio_data->type = it8620) {
++	} else if (sio_data->type = it8620 || sio_data->type = it8628) {
+ 		int reg;
  
--static struct attribute *it87_attributes_temp_offset[] = {
--	&sensor_dev_attr_temp1_offset.dev_attr.attr,
--	&sensor_dev_attr_temp2_offset.dev_attr.attr,
--	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+static const struct attribute_group it87_group_temp = {
-+	.attrs = it87_attributes_temp,
-+	.is_visible = it87_temp_is_visible,
- };
- 
- static struct attribute *it87_attributes[] = {
-@@ -1881,12 +1898,6 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
- };
- 
--static struct attribute *it87_attributes_temp_beep[] = {
--	&sensor_dev_attr_temp1_beep.dev_attr.attr,
--	&sensor_dev_attr_temp2_beep.dev_attr.attr,
--	&sensor_dev_attr_temp3_beep.dev_attr.attr,
--};
--
- static struct attribute *it87_attributes_fan[6][3+1] = { {
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_fan1_min.dev_attr.attr,
-@@ -2436,18 +2447,8 @@ static void it87_remove_files(struct device *dev)
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
- 	sysfs_remove_group(&dev->kobj, &it87_group_in);
-+	sysfs_remove_group(&dev->kobj, &it87_group_temp);
- 
--	for (i = 0; i < 3; i++) {
--		if (!(data->has_temp & (1 << i)))
--			continue;
--		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
--		if (has_temp_offset(data))
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_temp_offset[i]);
--		if (sio_data->beep_pin)
--			sysfs_remove_file(&dev->kobj,
--					  it87_attributes_temp_beep[i]);
--	}
- 	for (i = 0; i < 6; i++) {
- 		if (!(data->has_fan & (1 << i)))
- 			continue;
-@@ -2746,25 +2747,9 @@ static int it87_probe(struct platform_device *pdev)
- 	if (err)
- 		goto error;
- 
--	for (i = 0; i < 3; i++) {
--		if (!(data->has_temp & (1 << i)))
--			continue;
--		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
--		if (err)
--			goto error;
--		if (has_temp_offset(data)) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_temp_offset[i]);
--			if (err)
--				goto error;
--		}
--		if (sio_data->beep_pin) {
--			err = sysfs_create_file(&dev->kobj,
--						it87_attributes_temp_beep[i]);
--			if (err)
--				goto error;
--		}
--	}
-+	err = sysfs_create_group(&dev->kobj, &it87_group_temp);
-+	if (err)
-+		goto error;
- 
- 	/* Do not create fan files for disabled fans */
- 	fan_beep_need_rw = 1;
+ 		superio_select(sioaddr, GPIO);
 -- 
 2.1.4
 
