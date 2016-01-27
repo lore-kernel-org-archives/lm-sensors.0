@@ -1,42 +1,61 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Fri, 08 Jan 2016 12:34:17 +0000
-Subject: Re: [lm-sensors] [patch] hwmon: (emc2103) Fix typo in MODULE_PARM_DESC
-Message-Id: <20160108133417.3312f22f@endymion.delvare>
+From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:46 +0000
+Subject: [lm-sensors] [PATCH v3 22/25] hwmon: (it87) Enhance validation for fan4 and fan5
+Message-Id: <1453860229-23614-23-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20160108110321.GK32195@mwanda>
-In-Reply-To: <20160108110321.GK32195@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Steve Glendinning <steve.glendinning@shawell.net>, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Dan,
+From: Guenter Roeck <linux@roeck-us.net>
 
-On Fri, 8 Jan 2016 14:03:21 +0300, Dan Carpenter wrote:
-> "apd" was intended here instead of "init".
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
-> index 952fe69..24e395c 100644
-> --- a/drivers/hwmon/emc2103.c
-> +++ b/drivers/hwmon/emc2103.c
-> @@ -58,7 +58,7 @@ static const u8 REG_TEMP_MAX[4] = { 0x34, 0x30, 0x31, 0x32 };
->   */
->  static int apd = -1;
->  module_param(apd, bint, 0);
-> -MODULE_PARM_DESC(init, "Set to zero to disable anti-parallel diode mode");
-> +MODULE_PARM_DESC(apd, "Set to zero to disable anti-parallel diode mode");
->  
->  struct temperature {
->  	s8	degrees;
+Several of the chips supported by this driver have a configuration
+register to enable fan4 and fan5. Use those registers to determine
+if fan4 and fan5 tachometers are supported.
 
-Applied, thanks.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index f40d81a0a9fc..5adb269918fb 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -2415,6 +2415,29 @@ static int __init it87_find(int sioaddr, unsigned short *address,
+ 
+ 		superio_select(sioaddr, GPIO);
+ 
++		/* Check for fan4, fan5 */
++		if (has_five_fans(config)) {
++			reg = superio_inb(sioaddr, IT87_SIO_GPIO2_REG);
++			switch (sio_data->type) {
++			case it8718:
++				if (reg & BIT(5))
++					sio_data->skip_fan |= BIT(3);
++				if (reg & BIT(4))
++					sio_data->skip_fan |= BIT(4);
++				break;
++			case it8720:
++			case it8721:
++			case it8728:
++				if (!(reg & BIT(5)))
++					sio_data->skip_fan |= BIT(3);
++				if (!(reg & BIT(4)))
++					sio_data->skip_fan |= BIT(4);
++				break;
++			default:
++				break;
++			}
++		}
++
+ 		reg = superio_inb(sioaddr, IT87_SIO_GPIO3_REG);
+ 		if (!sio_data->skip_vid) {
+ 			/* We need at least 4 VID pins */
 -- 
-Jean Delvare
-SUSE L3 Support
+2.1.4
+
 
 _______________________________________________
 lm-sensors mailing list
