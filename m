@@ -1,7 +1,7 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:37 +0000
-Subject: [lm-sensors] [PATCH v3 13/25] hwmon: (it87) Use single group and is_visible for miscellaneous attrib
-Message-Id: <1453860229-23614-14-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:34 +0000
+Subject: [lm-sensors] [PATCH v3 10/25] hwmon: (it87) Use is_visible for temperature sensors
+Message-Id: <1453860229-23614-11-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,179 +10,152 @@ To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
-Use is_visible to determine if attributes should be generated or not.
-This simplifies the code and reduces object size by about 120 bytes
-on x86_64.
+Simplify code and reduce object size by more than 200 bytes on x86_64.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 81 +++++++++++++++++++++-------------------------------
- 1 file changed, 33 insertions(+), 48 deletions(-)
+ drivers/hwmon/it87.c | 87 ++++++++++++++++++++++------------------------------
+ 1 file changed, 36 insertions(+), 51 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 0c13d640bcc7..e4fb466fd9c3 100644
+index 81c11d1d67e2..c7feea9a6f80 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -471,6 +471,7 @@ struct it87_data {
- 	unsigned long last_updated;	/* In jiffies */
- 
- 	u16 in_scaled;		/* Internal voltage sensors are scaled */
-+	u16 in_internal;	/* Bitfield, internal sensors (for labels) */
- 	u16 has_in;		/* Bitfield, voltage sensors enabled */
- 	u8 in[10][3];		/* [nr][0]=in, [1]=min, [2]=max */
- 	u8 has_fan;		/* Bitfield, fans enabled */
-@@ -480,6 +481,7 @@ struct it87_data {
- 	u8 sensor;		/* Register value (IT87_REG_TEMP_ENABLE) */
- 	u8 extra;		/* Register value (IT87_REG_TEMP_EXTRA) */
- 	u8 fan_div[3];		/* Register encoding, shifted right */
-+	bool has_vid;		/* True if VID supported */
- 	u8 vid;			/* Register encoding, combined */
- 	u8 vrm;
- 	u32 alarms;		/* Register encoding, combined */
-@@ -1879,15 +1881,37 @@ static const struct attribute_group it87_group_temp = {
- 	.is_visible = it87_temp_is_visible,
+@@ -1834,40 +1834,57 @@ static const struct attribute_group it87_group_in = {
+ 	.is_visible = it87_in_is_visible,
  };
  
-+static umode_t it87_is_visible(struct kobject *kobj,
-+			       struct attribute *attr, int index)
-+{
+-static struct attribute *it87_attributes_temp[3][6] = {
++static umode_t it87_temp_is_visible(struct kobject *kobj,
++				    struct attribute *attr, int index)
+ {
 +	struct device *dev = container_of(kobj, struct device, kobj);
 +	struct it87_data *data = dev_get_drvdata(dev);
++	int i = index / 7;	/* temperature index */
++	int a = index % 7;	/* attribute index */
 +
-+	if ((index = 3 || index = 4) && !data->has_vid)
++	if (!(data->has_temp & (1 << i)))
 +		return 0;
 +
-+	if (index > 4 && !(data->in_internal & (1 << (index - 5))))
++	if (a = 5 && !has_temp_offset(data))
++		return 0;
++
++	if (a = 6 && !data->has_beep)
 +		return 0;
 +
 +	return attr->mode;
 +}
 +
++static struct attribute *it87_attributes_temp[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+-	NULL
+-} , {
++	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
++	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
++
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
+-	NULL
+-} , {
++	&sensor_dev_attr_temp2_offset.dev_attr.attr,
++	&sensor_dev_attr_temp2_beep.dev_attr.attr,
++
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
+-	NULL
+-} };
++	&sensor_dev_attr_temp3_offset.dev_attr.attr,
++	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+ 
+-static const struct attribute_group it87_group_temp[3] = {
+-	{ .attrs = it87_attributes_temp[0] },
+-	{ .attrs = it87_attributes_temp[1] },
+-	{ .attrs = it87_attributes_temp[2] },
++	NULL
+ };
+ 
+-static struct attribute *it87_attributes_temp_offset[] = {
+-	&sensor_dev_attr_temp1_offset.dev_attr.attr,
+-	&sensor_dev_attr_temp2_offset.dev_attr.attr,
+-	&sensor_dev_attr_temp3_offset.dev_attr.attr,
++static const struct attribute_group it87_group_temp = {
++	.attrs = it87_attributes_temp,
++	.is_visible = it87_temp_is_visible,
+ };
+ 
  static struct attribute *it87_attributes[] = {
- 	&dev_attr_alarms.attr,
- 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
- 	&dev_attr_name.attr,
-+	&dev_attr_vrm.attr,				/* 3 */
-+	&dev_attr_cpu0_vid.attr,			/* 4 */
-+	&sensor_dev_attr_in3_label.dev_attr.attr,	/* 5 .. 8 */
-+	&sensor_dev_attr_in7_label.dev_attr.attr,
-+	&sensor_dev_attr_in8_label.dev_attr.attr,
-+	&sensor_dev_attr_in9_label.dev_attr.attr,
- 	NULL
- };
- 
- static const struct attribute_group it87_group = {
+@@ -1881,12 +1898,6 @@ static const struct attribute_group it87_group = {
  	.attrs = it87_attributes,
-+	.is_visible = it87_is_visible,
  };
  
- static umode_t it87_fan_is_visible(struct kobject *kobj,
-@@ -2074,28 +2098,6 @@ static const struct attribute_group it87_group_auto_pwm = {
- 	.is_visible = it87_auto_pwm_is_visible,
- };
+-static struct attribute *it87_attributes_temp_beep[] = {
+-	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+-	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+-	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+-};
+-
+ static struct attribute *it87_attributes_fan[6][3+1] = { {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+@@ -2436,18 +2447,8 @@ static void it87_remove_files(struct device *dev)
  
--static struct attribute *it87_attributes_vid[] = {
--	&dev_attr_vrm.attr,
--	&dev_attr_cpu0_vid.attr,
--	NULL
--};
--
--static const struct attribute_group it87_group_vid = {
--	.attrs = it87_attributes_vid,
--};
--
--static struct attribute *it87_attributes_label[] = {
--	&sensor_dev_attr_in3_label.dev_attr.attr,
--	&sensor_dev_attr_in7_label.dev_attr.attr,
--	&sensor_dev_attr_in8_label.dev_attr.attr,
--	&sensor_dev_attr_in9_label.dev_attr.attr,
--	NULL
--};
--
--static const struct attribute_group it87_group_label = {
--	.attrs = it87_attributes_label,
--};
--
- /* SuperIO detection - will change isa_address if a chip is found */
- static int __init it87_find(int sioaddr, unsigned short *address,
- 			    struct it87_sio_data *sio_data)
-@@ -2460,18 +2462,12 @@ exit:
- 
- static void it87_remove_files(struct device *dev)
- {
--	struct it87_sio_data *sio_data = dev_get_platdata(dev);
--
  	sysfs_remove_group(&dev->kobj, &it87_group);
  	sysfs_remove_group(&dev->kobj, &it87_group_in);
- 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
- 	sysfs_remove_group(&dev->kobj, &it87_group_fan);
- 	sysfs_remove_group(&dev->kobj, &it87_group_pwm);
- 	sysfs_remove_group(&dev->kobj, &it87_group_auto_pwm);
--
--	if (!sio_data->skip_vid)
--		sysfs_remove_group(&dev->kobj, &it87_group_vid);
--	sysfs_remove_group(&dev->kobj, &it87_group_label);
- }
++	sysfs_remove_group(&dev->kobj, &it87_group_temp);
  
- /* Called when we have found a new IT87. */
-@@ -2649,8 +2645,8 @@ static int it87_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct device *dev = &pdev->dev;
- 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
--	int err = 0, i;
- 	int enable_pwm_interface;
-+	int err = 0;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
-@@ -2731,6 +2727,7 @@ static int it87_probe(struct platform_device *pdev)
- 			data->has_temp &= ~(1 << 2);
- 	}
- 
-+	data->in_internal = sio_data->internal;
- 	data->has_in = 0x3ff & ~sio_data->skip_in;
- 
- 	data->has_beep = !!sio_data->beep_pin;
-@@ -2738,6 +2735,13 @@ static int it87_probe(struct platform_device *pdev)
- 	/* Initialize the IT87 chip */
- 	it87_init_device(pdev);
- 
-+	if (!sio_data->skip_vid) {
-+		data->has_vid = true;
-+		data->vrm = vid_which_vrm();
-+		/* VID reading from Super-I/O config space if available */
-+		data->vid = sio_data->vid_value;
-+	}
-+
- 	/* Register sysfs hooks */
- 	err = sysfs_create_group(&dev->kobj, &it87_group);
- 	if (err)
-@@ -2770,25 +2774,6 @@ static int it87_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (!sio_data->skip_vid) {
--		data->vrm = vid_which_vrm();
--		/* VID reading from Super-I/O config space if available */
--		data->vid = sio_data->vid_value;
--		err = sysfs_create_group(&dev->kobj, &it87_group_vid);
--		if (err)
--			goto error;
--	}
--
--	/* Export labels for internal sensors */
--	for (i = 0; i < 4; i++) {
--		if (!(sio_data->internal & (1 << i)))
+-	for (i = 0; i < 3; i++) {
+-		if (!(data->has_temp & (1 << i)))
 -			continue;
--		err = sysfs_create_file(&dev->kobj,
--					it87_attributes_label[i]);
+-		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
+-		if (has_temp_offset(data))
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_temp_offset[i]);
+-		if (sio_data->beep_pin)
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_temp_beep[i]);
+-	}
+ 	for (i = 0; i < 6; i++) {
+ 		if (!(data->has_fan & (1 << i)))
+ 			continue;
+@@ -2746,25 +2747,9 @@ static int it87_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto error;
+ 
+-	for (i = 0; i < 3; i++) {
+-		if (!(data->has_temp & (1 << i)))
+-			continue;
+-		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
 -		if (err)
 -			goto error;
+-		if (has_temp_offset(data)) {
+-			err = sysfs_create_file(&dev->kobj,
+-						it87_attributes_temp_offset[i]);
+-			if (err)
+-				goto error;
+-		}
+-		if (sio_data->beep_pin) {
+-			err = sysfs_create_file(&dev->kobj,
+-						it87_attributes_temp_beep[i]);
+-			if (err)
+-				goto error;
+-		}
 -	}
--
- 	data->hwmon_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		err = PTR_ERR(data->hwmon_dev);
++	err = sysfs_create_group(&dev->kobj, &it87_group_temp);
++	if (err)
++		goto error;
+ 
+ 	/* Do not create fan files for disabled fans */
+ 	fan_beep_need_rw = 1;
 -- 
 2.1.4
 
