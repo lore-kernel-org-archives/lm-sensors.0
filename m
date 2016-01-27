@@ -1,7 +1,7 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:47 +0000
-Subject: [lm-sensors] [PATCH v3 23/25] hwmon: (it87) Support automatic pwm control on newer chips
-Message-Id: <1453860229-23614-24-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:36 +0000
+Subject: [lm-sensors] [PATCH v3 12/25] hwmon: (it87) Use is_visible for pwm attributes
+Message-Id: <1453860229-23614-13-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,357 +10,294 @@ To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
+Simplify code and reduce object size by about 250 bytes on x86_64.
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 201 +++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 187 insertions(+), 14 deletions(-)
+ drivers/hwmon/it87.c | 137 ++++++++++++++++++++++++---------------------------
+ 1 file changed, 65 insertions(+), 72 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 5adb269918fb..e3fbcf49afdb 100644
+index e70d227c2bf8..0c13d640bcc7 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -252,8 +252,10 @@ static const u8 IT87_REG_VIN[]	= { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26,
- 
- #define IT87_REG_CHIPID        0x58
- 
--#define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
--#define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
-+static const u8 IT87_REG_AUTO_BASE[] = { 0x60, 0x68, 0x70, 0x78, 0xa0, 0xa8 };
-+
-+#define IT87_REG_AUTO_TEMP(nr, i) (IT87_REG_AUTO_BASE[nr] + (i))
-+#define IT87_REG_AUTO_PWM(nr, i)  (IT87_REG_AUTO_BASE[nr] + 5 + (i))
- 
- #define IT87_REG_TEMP456_ENABLE	0x77
- 
-@@ -673,6 +675,30 @@ static void it87_update_pwm_ctrl(struct it87_data *data, int nr)
- 		for (i = 0; i < 3 ; i++)
- 			data->auto_pwm[nr][i] = it87_read_value(data,
- 						IT87_REG_AUTO_PWM(nr, i));
-+	} else if (has_newer_autopwm(data)) {
-+		int i;
-+
-+		/*
-+		 * 0: temperature hysteresis (base + 5)
-+		 * 1: fan off temperature (base + 0)
-+		 * 2: fan start temperature (base + 1)
-+		 * 3: fan max temperature (base + 2)
-+		 */
-+		data->auto_temp[nr][0] +			it87_read_value(data, IT87_REG_AUTO_TEMP(nr, 5));
-+
-+		for (i = 0; i < 3 ; i++)
-+			data->auto_temp[nr][i + 1] +				it87_read_value(data,
-+						IT87_REG_AUTO_TEMP(nr, i));
-+		/*
-+		 * 0: start pwm value (base + 3)
-+		 * 1: pwm slope (base + 4, 1/8th pwm)
-+		 */
-+		data->auto_pwm[nr][0] +			it87_read_value(data, IT87_REG_AUTO_TEMP(nr, 3));
-+		data->auto_pwm[nr][1] +			it87_read_value(data, IT87_REG_AUTO_TEMP(nr, 4));
- 	}
- }
- 
-@@ -1216,6 +1242,11 @@ static int check_trip_points(struct device *dev, int nr)
- 			if (data->auto_pwm[nr][i] > data->auto_pwm[nr][i + 1])
- 				err = -EINVAL;
- 		}
-+	} else if (has_newer_autopwm(data)) {
-+		for (i = 1; i < 3; i++) {
-+			if (data->auto_temp[nr][i] > data->auto_temp[nr][i + 1])
-+				err = -EINVAL;
-+		}
- 	}
- 
- 	if (err) {
-@@ -1441,6 +1472,7 @@ static ssize_t set_auto_pwm(struct device *dev, struct device_attribute *attr,
- 			to_sensor_dev_attr_2(attr);
- 	int nr = sensor_attr->nr;
- 	int point = sensor_attr->index;
-+	int regaddr;
+@@ -498,6 +498,7 @@ struct it87_data {
+ 	 * is no longer needed, but it is still done to keep the driver
+ 	 * simple.
+ 	 */
++	u8 has_pwm;		/* Bitfield, pwm control enabled */
+ 	u8 pwm_ctrl[6];		/* Register value */
+ 	u8 pwm_duty[6];		/* Manual PWM value set by user */
+ 	u8 pwm_temp_map[6];	/* PWM to temp. chan. mapping (bits 1-0) */
+@@ -1340,15 +1341,6 @@ static ssize_t set_pwm_temp_map(struct device *dev,
  	long val;
+ 	u8 reg;
  
- 	if (kstrtol(buf, 10, &val) < 0 || val < 0 || val > 255)
-@@ -1448,8 +1480,41 @@ static ssize_t set_auto_pwm(struct device *dev, struct device_attribute *attr,
- 
- 	mutex_lock(&data->update_lock);
- 	data->auto_pwm[nr][point] = pwm_to_reg(data, val);
--	it87_write_value(data, IT87_REG_AUTO_PWM(nr, point),
--			 data->auto_pwm[nr][point]);
-+	if (has_newer_autopwm(data))
-+		regaddr = IT87_REG_AUTO_TEMP(nr, 3);
-+	else
-+		regaddr = IT87_REG_AUTO_PWM(nr, point);
-+	it87_write_value(data, regaddr, data->auto_pwm[nr][point]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t show_auto_pwm_slope(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct it87_data *data = it87_update_device(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+
-+	return sprintf(buf, "%d\n", data->auto_pwm[nr][1] & 0x7f);
-+}
-+
-+static ssize_t set_auto_pwm_slope(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
-+{
-+	struct it87_data *data = dev_get_drvdata(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	unsigned long val;
-+
-+	if (kstrtoul(buf, 10, &val) < 0 || val > 127)
-+		return -EINVAL;
-+
-+	mutex_lock(&data->update_lock);
-+	data->auto_pwm[nr][1] = (data->auto_pwm[nr][1] & 0x80) | val;
-+	it87_write_value(data, IT87_REG_AUTO_TEMP(nr, 4),
-+			 data->auto_pwm[nr][1]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -1462,8 +1527,14 @@ static ssize_t show_auto_temp(struct device *dev, struct device_attribute *attr,
- 			to_sensor_dev_attr_2(attr);
- 	int nr = sensor_attr->nr;
- 	int point = sensor_attr->index;
-+	int reg;
-+
-+	if (has_old_autopwm(data) || point)
-+		reg = data->auto_temp[nr][point];
-+	else
-+		reg = data->auto_temp[nr][1] - (data->auto_temp[nr][0] & 0x1f);
- 
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->auto_temp[nr][point]));
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(reg));
- }
- 
- static ssize_t set_auto_temp(struct device *dev, struct device_attribute *attr,
-@@ -1475,14 +1546,24 @@ static ssize_t set_auto_temp(struct device *dev, struct device_attribute *attr,
- 	int nr = sensor_attr->nr;
- 	int point = sensor_attr->index;
- 	long val;
-+	int reg;
- 
- 	if (kstrtol(buf, 10, &val) < 0 || val < -128000 || val > 127000)
+-	/*
+-	 * This check can go away if we ever support automatic fan speed
+-	 * control on newer chips.
+-	 */
+-	if (!has_old_autopwm(data)) {
+-		dev_notice(dev, "Mapping change disabled for safety reasons\n");
+-		return -EINVAL;
+-	}
+-
+ 	if (kstrtol(buf, 10, &val) < 0)
  		return -EINVAL;
  
- 	mutex_lock(&data->update_lock);
--	data->auto_temp[nr][point] = TEMP_TO_REG(val);
--	it87_write_value(data, IT87_REG_AUTO_TEMP(nr, point),
--			 data->auto_temp[nr][point]);
-+	if (has_newer_autopwm(data) && !point) {
-+		reg = data->auto_temp[nr][1] - TEMP_TO_REG(val);
-+		reg = clamp_val(reg, 0, 0x1f) | (data->auto_temp[nr][0] & 0xe0);
-+		data->auto_temp[nr][0] = reg;
-+		it87_write_value(data, IT87_REG_AUTO_TEMP(nr, 5), reg);
-+	} else {
-+		reg = TEMP_TO_REG(val);
-+		data->auto_temp[nr][point] = reg;
-+		if (has_newer_autopwm(data))
-+			point--;
-+		it87_write_value(data, IT87_REG_AUTO_TEMP(nr, point), reg);
-+	}
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -1542,6 +1623,10 @@ static SENSOR_DEVICE_ATTR_2(pwm1_auto_point3_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 0, 3);
- static SENSOR_DEVICE_ATTR_2(pwm1_auto_point4_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 0, 4);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_start, S_IRUGO | S_IWUSR,
-+			    show_auto_pwm, set_auto_pwm, 0, 0);
-+static SENSOR_DEVICE_ATTR(pwm1_auto_slope, S_IRUGO | S_IWUSR,
-+			  show_auto_pwm_slope, set_auto_pwm_slope, 0);
- 
- static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
+@@ -1482,7 +1474,7 @@ static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 0);
+ static SENSOR_DEVICE_ATTR(pwm1_freq, S_IRUGO | S_IWUSR, show_pwm_freq,
+ 			  set_pwm_freq, 0);
+-static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IRUGO,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 0);
+ static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_pwm, S_IRUGO | S_IWUSR,
+ 			    show_auto_pwm, set_auto_pwm, 0, 0);
+@@ -1507,7 +1499,7 @@ static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
  			  show_pwm_enable, set_pwm_enable, 1);
-@@ -1567,6 +1652,10 @@ static SENSOR_DEVICE_ATTR_2(pwm2_auto_point3_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 1, 3);
- static SENSOR_DEVICE_ATTR_2(pwm2_auto_point4_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 1, 4);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_start, S_IRUGO | S_IWUSR,
-+			    show_auto_pwm, set_auto_pwm, 1, 0);
-+static SENSOR_DEVICE_ATTR(pwm2_auto_slope, S_IRUGO | S_IWUSR,
-+			  show_auto_pwm_slope, set_auto_pwm_slope, 1);
- 
- static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 1);
+ static SENSOR_DEVICE_ATTR(pwm2_freq, S_IRUGO, show_pwm_freq, set_pwm_freq, 1);
+-static SENSOR_DEVICE_ATTR(pwm2_auto_channels_temp, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm2_auto_channels_temp, S_IRUGO,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 1);
+ static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_pwm, S_IRUGO | S_IWUSR,
+ 			    show_auto_pwm, set_auto_pwm, 1, 0);
+@@ -1532,7 +1524,7 @@ static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR,
  			  show_pwm_enable, set_pwm_enable, 2);
-@@ -1592,6 +1681,10 @@ static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 2, 3);
- static SENSOR_DEVICE_ATTR_2(pwm3_auto_point4_temp, S_IRUGO | S_IWUSR,
- 			    show_auto_temp, set_auto_temp, 2, 4);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_start, S_IRUGO | S_IWUSR,
-+			    show_auto_pwm, set_auto_pwm, 2, 0);
-+static SENSOR_DEVICE_ATTR(pwm3_auto_slope, S_IRUGO | S_IWUSR,
-+			  show_auto_pwm_slope, set_auto_pwm_slope, 2);
- 
- static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 2);
+ static SENSOR_DEVICE_ATTR(pwm3_freq, S_IRUGO, show_pwm_freq, NULL, 2);
+-static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IRUGO,
+ 			  show_pwm_temp_map, set_pwm_temp_map, 2);
+ static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_pwm, S_IRUGO | S_IWUSR,
+ 			    show_auto_pwm, set_auto_pwm, 2, 0);
+@@ -1557,21 +1549,21 @@ static SENSOR_DEVICE_ATTR(pwm4_enable, S_IRUGO | S_IWUSR,
  			  show_pwm_enable, set_pwm_enable, 3);
-@@ -1599,6 +1692,18 @@ static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 3);
+ static SENSOR_DEVICE_ATTR(pwm4, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 3);
  static SENSOR_DEVICE_ATTR(pwm4_freq, S_IRUGO, show_pwm_freq, NULL, 3);
- static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IRUGO,
+-static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IRUGO,
  			  show_pwm_temp_map, set_pwm_temp_map, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm4_auto_point1_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm4_auto_point1_temp_hyst, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm4_auto_point2_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm4_auto_point3_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm4_auto_start, S_IRUGO | S_IWUSR,
-+			    show_auto_pwm, set_auto_pwm, 3, 0);
-+static SENSOR_DEVICE_ATTR(pwm4_auto_slope, S_IRUGO | S_IWUSR,
-+			  show_auto_pwm_slope, set_auto_pwm_slope, 3);
  
  static SENSOR_DEVICE_ATTR(pwm5_enable, S_IRUGO | S_IWUSR,
  			  show_pwm_enable, set_pwm_enable, 4);
-@@ -1606,6 +1711,18 @@ static SENSOR_DEVICE_ATTR(pwm5, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 4);
+ static SENSOR_DEVICE_ATTR(pwm5, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 4);
  static SENSOR_DEVICE_ATTR(pwm5_freq, S_IRUGO, show_pwm_freq, NULL, 4);
- static SENSOR_DEVICE_ATTR(pwm5_auto_channels_temp, S_IRUGO,
+-static SENSOR_DEVICE_ATTR(pwm5_auto_channels_temp, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm5_auto_channels_temp, S_IRUGO,
  			  show_pwm_temp_map, set_pwm_temp_map, 4);
-+static SENSOR_DEVICE_ATTR_2(pwm5_auto_point1_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm5_auto_point1_temp_hyst, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm5_auto_point2_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm5_auto_point3_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm5_auto_start, S_IRUGO | S_IWUSR,
-+			    show_auto_pwm, set_auto_pwm, 4, 0);
-+static SENSOR_DEVICE_ATTR(pwm5_auto_slope, S_IRUGO | S_IWUSR,
-+			  show_auto_pwm_slope, set_auto_pwm_slope, 4);
  
  static SENSOR_DEVICE_ATTR(pwm6_enable, S_IRUGO | S_IWUSR,
  			  show_pwm_enable, set_pwm_enable, 5);
-@@ -1613,6 +1730,18 @@ static SENSOR_DEVICE_ATTR(pwm6, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 5);
+ static SENSOR_DEVICE_ATTR(pwm6, S_IRUGO | S_IWUSR, show_pwm, set_pwm, 5);
  static SENSOR_DEVICE_ATTR(pwm6_freq, S_IRUGO, show_pwm_freq, NULL, 5);
- static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO,
+-static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO | S_IWUSR,
++static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO,
  			  show_pwm_temp_map, set_pwm_temp_map, 5);
-+static SENSOR_DEVICE_ATTR_2(pwm6_auto_point1_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm6_auto_point1_temp_hyst, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm6_auto_point2_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm6_auto_point3_temp, S_IRUGO | S_IWUSR,
-+			    show_auto_temp, set_auto_temp, 2, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm6_auto_start, S_IRUGO | S_IWUSR,
-+			    show_auto_pwm, set_auto_pwm, 5, 0);
-+static SENSOR_DEVICE_ATTR(pwm6_auto_slope, S_IRUGO | S_IWUSR,
-+			  show_auto_pwm_slope, set_auto_pwm_slope, 5);
  
  /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
-@@ -2050,8 +2179,8 @@ static umode_t it87_pwm_is_visible(struct kobject *kobj,
- 	if (!(data->has_pwm & BIT(i)))
- 		return 0;
+@@ -1969,67 +1961,81 @@ static const struct attribute_group it87_group_fan = {
+ 	.is_visible = it87_fan_is_visible,
+ };
  
--	/* pwmX_auto_channels_temp is only writable for old auto pwm */
--	if (a = 3 && has_old_autopwm(data))
-+	/* pwmX_auto_channels_temp is only writable if auto pwm is supported */
-+	if (a = 3 && (has_old_autopwm(data) || has_newer_autopwm(data)))
- 		return attr->mode | S_IWUSR;
+-static struct attribute *it87_attributes_pwm[6][4+1] = { {
++static umode_t it87_pwm_is_visible(struct kobject *kobj,
++				   struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct it87_data *data = dev_get_drvdata(dev);
++	int i = index / 4;	/* pwm index */
++	int a = index % 4;	/* attribute index */
++
++	if (!(data->has_pwm & (1 << i)))
++		return 0;
++
++	/* pwmX_auto_channels_temp is only writable for old auto pwm */
++	if (a = 3 && has_old_autopwm(data))
++		return attr->mode | S_IWUSR;
++
++	/* pwm2_freq is writable if there are two pwm frequency selects */
++	if (has_pwm_freq2(data) && i = 1 && a = 2)
++		return attr->mode | S_IWUSR;
++
++	return attr->mode;
++}
++
++static struct attribute *it87_attributes_pwm[] = {
+ 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_channels_temp.dev_attr.attr,
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_auto_channels_temp.dev_attr.attr,
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_auto_channels_temp.dev_attr.attr,
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm4.dev_attr.attr,
+ 	&sensor_dev_attr_pwm4_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm4_auto_channels_temp.dev_attr.attr,
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm5_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm5.dev_attr.attr,
+ 	&sensor_dev_attr_pwm5_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm5_auto_channels_temp.dev_attr.attr,
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm6_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm6.dev_attr.attr,
+ 	&sensor_dev_attr_pwm6_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm6_auto_channels_temp.dev_attr.attr,
++
+ 	NULL
+-} };
++};
  
- 	/* pwm2_freq is writable if there are two pwm frequency selects */
-@@ -2105,11 +2234,28 @@ static umode_t it87_auto_pwm_is_visible(struct kobject *kobj,
+-static umode_t pwm_attribute_mode(struct kobject *kobj, struct attribute *attr,
+-				  int index)
++static const struct attribute_group it87_group_pwm = {
++	.attrs = it87_attributes_pwm,
++	.is_visible = it87_pwm_is_visible,
++};
++
++static umode_t it87_auto_pwm_is_visible(struct kobject *kobj,
++					struct attribute *attr, int index)
  {
  	struct device *dev = container_of(kobj, struct device, kobj);
  	struct it87_data *data = dev_get_drvdata(dev);
--	int i = index / 9;	/* pwm index */
-+	int i = index / 11;	/* pwm index */
-+	int a = index % 11;	/* attribute index */
-+
-+	if (index >= 33) {	/* pwm 4..6 */
-+		i = (index - 33) / 6 + 3;
-+		a = (index - 33) % 6 + 4;
-+	}
++	int i = index / 9;	/* pwm index */
  
- 	if (!(data->has_pwm & BIT(i)))
- 		return 0;
+-	if (has_pwm_freq2(data) && index = 2)
+-		return attr->mode | S_IWUSR;
++	if (!(data->has_pwm & (1 << i)))
++		return 0;
  
-+	if (has_newer_autopwm(data)) {
-+		if (a < 4)	/* no auto point pwm */
-+			return 0;
-+		if (a = 8)	/* no auto_point4 */
-+			return 0;
-+	}
-+	if (has_old_autopwm(data)) {
-+		if (a >= 9)	/* no pwm_auto_start, pwm_auto_slope */
-+			return 0;
-+	}
-+
  	return attr->mode;
  }
  
-@@ -2123,8 +2269,10 @@ static struct attribute *it87_attributes_auto_pwm[] = {
+-static const struct attribute_group it87_group_pwm[6] = {
+-	{ .attrs = it87_attributes_pwm[0] },
+-	{ .attrs = it87_attributes_pwm[1],
+-	  .is_visible = pwm_attribute_mode, },
+-	{ .attrs = it87_attributes_pwm[2] },
+-	{ .attrs = it87_attributes_pwm[3] },
+-	{ .attrs = it87_attributes_pwm[4] },
+-	{ .attrs = it87_attributes_pwm[5] },
+-};
+-
+-static struct attribute *it87_attributes_autopwm[3][9+1] = { {
++static struct attribute *it87_attributes_auto_pwm[] = {
+ 	&sensor_dev_attr_pwm1_auto_point1_pwm.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_point2_pwm.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_auto_point3_pwm.dev_attr.attr,
+@@ -2039,8 +2045,7 @@ static struct attribute *it87_attributes_autopwm[3][9+1] = { {
  	&sensor_dev_attr_pwm1_auto_point2_temp.dev_attr.attr,
  	&sensor_dev_attr_pwm1_auto_point3_temp.dev_attr.attr,
  	&sensor_dev_attr_pwm1_auto_point4_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm1_auto_start.dev_attr.attr,
-+	&sensor_dev_attr_pwm1_auto_slope.dev_attr.attr,
- 
--	&sensor_dev_attr_pwm2_auto_point1_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_point1_pwm.dev_attr.attr,	/* 11 */
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm2_auto_point1_pwm.dev_attr.attr,
  	&sensor_dev_attr_pwm2_auto_point2_pwm.dev_attr.attr,
  	&sensor_dev_attr_pwm2_auto_point3_pwm.dev_attr.attr,
- 	&sensor_dev_attr_pwm2_auto_point4_pwm.dev_attr.attr,
-@@ -2133,8 +2281,10 @@ static struct attribute *it87_attributes_auto_pwm[] = {
+@@ -2050,8 +2055,7 @@ static struct attribute *it87_attributes_autopwm[3][9+1] = { {
  	&sensor_dev_attr_pwm2_auto_point2_temp.dev_attr.attr,
  	&sensor_dev_attr_pwm2_auto_point3_temp.dev_attr.attr,
  	&sensor_dev_attr_pwm2_auto_point4_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_start.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_slope.dev_attr.attr,
- 
--	&sensor_dev_attr_pwm3_auto_point1_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_point1_pwm.dev_attr.attr,	/* 22 */
+-	NULL
+-}, {
++
+ 	&sensor_dev_attr_pwm3_auto_point1_pwm.dev_attr.attr,
  	&sensor_dev_attr_pwm3_auto_point2_pwm.dev_attr.attr,
  	&sensor_dev_attr_pwm3_auto_point3_pwm.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_auto_point4_pwm.dev_attr.attr,
-@@ -2143,6 +2293,29 @@ static struct attribute *it87_attributes_auto_pwm[] = {
+@@ -2061,13 +2065,13 @@ static struct attribute *it87_attributes_autopwm[3][9+1] = { {
  	&sensor_dev_attr_pwm3_auto_point2_temp.dev_attr.attr,
  	&sensor_dev_attr_pwm3_auto_point3_temp.dev_attr.attr,
  	&sensor_dev_attr_pwm3_auto_point4_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_start.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_slope.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm4_auto_point1_temp.dev_attr.attr,	/* 33 */
-+	&sensor_dev_attr_pwm4_auto_point1_temp_hyst.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_point3_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_start.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_slope.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm5_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm5_auto_point1_temp_hyst.dev_attr.attr,
-+	&sensor_dev_attr_pwm5_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm5_auto_point3_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm5_auto_start.dev_attr.attr,
-+	&sensor_dev_attr_pwm5_auto_slope.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm6_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm6_auto_point1_temp_hyst.dev_attr.attr,
-+	&sensor_dev_attr_pwm6_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm6_auto_point3_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm6_auto_start.dev_attr.attr,
-+	&sensor_dev_attr_pwm6_auto_slope.dev_attr.attr,
+-	NULL
+-} };
  
- 	NULL,
+-static const struct attribute_group it87_group_autopwm[3] = {
+-	{ .attrs = it87_attributes_autopwm[0] },
+-	{ .attrs = it87_attributes_autopwm[1] },
+-	{ .attrs = it87_attributes_autopwm[2] },
++	NULL,
++};
++
++static const struct attribute_group it87_group_auto_pwm = {
++	.attrs = it87_attributes_auto_pwm,
++	.is_visible = it87_auto_pwm_is_visible,
  };
-@@ -2839,7 +3012,7 @@ static int it87_probe(struct platform_device *pdev)
- 		data->has_pwm &= ~sio_data->skip_pwm;
  
- 		data->groups[4] = &it87_group_pwm;
+ static struct attribute *it87_attributes_vid[] = {
+@@ -2456,23 +2460,15 @@ exit:
+ 
+ static void it87_remove_files(struct device *dev)
+ {
+-	struct it87_data *data = dev_get_drvdata(dev);
+ 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+-	int i;
+ 
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_in);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_fan);
++	sysfs_remove_group(&dev->kobj, &it87_group_pwm);
++	sysfs_remove_group(&dev->kobj, &it87_group_auto_pwm);
+ 
+-	for (i = 0; i < 6; i++) {
+-		if (sio_data->skip_pwm & (1 << i))
+-			continue;
+-		sysfs_remove_group(&dev->kobj, &it87_group_pwm[i]);
 -		if (has_old_autopwm(data))
-+		if (has_old_autopwm(data) || has_newer_autopwm(data))
- 			data->groups[5] = &it87_group_auto_pwm;
- 	}
+-			sysfs_remove_group(&dev->kobj,
+-					   &it87_group_autopwm[i]);
+-	}
+ 	if (!sio_data->skip_vid)
+ 		sysfs_remove_group(&dev->kobj, &it87_group_vid);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_label);
+@@ -2760,18 +2756,15 @@ static int it87_probe(struct platform_device *pdev)
+ 		goto error;
  
+ 	if (enable_pwm_interface) {
+-		for (i = 0; i < 6; i++) {
+-			if (sio_data->skip_pwm & (1 << i))
+-				continue;
+-			err = sysfs_create_group(&dev->kobj,
+-						 &it87_group_pwm[i]);
+-			if (err)
+-				goto error;
++		data->has_pwm = (1 << ARRAY_SIZE(IT87_REG_PWM)) - 1;
++		data->has_pwm &= ~sio_data->skip_pwm;
+ 
+-			if (!has_old_autopwm(data))
+-				continue;
++		err = sysfs_create_group(&dev->kobj, &it87_group_pwm);
++		if (err)
++			goto error;
++		if (has_old_autopwm(data)) {
+ 			err = sysfs_create_group(&dev->kobj,
+-						 &it87_group_autopwm[i]);
++						 &it87_group_auto_pwm);
+ 			if (err)
+ 				goto error;
+ 		}
 -- 
 2.1.4
 
