@@ -1,7 +1,7 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:44 +0000
-Subject: [lm-sensors] [PATCH v3 20/25] hwmon: (it87) Formatting cleanup
-Message-Id: <1453860229-23614-21-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:38 +0000
+Subject: [lm-sensors] [PATCH v3 14/25] hwmon: (it87) Convert to use new hwmon API
+Message-Id: <1453860229-23614-15-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,466 +10,184 @@ To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
-Fix various checkpatch complaints to clean up the code and
-make it easier to read.
-
-CHECK: Do not include the paragraph about writing to the FSF
-CHECK: Alignment should match open parenthesis
-CHECK: Logical continuations should be on the previous line
-CHECK: No space is necessary after a cast
-CHECK: Please don't use multiple blank lines
-CHECK: Please use a blank line after function/struct/union/enum
-       declarations
-CHECK: spaces preferred around that '+' (ctx:VxV)
-WARNING: Missing a blank line after declarations
-
-No functional change.
+Convert to use devm_hwmon_device_register_with_groups to simplify
+code and reduce code size. This also attaches sysfs attributes
+to the hwmon device and no longer to the platform device.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 155 ++++++++++++++++++++++++++-------------------------
- 1 file changed, 80 insertions(+), 75 deletions(-)
+ drivers/hwmon/it87.c | 93 +++++++++++-----------------------------------------
+ 1 file changed, 19 insertions(+), 74 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 118d4c756e40..515c5cd1890b 100644
+index e4fb466fd9c3..e02c972ef81e 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -44,10 +44,6 @@
-  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+@@ -458,7 +458,7 @@ struct it87_sio_data {
+  * The structure is dynamically allocated.
   */
+ struct it87_data {
+-	struct device *hwmon_dev;
++	const struct attribute_group *groups[7];
+ 	enum chips type;
+ 	u16 features;
+ 	u8 peci_mask;
+@@ -1739,14 +1739,6 @@ static SENSOR_DEVICE_ATTR(in8_label, S_IRUGO, show_label, NULL, 2);
+ /* AVCC3 */
+ static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, show_label, NULL, 0);
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -108,6 +104,7 @@ static inline void superio_outb(int ioreg, int reg, int val)
- static int superio_inw(int ioreg, int reg)
- {
- 	int val;
-+
- 	outb(reg++, ioreg);
- 	val = inb(ioreg + 1) << 8;
- 	outb(reg, ioreg);
-@@ -598,10 +595,10 @@ static int pwm_from_reg(const struct it87_data *data, u8 reg)
- 		return (reg & 0x7f) << 1;
- }
- 
+-static ssize_t show_name(struct device *dev, struct device_attribute
+-			 *devattr, char *buf)
+-{
+-	struct it87_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%s\n", data->name);
+-}
+-static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
 -
- static int DIV_TO_REG(int val)
+ static umode_t it87_in_is_visible(struct kobject *kobj,
+ 				  struct attribute *attr, int index)
  {
- 	int answer = 0;
-+
- 	while (answer < 7 && (val >>= 1))
- 		answer++;
- 	return answer;
-@@ -686,8 +683,8 @@ static struct it87_data *it87_update_device(struct device *dev)
- 
- 	mutex_lock(&data->update_lock);
- 
--	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
--	    || !data->valid) {
-+	if (time_after(jiffies, data->last_updated + HZ + HZ / 2) ||
-+	    !data->valid) {
- 		if (update_vbat) {
- 			/*
- 			 * Cleared after each update, so reenable.  Value
-@@ -798,10 +795,10 @@ static ssize_t show_in(struct device *dev, struct device_attribute *attr,
- 		       char *buf)
- {
- 	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
--	int nr = sattr->nr;
-+	struct it87_data *data = it87_update_device(dev);
- 	int index = sattr->index;
-+	int nr = sattr->nr;
- 
--	struct it87_data *data = it87_update_device(dev);
- 	return sprintf(buf, "%d\n", in_from_reg(data, nr, data->in[nr][index]));
- }
- 
-@@ -809,10 +806,9 @@ static ssize_t set_in(struct device *dev, struct device_attribute *attr,
- 		      const char *buf, size_t count)
- {
- 	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
--	int nr = sattr->nr;
--	int index = sattr->index;
--
+@@ -1887,10 +1879,10 @@ static umode_t it87_is_visible(struct kobject *kobj,
+ 	struct device *dev = container_of(kobj, struct device, kobj);
  	struct it87_data *data = dev_get_drvdata(dev);
-+	int index = sattr->index;
-+	int nr = sattr->nr;
- 	unsigned long val;
  
- 	if (kstrtoul(buf, 10, &val) < 0)
-@@ -968,8 +964,8 @@ static ssize_t show_temp_type(struct device *dev, struct device_attribute *attr,
- 	u8 reg = data->sensor;	    /* In case value is updated while used */
- 	u8 extra = data->extra;
+-	if ((index = 3 || index = 4) && !data->has_vid)
++	if ((index = 2 || index = 3) && !data->has_vid)
+ 		return 0;
  
--	if ((has_temp_peci(data, nr) && (reg >> 6 = nr + 1))
--	    || (has_temp_old_peci(data, nr) && (extra & 0x80)))
-+	if ((has_temp_peci(data, nr) && (reg >> 6 = nr + 1)) ||
-+	    (has_temp_old_peci(data, nr) && (extra & 0x80)))
- 		return sprintf(buf, "6\n");  /* Intel PECI */
- 	if (reg & (1 << nr))
- 		return sprintf(buf, "3\n");  /* thermal diode */
-@@ -1065,35 +1061,38 @@ static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
- }
+-	if (index > 4 && !(data->in_internal & (1 << (index - 5))))
++	if (index > 3 && !(data->in_internal & (1 << (index - 4))))
+ 		return 0;
  
- static ssize_t show_fan_div(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			    char *buf)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	struct it87_data *data = it87_update_device(dev);
- 	int nr = sensor_attr->index;
- 
--	struct it87_data *data = it87_update_device(dev);
- 	return sprintf(buf, "%lu\n", DIV_FROM_REG(data->fan_div[nr]));
- }
-+
- static ssize_t show_pwm_enable(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+			       struct device_attribute *attr, char *buf)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	struct it87_data *data = it87_update_device(dev);
- 	int nr = sensor_attr->index;
- 
--	struct it87_data *data = it87_update_device(dev);
- 	return sprintf(buf, "%d\n", pwm_mode(data, nr));
- }
-+
- static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			char *buf)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	struct it87_data *data = it87_update_device(dev);
- 	int nr = sensor_attr->index;
- 
--	struct it87_data *data = it87_update_device(dev);
- 	return sprintf(buf, "%d\n",
- 		       pwm_from_reg(data, data->pwm_duty[nr]));
- }
-+
- static ssize_t show_pwm_freq(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			     char *buf)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
- 	struct it87_data *data = it87_update_device(dev);
-@@ -1157,12 +1156,11 @@ static ssize_t set_fan(struct device *dev, struct device_attribute *attr,
- }
- 
- static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
-+			   const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
--
- 	struct it87_data *data = dev_get_drvdata(dev);
-+	int nr = sensor_attr->index;
- 	unsigned long val;
- 	int min;
- 	u8 old;
-@@ -1227,13 +1225,12 @@ static int check_trip_points(struct device *dev, int nr)
+ 	return attr->mode;
+@@ -1899,10 +1891,9 @@ static umode_t it87_is_visible(struct kobject *kobj,
+ static struct attribute *it87_attributes[] = {
+ 	&dev_attr_alarms.attr,
+ 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
+-	&dev_attr_name.attr,
+-	&dev_attr_vrm.attr,				/* 3 */
+-	&dev_attr_cpu0_vid.attr,			/* 4 */
+-	&sensor_dev_attr_in3_label.dev_attr.attr,	/* 5 .. 8 */
++	&dev_attr_vrm.attr,				/* 2 */
++	&dev_attr_cpu0_vid.attr,			/* 3 */
++	&sensor_dev_attr_in3_label.dev_attr.attr,	/* 4 .. 7 */
+ 	&sensor_dev_attr_in7_label.dev_attr.attr,
+ 	&sensor_dev_attr_in8_label.dev_attr.attr,
+ 	&sensor_dev_attr_in9_label.dev_attr.attr,
+@@ -2460,16 +2451,6 @@ exit:
  	return err;
  }
  
--static ssize_t set_pwm_enable(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
-+			      const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
+-static void it87_remove_files(struct device *dev)
+-{
+-	sysfs_remove_group(&dev->kobj, &it87_group);
+-	sysfs_remove_group(&dev->kobj, &it87_group_in);
+-	sysfs_remove_group(&dev->kobj, &it87_group_temp);
+-	sysfs_remove_group(&dev->kobj, &it87_group_fan);
+-	sysfs_remove_group(&dev->kobj, &it87_group_pwm);
+-	sysfs_remove_group(&dev->kobj, &it87_group_auto_pwm);
+-}
 -
- 	struct it87_data *data = dev_get_drvdata(dev);
-+	int nr = sensor_attr->index;
- 	long val;
- 
- 	if (kstrtol(buf, 10, &val) < 0 || val < 0 || val > 2)
-@@ -1280,13 +1277,13 @@ static ssize_t set_pwm_enable(struct device *dev,
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-+
- static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
-+		       const char *buf, size_t count)
+ /* Called when we have found a new IT87. */
+ static void it87_init_device(struct platform_device *pdev)
  {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
--
- 	struct it87_data *data = dev_get_drvdata(dev);
-+	int nr = sensor_attr->index;
- 	long val;
+@@ -2646,7 +2627,7 @@ static int it87_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+ 	int enable_pwm_interface;
+-	int err = 0;
++	struct device *hwmon_dev;
  
- 	if (kstrtol(buf, 10, &val) < 0 || val < 0 || val > 255)
-@@ -1320,8 +1317,9 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
--static ssize_t set_pwm_freq(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
-+
-+static ssize_t set_pwm_freq(struct device *dev, struct device_attribute *attr,
-+			    const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
- 	struct it87_data *data = dev_get_drvdata(dev);
-@@ -1337,7 +1335,7 @@ static ssize_t set_pwm_freq(struct device *dev,
- 
- 	/* Search for the nearest available frequency */
- 	for (i = 0; i < 7; i++) {
--		if (val > (pwm_freq[i] + pwm_freq[i+1]) / 2)
-+		if (val > (pwm_freq[i] + pwm_freq[i + 1]) / 2)
- 			break;
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -2666,7 +2647,6 @@ static int it87_probe(struct platform_device *pdev)
+ 	data->features = it87_devices[sio_data->type].features;
+ 	data->peci_mask = it87_devices[sio_data->type].peci_mask;
+ 	data->old_peci_mask = it87_devices[sio_data->type].old_peci_mask;
+-	data->name = it87_devices[sio_data->type].name;
+ 	/*
+ 	 * IT8705F Datasheet 0.4.1, 3h = Version G.
+ 	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
+@@ -2742,59 +2722,25 @@ static int it87_probe(struct platform_device *pdev)
+ 		data->vid = sio_data->vid_value;
  	}
  
-@@ -1355,13 +1353,13 @@ static ssize_t set_pwm_freq(struct device *dev,
- 
- 	return count;
- }
-+
- static ssize_t show_pwm_temp_map(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+				 struct device_attribute *attr, char *buf)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
+-	/* Register sysfs hooks */
+-	err = sysfs_create_group(&dev->kobj, &it87_group);
+-	if (err)
+-		return err;
 -
- 	struct it87_data *data = it87_update_device(dev);
-+	int nr = sensor_attr->index;
- 	int map;
- 
- 	if (data->pwm_temp_map[nr] < 3)
-@@ -1370,13 +1368,14 @@ static ssize_t show_pwm_temp_map(struct device *dev,
- 		map = 0;			/* Should never happen */
- 	return sprintf(buf, "%d\n", map);
- }
-+
- static ssize_t set_pwm_temp_map(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
+-	err = sysfs_create_group(&dev->kobj, &it87_group_in);
+-	if (err)
+-		goto error;
 -
- 	struct it87_data *data = dev_get_drvdata(dev);
-+	int nr = sensor_attr->index;
- 	long val;
- 	u8 reg;
+-	err = sysfs_create_group(&dev->kobj, &it87_group_temp);
+-	if (err)
+-		goto error;
+-
+-	err = sysfs_create_group(&dev->kobj, &it87_group_fan);
+-	if (err)
+-		goto error;
++	/* Prepare for sysfs hooks */
++	data->groups[0] = &it87_group;
++	data->groups[1] = &it87_group_in;
++	data->groups[2] = &it87_group_temp;
++	data->groups[3] = &it87_group_fan;
  
-@@ -1411,8 +1410,8 @@ static ssize_t set_pwm_temp_map(struct device *dev,
- 	return count;
- }
+ 	if (enable_pwm_interface) {
+ 		data->has_pwm = (1 << ARRAY_SIZE(IT87_REG_PWM)) - 1;
+ 		data->has_pwm &= ~sio_data->skip_pwm;
  
--static ssize_t show_auto_pwm(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+static ssize_t show_auto_pwm(struct device *dev, struct device_attribute *attr,
-+			     char *buf)
- {
- 	struct it87_data *data = it87_update_device(dev);
- 	struct sensor_device_attribute_2 *sensor_attr @@ -1424,8 +1423,8 @@ static ssize_t show_auto_pwm(struct device *dev,
- 		       pwm_from_reg(data, data->auto_pwm[nr][point]));
- }
- 
--static ssize_t set_auto_pwm(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_auto_pwm(struct device *dev, struct device_attribute *attr,
-+			    const char *buf, size_t count)
- {
- 	struct it87_data *data = dev_get_drvdata(dev);
- 	struct sensor_device_attribute_2 *sensor_attr @@ -1445,8 +1444,8 @@ static ssize_t set_auto_pwm(struct device *dev,
- 	return count;
- }
- 
--static ssize_t show_auto_temp(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+static ssize_t show_auto_temp(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
- {
- 	struct it87_data *data = it87_update_device(dev);
- 	struct sensor_device_attribute_2 *sensor_attr @@ -1457,8 +1456,8 @@ static ssize_t show_auto_temp(struct device *dev,
- 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->auto_temp[nr][point]));
- }
- 
--static ssize_t set_auto_temp(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_auto_temp(struct device *dev, struct device_attribute *attr,
-+			     const char *buf, size_t count)
- {
- 	struct it87_data *data = dev_get_drvdata(dev);
- 	struct sensor_device_attribute_2 *sensor_attr @@ -1607,27 +1606,30 @@ static SENSOR_DEVICE_ATTR(pwm6_auto_channels_temp, S_IRUGO,
- 
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			   char *buf)
- {
- 	struct it87_data *data = it87_update_device(dev);
-+
- 	return sprintf(buf, "%u\n", data->alarms);
- }
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
- static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			  char *buf)
- {
--	int bitnr = to_sensor_dev_attr(attr)->index;
- 	struct it87_data *data = it87_update_device(dev);
-+	int bitnr = to_sensor_dev_attr(attr)->index;
-+
- 	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
- }
- 
--static ssize_t clear_intrusion(struct device *dev, struct device_attribute
--		*attr, const char *buf, size_t count)
-+static ssize_t clear_intrusion(struct device *dev,
-+			       struct device_attribute *attr, const char *buf,
-+			       size_t count)
- {
- 	struct it87_data *data = dev_get_drvdata(dev);
--	long val;
- 	int config;
-+	long val;
- 
- 	if (kstrtol(buf, 10, &val) < 0 || val != 0)
- 		return -EINVAL;
-@@ -1668,21 +1670,22 @@ static SENSOR_DEVICE_ATTR(intrusion0_alarm, S_IRUGO | S_IWUSR,
- 			  show_alarm, clear_intrusion, 4);
- 
- static ssize_t show_beep(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			 char *buf)
- {
--	int bitnr = to_sensor_dev_attr(attr)->index;
- 	struct it87_data *data = it87_update_device(dev);
-+	int bitnr = to_sensor_dev_attr(attr)->index;
-+
- 	return sprintf(buf, "%u\n", (data->beeps >> bitnr) & 1);
- }
-+
- static ssize_t set_beep(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
-+			const char *buf, size_t count)
- {
- 	int bitnr = to_sensor_dev_attr(attr)->index;
- 	struct it87_data *data = dev_get_drvdata(dev);
- 	long val;
- 
--	if (kstrtol(buf, 10, &val) < 0
--	 || (val != 0 && val != 1))
-+	if (kstrtol(buf, 10, &val) < 0 || (val != 0 && val != 1))
- 		return -EINVAL;
- 
- 	mutex_lock(&data->update_lock);
-@@ -1718,13 +1721,15 @@ static SENSOR_DEVICE_ATTR(temp2_beep, S_IRUGO, show_beep, NULL, 2);
- static SENSOR_DEVICE_ATTR(temp3_beep, S_IRUGO, show_beep, NULL, 2);
- 
- static ssize_t show_vrm_reg(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			    char *buf)
- {
- 	struct it87_data *data = dev_get_drvdata(dev);
-+
- 	return sprintf(buf, "%u\n", data->vrm);
- }
-+
- static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
-+			     const char *buf, size_t count)
- {
- 	struct it87_data *data = dev_get_drvdata(dev);
- 	unsigned long val;
-@@ -1739,15 +1744,16 @@ static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr,
- static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
- 
- static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			    char *buf)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%ld\n", (long) vid_from_reg(data->vid, data->vrm));
-+
-+	return sprintf(buf, "%ld\n", (long)vid_from_reg(data->vid, data->vrm));
- }
- static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
- 
- static ssize_t show_label(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+			  char *buf)
- {
- 	static const char * const labels[] = {
- 		"+5V",
-@@ -2272,8 +2278,8 @@ static int __init it87_find(int sioaddr, unsigned short *address,
- 		/* Check if fan3 is there or not */
- 		if ((reg27 & BIT(0)) || !(reg2c & BIT(2)))
- 			sio_data->skip_fan |= BIT(2);
--		if ((reg25 & BIT(4))
--		    || (!(reg2a & BIT(1)) && (regef & BIT(0))))
-+		if ((reg25 & BIT(4)) ||
-+		    (!(reg2a & BIT(1)) && (regef & BIT(0))))
- 			sio_data->skip_pwm |= BIT(2);
- 
- 		/* Check if fan2 is there or not */
-@@ -2421,8 +2427,8 @@ static int __init it87_find(int sioaddr, unsigned short *address,
- 		if (reg & BIT(2))
- 			sio_data->skip_fan |= BIT(1);
- 
--		if ((sio_data->type = it8718 || sio_data->type = it8720)
--		 && !(sio_data->skip_vid))
-+		if ((sio_data->type = it8718 || sio_data->type = it8720) &&
-+		    !(sio_data->skip_vid))
- 			sio_data->vid_value = superio_inb(sioaddr,
- 							  IT87_SIO_VID_REG);
- 
-@@ -2478,8 +2484,8 @@ static int __init it87_find(int sioaddr, unsigned short *address,
- 	board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
- 	board_name = dmi_get_system_info(DMI_BOARD_NAME);
- 	if (board_vendor && board_name) {
--		if (strcmp(board_vendor, "nVIDIA") = 0
--		 && strcmp(board_name, "FN68PT") = 0) {
-+		if (strcmp(board_vendor, "nVIDIA") = 0 &&
-+		    strcmp(board_name, "FN68PT") = 0) {
- 			/*
- 			 * On the Shuttle SN68PT, FAN_CTL2 is apparently not
- 			 * connected to a fan, but to something else. One user
-@@ -2718,8 +2724,8 @@ static int it87_probe(struct platform_device *pdev)
+-		err = sysfs_create_group(&dev->kobj, &it87_group_pwm);
+-		if (err)
+-			goto error;
+-		if (has_old_autopwm(data)) {
+-			err = sysfs_create_group(&dev->kobj,
+-						 &it87_group_auto_pwm);
+-			if (err)
+-				goto error;
+-		}
+-	}
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto error;
++		data->groups[4] = &it87_group_pwm;
++		if (has_old_autopwm(data))
++			data->groups[5] = &it87_group_auto_pwm;
  	}
  
- 	/* Now, we do the remaining detection. */
--	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
--	 || it87_read_value(data, IT87_REG_CHIPID) != 0x90)
-+	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80) ||
-+	    it87_read_value(data, IT87_REG_CHIPID) != 0x90)
- 		return -ENODEV;
- 
- 	platform_set_drvdata(pdev, data);
-@@ -2749,8 +2755,8 @@ static int it87_probe(struct platform_device *pdev)
- 
- 	data->has_temp = 0x07;
- 	if (sio_data->skip_temp & BIT(2)) {
--		if (sio_data->type = it8782
--		    && !(it87_read_value(data, IT87_REG_TEMP_EXTRA) & 0x80))
-+		if (sio_data->type = it8782 &&
-+		    !(it87_read_value(data, IT87_REG_TEMP_EXTRA) & 0x80))
- 			data->has_temp &= ~BIT(2);
- 	}
- 
-@@ -2911,7 +2917,6 @@ static void __exit sm_it87_exit(void)
- 	platform_driver_unregister(&it87_driver);
+-	return 0;
+-
+-error:
+-	it87_remove_files(dev);
+-	return err;
+-}
+-
+-static int it87_remove(struct platform_device *pdev)
+-{
+-	struct it87_data *data = platform_get_drvdata(pdev);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	it87_remove_files(&pdev->dev);
+-
+-	return 0;
++	hwmon_dev = devm_hwmon_device_register_with_groups(dev,
++					it87_devices[sio_data->type].name,
++					data, data->groups);
++	return PTR_ERR_OR_ZERO(hwmon_dev);
  }
  
--
- MODULE_AUTHOR("Chris Gauthron, Jean Delvare <jdelvare@suse.de>");
- MODULE_DESCRIPTION("IT8705F/IT871xF/IT872xF hardware monitoring driver");
- module_param(update_vbat, bool, 0);
+ static struct platform_driver it87_driver = {
+@@ -2802,7 +2748,6 @@ static struct platform_driver it87_driver = {
+ 		.name	= DRVNAME,
+ 	},
+ 	.probe	= it87_probe,
+-	.remove	= it87_remove,
+ };
+ 
+ static int __init it87_device_add(int index, unsigned short address,
 -- 
 2.1.4
 
