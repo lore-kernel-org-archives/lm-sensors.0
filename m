@@ -1,34 +1,192 @@
-From: David Binderman <dcb314@hotmail.com>
-Date: Mon, 04 Jan 2016 17:56:47 +0000
-Subject: [lm-sensors] linux-4.4-rc8/drivers/hwmon/lm93.c:398: possible int/long mixup ?
-Message-Id: <DUB128-W1671C249B3641DADF3A70A9CF20@phx.gbl>
+From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:37 +0000
+Subject: [lm-sensors] [PATCH v3 13/25] hwmon: (it87) Use single group and is_visible for miscellaneous attrib
+Message-Id: <1453860229-23614-14-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello there,
+From: Guenter Roeck <linux@roeck-us.net>
 
-[linux-4.4-rc8/drivers/hwmon/lm93.c:398]: (style) int result is assigned to=
- long variable. If the variable is long to avoid loss of information, then =
-you have loss of information.
+Use is_visible to determine if attributes should be generated or not.
+This simplifies the code and reduces object size by about 120 bytes
+on x86_64.
 
-Source code is
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c | 81 +++++++++++++++++++++-------------------------------
+ 1 file changed, 33 insertions(+), 48 deletions(-)
 
-=A0=A0=A0 const long uv_vid =3D vid * 1000;
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 0c13d640bcc7..e4fb466fd9c3 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -471,6 +471,7 @@ struct it87_data {
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+ 	u16 in_scaled;		/* Internal voltage sensors are scaled */
++	u16 in_internal;	/* Bitfield, internal sensors (for labels) */
+ 	u16 has_in;		/* Bitfield, voltage sensors enabled */
+ 	u8 in[10][3];		/* [nr][0]=in, [1]=min, [2]=max */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+@@ -480,6 +481,7 @@ struct it87_data {
+ 	u8 sensor;		/* Register value (IT87_REG_TEMP_ENABLE) */
+ 	u8 extra;		/* Register value (IT87_REG_TEMP_EXTRA) */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
++	bool has_vid;		/* True if VID supported */
+ 	u8 vid;			/* Register encoding, combined */
+ 	u8 vrm;
+ 	u32 alarms;		/* Register encoding, combined */
+@@ -1879,15 +1881,37 @@ static const struct attribute_group it87_group_temp = {
+ 	.is_visible = it87_temp_is_visible,
+ };
+ 
++static umode_t it87_is_visible(struct kobject *kobj,
++			       struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct it87_data *data = dev_get_drvdata(dev);
++
++	if ((index = 3 || index = 4) && !data->has_vid)
++		return 0;
++
++	if (index > 4 && !(data->in_internal & (1 << (index - 5))))
++		return 0;
++
++	return attr->mode;
++}
++
+ static struct attribute *it87_attributes[] = {
+ 	&dev_attr_alarms.attr,
+ 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
+ 	&dev_attr_name.attr,
++	&dev_attr_vrm.attr,				/* 3 */
++	&dev_attr_cpu0_vid.attr,			/* 4 */
++	&sensor_dev_attr_in3_label.dev_attr.attr,	/* 5 .. 8 */
++	&sensor_dev_attr_in7_label.dev_attr.attr,
++	&sensor_dev_attr_in8_label.dev_attr.attr,
++	&sensor_dev_attr_in9_label.dev_attr.attr,
+ 	NULL
+ };
+ 
+ static const struct attribute_group it87_group = {
+ 	.attrs = it87_attributes,
++	.is_visible = it87_is_visible,
+ };
+ 
+ static umode_t it87_fan_is_visible(struct kobject *kobj,
+@@ -2074,28 +2098,6 @@ static const struct attribute_group it87_group_auto_pwm = {
+ 	.is_visible = it87_auto_pwm_is_visible,
+ };
+ 
+-static struct attribute *it87_attributes_vid[] = {
+-	&dev_attr_vrm.attr,
+-	&dev_attr_cpu0_vid.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group it87_group_vid = {
+-	.attrs = it87_attributes_vid,
+-};
+-
+-static struct attribute *it87_attributes_label[] = {
+-	&sensor_dev_attr_in3_label.dev_attr.attr,
+-	&sensor_dev_attr_in7_label.dev_attr.attr,
+-	&sensor_dev_attr_in8_label.dev_attr.attr,
+-	&sensor_dev_attr_in9_label.dev_attr.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group it87_group_label = {
+-	.attrs = it87_attributes_label,
+-};
+-
+ /* SuperIO detection - will change isa_address if a chip is found */
+ static int __init it87_find(int sioaddr, unsigned short *address,
+ 			    struct it87_sio_data *sio_data)
+@@ -2460,18 +2462,12 @@ exit:
+ 
+ static void it87_remove_files(struct device *dev)
+ {
+-	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+-
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_in);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_fan);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_pwm);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_auto_pwm);
+-
+-	if (!sio_data->skip_vid)
+-		sysfs_remove_group(&dev->kobj, &it87_group_vid);
+-	sysfs_remove_group(&dev->kobj, &it87_group_label);
+ }
+ 
+ /* Called when we have found a new IT87. */
+@@ -2649,8 +2645,8 @@ static int it87_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct device *dev = &pdev->dev;
+ 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+-	int err = 0, i;
+ 	int enable_pwm_interface;
++	int err = 0;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -2731,6 +2727,7 @@ static int it87_probe(struct platform_device *pdev)
+ 			data->has_temp &= ~(1 << 2);
+ 	}
+ 
++	data->in_internal = sio_data->internal;
+ 	data->has_in = 0x3ff & ~sio_data->skip_in;
+ 
+ 	data->has_beep = !!sio_data->beep_pin;
+@@ -2738,6 +2735,13 @@ static int it87_probe(struct platform_device *pdev)
+ 	/* Initialize the IT87 chip */
+ 	it87_init_device(pdev);
+ 
++	if (!sio_data->skip_vid) {
++		data->has_vid = true;
++		data->vrm = vid_which_vrm();
++		/* VID reading from Super-I/O config space if available */
++		data->vid = sio_data->vid_value;
++	}
++
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&dev->kobj, &it87_group);
+ 	if (err)
+@@ -2770,25 +2774,6 @@ static int it87_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	if (!sio_data->skip_vid) {
+-		data->vrm = vid_which_vrm();
+-		/* VID reading from Super-I/O config space if available */
+-		data->vid = sio_data->vid_value;
+-		err = sysfs_create_group(&dev->kobj, &it87_group_vid);
+-		if (err)
+-			goto error;
+-	}
+-
+-	/* Export labels for internal sensors */
+-	for (i = 0; i < 4; i++) {
+-		if (!(sio_data->internal & (1 << i)))
+-			continue;
+-		err = sysfs_create_file(&dev->kobj,
+-					it87_attributes_label[i]);
+-		if (err)
+-			goto error;
+-	}
+-
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
+-- 
+2.1.4
 
-Suggest new code
 
-=A0=A0=A0 const long uv_vid =3D vid * 1000L;
-
-to make sure that integer overflow will not occur.
-
-Regards
-
-David Binderman
-
- 		 	   		 =20
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
