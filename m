@@ -1,7 +1,7 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:49 +0000
-Subject: [lm-sensors] [PATCH v3 25/25] hwmon: (it87) Add support for IT8628E
-Message-Id: <1453860229-23614-26-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:30 +0000
+Subject: [lm-sensors] [PATCH v3 06/25] hwmon: (it87) Pass SIO base address as parameter to superio functions
+Message-Id: <1453860229-23614-7-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,140 +10,350 @@ To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
-IT8628E is functionally identical to IT8620E.
+This will let us support more than one chip on different SIO addresses
+with the same driver.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- Documentation/hwmon/it87 | 15 +++++++++------
- drivers/hwmon/Kconfig    |  3 ++-
- drivers/hwmon/it87.c     | 18 ++++++++++++++++--
- 3 files changed, 27 insertions(+), 9 deletions(-)
+ drivers/hwmon/it87.c | 137 +++++++++++++++++++++++++++------------------------
+ 1 file changed, 72 insertions(+), 65 deletions(-)
 
-diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
-index 733296d65449..fff6f6bf55bc 100644
---- a/Documentation/hwmon/it87
-+++ b/Documentation/hwmon/it87
-@@ -9,6 +9,9 @@ Supported chips:
-   * IT8620E
-     Prefix: 'it8620'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
-+  * IT8628E
-+    Prefix: 'it8628'
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: Not publicly available
-   * IT8705F
-     Prefix: 'it87'
-@@ -114,8 +117,8 @@ motherboard models.
- Description
- -----------
- 
--This driver implements support for the IT8603E, IT8620E, IT8623E, IT8705F,
--IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8732F,
-+This driver implements support for the IT8603E, IT8620E, IT8623E, IT8628E,
-+IT8705F, IT8712F, IT8716F, IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8732F,
- IT8758E, IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E, and
- SiS950 chips.
- 
-@@ -158,8 +161,8 @@ The IT8603E/IT8623E is a custom design, hardware monitoring part is similar to
- IT8728F. It only supports 3 fans, 16-bit fan mode, and the full speed mode
- of the fan is not supported (value 0 of pwmX_enable).
- 
--The IT8620E is another custom design, hardware monitoring part is similar to
--IT8728F. It only supports 16-bit fan mode.
-+The IT8620E and IT8628E are custom designs, hardware monitoring part is similar
-+to IT8728F. It only supports 16-bit fan mode. Both chips support up to 6 fans.
- 
- The IT8790E supports up to 3 fans. 16-bit fan mode is always enabled.
- 
-@@ -187,8 +190,8 @@ of 0.016 volt.  IT8603E, IT8721F/IT8758E and IT8728F can measure between 0 and
- 2.8 volts with a resolution of 0.0109 volt.  The battery voltage in8 does not
- have limit registers.
- 
--On the IT8603E, IT8721F/IT8758E, IT8732F, IT8781F, IT8782F, and IT8783E/F, some
--voltage inputs are internal and scaled inside the chip:
-+On the IT8603E, IT8620E, IT8628E, IT8721F/IT8758E, IT8732F, IT8781F, IT8782F,
-+and IT8783E/F, some voltage inputs are internal and scaled inside the chip:
- * in3 (optional)
- * in7 (optional for IT8781F, IT8782F, and IT8783E/F)
- * in8 (always)
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 852c8a85e1e8..ac22e3bbfecc 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -621,7 +621,8 @@ config SENSORS_IT87
- 	  If you say yes here you get support for ITE IT8705F, IT8712F, IT8716F,
- 	  IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8732F, IT8758E,
- 	  IT8771E, IT8772E, IT8781F, IT8782F, IT8783E/F, IT8786E, IT8790E,
--	  IT8603E, IT8620E, and IT8623E sensor chips, and the SiS950 clone.
-+	  IT8603E, IT8620E, IT8623E, and IT8628E sensor chips, and the SiS950
-+	  clone.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called it87.
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index cde53c1109ea..730d84028260 100644
+index 8f28f9b04150..4840f2d8c7b1 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -13,6 +13,7 @@
-  *  Supports: IT8603E  Super I/O chip w/LPC interface
-  *            IT8620E  Super I/O chip w/LPC interface
-  *            IT8623E  Super I/O chip w/LPC interface
-+ *            IT8628E  Super I/O chip w/LPC interface
-  *            IT8705F  Super I/O chip w/LPC interface
-  *            IT8712F  Super I/O chip w/LPC interface
-  *            IT8716F  Super I/O chip w/LPC interface
-@@ -69,7 +70,7 @@
+@@ -80,9 +80,9 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
  
- enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8732,
- 	     it8771, it8772, it8781, it8782, it8783, it8786, it8790, it8603,
--	     it8620 };
-+	     it8620, it8628 };
+ static struct platform_device *it87_pdev;
  
- static unsigned short force_id;
- module_param(force_id, ushort, 0);
-@@ -160,6 +161,7 @@ static inline void superio_exit(int ioreg)
- #define IT8603E_DEVID 0x8603
- #define IT8620E_DEVID 0x8620
- #define IT8623E_DEVID 0x8623
-+#define IT8628E_DEVID 0x8628
- #define IT87_ACT_REG  0x30
- #define IT87_BASE_REG 0x60
+-#define	REG	0x2e	/* The register to read/write */
++#define	REG_2E	0x2e	/* The register to read/write */
++
+ #define	DEV	0x07	/* Register: Logical device select */
+-#define	VAL	0x2f	/* The value to read/write */
+ #define PME	0x04	/* The device with the fan registers in it */
  
-@@ -434,6 +436,15 @@ static const struct it87_devices it87_devices[] = {
- 		  | FEAT_SIX_TEMP,
- 		.peci_mask = 0x07,
- 	},
-+	[it8628] = {
-+		.name = "it8628",
-+		.suffix = "E",
-+		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
-+		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
-+		  | FEAT_IN7_INTERNAL | FEAT_SIX_PWM | FEAT_PWM_FREQ2
-+		  | FEAT_SIX_TEMP,
-+		.peci_mask = 0x07,
-+	},
+ /* The device with the IT8718F/IT8720F VID value in it */
+@@ -91,54 +91,54 @@ static struct platform_device *it87_pdev;
+ #define	DEVID	0x20	/* Register: Device ID */
+ #define	DEVREV	0x22	/* Register: Device Revision */
+ 
+-static inline int superio_inb(int reg)
++static inline int superio_inb(int ioreg, int reg)
+ {
+-	outb(reg, REG);
+-	return inb(VAL);
++	outb(reg, ioreg);
++	return inb(ioreg + 1);
+ }
+ 
+-static inline void superio_outb(int reg, int val)
++static inline void superio_outb(int ioreg, int reg, int val)
+ {
+-	outb(reg, REG);
+-	outb(val, VAL);
++	outb(reg, ioreg);
++	outb(val, ioreg + 1);
+ }
+ 
+-static int superio_inw(int reg)
++static int superio_inw(int ioreg, int reg)
+ {
+ 	int val;
+-	outb(reg++, REG);
+-	val = inb(VAL) << 8;
+-	outb(reg, REG);
+-	val |= inb(VAL);
++	outb(reg++, ioreg);
++	val = inb(ioreg + 1) << 8;
++	outb(reg, ioreg);
++	val |= inb(ioreg + 1);
+ 	return val;
+ }
+ 
+-static inline void superio_select(int ldn)
++static inline void superio_select(int ioreg, int ldn)
+ {
+-	outb(DEV, REG);
+-	outb(ldn, VAL);
++	outb(DEV, ioreg);
++	outb(ldn, ioreg + 1);
+ }
+ 
+-static inline int superio_enter(void)
++static inline int superio_enter(int ioreg)
+ {
+ 	/*
+-	 * Try to reserve REG and REG + 1 for exclusive access.
++	 * Try to reserve ioreg and ioreg + 1 for exclusive access.
+ 	 */
+-	if (!request_muxed_region(REG, 2, DRVNAME))
++	if (!request_muxed_region(ioreg, 2, DRVNAME))
+ 		return -EBUSY;
+ 
+-	outb(0x87, REG);
+-	outb(0x01, REG);
+-	outb(0x55, REG);
+-	outb(0x55, REG);
++	outb(0x87, ioreg);
++	outb(0x01, ioreg);
++	outb(0x55, ioreg);
++	outb(0x55, ioreg);
+ 	return 0;
+ }
+ 
+-static inline void superio_exit(void)
++static inline void superio_exit(int ioreg)
+ {
+-	outb(0x02, REG);
+-	outb(0x02, VAL);
+-	release_region(REG, 2);
++	outb(0x02, ioreg);
++	outb(0x02, ioreg + 1);
++	release_region(ioreg, 2);
+ }
+ 
+ /* Logical device 4 registers */
+@@ -1929,20 +1929,20 @@ static const struct attribute_group it87_group_label = {
  };
  
- #define has_16bit_fans(data)	((data)->features & FEAT_16BIT_FANS)
-@@ -2402,6 +2413,9 @@ static int __init it87_find(int sioaddr, unsigned short *address,
- 	case IT8620E_DEVID:
- 		sio_data->type = it8620;
- 		break;
-+	case IT8628E_DEVID:
-+		sio_data->type = it8628;
-+		break;
- 	case 0xffff:	/* No device at all */
- 		goto exit;
- 	default:
-@@ -2546,7 +2560,7 @@ static int __init it87_find(int sioaddr, unsigned short *address,
+ /* SuperIO detection - will change isa_address if a chip is found */
+-static int __init it87_find(unsigned short *address,
+-	struct it87_sio_data *sio_data)
++static int __init it87_find(int sioaddr, unsigned short *address,
++			    struct it87_sio_data *sio_data)
+ {
+ 	int err;
+ 	u16 chip_type;
+ 	const char *board_vendor, *board_name;
+ 	const struct it87_devices *config;
  
- 		sio_data->beep_pin = superio_inb(sioaddr,
- 						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
--	} else if (sio_data->type = it8620) {
-+	} else if (sio_data->type = it8620 || sio_data->type = it8628) {
+-	err = superio_enter();
++	err = superio_enter(sioaddr);
+ 	if (err)
+ 		return err;
+ 
+ 	err = -ENODEV;
+-	chip_type = force_id ? force_id : superio_inw(DEVID);
++	chip_type = force_id ? force_id : superio_inw(sioaddr, DEVID);
+ 
+ 	switch (chip_type) {
+ 	case IT8705F_DEVID:
+@@ -2005,20 +2005,20 @@ static int __init it87_find(unsigned short *address,
+ 		goto exit;
+ 	}
+ 
+-	superio_select(PME);
+-	if (!(superio_inb(IT87_ACT_REG) & 0x01)) {
++	superio_select(sioaddr, PME);
++	if (!(superio_inb(sioaddr, IT87_ACT_REG) & 0x01)) {
+ 		pr_info("Device not activated, skipping\n");
+ 		goto exit;
+ 	}
+ 
+-	*address = superio_inw(IT87_BASE_REG) & ~(IT87_EXTENT - 1);
++	*address = superio_inw(sioaddr, IT87_BASE_REG) & ~(IT87_EXTENT - 1);
+ 	if (*address = 0) {
+ 		pr_info("Base address not set, skipping\n");
+ 		goto exit;
+ 	}
+ 
+ 	err = 0;
+-	sio_data->revision = superio_inb(DEVREV) & 0x0f;
++	sio_data->revision = superio_inb(sioaddr, DEVREV) & 0x0f;
+ 	pr_info("Found IT%04x%s chip at 0x%x, revision %d\n", chip_type,
+ 		it87_devices[sio_data->type].suffix,
+ 		*address, sio_data->revision);
+@@ -2047,18 +2047,19 @@ static int __init it87_find(unsigned short *address,
+ 	/* Read GPIO config and VID value from LDN 7 (GPIO) */
+ 	if (sio_data->type = it87) {
+ 		/* The IT8705F has a different LD number for GPIO */
+-		superio_select(5);
+-		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
++		superio_select(sioaddr, 5);
++		sio_data->beep_pin = superio_inb(sioaddr,
++						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	} else if (sio_data->type = it8783) {
+ 		int reg25, reg27, reg2a, reg2c, regef;
+ 
+-		superio_select(GPIO);
++		superio_select(sioaddr, GPIO);
+ 
+-		reg25 = superio_inb(IT87_SIO_GPIO1_REG);
+-		reg27 = superio_inb(IT87_SIO_GPIO3_REG);
+-		reg2a = superio_inb(IT87_SIO_PINX1_REG);
+-		reg2c = superio_inb(IT87_SIO_PINX2_REG);
+-		regef = superio_inb(IT87_SIO_SPI_REG);
++		reg25 = superio_inb(sioaddr, IT87_SIO_GPIO1_REG);
++		reg27 = superio_inb(sioaddr, IT87_SIO_GPIO3_REG);
++		reg2a = superio_inb(sioaddr, IT87_SIO_PINX1_REG);
++		reg2c = superio_inb(sioaddr, IT87_SIO_PINX2_REG);
++		regef = superio_inb(sioaddr, IT87_SIO_SPI_REG);
+ 
+ 		/* Check if fan3 is there or not */
+ 		if ((reg27 & (1 << 0)) || !(reg2c & (1 << 2)))
+@@ -2101,7 +2102,8 @@ static int __init it87_find(unsigned short *address,
+ 			 */
+ 			if (!(reg2c & (1 << 1))) {
+ 				reg2c |= (1 << 1);
+-				superio_outb(IT87_SIO_PINX2_REG, reg2c);
++				superio_outb(sioaddr, IT87_SIO_PINX2_REG,
++					     reg2c);
+ 				pr_notice("Routing internal VCCH5V to in7.\n");
+ 			}
+ 			pr_notice("in7 routed to internal voltage divider, with external pin disabled.\n");
+@@ -2113,13 +2115,14 @@ static int __init it87_find(unsigned short *address,
+ 		if (reg2c & (1 << 1))
+ 			sio_data->internal |= (1 << 1);
+ 
+-		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
++		sio_data->beep_pin = superio_inb(sioaddr,
++						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	} else if (sio_data->type = it8603) {
+ 		int reg27, reg29;
+ 
+-		superio_select(GPIO);
++		superio_select(sioaddr, GPIO);
+ 
+-		reg27 = superio_inb(IT87_SIO_GPIO3_REG);
++		reg27 = superio_inb(sioaddr, IT87_SIO_GPIO3_REG);
+ 
+ 		/* Check if fan3 is there or not */
+ 		if (reg27 & (1 << 6))
+@@ -2128,7 +2131,7 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->skip_fan |= (1 << 2);
+ 
+ 		/* Check if fan2 is there or not */
+-		reg29 = superio_inb(IT87_SIO_GPIO5_REG);
++		reg29 = superio_inb(sioaddr, IT87_SIO_GPIO5_REG);
+ 		if (reg29 & (1 << 1))
+ 			sio_data->skip_pwm |= (1 << 1);
+ 		if (reg29 & (1 << 2))
+@@ -2137,38 +2140,39 @@ static int __init it87_find(unsigned short *address,
+ 		sio_data->skip_in |= (1 << 5); /* No VIN5 */
+ 		sio_data->skip_in |= (1 << 6); /* No VIN6 */
+ 
+-		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
++		sio_data->beep_pin = superio_inb(sioaddr,
++						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	} else if (sio_data->type = it8620) {
  		int reg;
  
- 		superio_select(sioaddr, GPIO);
+-		superio_select(GPIO);
++		superio_select(sioaddr, GPIO);
+ 
+ 		/* Check for pwm5 */
+-		reg = superio_inb(IT87_SIO_GPIO1_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO1_REG);
+ 		if (reg & (1 << 6))
+ 			sio_data->skip_pwm |= (1 << 4);
+ 
+ 		/* Check for fan4, fan5 */
+-		reg = superio_inb(IT87_SIO_GPIO2_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO2_REG);
+ 		if (!(reg & (1 << 5)))
+ 			sio_data->skip_fan |= (1 << 3);
+ 		if (!(reg & (1 << 4)))
+ 			sio_data->skip_fan |= (1 << 4);
+ 
+ 		/* Check for pwm3, fan3 */
+-		reg = superio_inb(IT87_SIO_GPIO3_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO3_REG);
+ 		if (reg & (1 << 6))
+ 			sio_data->skip_pwm |= (1 << 2);
+ 		if (reg & (1 << 7))
+ 			sio_data->skip_fan |= (1 << 2);
+ 
+ 		/* Check for pwm4 */
+-		reg = superio_inb(IT87_SIO_GPIO4_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO4_REG);
+ 		if (!(reg & (1 << 2)))
+ 			sio_data->skip_pwm |= (1 << 3);
+ 
+ 		/* Check for pwm2, fan2 */
+-		reg = superio_inb(IT87_SIO_GPIO5_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO5_REG);
+ 		if (reg & (1 << 1))
+ 			sio_data->skip_pwm |= (1 << 1);
+ 		if (reg & (1 << 2))
+@@ -2179,14 +2183,15 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->skip_fan |= (1 << 5);
+ 		}
+ 
+-		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
++		sio_data->beep_pin = superio_inb(sioaddr,
++						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	} else {
+ 		int reg;
+ 		bool uart6;
+ 
+-		superio_select(GPIO);
++		superio_select(sioaddr, GPIO);
+ 
+-		reg = superio_inb(IT87_SIO_GPIO3_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO3_REG);
+ 		if (!sio_data->skip_vid) {
+ 			/* We need at least 4 VID pins */
+ 			if (reg & 0x0f) {
+@@ -2202,7 +2207,7 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->skip_fan |= (1 << 2);
+ 
+ 		/* Check if fan2 is there or not */
+-		reg = superio_inb(IT87_SIO_GPIO5_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_GPIO5_REG);
+ 		if (reg & (1 << 1))
+ 			sio_data->skip_pwm |= (1 << 1);
+ 		if (reg & (1 << 2))
+@@ -2210,9 +2215,10 @@ static int __init it87_find(unsigned short *address,
+ 
+ 		if ((sio_data->type = it8718 || sio_data->type = it8720)
+ 		 && !(sio_data->skip_vid))
+-			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
++			sio_data->vid_value = superio_inb(sioaddr,
++							  IT87_SIO_VID_REG);
+ 
+-		reg = superio_inb(IT87_SIO_PINX2_REG);
++		reg = superio_inb(sioaddr, IT87_SIO_PINX2_REG);
+ 
+ 		uart6 = sio_data->type = it8782 && (reg & (1 << 2));
+ 
+@@ -2232,7 +2238,7 @@ static int __init it87_find(unsigned short *address,
+ 		 */
+ 		if ((sio_data->type = it8720 || uart6) && !(reg & (1 << 1))) {
+ 			reg |= (1 << 1);
+-			superio_outb(IT87_SIO_PINX2_REG, reg);
++			superio_outb(sioaddr, IT87_SIO_PINX2_REG, reg);
+ 			pr_notice("Routing internal VCCH to in7\n");
+ 		}
+ 		if (reg & (1 << 0))
+@@ -2254,7 +2260,8 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->skip_temp |= (1 << 2);
+ 		}
+ 
+-		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
++		sio_data->beep_pin = superio_inb(sioaddr,
++						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	}
+ 	if (sio_data->beep_pin)
+ 		pr_info("Beeping is supported\n");
+@@ -2279,7 +2286,7 @@ static int __init it87_find(unsigned short *address,
+ 	}
+ 
+ exit:
+-	superio_exit();
++	superio_exit(sioaddr);
+ 	return err;
+ }
+ 
+@@ -2939,7 +2946,7 @@ static int __init sm_it87_init(void)
+ 	struct it87_sio_data sio_data;
+ 
+ 	memset(&sio_data, 0, sizeof(struct it87_sio_data));
+-	err = it87_find(&isa_address, &sio_data);
++	err = it87_find(REG_2E, &isa_address, &sio_data);
+ 	if (err)
+ 		return err;
+ 	err = platform_driver_register(&it87_driver);
 -- 
 2.1.4
 
