@@ -1,127 +1,120 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:31 +0000
-Subject: [lm-sensors] [PATCH v3 07/25] hwmon: (it87) Add support for second Super-IO chip
-Message-Id: <1453860229-23614-8-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:41 +0000
+Subject: [lm-sensors] [PATCH v3 17/25] hwmon: (it87) Add support for VIN7 to VIN10 on IT8620E
+Message-Id: <1453860229-23614-18-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
-The Super-IO chip can also reside at SIO address 0x4e, and there can be
-two Super-IO chips in the system. Add support for it.
+IT8620E supports three additional voltage sensors.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 49 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 15 deletions(-)
+ drivers/hwmon/it87.c | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 4840f2d8c7b1..f877cc98b2fd 100644
+index aa3ec50527a3..96876755376c 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -78,9 +78,10 @@ static unsigned short force_id;
- module_param(force_id, ushort, 0);
- MODULE_PARM_DESC(force_id, "Override the detected device ID");
- 
--static struct platform_device *it87_pdev;
-+static struct platform_device *it87_pdev[2];
- 
- #define	REG_2E	0x2e	/* The register to read/write */
-+#define	REG_4E	0x4e	/* Secondary register to read/write */
- 
- #define	DEV	0x07	/* Register: Logical device select */
- #define PME	0x04	/* The device with the fan registers in it */
-@@ -130,7 +131,7 @@ static inline int superio_enter(int ioreg)
- 	outb(0x87, ioreg);
- 	outb(0x01, ioreg);
- 	outb(0x55, ioreg);
--	outb(0x55, ioreg);
-+	outb(ioreg = REG_4E ? 0xaa : 0x55, ioreg);
- 	return 0;
- }
- 
-@@ -2892,7 +2893,7 @@ static struct it87_data *it87_update_device(struct device *dev)
- 	return data;
- }
- 
--static int __init it87_device_add(unsigned short address,
-+static int __init it87_device_add(int index, unsigned short address,
- 				  const struct it87_sio_data *sio_data)
- {
- 	struct platform_device *pdev;
-@@ -2931,7 +2932,7 @@ static int __init it87_device_add(unsigned short address,
- 		goto exit_device_put;
+@@ -219,7 +219,12 @@ static bool fix_pwm_polarity;
+ #define IT87_REG_FAN_DIV       0x0b
+ #define IT87_REG_FAN_16BIT     0x0c
+=20
+-/* Monitors: 9 voltage (0 to 7, battery), 6 temp (1 to 6), 3 fan (1 to 3) =
+*/
++/*
++ * Monitors:
++ * - up to 13 voltage (0 to 7, battery, avcc, 10 to 12)
++ * - up to 6 temp (1 to 6)
++ * - up to 6 fan (1 to 6)
++ */
+=20
+ static const u8 IT87_REG_FAN[]         =3D { 0x0d, 0x0e, 0x0f, 0x80, 0x82,=
+ 0x4c };
+ static const u8 IT87_REG_FAN_MIN[]     =3D { 0x10, 0x11, 0x12, 0x84, 0x86,=
+ 0x4e };
+@@ -233,7 +238,7 @@ static const u8 IT87_REG_PWM[]         =3D { 0x15, 0x16=
+, 0x17, 0x7f, 0xa7, 0xaf };
+ static const u8 IT87_REG_PWM_DUTY[]    =3D { 0x63, 0x6b, 0x73, 0x7b, 0xa3,=
+ 0xab };
+=20
+ static const u8 IT87_REG_VIN[]	=3D { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0=
+x26,
+-				    0x27, 0x28, 0x2f };
++				    0x27, 0x28, 0x2f, 0x2c, 0x2d, 0x2e };
+=20
+ #define IT87_REG_TEMP(nr)      (0x29 + (nr))
+=20
+@@ -478,7 +483,7 @@ struct it87_data {
+ 	u16 in_scaled;		/* Internal voltage sensors are scaled */
+ 	u16 in_internal;	/* Bitfield, internal sensors (for labels) */
+ 	u16 has_in;		/* Bitfield, voltage sensors enabled */
+-	u8 in[10][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
++	u8 in[13][3];		/* [nr][0]=3Din, [1]=3Dmin, [2]=3Dmax */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[6][2];		/* Register values, [nr][0]=FAn, [1]=3Dmin */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+@@ -861,6 +866,9 @@ static SENSOR_DEVICE_ATTR_2(in7_max, S_IRUGO | S_IWUSR,=
+ show_in, set_in,
+=20
+ static SENSOR_DEVICE_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 8, 0);
+ static SENSOR_DEVICE_ATTR_2(in9_input, S_IRUGO, show_in, NULL, 9, 0);
++static SENSOR_DEVICE_ATTR_2(in10_input, S_IRUGO, show_in, NULL, 10, 0);
++static SENSOR_DEVICE_ATTR_2(in11_input, S_IRUGO, show_in, NULL, 11, 0);
++static SENSOR_DEVICE_ATTR_2(in12_input, S_IRUGO, show_in, NULL, 12, 0);
+=20
+ /* Up to 6 temperatures */
+ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+@@ -1764,7 +1772,7 @@ static umode_t it87_in_is_visible(struct kobject *kob=
+j,
+ 	int i =3D index / 5;	/* voltage index */
+ 	int a =3D index % 5;	/* attribute index */
+=20
+-	if (index >=3D 40) {	/* in8, in9 only have input attributes */
++	if (index >=3D 40) {	/* in8 and higher only have input attributes */
+ 		i =3D index - 40 + 8;
+ 		a =3D 0;
  	}
- 
--	it87_pdev = pdev;
-+	it87_pdev[index] = pdev;
- 	return 0;
- 
- exit_device_put:
-@@ -2941,30 +2942,48 @@ exit_device_put:
- 
- static int __init sm_it87_init(void)
- {
--	int err;
--	unsigned short isa_address = 0;
-+	int sioaddr[2] = { REG_2E, REG_4E };
- 	struct it87_sio_data sio_data;
-+	unsigned short isa_address;
-+	bool found = false;
-+	int i, err;
- 
--	memset(&sio_data, 0, sizeof(struct it87_sio_data));
--	err = it87_find(REG_2E, &isa_address, &sio_data);
--	if (err)
--		return err;
- 	err = platform_driver_register(&it87_driver);
- 	if (err)
- 		return err;
- 
--	err = it87_device_add(isa_address, &sio_data);
--	if (err) {
--		platform_driver_unregister(&it87_driver);
--		return err;
-+	for (i = 0; i < ARRAY_SIZE(sioaddr); i++) {
-+		memset(&sio_data, 0, sizeof(struct it87_sio_data));
-+		isa_address = 0;
-+		err = it87_find(sioaddr[i], &isa_address, &sio_data);
-+		if (err || isa_address = 0)
-+			continue;
+@@ -1828,8 +1836,10 @@ static struct attribute *it87_attributes_in[] =3D {
+ 	&sensor_dev_attr_in7_beep.dev_attr.attr,	/* 39 */
+=20
+ 	&sensor_dev_attr_in8_input.dev_attr.attr,	/* 40 */
+-
+ 	&sensor_dev_attr_in9_input.dev_attr.attr,	/* 41 */
++	&sensor_dev_attr_in10_input.dev_attr.attr,	/* 41 */
++	&sensor_dev_attr_in11_input.dev_attr.attr,	/* 41 */
++	&sensor_dev_attr_in12_input.dev_attr.attr,	/* 41 */
+ };
+=20
+ static const struct attribute_group it87_group_in =3D {
+@@ -2738,12 +2748,21 @@ static int it87_probe(struct platform_device *pdev)
+ 	if (has_six_temp(data)) {
+ 		u8 reg =3D it87_read_value(data, IT87_REG_TEMP456_ENABLE);
+=20
++		/* Check for additional temperature sensors */
+ 		if ((reg & 0x03) >=3D 0x02)
+ 			data->has_temp |=3D (1 << 3);
+ 		if (((reg >> 2) & 0x03) >=3D 0x02)
+ 			data->has_temp |=3D (1 << 4);
+ 		if (((reg >> 4) & 0x03) >=3D 0x02)
+ 			data->has_temp |=3D (1 << 5);
 +
-+		err = it87_device_add(i, isa_address, &sio_data);
-+		if (err)
-+			goto exit_dev_unregister;
-+		found = true;
++		/* Check for additional voltage sensors */
++		if ((reg & 0x03) =3D 0x01)
++			data->has_in |=3D (1 << 10);
++		if (((reg >> 2) & 0x03) =3D 0x01)
++			data->has_in |=3D (1 << 11);
++		if (((reg >> 4) & 0x03) =3D 0x01)
++			data->has_in |=3D (1 << 12);
  	}
- 
-+	if (!found) {
-+		err = -ENODEV;
-+		goto exit_unregister;
-+	}
- 	return 0;
-+
-+exit_dev_unregister:
-+	/* NULL check handled by platform_device_unregister */
-+	platform_device_unregister(it87_pdev[0]);
-+exit_unregister:
-+	platform_driver_unregister(&it87_driver);
-+	return err;
- }
- 
- static void __exit sm_it87_exit(void)
- {
--	platform_device_unregister(it87_pdev);
-+	/* NULL check handled by platform_device_unregister */
-+	platform_device_unregister(it87_pdev[1]);
-+	platform_device_unregister(it87_pdev[0]);
- 	platform_driver_unregister(&it87_driver);
- }
- 
--- 
+=20
+ 	data->has_beep =3D !!sio_data->beep_pin;
+--=20
 2.1.4
 
 
