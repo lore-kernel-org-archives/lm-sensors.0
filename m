@@ -1,187 +1,222 @@
 From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
-Date: Wed, 27 Jan 2016 02:03:39 +0000
-Subject: [lm-sensors] [PATCH v3 15/25] hwmon: (it87) Support up to 6 temperature sensors on IT8620E
-Message-Id: <1453860229-23614-16-git-send-email-patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:35 +0000
+Subject: [lm-sensors] [PATCH v3 11/25] hwmon: (it87) Use is_visible for fan attributes
+Message-Id: <1453860229-23614-12-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
-Add support for the additional temperature sensors on IT8620E.
+Simplify code and reduce object size by almost 500 bytes on x86_64.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c | 48 ++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 40 insertions(+), 8 deletions(-)
+ drivers/hwmon/it87.c | 140 ++++++++++++++++++++-------------------------------
+ 1 file changed, 55 insertions(+), 85 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index e02c972ef81e..722d6de62d1c 100644
+index c7feea9a6f80..e70d227c2bf8 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -219,7 +219,7 @@ static bool fix_pwm_polarity;
- #define IT87_REG_FAN_DIV       0x0b
- #define IT87_REG_FAN_16BIT     0x0c
-=20
--/* Monitors: 9 voltage (0 to 7, battery), 3 temp (1 to 3), 3 fan (1 to 3) =
-*/
-+/* Monitors: 9 voltage (0 to 7, battery), 6 temp (1 to 6), 3 fan (1 to 3) =
-*/
-=20
- static const u8 IT87_REG_FAN[]         =3D { 0x0d, 0x0e, 0x0f, 0x80, 0x82,=
- 0x4c };
- static const u8 IT87_REG_FAN_MIN[]     =3D { 0x10, 0x11, 0x12, 0x84, 0x86,=
- 0x4e };
-@@ -252,10 +252,12 @@ static const u8 IT87_REG_PWM_DUTY[]    =3D { 0x63, 0x=
-6b, 0x73, 0x7b, 0xa3, 0xab };
- #define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
- #define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
-=20
-+#define IT87_REG_TEMP456_ENABLE	0x77
-+
- struct it87_devices {
- 	const char *name;
- 	const char * const suffix;
--	u16 features;
-+	u32 features;
- 	u8 peci_mask;
- 	u8 old_peci_mask;
+@@ -1898,51 +1898,75 @@ static const struct attribute_group it87_group = {
+ 	.attrs = it87_attributes,
  };
-@@ -276,6 +278,7 @@ struct it87_devices {
- #define FEAT_AVCC3		(1 << 13)	/* Chip supports in9/AVCC3 */
- #define FEAT_SIX_PWM		(1 << 14)	/* Chip supports 6 pwm chn */
- #define FEAT_PWM_FREQ2		(1 << 15)	/* Separate pwm freq 2 */
-+#define FEAT_SIX_TEMP		(1 << 16)	/* Up to 6 temp sensors */
-=20
- static const struct it87_devices it87_devices[] =3D {
- 	[it87] =3D {
-@@ -412,7 +415,8 @@ static const struct it87_devices it87_devices[] =3D {
- 		.suffix =3D "E",
- 		.features =3D FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
- 		  | FEAT_TEMP_OFFSET | FEAT_TEMP_PECI | FEAT_SIX_FANS
--		  | FEAT_IN7_INTERNAL | FEAT_SIX_PWM | FEAT_PWM_FREQ2,
-+		  | FEAT_IN7_INTERNAL | FEAT_SIX_PWM | FEAT_PWM_FREQ2
-+		  | FEAT_SIX_TEMP,
- 		.peci_mask =3D 0x07,
- 	},
- };
-@@ -437,6 +441,7 @@ static const struct it87_devices it87_devices[] =3D {
- #define has_avcc3(data)		((data)->features & FEAT_AVCC3)
- #define has_six_pwm(data)	((data)->features & FEAT_SIX_PWM)
- #define has_pwm_freq2(data)	((data)->features & FEAT_PWM_FREQ2)
-+#define has_six_temp(data)	((data)->features & FEAT_SIX_TEMP)
-=20
- struct it87_sio_data {
- 	enum chips type;
-@@ -477,7 +482,7 @@ struct it87_data {
- 	u8 has_fan;		/* Bitfield, fans enabled */
- 	u16 fan[6][2];		/* Register values, [nr][0]=FAn, [1]=3Dmin */
- 	u8 has_temp;		/* Bitfield, temp sensors enabled */
--	s8 temp[3][4];		/* [nr][0]=3Dtemp, [1]=3Dmin, [2]=3Dmax, [3]=3Doffset */
-+	s8 temp[6][4];		/* [nr][0]=3Dtemp, [1]=3Dmin, [2]=3Dmax, [3]=3Doffset */
- 	u8 sensor;		/* Register value (IT87_REG_TEMP_ENABLE) */
- 	u8 extra;		/* Register value (IT87_REG_TEMP_EXTRA) */
- 	u8 fan_div[3];		/* Register encoding, shifted right */
-@@ -704,11 +709,16 @@ static struct it87_data *it87_update_device(struct de=
-vice *dev)
- 						IT87_REG_FANX_MIN[i]) << 8;
- 			}
- 		}
--		for (i =3D 0; i < 3; i++) {
-+		for (i =3D 0; i < 6; i++) {
- 			if (!(data->has_temp & (1 << i)))
- 				continue;
- 			data->temp[i][0]  				it87_read_value(data, IT87_REG_TEMP(i));
+ 
+-static struct attribute *it87_attributes_fan[6][3+1] = { {
++static umode_t it87_fan_is_visible(struct kobject *kobj,
++				   struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct it87_data *data = dev_get_drvdata(dev);
++	int i = index / 5;	/* fan index */
++	int a = index % 5;	/* attribute index */
 +
-+			/* No limits/offset for additional sensors */
-+			if (i >=3D 3)
-+				continue;
-+
- 			data->temp[i][1]  				it87_read_value(data, IT87_REG_TEMP_LOW(i));
- 			data->temp[i][2] @@ -848,7 +858,7 @@ static SENSOR_DEVICE_ATTR_2(in7_ma=
-x, S_IRUGO | S_IWUSR, show_in, set_in,
- static SENSOR_DEVICE_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 8, 0);
- static SENSOR_DEVICE_ATTR_2(in9_input, S_IRUGO, show_in, NULL, 9, 0);
-=20
--/* 3 temperatures */
-+/* Up to 6 temperatures */
- static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
- 			 char *buf)
- {
-@@ -921,6 +931,9 @@ static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGO | S_IWUS=
-R, show_temp, set_temp,
- 			    2, 2);
- static SENSOR_DEVICE_ATTR_2(temp3_offset, S_IRUGO | S_IWUSR, show_temp,
- 			    set_temp, 2, 3);
-+static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 3, 0);
-+static SENSOR_DEVICE_ATTR_2(temp5_input, S_IRUGO, show_temp, NULL, 4, 0);
-+static SENSOR_DEVICE_ATTR_2(temp6_input, S_IRUGO, show_temp, NULL, 5, 0);
-=20
- static ssize_t show_temp_type(struct device *dev, struct device_attribute =
-*attr,
- 			      char *buf)
-@@ -1828,6 +1841,11 @@ static umode_t it87_temp_is_visible(struct kobject *=
-kobj,
- 	int i =3D index / 7;	/* temperature index */
- 	int a =3D index % 7;	/* attribute index */
-=20
-+	if (index >=3D 21) {
-+		i =3D index - 21 + 3;
-+		a =3D 0;
++	if (index >= 15) {	/* fan 4..6 don't have divisor attributes */
++		i = (index - 15) / 4 + 3;
++		a = (index - 15) % 4;
 +	}
 +
- 	if (!(data->has_temp & (1 << i)))
- 		return 0;
-=20
-@@ -1849,7 +1867,7 @@ static struct attribute *it87_attributes_temp[] =3D {
- 	&sensor_dev_attr_temp1_offset.dev_attr.attr,	/* 5 */
- 	&sensor_dev_attr_temp1_beep.dev_attr.attr,	/* 6 */
-=20
--	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,	/* 7 */
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_type.dev_attr.attr,
-@@ -1857,7 +1875,7 @@ static struct attribute *it87_attributes_temp[] =3D {
- 	&sensor_dev_attr_temp2_offset.dev_attr.attr,
- 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
-=20
--	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input.dev_attr.attr,	/* 14 */
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_type.dev_attr.attr,
-@@ -1865,6 +1883,9 @@ static struct attribute *it87_attributes_temp[] =3D {
- 	&sensor_dev_attr_temp3_offset.dev_attr.attr,
- 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
-=20
-+	&sensor_dev_attr_temp4_input.dev_attr.attr,	/* 21 */
-+	&sensor_dev_attr_temp5_input.dev_attr.attr,
-+	&sensor_dev_attr_temp6_input.dev_attr.attr,
++	if (!(data->has_fan & (1 << i)))
++		return 0;
++
++	if (a = 3) {				/* beep */
++		if (!data->has_beep)
++			return 0;
++		/* first fan beep attribute is writable */
++		if (i = __ffs(data->has_fan))
++			return attr->mode | S_IWUSR;
++	}
++
++	if (a = 4 && has_16bit_fans(data))	/* divisor */
++		return 0;
++
++	return attr->mode;
++}
++
++static struct attribute *it87_attributes_fan[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_fan1_beep.dev_attr.attr,	/* 3 */
++	&sensor_dev_attr_fan1_div.dev_attr.attr,	/* 4 */
++
+ 	&sensor_dev_attr_fan2_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
+-	NULL
+-}, {
++	&sensor_dev_attr_fan2_beep.dev_attr.attr,
++	&sensor_dev_attr_fan2_div.dev_attr.attr,	/* 9 */
++
+ 	&sensor_dev_attr_fan3_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
+-	NULL
+-}, {
+-	&sensor_dev_attr_fan4_input.dev_attr.attr,
++	&sensor_dev_attr_fan3_beep.dev_attr.attr,
++	&sensor_dev_attr_fan3_div.dev_attr.attr,	/* 14 */
++
++	&sensor_dev_attr_fan4_input.dev_attr.attr,	/* 15 */
+ 	&sensor_dev_attr_fan4_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan4_alarm.dev_attr.attr,
+-	NULL
+-}, {
+-	&sensor_dev_attr_fan5_input.dev_attr.attr,
++	&sensor_dev_attr_fan4_beep.dev_attr.attr,
++
++	&sensor_dev_attr_fan5_input.dev_attr.attr,	/* 19 */
+ 	&sensor_dev_attr_fan5_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan5_alarm.dev_attr.attr,
+-	NULL
+-}, {
+-	&sensor_dev_attr_fan6_input.dev_attr.attr,
++	&sensor_dev_attr_fan5_beep.dev_attr.attr,
++
++	&sensor_dev_attr_fan6_input.dev_attr.attr,	/* 23 */
+ 	&sensor_dev_attr_fan6_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan6_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan6_beep.dev_attr.attr,
  	NULL
+-} };
+-
+-static const struct attribute_group it87_group_fan[6] = {
+-	{ .attrs = it87_attributes_fan[0] },
+-	{ .attrs = it87_attributes_fan[1] },
+-	{ .attrs = it87_attributes_fan[2] },
+-	{ .attrs = it87_attributes_fan[3] },
+-	{ .attrs = it87_attributes_fan[4] },
+-	{ .attrs = it87_attributes_fan[5] },
  };
-=20
-@@ -2710,6 +2731,17 @@ static int it87_probe(struct platform_device *pdev)
- 	data->in_internal =3D sio_data->internal;
- 	data->has_in =3D 0x3ff & ~sio_data->skip_in;
-=20
-+	if (has_six_temp(data)) {
-+		u8 reg =3D it87_read_value(data, IT87_REG_TEMP456_ENABLE);
-+
-+		if ((reg & 0x03) >=3D 0x02)
-+			data->has_temp |=3D (1 << 3);
-+		if (((reg >> 2) & 0x03) >=3D 0x02)
-+			data->has_temp |=3D (1 << 4);
-+		if (((reg >> 4) & 0x03) >=3D 0x02)
-+			data->has_temp |=3D (1 << 5);
-+	}
-+
- 	data->has_beep =3D !!sio_data->beep_pin;
-=20
- 	/* Initialize the IT87 chip */
---=20
+ 
+-static const struct attribute *it87_attributes_fan_div[] = {
+-	&sensor_dev_attr_fan1_div.dev_attr.attr,
+-	&sensor_dev_attr_fan2_div.dev_attr.attr,
+-	&sensor_dev_attr_fan3_div.dev_attr.attr,
++static const struct attribute_group it87_group_fan = {
++	.attrs = it87_attributes_fan,
++	.is_visible = it87_fan_is_visible,
+ };
+ 
+ static struct attribute *it87_attributes_pwm[6][4+1] = { {
+@@ -2046,15 +2070,6 @@ static const struct attribute_group it87_group_autopwm[3] = {
+ 	{ .attrs = it87_attributes_autopwm[2] },
+ };
+ 
+-static struct attribute *it87_attributes_fan_beep[] = {
+-	&sensor_dev_attr_fan1_beep.dev_attr.attr,
+-	&sensor_dev_attr_fan2_beep.dev_attr.attr,
+-	&sensor_dev_attr_fan3_beep.dev_attr.attr,
+-	&sensor_dev_attr_fan4_beep.dev_attr.attr,
+-	&sensor_dev_attr_fan5_beep.dev_attr.attr,
+-	&sensor_dev_attr_fan6_beep.dev_attr.attr,
+-};
+-
+ static struct attribute *it87_attributes_vid[] = {
+ 	&dev_attr_vrm.attr,
+ 	&dev_attr_cpu0_vid.attr,
+@@ -2448,19 +2463,9 @@ static void it87_remove_files(struct device *dev)
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_in);
+ 	sysfs_remove_group(&dev->kobj, &it87_group_temp);
++	sysfs_remove_group(&dev->kobj, &it87_group_fan);
+ 
+ 	for (i = 0; i < 6; i++) {
+-		if (!(data->has_fan & (1 << i)))
+-			continue;
+-		sysfs_remove_group(&dev->kobj, &it87_group_fan[i]);
+-		if (sio_data->beep_pin)
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_fan_beep[i]);
+-		if (i < 3 && !has_16bit_fans(data))
+-			sysfs_remove_file(&dev->kobj,
+-					  it87_attributes_fan_div[i]);
+-	}
+-	for (i = 0; i < 6; i++) {
+ 		if (sio_data->skip_pwm & (1 << i))
+ 			continue;
+ 		sysfs_remove_group(&dev->kobj, &it87_group_pwm[i]);
+@@ -2650,7 +2655,6 @@ static int it87_probe(struct platform_device *pdev)
+ 	struct it87_sio_data *sio_data = dev_get_platdata(dev);
+ 	int err = 0, i;
+ 	int enable_pwm_interface;
+-	int fan_beep_need_rw;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -2751,43 +2755,9 @@ static int it87_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto error;
+ 
+-	/* Do not create fan files for disabled fans */
+-	fan_beep_need_rw = 1;
+-	for (i = 0; i < 6; i++) {
+-		if (!(data->has_fan & (1 << i)))
+-			continue;
+-		err = sysfs_create_group(&dev->kobj, &it87_group_fan[i]);
+-		if (err)
+-			goto error;
+-
+-		if (i < 3 && !has_16bit_fans(data)) {
+-			err = sysfs_create_file(&dev->kobj,
+-						it87_attributes_fan_div[i]);
+-			if (err)
+-				goto error;
+-		}
+-
+-		if (sio_data->beep_pin) {
+-			err = sysfs_create_file(&dev->kobj,
+-						it87_attributes_fan_beep[i]);
+-			if (err)
+-				goto error;
+-			if (!fan_beep_need_rw)
+-				continue;
+-
+-			/*
+-			 * As we have a single beep enable bit for all fans,
+-			 * only the first enabled fan has a writable attribute
+-			 * for it.
+-			 */
+-			if (sysfs_chmod_file(&dev->kobj,
+-					     it87_attributes_fan_beep[i],
+-					     S_IRUGO | S_IWUSR))
+-				dev_dbg(dev, "chmod +w fan%d_beep failed\n",
+-					i + 1);
+-			fan_beep_need_rw = 0;
+-		}
+-	}
++	err = sysfs_create_group(&dev->kobj, &it87_group_fan);
++	if (err)
++		goto error;
+ 
+ 	if (enable_pwm_interface) {
+ 		for (i = 0; i < 6; i++) {
+-- 
 2.1.4
 
 
