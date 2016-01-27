@@ -1,36 +1,57 @@
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 22 Jan 2016 23:11:54 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] lm90: register with thermal zones
-Message-Id: <CAL_JsqKxTOAYSgS35Sy1=cHs=SgMtPVwYi=mwq+w-bnPquKoVQ@mail.gmail.com>
+From: Guenter Roeck <patchwork@patchwork.roeck-us.net>
+Date: Wed, 27 Jan 2016 02:03:24 +0000
+Subject: [lm-sensors] [PATCH v3 00/25] hwmon: (it87) Various enhancements and fixes
+Message-Id: <1453860229-23614-1-git-send-email-patchwork@patchwork.roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1453404877-17897-1-git-send-email-stephan@kochen.nl>
- <1453404877-17897-4-git-send-email-stephan@kochen.nl> <20160122224542.GA26117@rob-hp-laptop>
- <20160122230239.GA22301@Stephans-iMac.lan>
-In-Reply-To: <20160122230239.GA22301-3Ql6wuUqVi7fKcxHm0zdRv8+0UxHXcjY@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: =?UTF-8?Q?St=C3=A9phan_Kochen?= <stephan-j6uo2F6POYhmR6Xm/wNWPw@public.gmane.org>
-Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCBKYW4gMjIsIDIwMTYgYXQgNTowMiBQTSwgU3TDqXBoYW4gS29jaGVuIDxzdGVwaGFu
-QGtvY2hlbi5ubD4gd3JvdGU6Cj4gT24gRnJpLCBKYW4gMjIsIDIwMTYgYXQgMDQ6NDU6NDJQTSAt
-MDYwMCwgUm9iIEhlcnJpbmcgd3JvdGU6Cj4+IE9uIFRodSwgSmFuIDIxLCAyMDE2IGF0IDA4OjM0
-OjM3UE0gKzAxMDAsIFN0w6lwaGFuIEtvY2hlbiB3cm90ZToKPj4gPiArLSAjdGhlcm1hbC1zZW5z
-b3ItY2VsbHM6IFNob3VsZCBiZSAxLiBTZWUgLi4vLi4vdGhlcm1hbC90aGVybWFsLnR4dCBmb3Ig
-YQo+PiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgZGVzY3JpcHRpb24gb2YgdGhpcyBwcm9w
-ZXJ0eS4gVXNlIHRoZSBmb2xsb3dpbmcKPj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgIHZh
-bHVlcyB0byByZWZlciB0byBhIHNwZWNpZmljIHNlbnNvcjoKPj4gPiArICAgICAgICAgICAgICAg
-ICAgICAgICAgIDA6IGNoaXAgaW50ZXJuYWwgc2Vuc29yCj4+ID4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgICAxOiBleHRlcm5hbCBzZW5zb3IKPj4gPiArICAgICAgICAgICAgICAgICAgICAgICAg
-IDI6IHNlY29uZCBleHRlcm5hbCBzZW5zb3IsIGlmIHByZXNlbnQKPj4KPj4gRnJvbSBteSByZWFk
-IG9mIGFuIExNOTAgZGF0YXNoZWV0LCB0aGVyZSBpcyBvbmx5IGFuIG9uY2hpcCBzZW5zb3IgYW5k
-IGEKPj4gc2luZ2xlIGV4dGVybmFsIG9uZS4KPgo+IE1BWDY2OTUgYW5kIE1BWDY2OTYgaGF2ZSB0
-d28gZXh0ZXJuYWwgc2Vuc29ycywgYW5kIGFsc28gdXNlIHRoZSBsbTkwCj4gZHJpdmVyLiAoVGhl
-IExNOTBfSEFWRV9URU1QMyBmbGFnIGluIHRoZSBjb2RlLikKCk9rYXkuCgpUaGlzIGNoYW5nZSBh
-bG9uZSBzZWVtcyBmaW5lLCBidXQgSSBhZ3JlZSB3aXRoIEd1ZW50ZXIncyBjb21tZW50cy4gSQp0
-aGluayBoYXZpbmcgdGhlIGRhdGEgaW4gRFQgaXMgZmluZSwgYnV0IGl0IHNob3VsZCBiZSBzb21l
-dGhpbmcKY29tbW9uLgoKUm9iCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMu
-b3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNv
-cnM
+From: Guenter Roeck <linux@roeck-us.net>
+
+This patch series builds on top of v4.5-rc1. The series was tested on
+a system with IT8728F. Out-of-kernel versions were tested by various
+people using a github repository.
+
+Most of the patches in this series were previously submitted as part of
+earlier patch series. No substantial changes were made to those patches
+since the previous submission.
+
+----------------------------------------------------------------
+Guenter Roeck (25):
+      hwmon: (it87) Add feature flag for AVCC3 support
+      hwmon: (it87) Add support for all pwm channels on IT8620E
+      hwmon: (it87) Add support for second pwm frequency register
+      hwmon: (it87) Simplify error return in it87_device_add
+      hwmon: (it87) Don't use pdev as static driver variable
+      hwmon: (it87) Pass SIO base address as parameter to superio functions
+      hwmon: (it87) Add support for second Super-IO chip
+      hwmon: (it87) Rearrange code to avoid forward declarations
+      hwmon: (it87) Use is_visible for voltage sensors
+      hwmon: (it87) Use is_visible for temperature sensors
+      hwmon: (it87) Use is_visible for fan attributes
+      hwmon: (it87) Use is_visible for pwm attributes
+      hwmon: (it87) Use single group and is_visible for miscellaneous attributes
+      hwmon: (it87) Convert to use new hwmon API
+      hwmon: (it87) Support up to 6 temperature sensors on IT8620E
+      hwmon: (it87) Simplify reading voltage registers
+      hwmon: (it87) Add support for VIN7 to VIN10 on IT8620E
+      hwmon: (it87) Use BIT macro
+      hwmon: (it87) Use defines for array sizes and sensor counts
+      hwmon: (it87) Formatting cleanup
+      hwmon: (it87) Support disabling fan control for all pwm control and chips
+      hwmon: (it87) Enhance validation for fan4 and fan5
+      hwmon: (it87) Support automatic pwm control on newer chips
+      hwmon: (it87) Fix pwm_temp_map for system with 6 pwm channels
+      hwmon: (it87) Add support for IT8628E
+
+ Documentation/hwmon/it87 |   15 +-
+ drivers/hwmon/Kconfig    |    3 +-
+ drivers/hwmon/it87.c     | 2281 ++++++++++++++++++++++++++--------------------
+ 3 files changed, 1300 insertions(+), 999 deletions(-)
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
