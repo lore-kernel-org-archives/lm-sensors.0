@@ -1,46 +1,54 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Date: Tue, 26 Jan 2016 08:37:02 +0000
-Subject: Re: [lm-sensors] [rtc-linux] [PATCH v4] rtc: rtc-ds1307: add temperature sensor support for ds3231
-Message-Id: <20160126083702.GF11740@piout.net>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Date: Fri, 29 Jan 2016 17:35:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (vexpress) rename vexpress hwmon implementation
+Message-Id: <1454088952-24722-1-git-send-email-sudeep.holla@arm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1453648936-17017-1-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1453648936-17017-1-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, Alessandro Zummo <a.zummo@towertech.it>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>
+To: linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Rusty Russell <rusty@rustcorp.com.au>, Liviu Dudau <liviu.dudau@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org
 
-On 25/01/2016 at 00:22:16 +0900, Akinobu Mita wrote :
-> DS3231 has the temperature registers with a resolution of 0.25
-> degree celsius.  This enables to get the value through hwmon.
-> 
-> 	# cat /sys/class/i2c-adapter/i2c-2/2-0068/hwmon/hwmon0/temp1_input
-> 	21000
-> 
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> Acked-by: Guenter Roeck <linux@roeck-us.net>
-> Cc: Alessandro Zummo <a.zummo@towertech.it>
-> Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-> Cc: Jean Delvare <jdelvare@suse.com>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> ---
-> * v4 (all changes are suggested by Guenter Roeck)
-> - drop the Cc: mailing lists in commit log
-> - add Acked-by line
-> - remove unnecessary header include
-> - s/s32/int/
-> - make ds1307_hwmon_register() a void function as the return value is not used
-> 
->  drivers/rtc/Kconfig      |  9 +++++
->  drivers/rtc/rtc-ds1307.c | 88 ++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 97 insertions(+)
-Applied, thanks.
+The vexpress hwmon implementation is currently just called vexpress.
+This is a problem because it clashes with another module with the same
+name in regulators.
 
+This patch renames the vexpress hwmon implementation to vexpress-hwmon
+so that there will be no clash in the module namespace.
+
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Jean Delvare <jdelvare@suse.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Reported-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/hwmon/Makefile                         | 2 +-
+ drivers/hwmon/{vexpress.c => vexpress-hwmon.c} | 0
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ rename drivers/hwmon/{vexpress.c => vexpress-hwmon.c} (100%)
+
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 30c94df31465..cfc09711810c 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -149,7 +149,7 @@ obj-$(CONFIG_SENSORS_TMP103)	+= tmp103.o
+ obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
+ obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
+ obj-$(CONFIG_SENSORS_TWL4030_MADC)+= twl4030-madc-hwmon.o
+-obj-$(CONFIG_SENSORS_VEXPRESS)	+= vexpress.o
++obj-$(CONFIG_SENSORS_VEXPRESS)	+= vexpress-hwmon.o
+ obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
+ obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
+ obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
+diff --git a/drivers/hwmon/vexpress.c b/drivers/hwmon/vexpress-hwmon.c
+similarity index 100%
+rename from drivers/hwmon/vexpress.c
+rename to drivers/hwmon/vexpress-hwmon.c
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+1.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
