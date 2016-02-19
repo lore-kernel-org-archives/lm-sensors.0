@@ -1,30 +1,25 @@
-From: Jamie Kitson <jamie@kitten-x.com>
-Date: Fri, 19 Feb 2016 10:25:29 +0000
-Subject: [lm-sensors] Support for Acer Revo One RL85
-Message-Id: <1455877529.2575284.525825354.455A39A0@webmail.messagingengine.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Fri, 19 Feb 2016 11:00:50 +0000
+Subject: Re: [lm-sensors] Support for Acer Revo One RL85
+Message-Id: <1455879650.4992.102.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1455877529.2575284.525825354.455A39A0@webmail.messagingengine.com>
+In-Reply-To: <1455877529.2575284.525825354.455A39A0@webmail.messagingengine.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-Can I request support for the following please?
-
-$ sudo sensors-detect
-# sensors-detect revision 6284 (2015-05-31 14:00:33 +0200)
-# System: Acer Revo One RL85
-# Board: Acer IPXHW-RL
-# Kernel: 4.4.1-2-ARCH x86_64
-# Processor: Intel(R) Celeron(R) 2957U @ 1.40GHz (6/69/1)
-
-I am more than happy with testing and a small donation, but I don't
-think my coding skills are up to Linus's expectations :)
-
-Cheers, Jamie
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSmFtaWUsCgpMZSBGcmlkYXkgMTkgRmVicnVhcnkgMjAxNiDDoCAxMDoyNSArMDAwMCwgSmFt
+aWUgS2l0c29uIGEgw6ljcml0IDoKPiBDYW4gSSByZXF1ZXN0IHN1cHBvcnQgZm9yIHRoZSBmb2xs
+b3dpbmcgcGxlYXNlPwo+IAo+ICQgc3VkbyBzZW5zb3JzLWRldGVjdAo+ICMgc2Vuc29ycy1kZXRl
+Y3QgcmV2aXNpb24gNjI4NCAoMjAxNS0wNS0zMSAxNDowMDozMyArMDIwMCkKPiAjIFN5c3RlbTog
+QWNlciBSZXZvIE9uZSBSTDg1Cj4gIyBCb2FyZDogQWNlciBJUFhIVy1STAo+ICMgS2VybmVsOiA0
+LjQuMS0yLUFSQ0ggeDg2XzY0Cj4gIyBQcm9jZXNzb3I6IEludGVsKFIpIENlbGVyb24oUikgMjk1
+N1UgQCAxLjQwR0h6ICg2LzY5LzEpCj4gCj4gSSBhbSBtb3JlIHRoYW4gaGFwcHkgd2l0aCB0ZXN0
+aW5nIGFuZCBhIHNtYWxsIGRvbmF0aW9uLCBidXQgSSBkb24ndAo+IHRoaW5rIG15IGNvZGluZyBz
+a2lsbHMgYXJlIHVwIHRvIExpbnVzJ3MgZXhwZWN0YXRpb25zIDopCgpDYW4gd2Ugc2VlIHRoZSBm
+dWxsIG91dHB1dCBvZiBzZW5zb3JzLWRldGVjdD8KCi0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBT
+dXBwb3J0CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
