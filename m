@@ -1,7 +1,7 @@
-From: Angelo Compagnucci <angelo.compagnucci@gmail.com>
-Date: Thu, 18 Feb 2016 16:12:41 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Fri, 19 Feb 2016 07:16:02 +0000
 Subject: Re: [lm-sensors] Fwd: The sad state of lm-sensors.org
-Message-Id: <CA+TH9Vm8_gY9Miepfor5h55bXEd=JEkgzx5yik10uo8Wb6j3Cg@mail.gmail.com>
+Message-Id: <1455866163.4992.101.camel@chaos.site>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
 In-Reply-To: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
@@ -10,60 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-2016-02-18 16:56 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
-> On 02/18/2016 05:42 AM, Angelo Compagnucci wrote:
->>
->> Hello All,
->>
->> The http://lm-sensors.org/ website is unreachable from many months
->> now, and as far as I can guess, it will not be brought up any time
->> soon.
->>
->> I think it's time to move the old svn to github (gitlab?) and open a
->> website there.
->>
->> Importing the old svn is a really simple process and I'm offering to
->> volunteer the migration and setup of the new website.
->>
->> Obviously, we may not use the pull request mechanism, but rely instead
->> on the old manual way carried up by the project maintainer.
->>
->> What do you think?
->>
-> The repositories are mirrored at https://github.com/groeck/i2c-tools and
-> https://github.com/groeck/lm-sensors. We are in the process of finding
-> final homes.
-
-Ok, could I suggest to register a new lm-sensors entity in github and
-create two subprojects? Like:
-
-https://github.com/lm-sensors/lm-sensors
-https://github.com/lm-sensors/i2c-tools
-
-I think that will have a more institutional relevance than a personal
-repository.
-
-> The web site will have to be re-created.
-
-If we are going for github, we can use github pages, I'm offering to
-volunteer for the new website.
-That way we should only buy and renew the dns for lm-sensor.org, no
-more problems with the hosting!
-
-Sincerely, Angelo
-
->
-> Guenter
->
-
-
-
--- 
-Profile: http://it.linkedin.com/in/compagnucciangelo
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TGUgVGh1cnNkYXkgMTggRmVicnVhcnkgMjAxNiDDoCAxNzoxMiArMDEwMCwgQW5nZWxvIENvbXBh
+Z251Y2NpIGEgw6ljcml0IDoKPiBIaSBHdWVudGVyLAo+IAo+IDIwMTYtMDItMTggMTY6NTYgR01U
+KzAxOjAwIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD46Cj4gPiBUaGUgcmVwb3Np
+dG9yaWVzIGFyZSBtaXJyb3JlZCBhdCBodHRwczovL2dpdGh1Yi5jb20vZ3JvZWNrL2kyYy10b29s
+cyBhbmQKPiA+IGh0dHBzOi8vZ2l0aHViLmNvbS9ncm9lY2svbG0tc2Vuc29ycy4gV2UgYXJlIGlu
+IHRoZSBwcm9jZXNzIG9mIGZpbmRpbmcKPiA+IGZpbmFsIGhvbWVzLgo+IAo+IE9rLCBjb3VsZCBJ
+IHN1Z2dlc3QgdG8gcmVnaXN0ZXIgYSBuZXcgbG0tc2Vuc29ycyBlbnRpdHkgaW4gZ2l0aHViIGFu
+ZAo+IGNyZWF0ZSB0d28gc3VicHJvamVjdHM/IExpa2U6Cj4gCj4gaHR0cHM6Ly9naXRodWIuY29t
+L2xtLXNlbnNvcnMvbG0tc2Vuc29ycwoKSSB0aGluayBHdWVudGVyIGhhcyBzdWNoIGEgcGxhbi4K
+Cj4gaHR0cHM6Ly9naXRodWIuY29tL2xtLXNlbnNvcnMvaTJjLXRvb2xzCgpJIG9iamVjdCB0byB0
+aGF0IG9uZSwgZm9yIGkyYy10b29scyBoYXMgbm90aGluZyB0byBkbyB3aXRoIGxtLXNlbnNvcnMu
+Ckl0IHdhcyBob3N0ZWQgb24gdGhlIHNhbWUgc2l0ZSBvbmx5IGZvciBoaXN0b3JpY2FsIHJlYXNv
+bnMuIEluIHByYWN0aWNlCml0IGlzIG5vdyBtYWludGFpbmVkIGFuZCB1c2VkIGJ5IGEgY29tcGxl
+dGVseSBkaWZmZXJlbnQgc2V0IG9mIHBlb3BsZS4KCj4gSSB0aGluayB0aGF0IHdpbGwgaGF2ZSBh
+IG1vcmUgaW5zdGl0dXRpb25hbCByZWxldmFuY2UgdGhhbiBhIHBlcnNvbmFsCj4gcmVwb3NpdG9y
+eS4KCi0tIApKZWFuIERlbHZhcmUKU1VTRSBMMyBTdXBwb3J0CgoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
+c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
+bi9saXN0aW5mby9sbS1zZW5zb3Jz
