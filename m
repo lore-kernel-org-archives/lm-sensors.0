@@ -1,41 +1,72 @@
-From: Angelo Compagnucci <angelo.compagnucci@gmail.com>
-Date: Fri, 19 Feb 2016 13:40:32 +0000
-Subject: Re: [lm-sensors] Fwd: The sad state of lm-sensors.org
-Message-Id: <CA+TH9Vn9yFDbMjXap94dq1UsFDc9gWPq9gwCoMNA8m8Aotyveg@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Date: Sat, 20 Feb 2016 00:09:51 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (gpio-fan) Remove un-necessary speed_index lookup for thermal hook
+Message-Id: <1455926991-15189-1-git-send-email-nm@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
-In-Reply-To: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Eduardo Valentin <edubezval@gmail.com>
 
-SGkgSmVhbiwKCjIwMTYtMDItMTkgODoxNiBHTVQrMDE6MDAgSmVhbiBEZWx2YXJlIDxqZGVsdmFy
-ZUBzdXNlLmRlPjoKPiBMZSBUaHVyc2RheSAxOCBGZWJydWFyeSAyMDE2IMOgIDE3OjEyICswMTAw
-LCBBbmdlbG8gQ29tcGFnbnVjY2kgYSDDqWNyaXQgOgo+PiBIaSBHdWVudGVyLAo+Pgo+PiAyMDE2
-LTAyLTE4IDE2OjU2IEdNVCswMTowMCBHdWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+
-Ogo+PiA+IFRoZSByZXBvc2l0b3JpZXMgYXJlIG1pcnJvcmVkIGF0IGh0dHBzOi8vZ2l0aHViLmNv
-bS9ncm9lY2svaTJjLXRvb2xzIGFuZAo+PiA+IGh0dHBzOi8vZ2l0aHViLmNvbS9ncm9lY2svbG0t
-c2Vuc29ycy4gV2UgYXJlIGluIHRoZSBwcm9jZXNzIG9mIGZpbmRpbmcKPj4gPiBmaW5hbCBob21l
-cy4KPj4KPj4gT2ssIGNvdWxkIEkgc3VnZ2VzdCB0byByZWdpc3RlciBhIG5ldyBsbS1zZW5zb3Jz
-IGVudGl0eSBpbiBnaXRodWIgYW5kCj4+IGNyZWF0ZSB0d28gc3VicHJvamVjdHM/IExpa2U6Cj4+
-Cj4+IGh0dHBzOi8vZ2l0aHViLmNvbS9sbS1zZW5zb3JzL2xtLXNlbnNvcnMKPgo+IEkgdGhpbmsg
-R3VlbnRlciBoYXMgc3VjaCBhIHBsYW4uCgpHcmVhdCEKCj4+IGh0dHBzOi8vZ2l0aHViLmNvbS9s
-bS1zZW5zb3JzL2kyYy10b29scwo+Cj4gSSBvYmplY3QgdG8gdGhhdCBvbmUsIGZvciBpMmMtdG9v
-bHMgaGFzIG5vdGhpbmcgdG8gZG8gd2l0aCBsbS1zZW5zb3JzLgo+IEl0IHdhcyBob3N0ZWQgb24g
-dGhlIHNhbWUgc2l0ZSBvbmx5IGZvciBoaXN0b3JpY2FsIHJlYXNvbnMuIEluIHByYWN0aWNlCj4g
-aXQgaXMgbm93IG1haW50YWluZWQgYW5kIHVzZWQgYnkgYSBjb21wbGV0ZWx5IGRpZmZlcmVudCBz
-ZXQgb2YgcGVvcGxlLgoKT2ssIHNvIHdobyBjYXJlcyBhYm91dCBpMmMtdG9vbHM/CklzIHRoZXJl
-IGEgZGlzY3Vzc2lvbiBzb21ld2hlcmU/CkFnYWluLCBJJ20gb2ZmZXJpbmcgdG8gdm9sdW50ZWVy
-IHdpdGggdGhlIHRyYW5zaXRpb24gdG8gYSBuZXcgbG9jYXRpb24KaWYgbmVjZXNzYXJ5LgoKSSB0
-aGluayB3ZSBzaG91bGQgYWN0LCBvcGVuaW5nIGEgbmV3IGdpaHViIHJlcG9zaXRvcnkgYW5kIHNl
-dHRpbmcgdXAgYQpuZXcgd2Vic2l0ZSBpdCdzIG5vdCBhIHRyZW1lbmRvdXMgYW1vdW50IG9mIHdv
-cmssIEkgY2FuIGRvIGl0IGluIGEKY291cGxlIG9mIHdlZWtzIG9mIG15IGZyZWUgdGltZS4gT2J2
-aW91c2x5LCB5b3Ugc2hvdWxkIGVuZG9yc2UgbWUhCgpJIHRoaW5rIG5vdCBoYXZpbmcgYSB3ZWJz
-aXRlIGFuZCBhbiBpbnN0aXR1dGlvbmFsIGhvbWUgaXQncyBhIHByb2JsZW0KY29uc2lkZXJpbmcg
-bW9kZXJuIHRvb2xzIGFuZCBmcmVlIG9mZmVyaW5nIHdlIGhhdmUuCgoKU2luY2VyZWx5LCBBbmdl
-bG8KCj4gLS0KPiBKZWFuIERlbHZhcmUKPiBTVVNFIEwzIFN1cHBvcnQKPgoKCgotLSAKUHJvZmls
-ZTogaHR0cDovL2l0LmxpbmtlZGluLmNvbS9pbi9jb21wYWdudWNjaWFuZ2VsbwoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Thermal hook gpio_fan_get_cur_state is only interested in knowing
+the current speed index that was setup in the system, this is
+already available as part of fan_data->speed_index which is always
+set by set_fan_speed. Using get_fan_speed_index is useful when we
+have no idea about the fan speed configuration (for example during
+fan_ctrl_init).
+
+When thermal framework invokes
+gpio_fan_get_cur_state=>get_fan_speed_index via gpio_fan_get_cur_state
+especially in a polled configuration for thermal governor, we
+basically hog the i2c interface to the extent that other functions
+fail to get any traffic out :(.
+
+Instead, just provide the last state set in the driver - since the gpio
+fan driver is responsible for the fan state immaterial of override, the
+fan_data->speed_index should accurately reflect the state.
+
+Fixes: b5cf88e46bad ("(gpio-fan): Add thermal control hooks")
+
+Reported-by: Tony Lindgren <tony@atomide.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Eduardo Valentin <edubezval@gmail.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Test logs from linus master  v4.5-rc4-137-g23300f657594 
+Without fix: http://paste.ubuntu.org.cn/3948618
+With Fix: http://paste.ubuntu.org.cn/3948617
+
+ drivers/hwmon/gpio-fan.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index 82de3deeb18a..685568b1236d 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -406,16 +406,11 @@ static int gpio_fan_get_cur_state(struct thermal_cooling_device *cdev,
+ 				  unsigned long *state)
+ {
+ 	struct gpio_fan_data *fan_data = cdev->devdata;
+-	int r;
+ 
+ 	if (!fan_data)
+ 		return -EINVAL;
+ 
+-	r = get_fan_speed_index(fan_data);
+-	if (r < 0)
+-		return r;
+-
+-	*state = r;
++	*state = fan_data->speed_index;
+ 	return 0;
+ }
+ 
+-- 
+2.7.0
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
