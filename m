@@ -1,99 +1,109 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 27 Feb 2016 18:55:56 +0000
+From: Sardaukai <sardaukai@gmx.de>
+Date: Sun, 28 Feb 2016 16:59:39 +0000
 Subject: Re: [lm-sensors] Missing Code v4.5-rc1 [Patch v3 25/25] IT8628E
-Message-Id: <56D1F13C.1030601@roeck-us.net>
+Message-Id: <56D3277B.8020006@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <56D1B0EF.9050603@gmx.de>
 In-Reply-To: <56D1B0EF.9050603@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Small Update
+> ...
+>> In addition i searched drivers/hwmon/it87.c in order to find the=20
+>> patched code from kernel 4.5-rc5.
+>> Unfortunately i found no code changes from Patch v3 (i tested about 5=20
+>> patches).
+>> Should it not be patched within 4.5-rc1 or do i miss here something?
+>>
+> Does it say anywhere that the patches were reviewed and/or accepted
+> for upstream integration ?
+>
+> Problem is that there is hardly anyone willing to review hwmon kernel
+> patches nowadays, meaning they have to go in unreviewed or not at all.
+> Given the complexity and scope of the series, I don't want to just push
+> the patches into the upstream kernel without review. With that in mind,
+> it may take a while for the code to be upstream.
+>
+I see. You wrote that it should go up with rc-1, so i thought it is=20
+already there, my mistake.
+>> Second question
+>> Is it possible to take your code from github to patch/replace it in=20
+>> another kernel, like 4.3 / 4.4 ?
+>>
+> Yes, that should be possible. I have been running it on earlier kernels
+> myself.
 
-On 02/27/2016 06:21 AM, Sardaukai wrote:
-> Hello everyone
->
-> i have some questions about chip support cause my main-board uses the IT8628E.
-> I saw a patch that these chip should work. So i decided to give it a try.
->
-Seeing a patch on a mailing list doesn't mean it is upstream. In this case it isn't.
+With GitHub module code for it87 chip's and a boot parameter=20
+"acpi_enforce_resources=3Dlax"
+i was able to load it.
 
-> Normally sensors-detect works with my cpu, with the kernel-rc it did not.
-> If i skip that, the ITE is also not found.
->
-> -------------------------------------------
-> # sensors-detect revision 6284 (2015-05-31 14:00:33 +0200)
-> # System: Gigabyte Technology Co., Ltd. Z170X-UD3
-> # Board: Gigabyte Technology Co., Ltd. Z170X-UD3-CF
-> # Kernel: 4.5.0-rc5 x86_64
-> # Processor: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz (6/94/3)
->
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
->
-> Some south bridges, CPUs or memory controllers contain embedded sensors.
-> Do you want to scan for them? This is totally safe. (YES/no): Yes
-> Module cpuid loaded successfully.
-> Silicon Integrated Systems SIS5595...                       No
-> VIA VT82C686 Integrated Sensors...                          No
-> VIA VT8231 Integrated Sensors...                            No
-> AMD K8 thermal sensors...                                   No
-> AMD Family 10h thermal sensors...                           No
-> AMD Family 11h thermal sensors...                           No
-> AMD Family 12h and 14h thermal sensors...                   No
-> AMD Family 15h thermal sensors...                           No
-> AMD Family 16h thermal sensors...                           No
-> AMD Family 15h power sensors...                             No
-> AMD Family 16h power sensors...                             No
-> Intel digital thermal sensor...                             Cannot seek /dev/cpu/0/cpuid at /usr/sbin/sensors-detect line 6820.
->
-Maybe something changed in the ABI, though that would be unusual.
-We'll have to check.
+it8628-isa-0a40
+Adapter: ISA adapter
+in0:          +0.43 V  (min =3D  +0.00 V, max =3D  +3.06 V)     <--- seems =
 
-> Some Super I/O chips contain embedded sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no): y
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor/ITE'...               No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-> Trying family `ITE'...                                      Yes
-> Found unknown chip with ID 0x8628
+to be VCore, tested with cpuBurn
+in1:          +2.04 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in2:          +2.00 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in3:          +2.04 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in4:          +0.01 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in5:          +1.07 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in6:          +1.20 V  (min =3D  +0.00 V, max =3D  +3.06 V)     <--- could =
 
-That just means that your version of sensors-detect doesn't know
-about the chip.
+be RAM Voltage
+3VSB:         +3.36 V  (min =3D  +0.00 V, max =3D  +6.12 V)
+Vbat:         +3.17 V              <--- Battery Voltage from EFI, really?!
+fan1:           0 RPM  (min =3D    0 RPM)      <--- CPU_FAN not connected
+fan2:        2280 RPM  (min =3D    0 RPM) <--- CPU_OPT (my H80i pump)
+fan3:        1078 RPM  (min =3D    0 RPM) <--- SYS_FAN3 or 2 (radiator fan)
+fan4:           0 RPM  (min =3D    0 RPM)      <--- SYS_FAN1 not connected
+fan5:        1819 RPM  (min =3D    0 RPM) <--- SYS_FAN2 or 3 (radiator fan =
+#2)
+temp1:        +43.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D=20
+thermistor
+temp2:         -8.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D=20
+thermistor
+temp3:        +22.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D=20
+Intel PECI
+intrusion0:  OK               <--- Nice, i have to check where and how=20
+to use that
 
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor/ITE'...               No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-> Trying family `ITE'...                                      No
-> ------------------------------------------------
->
-> In addition i searched drivers/hwmon/it87.c in order to find the patched code from kernel 4.5-rc5.
-> Unfortunately i found no code changes from Patch v3 (i tested about 5 patches).
-> Should it not be patched within 4.5-rc1 or do i miss here something?
->
-Does it say anywhere that the patches were reviewed and/or accepted
-for upstream integration ?
+Kernel 4.3.5 with Debian Testing (Stretch)
+sensors version 3.4.0 with libsensors version 3.4.0
+fancontrol 3.4.0-2
 
-Problem is that there is hardly anyone willing to review hwmon kernel
-patches nowadays, meaning they have to go in unreviewed or not at all.
-Given the complexity and scope of the series, I don't want to just push
-the patches into the upstream kernel without review. With that in mind,
-it may take a while for the code to be upstream.
+I'll try to get that names step by step. Further i tried fancontrol, i=20
+got funny stuff with fan5.
+It seems to be that PWM values from fan5 are inverted.
 
-> Second question
-> Is it possible to take your code from github to patch/replace it in another kernel, like 4.3 / 4.4 ?
->
-Yes, that should be possible. I have been running it on earlier kernels
-myself.
+Following fancontrol setting stops all fans.
 
-Guenter
+# Configuration file generated by pwmconfig, changes will be lost
+INTERVAL=3D10
+DEVPATH=3Dhwmon2=3Ddevices/platform/it87.2624
+DEVNAME=3Dhwmon2=3Dit8628
+FCTEMPS=3Dhwmon2/pwm5=3Dhwmon2/temp3_input hwmon2/pwm3=3Dhwmon2/temp3_input
+FCFANS=3Dhwmon2/pwm5=3Dhwmon2/fan5_input hwmon2/pwm3=3Dhwmon2/fan3_input
+MINTEMP=3Dhwmon2/pwm5=3D20 hwmon2/pwm3=3D20
+MAXTEMP=3Dhwmon2/pwm5=3D60 hwmon2/pwm3=3D60
+MINSTOP=3Dhwmon2/pwm3=3D1 hwmon2/pwm5=3D254
+MINSTART=3Dhwmon2/pwm3=3D1 hwmon2/pwm5=3D255
+MINPWM=3Dhwmon2/pwm3=3D0 hwmon2/pwm5=3D254
+MAXPWM=3Dhwmon2/pwm3=3D2 hwmon2/pwm5=3D255
+
+I tried some different EFI settings with system fans (Silent, Normal,=20
+PWM per degree) without
+any changes. Fan3 works out of the box. I will check all other fans soon.
+Any idea how to fix that?
+
+
+Uwe
+
 
 
 _______________________________________________
