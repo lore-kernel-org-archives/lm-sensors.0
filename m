@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 05 Mar 2016 14:29:53 +0000
+Date: Sat, 05 Mar 2016 14:46:15 +0000
 Subject: Re: [lm-sensors] [PATCH v3 00/25] hwmon: (it87) Various enhancements and fixes
-Message-Id: <56DAED61.7050603@roeck-us.net>
+Message-Id: <56DAF137.3030009@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1453860229-23614-1-git-send-email-patchwork@patchwork.roeck-us.net>
 In-Reply-To: <1453860229-23614-1-git-send-email-patchwork@patchwork.roeck-us.net>
@@ -21,10 +21,9 @@ On 01/26/2016 06:03 PM, Guenter Roeck wrote:
 > earlier patch series. No substantial changes were made to those patches
 > since the previous submission.
 >
-
 Jean,
 
-Any idea what to do with this series ?
+any idea what to do with this patch series ?
 
 Guenter
 
