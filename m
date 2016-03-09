@@ -1,45 +1,55 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 29 Mar 2016 14:53:09 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for v4.6-rc2
-Message-Id: <1459263189-14680-1-git-send-email-linux@roeck-us.net>
+From: Eduardo Valentin <edubezval@gmail.com>
+Date: Wed, 09 Mar 2016 21:35:35 +0000
+Subject: [lm-sensors] [PATCH 13/13] hwmon: convert ti-thermal to use devm_thermal_zone_of_sensor_register
+Message-Id: <1457559336-17652-14-git-send-email-edubezval@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-hwmon@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Linus,
+This changes the driver to use the devm_ version
+of thermal_zone_of_sensor_register and cleans
+up the  local points and unregister calls.
 
-Please pull hwmon fixes for Linux v4.6-rc2 from signed tag:
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus-v4.6-rc2
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index b213a12..15c0a9a 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -337,7 +337,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
+ 		return -EINVAL;
+ 
+ 	/* in case this is specified by DT */
+-	data->ti_thermal = thermal_zone_of_sensor_register(bgp->dev, id,
++	data->ti_thermal = devm_thermal_zone_of_sensor_register(bgp->dev, id,
+ 					data, &ti_of_thermal_ops);
+ 	if (IS_ERR(data->ti_thermal)) {
+ 		/* Create thermal zone */
+@@ -368,9 +368,6 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
+ 	if (data && data->ti_thermal) {
+ 		if (data->our_zone)
+ 			thermal_zone_device_unregister(data->ti_thermal);
+-		else
+-			thermal_zone_of_sensor_unregister(bgp->dev,
+-							  data->ti_thermal);
+ 	}
+ 
+ 	return 0;
+-- 
+2.1.4
 
-Thanks,
-Guenter
-------
-
-The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
-
-  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus-v4.6-rc2
-
-for you to fetch changes up to 3c2e2266a5bd2d1cef258e6e54dca1d99946379f:
-
-  hwmon: (max1111) Return -ENODEV from max1111_read_channel if not instantiated (2016-03-27 10:37:48 -0700)
-
-----------------------------------------------------------------
-Fix crash due to NULL pointer access in max1111 driver
-
-----------------------------------------------------------------
-Guenter Roeck (1):
-      hwmon: (max1111) Return -ENODEV from max1111_read_channel if not instantiated
-
- drivers/hwmon/max1111.c | 6 ++++++
- 1 file changed, 6 insertions(+)
 
 _______________________________________________
 lm-sensors mailing list
