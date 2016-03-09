@@ -1,65 +1,75 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 05 Mar 2016 14:46:15 +0000
-Subject: Re: [lm-sensors] [PATCH v3 00/25] hwmon: (it87) Various enhancements and fixes
-Message-Id: <56DAF137.3030009@roeck-us.net>
+From: Eduardo Valentin <edubezval@gmail.com>
+Date: Wed, 09 Mar 2016 21:35:24 +0000
+Subject: [lm-sensors] [PATCH 02/13] hwmon: convert ntc_thermistor to use devm_thermal_zone_of_sensor_register
+Message-Id: <1457559336-17652-3-git-send-email-edubezval@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1453860229-23614-1-git-send-email-patchwork@patchwork.roeck-us.net>
-In-Reply-To: <1453860229-23614-1-git-send-email-patchwork@patchwork.roeck-us.net>
+References: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Eduardo Valentin <edubezval@gmail.com>, Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>
 
-On 01/26/2016 06:03 PM, Guenter Roeck wrote:
-> From: Guenter Roeck <linux@roeck-us.net>
->
-> This patch series builds on top of v4.5-rc1. The series was tested on
-> a system with IT8728F. Out-of-kernel versions were tested by various
-> people using a github repository.
->
-> Most of the patches in this series were previously submitted as part of
-> earlier patch series. No substantial changes were made to those patches
-> since the previous submission.
->
-Jean,
+This changes the driver to use the devm_ version
+of thermal_zone_of_sensor_register and cleans
+up the  local points and unregister calls.
 
-any idea what to do with this patch series ?
+Cc: Jean Delvare <jdelvare@suse.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/hwmon/ntc_thermistor.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-Guenter
-
-> ----------------------------------------------------------------
-> Guenter Roeck (25):
->        hwmon: (it87) Add feature flag for AVCC3 support
->        hwmon: (it87) Add support for all pwm channels on IT8620E
->        hwmon: (it87) Add support for second pwm frequency register
->        hwmon: (it87) Simplify error return in it87_device_add
->        hwmon: (it87) Don't use pdev as static driver variable
->        hwmon: (it87) Pass SIO base address as parameter to superio functions
->        hwmon: (it87) Add support for second Super-IO chip
->        hwmon: (it87) Rearrange code to avoid forward declarations
->        hwmon: (it87) Use is_visible for voltage sensors
->        hwmon: (it87) Use is_visible for temperature sensors
->        hwmon: (it87) Use is_visible for fan attributes
->        hwmon: (it87) Use is_visible for pwm attributes
->        hwmon: (it87) Use single group and is_visible for miscellaneous attributes
->        hwmon: (it87) Convert to use new hwmon API
->        hwmon: (it87) Support up to 6 temperature sensors on IT8620E
->        hwmon: (it87) Simplify reading voltage registers
->        hwmon: (it87) Add support for VIN7 to VIN10 on IT8620E
->        hwmon: (it87) Use BIT macro
->        hwmon: (it87) Use defines for array sizes and sensor counts
->        hwmon: (it87) Formatting cleanup
->        hwmon: (it87) Support disabling fan control for all pwm control and chips
->        hwmon: (it87) Enhance validation for fan4 and fan5
->        hwmon: (it87) Support automatic pwm control on newer chips
->        hwmon: (it87) Fix pwm_temp_map for system with 6 pwm channels
->        hwmon: (it87) Add support for IT8628E
->
->   Documentation/hwmon/it87 |   15 +-
->   drivers/hwmon/Kconfig    |    3 +-
->   drivers/hwmon/it87.c     | 2281 ++++++++++++++++++++++++++--------------------
->   3 files changed, 1300 insertions(+), 999 deletions(-)
->
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index feed306..ffc12f1 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -221,7 +221,6 @@ struct ntc_data {
+ 	struct device *dev;
+ 	int n_comp;
+ 	char name[PLATFORM_NAME_SIZE];
+-	struct thermal_zone_device *tz;
+ };
+ 
+ #if defined(CONFIG_OF) && IS_ENABLED(CONFIG_IIO)
+@@ -539,6 +538,7 @@ static const struct thermal_zone_of_device_ops ntc_of_thermal_ops = {
+ 
+ static int ntc_thermistor_probe(struct platform_device *pdev)
+ {
++	struct thermal_zone_device *tz;
+ 	const struct of_device_id *of_id  			of_match_device(of_match_ptr(ntc_match), &pdev->dev);
+ 	const struct platform_device_id *pdev_id;
+@@ -633,12 +633,10 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
+ 	dev_info(&pdev->dev, "Thermistor type: %s successfully probed.\n",
+ 								pdev_id->name);
+ 
+-	data->tz = thermal_zone_of_sensor_register(data->dev, 0, data->dev,
+-						   &ntc_of_thermal_ops);
+-	if (IS_ERR(data->tz)) {
++	tz = devm_thermal_zone_of_sensor_register(data->dev, 0, data->dev,
++						  &ntc_of_thermal_ops);
++	if (IS_ERR(tz))
+ 		dev_dbg(&pdev->dev, "Failed to register to thermal fw.\n");
+-		data->tz = NULL;
+-	}
+ 
+ 	return 0;
+ err_after_sysfs:
+@@ -656,8 +654,6 @@ static int ntc_thermistor_remove(struct platform_device *pdev)
+ 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+ 	ntc_iio_channel_release(pdata);
+ 
+-	thermal_zone_of_sensor_unregister(data->dev, data->tz);
+-
+ 	return 0;
+ }
+ 
+-- 
+2.1.4
 
 
 _______________________________________________
