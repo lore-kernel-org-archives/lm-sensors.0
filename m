@@ -1,109 +1,113 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Date: Mon, 14 Mar 2016 19:48:12 +0000
-Subject: Re: [lm-sensors] [PATCH 11/13] thermal: convert exynos to use devm_thermal_zone_of_sensor_register
-Message-Id: <20160314194810.GF1872@localhost.localdomain>
+Date: Wed, 09 Mar 2016 21:35:34 +0000
+Subject: [lm-sensors] [PATCH 12/13] thermal: convert tegra_thermal to use devm_thermal_zone_of_sensor_registe
+Message-Id: <1457559336-17652-13-git-send-email-edubezval@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
- <1457559336-17652-12-git-send-email-edubezval@gmail.com>
- <56E0BCE4.6020309@samsung.com>
-In-Reply-To: <56E0BCE4.6020309@samsung.com>
+In-Reply-To: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Lukasz Majewski <l.majewski@samsung.com>, Kukjin Kim <kgene@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Eduardo Valentin <edubezval@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-tegra@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 09:16:36AM +0900, Krzysztof Kozlowski wrote:
-> On 10.03.2016 06:35, Eduardo Valentin wrote:
-> > This changes the driver to use the devm_ version
-> > of thermal_zone_of_sensor_register and cleans
-> > up the  local points and unregister calls.
-> > 
-> > Cc: Lukasz Majewski <l.majewski@samsung.com>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: Kukjin Kim <kgene@kernel.org>
-> > Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> > Cc: linux-pm@vger.kernel.org
-> > Cc: linux-samsung-soc@vger.kernel.org
-> > Cc: linux-arm-kernel@lists.infradead.org
-> > Cc: linux-kernel@vger.kernel.org
-> > Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> > ---
-> >  drivers/thermal/samsung/exynos_tmu.c | 12 ++++--------
-> >  1 file changed, 4 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/thermal/samsung/exynos_tmu.c b/drivers/thermal/samsung/exynos_tmu.c
-> > index fa61eff..256039e 100644
-> > --- a/drivers/thermal/samsung/exynos_tmu.c
-> > +++ b/drivers/thermal/samsung/exynos_tmu.c
-> > @@ -1363,8 +1363,8 @@ static int exynos_tmu_probe(struct platform_device *pdev)
-> >  	 * data->tzd must be registered before calling exynos_tmu_initialize(),
-> >  	 * requesting irq and calling exynos_tmu_control().
-> >  	 */
-> > -	data->tzd = thermal_zone_of_sensor_register(&pdev->dev, 0, data,
-> > -						    &exynos_sensor_ops);
-> > +	data->tzd = devm_thermal_zone_of_sensor_register(&pdev->dev, 0, data,
-> > +							 &exynos_sensor_ops);
-> >  	if (IS_ERR(data->tzd)) {
-> >  		ret = PTR_ERR(data->tzd);
-> >  		dev_err(&pdev->dev, "Failed to register sensor: %d\n", ret);
-> > @@ -1374,21 +1374,19 @@ static int exynos_tmu_probe(struct platform_device *pdev)
-> >  	ret = exynos_tmu_initialize(pdev);
-> >  	if (ret) {
-> >  		dev_err(&pdev->dev, "Failed to initialize TMU\n");
-> > -		goto err_thermal;
-> > +		goto err_sclk;
-> >  	}
-> >  
-> >  	ret = devm_request_irq(&pdev->dev, data->irq, exynos_tmu_irq,
-> >  		IRQF_TRIGGER_RISING | IRQF_SHARED, dev_name(&pdev->dev), data);
-> >  	if (ret) {
-> >  		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
-> > -		goto err_thermal;
-> > +		goto err_sclk;
-> >  	}
-> >  
-> >  	exynos_tmu_control(pdev, true);
-> >  	return 0;
-> >  
-> > -err_thermal:
-> > -	thermal_zone_of_sensor_unregister(&pdev->dev, data->tzd);
-> >  err_sclk:
-> >  	clk_disable_unprepare(data->sclk);
-> >  err_clk:
-> > @@ -1406,9 +1404,7 @@ err_sensor:
-> >  static int exynos_tmu_remove(struct platform_device *pdev)
-> >  {
-> >  	struct exynos_tmu_data *data = platform_get_drvdata(pdev);
-> > -	struct thermal_zone_device *tzd = data->tzd;
-> >  
-> > -	thermal_zone_of_sensor_unregister(&pdev->dev, tzd);
-> 
-> Before, the sensor was removed from zone (ops like get_temp NULL-ified
-> etc), then we stopped TMU, disabled clocks, disabled regulator and
-> finally freed IRQ (through devm-like interface).
-> 
-> Now this will be different - first stop of TMU, disable clocks, disable,
-> regulator, remove sensor from zone (through devm) and finally free IRQ.
-> 
-> Are you sure that changing order is okay?
+This changes the driver to use the devm_ version
+of thermal_zone_of_sensor_register and cleans
+up the  local points and unregister calls.
 
-Not really. After checking the driver code and your suggestions, I don't
-think this driver would benefit of this change, not at least the way it
-is currently.
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/thermal/tegra_soctherm.c | 31 +++++++++----------------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
-Thanks for pointing out. I am taking this driver out of the series.
+diff --git a/drivers/thermal/tegra_soctherm.c b/drivers/thermal/tegra_soctherm.c
+index 74ea576..0018ccd 100644
+--- a/drivers/thermal/tegra_soctherm.c
++++ b/drivers/thermal/tegra_soctherm.c
+@@ -168,7 +168,7 @@ struct tegra_soctherm {
+ 	struct clk *clock_soctherm;
+ 	void __iomem *regs;
+ 
+-	struct thermal_zone_device *thermctl_tzs[4];
++#define ZONE_NUMBER		4
+ };
+ 
+ struct tsensor_shared_calibration {
+@@ -342,7 +342,7 @@ static const struct thermctl_zone_desc t124_thermctl_temp_zones[] = {
+ static int tegra_soctherm_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_soctherm *tegra;
+-	struct thermal_zone_device *tz;
++	struct thermal_zone_device *z;
+ 	struct tsensor_shared_calibration shared_calib;
+ 	struct resource *res;
+ 	unsigned int i;
+@@ -408,36 +408,29 @@ static int tegra_soctherm_probe(struct platform_device *pdev)
+ 
+ 	/* Initialize thermctl sensors */
+ 
+-	for (i = 0; i < ARRAY_SIZE(tegra->thermctl_tzs); ++i) {
++	for (i = 0; i < ZONE_NUMBER; ++i) {
+ 		struct tegra_thermctl_zone *zone  			devm_kzalloc(&pdev->dev, sizeof(*zone), GFP_KERNEL);
+ 		if (!zone) {
+ 			err = -ENOMEM;
+-			goto unregister_tzs;
++			goto disable_clocks;
+ 		}
+ 
+ 		zone->reg = tegra->regs + t124_thermctl_temp_zones[i].offset;
+ 		zone->shift = t124_thermctl_temp_zones[i].shift;
+ 
+-		tz = thermal_zone_of_sensor_register(&pdev->dev, i, zone,
+-						     &tegra_of_thermal_ops);
+-		if (IS_ERR(tz)) {
+-			err = PTR_ERR(tz);
++		z = devm_thermal_zone_of_sensor_register(&pdev->dev, i, zone,
++							 &tegra_of_thermal_ops);
++		if (IS_ERR(z)) {
++			err = PTR_ERR(z);
+ 			dev_err(&pdev->dev, "failed to register sensor: %d\n",
+ 				err);
+-			goto unregister_tzs;
++			goto disable_clocks;
+ 		}
+-
+-		tegra->thermctl_tzs[i] = tz;
+ 	}
+ 
+ 	return 0;
+ 
+-unregister_tzs:
+-	while (i--)
+-		thermal_zone_of_sensor_unregister(&pdev->dev,
+-						  tegra->thermctl_tzs[i]);
+-
+ disable_clocks:
+ 	clk_disable_unprepare(tegra->clock_tsensor);
+ 	clk_disable_unprepare(tegra->clock_soctherm);
+@@ -448,12 +441,6 @@ disable_clocks:
+ static int tegra_soctherm_remove(struct platform_device *pdev)
+ {
+ 	struct tegra_soctherm *tegra = platform_get_drvdata(pdev);
+-	unsigned int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(tegra->thermctl_tzs); ++i) {
+-		thermal_zone_of_sensor_unregister(&pdev->dev,
+-						  tegra->thermctl_tzs[i]);
+-	}
+ 
+ 	clk_disable_unprepare(tegra->clock_tsensor);
+ 	clk_disable_unprepare(tegra->clock_soctherm);
+-- 
+2.1.4
 
-
-> 
-> Best regards,
-> Krzysztof
-> 
-> >  	exynos_tmu_control(pdev, false);
-> >  
-> >  	clk_disable_unprepare(data->sclk);
-> > 
-> 
 
 _______________________________________________
 lm-sensors mailing list
