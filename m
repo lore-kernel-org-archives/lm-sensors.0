@@ -1,108 +1,63 @@
-From: Huang Rui <ray.huang@amd.com>
-Date: Fri, 11 Mar 2016 02:17:44 +0000
-Subject: [lm-sensors] [PATCH v4 0/6] hwmon: (fam15h_power) Introduce an accumulated power reporting algorithm
-Message-Id: <1457662670-3354-1-git-send-email-ray.huang@amd.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Date: Wed, 09 Mar 2016 21:35:22 +0000
+Subject: [lm-sensors] [PATCH 00/13] thermal: convert users of thermal_zone_of_sensor_register to devm_
+Message-Id: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, spg_linux_kernel@amd.com, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Eduardo Valentin <edubezval@gmail.com>
 
-Hi Guenter,
+Hello,
 
-This serial of patches introduces an accumulated power reporting
-algorithm. It will calculate the average power consumption for the
-processor. The cpu feature flag is CPUID.8000_0007H:EDX[12].
+Given that now we have a devm version of thermal_zone_of_sensor_register [1],
+I am sending this series of patches to convert its users to use the devm_
+API.
 
-This algorithm is used to test the comparison of processor power
-consumption with between MWAITX delay and TSC delay on AMD Carrizo
-platforms.
+Driver's authors, please comment.
 
-Reference:
-https://lkml.kernel.org/r/1438744732-1459-1-git-send-email-ray.huang@amd.com
+BR,
 
-Commit f96756 at tip ("x86/asm: Add MONITORX/MWAITX instruction support")
-Commit b466bd at tip ("x86/asm/delay: Introduce an MWAITX-based delay with a configurable timer")
+Eduardo Valentin (13):
+  hwmon: convert lm75 to use devm_thermal_zone_of_sensor_register
+  hwmon: convert ntc_thermistor to use
+    devm_thermal_zone_of_sensor_register
+  hwmon: convert tmp102 to use devm_thermal_zone_of_sensor_register
+  hwmon: convert scpi-hwmon to use devm_thermal_zone_of_sensor_register
+  input: convert sun4i-ts to use devm_thermal_zone_of_sensor_register
+  thermal: convert hisi_thermal to use
+    devm_thermal_zone_of_sensor_register
+  thermal: convert mtk_thermal to use
+    devm_thermal_zone_of_sensor_register
+  thermal: convert qcom-spmi to use devm_thermal_zone_of_sensor_register
+  thermal: convert rcar_thermal to use
+    devm_thermal_zone_of_sensor_register
+  thermal: convert rockchip_thermal to use
+    devm_thermal_zone_of_sensor_register
+  thermal: convert exynos to use devm_thermal_zone_of_sensor_register
+  thermal: convert tegra_thermal to use
+    devm_thermal_zone_of_sensor_register
+  thermal: convert ti-thermal to use
+    devm_thermal_zone_of_sensor_register
 
-V1: https://lkml.kernel.org/r/1440662866-28716-1-git-send-email-ray.huang@amd.com
-V2: https://lkml.kernel.org/r/1445308109-17970-1-git-send-email-ray.huang@amd.com
-V3: https://lkml.kernel.org/r/1446199024-1896-1-git-send-email-ray.huang@amd.com
-
-V3 is blocked by the patch "x86, amd: add accessor for number of cores
-per compute unit", but now we can use smp_num_siblings instead of
-cores_per_cu accessor. So resend the V4 now, for detailed info, please
-check:
-
-https://lkml.kernel.org/r/1449719771-12837-1-git-send-email-ray.huang@amd.com
-
-
-Changes from v1 -> v2:
-- Move fam15h_power_groups and fam15h_power_group into fam15h_power_data to
-  avoid overwrite on multi-CPU system.
-- Rename FAM15H_MIN_NUM_ATTRS macro and fix return error code.
-- Remove unnecessary warning print.
-- Adds do_read_registers_on_cu to do all the read to all MSRs and run it on one
-  of the online cores on each compute unit with smp_call_function_many().
-- Use power1_average and power1_average_interval standard entry
-  instread of power1_acc
-- Fix the CPU-hotplug case.
-
-Changes from v2 -> v3:
-- As Guenter's suggestion, remove typecast, use &data->groups[0].
-- Remove all "fam15_power_*" prefix at data.
-- Remove unnecessary ( ).
-- Fix the issue that is reported by build test robot, and add
-  CPU_SUP_AMD as the dependence of fam15h_power
-- Remove the WARN_ON at do_read_registers_on_cu, because it must be
-  behind CPUID check. The MSR must be available since
-  CPUID.8000_0007H:EDX[12] is set 
-- Add get_online_cpus()/put_online_cpus() functions.
-- Refine commments and the method which generate cpumask for cu.
-- Add the interval scope to make the value suitable for user
-  experience
-- Remove the useless mutex.
-
-Changes from v3 -> v4:
-- Rebase the patches to latest groeck/hwmon-next.
-- Use smp_num_siblings instead of cores_per_cu accessor.
-- Refine the cpumask method which is inspired by perf solution.
-- Fix some typo and errors.
-
-
-A simple example:
-
-ray@hr-ub:~/tip$ sensors
-fam15h_power-pci-00c4
-Adapter: PCI adapter
-power1:       19.58 mW (avg =   2.55 mW, interval =   0.01 s)
-                       (crit =  15.00 W)
-
-...
-
-These patches are rebased on groeck/hwmon-next.
-
-Thanks,
-Rui
-
-
-Huang Rui (6):
-  hwmon: (fam15h_power) Add CPU_SUP_AMD as the dependence
-  hwmon: (fam15h_power) Add compute unit accumulated power
-  hwmon: (fam15h_power) Add ptsc counter value for accumulated power
-  hwmon: (fam15h_power) Introduce a cpu accumulated power reporting
-    algorithm
-  hwmon: (fam15h_power) Add documentation for TDP and accumulated power
-    algorithm
-  hwmon: (fam15h_power) Add platform check function
-
- Documentation/hwmon/fam15h_power |  57 +++++++++++-
- drivers/hwmon/Kconfig            |   2 +-
- drivers/hwmon/fam15h_power.c     | 191 ++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 244 insertions(+), 6 deletions(-)
+ drivers/hwmon/lm75.c                               | 10 ++----
+ drivers/hwmon/ntc_thermistor.c                     | 12 +++----
+ drivers/hwmon/scpi-hwmon.c                         | 41 +++++-----------------
+ drivers/hwmon/tmp102.c                             |  8 ++---
+ drivers/input/touchscreen/sun4i-ts.c               |  9 +----
+ drivers/thermal/hisi_thermal.c                     |  5 ++-
+ drivers/thermal/mtk_thermal.c                      | 12 ++-----
+ drivers/thermal/qcom-spmi-temp-alarm.c             |  3 +-
+ drivers/thermal/rcar_thermal.c                     |  2 +-
+ drivers/thermal/rockchip_thermal.c                 | 17 +++------
+ drivers/thermal/samsung/exynos_tmu.c               | 12 +++----
+ drivers/thermal/tegra_soctherm.c                   | 31 +++++-----------
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  5 +--
+ 13 files changed, 42 insertions(+), 125 deletions(-)
 
 -- 
-1.9.1
+2.1.4
 
 
 _______________________________________________
