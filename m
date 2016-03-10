@@ -1,116 +1,72 @@
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Date: Wed, 09 Mar 2016 22:23:14 +0000
+From: Caesar Wang <caesar.upstream@gmail.com>
+Date: Thu, 10 Mar 2016 02:36:35 +0000
 Subject: Re: [lm-sensors] [PATCH 10/13] thermal: convert rockchip_thermal to use devm_thermal_zone_of_sensor_
-Message-Id: <8638741.XZr7Brn4dS@diego>
+Message-Id: <56E0DDB3.8080405@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1457559336-17652-1-git-send-email-edubezval@gmail.com> <1457559336-17652-11-git-send-email-edubezval@gmail.com>
+References: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
+ <1457559336-17652-11-git-send-email-edubezval@gmail.com>
 In-Reply-To: <1457559336-17652-11-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Eduardo Valentin <edubezval@gmail.com>, Shawn Lin <shawn.lin@rock-chips.com>, Caesar Wang <caesar.upstream@gmail.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-arm-kernel@lists.infradead.org, linux-rockchip@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Rui Zhang <rui.zhang@intel.com>, Heiko Stuebner <heiko@sntech.de>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-Am Mittwoch, 9. M=E4rz 2016, 13:35:32 schrieb Eduardo Valentin:
-> This changes the driver to use the devm_ version
-> of thermal_zone_of_sensor_register and cleans
-> up the  local points and unregister calls.
->=20
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Heiko Stuebner <heiko@sntech.de>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-rockchip@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-
-to me this looks ok
-Reviewed-by: Heiko Stuebner <heiko@sntech.de>
-
-I've also added in some Rockchip people that were working on the driver in =
-the=20
-past.
-
-
-Heiko
-
-> ---
->  drivers/thermal/rockchip_thermal.c | 17 ++++-------------
->  1 file changed, 4 insertions(+), 13 deletions(-)
->=20
-> diff --git a/drivers/thermal/rockchip_thermal.c
-> b/drivers/thermal/rockchip_thermal.c index b58e3fb..792c5d0 100644
-> --- a/drivers/thermal/rockchip_thermal.c
-> +++ b/drivers/thermal/rockchip_thermal.c
-> @@ -753,8 +753,8 @@ rockchip_thermal_register_sensor(struct platform_devi=
-ce
-> *pdev,
->=20
->  	sensor->thermal =3D thermal;
->  	sensor->id =3D id;
-> -	sensor->tzd =3D thermal_zone_of_sensor_register(&pdev->dev, id, sensor,
-> -						      &rockchip_of_thermal_ops);
-> +	sensor->tzd =3D devm_thermal_zone_of_sensor_register(&pdev->dev, id,
-> +					sensor, &rockchip_of_thermal_ops);
->  	if (IS_ERR(sensor->tzd)) {
->  		error =3D PTR_ERR(sensor->tzd);
->  		dev_err(&pdev->dev, "failed to register sensor %d: %d\n",
-> @@ -782,7 +782,7 @@ static int rockchip_thermal_probe(struct platform_dev=
-ice
-> *pdev) const struct of_device_id *match;
->  	struct resource *res;
->  	int irq;
-> -	int i, j;
-> +	int i;
->  	int error;
->=20
->  	match =3D of_match_node(of_rockchip_thermal_match, np);
-> @@ -865,9 +865,6 @@ static int rockchip_thermal_probe(struct platform_dev=
-ice
-> *pdev) dev_err(&pdev->dev,
->  				"failed to register sensor[%d] : error =3D %d\n",
->  				i, error);
-> -			for (j =3D 0; j < i; j++)
-> -				thermal_zone_of_sensor_unregister(&pdev->dev,
-> -						thermal->sensors[j].tzd);
->  			goto err_disable_pclk;
->  		}
->  	}
-> @@ -879,7 +876,7 @@ static int rockchip_thermal_probe(struct platform_dev=
-ice
-> *pdev) if (error) {
->  		dev_err(&pdev->dev,
->  			"failed to request tsadc irq: %d\n", error);
-> -		goto err_unregister_sensor;
-> +		goto err_disable_pclk;
->  	}
->=20
->  	thermal->chip->control(thermal->regs, true);
-> @@ -891,11 +888,6 @@ static int rockchip_thermal_probe(struct
-> platform_device *pdev)
->=20
->  	return 0;
->=20
-> -err_unregister_sensor:
-> -	while (i--)
-> -		thermal_zone_of_sensor_unregister(&pdev->dev,
-> -						  thermal->sensors[i].tzd);
-> -
->  err_disable_pclk:
->  	clk_disable_unprepare(thermal->pclk);
->  err_disable_clk:
-> @@ -913,7 +905,6 @@ static int rockchip_thermal_remove(struct
-> platform_device *pdev) struct rockchip_thermal_sensor *sensor =3D
-> &thermal->sensors[i];
->=20
->  		rockchip_thermal_toggle_sensor(sensor, false);
-> -		thermal_zone_of_sensor_unregister(&pdev->dev, sensor->tzd);
->  	}
->=20
->  	thermal->chip->control(thermal->regs, false);
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+CgrlnKggMjAxNuW5tDAz5pyIMTDml6UgMDU6MzUsIEVkdWFyZG8gVmFsZW50aW4g5YaZ6YGTOgo+
+IFRoaXMgY2hhbmdlcyB0aGUgZHJpdmVyIHRvIHVzZSB0aGUgZGV2bV8gdmVyc2lvbgo+IG9mIHRo
+ZXJtYWxfem9uZV9vZl9zZW5zb3JfcmVnaXN0ZXIgYW5kIGNsZWFucwo+IHVwIHRoZSAgbG9jYWwg
+cG9pbnRzIGFuZCB1bnJlZ2lzdGVyIGNhbGxzLgo+Cj4gQ2M6IFpoYW5nIFJ1aSA8cnVpLnpoYW5n
+QGludGVsLmNvbT4KPiBDYzogSGVpa28gU3R1ZWJuZXIgPGhlaWtvQHNudGVjaC5kZT4KPiBDYzog
+bGludXgtcG1Admdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZwo+IENjOiBsaW51eC1yb2NrY2hpcEBsaXN0cy5pbmZyYWRlYWQub3JnCj4gQ2M6
+IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKPiBTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZh
+bGVudGluIDxlZHViZXp2YWxAZ21haWwuY29tPgoKVGVzdGVkLWJ5OiBDYWVzYXIgV2FuZyA8d3h0
+QHJvY2stY2hpcHMuY29tPgpSZXZpZXdlZC1ieTogQ2Flc2FyIFdhbmcgPHd4dEByb2NrLWNoaXBz
+LmNvbT4KCkkganVzdCBjaGVycnktcGljayB0aGUgZGV2bSogcGF0Y2hlcyB0byB0ZXN0IHRoZSBy
+b2NrY2hpcCB0aGVybWFsLgoKPiAtLS0KPiAgIGRyaXZlcnMvdGhlcm1hbC9yb2NrY2hpcF90aGVy
+bWFsLmMgfCAxNyArKysrLS0tLS0tLS0tLS0tLQo+ICAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0
+aW9ucygrKSwgMTMgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy90aGVybWFs
+L3JvY2tjaGlwX3RoZXJtYWwuYyBiL2RyaXZlcnMvdGhlcm1hbC9yb2NrY2hpcF90aGVybWFsLmMK
+PiBpbmRleCBiNThlM2ZiLi43OTJjNWQwIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvdGhlcm1hbC9y
+b2NrY2hpcF90aGVybWFsLmMKPiArKysgYi9kcml2ZXJzL3RoZXJtYWwvcm9ja2NoaXBfdGhlcm1h
+bC5jCj4gQEAgLTc1Myw4ICs3NTMsOCBAQCByb2NrY2hpcF90aGVybWFsX3JlZ2lzdGVyX3NlbnNv
+cihzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2LAo+ICAgCj4gICAJc2Vuc29yLT50aGVybWFs
+ID0gdGhlcm1hbDsKPiAgIAlzZW5zb3ItPmlkID0gaWQ7Cj4gLQlzZW5zb3ItPnR6ZCA9IHRoZXJt
+YWxfem9uZV9vZl9zZW5zb3JfcmVnaXN0ZXIoJnBkZXYtPmRldiwgaWQsIHNlbnNvciwKPiAtCQkJ
+CQkJICAgICAgJnJvY2tjaGlwX29mX3RoZXJtYWxfb3BzKTsKPiArCXNlbnNvci0+dHpkID0gZGV2
+bV90aGVybWFsX3pvbmVfb2Zfc2Vuc29yX3JlZ2lzdGVyKCZwZGV2LT5kZXYsIGlkLAo+ICsJCQkJ
+CXNlbnNvciwgJnJvY2tjaGlwX29mX3RoZXJtYWxfb3BzKTsKPiAgIAlpZiAoSVNfRVJSKHNlbnNv
+ci0+dHpkKSkgewo+ICAgCQllcnJvciA9IFBUUl9FUlIoc2Vuc29yLT50emQpOwo+ICAgCQlkZXZf
+ZXJyKCZwZGV2LT5kZXYsICJmYWlsZWQgdG8gcmVnaXN0ZXIgc2Vuc29yICVkOiAlZFxuIiwKPiBA
+QCAtNzgyLDcgKzc4Miw3IEBAIHN0YXRpYyBpbnQgcm9ja2NoaXBfdGhlcm1hbF9wcm9iZShzdHJ1
+Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAgCWNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQg
+Km1hdGNoOwo+ICAgCXN0cnVjdCByZXNvdXJjZSAqcmVzOwo+ICAgCWludCBpcnE7Cj4gLQlpbnQg
+aSwgajsKPiArCWludCBpOwo+ICAgCWludCBlcnJvcjsKPiAgIAo+ICAgCW1hdGNoID0gb2ZfbWF0
+Y2hfbm9kZShvZl9yb2NrY2hpcF90aGVybWFsX21hdGNoLCBucCk7Cj4gQEAgLTg2NSw5ICs4NjUs
+NiBAQCBzdGF0aWMgaW50IHJvY2tjaGlwX3RoZXJtYWxfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rl
+dmljZSAqcGRldikKPiAgIAkJCWRldl9lcnIoJnBkZXYtPmRldiwKPiAgIAkJCQkiZmFpbGVkIHRv
+IHJlZ2lzdGVyIHNlbnNvclslZF0gOiBlcnJvciA9ICVkXG4iLAo+ICAgCQkJCWksIGVycm9yKTsK
+PiAtCQkJZm9yIChqID0gMDsgaiA8IGk7IGorKykKPiAtCQkJCXRoZXJtYWxfem9uZV9vZl9zZW5z
+b3JfdW5yZWdpc3RlcigmcGRldi0+ZGV2LAo+IC0JCQkJCQl0aGVybWFsLT5zZW5zb3JzW2pdLnR6
+ZCk7Cj4gICAJCQlnb3RvIGVycl9kaXNhYmxlX3BjbGs7Cj4gICAJCX0KPiAgIAl9Cj4gQEAgLTg3
+OSw3ICs4NzYsNyBAQCBzdGF0aWMgaW50IHJvY2tjaGlwX3RoZXJtYWxfcHJvYmUoc3RydWN0IHBs
+YXRmb3JtX2RldmljZSAqcGRldikKPiAgIAlpZiAoZXJyb3IpIHsKPiAgIAkJZGV2X2VycigmcGRl
+di0+ZGV2LAo+ICAgCQkJImZhaWxlZCB0byByZXF1ZXN0IHRzYWRjIGlycTogJWRcbiIsIGVycm9y
+KTsKPiAtCQlnb3RvIGVycl91bnJlZ2lzdGVyX3NlbnNvcjsKPiArCQlnb3RvIGVycl9kaXNhYmxl
+X3BjbGs7Cj4gICAJfQo+ICAgCj4gICAJdGhlcm1hbC0+Y2hpcC0+Y29udHJvbCh0aGVybWFsLT5y
+ZWdzLCB0cnVlKTsKPiBAQCAtODkxLDExICs4ODgsNiBAQCBzdGF0aWMgaW50IHJvY2tjaGlwX3Ro
+ZXJtYWxfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgIAo+ICAgCXJldHVy
+biAwOwo+ICAgCj4gLWVycl91bnJlZ2lzdGVyX3NlbnNvcjoKPiAtCXdoaWxlIChpLS0pCj4gLQkJ
+dGhlcm1hbF96b25lX29mX3NlbnNvcl91bnJlZ2lzdGVyKCZwZGV2LT5kZXYsCj4gLQkJCQkJCSAg
+dGhlcm1hbC0+c2Vuc29yc1tpXS50emQpOwo+IC0KPiAgIGVycl9kaXNhYmxlX3BjbGs6Cj4gICAJ
+Y2xrX2Rpc2FibGVfdW5wcmVwYXJlKHRoZXJtYWwtPnBjbGspOwo+ICAgZXJyX2Rpc2FibGVfY2xr
+Ogo+IEBAIC05MTMsNyArOTA1LDYgQEAgc3RhdGljIGludCByb2NrY2hpcF90aGVybWFsX3JlbW92
+ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAgCQlzdHJ1Y3Qgcm9ja2NoaXBfdGhl
+cm1hbF9zZW5zb3IgKnNlbnNvciA9ICZ0aGVybWFsLT5zZW5zb3JzW2ldOwo+ICAgCj4gICAJCXJv
+Y2tjaGlwX3RoZXJtYWxfdG9nZ2xlX3NlbnNvcihzZW5zb3IsIGZhbHNlKTsKPiAtCQl0aGVybWFs
+X3pvbmVfb2Zfc2Vuc29yX3VucmVnaXN0ZXIoJnBkZXYtPmRldiwgc2Vuc29yLT50emQpOwo+ICAg
+CX0KPiAgIAo+ICAgCXRoZXJtYWwtPmNoaXAtPmNvbnRyb2wodGhlcm1hbC0+cmVncywgZmFsc2Up
+OwoKCi0tIApUaGFua3MsCkNhZXNhcgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
+c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
+c2Vuc29ycw=
