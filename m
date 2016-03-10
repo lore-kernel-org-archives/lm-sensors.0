@@ -1,115 +1,74 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Date: Wed, 09 Mar 2016 21:35:34 +0000
-Subject: [lm-sensors] [PATCH 12/13] thermal: convert tegra_thermal to use devm_thermal_zone_of_sensor_registe
-Message-Id: <1457559336-17652-13-git-send-email-edubezval@gmail.com>
+From: Wei Ni <wni@nvidia.com>
+Date: Thu, 10 Mar 2016 08:46:55 +0000
+Subject: Re: [lm-sensors] [PATCH 12/13] thermal: convert tegra_thermal to use devm_thermal_zone_of_sensor_reg
+Message-Id: <56E1347F.8040406@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
+References: <1457559336-17652-1-git-send-email-edubezval@gmail.com> <1457559336-17652-13-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1457559336-17652-13-git-send-email-edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Eduardo Valentin <edubezval@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-tegra@vger.kernel.org
+To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rui Zhang <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-This changes the driver to use the devm_ version
-of thermal_zone_of_sensor_register and cleans
-up the  local points and unregister calls.
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
----
- drivers/thermal/tegra_soctherm.c | 31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/thermal/tegra_soctherm.c b/drivers/thermal/tegra_soctherm.c
-index 74ea576..0018ccd 100644
---- a/drivers/thermal/tegra_soctherm.c
-+++ b/drivers/thermal/tegra_soctherm.c
-@@ -168,7 +168,7 @@ struct tegra_soctherm {
- 	struct clk *clock_soctherm;
- 	void __iomem *regs;
- 
--	struct thermal_zone_device *thermctl_tzs[4];
-+#define ZONE_NUMBER		4
- };
- 
- struct tsensor_shared_calibration {
-@@ -342,7 +342,7 @@ static const struct thermctl_zone_desc t124_thermctl_temp_zones[] = {
- static int tegra_soctherm_probe(struct platform_device *pdev)
- {
- 	struct tegra_soctherm *tegra;
--	struct thermal_zone_device *tz;
-+	struct thermal_zone_device *z;
- 	struct tsensor_shared_calibration shared_calib;
- 	struct resource *res;
- 	unsigned int i;
-@@ -408,36 +408,29 @@ static int tegra_soctherm_probe(struct platform_device *pdev)
- 
- 	/* Initialize thermctl sensors */
- 
--	for (i = 0; i < ARRAY_SIZE(tegra->thermctl_tzs); ++i) {
-+	for (i = 0; i < ZONE_NUMBER; ++i) {
- 		struct tegra_thermctl_zone *zone  			devm_kzalloc(&pdev->dev, sizeof(*zone), GFP_KERNEL);
- 		if (!zone) {
- 			err = -ENOMEM;
--			goto unregister_tzs;
-+			goto disable_clocks;
- 		}
- 
- 		zone->reg = tegra->regs + t124_thermctl_temp_zones[i].offset;
- 		zone->shift = t124_thermctl_temp_zones[i].shift;
- 
--		tz = thermal_zone_of_sensor_register(&pdev->dev, i, zone,
--						     &tegra_of_thermal_ops);
--		if (IS_ERR(tz)) {
--			err = PTR_ERR(tz);
-+		z = devm_thermal_zone_of_sensor_register(&pdev->dev, i, zone,
-+							 &tegra_of_thermal_ops);
-+		if (IS_ERR(z)) {
-+			err = PTR_ERR(z);
- 			dev_err(&pdev->dev, "failed to register sensor: %d\n",
- 				err);
--			goto unregister_tzs;
-+			goto disable_clocks;
- 		}
--
--		tegra->thermctl_tzs[i] = tz;
- 	}
- 
- 	return 0;
- 
--unregister_tzs:
--	while (i--)
--		thermal_zone_of_sensor_unregister(&pdev->dev,
--						  tegra->thermctl_tzs[i]);
--
- disable_clocks:
- 	clk_disable_unprepare(tegra->clock_tsensor);
- 	clk_disable_unprepare(tegra->clock_soctherm);
-@@ -448,12 +441,6 @@ disable_clocks:
- static int tegra_soctherm_remove(struct platform_device *pdev)
- {
- 	struct tegra_soctherm *tegra = platform_get_drvdata(pdev);
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(tegra->thermctl_tzs); ++i) {
--		thermal_zone_of_sensor_unregister(&pdev->dev,
--						  tegra->thermctl_tzs[i]);
--	}
- 
- 	clk_disable_unprepare(tegra->clock_tsensor);
- 	clk_disable_unprepare(tegra->clock_soctherm);
--- 
-2.1.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+CgpPbiAyMDE25bm0MDPmnIgxMOaXpSAwNTozNSwgRWR1YXJkbyBWYWxlbnRpbiB3cm90ZToKPiBU
+aGlzIGNoYW5nZXMgdGhlIGRyaXZlciB0byB1c2UgdGhlIGRldm1fIHZlcnNpb24KPiBvZiB0aGVy
+bWFsX3pvbmVfb2Zfc2Vuc29yX3JlZ2lzdGVyIGFuZCBjbGVhbnMKPiB1cCB0aGUgIGxvY2FsIHBv
+aW50cyBhbmQgdW5yZWdpc3RlciBjYWxscy4KPiAKPiBDYzogWmhhbmcgUnVpIDxydWkuemhhbmdA
+aW50ZWwuY29tPgo+IENjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgo+
+IENjOiBUaGllcnJ5IFJlZGluZyA8dGhpZXJyeS5yZWRpbmdAZ21haWwuY29tPgo+IENjOiBBbGV4
+YW5kcmUgQ291cmJvdCA8Z251cm91QGdtYWlsLmNvbT4KPiBDYzogbGludXgtcG1Admdlci5rZXJu
+ZWwub3JnCj4gQ2M6IGxpbnV4LXRlZ3JhQHZnZXIua2VybmVsLm9yZwo+IENjOiBsaW51eC1rZXJu
+ZWxAdmdlci5rZXJuZWwub3JnCj4gU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1
+YmV6dmFsQGdtYWlsLmNvbT4KPiAtLS0KPiAgZHJpdmVycy90aGVybWFsL3RlZ3JhX3NvY3RoZXJt
+LmMgfCAzMSArKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gIDEgZmlsZSBjaGFuZ2Vk
+LCA5IGluc2VydGlvbnMoKyksIDIyIGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2
+ZXJzL3RoZXJtYWwvdGVncmFfc29jdGhlcm0uYyBiL2RyaXZlcnMvdGhlcm1hbC90ZWdyYV9zb2N0
+aGVybS5jCj4gaW5kZXggNzRlYTU3Ni4uMDAxOGNjZCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3Ro
+ZXJtYWwvdGVncmFfc29jdGhlcm0uYwo+ICsrKyBiL2RyaXZlcnMvdGhlcm1hbC90ZWdyYV9zb2N0
+aGVybS5jCj4gQEAgLTE2OCw3ICsxNjgsNyBAQCBzdHJ1Y3QgdGVncmFfc29jdGhlcm0gewo+ICAJ
+c3RydWN0IGNsayAqY2xvY2tfc29jdGhlcm07Cj4gIAl2b2lkIF9faW9tZW0gKnJlZ3M7Cj4gIAo+
+IC0Jc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnRoZXJtY3RsX3R6c1s0XTsKPiArI2RlZmlu
+ZSBaT05FX05VTUJFUgkJNAo+ICB9Owo+ICAKPiAgc3RydWN0IHRzZW5zb3Jfc2hhcmVkX2NhbGli
+cmF0aW9uIHsKPiBAQCAtMzQyLDcgKzM0Miw3IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgdGhlcm1j
+dGxfem9uZV9kZXNjIHQxMjRfdGhlcm1jdGxfdGVtcF96b25lc1tdID0gewo+ICBzdGF0aWMgaW50
+IHRlZ3JhX3NvY3RoZXJtX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gIHsK
+PiAgCXN0cnVjdCB0ZWdyYV9zb2N0aGVybSAqdGVncmE7Cj4gLQlzdHJ1Y3QgdGhlcm1hbF96b25l
+X2RldmljZSAqdHo7Cj4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqejsKPiAgCXN0cnVj
+dCB0c2Vuc29yX3NoYXJlZF9jYWxpYnJhdGlvbiBzaGFyZWRfY2FsaWI7Cj4gIAlzdHJ1Y3QgcmVz
+b3VyY2UgKnJlczsKPiAgCXVuc2lnbmVkIGludCBpOwo+IEBAIC00MDgsMzYgKzQwOCwyOSBAQCBz
+dGF0aWMgaW50IHRlZ3JhX3NvY3RoZXJtX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBk
+ZXYpCj4gIAo+ICAJLyogSW5pdGlhbGl6ZSB0aGVybWN0bCBzZW5zb3JzICovCj4gIAo+IC0JZm9y
+IChpID0gMDsgaSA8IEFSUkFZX1NJWkUodGVncmEtPnRoZXJtY3RsX3R6cyk7ICsraSkgewo+ICsJ
+Zm9yIChpID0gMDsgaSA8IFpPTkVfTlVNQkVSOyArK2kpIHsKPiAgCQlzdHJ1Y3QgdGVncmFfdGhl
+cm1jdGxfem9uZSAqem9uZSA9Cj4gIAkJCWRldm1fa3phbGxvYygmcGRldi0+ZGV2LCBzaXplb2Yo
+KnpvbmUpLCBHRlBfS0VSTkVMKTsKPiAgCQlpZiAoIXpvbmUpIHsKPiAgCQkJZXJyID0gLUVOT01F
+TTsKPiAtCQkJZ290byB1bnJlZ2lzdGVyX3R6czsKPiArCQkJZ290byBkaXNhYmxlX2Nsb2NrczsK
+PiAgCQl9Cj4gIAo+ICAJCXpvbmUtPnJlZyA9IHRlZ3JhLT5yZWdzICsgdDEyNF90aGVybWN0bF90
+ZW1wX3pvbmVzW2ldLm9mZnNldDsKPiAgCQl6b25lLT5zaGlmdCA9IHQxMjRfdGhlcm1jdGxfdGVt
+cF96b25lc1tpXS5zaGlmdDsKPiAgCj4gLQkJdHogPSB0aGVybWFsX3pvbmVfb2Zfc2Vuc29yX3Jl
+Z2lzdGVyKCZwZGV2LT5kZXYsIGksIHpvbmUsCj4gLQkJCQkJCSAgICAgJnRlZ3JhX29mX3RoZXJt
+YWxfb3BzKTsKPiAtCQlpZiAoSVNfRVJSKHR6KSkgewo+IC0JCQllcnIgPSBQVFJfRVJSKHR6KTsK
+PiArCQl6ID0gZGV2bV90aGVybWFsX3pvbmVfb2Zfc2Vuc29yX3JlZ2lzdGVyKCZwZGV2LT5kZXYs
+IGksIHpvbmUsCgpJIHByZWZlciB0byBzdGlsbCB1c2UgInR6IiwgaXQgc2VlbXMgdGhpcyBsaW5l
+IGlzbid0IG92ZXIgODAgY2hhcmFjdGVycywgb3Igd2UKY2FuIGFkZCBuZXdsaW5lLgoKPiArCQkJ
+CQkJCSAmdGVncmFfb2ZfdGhlcm1hbF9vcHMpOwo+ICsJCWlmIChJU19FUlIoeikpIHsKPiArCQkJ
+ZXJyID0gUFRSX0VSUih6KTsKPiAgCQkJZGV2X2VycigmcGRldi0+ZGV2LCAiZmFpbGVkIHRvIHJl
+Z2lzdGVyIHNlbnNvcjogJWRcbiIsCj4gIAkJCQllcnIpOwo+IC0JCQlnb3RvIHVucmVnaXN0ZXJf
+dHpzOwo+ICsJCQlnb3RvIGRpc2FibGVfY2xvY2tzOwo+ICAJCX0KPiAtCj4gLQkJdGVncmEtPnRo
+ZXJtY3RsX3R6c1tpXSA9IHR6Owo+ICAJfQo+ICAKPiAgCXJldHVybiAwOwo+ICAKPiAtdW5yZWdp
+c3Rlcl90enM6Cj4gLQl3aGlsZSAoaS0tKQo+IC0JCXRoZXJtYWxfem9uZV9vZl9zZW5zb3JfdW5y
+ZWdpc3RlcigmcGRldi0+ZGV2LAo+IC0JCQkJCQkgIHRlZ3JhLT50aGVybWN0bF90enNbaV0pOwo+
+IC0KPiAgZGlzYWJsZV9jbG9ja3M6Cj4gIAljbGtfZGlzYWJsZV91bnByZXBhcmUodGVncmEtPmNs
+b2NrX3RzZW5zb3IpOwo+ICAJY2xrX2Rpc2FibGVfdW5wcmVwYXJlKHRlZ3JhLT5jbG9ja19zb2N0
+aGVybSk7Cj4gQEAgLTQ0OCwxMiArNDQxLDYgQEAgZGlzYWJsZV9jbG9ja3M6Cj4gIHN0YXRpYyBp
+bnQgdGVncmFfc29jdGhlcm1fcmVtb3ZlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4g
+IHsKPiAgCXN0cnVjdCB0ZWdyYV9zb2N0aGVybSAqdGVncmEgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0
+YShwZGV2KTsKPiAtCXVuc2lnbmVkIGludCBpOwo+IC0KPiAtCWZvciAoaSA9IDA7IGkgPCBBUlJB
+WV9TSVpFKHRlZ3JhLT50aGVybWN0bF90enMpOyArK2kpIHsKPiAtCQl0aGVybWFsX3pvbmVfb2Zf
+c2Vuc29yX3VucmVnaXN0ZXIoJnBkZXYtPmRldiwKPiAtCQkJCQkJICB0ZWdyYS0+dGhlcm1jdGxf
+dHpzW2ldKTsKPiAtCX0KPiAgCj4gIAljbGtfZGlzYWJsZV91bnByZXBhcmUodGVncmEtPmNsb2Nr
+X3RzZW5zb3IpOwo+ICAJY2xrX2Rpc2FibGVfdW5wcmVwYXJlKHRlZ3JhLT5jbG9ja19zb2N0aGVy
+bSk7Cj4gCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
+aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
