@@ -1,23 +1,23 @@
 From: kbuild test robot <lkp@intel.com>
-Date: Thu, 10 Mar 2016 00:14:08 +0000
+Date: Thu, 10 Mar 2016 02:16:57 +0000
 Subject: Re: [lm-sensors] [PATCH 02/13] hwmon: convert ntc_thermistor to use devm_thermal_zone_of_sensor_regi
-Message-Id: <201603100848.txDpqq9E%fengguang.wu@intel.com>
+Message-Id: <201603101007.x1chu1WS%fengguang.wu@intel.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="2oS5YaxWCcQjTEyO"
+Content-Type: multipart/mixed; boundary="AhhlLboLdkugWU4S"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1457559336-17652-3-git-send-email-edubezval@gmail.com>
 In-Reply-To: <1457559336-17652-3-git-send-email-edubezval@gmail.com>
 To: lm-sensors@vger.kernel.org
 
 
---2oS5YaxWCcQjTEyO
+--AhhlLboLdkugWU4S
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi Eduardo,
 
-[auto build test WARNING on soc-thermal/next]
-[also build test WARNING on v4.5-rc7 next-20160309]
+[auto build test ERROR on soc-thermal/next]
+[also build test ERROR on v4.5-rc7 next-20160309]
 [cannot apply to thermal/next]
 [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
 
@@ -30,29 +30,19 @@ reproduce:
         # save the attached .config to linux build tree
         make.cross ARCH=xtensa 
 
-All warnings (new ones prefixed by >>):
+All errors (new ones prefixed by >>):
 
    drivers/hwmon/ntc_thermistor.c: In function 'ntc_thermistor_probe':
-   drivers/hwmon/ntc_thermistor.c:636:2: error: implicit declaration of function 'devm_thermal_zone_of_sensor_register' [-Werror=implicit-function-declaration]
+>> drivers/hwmon/ntc_thermistor.c:636:2: error: implicit declaration of function 'devm_thermal_zone_of_sensor_register' [-Werror=implicit-function-declaration]
      tz = devm_thermal_zone_of_sensor_register(data->dev, 0, data->dev,
      ^
->> drivers/hwmon/ntc_thermistor.c:636:5: warning: assignment makes pointer from integer without a cast
+   drivers/hwmon/ntc_thermistor.c:636:5: warning: assignment makes pointer from integer without a cast
      tz = devm_thermal_zone_of_sensor_register(data->dev, 0, data->dev,
         ^
    cc1: some warnings being treated as errors
 
-vim +636 drivers/hwmon/ntc_thermistor.c
+vim +/devm_thermal_zone_of_sensor_register +636 drivers/hwmon/ntc_thermistor.c
 
-   620		ret = sysfs_create_group(&data->dev->kobj, &ntc_attr_group);
-   621		if (ret) {
-   622			dev_err(data->dev, "unable to create sysfs files\n");
-   623			return ret;
-   624		}
-   625	
-   626		data->hwmon_dev = hwmon_device_register(data->dev);
-   627		if (IS_ERR(data->hwmon_dev)) {
-   628			dev_err(data->dev, "unable to register as hwmon device.\n");
-   629			ret = PTR_ERR(data->hwmon_dev);
    630			goto err_after_sysfs;
    631		}
    632	
@@ -63,22 +53,17 @@ vim +636 drivers/hwmon/ntc_thermistor.c
    637							  &ntc_of_thermal_ops);
    638		if (IS_ERR(tz))
    639			dev_dbg(&pdev->dev, "Failed to register to thermal fw.\n");
-   640	
-   641		return 0;
-   642	err_after_sysfs:
-   643		sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
-   644		ntc_iio_channel_release(pdata);
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---2oS5YaxWCcQjTEyO
+--AhhlLboLdkugWU4S
 Content-Type: application/octet-stream
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICFm64FYAAy5jb25maWcAlFxdc9u4kn2/v0KV2Yfdqp2J7SSazG75AQRBCVckQROg/PHC
+H4sICHnP4FYAAy5jb25maWcAlFxdc9u4kn2/v0KV2Yfdqp2J7SSazG75AQRBCVckQROg/PHC
 Uhwl4xrHyrXkuTP/frtBUsRHU84+zMQ8pwECDaDR3QD10z9+mrGXw+7b5vBwv3l8/Hv2dfu0
 fd4ctp9nXx4et/87S9WsVGYmUml+AeH84enlr7d/HbZP+83s/S8ffjn7+fl+Plttn5+2jzO+
 e/ry8PUFyj/snv7x0z+4KjO5aO9UKdq0YJd/D8iNEaV2nutrLYr2hi8XLE1bli9ULc2yGAUW
@@ -896,7 +881,7 @@ gT4PqHeODmAQLXRR0mwB8zQpBR+LlOUxN0yXh0sHoYPQQBcHdv0mQp8PNEzCQJgPLxIKVNAK
 iYBjOHR9dhBeduLUJBG+CtDp7EBvfzDw9OQwZatXgT5vEV93hhWj6/ACR5zSCeX6D0XgunEr
 wAIA
 
---2oS5YaxWCcQjTEyO
+--AhhlLboLdkugWU4S
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -906,4 +891,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---2oS5YaxWCcQjTEyO--
+--AhhlLboLdkugWU4S--
