@@ -1,7 +1,7 @@
 From: Huang Rui <ray.huang@amd.com>
-Date: Fri, 11 Mar 2016 02:17:48 +0000
-Subject: [lm-sensors] [PATCH v4 4/6] hwmon: (fam15h_power) Introduce a cpu accumulated power reporting algori
-Message-Id: <1457662670-3354-5-git-send-email-ray.huang@amd.com>
+Date: Fri, 11 Mar 2016 02:17:49 +0000
+Subject: [lm-sensors] [PATCH v4 5/6] hwmon: (fam15h_power) Add documentation for TDP and accumulated power al
+Message-Id: <1457662670-3354-6-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1457662670-3354-1-git-send-email-ray.huang@amd.com>
 In-Reply-To: <1457662670-3354-1-git-send-email-ray.huang@amd.com>
@@ -11,111 +11,113 @@ Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, spg_linux_kernel@amd.com, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>
 
-VGhpcyBwYXRjaCBpbnRyb2R1Y2VzIGFuIGFsZ29yaXRobSB0aGF0IGNvbXB1dGVzIHRoZSBhdmVy
-YWdlIHBvd2VyIGJ5CnJlYWRpbmcgYSBkZWx0YSB2YWx1ZSBvZiDigJxjb3JlIHBvd2VyIGFjY3Vt
-dWxhdG9y4oCdIHJlZ2lzdGVyIGR1cmluZwptZWFzdXJlbWVudCBpbnRlcnZhbCwgYW5kIHRoZW4g
-ZGl2aWRpbmcgZGVsdGEgdmFsdWUgYnkgdGhlIGxlbmd0aCBvZgp0aGUgdGltZSBpbnRlcnZhbC4K
-ClVzZXIgaXMgYWJsZSB0byB1c2UgcG93ZXIxX2F2ZXJhZ2UgZW50cnkgdG8gbWVhc3VyZSB0aGUg
-cHJvY2Vzc29yIHBvd2VyCmNvbnN1bXB0aW9uIGFuZCBwb3dlcjFfYXZlcmFnZV9pbnRlcnZhbCBl
-bnRyeSB0byBzZXQgdGhlIGludGVydmFsLgoKQSBzaW1wbGUgZXhhbXBsZToKCnJheUBoci11Yjp+
-L3RpcCQgc2Vuc29ycwpmYW0xNWhfcG93ZXItcGNpLTAwYzQKQWRhcHRlcjogUENJIGFkYXB0ZXIK
-cG93ZXIxOiAgICAgICAxOS41OCBtVyAoYXZnID0gICAyLjU1IG1XLCBpbnRlcnZhbCA9ICAgMC4w
-MSBzKQogICAgICAgICAgICAgICAgICAgICAgIChjcml0ID0gIDE1LjAwIFcpCgouLi4KClRoZSBy
-ZXN1bHQgaXMgY3VycmVudCBhdmVyYWdlIHByb2Nlc3NvciBwb3dlciBjb25zdW1wdGlvbiBpbiAx
-MAptaWxsaXNlY29uZC4gVGhlIHVuaXQgb2YgdGhlIHJlc3VsdCBpcyB1V2F0dC4KClN1Z2dlc3Rl
-ZC1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgpTaWduZWQtb2ZmLWJ5OiBI
-dWFuZyBSdWkgPHJheS5odWFuZ0BhbWQuY29tPgpDYzogQm9yaXNsYXYgUGV0a292IDxicEBhbGll
-bjguZGU+Ci0tLQogZHJpdmVycy9od21vbi9mYW0xNWhfcG93ZXIuYyB8IDExNSArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMTE1IGlu
-c2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2ZhbTE1aF9wb3dlci5jIGIv
-ZHJpdmVycy9od21vbi9mYW0xNWhfcG93ZXIuYwppbmRleCA3MmFlZjQ3Li40NmNiY2EwIDEwMDY0
-NAotLS0gYS9kcml2ZXJzL2h3bW9uL2ZhbTE1aF9wb3dlci5jCisrKyBiL2RyaXZlcnMvaHdtb24v
-ZmFtMTVoX3Bvd2VyLmMKQEAgLTI3LDYgKzI3LDggQEAKICNpbmNsdWRlIDxsaW51eC9iaXRvcHMu
-aD4KICNpbmNsdWRlIDxsaW51eC9jcHUuaD4KICNpbmNsdWRlIDxsaW51eC9jcHVtYXNrLmg+Cisj
-aW5jbHVkZSA8bGludXgvdGltZS5oPgorI2luY2x1ZGUgPGxpbnV4L3NjaGVkLmg+CiAjaW5jbHVk
-ZSA8YXNtL3Byb2Nlc3Nvci5oPgogI2luY2x1ZGUgPGFzbS9tc3IuaD4KIApAQCAtNDgsNiArNTAs
-OSBAQCBNT0RVTEVfTElDRU5TRSgiR1BMIik7CiAjZGVmaW5lIEZBTTE1SF9OVU1fR1JPVVBTCQky
-CiAjZGVmaW5lIE1BWF9DVVMJCQkJOAogCisvKiBzZXQgbWF4aW11bSBpbnRlcnZhbCBhcyAxIHNl
-Y29uZCAqLworI2RlZmluZSBNQVhfSU5URVJWQUwJCQkxMDAwCisKICNkZWZpbmUgTVNSX0YxNUhf
-Q1VfUFdSX0FDQ1VNVUxBVE9SCTB4YzAwMTAwN2EKICNkZWZpbmUgTVNSX0YxNUhfQ1VfTUFYX1BX
-Ul9BQ0NVTVVMQVRPUgkweGMwMDEwMDdiCiAjZGVmaW5lIE1TUl9GMTVIX1BUU0MJCQkweGMwMDEw
-MjgwCkBAIC02OCw2ICs3Myw5IEBAIHN0cnVjdCBmYW0xNWhfcG93ZXJfZGF0YSB7CiAJdTY0IGN1
-X2FjY19wb3dlcltNQVhfQ1VTXTsKIAkvKiBwZXJmb3JtYW5jZSB0aW1lc3RhbXAgY291bnRlciAq
-LwogCXU2NCBjcHVfc3dfcHdyX3B0c2NbTUFYX0NVU107CisJLyogb25saW5lL29mZmxpbmUgc3Rh
-dHVzIG9mIGN1cnJlbnQgY29tcHV0ZSB1bml0ICovCisJaW50IGN1X29uW01BWF9DVVNdOworCXVu
-c2lnbmVkIGxvbmcgcG93ZXJfcGVyaW9kOwogfTsKIAogc3RhdGljIHNzaXplX3Qgc2hvd19wb3dl
-cihzdHJ1Y3QgZGV2aWNlICpkZXYsCkBAIC0xNDUsNiArMTUzLDggQEAgc3RhdGljIHZvaWQgZG9f
-cmVhZF9yZWdpc3RlcnNfb25fY3Uodm9pZCAqX2RhdGEpCiAKIAlyZG1zcmxfc2FmZShNU1JfRjE1
-SF9DVV9QV1JfQUNDVU1VTEFUT1IsICZkYXRhLT5jdV9hY2NfcG93ZXJbY3VdKTsKIAlyZG1zcmxf
-c2FmZShNU1JfRjE1SF9QVFNDLCAmZGF0YS0+Y3B1X3N3X3B3cl9wdHNjW2N1XSk7CisKKwlkYXRh
-LT5jdV9vbltjdV0gPSAxOwogfQogCiAvKgpAQCAtMTYxLDYgKzE3MSw4IEBAIHN0YXRpYyBpbnQg
-cmVhZF9yZWdpc3RlcnMoc3RydWN0IGZhbTE1aF9wb3dlcl9kYXRhICpkYXRhKQogCWlmICghcmV0
-KQogCQlyZXR1cm4gLUVOT01FTTsKIAorCW1lbXNldChkYXRhLT5jdV9vbiwgMCwgc2l6ZW9mKGlu
-dCkgKiBNQVhfQ1VTKTsKKwogCWdldF9vbmxpbmVfY3B1cygpOwogCXRoaXNfY3B1ID0gZ2V0X2Nw
-dSgpOwogCkBAIC0xODgsMTggKzIwMCwxMTMgQEAgc3RhdGljIGludCByZWFkX3JlZ2lzdGVycyhz
-dHJ1Y3QgZmFtMTVoX3Bvd2VyX2RhdGEgKmRhdGEpCiAJcmV0dXJuIDA7CiB9CiAKK3N0YXRpYyBz
-c2l6ZV90IGFjY19zaG93X3Bvd2VyKHN0cnVjdCBkZXZpY2UgKmRldiwKKwkJCSAgICAgIHN0cnVj
-dCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCQkJICAgICAgY2hhciAqYnVmKQoreworCXN0cnVj
-dCBmYW0xNWhfcG93ZXJfZGF0YSAqZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOworCXU2NCBw
-cmV2X2N1X2FjY19wb3dlcltNQVhfQ1VTXSwgcHJldl9wdHNjW01BWF9DVVNdLAorCSAgICBqZGVs
-dGFbTUFYX0NVU107CisJdTY0IHRkZWx0YSwgYXZnX2FjYzsKKwlpbnQgY3UsIGN1X251bSwgcmV0
-OworCXNpZ25lZCBsb25nIGxlZnRvdmVyOworCisJY3VfbnVtID0gYm9vdF9jcHVfZGF0YS54ODZf
-bWF4X2NvcmVzIC8gc21wX251bV9zaWJsaW5nczsKKworCXJldCA9IHJlYWRfcmVnaXN0ZXJzKGRh
-dGEpOworCWlmIChyZXQpCisJCXJldHVybiAwOworCisJZm9yIChjdSA9IDA7IGN1IDwgY3VfbnVt
-OyBjdSsrKSB7CisJCXByZXZfY3VfYWNjX3Bvd2VyW2N1XSA9IGRhdGEtPmN1X2FjY19wb3dlcltj
-dV07CisJCXByZXZfcHRzY1tjdV0gPSBkYXRhLT5jcHVfc3dfcHdyX3B0c2NbY3VdOworCX0KKwor
-CWxlZnRvdmVyID0gc2NoZWR1bGVfdGltZW91dF9pbnRlcnJ1cHRpYmxlKG1zZWNzX3RvX2ppZmZp
-ZXMoZGF0YS0+cG93ZXJfcGVyaW9kKSk7CisJaWYgKGxlZnRvdmVyKQorCQlyZXR1cm4gMDsKKwor
-CXJldCA9IHJlYWRfcmVnaXN0ZXJzKGRhdGEpOworCWlmIChyZXQpCisJCXJldHVybiAwOworCisJ
-Zm9yIChjdSA9IDAsIGF2Z19hY2MgPSAwOyBjdSA8IGN1X251bTsgY3UrKykgeworCQkvKiBjaGVj
-ayBpZiBjdXJyZW50IGNvbXB1dGUgdW5pdCBpcyBvbmxpbmUgKi8KKwkJaWYgKGRhdGEtPmN1X29u
-W2N1XSA9PSAwKQorCQkJY29udGludWU7CisKKwkJaWYgKGRhdGEtPmN1X2FjY19wb3dlcltjdV0g
-PCBwcmV2X2N1X2FjY19wb3dlcltjdV0pIHsKKwkJCWpkZWx0YVtjdV0gPSBkYXRhLT5tYXhfY3Vf
-YWNjX3Bvd2VyICsgZGF0YS0+Y3VfYWNjX3Bvd2VyW2N1XTsKKwkJCWpkZWx0YVtjdV0gLT0gcHJl
-dl9jdV9hY2NfcG93ZXJbY3VdOworCQl9IGVsc2UgeworCQkJamRlbHRhW2N1XSA9IGRhdGEtPmN1
-X2FjY19wb3dlcltjdV0gLSBwcmV2X2N1X2FjY19wb3dlcltjdV07CisJCX0KKwkJdGRlbHRhID0g
-ZGF0YS0+Y3B1X3N3X3B3cl9wdHNjW2N1XSAtIHByZXZfcHRzY1tjdV07CisJCWpkZWx0YVtjdV0g
-Kj0gZGF0YS0+Y3B1X3B3cl9zYW1wbGVfcmF0aW8gKiAxMDAwOworCQlkb19kaXYoamRlbHRhW2N1
-XSwgdGRlbHRhKTsKKworCQkvKiB0aGUgdW5pdCBpcyBtaWNyb1dhdHQgKi8KKwkJYXZnX2FjYyAr
-PSBqZGVsdGFbY3VdOworCX0KKworCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVsbHVcbiIsICh1bnNp
-Z25lZCBsb25nIGxvbmcpYXZnX2FjYyk7Cit9CitzdGF0aWMgREVWSUNFX0FUVFIocG93ZXIxX2F2
-ZXJhZ2UsIFNfSVJVR08sIGFjY19zaG93X3Bvd2VyLCBOVUxMKTsKKworc3RhdGljIHNzaXplX3Qg
-YWNjX3Nob3dfcG93ZXJfcGVyaW9kKHN0cnVjdCBkZXZpY2UgKmRldiwKKwkJCQkgICAgIHN0cnVj
-dCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCQkJCSAgICAgY2hhciAqYnVmKQoreworCXN0cnVj
-dCBmYW0xNWhfcG93ZXJfZGF0YSAqZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOworCisJcmV0
-dXJuIHNwcmludGYoYnVmLCAiJWx1XG4iLCBkYXRhLT5wb3dlcl9wZXJpb2QpOworfQorCitzdGF0
-aWMgc3NpemVfdCBhY2Nfc2V0X3Bvd2VyX3BlcmlvZChzdHJ1Y3QgZGV2aWNlICpkZXYsCisJCQkJ
-ICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCQkJCSAgICBjb25zdCBjaGFyICpi
-dWYsIHNpemVfdCBjb3VudCkKK3sKKwlzdHJ1Y3QgZmFtMTVoX3Bvd2VyX2RhdGEgKmRhdGEgPSBk
-ZXZfZ2V0X2RydmRhdGEoZGV2KTsKKwl1bnNpZ25lZCBsb25nIHRlbXA7CisJaW50IHJldDsKKwor
-CXJldCA9IGtzdHJ0b3VsKGJ1ZiwgMTAsICZ0ZW1wKTsKKwlpZiAocmV0KQorCQlyZXR1cm4gcmV0
-OworCisJaWYgKHRlbXAgPiBNQVhfSU5URVJWQUwpCisJCXJldHVybiAtRUlOVkFMOworCisJLyog
-dGhlIGludGVydmFsIHZhbHVlIHNob3VsZCBiZSBncmVhdGVyIHRoYW4gMCAqLworCWlmICh0ZW1w
-IDw9IDApCisJCXJldHVybiAtRUlOVkFMOworCisJZGF0YS0+cG93ZXJfcGVyaW9kID0gdGVtcDsK
-KworCXJldHVybiBjb3VudDsKK30KK3N0YXRpYyBERVZJQ0VfQVRUUihwb3dlcjFfYXZlcmFnZV9p
-bnRlcnZhbCwgU19JUlVHTyB8IFNfSVdVU1IsCisJCSAgIGFjY19zaG93X3Bvd2VyX3BlcmlvZCwg
-YWNjX3NldF9wb3dlcl9wZXJpb2QpOworCiBzdGF0aWMgaW50IGZhbTE1aF9wb3dlcl9pbml0X2F0
-dHJzKHN0cnVjdCBwY2lfZGV2ICpwZGV2LAogCQkJCSAgIHN0cnVjdCBmYW0xNWhfcG93ZXJfZGF0
-YSAqZGF0YSkKIHsKIAlpbnQgbiA9IEZBTTE1SF9NSU5fTlVNX0FUVFJTOwogCXN0cnVjdCBhdHRy
-aWJ1dGUgKipmYW0xNWhfcG93ZXJfYXR0cnM7CiAJc3RydWN0IGNwdWluZm9feDg2ICpjID0gJmJv
-b3RfY3B1X2RhdGE7CisJdTMyIGNwdWlkOwogCiAJaWYgKGMtPng4NiA9PSAweDE1ICYmCiAJICAg
-IChjLT54ODZfbW9kZWwgPD0gMHhmIHx8CiAJICAgICAoYy0+eDg2X21vZGVsID49IDB4NjAgJiYg
-Yy0+eDg2X21vZGVsIDw9IDB4N2YpKSkKIAkJbiArPSAxOwogCisJY3B1aWQgPSBjcHVpZF9lZHgo
-MHg4MDAwMDAwNyk7CisKKwkvKiBjaGVjayBpZiBwcm9jZXNzb3Igc3VwcG9ydHMgYWNjdW11bGF0
-ZWQgcG93ZXIgKi8KKwlpZiAoY3B1aWQgJiBCSVQoMTIpKQorCQluICs9IDI7CisKIAlmYW0xNWhf
-cG93ZXJfYXR0cnMgPSBkZXZtX2tjYWxsb2MoJnBkZXYtPmRldiwgbiwKIAkJCQkJICBzaXplb2Yo
-KmZhbTE1aF9wb3dlcl9hdHRycyksCiAJCQkJCSAgR0ZQX0tFUk5FTCk7CkBAIC0yMTQsNiArMzIx
-LDExIEBAIHN0YXRpYyBpbnQgZmFtMTVoX3Bvd2VyX2luaXRfYXR0cnMoc3RydWN0IHBjaV9kZXYg
-KnBkZXYsCiAJICAgICAoYy0+eDg2X21vZGVsID49IDB4NjAgJiYgYy0+eDg2X21vZGVsIDw9IDB4
-N2YpKSkKIAkJZmFtMTVoX3Bvd2VyX2F0dHJzW24rK10gPSAmZGV2X2F0dHJfcG93ZXIxX2lucHV0
-LmF0dHI7CiAKKwlpZiAoY3B1aWQgJiBCSVQoMTIpKSB7CisJCWZhbTE1aF9wb3dlcl9hdHRyc1tu
-KytdID0gJmRldl9hdHRyX3Bvd2VyMV9hdmVyYWdlLmF0dHI7CisJCWZhbTE1aF9wb3dlcl9hdHRy
-c1tuKytdID0gJmRldl9hdHRyX3Bvd2VyMV9hdmVyYWdlX2ludGVydmFsLmF0dHI7CisJfQorCiAJ
-ZGF0YS0+Z3JvdXAuYXR0cnMgPSBmYW0xNWhfcG93ZXJfYXR0cnM7CiAKIAlyZXR1cm4gMDsKQEAg
-LTMyNiw2ICs0MzgsOSBAQCBzdGF0aWMgaW50IGZhbTE1aF9wb3dlcl9pbml0X2RhdGEoc3RydWN0
-IHBjaV9kZXYgKmY0LAogCiAJZGF0YS0+bWF4X2N1X2FjY19wb3dlciA9IHRtcDsKIAorCS8qIHNl
-dCBkZWZhdWx0IGludGVydmFsIGFzIDEwIG1zICovCisJZGF0YS0+cG93ZXJfcGVyaW9kID0gMTA7
-CisKIAlyZXR1cm4gcmVhZF9yZWdpc3RlcnMoZGF0YSk7CiB9CiAKLS0gCjEuOS4xCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+This patch adds the description to explain the TDP reporting mechanism
+and accumulated power algorithm.
+
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+Cc: Borislav Petkov <bp@alien8.de>
+---
+ Documentation/hwmon/fam15h_power | 57 +++++++++++++++++++++++++++++++++++++++-
+ drivers/hwmon/fam15h_power.c     |  2 +-
+ 2 files changed, 57 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/hwmon/fam15h_power b/Documentation/hwmon/fam15h_power
+index e2b1b69..2c4fbee 100644
+--- a/Documentation/hwmon/fam15h_power
++++ b/Documentation/hwmon/fam15h_power
+@@ -10,14 +10,22 @@ Supported chips:
+   Datasheets:
+   BIOS and Kernel Developer's Guide (BKDG) For AMD Family 15h Processors
+   BIOS and Kernel Developer's Guide (BKDG) For AMD Family 16h Processors
++  AMD64 Architecture Programmer's Manual Volume 2: System Programming
+ 
+ Author: Andreas Herrmann <herrmann.der.user@googlemail.com>
+ 
+ Description
+ -----------
+ 
++1) Processor TDP (Thermal design power)
++
++Given a fixed frequency and voltage, the power consumption of a
++processor varies based on the workload being executed. Derated power
++is the power consumed when running a specific application. Thermal
++design power (TDP) is an example of derated power.
++
+ This driver permits reading of registers providing power information
+-of AMD Family 15h and 16h processors.
++of AMD Family 15h and 16h processors via TDP algorithm.
+ 
+ For AMD Family 15h and 16h processors the following power values can
+ be calculated using different processor northbridge function
+@@ -37,3 +45,50 @@ This driver provides ProcessorPwrWatts and CurrPwrWatts:
+ On multi-node processors the calculated value is for the entire
+ package and not for a single node. Thus the driver creates sysfs
+ attributes only for internal node0 of a multi-node processor.
++
++2) Accumulated Power Mechanism
++
++This driver also introduces an algorithm that should be used to
++calculate the average power consumed by a processor during a
++measurement interval Tm. The feature of accumulated power mechanism is
++indicated by CPUID Fn8000_0007_EDX[12].
++
++* Tsample: compute unit power accumulator sample period
++* Tref: the PTSC counter period
++* PTSC: performance timestamp counter
++* N: the ratio of compute unit power accumulator sample period to the
++  PTSC period
++* Jmax: max compute unit accumulated power which is indicated by
++  MaxCpuSwPwrAcc MSR C001007b
++* Jx/Jy: compute unit accumulated power which is indicated by
++  CpuSwPwrAcc MSR C001007a
++* Tx/Ty: the value of performance timestamp counter which is indicated
++  by CU_PTSC MSR C0010280
++* PwrCPUave: CPU average power
++
++i. Determine the ratio of Tsample to Tref by executing CPUID Fn8000_0007.
++	N = value of CPUID Fn8000_0007_ECX[CpuPwrSampleTimeRatio[15:0]].
++
++ii. Read the full range of the cumulative energy value from the new
++MSR MaxCpuSwPwrAcc.
++	Jmax = value returned.
++iii. At time x, SW reads CpuSwPwrAcc MSR and samples the PTSC.
++	Jx = value read from CpuSwPwrAcc and Tx = value read from
++PTSC.
++
++iv. At time y, SW reads CpuSwPwrAcc MSR and samples the PTSC.
++	Jy = value read from CpuSwPwrAcc and Ty = value read from
++PTSC.
++
++v. Calculate the average power consumption for a compute unit over
++time period (y-x). Unit of result is uWatt.
++	if (Jy < Jx) // Rollover has occurred
++		Jdelta = (Jy + Jmax) - Jx
++	else
++		Jdelta = Jy - Jx
++	PwrCPUave = N * Jdelta * 1000 / (Ty - Tx)
++
++This driver provides PwrCPUave and interval(default is 10 millisecond
++and maximum is 1 second):
++* power1_average (PwrCPUave)
++* power1_average_interval (Interval)
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 46cbca0..35800cd 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -1,7 +1,7 @@
+ /*
+  * fam15h_power.c - AMD Family 15h processor power monitoring
+  *
+- * Copyright (c) 2011 Advanced Micro Devices, Inc.
++ * Copyright (c) 2011-2016 Advanced Micro Devices, Inc.
+  * Author: Andreas Herrmann <herrmann.der.user@googlemail.com>
+  *
+  *
+-- 
+1.9.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
