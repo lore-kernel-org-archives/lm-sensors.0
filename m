@@ -1,293 +1,132 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 30 Mar 2016 23:34:46 +0000
-Subject: Re: [lm-sensors] [PATCH v4] hwmon: (max31722) Add support for MAX31722/MAX31723 temperature sensors
-Message-Id: <20160330233446.GB24844@roeck-us.net>
+From: Huang Rui <ray.huang@amd.com>
+Date: Fri, 11 Mar 2016 02:17:46 +0000
+Subject: [lm-sensors] [PATCH v4 2/6] hwmon: (fam15h_power) Add compute unit accumulated power
+Message-Id: <1457662670-3354-3-git-send-email-ray.huang@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1459354584-14510-1-git-send-email-tiberiu.a.breana@intel.com>
-In-Reply-To: <1459354584-14510-1-git-send-email-tiberiu.a.breana@intel.com>
+References: <1457662670-3354-1-git-send-email-ray.huang@amd.com>
+In-Reply-To: <1457662670-3354-1-git-send-email-ray.huang@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, spg_linux_kernel@amd.com, Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>
 
-On Wed, Mar 30, 2016 at 07:16:24PM +0300, Tiberiu Breana wrote:
-> Add basic support for the Maxim Integrated MAX31722/MAX31723 SPI
-> temperature sensors / thermostats.
-> 
-> Includes:
->     - ACPI support;
->     - raw temperature readings;
->     - power management
-> 
-> Datasheet:
-> https://datasheets.maximintegrated.com/en/ds/MAX31722-MAX31723.pdf
-> 
-> Signed-off-by: Tiberiu Breana <tiberiu.a.breana@intel.com>
+This patch adds a member in fam15h_power_data which specifies the
+compute unit accumulated power. It adds do_read_registers_on_cu to do
+all the read to all MSRs and run it on one of the online cores on each
+compute unit with smp_call_function_many(). This behavior can decrease
+IPI numbers.
 
-Applied to -next.
+Suggested-by: Borislav Petkov <bp@alien8.de>
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+---
+ drivers/hwmon/fam15h_power.c | 61 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 60 insertions(+), 1 deletion(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 4f695d8..c5e2297 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -25,6 +25,8 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/bitops.h>
++#include <linux/cpu.h>
++#include <linux/cpumask.h>
+ #include <asm/processor.h>
+ #include <asm/msr.h>
+ 
+@@ -44,7 +46,9 @@ MODULE_LICENSE("GPL");
+ 
+ #define FAM15H_MIN_NUM_ATTRS		2
+ #define FAM15H_NUM_GROUPS		2
++#define MAX_CUS				8
+ 
++#define MSR_F15H_CU_PWR_ACCUMULATOR	0xc001007a
+ #define MSR_F15H_CU_MAX_PWR_ACCUMULATOR	0xc001007b
+ 
+ #define PCI_DEVICE_ID_AMD_15H_M70H_NB_F4 0x15b4
+@@ -59,6 +63,8 @@ struct fam15h_power_data {
+ 	struct attribute_group group;
+ 	/* maximum accumulated power of a compute unit */
+ 	u64 max_cu_acc_power;
++	/* accumulated power of the compute units */
++	u64 cu_acc_power[MAX_CUS];
+ };
+ 
+ static ssize_t show_power(struct device *dev,
+@@ -125,6 +131,59 @@ static ssize_t show_power_crit(struct device *dev,
+ }
+ static DEVICE_ATTR(power1_crit, S_IRUGO, show_power_crit, NULL);
+ 
++static void do_read_registers_on_cu(void *_data)
++{
++	struct fam15h_power_data *data = _data;
++	int cpu, cu;
++
++	cpu = smp_processor_id();
++
++	cu = cpu / smp_num_siblings;
++
++	rdmsrl_safe(MSR_F15H_CU_PWR_ACCUMULATOR, &data->cu_acc_power[cu]);
++}
++
++/*
++ * This function is only able to be called when CPUID
++ * Fn8000_0007:EDX[12] is set.
++ */
++static int read_registers(struct fam15h_power_data *data)
++{
++	int this_cpu, ret, cpu;
++	int target;
++	cpumask_var_t mask;
++
++	ret = zalloc_cpumask_var(&mask, GFP_KERNEL);
++	if (!ret)
++		return -ENOMEM;
++
++	get_online_cpus();
++	this_cpu = get_cpu();
++
++	/*
++	 * Choose the first online core of each compute unit, and then
++	 * read their MSR value of power and ptsc in a single IPI,
++	 * because the MSR value of CPU core represent the compute
++	 * unit's.
++	 */
++	for_each_online_cpu(cpu) {
++		target = cpumask_first(topology_sibling_cpumask(cpu));
++		if (!cpumask_test_cpu(target, mask))
++			cpumask_set_cpu(target, mask);
++	}
++
++	if (cpumask_test_cpu(this_cpu, mask))
++		do_read_registers_on_cu(data);
++
++	smp_call_function_many(mask, do_read_registers_on_cu, data, true);
++	put_cpu();
++	put_online_cpus();
++
++	free_cpumask_var(mask);
++
++	return 0;
++}
++
+ static int fam15h_power_init_attrs(struct pci_dev *pdev,
+ 				   struct fam15h_power_data *data)
+ {
+@@ -263,7 +322,7 @@ static int fam15h_power_init_data(struct pci_dev *f4,
+ 
+ 	data->max_cu_acc_power = tmp;
+ 
+-	return 0;
++	return read_registers(data);
+ }
+ 
+ static int fam15h_power_probe(struct pci_dev *pdev,
+-- 
+1.9.1
 
-> ---
-> Changes since v3:
-> - fixed a problem regarding the measurement scale
-> ---
->  Documentation/hwmon/max31722 |  34 +++++++++
->  drivers/hwmon/Kconfig        |  10 +++
->  drivers/hwmon/Makefile       |   1 +
->  drivers/hwmon/max31722.c     | 165 +++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 210 insertions(+)
->  create mode 100644 Documentation/hwmon/max31722
->  create mode 100644 drivers/hwmon/max31722.c
-> 
-> diff --git a/Documentation/hwmon/max31722 b/Documentation/hwmon/max31722
-> new file mode 100644
-> index 0000000..090da845
-> --- /dev/null
-> +++ b/Documentation/hwmon/max31722
-> @@ -0,0 +1,34 @@
-> +Kernel driver max31722
-> +===========
-> +
-> +Supported chips:
-> +  * Maxim Integrated MAX31722
-> +    Prefix: 'max31722'
-> +    ACPI ID: MAX31722
-> +    Addresses scanned: -
-> +    Datasheet: https://datasheets.maximintegrated.com/en/ds/MAX31722-MAX31723.pdf
-> +  * Maxim Integrated MAX31723
-> +    Prefix: 'max31723'
-> +    ACPI ID: MAX31723
-> +    Addresses scanned: -
-> +    Datasheet: https://datasheets.maximintegrated.com/en/ds/MAX31722-MAX31723.pdf
-> +
-> +Author: Tiberiu Breana <tiberiu.a.breana@intel.com>
-> +
-> +Description
-> +-----------
-> +
-> +This driver adds support for the Maxim Integrated MAX31722/MAX31723 thermometers
-> +and thermostats running over an SPI interface.
-> +
-> +Usage Notes
-> +-----------
-> +
-> +This driver uses ACPI to auto-detect devices. See ACPI IDs in the above section.
-> +
-> +Sysfs entries
-> +-------------
-> +
-> +The following attribute is supported:
-> +
-> +temp1_input		Measured temperature. Read-only.
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 60fb80b..00dbe08 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -807,6 +807,16 @@ config SENSORS_MAX197
->  	  This driver can also be built as a module. If so, the module
->  	  will be called max197.
->  
-> +config SENSORS_MAX31722
-> +tristate "MAX31722 temperature sensor"
-> +	depends on SPI
-> +	help
-> +	  Support for the Maxim Integrated MAX31722/MAX31723 digital
-> +	  thermometers/thermostats operating over an SPI interface.
-> +
-> +	  This driver can also be built as a module. If so, the module
-> +	  will be called max31722.
-> +
->  config SENSORS_MAX6639
->  	tristate "Maxim MAX6639 sensor chip"
->  	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index 30c94df..689afe9 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -111,6 +111,7 @@ obj-$(CONFIG_SENSORS_MAX16065)	+= max16065.o
->  obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
->  obj-$(CONFIG_SENSORS_MAX1668)	+= max1668.o
->  obj-$(CONFIG_SENSORS_MAX197)	+= max197.o
-> +obj-$(CONFIG_SENSORS_MAX31722)	+= max31722.o
->  obj-$(CONFIG_SENSORS_MAX6639)	+= max6639.o
->  obj-$(CONFIG_SENSORS_MAX6642)	+= max6642.o
->  obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
-> diff --git a/drivers/hwmon/max31722.c b/drivers/hwmon/max31722.c
-> new file mode 100644
-> index 0000000..30a100e
-> --- /dev/null
-> +++ b/drivers/hwmon/max31722.c
-> @@ -0,0 +1,165 @@
-> +/*
-> + * max31722 - hwmon driver for Maxim Integrated MAX31722/MAX31723 SPI
-> + * digital thermometer and thermostats.
-> + *
-> + * Copyright (c) 2016, Intel Corporation.
-> + *
-> + * This file is subject to the terms and conditions of version 2 of
-> + * the GNU General Public License. See the file COPYING in the main
-> + * directory of this archive for more details.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/spi/spi.h>
-> +
-> +#define MAX31722_REG_CFG				0x00
-> +#define MAX31722_REG_TEMP_LSB				0x01
-> +
-> +#define MAX31722_MODE_CONTINUOUS			0x00
-> +#define MAX31722_MODE_STANDBY				0x01
-> +#define MAX31722_MODE_MASK				0xFE
-> +#define MAX31722_RESOLUTION_12BIT			0x06
-> +#define MAX31722_WRITE_MASK				0x80
-> +
-> +struct max31722_data {
-> +	struct device *hwmon_dev;
-> +	struct spi_device *spi_device;
-> +	u8 mode;
-> +};
-> +
-> +static int max31722_set_mode(struct max31722_data *data, u8 mode)
-> +{
-> +	int ret;
-> +	struct spi_device *spi = data->spi_device;
-> +	u8 buf[2] = {
-> +		MAX31722_REG_CFG | MAX31722_WRITE_MASK,
-> +		(data->mode & MAX31722_MODE_MASK) | mode
-> +	};
-> +
-> +	ret = spi_write(spi, &buf, sizeof(buf));
-> +	if (ret < 0) {
-> +		dev_err(&spi->dev, "failed to set sensor mode.\n");
-> +		return ret;
-> +	}
-> +	data->mode = (data->mode & MAX31722_MODE_MASK) | mode;
-> +
-> +	return 0;
-> +}
-> +
-> +static ssize_t max31722_show_temp(struct device *dev,
-> +				  struct device_attribute *attr,
-> +				  char *buf)
-> +{
-> +	ssize_t ret;
-> +	struct max31722_data *data = dev_get_drvdata(dev);
-> +
-> +	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
-> +	if (ret < 0)
-> +		return ret;
-> +	/* Keep 12 bits and multiply by the scale of 62.5 millidegrees/bit. */
-> +	return sprintf(buf, "%d\n", (s16)le16_to_cpu(ret) * 125 / 32);
-> +}
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
-> +			  max31722_show_temp, NULL, 0);
-> +
-> +static struct attribute *max31722_attrs[] = {
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	NULL,
-> +};
-> +
-> +ATTRIBUTE_GROUPS(max31722);
-> +
-> +static int max31722_probe(struct spi_device *spi)
-> +{
-> +	int ret;
-> +	struct max31722_data *data;
-> +
-> +	data = devm_kzalloc(&spi->dev, sizeof(*data), GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	spi_set_drvdata(spi, data);
-> +	data->spi_device = spi;
-> +	/*
-> +	 * Set SD bit to 0 so we can have continuous measurements.
-> +	 * Set resolution to 12 bits for maximum precision.
-> +	 */
-> +	data->mode = MAX31722_MODE_CONTINUOUS | MAX31722_RESOLUTION_12BIT;
-> +	ret = max31722_set_mode(data, MAX31722_MODE_CONTINUOUS);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	data->hwmon_dev = hwmon_device_register_with_groups(&spi->dev,
-> +							    spi->modalias,
-> +							    data,
-> +							    max31722_groups);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		max31722_set_mode(data, MAX31722_MODE_STANDBY);
-> +		return PTR_ERR(data->hwmon_dev);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int max31722_remove(struct spi_device *spi)
-> +{
-> +	struct max31722_data *data = spi_get_drvdata(spi);
-> +
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +
-> +	return max31722_set_mode(data, MAX31722_MODE_STANDBY);
-> +}
-> +
-> +static int __maybe_unused max31722_suspend(struct device *dev)
-> +{
-> +	struct spi_device *spi_device = to_spi_device(dev);
-> +	struct max31722_data *data = spi_get_drvdata(spi_device);
-> +
-> +	return max31722_set_mode(data, MAX31722_MODE_STANDBY);
-> +}
-> +
-> +static int __maybe_unused max31722_resume(struct device *dev)
-> +{
-> +	struct spi_device *spi_device = to_spi_device(dev);
-> +	struct max31722_data *data = spi_get_drvdata(spi_device);
-> +
-> +	return max31722_set_mode(data, MAX31722_MODE_CONTINUOUS);
-> +}
-> +
-> +static SIMPLE_DEV_PM_OPS(max31722_pm_ops, max31722_suspend, max31722_resume);
-> +
-> +static const struct spi_device_id max31722_spi_id[] = {
-> +	{"max31722", 0},
-> +	{"max31723", 0},
-> +	{}
-> +};
-> +
-> +static const struct acpi_device_id __maybe_unused max31722_acpi_id[] = {
-> +	{"MAX31722", 0},
-> +	{"MAX31723", 0},
-> +	{}
-> +};
-> +
-> +MODULE_DEVICE_TABLE(spi, max31722_spi_id);
-> +
-> +static struct spi_driver max31722_driver = {
-> +	.driver = {
-> +		.name = "max31722",
-> +		.pm = &max31722_pm_ops,
-> +		.acpi_match_table = ACPI_PTR(max31722_acpi_id),
-> +	},
-> +	.probe =            max31722_probe,
-> +	.remove =           max31722_remove,
-> +	.id_table =         max31722_spi_id,
-> +};
-> +
-> +module_spi_driver(max31722_driver);
-> +
-> +MODULE_AUTHOR("Tiberiu Breana <tiberiu.a.breana@intel.com>");
-> +MODULE_DESCRIPTION("max31722 sensor driver");
-> +MODULE_LICENSE("GPL v2");
-> -- 
-> 1.9.1
-> 
 
 _______________________________________________
 lm-sensors mailing list
