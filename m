@@ -1,51 +1,46 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 29 Mar 2016 20:02:47 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: adc128d818: Support operation mode 1
-Message-Id: <20160329200247.GC27318@roeck-us.net>
+From: Angelo Compagnucci <angelo.compagnucci@gmail.com>
+Date: Sun, 20 Mar 2016 22:52:13 +0000
+Subject: Re: [lm-sensors] Fwd: The sad state of lm-sensors.org
+Message-Id: <CA+TH9Vnj9BO6pbi2CfJc1HTkq1HYsxScO4bjMd07JVMvJRMpcg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1459278219-5573-1-git-send-email-mail@alexanderkoch.net>
-In-Reply-To: <1459278219-5573-1-git-send-email-mail@alexanderkoch.net>
+References: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
+In-Reply-To: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Koch <mail@alexanderkoch.net>
-Cc: Jean Delvare <jdelvare@suse.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Michael Hornung <mhornung.linux@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 29, 2016 at 09:03:37PM +0200, Alexander Koch wrote:
-> The ADC128D818 offers four different chip operation modes which vary in the
-> number and measurement types of the available input signals (see datasheet
-> sec. 8.4.1).
-> 
-> The current version of the driver only supports the default chip operation mode
-> (mode 0), providing seven analog values and a temperature reading.
-> 
-> This patch series adds support for operation mode 1 (eight analog inputs but no
-> temperature), selectable through the device tree attribute 'mode':
-> 
->         adc1: adc128d818@1d {
->                 compatible = "ti,adc128d818";
->                 reg = <0x1d>;
->                 mode = /bits/ 8 <1>;
->         };
-> 
-> The changes are transparent as 'mode' defaults to mode 0 which yields the
-> previous behaviour. Code has been tested on real hardware using an evaluation
-> board.
-> 
-> Alexander Koch (2):
->   hwmon: adc128d818: Implement chip mode selection
->   hwmon: adc128d818: Implement operation mode 1
-> 
->  drivers/hwmon/adc128d818.c | 113 +++++++++++++++++++++++++++++++++++++--------
->  1 file changed, 95 insertions(+), 18 deletions(-)
-> 
-
-Please send follow-up patches to linux-hwmon@vger.kernel.org.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSmVhbiwKCkp1c3QgYSBmcmllbmRseSByZW1haW5kZXIgdG8gcmVpZ25pdGUgdGhlIGRpc2N1
+c3Npb24hCgpTaW5jZXJlbHkgQW5nZWxvCklsIDE5IGZlYiAyMDE2IDE0OjQwLCAiQW5nZWxvIENv
+bXBhZ251Y2NpIiA8YW5nZWxvLmNvbXBhZ251Y2NpQGdtYWlsLmNvbT4KaGEgc2NyaXR0bzoKCj4g
+SGkgSmVhbiwKPgo+IDIwMTYtMDItMTkgODoxNiBHTVQrMDE6MDAgSmVhbiBEZWx2YXJlIDxqZGVs
+dmFyZUBzdXNlLmRlPjoKPiA+IExlIFRodXJzZGF5IDE4IEZlYnJ1YXJ5IDIwMTYgw6AgMTc6MTIg
+KzAxMDAsIEFuZ2VsbyBDb21wYWdudWNjaSBhIMOpY3JpdCA6Cj4gPj4gSGkgR3VlbnRlciwKPiA+
+Pgo+ID4+IDIwMTYtMDItMTggMTY6NTYgR01UKzAxOjAwIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJv
+ZWNrLXVzLm5ldD46Cj4gPj4gPiBUaGUgcmVwb3NpdG9yaWVzIGFyZSBtaXJyb3JlZCBhdCBodHRw
+czovL2dpdGh1Yi5jb20vZ3JvZWNrL2kyYy10b29scwo+IGFuZAo+ID4+ID4gaHR0cHM6Ly9naXRo
+dWIuY29tL2dyb2Vjay9sbS1zZW5zb3JzLiBXZSBhcmUgaW4gdGhlIHByb2Nlc3Mgb2YKPiBmaW5k
+aW5nCj4gPj4gPiBmaW5hbCBob21lcy4KPiA+Pgo+ID4+IE9rLCBjb3VsZCBJIHN1Z2dlc3QgdG8g
+cmVnaXN0ZXIgYSBuZXcgbG0tc2Vuc29ycyBlbnRpdHkgaW4gZ2l0aHViIGFuZAo+ID4+IGNyZWF0
+ZSB0d28gc3VicHJvamVjdHM/IExpa2U6Cj4gPj4KPiA+PiBodHRwczovL2dpdGh1Yi5jb20vbG0t
+c2Vuc29ycy9sbS1zZW5zb3JzCj4gPgo+ID4gSSB0aGluayBHdWVudGVyIGhhcyBzdWNoIGEgcGxh
+bi4KPgo+IEdyZWF0IQo+Cj4gPj4gaHR0cHM6Ly9naXRodWIuY29tL2xtLXNlbnNvcnMvaTJjLXRv
+b2xzCj4gPgo+ID4gSSBvYmplY3QgdG8gdGhhdCBvbmUsIGZvciBpMmMtdG9vbHMgaGFzIG5vdGhp
+bmcgdG8gZG8gd2l0aCBsbS1zZW5zb3JzLgo+ID4gSXQgd2FzIGhvc3RlZCBvbiB0aGUgc2FtZSBz
+aXRlIG9ubHkgZm9yIGhpc3RvcmljYWwgcmVhc29ucy4gSW4gcHJhY3RpY2UKPiA+IGl0IGlzIG5v
+dyBtYWludGFpbmVkIGFuZCB1c2VkIGJ5IGEgY29tcGxldGVseSBkaWZmZXJlbnQgc2V0IG9mIHBl
+b3BsZS4KPgo+IE9rLCBzbyB3aG8gY2FyZXMgYWJvdXQgaTJjLXRvb2xzPwo+IElzIHRoZXJlIGEg
+ZGlzY3Vzc2lvbiBzb21ld2hlcmU/Cj4gQWdhaW4sIEknbSBvZmZlcmluZyB0byB2b2x1bnRlZXIg
+d2l0aCB0aGUgdHJhbnNpdGlvbiB0byBhIG5ldyBsb2NhdGlvbgo+IGlmIG5lY2Vzc2FyeS4KPgo+
+IEkgdGhpbmsgd2Ugc2hvdWxkIGFjdCwgb3BlbmluZyBhIG5ldyBnaWh1YiByZXBvc2l0b3J5IGFu
+ZCBzZXR0aW5nIHVwIGEKPiBuZXcgd2Vic2l0ZSBpdCdzIG5vdCBhIHRyZW1lbmRvdXMgYW1vdW50
+IG9mIHdvcmssIEkgY2FuIGRvIGl0IGluIGEKPiBjb3VwbGUgb2Ygd2Vla3Mgb2YgbXkgZnJlZSB0
+aW1lLiBPYnZpb3VzbHksIHlvdSBzaG91bGQgZW5kb3JzZSBtZSEKPgo+IEkgdGhpbmsgbm90IGhh
+dmluZyBhIHdlYnNpdGUgYW5kIGFuIGluc3RpdHV0aW9uYWwgaG9tZSBpdCdzIGEgcHJvYmxlbQo+
+IGNvbnNpZGVyaW5nIG1vZGVybiB0b29scyBhbmQgZnJlZSBvZmZlcmluZyB3ZSBoYXZlLgo+Cj4K
+PiBTaW5jZXJlbHksIEFuZ2Vsbwo+Cj4gPiAtLQo+ID4gSmVhbiBEZWx2YXJlCj4gPiBTVVNFIEwz
+IFN1cHBvcnQKPiA+Cj4KPgo+Cj4gLS0KPiBQcm9maWxlOiBodHRwOi8vaXQubGlua2VkaW4uY29t
+L2luL2NvbXBhZ251Y2NpYW5nZWxvCj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
+b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
+ZW5zb3Jz
