@@ -1,46 +1,103 @@
-From: Angelo Compagnucci <angelo.compagnucci@gmail.com>
-Date: Sun, 20 Mar 2016 22:52:13 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 22 Mar 2016 22:14:15 +0000
 Subject: Re: [lm-sensors] Fwd: The sad state of lm-sensors.org
-Message-Id: <CA+TH9Vnj9BO6pbi2CfJc1HTkq1HYsxScO4bjMd07JVMvJRMpcg@mail.gmail.com>
+Message-Id: <20160322221415.GB13770@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
 In-Reply-To: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCkp1c3QgYSBmcmllbmRseSByZW1haW5kZXIgdG8gcmVpZ25pdGUgdGhlIGRpc2N1
-c3Npb24hCgpTaW5jZXJlbHkgQW5nZWxvCklsIDE5IGZlYiAyMDE2IDE0OjQwLCAiQW5nZWxvIENv
-bXBhZ251Y2NpIiA8YW5nZWxvLmNvbXBhZ251Y2NpQGdtYWlsLmNvbT4KaGEgc2NyaXR0bzoKCj4g
-SGkgSmVhbiwKPgo+IDIwMTYtMDItMTkgODoxNiBHTVQrMDE6MDAgSmVhbiBEZWx2YXJlIDxqZGVs
-dmFyZUBzdXNlLmRlPjoKPiA+IExlIFRodXJzZGF5IDE4IEZlYnJ1YXJ5IDIwMTYgw6AgMTc6MTIg
-KzAxMDAsIEFuZ2VsbyBDb21wYWdudWNjaSBhIMOpY3JpdCA6Cj4gPj4gSGkgR3VlbnRlciwKPiA+
-Pgo+ID4+IDIwMTYtMDItMTggMTY6NTYgR01UKzAxOjAwIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJv
-ZWNrLXVzLm5ldD46Cj4gPj4gPiBUaGUgcmVwb3NpdG9yaWVzIGFyZSBtaXJyb3JlZCBhdCBodHRw
-czovL2dpdGh1Yi5jb20vZ3JvZWNrL2kyYy10b29scwo+IGFuZAo+ID4+ID4gaHR0cHM6Ly9naXRo
-dWIuY29tL2dyb2Vjay9sbS1zZW5zb3JzLiBXZSBhcmUgaW4gdGhlIHByb2Nlc3Mgb2YKPiBmaW5k
-aW5nCj4gPj4gPiBmaW5hbCBob21lcy4KPiA+Pgo+ID4+IE9rLCBjb3VsZCBJIHN1Z2dlc3QgdG8g
-cmVnaXN0ZXIgYSBuZXcgbG0tc2Vuc29ycyBlbnRpdHkgaW4gZ2l0aHViIGFuZAo+ID4+IGNyZWF0
-ZSB0d28gc3VicHJvamVjdHM/IExpa2U6Cj4gPj4KPiA+PiBodHRwczovL2dpdGh1Yi5jb20vbG0t
-c2Vuc29ycy9sbS1zZW5zb3JzCj4gPgo+ID4gSSB0aGluayBHdWVudGVyIGhhcyBzdWNoIGEgcGxh
-bi4KPgo+IEdyZWF0IQo+Cj4gPj4gaHR0cHM6Ly9naXRodWIuY29tL2xtLXNlbnNvcnMvaTJjLXRv
-b2xzCj4gPgo+ID4gSSBvYmplY3QgdG8gdGhhdCBvbmUsIGZvciBpMmMtdG9vbHMgaGFzIG5vdGhp
-bmcgdG8gZG8gd2l0aCBsbS1zZW5zb3JzLgo+ID4gSXQgd2FzIGhvc3RlZCBvbiB0aGUgc2FtZSBz
-aXRlIG9ubHkgZm9yIGhpc3RvcmljYWwgcmVhc29ucy4gSW4gcHJhY3RpY2UKPiA+IGl0IGlzIG5v
-dyBtYWludGFpbmVkIGFuZCB1c2VkIGJ5IGEgY29tcGxldGVseSBkaWZmZXJlbnQgc2V0IG9mIHBl
-b3BsZS4KPgo+IE9rLCBzbyB3aG8gY2FyZXMgYWJvdXQgaTJjLXRvb2xzPwo+IElzIHRoZXJlIGEg
-ZGlzY3Vzc2lvbiBzb21ld2hlcmU/Cj4gQWdhaW4sIEknbSBvZmZlcmluZyB0byB2b2x1bnRlZXIg
-d2l0aCB0aGUgdHJhbnNpdGlvbiB0byBhIG5ldyBsb2NhdGlvbgo+IGlmIG5lY2Vzc2FyeS4KPgo+
-IEkgdGhpbmsgd2Ugc2hvdWxkIGFjdCwgb3BlbmluZyBhIG5ldyBnaWh1YiByZXBvc2l0b3J5IGFu
-ZCBzZXR0aW5nIHVwIGEKPiBuZXcgd2Vic2l0ZSBpdCdzIG5vdCBhIHRyZW1lbmRvdXMgYW1vdW50
-IG9mIHdvcmssIEkgY2FuIGRvIGl0IGluIGEKPiBjb3VwbGUgb2Ygd2Vla3Mgb2YgbXkgZnJlZSB0
-aW1lLiBPYnZpb3VzbHksIHlvdSBzaG91bGQgZW5kb3JzZSBtZSEKPgo+IEkgdGhpbmsgbm90IGhh
-dmluZyBhIHdlYnNpdGUgYW5kIGFuIGluc3RpdHV0aW9uYWwgaG9tZSBpdCdzIGEgcHJvYmxlbQo+
-IGNvbnNpZGVyaW5nIG1vZGVybiB0b29scyBhbmQgZnJlZSBvZmZlcmluZyB3ZSBoYXZlLgo+Cj4K
-PiBTaW5jZXJlbHksIEFuZ2Vsbwo+Cj4gPiAtLQo+ID4gSmVhbiBEZWx2YXJlCj4gPiBTVVNFIEwz
-IFN1cHBvcnQKPiA+Cj4KPgo+Cj4gLS0KPiBQcm9maWxlOiBodHRwOi8vaXQubGlua2VkaW4uY29t
-L2luL2NvbXBhZ251Y2NpYW5nZWxvCj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+On Sun, Mar 20, 2016 at 11:52:13PM +0100, Angelo Compagnucci wrote:
+> Hi Jean,
+>=20
+> Just a friendly remainder to reignite the discussion!
+>=20
+For hwmon:
+
+New mailing list:
+	linux-hwmon@vger.kernel.org (exists)
+New project web site:
+	hwmon.wiki.kernel.org (in process)
+
+I'll try to get the new mailing list archived at gmane.kernel.org.
+I also requested a patchwork project at patchwork.kernel.org.
+
+The git for the lm-sensors project is still on my TODO list.
+We'll also have to find a home for the lm-sensors user space
+documentation (unless we hijack hwmon.wiki.kernel.org, or
+ask for a separate lm-sensors.wiki.kernel.org and hope that
+it gets approved).
+
+Side note: Please don't top-post.
+
+Thanks,
+Guenter
+
+> Sincerely Angelo
+> Il 19 feb 2016 14:40, "Angelo Compagnucci" <angelo.compagnucci@gmail.com>
+> ha scritto:
+>=20
+> > Hi Jean,
+> >
+> > 2016-02-19 8:16 GMT+01:00 Jean Delvare <jdelvare@suse.de>:
+> > > Le Thursday 18 February 2016 =E0 17:12 +0100, Angelo Compagnucci a =
+=E9crit :
+> > >> Hi Guenter,
+> > >>
+> > >> 2016-02-18 16:56 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
+> > >> > The repositories are mirrored at https://github.com/groeck/i2c-too=
+ls
+> > and
+> > >> > https://github.com/groeck/lm-sensors. We are in the process of
+> > finding
+> > >> > final homes.
+> > >>
+> > >> Ok, could I suggest to register a new lm-sensors entity in github and
+> > >> create two subprojects? Like:
+> > >>
+> > >> https://github.com/lm-sensors/lm-sensors
+> > >
+> > > I think Guenter has such a plan.
+> >
+> > Great!
+> >
+> > >> https://github.com/lm-sensors/i2c-tools
+> > >
+> > > I object to that one, for i2c-tools has nothing to do with lm-sensors.
+> > > It was hosted on the same site only for historical reasons. In practi=
+ce
+> > > it is now maintained and used by a completely different set of people.
+> >
+> > Ok, so who cares about i2c-tools?
+> > Is there a discussion somewhere?
+> > Again, I'm offering to volunteer with the transition to a new location
+> > if necessary.
+> >
+> > I think we should act, opening a new gihub repository and setting up a
+> > new website it's not a tremendous amount of work, I can do it in a
+> > couple of weeks of my free time. Obviously, you should endorse me!
+> >
+> > I think not having a website and an institutional home it's a problem
+> > considering modern tools and free offering we have.
+> >
+> >
+> > Sincerely, Angelo
+> >
+> > > --
+> > > Jean Delvare
+> > > SUSE L3 Support
+> > >
+> >
+> >
+> >
+> > --
+> > Profile: http://it.linkedin.com/in/compagnucciangelo
+> >
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
