@@ -1,115 +1,195 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 23 Mar 2016 18:32:44 +0000
-Subject: Re: [lm-sensors] Fwd: The sad state of lm-sensors.org
-Message-Id: <20160323183244.GA27001@roeck-us.net>
+From: Alexander Koch <mail@alexanderkoch.net>
+Date: Tue, 29 Mar 2016 19:03:38 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: adc128d818: Implement chip mode selection
+Message-Id: <1459278219-5573-2-git-send-email-mail@alexanderkoch.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
-In-Reply-To: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
+References: <1459278219-5573-1-git-send-email-mail@alexanderkoch.net>
+In-Reply-To: <1459278219-5573-1-git-send-email-mail@alexanderkoch.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <jdelvare@suse.com>
+Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Michael Hornung <mhornung.linux@gmail.com>, Alexander Koch <mail@alexanderkoch.net>
 
-On Tue, Mar 22, 2016 at 03:14:15PM -0700, Guenter Roeck wrote:
-> On Sun, Mar 20, 2016 at 11:52:13PM +0100, Angelo Compagnucci wrote:
-> > Hi Jean,
-> >=20
-> > Just a friendly remainder to reignite the discussion!
-> >=20
-> For hwmon:
->=20
-> New mailing list:
-> 	linux-hwmon@vger.kernel.org (exists)
-> New project web site:
-> 	hwmon.wiki.kernel.org (in process)
->=20
-The wiki is now online.
+The ADC128D818 offers four operation modes (see datasheet sec. 8.4.1)
+which vary in the number of available input signals and their types
+(differential vs. absolute).
 
-Guenter
+The current version of this driver only implements mode 0, this patch
+prepares implementation of the others.
 
-> I'll try to get the new mailing list archived at gmane.kernel.org.
-> I also requested a patchwork project at patchwork.kernel.org.
->=20
-> The git for the lm-sensors project is still on my TODO list.
-> We'll also have to find a home for the lm-sensors user space
-> documentation (unless we hijack hwmon.wiki.kernel.org, or
-> ask for a separate lm-sensors.wiki.kernel.org and hope that
-> it gets approved).
->=20
-> Side note: Please don't top-post.
->=20
-> Thanks,
-> Guenter
->=20
-> > Sincerely Angelo
-> > Il 19 feb 2016 14:40, "Angelo Compagnucci" <angelo.compagnucci@gmail.co=
-m>
-> > ha scritto:
-> >=20
-> > > Hi Jean,
-> > >
-> > > 2016-02-19 8:16 GMT+01:00 Jean Delvare <jdelvare@suse.de>:
-> > > > Le Thursday 18 February 2016 =E0 17:12 +0100, Angelo Compagnucci a =
-=E9crit :
-> > > >> Hi Guenter,
-> > > >>
-> > > >> 2016-02-18 16:56 GMT+01:00 Guenter Roeck <linux@roeck-us.net>:
-> > > >> > The repositories are mirrored at https://github.com/groeck/i2c-t=
-ools
-> > > and
-> > > >> > https://github.com/groeck/lm-sensors. We are in the process of
-> > > finding
-> > > >> > final homes.
-> > > >>
-> > > >> Ok, could I suggest to register a new lm-sensors entity in github =
-and
-> > > >> create two subprojects? Like:
-> > > >>
-> > > >> https://github.com/lm-sensors/lm-sensors
-> > > >
-> > > > I think Guenter has such a plan.
-> > >
-> > > Great!
-> > >
-> > > >> https://github.com/lm-sensors/i2c-tools
-> > > >
-> > > > I object to that one, for i2c-tools has nothing to do with lm-senso=
-rs.
-> > > > It was hosted on the same site only for historical reasons. In prac=
-tice
-> > > > it is now maintained and used by a completely different set of peop=
-le.
-> > >
-> > > Ok, so who cares about i2c-tools?
-> > > Is there a discussion somewhere?
-> > > Again, I'm offering to volunteer with the transition to a new location
-> > > if necessary.
-> > >
-> > > I think we should act, opening a new gihub repository and setting up a
-> > > new website it's not a tremendous amount of work, I can do it in a
-> > > couple of weeks of my free time. Obviously, you should endorse me!
-> > >
-> > > I think not having a website and an institutional home it's a problem
-> > > considering modern tools and free offering we have.
-> > >
-> > >
-> > > Sincerely, Angelo
-> > >
-> > > > --
-> > > > Jean Delvare
-> > > > SUSE L3 Support
-> > > >
-> > >
-> > >
-> > >
-> > > --
-> > > Profile: http://it.linkedin.com/in/compagnucciangelo
-> > >
->=20
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+ * Introduce device tree property 'mode' for selection of chip operation
+   mode, default to mode 0
+
+ * Extend device data structure to cover all eight input channels
+
+Example of 'mode' usage:
+
+        adc1: adc128d818@1d {
+                compatible = "ti,adc128d818";
+                reg = <0x1d>;
+                mode = /bits/ 8 <0>;
+        };
+
+Signed-off-by: Alexander Koch <mail@alexanderkoch.net>
+Acked-by: Michael Hornung <mhornung.linux@gmail.com>
+---
+ drivers/hwmon/adc128d818.c | 67 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 49 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/hwmon/adc128d818.c b/drivers/hwmon/adc128d818.c
+index ad2b47e..7505d4e 100644
+--- a/drivers/hwmon/adc128d818.c
++++ b/drivers/hwmon/adc128d818.c
+@@ -28,6 +28,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/mutex.h>
+ #include <linux/bitops.h>
++#include <linux/of.h>
+ 
+ /* Addresses to scan
+  * The chip also supports addresses 0x35..0x37. Don't scan those addresses
+@@ -63,10 +64,11 @@ struct adc128_data {
+ 	struct regulator *regulator;
+ 	int vref;		/* Reference voltage in mV */
+ 	struct mutex update_lock;
++	u8 mode;		/* Operation mode */
+ 	bool valid;		/* true if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+-	u16 in[3][7];		/* Register value, normalized to 12 bit
++	u16 in[3][8];		/* Register value, normalized to 12 bit
+ 				 * 0: input voltage
+ 				 * 1: min limit
+ 				 * 2: max limit
+@@ -82,12 +84,14 @@ static struct adc128_data *adc128_update_device(struct device *dev)
+ 	struct adc128_data *data = dev_get_drvdata(dev);
+ 	struct i2c_client *client = data->client;
+ 	struct adc128_data *ret = data;
+-	int i, rv;
++	int i, rv, no_in;
++
++	no_in = (data->mode = 1 || data->mode = 2) ? 8 : 7;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+-		for (i = 0; i < 7; i++) {
++		for (i = 0; i < no_in; i++) {
+ 			rv = i2c_smbus_read_word_swapped(client,
+ 							 ADC128_REG_IN(i));
+ 			if (rv < 0)
+@@ -107,20 +111,25 @@ static struct adc128_data *adc128_update_device(struct device *dev)
+ 			data->in[2][i] = rv << 4;
+ 		}
+ 
+-		rv = i2c_smbus_read_word_swapped(client, ADC128_REG_TEMP);
+-		if (rv < 0)
+-			goto abort;
+-		data->temp[0] = rv >> 7;
++		if (data->mode != 1) {
++			rv = i2c_smbus_read_word_swapped(client,
++							 ADC128_REG_TEMP);
++			if (rv < 0)
++				goto abort;
++			data->temp[0] = rv >> 7;
+ 
+-		rv = i2c_smbus_read_byte_data(client, ADC128_REG_TEMP_MAX);
+-		if (rv < 0)
+-			goto abort;
+-		data->temp[1] = rv << 1;
++			rv = i2c_smbus_read_byte_data(client,
++						      ADC128_REG_TEMP_MAX);
++			if (rv < 0)
++				goto abort;
++			data->temp[1] = rv << 1;
+ 
+-		rv = i2c_smbus_read_byte_data(client, ADC128_REG_TEMP_HYST);
+-		if (rv < 0)
+-			goto abort;
+-		data->temp[2] = rv << 1;
++			rv = i2c_smbus_read_byte_data(client,
++						      ADC128_REG_TEMP_HYST);
++			if (rv < 0)
++				goto abort;
++			data->temp[2] = rv << 1;
++		}
+ 
+ 		rv = i2c_smbus_read_byte_data(client, ADC128_REG_ALARM);
+ 		if (rv < 0)
+@@ -304,7 +313,7 @@ static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, adc128_show_alarm, NULL, 5);
+ static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, adc128_show_alarm, NULL, 6);
+ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, adc128_show_alarm, NULL, 7);
+ 
+-static struct attribute *adc128_attrs[] = {
++static struct attribute *adc128m0_attrs[] = {
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
+ 	&sensor_dev_attr_in1_min.dev_attr.attr,
+ 	&sensor_dev_attr_in2_min.dev_attr.attr,
+@@ -339,7 +348,7 @@ static struct attribute *adc128_attrs[] = {
+ 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	NULL
+ };
+-ATTRIBUTE_GROUPS(adc128);
++ATTRIBUTE_GROUPS(adc128m0);
+ 
+ static int adc128_detect(struct i2c_client *client, struct i2c_board_info *info)
+ {
+@@ -387,6 +396,15 @@ static int adc128_init_client(struct adc128_data *data)
+ 	if (err)
+ 		return err;
+ 
++	/* Set operation mode, if non-default */
++	if (data->mode != 0) {
++		err = i2c_smbus_write_byte_data(client,
++						ADC128_REG_CONFIG_ADV,
++						data->mode << 1);
++		if (err)
++			return err;
++	}
++
+ 	/* Start monitoring */
+ 	err = i2c_smbus_write_byte_data(client, ADC128_REG_CONFIG, 0x01);
+ 	if (err)
+@@ -410,6 +428,7 @@ static int adc128_probe(struct i2c_client *client,
+ 	struct regulator *regulator;
+ 	struct device *hwmon_dev;
+ 	struct adc128_data *data;
++	const struct attribute_group **groups;
+ 	int err, vref;
+ 
+ 	data = devm_kzalloc(dev, sizeof(struct adc128_data), GFP_KERNEL);
+@@ -433,6 +452,18 @@ static int adc128_probe(struct i2c_client *client,
+ 		data->vref = 2560;	/* 2.56V, in mV */
+ 	}
+ 
++	/* Operation mode is optional and defaults to mode 0 */
++	data->mode = 0;
++	groups = adc128m0_groups;
++	if (of_property_read_u8(dev->of_node, "mode", &data->mode) = 0) {
++		if (data->mode != 0) {
++			dev_err(dev, "unsupported operation mode %d",
++				data->mode);
++			err = -EINVAL;
++			goto error;
++		}
++	}
++
+ 	data->client = client;
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+@@ -443,7 +474,7 @@ static int adc128_probe(struct i2c_client *client,
+ 		goto error;
+ 
+ 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
+-							   data, adc128_groups);
++							   data, groups);
+ 	if (IS_ERR(hwmon_dev)) {
+ 		err = PTR_ERR(hwmon_dev);
+ 		goto error;
+-- 
+2.7.4
+
 
 _______________________________________________
 lm-sensors mailing list
