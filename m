@@ -1,90 +1,88 @@
-From: Joseph McNally <jmcna06@gmail.com>
-Date: Wed, 30 Mar 2016 15:09:32 +0000
+From: Maxime Jayat <jayatmaxime@gmail.com>
+Date: Wed, 30 Mar 2016 15:58:41 +0000
 Subject: Re: [lm-sensors] ncpXXxh103 compensation values?
-Message-Id: <CAP-bB-XEktLRGxtXY_fBUkMG96Hm1g7MhKG-tR1OUQhWjA151w@mail.gmail.com>
+Message-Id: <56FBF7B1.1030407@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <56FBDCBD.7080802@gmail.com>
-In-Reply-To: <56FBDCBD.7080802@gmail.com>
+ <CAP-bB-XEktLRGxtXY_fBUkMG96Hm1g7MhKG-tR1OUQhWjA151w@mail.gmail.com>
+In-Reply-To: <CAP-bB-XEktLRGxtXY_fBUkMG96Hm1g7MhKG-tR1OUQhWjA151w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Joseph McNally <jmcna06@gmail.com>
+Cc: Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hello Maxime,
-
-This data was calculated for a Murata NCP15XH103XXXXX.
-
-You have illustrated something to me with your question though. When I
-uploaded this patch, I was following the format of the compensation tables
-that are already present in the file. So i used "ncpXXxh103" instead
-of "ncp15xh103".
-Also, it was my first patch submitted to the Linux kernel. So I may have
-been over thinking some things! With some hindsight, I see that the name is
-misleading. I'm going to have to revisit this patch to make it more
-'generic' for other thermistors, or make it more specific for this
-particular thermistor.
-
-I hope that answers your questions. Thanks for pointing this out to me.
-
-Regards,
-Joseph
-
-On Wed, Mar 30, 2016 at 3:03 PM, Maxime Jayat <jayatmaxime@gmail.com> wrote:
-
-> Hello Joseph,
->
-> You recently added support for the ncpXXxh103 in
-> drivers/hwmon/ntc_thermistor.c with the following array of values:
->
-> +static const struct ntc_compensation ncpXXxh103[] = {
-> +       { .temp_c       = -40, .ohm     = 247565 },
-> +       { .temp_c       = -35, .ohm     = 181742 },
-> +       { .temp_c       = -30, .ohm     = 135128 },
-> +       { .temp_c       = -25, .ohm     = 101678 },
-> +       { .temp_c       = -20, .ohm     = 77373 },
-> +       { .temp_c       = -15, .ohm     = 59504 },
-> +       { .temp_c       = -10, .ohm     = 46222 },
-> +       { .temp_c       = -5, .ohm      = 36244 },
-> +       { .temp_c       = 0, .ohm       = 28674 },
-> +       { .temp_c       = 5, .ohm       = 22878 },
-> +       { .temp_c       = 10, .ohm      = 18399 },
-> +       { .temp_c       = 15, .ohm      = 14910 },
-> +       { .temp_c       = 20, .ohm      = 12169 },
-> +       { .temp_c       = 25, .ohm      = 10000 },
-> +       { .temp_c       = 30, .ohm      = 8271 },
-> +       { .temp_c       = 35, .ohm      = 6883 },
-> +       { .temp_c       = 40, .ohm      = 5762 },
-> +       { .temp_c       = 45, .ohm      = 4851 },
-> +       { .temp_c       = 50, .ohm      = 4105 },
-> +       { .temp_c       = 55, .ohm      = 3492 },
-> +       { .temp_c       = 60, .ohm      = 2985 },
-> +       { .temp_c       = 65, .ohm      = 2563 },
-> +       { .temp_c       = 70, .ohm      = 2211 },
-> +       { .temp_c       = 75, .ohm      = 1915 },
-> +       { .temp_c       = 80, .ohm      = 1666 },
-> +       { .temp_c       = 85, .ohm      = 1454 },
-> +       { .temp_c       = 90, .ohm      = 1275 },
-> +       { .temp_c       = 95, .ohm      = 1121 },
-> +       { .temp_c       = 100, .ohm     = 990 },
-> +       { .temp_c       = 105, .ohm     = 876 },
-> +       { .temp_c       = 110, .ohm     = 779 },
-> +       { .temp_c       = 115, .ohm     = 694 },
-> +       { .temp_c       = 120, .ohm     = 620 },
-> +       { .temp_c       = 125, .ohm     = 556 },
-> +};
-> +
->
-> Where are these taken from?
-> Unlike the other thermistors in the file, these values don't seem to
-> match anything in the Murata NTC Thermistor Datasheet.
-> See:
->
-> http://www.murata.com/~/media/webrenewal/support/library/catalog/products/thermistor/ntc/r44e.ashx
->
-> --
-> Maxime Jayat
->
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SSBkb24ndCB0aGluayBpdCBpcyB3cm9uZyB0byB1c2UgbmNwWFh4aDEwMyBpbnN0ZWFkIG9mIG5j
+cDE1eGgxMDMsCmJlY2F1c2UgdGhlIGZpcnN0IG51bWJlciByZWZlcnMgdG8gdGhlIHBoeXNpY2Fs
+IHNpemUgb2YgdGhlIHRoZXJtaXN0b3IKYW5kIHNob3VsZCBub3QgY2hhbmdlIGl0cyBiZWhhdmlv
+ci4gSW4gZmFjdCB0aGUgZGF0YXNoZWV0IGRvZXMgdGhlIHNhbWUKa2luZCBvZiBncm91cGluZy4K
+Ckkgd2FzIGp1c3Qgd29uZGVyaW5nIHdoYXQgd2FzIHRoZSByZWFzb24gZm9yIHRoZSBkaXNjcmVw
+YW5jeSBiZXR3ZWVuIHRoZQpkYXRhc2hlZXQgYW5kIHlvdXIgdmFsdWVzLgpJbmRlZWQgdGhlIGRh
+dGFzaGVldCBJIGxpbmtlZCBlYXJsaWVyLCBhdCBwYWdlIDE1LCBnaXZlcyB5b3UgdmVyYmF0aW0K
+dGhlIGNvbnRlbnQgb2YgdGhpcyBhcnJheSBhbmQgdGhlIHJlc3VsdCBvZiB5b3VyIGNhbGN1bGF0
+aW9uIGRvZXMgbm90Cm1hdGNoIGl0LgpJdCBpcyBub3QgX2Fic3VyZGx5XyB3cm9uZyBidXQsIGF0
+IGZpcnN0IHNpZ2h0LCBpdCBzZWVtcyBsaWtlIHRoZXJlIGlzIGEKMTAgZGVncmVlcyBkaWZmZXJl
+bmNlIGF0IHRoZSBleHRyZW1lcyAoYnV0IDEwIGtPaG0gYXQgMjUgQyBpcyBjb3JyZWN0KS4KCkxl
+IDMwLzAzLzIwMTYgMTc6MDksIEpvc2VwaCBNY05hbGx5IGEgw6ljcml0IDoKPiBIZWxsbyBNYXhp
+bWUsCj4gCj4gVGhpcyBkYXRhIHdhcyBjYWxjdWxhdGVkIGZvciBhIE11cmF0YSBOQ1AxNVhIMTAz
+WFhYWFguCj4gCj4gWW91IGhhdmUgaWxsdXN0cmF0ZWQgc29tZXRoaW5nIHRvIG1lIHdpdGggeW91
+ciBxdWVzdGlvbiB0aG91Z2guIFdoZW4gSQo+IHVwbG9hZGVkIHRoaXMgcGF0Y2gsIEkgd2FzIGZv
+bGxvd2luZyB0aGUgZm9ybWF0IG9mIHRoZSBjb21wZW5zYXRpb24KPiB0YWJsZXMgdGhhdCBhcmUg
+YWxyZWFkeSBwcmVzZW50IGluIHRoZSBmaWxlLiBTbyBpIHVzZWQgIm5jcFhYeGgxMDMiCj4gaW5z
+dGVhZCBvZiAibmNwMTV4aDEwMyIuIEFsc28sIGl0IHdhcyBteSBmaXJzdCBwYXRjaCBzdWJtaXR0
+ZWQgdG8gdGhlCj4gTGludXgga2VybmVsLiBTbyBJIG1heSBoYXZlIGJlZW4gb3ZlciB0aGlua2lu
+ZyBzb21lIHRoaW5ncyEgV2l0aCBzb21lCj4gaGluZHNpZ2h0LCBJIHNlZSB0aGF0IHRoZSBuYW1l
+IGlzIG1pc2xlYWRpbmcuIEknbSBnb2luZyB0byBoYXZlIHRvCj4gcmV2aXNpdCB0aGlzIHBhdGNo
+IHRvIG1ha2UgaXQgbW9yZSAnZ2VuZXJpYycgZm9yIG90aGVyIHRoZXJtaXN0b3JzLCBvcgo+IG1h
+a2UgaXQgbW9yZSBzcGVjaWZpYyBmb3IgdGhpcyBwYXJ0aWN1bGFyIHRoZXJtaXN0b3IuCj4gCj4g
+SSBob3BlIHRoYXQgYW5zd2VycyB5b3VyIHF1ZXN0aW9ucy4gVGhhbmtzIGZvciBwb2ludGluZyB0
+aGlzIG91dCB0byBtZS4KPiAKPiBSZWdhcmRzLAo+IEpvc2VwaAo+IAo+IE9uIFdlZCwgTWFyIDMw
+LCAyMDE2IGF0IDM6MDMgUE0sIE1heGltZSBKYXlhdCA8amF5YXRtYXhpbWVAZ21haWwuY29tCj4g
+PG1haWx0bzpqYXlhdG1heGltZUBnbWFpbC5jb20+PiB3cm90ZToKPiAKPiAgICAgSGVsbG8gSm9z
+ZXBoLAo+IAo+ICAgICBZb3UgcmVjZW50bHkgYWRkZWQgc3VwcG9ydCBmb3IgdGhlIG5jcFhYeGgx
+MDMgaW4KPiAgICAgZHJpdmVycy9od21vbi9udGNfdGhlcm1pc3Rvci5jIHdpdGggdGhlIGZvbGxv
+d2luZyBhcnJheSBvZiB2YWx1ZXM6Cj4gCj4gICAgICtzdGF0aWMgY29uc3Qgc3RydWN0IG50Y19j
+b21wZW5zYXRpb24gbmNwWFh4aDEwM1tdID0gewo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAg
+ICA9IC00MCwgLm9obSAgICAgPSAyNDc1NjUgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAg
+ICAgPSAtMzUsIC5vaG0gICAgID0gMTgxNzQyIH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAg
+ICAgID0gLTMwLCAub2htICAgICA9IDEzNTEyOCB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAg
+ICAgICA9IC0yNSwgLm9obSAgICAgPSAxMDE2NzggfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAtMjAsIC5vaG0gICAgID0gNzczNzMgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAtMTUsIC5vaG0gICAgID0gNTk1MDQgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAtMTAsIC5vaG0gICAgID0gNDYyMjIgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAtNSwgLm9obSAgICAgID0gMzYyNDQgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAwLCAub2htICAgICAgID0gMjg2NzQgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSA1LCAub2htICAgICAgID0gMjI4NzggfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAxMCwgLm9obSAgICAgID0gMTgzOTkgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAxNSwgLm9obSAgICAgID0gMTQ5MTAgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAyMCwgLm9obSAgICAgID0gMTIxNjkgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAyNSwgLm9obSAgICAgID0gMTAwMDAgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2Mg
+ICAgICAgPSAzMCwgLm9obSAgICAgID0gODI3MSB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAg
+ICAgICA9IDM1LCAub2htICAgICAgPSA2ODgzIH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAg
+ICAgID0gNDAsIC5vaG0gICAgICA9IDU3NjIgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAg
+ICAgPSA0NSwgLm9obSAgICAgID0gNDg1MSB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAg
+ICA9IDUwLCAub2htICAgICAgPSA0MTA1IH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAgICAg
+ID0gNTUsIC5vaG0gICAgICA9IDM0OTIgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAgICAg
+PSA2MCwgLm9obSAgICAgID0gMjk4NSB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAgICA9
+IDY1LCAub2htICAgICAgPSAyNTYzIH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAgICAgID0g
+NzAsIC5vaG0gICAgICA9IDIyMTEgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAgICAgPSA3
+NSwgLm9obSAgICAgID0gMTkxNSB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAgICA9IDgw
+LCAub2htICAgICAgPSAxNjY2IH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAgICAgID0gODUs
+IC5vaG0gICAgICA9IDE0NTQgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAgICAgPSA5MCwg
+Lm9obSAgICAgID0gMTI3NSB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAgICA9IDk1LCAu
+b2htICAgICAgPSAxMTIxIH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAgICAgID0gMTAwLCAu
+b2htICAgICA9IDk5MCB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAgICA9IDEwNSwgLm9o
+bSAgICAgPSA4NzYgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAgICAgPSAxMTAsIC5vaG0g
+ICAgID0gNzc5IH0sCj4gICAgICsgICAgICAgeyAudGVtcF9jICAgICAgID0gMTE1LCAub2htICAg
+ICA9IDY5NCB9LAo+ICAgICArICAgICAgIHsgLnRlbXBfYyAgICAgICA9IDEyMCwgLm9obSAgICAg
+PSA2MjAgfSwKPiAgICAgKyAgICAgICB7IC50ZW1wX2MgICAgICAgPSAxMjUsIC5vaG0gICAgID0g
+NTU2IH0sCj4gICAgICt9Owo+ICAgICArCj4gCj4gICAgIFdoZXJlIGFyZSB0aGVzZSB0YWtlbiBm
+cm9tPwo+ICAgICBVbmxpa2UgdGhlIG90aGVyIHRoZXJtaXN0b3JzIGluIHRoZSBmaWxlLCB0aGVz
+ZSB2YWx1ZXMgZG9uJ3Qgc2VlbSB0bwo+ICAgICBtYXRjaCBhbnl0aGluZyBpbiB0aGUgTXVyYXRh
+IE5UQyBUaGVybWlzdG9yIERhdGFzaGVldC4KPiAgICAgU2VlOgo+ICAgICBodHRwOi8vd3d3Lm11
+cmF0YS5jb20vfi9tZWRpYS93ZWJyZW5ld2FsL3N1cHBvcnQvbGlicmFyeS9jYXRhbG9nL3Byb2R1
+Y3RzL3RoZXJtaXN0b3IvbnRjL3I0NGUuYXNoeAo+IAo+ICAgICAtLQo+ICAgICBNYXhpbWUgSmF5
+YXQKPiAKPiAKLS0gCk1heGltZSBKYXlhdAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3Jz
