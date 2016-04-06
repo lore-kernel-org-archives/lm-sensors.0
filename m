@@ -1,245 +1,288 @@
-From: Tiberiu Breana <tiberiu.a.breana@intel.com>
-Date: Wed, 06 Apr 2016 09:07:20 +0000
-Subject: [lm-sensors] [PATCH v3] hwmon: (max31722) Add threshold alarm support
-Message-Id: <1459933640-18240-1-git-send-email-tiberiu.a.breana@intel.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 06 Apr 2016 14:41:24 +0000
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: (max31722) Add threshold alarm support
+Message-Id: <20160406144124.GA21083@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1459933640-18240-1-git-send-email-tiberiu.a.breana@intel.com>
+In-Reply-To: <1459933640-18240-1-git-send-email-tiberiu.a.breana@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add threshold alarm support for the max31722 temperature sensor driver.
+Hi Tiberiu,
 
-Signed-off-by: Tiberiu Breana <tiberiu.a.breana@intel.com>
----
-Changes from v2:
-- addressed Guenter's comments
-- improved threshold value precision
-- threshold values are now cached
----
- drivers/hwmon/max31722.c | 158 +++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 153 insertions(+), 5 deletions(-)
+On Wed, Apr 06, 2016 at 12:07:20PM +0300, Tiberiu Breana wrote:
+> Add threshold alarm support for the max31722 temperature sensor driver.
+> 
 
-diff --git a/drivers/hwmon/max31722.c b/drivers/hwmon/max31722.c
-index 30a100e..1460b22 100644
---- a/drivers/hwmon/max31722.c
-+++ b/drivers/hwmon/max31722.c
-@@ -12,23 +12,37 @@
- #include <linux/acpi.h>
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/spi/spi.h>
- 
- #define MAX31722_REG_CFG				0x00
- #define MAX31722_REG_TEMP_LSB				0x01
-+#define MAX31722_REG_THIGH_LSB				0x03
-+#define MAX31722_REG_TLOW_LSB				0x05
- 
- #define MAX31722_MODE_CONTINUOUS			0x00
- #define MAX31722_MODE_STANDBY				0x01
- #define MAX31722_MODE_MASK				0xFE
- #define MAX31722_RESOLUTION_12BIT			0x06
-+#define MAX31722_TM_INTERRUPT				0x08
- #define MAX31722_WRITE_MASK				0x80
-+/*
-+ * Minimum temperature value: -2^(12-1)      * 62.5  = -128,000
-+ * Maximum temperature value: (2^(12-1) - 1) * 62.5 ~=  127,937
-+ */
-+#define MAX31722_MIN_TEMP			       -128000
-+#define MAX31722_MAX_TEMP				127937
- 
- struct max31722_data {
- 	struct device *hwmon_dev;
- 	struct spi_device *spi_device;
- 	u8 mode;
-+	s16 thigh;
-+	s16 tlow;
-+	bool irq_enabled;
-+	bool alarm_active;
- };
- 
- static int max31722_set_mode(struct max31722_data *data, u8 mode)
-@@ -56,23 +70,139 @@ static ssize_t max31722_show_temp(struct device *dev,
- {
- 	ssize_t ret;
- 	struct max31722_data *data = dev_get_drvdata(dev);
-+	struct sensor_device_attribute *dev_attr = to_sensor_dev_attr(attr);
- 
--	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
-+	ret = spi_w8r16(data->spi_device, dev_attr->index);
- 	if (ret < 0)
- 		return ret;
- 	/* Keep 12 bits and multiply by the scale of 62.5 millidegrees/bit. */
- 	return sprintf(buf, "%d\n", (s16)le16_to_cpu(ret) * 125 / 32);
- }
- 
--static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
--			  max31722_show_temp, NULL, 0);
-+static ssize_t max31722_set_temp(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t count)
-+{
-+	int ret;
-+	long val;
-+	s16 thresh;
-+	u8 tx_buf[3];
-+	struct max31722_data *data = dev_get_drvdata(dev);
-+	struct sensor_device_attribute *dev_attr = to_sensor_dev_attr(attr);
-+
-+	ret = kstrtol(buf, 10, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	val = clamp_val(val, MAX31722_MIN_TEMP, MAX31722_MAX_TEMP);
-+	thresh = cpu_to_le16(DIV_ROUND_CLOSEST(val * 32, 125));
-+
-+	tx_buf[0] = dev_attr->index | MAX31722_WRITE_MASK;
-+	tx_buf[1] = thresh & 0xff;
-+	tx_buf[2] = thresh >> 8;
-+	ret = spi_write(data->spi_device, &tx_buf, sizeof(tx_buf));
-+	if (ret < 0)
-+		return ret;
-+
-+	if (dev_attr->index = 1)
-+		data->thigh = thresh;
-+	else if (dev_attr->index = 2)
-+		data->tlow = thresh;
-+
-+	return count;
-+}
-+
-+static ssize_t max31722_show_alarm(struct device *dev,
-+				   struct device_attribute *attr,
-+				   char *buf)
-+{
-+	struct spi_device *spi_device = to_spi_device(dev);
-+	struct max31722_data *data = spi_get_drvdata(spi_device);
-+
-+	return sprintf(buf, "%d\n", data->alarm_active);
-+}
-+
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, max31722_show_temp, NULL,
-+			  MAX31722_REG_TEMP_LSB);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, max31722_show_temp,
-+			  max31722_set_temp, MAX31722_REG_THIGH_LSB);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, max31722_show_temp,
-+			  max31722_set_temp, MAX31722_REG_TLOW_LSB);
-+static DEVICE_ATTR(temp1_alarm, S_IRUGO, max31722_show_alarm, NULL);
- 
- static struct attribute *max31722_attrs[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&dev_attr_temp1_alarm.attr,
- 	NULL,
- };
- 
--ATTRIBUTE_GROUPS(max31722);
-+static umode_t max31722_is_visible(struct kobject *kobj, struct attribute *attr,
-+				   int index)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct max31722_data *data = dev_get_drvdata(dev);
-+
-+	/* Hide the alarm attribute if interrupts are disabled. */
-+	if (!data->irq_enabled && index = 3)
-+		return 0;
-+
-+	return attr->mode;
-+}
-+
-+static const struct attribute_group max31722_group = {
-+	.attrs = max31722_attrs, .is_visible = max31722_is_visible,
-+};
-+
-+__ATTRIBUTE_GROUPS(max31722);
-+
-+static void max31722_update_alarm(struct max31722_data *data)
-+{
-+	s16 temp;
-+	ssize_t ret;
-+	/*
-+	 * Do a quick temperature reading and compare it with TLOW/THIGH
-+	 * so we can tell which threshold has been met.
-+	 */
-+	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
-+	if (ret < 0)
-+		goto exit_err;
-+	temp = (s16)ret;
-+	if (!data->tlow) {
-+		ret = spi_w8r16(data->spi_device, MAX31722_REG_TLOW_LSB);
-+		if (ret < 0)
-+			goto exit_err;
-+		data->tlow = (s16)ret;
-+	}
-+	if (!data->thigh) {
-+		ret = spi_w8r16(data->spi_device, MAX31722_REG_THIGH_LSB);
-+		if (ret < 0)
-+			goto exit_err;
-+		data->thigh = (s16)ret;
-+	}
-+
-+	if (temp > data->thigh || (!data->alarm_active && temp > data->tlow))
-+		data->alarm_active = true;
-+	else if (temp <= data->tlow ||
-+			(data->alarm_active && temp < data->thigh))
-+		data->alarm_active = false;
-+
-+	sysfs_notify(&data->spi_device->dev.kobj, NULL, "temp1_alarm");
-+	return;
-+
-+exit_err:
-+	dev_err(&data->spi_device->dev, "failed to read temperature register\n");
-+}
-+
-+static irqreturn_t max31722_irq_handler(int irq, void *private)
-+{
-+	struct max31722_data *data = private;
-+
-+	max31722_update_alarm(data);
-+
-+	return IRQ_HANDLED;
-+}
- 
- static int max31722_probe(struct spi_device *spi)
- {
-@@ -89,11 +219,29 @@ static int max31722_probe(struct spi_device *spi)
- 	 * Set SD bit to 0 so we can have continuous measurements.
- 	 * Set resolution to 12 bits for maximum precision.
- 	 */
--	data->mode = MAX31722_MODE_CONTINUOUS | MAX31722_RESOLUTION_12BIT;
-+	data->mode = MAX31722_MODE_CONTINUOUS | MAX31722_RESOLUTION_12BIT
-+		   | MAX31722_TM_INTERRUPT;
- 	ret = max31722_set_mode(data, MAX31722_MODE_CONTINUOUS);
- 	if (ret < 0)
- 		return ret;
- 
-+	data->irq_enabled = false;
-+	if (spi->irq > 0) {
-+		ret = devm_request_threaded_irq(&spi->dev, spi->irq,
-+						NULL,
-+						max31722_irq_handler,
-+						IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-+						dev_name(&spi->dev), data);
-+		if (ret < 0) {
-+			dev_warn(&spi->dev, "request irq %d failed\n",
-+				  spi->irq);
-+		} else {
-+			data->irq_enabled = true;
-+			data->alarm_active = false;
-+			max31722_update_alarm(data);
-+		}
-+	}
-+
- 	data->hwmon_dev = hwmon_device_register_with_groups(&spi->dev,
- 							    spi->modalias,
- 							    data,
--- 
-1.9.1
+Almost there. Couple of (hopefully final) comments below.
 
+> Signed-off-by: Tiberiu Breana <tiberiu.a.breana@intel.com>
+> ---
+> Changes from v2:
+> - addressed Guenter's comments
+> - improved threshold value precision
+> - threshold values are now cached
+> ---
+>  drivers/hwmon/max31722.c | 158 +++++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 153 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/hwmon/max31722.c b/drivers/hwmon/max31722.c
+> index 30a100e..1460b22 100644
+> --- a/drivers/hwmon/max31722.c
+> +++ b/drivers/hwmon/max31722.c
+> @@ -12,23 +12,37 @@
+>  #include <linux/acpi.h>
+>  #include <linux/hwmon.h>
+>  #include <linux/hwmon-sysfs.h>
+> +#include <linux/interrupt.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/spi/spi.h>
+>  
+>  #define MAX31722_REG_CFG				0x00
+>  #define MAX31722_REG_TEMP_LSB				0x01
+> +#define MAX31722_REG_THIGH_LSB				0x03
+> +#define MAX31722_REG_TLOW_LSB				0x05
+>  
+>  #define MAX31722_MODE_CONTINUOUS			0x00
+>  #define MAX31722_MODE_STANDBY				0x01
+>  #define MAX31722_MODE_MASK				0xFE
+>  #define MAX31722_RESOLUTION_12BIT			0x06
+> +#define MAX31722_TM_INTERRUPT				0x08
+>  #define MAX31722_WRITE_MASK				0x80
+> +/*
+> + * Minimum temperature value: -2^(12-1)      * 62.5  = -128,000
+> + * Maximum temperature value: (2^(12-1) - 1) * 62.5 ~=  127,937
+> + */
+> +#define MAX31722_MIN_TEMP			       -128000
+> +#define MAX31722_MAX_TEMP				127937
+>  
+>  struct max31722_data {
+>  	struct device *hwmon_dev;
+>  	struct spi_device *spi_device;
+>  	u8 mode;
+> +	s16 thigh;
+> +	s16 tlow;
+> +	bool irq_enabled;
+> +	bool alarm_active;
+>  };
+>  
+>  static int max31722_set_mode(struct max31722_data *data, u8 mode)
+> @@ -56,23 +70,139 @@ static ssize_t max31722_show_temp(struct device *dev,
+>  {
+>  	ssize_t ret;
+>  	struct max31722_data *data = dev_get_drvdata(dev);
+> +	struct sensor_device_attribute *dev_attr = to_sensor_dev_attr(attr);
+>  
+> -	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
+> +	ret = spi_w8r16(data->spi_device, dev_attr->index);
+
+For the limits it is now no longer necessary to execute the spi read,
+since the limut values are cached. With this, it might make more sense
+to use separate functions, show_temp() and show_limits().
+
+>  	if (ret < 0)
+>  		return ret;
+>  	/* Keep 12 bits and multiply by the scale of 62.5 millidegrees/bit. */
+>  	return sprintf(buf, "%d\n", (s16)le16_to_cpu(ret) * 125 / 32);
+>  }
+>  
+> -static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+> -			  max31722_show_temp, NULL, 0);
+> +static ssize_t max31722_set_temp(struct device *dev,
+> +				 struct device_attribute *attr,
+> +				 const char *buf, size_t count)
+> +{
+> +	int ret;
+> +	long val;
+> +	s16 thresh;
+> +	u8 tx_buf[3];
+> +	struct max31722_data *data = dev_get_drvdata(dev);
+> +	struct sensor_device_attribute *dev_attr = to_sensor_dev_attr(attr);
+> +
+> +	ret = kstrtol(buf, 10, &val);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	val = clamp_val(val, MAX31722_MIN_TEMP, MAX31722_MAX_TEMP);
+> +	thresh = cpu_to_le16(DIV_ROUND_CLOSEST(val * 32, 125));
+> +
+> +	tx_buf[0] = dev_attr->index | MAX31722_WRITE_MASK;
+> +	tx_buf[1] = thresh & 0xff;
+> +	tx_buf[2] = thresh >> 8;
+
+	mutex_lock();
+
+> +	ret = spi_write(data->spi_device, &tx_buf, sizeof(tx_buf));
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (dev_attr->index = 1)
+
+That won't work - remember the index is not the register value.
+This would have to be MAX31722_REG_THIGH_LSB.
+Maybe introduce a local variable, such as
+	int reg = dev_attr->index;
+to reduce the confusion.
+
+> +		data->thigh = thresh;
+> +	else if (dev_attr->index = 2)
+
+The second if is not necessary, since we know that it is tlow.
+Anything else would be a bug.
+
+> +		data->tlow = thresh;
+> +
+	mutex_unlock();
+
+The code above now needs to be mutex protected, to ensure that the cache and
+the actual register values are in sync. See other hwmon drivers for examples.
+
+> +	return count;
+> +}
+> +
+> +static ssize_t max31722_show_alarm(struct device *dev,
+> +				   struct device_attribute *attr,
+> +				   char *buf)
+> +{
+> +	struct spi_device *spi_device = to_spi_device(dev);
+> +	struct max31722_data *data = spi_get_drvdata(spi_device);
+> +
+> +	return sprintf(buf, "%d\n", data->alarm_active);
+> +}
+> +
+> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, max31722_show_temp, NULL,
+> +			  MAX31722_REG_TEMP_LSB);
+> +static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, max31722_show_temp,
+> +			  max31722_set_temp, MAX31722_REG_THIGH_LSB);
+> +static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, max31722_show_temp,
+> +			  max31722_set_temp, MAX31722_REG_TLOW_LSB);
+> +static DEVICE_ATTR(temp1_alarm, S_IRUGO, max31722_show_alarm, NULL);
+>  
+>  static struct attribute *max31722_attrs[] = {
+>  	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+> +	&dev_attr_temp1_alarm.attr,
+>  	NULL,
+>  };
+>  
+> -ATTRIBUTE_GROUPS(max31722);
+> +static umode_t max31722_is_visible(struct kobject *kobj, struct attribute *attr,
+> +				   int index)
+> +{
+> +	struct device *dev = container_of(kobj, struct device, kobj);
+> +	struct max31722_data *data = dev_get_drvdata(dev);
+> +
+> +	/* Hide the alarm attribute if interrupts are disabled. */
+> +	if (!data->irq_enabled && index = 3)
+> +		return 0;
+> +
+> +	return attr->mode;
+> +}
+> +
+> +static const struct attribute_group max31722_group = {
+> +	.attrs = max31722_attrs, .is_visible = max31722_is_visible,
+> +};
+> +
+> +__ATTRIBUTE_GROUPS(max31722);
+> +
+> +static void max31722_update_alarm(struct max31722_data *data)
+> +{
+> +	s16 temp;
+> +	ssize_t ret;
+> +	/*
+> +	 * Do a quick temperature reading and compare it with TLOW/THIGH
+> +	 * so we can tell which threshold has been met.
+> +	 */
+> +	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
+> +	if (ret < 0)
+> +		goto exit_err;
+> +	temp = (s16)ret;
+> +	if (!data->tlow) {
+> +		ret = spi_w8r16(data->spi_device, MAX31722_REG_TLOW_LSB);
+> +		if (ret < 0)
+> +			goto exit_err;
+> +		data->tlow = (s16)ret;
+> +	}
+> +	if (!data->thigh) {
+> +		ret = spi_w8r16(data->spi_device, MAX31722_REG_THIGH_LSB);
+> +		if (ret < 0)
+> +			goto exit_err;
+> +		data->thigh = (s16)ret;
+> +	}
+
+This results in "lost" cache values if tlow/thigh are 0.
+I would suggest to write a separate initialization function which is called
+once during initialization.
+
+> +
+> +	if (temp > data->thigh || (!data->alarm_active && temp > data->tlow))
+> +		data->alarm_active = true;
+> +	else if (temp <= data->tlow ||
+> +			(data->alarm_active && temp < data->thigh))
+> +		data->alarm_active = false;
+> +
+> +	sysfs_notify(&data->spi_device->dev.kobj, NULL, "temp1_alarm");
+> +	return;
+> +
+> +exit_err:
+> +	dev_err(&data->spi_device->dev, "failed to read temperature register\n");
+
+I have mixed feelings about this one. We don't have a good means to report an
+error to user space, yet this can result in log flooding if something goes
+wrong with the chip. Can you use __ratelimit() to at least reduce the amount
+of logging in that case ?
+
+> +}
+> +
+> +static irqreturn_t max31722_irq_handler(int irq, void *private)
+> +{
+> +	struct max31722_data *data = private;
+> +
+> +	max31722_update_alarm(data);
+> +
+> +	return IRQ_HANDLED;
+> +}
+>  
+>  static int max31722_probe(struct spi_device *spi)
+>  {
+> @@ -89,11 +219,29 @@ static int max31722_probe(struct spi_device *spi)
+>  	 * Set SD bit to 0 so we can have continuous measurements.
+>  	 * Set resolution to 12 bits for maximum precision.
+>  	 */
+> -	data->mode = MAX31722_MODE_CONTINUOUS | MAX31722_RESOLUTION_12BIT;
+> +	data->mode = MAX31722_MODE_CONTINUOUS | MAX31722_RESOLUTION_12BIT
+> +		   | MAX31722_TM_INTERRUPT;
+>  	ret = max31722_set_mode(data, MAX31722_MODE_CONTINUOUS);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	data->irq_enabled = false;
+> +	if (spi->irq > 0) {
+> +		ret = devm_request_threaded_irq(&spi->dev, spi->irq,
+> +						NULL,
+> +						max31722_irq_handler,
+> +						IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+> +						dev_name(&spi->dev), data);
+> +		if (ret < 0) {
+> +			dev_warn(&spi->dev, "request irq %d failed\n",
+> +				  spi->irq);
+> +		} else {
+> +			data->irq_enabled = true;
+> +			data->alarm_active = false;
+> +			max31722_update_alarm(data);
+> +		}
+> +	}
+> +
+>  	data->hwmon_dev = hwmon_device_register_with_groups(&spi->dev,
+>  							    spi->modalias,
+>  							    data,
+> -- 
+> 1.9.1
+> 
 
 _______________________________________________
 lm-sensors mailing list
