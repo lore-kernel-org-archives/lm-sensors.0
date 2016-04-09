@@ -1,32 +1,42 @@
-From: Marcin Nowak <galandilias@gmail.com>
-Date: Wed, 13 Apr 2016 05:21:58 +0000
-Subject: Re: [lm-sensors] SB800 support
-Message-Id: <CA+-AzzJMnCCC85YsQmLzGJ9Tdt01nS_D+dtuWYKEH2=Qwr0knQ@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 09 Apr 2016 15:07:27 +0000
+Subject: Re: [lm-sensors] [PATCH v3 00/25] hwmon: (it87) Various enhancements and fixes
+Message-Id: <57091AAF.7030900@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
-In-Reply-To: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
+References: <1453860229-23614-1-git-send-email-patchwork@patchwork.roeck-us.net>
+	<loom.20160409T113101-533@post.gmane.org>
+In-Reply-To: <loom.20160409T113101-533@post.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>, lm-sensors@lm-sensors.org, linux-hwmon@vger.kernel.org
 
-MjAxNi0wMS0yMSAxMjoxNyBHTVQrMDE6MDAgSmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBzdXNlLmRl
-PjoKCj4gSGkgTWFyY2luLAo+Cj4gUGxlYXNlIGF2b2lkIHRvcC1wb3N0aW5nLgo+Cj4gTGUgVGh1
-cnNkYXkgMjEgSmFudWFyeSAyMDE2IMOgIDExOjE1ICswMTAwLCBNYXJjaW4gTm93YWsgYSDDqWNy
-aXQgOgo+ID4gVGhhbmsgeW91IGd1eXMsIEkgYW0gYWxyZWFkeSB0ZXN0aW5nIHRoZSBmaXggZm9y
-IGEgd2hpbGUgKEkgaGFkIGFuCj4gPiBvcHBvcnR1bml0eSB0byBjb21waWxlIGl0IGRpcmVjdGx5
-IGZyb20gQ2hyaXN0aWFuKSAtIGFuZCBJIGNhbiBhbHNvCj4gPiBjb25maXJtIHRoYXQgaXQgaXMg
-c3RhYmxlLiBJIGhhdmUgbm90IHRlc3RlZCBvbmUgc3BlY2lmaWMgc2NlbmFyaW8KPiA+IHJlcXVl
-c3RlZCBieSBDaHJpc3RpYW4gYmVjYXVzZSBvZiBsYWNrIG9mIHRoZSB0aW1lIC0gYnV0IEkgYXNz
-dW1lIHRoYXQKPiA+IGFmdGVyIGEgY29kZSByZXZpZXcgaXQgc2hvdWxkIHdvcmsgc21vb3RoIGlu
-IGFsbCBzY2VuYXJpb3MuCj4KPiBHcmVhdC4gQnV0IHBsZWFzZSBkbyBub3QgYXNzdW1lIHRvbyBt
-dWNoLiBUaGUgY29kZSBpcyBzdGlsbCBmcmVzaCBhbmQKPiBwcm9iYWJseSBoYXNuJ3Qgc2VlbiBt
-dWNoIHRlc3RpbmcuIFNvIG1vcmUgdGVzdGluZyBpcyB3ZWxjb21lLiBFdmVuIHRoZQo+IGJlc3Qg
-cmV2aWV3cyBjYW4ndCBjYXRjaCBldmVyeXRoaW5nLCBlc3BlY2lhbGx5IHdoZW4gaXQgY29tZXMg
-dG8KPiBoYXJkd2FyZS4KPgo+IFRoYW5rcywKPiAtLQo+IEplYW4gRGVsdmFyZQo+IFNVU0UgTDMg
-U3VwcG9ydAo+CgpIaSBKZWFuLAoKSSBhbSB0ZXN0aW5nIHRoZSBwYXRjaCBmb3IgYSB3aGlsZSBu
-b3cgLSBpdCBpcyB3b3JraW5nIHdpdGhvdXQgYW55IGlzc3VlLgpBcmUgdGhlcmUgYW55IHBsYW5z
-IGZvciBhIHJlbGVhc2U/CgpCUiwKTWFyY2luLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnM
+Hi Martin,
+
+On 04/09/2016 02:33 AM, Martin Blumenstingl wrote:
+> Guenter Roeck <patchwork <at> patchwork.roeck-us.net> writes:
+>> From: Guenter Roeck <linux <at> roeck-us.net>
+>>
+>> This patch series builds on top of v4.5-rc1. The series was tested on
+>> a system with IT8728F. Out-of-kernel versions were tested by various
+>> people using a github repository.
+> I've been running the whole series on top of v4.5 for the past two
+> weeks on a system with IT8628E. I did not find any problems so far.
+>
+
+thanks a lot for the feedback. It would be great if you can send me
+an official Tested-by: that I can add into the series (or a permission
+to do so).
+
+With the experience gained with the off-list driver, I think this series
+is good to go for upstream, even without code review feedback. Otherwise
+I fear we'll never get there. Jean, any objections ?
+
+Thanks,
+Guenter
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
