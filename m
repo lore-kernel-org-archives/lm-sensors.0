@@ -1,38 +1,32 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 05 Apr 2016 16:02:31 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (max31722) Add threshold alarm support
-Message-Id: <20160405160231.GA27196@roeck-us.net>
+From: Marcin Nowak <galandilias@gmail.com>
+Date: Wed, 13 Apr 2016 05:21:58 +0000
+Subject: Re: [lm-sensors] SB800 support
+Message-Id: <CA+-AzzJMnCCC85YsQmLzGJ9Tdt01nS_D+dtuWYKEH2=Qwr0knQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1459860813-25435-1-git-send-email-tiberiu.a.breana@intel.com>
-In-Reply-To: <1459860813-25435-1-git-send-email-tiberiu.a.breana@intel.com>
+References: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
+In-Reply-To: <CA+-AzzLcdx6-CEJFDvt41hfa_zfWRk2y8-+i82E2FFLLBjA-2g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 03:53:33PM +0300, Tiberiu Breana wrote:
-> Add threshold alarm support for the max31722 temperature sensor driver.
-> 
-> Signed-off-by: Tiberiu Breana <tiberiu.a.breana@intel.com>
-> ---
-[ ... ]
-> +
-> +	/*
-> +	 * Do a quick temperature reading and compare it with TLOW/THIGH
-> +	 * so we can tell which threshold has been met.
-> +	 */
-> +	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
-> +	if (ret < 0)
-> +		goto exit_err;
-> +	temp = (s16)(le16_to_cpu(ret) * 125 / 32);
-
-Another comment: No need to convert values to milli-degrees here.
-Just use raw register values.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+MjAxNi0wMS0yMSAxMjoxNyBHTVQrMDE6MDAgSmVhbiBEZWx2YXJlIDxqZGVsdmFyZUBzdXNlLmRl
+PjoKCj4gSGkgTWFyY2luLAo+Cj4gUGxlYXNlIGF2b2lkIHRvcC1wb3N0aW5nLgo+Cj4gTGUgVGh1
+cnNkYXkgMjEgSmFudWFyeSAyMDE2IMOgIDExOjE1ICswMTAwLCBNYXJjaW4gTm93YWsgYSDDqWNy
+aXQgOgo+ID4gVGhhbmsgeW91IGd1eXMsIEkgYW0gYWxyZWFkeSB0ZXN0aW5nIHRoZSBmaXggZm9y
+IGEgd2hpbGUgKEkgaGFkIGFuCj4gPiBvcHBvcnR1bml0eSB0byBjb21waWxlIGl0IGRpcmVjdGx5
+IGZyb20gQ2hyaXN0aWFuKSAtIGFuZCBJIGNhbiBhbHNvCj4gPiBjb25maXJtIHRoYXQgaXQgaXMg
+c3RhYmxlLiBJIGhhdmUgbm90IHRlc3RlZCBvbmUgc3BlY2lmaWMgc2NlbmFyaW8KPiA+IHJlcXVl
+c3RlZCBieSBDaHJpc3RpYW4gYmVjYXVzZSBvZiBsYWNrIG9mIHRoZSB0aW1lIC0gYnV0IEkgYXNz
+dW1lIHRoYXQKPiA+IGFmdGVyIGEgY29kZSByZXZpZXcgaXQgc2hvdWxkIHdvcmsgc21vb3RoIGlu
+IGFsbCBzY2VuYXJpb3MuCj4KPiBHcmVhdC4gQnV0IHBsZWFzZSBkbyBub3QgYXNzdW1lIHRvbyBt
+dWNoLiBUaGUgY29kZSBpcyBzdGlsbCBmcmVzaCBhbmQKPiBwcm9iYWJseSBoYXNuJ3Qgc2VlbiBt
+dWNoIHRlc3RpbmcuIFNvIG1vcmUgdGVzdGluZyBpcyB3ZWxjb21lLiBFdmVuIHRoZQo+IGJlc3Qg
+cmV2aWV3cyBjYW4ndCBjYXRjaCBldmVyeXRoaW5nLCBlc3BlY2lhbGx5IHdoZW4gaXQgY29tZXMg
+dG8KPiBoYXJkd2FyZS4KPgo+IFRoYW5rcywKPiAtLQo+IEplYW4gRGVsdmFyZQo+IFNVU0UgTDMg
+U3VwcG9ydAo+CgpIaSBKZWFuLAoKSSBhbSB0ZXN0aW5nIHRoZSBwYXRjaCBmb3IgYSB3aGlsZSBu
+b3cgLSBpdCBpcyB3b3JraW5nIHdpdGhvdXQgYW55IGlzc3VlLgpBcmUgdGhlcmUgYW55IHBsYW5z
+IGZvciBhIHJlbGVhc2U/CgpCUiwKTWFyY2luLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
