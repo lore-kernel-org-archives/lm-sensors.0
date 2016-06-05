@@ -1,73 +1,41 @@
-From: Angelo Compagnucci <angelo.compagnucci@gmail.com>
-Date: Thu, 12 May 2016 18:54:31 +0000
-Subject: Re: [lm-sensors] Fwd: The sad state of lm-sensors.org
-Message-Id: <CA+TH9Vmd4RR3EpWBqzrKTba26jGV0ZtFwHANs1jpfmU9AHyGfQ@mail.gmail.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Date: Sun, 05 Jun 2016 07:35:43 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm90) use proper type for update_interval
+Message-Id: <1465112143-15337-1-git-send-email-wsa@the-dreams.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
-In-Reply-To: <CA+TH9V=u=LCYFCaG8_vTdJFzRHxV6agRk+wR8f2FMUOPn81cKw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgR3VlbnRlciwKCjIwMTYtMDMtMjMgMTk6MzIgR01UKzAxOjAwIEd1ZW50ZXIgUm9lY2sgPGxp
-bnV4QHJvZWNrLXVzLm5ldD46Cj4gT24gVHVlLCBNYXIgMjIsIDIwMTYgYXQgMDM6MTQ6MTVQTSAt
-MDcwMCwgR3VlbnRlciBSb2VjayB3cm90ZToKPj4gT24gU3VuLCBNYXIgMjAsIDIwMTYgYXQgMTE6
-NTI6MTNQTSArMDEwMCwgQW5nZWxvIENvbXBhZ251Y2NpIHdyb3RlOgo+PiA+IEhpIEplYW4sCj4+
-ID4KPj4gPiBKdXN0IGEgZnJpZW5kbHkgcmVtYWluZGVyIHRvIHJlaWduaXRlIHRoZSBkaXNjdXNz
-aW9uIQo+PiA+Cj4+IEZvciBod21vbjoKPj4KPj4gTmV3IG1haWxpbmcgbGlzdDoKPj4gICAgICAg
-bGludXgtaHdtb25Admdlci5rZXJuZWwub3JnIChleGlzdHMpCj4+IE5ldyBwcm9qZWN0IHdlYiBz
-aXRlOgo+PiAgICAgICBod21vbi53aWtpLmtlcm5lbC5vcmcgKGluIHByb2Nlc3MpCj4+Cj4gVGhl
-IHdpa2kgaXMgbm93IG9ubGluZS4KCkFueSBuZXdzIGZvciBpMmMtdG9vbHM/IElmIGFueW9uZSBp
-bnRlcmVzdGVkIEknbSB3aWxsaW5nIHRvIGhlbHAgdGhlCnRyYW5zaXRpb24gdG8gYSBuZXcgbG9j
-YXRpb24uCgpTaW5jZXJlbHksIEFuZ2VsbwoKPgo+IEd1ZW50ZXIKPgo+PiBJJ2xsIHRyeSB0byBn
-ZXQgdGhlIG5ldyBtYWlsaW5nIGxpc3QgYXJjaGl2ZWQgYXQgZ21hbmUua2VybmVsLm9yZy4KPj4g
-SSBhbHNvIHJlcXVlc3RlZCBhIHBhdGNod29yayBwcm9qZWN0IGF0IHBhdGNod29yay5rZXJuZWwu
-b3JnLgo+Pgo+PiBUaGUgZ2l0IGZvciB0aGUgbG0tc2Vuc29ycyBwcm9qZWN0IGlzIHN0aWxsIG9u
-IG15IFRPRE8gbGlzdC4KPj4gV2UnbGwgYWxzbyBoYXZlIHRvIGZpbmQgYSBob21lIGZvciB0aGUg
-bG0tc2Vuc29ycyB1c2VyIHNwYWNlCj4+IGRvY3VtZW50YXRpb24gKHVubGVzcyB3ZSBoaWphY2sg
-aHdtb24ud2lraS5rZXJuZWwub3JnLCBvcgo+PiBhc2sgZm9yIGEgc2VwYXJhdGUgbG0tc2Vuc29y
-cy53aWtpLmtlcm5lbC5vcmcgYW5kIGhvcGUgdGhhdAo+PiBpdCBnZXRzIGFwcHJvdmVkKS4KPj4K
-Pj4gU2lkZSBub3RlOiBQbGVhc2UgZG9uJ3QgdG9wLXBvc3QuCj4+Cj4+IFRoYW5rcywKPj4gR3Vl
-bnRlcgo+Pgo+PiA+IFNpbmNlcmVseSBBbmdlbG8KPj4gPiBJbCAxOSBmZWIgMjAxNiAxNDo0MCwg
-IkFuZ2VsbyBDb21wYWdudWNjaSIgPGFuZ2Vsby5jb21wYWdudWNjaUBnbWFpbC5jb20+Cj4+ID4g
-aGEgc2NyaXR0bzoKPj4gPgo+PiA+ID4gSGkgSmVhbiwKPj4gPiA+Cj4+ID4gPiAyMDE2LTAyLTE5
-IDg6MTYgR01UKzAxOjAwIEplYW4gRGVsdmFyZSA8amRlbHZhcmVAc3VzZS5kZT46Cj4+ID4gPiA+
-IExlIFRodXJzZGF5IDE4IEZlYnJ1YXJ5IDIwMTYgw6AgMTc6MTIgKzAxMDAsIEFuZ2VsbyBDb21w
-YWdudWNjaSBhIMOpY3JpdCA6Cj4+ID4gPiA+PiBIaSBHdWVudGVyLAo+PiA+ID4gPj4KPj4gPiA+
-ID4+IDIwMTYtMDItMTggMTY6NTYgR01UKzAxOjAwIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNr
-LXVzLm5ldD46Cj4+ID4gPiA+PiA+IFRoZSByZXBvc2l0b3JpZXMgYXJlIG1pcnJvcmVkIGF0IGh0
-dHBzOi8vZ2l0aHViLmNvbS9ncm9lY2svaTJjLXRvb2xzCj4+ID4gPiBhbmQKPj4gPiA+ID4+ID4g
-aHR0cHM6Ly9naXRodWIuY29tL2dyb2Vjay9sbS1zZW5zb3JzLiBXZSBhcmUgaW4gdGhlIHByb2Nl
-c3Mgb2YKPj4gPiA+IGZpbmRpbmcKPj4gPiA+ID4+ID4gZmluYWwgaG9tZXMuCj4+ID4gPiA+Pgo+
-PiA+ID4gPj4gT2ssIGNvdWxkIEkgc3VnZ2VzdCB0byByZWdpc3RlciBhIG5ldyBsbS1zZW5zb3Jz
-IGVudGl0eSBpbiBnaXRodWIgYW5kCj4+ID4gPiA+PiBjcmVhdGUgdHdvIHN1YnByb2plY3RzPyBM
-aWtlOgo+PiA+ID4gPj4KPj4gPiA+ID4+IGh0dHBzOi8vZ2l0aHViLmNvbS9sbS1zZW5zb3JzL2xt
-LXNlbnNvcnMKPj4gPiA+ID4KPj4gPiA+ID4gSSB0aGluayBHdWVudGVyIGhhcyBzdWNoIGEgcGxh
-bi4KPj4gPiA+Cj4+ID4gPiBHcmVhdCEKPj4gPiA+Cj4+ID4gPiA+PiBodHRwczovL2dpdGh1Yi5j
-b20vbG0tc2Vuc29ycy9pMmMtdG9vbHMKPj4gPiA+ID4KPj4gPiA+ID4gSSBvYmplY3QgdG8gdGhh
-dCBvbmUsIGZvciBpMmMtdG9vbHMgaGFzIG5vdGhpbmcgdG8gZG8gd2l0aCBsbS1zZW5zb3JzLgo+
-PiA+ID4gPiBJdCB3YXMgaG9zdGVkIG9uIHRoZSBzYW1lIHNpdGUgb25seSBmb3IgaGlzdG9yaWNh
-bCByZWFzb25zLiBJbiBwcmFjdGljZQo+PiA+ID4gPiBpdCBpcyBub3cgbWFpbnRhaW5lZCBhbmQg
-dXNlZCBieSBhIGNvbXBsZXRlbHkgZGlmZmVyZW50IHNldCBvZiBwZW9wbGUuCj4+ID4gPgo+PiA+
-ID4gT2ssIHNvIHdobyBjYXJlcyBhYm91dCBpMmMtdG9vbHM/Cj4+ID4gPiBJcyB0aGVyZSBhIGRp
-c2N1c3Npb24gc29tZXdoZXJlPwo+PiA+ID4gQWdhaW4sIEknbSBvZmZlcmluZyB0byB2b2x1bnRl
-ZXIgd2l0aCB0aGUgdHJhbnNpdGlvbiB0byBhIG5ldyBsb2NhdGlvbgo+PiA+ID4gaWYgbmVjZXNz
-YXJ5Lgo+PiA+ID4KPj4gPiA+IEkgdGhpbmsgd2Ugc2hvdWxkIGFjdCwgb3BlbmluZyBhIG5ldyBn
-aWh1YiByZXBvc2l0b3J5IGFuZCBzZXR0aW5nIHVwIGEKPj4gPiA+IG5ldyB3ZWJzaXRlIGl0J3Mg
-bm90IGEgdHJlbWVuZG91cyBhbW91bnQgb2Ygd29yaywgSSBjYW4gZG8gaXQgaW4gYQo+PiA+ID4g
-Y291cGxlIG9mIHdlZWtzIG9mIG15IGZyZWUgdGltZS4gT2J2aW91c2x5LCB5b3Ugc2hvdWxkIGVu
-ZG9yc2UgbWUhCj4+ID4gPgo+PiA+ID4gSSB0aGluayBub3QgaGF2aW5nIGEgd2Vic2l0ZSBhbmQg
-YW4gaW5zdGl0dXRpb25hbCBob21lIGl0J3MgYSBwcm9ibGVtCj4+ID4gPiBjb25zaWRlcmluZyBt
-b2Rlcm4gdG9vbHMgYW5kIGZyZWUgb2ZmZXJpbmcgd2UgaGF2ZS4KPj4gPiA+Cj4+ID4gPgo+PiA+
-ID4gU2luY2VyZWx5LCBBbmdlbG8KPj4gPiA+Cj4+ID4gPiA+IC0tCj4+ID4gPiA+IEplYW4gRGVs
-dmFyZQo+PiA+ID4gPiBTVVNFIEwzIFN1cHBvcnQKPj4gPiA+ID4KPj4gPiA+Cj4+ID4gPgo+PiA+
-ID4KPj4gPiA+IC0tCj4+ID4gPiBQcm9maWxlOiBodHRwOi8vaXQubGlua2VkaW4uY29tL2luL2Nv
-bXBhZ251Y2NpYW5nZWxvCj4+ID4gPgo+Pgo+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwo+PiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+PiBsbS1zZW5z
-b3JzQGxtLXNlbnNvcnMub3JnCj4+IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xtLXNlbnNvcnMKCgoKLS0gClByb2ZpbGU6IGh0dHA6Ly9pdC5saW5rZWRpbi5j
-b20vaW4vY29tcGFnbnVjY2lhbmdlbG8KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
-c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
-c2Vuc29ycw=
+The code handles this variable always as unsigned, so adapt the type.
+
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+
+Triggered by a code-checker warning. Only compile tested.
+
+ drivers/hwmon/lm90.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index c9ff08dbe10cef..e30a5939dc0d55 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -375,7 +375,7 @@ struct lm90_data {
+ 	int kind;
+ 	u32 flags;
+ 
+-	int update_interval;	/* in milliseconds */
++	unsigned int update_interval; /* in milliseconds */
+ 
+ 	u8 config_orig;		/* Original configuration register value */
+ 	u8 convrate_orig;	/* Original conversion rate register value */
+-- 
+2.8.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
