@@ -1,73 +1,100 @@
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 12 Aug 2016 18:26:21 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon/max6650.c: Add devicetree support
-Message-Id: <20160812182621.GA30513@rob-hp-laptop>
+From: Mike Looijmans <mike.looijmans@topic.nl>
+Date: Tue, 09 Aug 2016 07:30:27 +0000
+Subject: [lm-sensors] [RFC][PATCH] hwmon/max6650.c: Optionally retrieve voltage and prescaler from devicetree
+Message-Id: <1470727827-15907-1-git-send-email-mike.looijmans@topic.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1470727827-15907-1-git-send-email-mike.looijmans@topic.nl>
- <20160809163727.GC9105@roeck-us.net>
- <1470838787-8273-1-git-send-email-mike.looijmans@topic.nl>
-In-Reply-To: <1470838787-8273-1-git-send-email-mike.looijmans@topic.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Looijmans <mike.looijmans@topic.nl>
-Cc: lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, linux@roeck-us.net, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, Aug 10, 2016 at 04:19:47PM +0200, Mike Looijmans wrote:
-> Parse devicetree parameters for voltage and prescaler setting. This allows
-> using multiple max6550 devices with varying settings, and also makes it
-> possible to instantiate and configure the device using devicetree.
-> 
-> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
-> ---
-> v3: Resubmit because mailing lists bounced
->     Fix style errors as reported by checkpatch.pl
->     Fix bug in DT parsing of fan-prescale
-> v2: Add devicetree binding documentation
->     Code changes as suggested by Guenter
->     Reduce log info, output only a single line
-> 
->  .../devicetree/bindings/hwmon/max6650.txt          | 20 ++++++++++++++++
->  drivers/hwmon/max6650.c                            | 28 +++++++++++++---------
->  2 files changed, 37 insertions(+), 11 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/hwmon/max6650.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/hwmon/max6650.txt b/Documentation/devicetree/bindings/hwmon/max6650.txt
-> new file mode 100644
-> index 0000000..89d87c6
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwmon/max6650.txt
-> @@ -0,0 +1,20 @@
-> +Bindings for MAX6651 and MAX6650 I2C fan controllers
-> +
-> +Required properties:
-> +- compatible : One of "max6650" or "max6651"
+Parse devicetree parameters for voltage and prescaler setting. This allows
+using multiple max6550 devices with varying settings, and also makes it
+possible to instantiate and configure the device using devicetree.
 
-Needs a vendor prefix.
+Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
+---
 
-> +- reg        : I2C address
-> +
-> +Optional properties:
-> +- fan-voltage    : The supply voltage of the fan. Valid values are 5 and 12.
+This patch just does the minimal to get the device working properly with devicetree config.
+What is the better path here, move to devicetree completely and remove the module parameters,
+or do we need to keep backward compatibility with the moduel parameter (allowing only one
+config for all chips)?
+(in case of DT-only, the "clock" value could be obtained using the clock framework)
 
-This is in volts? Please use microvolt and the standard unit suffix as 
-found in property-units.txt.
+ arch/arm/boot/dts/topic-miamiplus.dtsi |  1 +
+ drivers/hwmon/max6650.c                | 18 ++++++++++++++----
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
-> +                   Default is to use the chip's current setting.
-> +- fan-prescale   : Pre-scaling value as per datasheet. Valid are 1, 2, 4, 8, 16.
-> +                   Default is to use the chip's current setting.
+diff --git a/arch/arm/boot/dts/topic-miamiplus.dtsi b/arch/arm/boot/dts/topic-miamiplus.dtsi
+index d433101..e927ff9 100644
+--- a/arch/arm/boot/dts/topic-miamiplus.dtsi
++++ b/arch/arm/boot/dts/topic-miamiplus.dtsi
+@@ -56,6 +56,7 @@
+ 		reg = <0x1b>; /* ADD pins high-Z, hence address 0011011b */
+ 		compatible = "max6650";
+ 		voltage = <12>;
++		prescaler = <8>;
+ 	};
+ };
+ 
+diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
+index 162a520..c190954 100644
+--- a/drivers/hwmon/max6650.c
++++ b/drivers/hwmon/max6650.c
+@@ -566,6 +566,15 @@ static int max6650_init_client(struct max6650_data *data,
+ 	struct device *dev = &client->dev;
+ 	int config;
+ 	int err = -EIO;
++	u32 local_fan_voltage = (u32)fan_voltage;
++	u32 local_prescaler = (u32)prescaler;
++
++#ifdef CONFIG_OF
++	of_property_read_u32(client->dev.of_node,
++			     "voltage", &local_fan_voltage);
++	of_property_read_u32(client->dev.of_node,
++			     "prescaler", &local_prescaler);
++#endif
+ 
+ 	config = i2c_smbus_read_byte_data(client, MAX6650_REG_CONFIG);
+ 
+@@ -574,7 +583,7 @@ static int max6650_init_client(struct max6650_data *data,
+ 		return err;
+ 	}
+ 
+-	switch (fan_voltage) {
++	switch (local_fan_voltage) {
+ 	case 0:
+ 		break;
+ 	case 5:
+@@ -585,13 +594,13 @@ static int max6650_init_client(struct max6650_data *data,
+ 		break;
+ 	default:
+ 		dev_err(dev, "illegal value for fan_voltage (%d)\n",
+-			fan_voltage);
++			local_fan_voltage);
+ 	}
+ 
+ 	dev_info(dev, "Fan voltage is set to %dV.\n",
+ 		 (config & MAX6650_CFG_V12) ? 12 : 5);
+ 
+-	switch (prescaler) {
++	switch (local_prescaler) {
+ 	case 0:
+ 		break;
+ 	case 1:
+@@ -614,7 +623,8 @@ static int max6650_init_client(struct max6650_data *data,
+ 			 | MAX6650_CFG_PRESCALER_16;
+ 		break;
+ 	default:
+-		dev_err(dev, "illegal value for prescaler (%d)\n", prescaler);
++		dev_err(dev, "illegal value for prescaler (%d)\n",
++			local_prescaler);
+ 	}
+ 
+ 	dev_info(dev, "Prescaler is set to %d.\n",
+-- 
+1.9.1
 
-Add a vendor prefix here.
-
-> + 
-> +
-> +Example:
-> +	fan-max6650: max6650@1b {
-> +		reg = <0x1b>;
-> +		compatible = "max6650";
-> +		fan-voltage = <12>;
-> +		fan-prescale = <4>;
-> +	};
 
 _______________________________________________
 lm-sensors mailing list
