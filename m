@@ -1,139 +1,160 @@
-From: Mike Looijmans <mike.looijmans@topic.nl>
-Date: Wed, 10 Aug 2016 14:19:47 +0000
-Subject: [lm-sensors] [PATCH v3] hwmon/max6650.c: Add devicetree support
-Message-Id: <1470838787-8273-1-git-send-email-mike.looijmans@topic.nl>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 11 Aug 2016 14:43:58 +0000
+Subject: Re: [lm-sensors] [PATCH v3] hwmon/max6650.c: Add devicetree support
+Message-Id: <5f79a68a-92fa-f7ef-c71f-7a7701609250@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1470727827-15907-1-git-send-email-mike.looijmans@topic.nl> <20160809163727.GC9105@roeck-us.net>
-In-Reply-To: <20160809163727.GC9105@roeck-us.net>
+References: <1470727827-15907-1-git-send-email-mike.looijmans@topic.nl>
+ <20160809163727.GC9105@roeck-us.net>
+ <1470838787-8273-1-git-send-email-mike.looijmans@topic.nl>
+In-Reply-To: <1470838787-8273-1-git-send-email-mike.looijmans@topic.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, devicetree@vger.kernel.org
-Cc: linux@roeck-us.net, linux-kernel@vger.kernel.org, Mike Looijmans <mike.looijmans@topic.nl>
+To: Mike Looijmans <mike.looijmans@topic.nl>, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, "linux-hwmon@vger.kernel.org" <linux-hwmon@vger.kernel.org>
 
-Parse devicetree parameters for voltage and prescaler setting. This allows
-using multiple max6550 devices with varying settings, and also makes it
-possible to instantiate and configure the device using devicetree.
+On 08/10/2016 07:19 AM, Mike Looijmans wrote:
+> Parse devicetree parameters for voltage and prescaler setting. This allows
+> using multiple max6550 devices with varying settings, and also makes it
+> possible to instantiate and configure the device using devicetree.
+>
 
-Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
----
-v3: Resubmit because mailing lists bounced
-    Fix style errors as reported by checkpatch.pl
-    Fix bug in DT parsing of fan-prescale
-v2: Add devicetree binding documentation
-    Code changes as suggested by Guenter
-    Reduce log info, output only a single line
+For the subject: Please use "hwmon: (max6650) Add devicetree support"
 
- .../devicetree/bindings/hwmon/max6650.txt          | 20 ++++++++++++++++
- drivers/hwmon/max6650.c                            | 28 +++++++++++++---------
- 2 files changed, 37 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/hwmon/max6650.txt
+> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
+> ---
+> v3: Resubmit because mailing lists bounced
 
-diff --git a/Documentation/devicetree/bindings/hwmon/max6650.txt b/Documentation/devicetree/bindings/hwmon/max6650.txt
-new file mode 100644
-index 0000000..89d87c6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/hwmon/max6650.txt
-@@ -0,0 +1,20 @@
-+Bindings for MAX6651 and MAX6650 I2C fan controllers
-+
-+Required properties:
-+- compatible : One of "max6650" or "max6651"
-+- reg        : I2C address
-+
-+Optional properties:
-+- fan-voltage    : The supply voltage of the fan. Valid values are 5 and 12.
-+                   Default is to use the chip's current setting.
-+- fan-prescale   : Pre-scaling value as per datasheet. Valid are 1, 2, 4, 8, 16.
-+                   Default is to use the chip's current setting.
-+ 
-+
-+Example:
-+	fan-max6650: max6650@1b {
-+		reg = <0x1b>;
-+		compatible = "max6650";
-+		fan-voltage = <12>;
-+		fan-prescale = <4>;
-+	};
-diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
-index 162a520..56a6c87 100644
---- a/drivers/hwmon/max6650.c
-+++ b/drivers/hwmon/max6650.c
-@@ -41,14 +41,14 @@
- #include <linux/err.h>
- 
- /*
-- * Insmod parameters
-+ * Insmod parameters (for backward compatibility)
-  */
- 
- /* fan_voltage: 5=5V fan, 12V fan, 0=don't change */
- static int fan_voltage;
- /* prescaler: Possible values are 1, 2, 4, 8, 16 or 0 for don't change */
- static int prescaler;
--/* clock: The clock frequency of the chip the driver should assume */
-+/* clock: The clock frequency of the chip (max6651 can be clocked externally) */
- static int clock = 254000;
- 
- module_param(fan_voltage, int, S_IRUGO);
-@@ -566,6 +566,15 @@ static int max6650_init_client(struct max6650_data *data,
- 	struct device *dev = &client->dev;
- 	int config;
- 	int err = -EIO;
-+	u32 voltage;
-+	u32 prescale;
-+
-+	if (of_property_read_u32(client->dev.of_node, "fan-voltage",
-+				 &voltage))
-+		voltage = fan_voltage;
-+	if (of_property_read_u32(client->dev.of_node, "fan-prescale",
-+				 &prescale))
-+		prescale = prescaler;
- 
- 	config = i2c_smbus_read_byte_data(client, MAX6650_REG_CONFIG);
- 
-@@ -574,7 +583,7 @@ static int max6650_init_client(struct max6650_data *data,
- 		return err;
- 	}
- 
--	switch (fan_voltage) {
-+	switch (voltage) {
- 	case 0:
- 		break;
- 	case 5:
-@@ -584,14 +593,10 @@ static int max6650_init_client(struct max6650_data *data,
- 		config |= MAX6650_CFG_V12;
- 		break;
- 	default:
--		dev_err(dev, "illegal value for fan_voltage (%d)\n",
--			fan_voltage);
-+		dev_err(dev, "illegal value for fan_voltage (%d)\n", voltage);
- 	}
- 
--	dev_info(dev, "Fan voltage is set to %dV.\n",
--		 (config & MAX6650_CFG_V12) ? 12 : 5);
--
--	switch (prescaler) {
-+	switch (prescale) {
- 	case 0:
- 		break;
- 	case 1:
-@@ -614,10 +619,11 @@ static int max6650_init_client(struct max6650_data *data,
- 			 | MAX6650_CFG_PRESCALER_16;
- 		break;
- 	default:
--		dev_err(dev, "illegal value for prescaler (%d)\n", prescaler);
-+		dev_err(dev, "illegal value for prescaler (%d)\n", prescale);
- 	}
- 
--	dev_info(dev, "Prescaler is set to %d.\n",
-+	dev_info(dev, "Fan voltage: %dV, prescaler: %d.\n",
-+		 (config & MAX6650_CFG_V12) ? 12 : 5,
- 		 1 << (config & MAX6650_CFG_PRESCALER_MASK));
- 
- 	/*
--- 
-1.9.1
+It bounced because you sent to the old hwmon mailing list which is at best
+unreliable. Please send future versions to linux-hwmon@vger.kernel.org.
+
+>     Fix style errors as reported by checkpatch.pl
+>     Fix bug in DT parsing of fan-prescale
+> v2: Add devicetree binding documentation
+>     Code changes as suggested by Guenter
+>     Reduce log info, output only a single line
+>
+>  .../devicetree/bindings/hwmon/max6650.txt          | 20 ++++++++++++++++
+
+Please submit the devicetree properties as separate patch.
+
+>  drivers/hwmon/max6650.c                            | 28 +++++++++++++---------
+>  2 files changed, 37 insertions(+), 11 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/hwmon/max6650.txt
+>
+> diff --git a/Documentation/devicetree/bindings/hwmon/max6650.txt b/Documentation/devicetree/bindings/hwmon/max6650.txt
+> new file mode 100644
+> index 0000000..89d87c6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/hwmon/max6650.txt
+> @@ -0,0 +1,20 @@
+> +Bindings for MAX6651 and MAX6650 I2C fan controllers
+> +
+> +Required properties:
+> +- compatible : One of "max6650" or "max6651"
+> +- reg        : I2C address
+> +
+> +Optional properties:
+> +- fan-voltage    : The supply voltage of the fan. Valid values are 5 and 12.
+> +                   Default is to use the chip's current setting.
+> +- fan-prescale   : Pre-scaling value as per datasheet. Valid are 1, 2, 4, 8, 16.
+> +                   Default is to use the chip's current setting.
+> +
+> +
+One empty line is sufficient.
+
+> +Example:
+> +	fan-max6650: max6650@1b {
+> +		reg = <0x1b>;
+> +		compatible = "max6650";
+> +		fan-voltage = <12>;
+> +		fan-prescale = <4>;
+> +	};
+> diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
+> index 162a520..56a6c87 100644
+> --- a/drivers/hwmon/max6650.c
+> +++ b/drivers/hwmon/max6650.c
+> @@ -41,14 +41,14 @@
+>  #include <linux/err.h>
+>
+>  /*
+> - * Insmod parameters
+> + * Insmod parameters (for backward compatibility)
+
+That doesn't add any value.
+
+>   */
+>
+>  /* fan_voltage: 5=5V fan, 12V fan, 0=don't change */
+>  static int fan_voltage;
+>  /* prescaler: Possible values are 1, 2, 4, 8, 16 or 0 for don't change */
+>  static int prescaler;
+> -/* clock: The clock frequency of the chip the driver should assume */
+> +/* clock: The clock frequency of the chip (max6651 can be clocked externally) */
+>  static int clock = 254000;
+>
+>  module_param(fan_voltage, int, S_IRUGO);
+> @@ -566,6 +566,15 @@ static int max6650_init_client(struct max6650_data *data,
+>  	struct device *dev = &client->dev;
+>  	int config;
+>  	int err = -EIO;
+> +	u32 voltage;
+> +	u32 prescale;
+> +
+> +	if (of_property_read_u32(client->dev.of_node, "fan-voltage",
+> +				 &voltage))
+> +		voltage = fan_voltage;
+> +	if (of_property_read_u32(client->dev.of_node, "fan-prescale",
+> +				 &prescale))
+> +		prescale = prescaler;
+>
+>  	config = i2c_smbus_read_byte_data(client, MAX6650_REG_CONFIG);
+>
+> @@ -574,7 +583,7 @@ static int max6650_init_client(struct max6650_data *data,
+>  		return err;
+>  	}
+>
+> -	switch (fan_voltage) {
+> +	switch (voltage) {
+>  	case 0:
+>  		break;
+>  	case 5:
+> @@ -584,14 +593,10 @@ static int max6650_init_client(struct max6650_data *data,
+>  		config |= MAX6650_CFG_V12;
+>  		break;
+>  	default:
+> -		dev_err(dev, "illegal value for fan_voltage (%d)\n",
+> -			fan_voltage);
+> +		dev_err(dev, "illegal value for fan_voltage (%d)\n", voltage);
+>  	}
+>
+> -	dev_info(dev, "Fan voltage is set to %dV.\n",
+> -		 (config & MAX6650_CFG_V12) ? 12 : 5);
+> -
+> -	switch (prescaler) {
+> +	switch (prescale) {
+>  	case 0:
+>  		break;
+>  	case 1:
+> @@ -614,10 +619,11 @@ static int max6650_init_client(struct max6650_data *data,
+>  			 | MAX6650_CFG_PRESCALER_16;
+>  		break;
+>  	default:
+> -		dev_err(dev, "illegal value for prescaler (%d)\n", prescaler);
+> +		dev_err(dev, "illegal value for prescaler (%d)\n", prescale);
+
+Side note: Those errors should really result in an -EINVAL return.
+Separate patch, though.
+
+>  	}
+>
+> -	dev_info(dev, "Prescaler is set to %d.\n",
+> +	dev_info(dev, "Fan voltage: %dV, prescaler: %d.\n",
+> +		 (config & MAX6650_CFG_V12) ? 12 : 5,
+>  		 1 << (config & MAX6650_CFG_PRESCALER_MASK));
+>
+>  	/*
+>
 
 
 _______________________________________________
