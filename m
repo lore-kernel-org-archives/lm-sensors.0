@@ -1,140 +1,41 @@
-From: Mike Looijmans <mike.looijmans@topic.nl>
-Date: Wed, 10 Aug 2016 07:46:53 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon/max6650.c: Add devicetree support
-Message-Id: <1470815213-3731-1-git-send-email-mike.looijmans@topic.nl>
+From: =?UTF-8?Q?L=c3=a9o_El_Amri?= <leo@superlel.me>
+Date: Fri, 21 Sep 2018 14:34:09 +0000
+Subject: How to configure my motherboard
+Message-Id: <33304168-d348-e9c1-dc86-b017a69ec452@superlel.me>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1470727827-15907-1-git-send-email-mike.looijmans@topic.nl>
-	<20160809163727.GC9105@roeck-us.net>
-In-Reply-To: <20160809163727.GC9105@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, devicetree@vger.kernel.org
-Cc: Mike Looijmans <mike.looijmans@topic.nl>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Parse devicetree parameters for voltage and prescaler setting. This allows
-using multiple max6550 devices with varying settings, and also makes it
-possible to instantiate and configure the device using devicetree.
+Hello there,
 
-Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
----
-v2: Add devicetree binding documentation
-    Code changes as suggested by Guenter
-    Reduce log info, output only a single line
+I would like to know how I can configure my motherboard. ie:
+How can I find relations between voltage and temperature ?
+How to identify sensors "locations" ?
+Etc.
 
- .../devicetree/bindings/hwmon/max6650.txt          | 20 ++++++++++++++++
- drivers/hwmon/max6650.c                            | 28 +++++++++++++---------
- 2 files changed, 37 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/hwmon/max6650.txt
+I guess my first "entry point" on the matter would be to read the
+datasheet of the chip.
 
-diff --git a/Documentation/devicetree/bindings/hwmon/max6650.txt b/Documentation/devicetree/bindings/hwmon/max6650.txt
-new file mode 100644
-index 0000000..89d87c6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/hwmon/max6650.txt
-@@ -0,0 +1,20 @@
-+Bindings for MAX6651 and MAX6650 I2C fan controllers
-+
-+Required properties:
-+- compatible : One of "max6650" or "max6651"
-+- reg        : I2C address
-+
-+Optional properties:
-+- fan-voltage    : The supply voltage of the fan. Valid values are 5 and 12.
-+                   Default is to use the chip's current setting.
-+- fan-prescale   : Pre-scaling value as per datasheet. Valid are 1, 2, 4, 8, 16.
-+                   Default is to use the chip's current setting.
-+ 
-+
-+Example:
-+	fan-max6650: max6650@1b {
-+		reg = <0x1b>;
-+		compatible = "max6650";
-+		fan-voltage = <12>;
-+		fan-prescale = <4>;
-+	};
-diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
-index 162a520..858cd01 100644
---- a/drivers/hwmon/max6650.c
-+++ b/drivers/hwmon/max6650.c
-@@ -41,14 +41,14 @@
- #include <linux/err.h>
- 
- /*
-- * Insmod parameters
-+ * Insmod parameters (for backward compatibility)
-  */
- 
- /* fan_voltage: 5=5V fan, 12V fan, 0=don't change */
- static int fan_voltage;
- /* prescaler: Possible values are 1, 2, 4, 8, 16 or 0 for don't change */
- static int prescaler;
--/* clock: The clock frequency of the chip the driver should assume */
-+/* clock: The clock frequency of the chip (Fixed for 6550, 6651 can be clocked externally) */
- static int clock = 254000;
- 
- module_param(fan_voltage, int, S_IRUGO);
-@@ -566,6 +566,15 @@ static int max6650_init_client(struct max6650_data *data,
- 	struct device *dev = &client->dev;
- 	int config;
- 	int err = -EIO;
-+	u32 voltage;
-+	u32 prescale;
-+
-+	if (of_property_read_u32(client->dev.of_node, "fan-voltage",
-+				 &voltage))
-+		voltage = fan_voltage;
-+	if (of_property_read_u32(client->dev.of_node, "fan-prescale",
-+				 &voltage))
-+		prescale = prescaler;
- 
- 	config = i2c_smbus_read_byte_data(client, MAX6650_REG_CONFIG);
- 
-@@ -574,7 +583,7 @@ static int max6650_init_client(struct max6650_data *data,
- 		return err;
- 	}
- 
--	switch (fan_voltage) {
-+	switch (voltage) {
- 	case 0:
- 		break;
- 	case 5:
-@@ -584,14 +593,10 @@ static int max6650_init_client(struct max6650_data *data,
- 		config |= MAX6650_CFG_V12;
- 		break;
- 	default:
--		dev_err(dev, "illegal value for fan_voltage (%d)\n",
--			fan_voltage);
-+		dev_err(dev, "illegal value for fan_voltage (%d)\n", voltage);
- 	}
- 
--	dev_info(dev, "Fan voltage is set to %dV.\n",
--		 (config & MAX6650_CFG_V12) ? 12 : 5);
--
--	switch (prescaler) {
-+	switch (prescale) {
- 	case 0:
- 		break;
- 	case 1:
-@@ -614,10 +619,11 @@ static int max6650_init_client(struct max6650_data *data,
- 			 | MAX6650_CFG_PRESCALER_16;
- 		break;
- 	default:
--		dev_err(dev, "illegal value for prescaler (%d)\n", prescaler);
-+		dev_err(dev, "illegal value for prescaler (%d)\n", prescale);
- 	}
- 
--	dev_info(dev, "Prescaler is set to %d.\n",
-+	dev_info(dev, "Fan voltage: %dV, prescaler: %d.\n",
-+		 (config & MAX6650_CFG_V12) ? 12 : 5,
- 		 1 << (config & MAX6650_CFG_PRESCALER_MASK));
- 
- 	/*
--- 
-1.9.1
+Here are some information about my MB:
+Manufacturer: ASRock
+Model: B450 Gaming-ITX/ac
+BIOS version: (AMI) P1.20
+Chip (As identified by sensors-detect): Nuvoton NCT6792D
+Chip (As identified by sensors): nct6792-isa-0290
+Driver for the sensor: nct6775
 
+I could find the location for the datasheet at
+http://www.nuvoton.com/hq/products/cloud-computing/i-o/super-i-o-series/nct=
+6792d/
+. However, I need an account to download it. Does someone here already
+have a "myNuvoton" account ?
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+I may ask more questions once I get to read the datasheet.
+
+While I'm at it: How should I name the configuration file if ever I had
+to share it ? (The / in the model name being the problem)
+
+Cordially,
+L=C3=A9o
