@@ -1,7 +1,7 @@
-From: =?UTF-8?Q?Ond=c5=99ej_Lyson=c4=9bk?= <olysonek@redhat.com>
-Date: Sat, 22 Sep 2018 10:17:49 +0000
+From: =?UTF-8?Q?L=c3=a9o_El_Amri?= <leo@superlel.me>
+Date: Sat, 22 Sep 2018 12:07:12 +0000
 Subject: Re: How to configure my motherboard
-Message-Id: <ec335832-6bf3-7ae8-40ed-73eb0c455831@redhat.com>
+Message-Id: <36e06a41-2797-55e0-2f1d-0e2d3432549d@superlel.me>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <33304168-d348-e9c1-dc86-b017a69ec452@superlel.me>
 In-Reply-To: <33304168-d348-e9c1-dc86-b017a69ec452@superlel.me>
@@ -10,34 +10,27 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On 21/09/2018 18:56, Léo El Amri wrote:
-> On 21/09/2018 18:23, Ondřej Lysoněk wrote:
->>> How to identify sensors "locations" ?
->>
->> Which sensors? What locations?
+On 22/09/2018 11:58, Ondřej Lysoněk wrote:
+>> Chip (As identified by sensors-detect): Nuvoton NCT6792D
 > 
-> I used the wrong terminology. By "sensors" I meant "voltage",
-> "temperature" and "pwm" (For example), and by "location" I meant "CPU",
-> "Northbridge", "2nd chassis fan" (For example). So I can have a match
-> such as "in1 is the 5V line", or "fan1 is the CPU fan".
+> Please find the chip on the board and verify this. I found a review
+> which claims the chip is Nuvoton NCT5562D [1] (which I was not even able
+> to find on the Nuvoton website).
+> 
+> [1]
+> https://www.tweaktown.com/reviews/8718/asrock-fatal1ty-b450-gaming-itx-ac-motherboard-review/index4.html
 
-The article explains how to guess some of the voltage labels. The
-datasheet could help with some of the others (you'd need to compare it
-with the driver code).
+It seems right. Here is the identification code I found on the chip:
+NCT5562D
+2644B088
+723G9AFA
 
-Regarding fans, you can try adjusting the speed of the fans using the
-sysfs interface, and seeing which fan reported by 'sensors' changed its
-speed and which fan physically changed its speed. Then look where on the
-board the fan is connected, there should be a label near the connector,
-such as SYS FAN1 or CPU FAN.
+Picture I took here:
+http://superlel.me/private/leo/focus_nuvoton_NCT5562D.jpg
 
-Temperatures, I don't know. That may be tough. Send the output of the
-'sensors' command.
+I could only find two results from a search from DuckDuckGo:
+https://www.netcomponents.com/ch/sitemap/NCT5562D.html
+https://www.transistoric.com/index.php?route=product/product&product_id591435&search=NCT5562D
 
-> And I'll proceed to download the datasheet by myself if nobody got it
-> before I really need it.
-
-Even is someone had it, I'm not sure they'd be allowed to share it. You
-should probably ask Nuvoton yourself for it.
-
-Ondřej Lysoněk
+I also searched in the shop of my usual electronics providers, and none
+of them had this chip (Farnell, RS, and even Alibaba).
