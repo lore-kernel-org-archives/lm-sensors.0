@@ -1,30 +1,52 @@
 From: =?UTF-8?Q?Ond=c5=99ej_Lyson=c4=9bk?= <olysonek@redhat.com>
-Date: Fri, 23 Nov 2018 18:53:38 +0000
-Subject: Announcing lm_sensors 3.5.0
-Message-Id: <a47a36f6-228a-1ca5-ec84-c772830a3a87@redhat.com>
+Date: Mon, 17 Dec 2018 12:06:38 +0000
+Subject: Re: libsensors soname bump
+Message-Id: <7b96e7c3-11d6-a06f-53a6-1d61be31c3b3@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20181216124344.49d06b69@endymion>
+ <514c8587-ccf3-f7af-b88d-744add6f1da2@redhat.com>
+ <3799b201-38f9-d74f-273d-f819736dcfb6@redhat.com>
+ <20181217115902.15e538fe@endymion>
+ <20181217112713.jvobrvrmxpkfeshi@aurel32.net>
+In-Reply-To: <20181217112713.jvobrvrmxpkfeshi@aurel32.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
+Cc: Aurelien Jarno <aurelien@aurel32.net>, Jean Delvare <jdelvare@suse.de>, linux-hwmon@vger.kernel.org
 
-Hi,
+Hi lm-sensors list,
 
-after a bit of a pause, lm_sensors 3.5.0 has been released. Get it from
-GitHub [1].
+We're currently considering reverting the undue libsensors soname change
+that happened in lm_sensors 3.5.0 (see below, the whole thread should be
+available on spinics [1]). Would that pose a major problem for anyone?
 
-The release features improved device detection, sample configuration
-files imported from lm-sensors.org, improved hwmon device classification
-as a fix for a problem with chips disappearing with 4.19+ kernels,
-support for JSON output in the sensors program and more. See the CHANGES
-file [2] for a detailed list of user-visible changes.
+Thanks!
 
-As you probably already know, the project has been moved to GitHub [3]
-and a website has been created for it on the hwmon wiki [4].
+[1] https://www.spinics.net/lists/linux-hwmon/msg04837.html
 
-[1] https://github.com/lm-sensors/lm-sensors/releases
-[2] https://github.com/lm-sensors/lm-sensors/blob/V3-5-0/CHANGES
-[3] https://github.com/lm-sensors/lm-sensors
-[4] https://hwmon.wiki.kernel.org/lm_sensors
+Best regards
+Ond=C5=99ej Lyson=C4=9Bk
 
-Ondřej Lysoněk
+On 17. 12. 18 12:27, Aurelien Jarno wrote:
+> On 2018-12-17 11:59, Jean Delvare wrote:
+>> On Mon, 17 Dec 2018 11:35:46 +0100, Ond=C5=99ej Lyson=C4=9Bk wrote:
+>>> I mean, I would love to revert the soname change, however doing so now
+>>> seems like a bad thing to do - people may have already adopted
+>>> lm_sensors 3.5.0. So I'd like to avoid reverting the change unless there
+>>> is a good justification to do so.
+>>
+>> It's not in Debian yet:
+>> https://packages.debian.org/sid/lm-sensors
+>=20
+> It's available in the experimental suite with the soname change:
+> https://packages.debian.org/experimental/lm-sensors
+>=20
+> And it's waiting for a transition slot to rebuild all the
+> reverse dependencies in sid:
+> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=915790
+>=20
+> So on the Debian side, there is still time to revert the soname change.
+>=20
+> Aurelien
+>=20
