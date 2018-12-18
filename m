@@ -1,52 +1,78 @@
 From: =?UTF-8?Q?Ond=c5=99ej_Lyson=c4=9bk?= <olysonek@redhat.com>
-Date: Mon, 17 Dec 2018 12:06:38 +0000
+Date: Tue, 18 Dec 2018 17:06:00 +0000
 Subject: Re: libsensors soname bump
-Message-Id: <7b96e7c3-11d6-a06f-53a6-1d61be31c3b3@redhat.com>
+Message-Id: <05037889-f0ce-8f5b-2a35-b85170443883@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20181216124344.49d06b69@endymion>
- <514c8587-ccf3-f7af-b88d-744add6f1da2@redhat.com>
- <3799b201-38f9-d74f-273d-f819736dcfb6@redhat.com>
- <20181217115902.15e538fe@endymion>
- <20181217112713.jvobrvrmxpkfeshi@aurel32.net>
-In-Reply-To: <20181217112713.jvobrvrmxpkfeshi@aurel32.net>
+In-Reply-To: <20181216124344.49d06b69@endymion>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
-Cc: Aurelien Jarno <aurelien@aurel32.net>, Jean Delvare <jdelvare@suse.de>, linux-hwmon@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Jean Delvare <jdelvare@suse.de>
+Cc: linux-hwmon@vger.kernel.org, Aurelien Jarno <aurelien@aurel32.net>, lordheavym@gmail.com, lm-sensors@vger.kernel.org
 
-Hi lm-sensors list,
+Hi Jean,
 
-We're currently considering reverting the undue libsensors soname change
-that happened in lm_sensors 3.5.0 (see below, the whole thread should be
-available on spinics [1]). Would that pose a major problem for anyone?
+On 16. 12. 18 12:43, Jean Delvare wrote:
+> Hi Ondřej,
+> 
+> You have recently released lm-sensors 3.5.0 with a new soname for
+> libsensors:
+> 
+> -LIBMAINVER := 4
+> -LIBMINORVER := 4.0
+> +LIBMAINVER := 5
+> +LIBMINORVER := 0.0
+> 
+> -#define SENSORS_API_VERSION            0x440
+> +#define SENSORS_API_VERSION            0x500
+> 
+> This is declaring the new library as incompatible with the previous
+> version, meaning that distributions will have to build and ship both
+> libsensors4 and libsensors5 for a long time until all applications have
+> been updated and rebuilt to link with the new library. This is a
+> significant effort for the whole community and should only be done when
+> necessary.
+> 
+> In this specific case, I can't see what warranted such a change of
+> major library version change. From
+> lm-sensors/doc/developers/release_checklist:
+> 
+>   Remember: update main number when interface changes, minor if new
+>   functionality is added, and patch if only bugs are fixed.
+> 
+> In this case I can only see new functionality added, there is no
+> interface change. Therefore the correct value for SENSORS_API_VERSION
+> was 0x450, not 0x500. This would avoid the parallel maintenance and
+> installation of 2 versions of the library for several years to come.
+> 
+> Would you consider quickly releasing lm-sensors 3.5.1 with the proper
+> library version number, to save all that work to all application
+> authors/maintainers and distribution package maintainers?
 
-Thanks!
+I did consider it, but I'm afraid I can't do this, sorry. I'm afraid it
+would cause more problems than it would solve.
 
-[1] https://www.spinics.net/lists/linux-hwmon/msg04837.html
+lm_sensors 3.5.0 has already been picked up by several distributions
+[1], and at least Arch Linux, Slackware and Gentoo have already rebuilt
+the dependent packages. It feels wrong to force the people, who already
+picked up the new version, to do the work again. I've spoken to the
+Gentoo maintainer and he's not thrilled about doing that. I'm really not
+looking forward to another batch of angry breakage reports after doing
+another soname change.
+
+Doing the 3.5.1 release would also mean that everyone using 3.5.0 would
+have to upgrade, otherwise the values of the SENSORS_API_VERSION macro
+would be different on different systems, forcing users of that macro to
+deal with the mess.
+
+I suggest that you use the patch that reverts the soname change in
+OpenSUSE, but keep the new SENSORS_API_VERSION so that it remains
+consistent with other distros.
+
+Thanks for understanding.
+
+[1] https://repology.org/metapackage/lm-sensors/versions
 
 Best regards
-Ond=C5=99ej Lyson=C4=9Bk
-
-On 17. 12. 18 12:27, Aurelien Jarno wrote:
-> On 2018-12-17 11:59, Jean Delvare wrote:
->> On Mon, 17 Dec 2018 11:35:46 +0100, Ond=C5=99ej Lyson=C4=9Bk wrote:
->>> I mean, I would love to revert the soname change, however doing so now
->>> seems like a bad thing to do - people may have already adopted
->>> lm_sensors 3.5.0. So I'd like to avoid reverting the change unless there
->>> is a good justification to do so.
->>
->> It's not in Debian yet:
->> https://packages.debian.org/sid/lm-sensors
->=20
-> It's available in the experimental suite with the soname change:
-> https://packages.debian.org/experimental/lm-sensors
->=20
-> And it's waiting for a transition slot to rebuild all the
-> reverse dependencies in sid:
-> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=915790
->=20
-> So on the Debian side, there is still time to revert the soname change.
->=20
-> Aurelien
->=20
+Ondřej Lysoněk
