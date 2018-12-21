@@ -1,53 +1,123 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 19 Dec 2018 15:10:33 +0000
-Subject: Re: libsensors soname bump
-Message-Id: <20181219161033.348b8e94@endymion>
+From: Michael Brunsteiner <michael.brunsteiner@rcpe.at>
+Date: Fri, 21 Dec 2018 19:04:28 +0000
+Subject: huge fluctuations of fan speed reported for MSI X370
+Message-Id: <c197fb26-c10c-3ccc-c082-58f9800fa1a5@rcpe.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20181216124344.49d06b69@endymion>
-        <05037889-f0ce-8f5b-2a35-b85170443883@redhat.com>
-In-Reply-To: <05037889-f0ce-8f5b-2a35-b85170443883@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-To: =?UTF-8?B?T25kxZllaiBMeXNvbsSbaw==?= <olysonek@redhat.com>
-Cc: linux-hwmon@vger.kernel.org, Aurelien Jarno <aurelien@aurel32.net>, lordheavym@gmail.com, lm-sensors@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Ondřej,
 
-On Tue, 18 Dec 2018 18:06:00 +0100, Ondřej Lysoněk wrote:
-> On 16. 12. 18 12:43, Jean Delvare wrote:
-> > Would you consider quickly releasing lm-sensors 3.5.1 with the proper
-> > library version number, to save all that work to all application
-> > authors/maintainers and distribution package maintainers?  
-> 
-> I did consider it, but I'm afraid I can't do this, sorry. I'm afraid it
-> would cause more problems than it would solve.
-> 
-> lm_sensors 3.5.0 has already been picked up by several distributions
-> [1], and at least Arch Linux, Slackware and Gentoo have already rebuilt
-> the dependent packages. It feels wrong to force the people, who already
-> picked up the new version, to do the work again. I've spoken to the
-> Gentoo maintainer and he's not thrilled about doing that. I'm really not
-> looking forward to another batch of angry breakage reports after doing
-> another soname change.
-> 
-> Doing the 3.5.1 release would also mean that everyone using 3.5.0 would
-> have to upgrade, otherwise the values of the SENSORS_API_VERSION macro
-> would be different on different systems, forcing users of that macro to
-> deal with the mess.
 
-OK. Thank you for taking the time to investigate the option. I
-understand and respect your decision.
+Hi,
+I currently run some heavy load jobs on a few workstations (specs 
+below), and since the computers
+keep dying on me without anything in /var/log I try using lm-sensors to 
+get an idea what's
+wrong. the latest version I downloaded from github appears to work 
+nicely on my
+debian testing. However what I see is for fan3 and fan5 looks weird (I 
+believe these are System 1 and 3 Fans):
+i wrote a script that executes sensors every couple of seconds and 
+writes the output into
+a file called log.txt ... then I'd say, e.g.:
 
-> I suggest that you use the patch that reverts the soname change in
-> OpenSUSE, but keep the new SENSORS_API_VERSION so that it remains
-> consistent with other distros.
+prompt>  grep fan3 log.txt
+fan3:                  1047 RPM  (min =    0 RPM)
+fan3:                  1049 RPM  (min =    0 RPM)
+fan3:                  1042 RPM  (min =    0 RPM)
+fan3:                  56784 RPM  (min =    0 RPM)
+fan3:                  1044 RPM  (min =    0 RPM)
+fan3:                  1044 RPM  (min =    0 RPM)
+fan3:                  1044 RPM  (min =    0 RPM)
+fan3:                  1042 RPM  (min =    0 RPM)
+fan3:                  1047 RPM  (min =    0 RPM)
+fan3:                  1049 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  2096 RPM  (min =    0 RPM)
+fan3:                  56784 RPM  (min =    0 RPM)
+fan3:                  2099 RPM  (min =    0 RPM)
+fan3:                  56784 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  56784 RPM  (min =    0 RPM)
+fan3:                  1042 RPM  (min =    0 RPM)
+fan3:                  1040 RPM  (min =    0 RPM)
+fan3:                  1043 RPM  (min =    0 RPM)
+fan3:                  1047 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  1047 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  1042 RPM  (min =    0 RPM)
+fan3:                  1043 RPM  (min =    0 RPM)
+fan3:                  1041 RPM  (min =    0 RPM)
+fan3:                  1041 RPM  (min =    0 RPM)
+fan3:                  1044 RPM  (min =    0 RPM)
+fan3:                  1042 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  1044 RPM  (min =    0 RPM)
+fan3:                  1042 RPM  (min =    0 RPM)
+fan3:                  1045 RPM  (min =    0 RPM)
+fan3:                  1046 RPM  (min =    0 RPM)
+fan3:                  1044 RPM  (min =    0 RPM)
+fan3:                  1047 RPM  (min =    0 RPM)
+fan3:                  1043 RPM  (min =    0 RPM)
+fan3:                  1048 RPM  (min =    0 RPM)
+fan3:                  1041 RPM  (min =    0 RPM)
 
-You are right. I have reverted the change to SENSORS_API_VERSION from
-my SUSE-local patch. While there was some beauty in having a
-"structured" SENSORS_API_VERSION, there is a lot more value in using
-the same value as upstream.
+etc ... (fan )
+
+every once in a while the fan speed supposedly is > 50000 RPM ... I 
+guess if this was true the
+computer should take off and leave the building through the roof ... 
+which it does not do ...
+I'd be grateful for any hints on how i can interpret what i see there!
+
+I should add that fan2 (which according to some conf file I found online 
+should be the "CPU Fan")
+gives me output that looks much more "normal"
+
+best regards & happy NY
+michael
+
+
+
+
+
+specs:
+AMD Ryzen 7 2700X 8x 3.70GHz
+MSI X370 Gaming Pro Carbon (this has a nct6795d chip, I believe)
+Arctic Freezer 33 CO
+G.Skill 16GB Ram Kit
+240 GB Patriot Burst SSD
+2x 4 TB Western Digital HDD
+Chieftec A-90 GDP-750C 750W ATX 2.
+Fractal Design Define R5 Black
+Nvidia GTX 1060
+
 
 -- 
-Jean Delvare
-SUSE L3 Support
+==========================Michael Brunsteiner, PhD
+Principal Scientist, Area II
+Research Center Pharmaceutical Engineering GmbH
+A-8010 Graz, Inffeldgasse 13
+phone: +43 316 873 30908
+mobile: +43 660 4887763
+fax: +43 316 873 109700
+e-mail: michael.brunsteiner@rcpe.at
+www.rcpe.at
+UID-Nr.: ATU64272307
+FN: 312899x, FB-Gericht: LG für ZRS Graz
+
+Vertraulichkeitshinweis
+Diese Nachricht und allfällige angehängte Dokumente sind vertraulich und nur für den/die Adressaten bestimmt.
+Sollten Sie nicht der beabsichtigte Adressat sein, ist jede Offenlegung, Weiterleitung oder sonstige Verwendung
+dieser Information nicht gestattet. In diesem Fall bitten wir, den Absender zu verständigen und die Information zu
+vernichten. Für Übermittlungsfehler oder sonstige Irrtümer bei Übermittlung besteht keine Haftung.
+
+Confidentiality Note:
+This message and any attached files are confidential and intended solely for the addressee(s). Any publication,
+transmission or other use of the information by a person or entity other than the intended addressee is prohibited.
+If you receive this in error please contact the sender and delete the material. The sender does not accept liability
+for any errors or omissions as a result of the transmission.
