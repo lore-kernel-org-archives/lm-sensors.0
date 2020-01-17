@@ -1,7 +1,7 @@
-From: Herr Oswald <herr_oswald@gmx.de>
-Date: Sat, 16 Nov 2019 16:49:52 +0000
-Subject: Fujitsu-Siemens w380
-Message-Id: <65968039de35e0807a32188c4f8791a2964ea5e7.camel@gmx.de>
+From: David VANTYGHEM <david.vantyghem@infolib.re>
+Date: Fri, 17 Jan 2020 12:52:41 +0000
+Subject: Is a temperature missing in sensors ?
+Message-Id: <288394b8-1afd-0ad1-e193-69fa169d090c@infolib.re>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,70 +10,25 @@ To: lm-sensors@vger.kernel.org
 
 Hello,
 
-I hope these questions are not way too stupid, but I've now been
-struggling for months, even the caretaker for linux at Siemens could
-not help.
-I'm at a Fujitsu-Siemens workstation Celsius w380 with ubuntu 18.04.
+With https://github.com/lpereira/hardinfo, I've got 6 temperatures : 1
+for the GPU and 5 for the CPU (coretemp/temp1 to 5 and
+thermal/thermal_zone0).
 
+With sensors, i've got only 5 temperatures (temp1 for GPU and Core 0 to
+Core 3 for CPU). Is it a bug with HardInfo or is a temperature missing
+in sensors ?
 
-Status is:
+https://framapic.org/SPID9PhB2KDJ/KaV6FdY6uvSW.png
 
-sensors-detect finds:
+-- 
+Signez la pétition pour le retrait du projet de réforme des retraites : https://onestla.tech
 
-#----cut here----
-# Chip drivers
-coretemp
-jc42
-sch5627
-#----cut here----
+Installer facilement Linux : http://infolib.re
 
-Those are in /etc/modules. sensors can read the values:
-
-$ sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +35.0°C  (high = +83.0°C, crit = +99.0°C)
-Core 1:       +32.0°C  (high = +83.0°C, crit = +99.0°C)
-Core 2:       +35.0°C  (high = +83.0°C, crit = +99.0°C)
-Core 3:       +33.0°C  (high = +83.0°C, crit = +99.0°C)
-
-sch5627-isa-0580
-Adapter: ISA adapter
-VCC:          +3.36 V
-VTT:          +1.12 V
-VBAT:         +3.05 V
-VTR:          +3.33 V
-in4:          +1.13 V
-fan1:        1627 RPM  (min =    0 RPM)
-fan2:           FAULT  (min =    0 RPM)
-fan3:           FAULT  (min =    0 RPM)
-fan4:           FAULT  (min =    0 RPM)
-temp1:        +35.0°C  (high = +36.0°C, crit = +191.0°C)
-temp2:        +33.6°C  (high = +36.0°C, crit = +191.0°C)
-temp3:        +28.4°C  (high = +36.0°C, crit = +191.0°C)
-temp4:          FAULT  (high = +36.0°C, crit = +191.0°C)
-temp5:          FAULT  (high = +36.0°C, crit = +191.0°C)
-temp6:        +26.6°C  (high = +36.0°C, crit = +191.0°C)
-temp7:          FAULT  (high = +36.0°C, crit = +191.0°C)
-temp8:          FAULT  (high = +36.0°C, crit = +191.0°C)
-
-
-Fans2-4 not functional is correct - I disconnected them because they
-are too noisy and not really necessary at my normal workload.
-
-
-Now with
-$ sudo pwmconfig
-
-I got the result:
-# pwmconfig revision 6243 (2014-03-20)
-/usr/sbin/pwmconfig: There are no
-pwm-capable sensor modules installed
-
-
-What can I do, hints are highly appreciated.
-
-Cheers,
-Wolf
-
-
+    .--.
+   |o_o |
+   ||_/ |
+  //    \\    Envoyé depuis mon Linux
+ (|      |)
+/ \_   _/ \
+\___)=(___/
