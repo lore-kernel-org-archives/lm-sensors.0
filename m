@@ -1,50 +1,41 @@
-From: Sandeep <sandy.8925@gmail.com>
-Date: Mon, 24 Feb 2020 16:54:28 +0000
-Subject: Re: ignore setting in sensors.conf only works with lowercase arguments
-Message-Id: <CAGPDPzAwTXksS+sgHmCY3t3Tm7FN8T8oEJKsj5ZuORFY-Stbvw@mail.gmail.com>
+From: Tom Psyborg <pozega.tomislav@gmail.com>
+Date: Sat, 01 Feb 2020 00:16:47 +0000
+Subject: Re: [RFC] why do sensors break CPU scaling
+Message-Id: <CAKR_QVLKtkfVy5AAKj+ay0cQ2NPWrW7CPb8SGF6urD2ooM=VXQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAGPDPzCctbDzVm1WsiZeN-ObkMUt76hJSbC3EnQ5nadnZTTjzw@mail.gmail.com>
-In-Reply-To: <CAGPDPzCctbDzVm1WsiZeN-ObkMUt76hJSbC3EnQ5nadnZTTjzw@mail.gmail.com>
+References: <CAKR_QVLJZPDfjbQ4CBDv62ok0qG4jq_M_Baq6eaot6GzrKMMwA@mail.gmail.com>
+ <20200131223547.GA7334@amd>
+In-Reply-To: <20200131223547.GA7334@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@vger.kernel.org
 
-Thank you, that solved my problem!
+On 31/01/2020, Pavel Machek <pavel@ucw.cz> wrote:
+> On Wed 2019-11-20 21:42:12, Tom Psyborg wrote:
+>> Hi
+>>
+>> Recently I've needed to set lowest CPU scaling profile, running ubuntu
+>> 16.04.06 I used standard approach - echoing powersave to
+>> /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor.
+>> This did not work as the
+>> /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq kept returning
+>> max scaling freq.
+>
+> Noone noticed, right?
+>
+> If you still believe that's problem, you may want to look at
+> MAINTAINERS file, and put sensors maintainers in the Cc list.
+>
+> Best regards,
+> 									Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures)
+> http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>
 
-Yours sincerely,
-Sandeep
-
-On Mon, 24 Feb 2020 at 14:32, Ondřej Lysoněk <olysonek@redhat.com> wrote:
->
-> Hi,
->
-> Sandeep <sandy.8925@gmail.com> writes:
->
-> > Hello,
-> >
-> > There are some sensor inputs such as "CPUTIN" for my motherboard's
-> > sensor chip, which have a default bogus value. I attempted to use an
-> > ignore line in sensors.conf to block this entry, but noticed that it
-> > didn't work.
-> >
-> > I tried using ignore for a different lowercase label (e.g "fan1" ) and
-> > it was ignored as expected.
-> >
-> > It seems that ignore assumes that the argument will be lowercase only,
-> > and refuses to work otherwise. Even if I use "ignore cputin" it
-> > doesn't work.
-> >
-> > Can you please fix this?
->
-> I think there's nothing to fix. You just need to use the real name of
-> the input (such as 'temp2') in the 'ignore' statement. What you're using
-> ('CPUTIN') is the label of the input. You can use 'sensors -u' to find
-> out the real name.
->
-> Ondra
->
-> >
-> > Yours sincerely,
-> > Sandeep
->
+it is definitely a problem. i've installed radeon-profile and can
+monitor both CPU and GPU temps from there without CPU scaling
+breakage. CCing related list
