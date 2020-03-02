@@ -1,41 +1,31 @@
-From: Tom Psyborg <pozega.tomislav@gmail.com>
-Date: Sat, 01 Feb 2020 00:16:47 +0000
-Subject: Re: [RFC] why do sensors break CPU scaling
-Message-Id: <CAKR_QVLKtkfVy5AAKj+ay0cQ2NPWrW7CPb8SGF6urD2ooM=VXQ@mail.gmail.com>
+From: =?utf-8?Q?Ond=C5=99ej_Lyson=C4=9Bk?= <olysonek@redhat.com>
+Date: Mon, 02 Mar 2020 10:50:57 +0000
+Subject: Re: Patch submission
+Message-Id: <flsh7z7vxm6.fsf@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAKR_QVLJZPDfjbQ4CBDv62ok0qG4jq_M_Baq6eaot6GzrKMMwA@mail.gmail.com>
- <20200131223547.GA7334@amd>
-In-Reply-To: <20200131223547.GA7334@amd>
+References: <CAGPDPzD2umdtwOB2CJBEPMVJ81i6E8Mvix8C2aTTMADh2-oP0w@mail.gmail.com>
+In-Reply-To: <CAGPDPzD2umdtwOB2CJBEPMVJ81i6E8Mvix8C2aTTMADh2-oP0w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 31/01/2020, Pavel Machek <pavel@ucw.cz> wrote:
-> On Wed 2019-11-20 21:42:12, Tom Psyborg wrote:
->> Hi
->>
->> Recently I've needed to set lowest CPU scaling profile, running ubuntu
->> 16.04.06 I used standard approach - echoing powersave to
->> /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor.
->> This did not work as the
->> /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq kept returning
->> max scaling freq.
->
-> Noone noticed, right?
->
-> If you still believe that's problem, you may want to look at
-> MAINTAINERS file, and put sensors maintainers in the Cc list.
->
-> Best regards,
-> 									Pavel
-> --
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures)
-> http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
->
+Hi,
 
-it is definitely a problem. i've installed radeon-profile and can
-monitor both CPU and GPU temps from there without CPU scaling
-breakage. CCing related list
+Sandeep <sandy.8925@gmail.com> writes:
+
+> Hello,
+>
+> Can we submit patches using pull requests on GitHub, or should we send
+> the patches to this mailing list?
+>
+> Yours sincerely,
+> Sandeep
+
+Either is fine. Whatever works for you.
+
+If I've been ignoring some PR for too long, feel free to ping me. Given
+my workload, I usually review lm_sensors changes in batches from time to
+time.
+
+Ondra
