@@ -1,58 +1,43 @@
-From: =?utf-8?Q?Ond=C5=99ej_Lyson=C4=9Bk?= <olysonek@redhat.com>
-Date: Wed, 13 May 2020 10:08:57 +0000
-Subject: Re: [PATCH] sensors-detect: Move Winbond WPCD377I to the non-hwmon table
-Message-Id: <flseerouoxy.fsf@redhat.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Thu, 07 May 2020 13:00:45 +0000
+Subject: [PATCH] sensors-detect: Fix the driver for Nuvoton W83677HG-I
+Message-Id: <20200507150045.32abbc79@endymion>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20200512162308.5efc21d7@endymion>
-In-Reply-To: <20200512162308.5efc21d7@endymion>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare <jdelvare@suse.de> writes:
+Originally, support for the Nuvoton W83677HG-I and derivatives was
+first added to the w83627ehf driver, so that's the driver recommended
+by sensors-detect. Later, support for the same device was added to
+the nct6775 driver. In kernel v5.6, support was removed from the
+w83627ehf driver to get rid of the duplicate code.
 
-> Move the detection entry for the Winbond WPCD377I to the
-> @non_hwmon_chip_ids table, where it belongs. This saves one line, and
-> more importantly prevents "not-a-sensor" from being accidentally
-> added to the list of kernel drivers.
->
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> ---
->  prog/detect/sensors-detect |    9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
->
-> --- lm-sensors.orig/prog/detect/sensors-detect	2020-05-12 11:08:57.101496194 +0200
-> +++ lm-sensors/prog/detect/sensors-detect	2020-05-12 16:18:49.375617471 +0200
-> @@ -719,11 +719,6 @@
->  		i2c_addrs => [0x2c..0x2e],
->  		i2c_detect => sub { emc6w201_detect(@_); },
->  	}, {
-> -		name => "Winbond WPCD377I",
-> -		driver => "not-a-sensor",
-> -		i2c_addrs => [0x2c..0x2e],
-> -		i2c_detect => sub { lm85_detect(@_, 7); },
-> -	}, {
->  		name => "Analog Devices ADT7462",
->  		driver => "adt7462",
->  		i2c_addrs => [0x5c, 0x58],
-> @@ -1684,6 +1679,10 @@
->  		i2c_addrs => [0x2c..0x2f],
->  		i2c_detect => sub { w83791sd_detect(@_); },
->  	}, {
-> +		name => "Winbond WPCD377I",
-> +		i2c_addrs => [0x2c..0x2e],
-> +		i2c_detect => sub { lm85_detect(@_, 7); },
-> +	}, {
->  		name => "Fintek F75111R/RG/N (GPIO)",
->  		i2c_addrs => [0x37, 0x4e],
->  		i2c_detect => sub { fintek_detect(@_, 1); },
->
->
-> -- 
-> Jean Delvare
-> SUSE L3 Support
+So sensors-detect should now point users of this device to the
+nct6775 driver. We can't do that for very old kernels though, as this
+driver did not exist back then. I chose v3.10 for the cut-over, as
+this is when support for the Nuvoton W83677HG-I was finalized in the
+nct6775 driver, at least according to git log.
 
-Applied. Thanks!
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+---
+ prog/detect/sensors-detect |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Ondřej Lysoněk
+--- lm-sensors.orig/prog/detect/sensors-detect	2020-05-07 14:29:34.731733274 +0200
++++ lm-sensors/prog/detect/sensors-detect	2020-05-07 14:44:55.909135775 +0200
+@@ -2273,7 +2273,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
+ 		name => "Nuvoton W83677HG-I (NCT5572D/NCT6771F/NCT6772F/NCT6775F) Super IO Sensors",
+-		driver => "w83627ehf",
++		driver => sub { kernel_version_at_least(3, 10, 0) ? "nct6775" : "w83627ehf" },
+ 		devid => 0xB470,
+ 		devid_mask => 0xFFF0,
+ 		logdev => 0x0b,
+
+
+-- 
+Jean Delvare
+SUSE L3 Support
