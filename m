@@ -1,36 +1,56 @@
-From: Sandeep <sandy.8925@gmail.com>
-Date: Mon, 02 Mar 2020 21:12:40 +0000
-Subject: Re: Patch submission
-Message-Id: <CAGPDPzDVKLQ-Ha8K+0C3+=DNEjRUQfjUWP85StDbGJAehVhsBQ@mail.gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 12 May 2020 14:22:06 +0000
+Subject: [PATCH v2] sensors-detect: Fix the driver for Nuvoton W83677HG-I
+Message-Id: <20200512162206.49c514f4@endymion>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAGPDPzD2umdtwOB2CJBEPMVJ81i6E8Mvix8C2aTTMADh2-oP0w@mail.gmail.com>
-In-Reply-To: <CAGPDPzD2umdtwOB2CJBEPMVJ81i6E8Mvix8C2aTTMADh2-oP0w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Sounds good, thanks!
+Originally, support for the Nuvoton W83677HG-I and derivatives was
+first added to the w83627ehf driver, so that's the driver recommended
+by sensors-detect. Later, support for the same device was added to
+the nct6775 driver. In kernel v5.6, support was removed from the
+w83627ehf driver to get rid of the duplicate code.
 
-On Mon, 2 Mar 2020 at 16:21, Ondřej Lysoněk <olysonek@redhat.com> wrote:
->
-> Hi,
->
-> Sandeep <sandy.8925@gmail.com> writes:
->
-> > Hello,
-> >
-> > Can we submit patches using pull requests on GitHub, or should we send
-> > the patches to this mailing list?
-> >
-> > Yours sincerely,
-> > Sandeep
->
-> Either is fine. Whatever works for you.
->
-> If I've been ignoring some PR for too long, feel free to ping me. Given
-> my workload, I usually review lm_sensors changes in batches from time to
-> time.
->
-> Ondra
->
+So sensors-detect should now point users of this device to the
+nct6775 driver. We can't do that for very old kernels though, as this
+driver did not exist back then. I chose v3.10 for the cut-over, as
+this is when support for the Nuvoton W83677HG-I was finalized in the
+nct6775 driver, at least according to git log.
+
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+---
+Changes since v1:
+ * Enable run-time driver decision for Super-I/O devices
+
+ prog/detect/sensors-detect |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+--- lm-sensors.orig/prog/detect/sensors-detect	2020-05-07 14:29:34.731733274 +0200
++++ lm-sensors/prog/detect/sensors-detect	2020-05-12 11:08:07.989885399 +0200
+@@ -2273,7 +2273,7 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
+ 		name => "Nuvoton W83677HG-I (NCT5572D/NCT6771F/NCT6772F/NCT6775F) Super IO Sensors",
+-		driver => "w83627ehf",
++		driver => sub { kernel_version_at_least(3, 10, 0) ? "nct6775" : "w83627ehf" },
+ 		devid => 0xB470,
+ 		devid_mask => 0xFFF0,
+ 		logdev => 0x0b,
+@@ -4574,7 +4574,9 @@ sub scan_cpu
+ sub chip_special_cases
+ {
+ 	# Some chip to driver mappings depend on the environment
+-	foreach my $chip (@chip_ids) {
++	foreach my $chip (@chip_ids, @superio_ids_natsemi, @superio_ids_smsc,
++			  @superio_ids_smsc_ns, @superio_ids_winbond,
++			  @superio_ids_ite) {
+ 		if (ref($chip->{driver}) eq 'CODE') {
+ 			$chip->{driver} = $chip->{driver}->();
+ 		}
+
+-- 
+Jean Delvare
+SUSE L3 Support
