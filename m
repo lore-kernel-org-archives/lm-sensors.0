@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 07 May 2020 19:57:13 +0000
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 12 May 2020 09:03:32 +0000
 Subject: Re: [PATCH] sensors-detect: Fix the driver for Nuvoton W83677HG-I
-Message-Id: <2abfcd2b-d7b8-a104-4189-2a2e2a5f7ab1@roeck-us.net>
+Message-Id: <20200512110332.43751a61@endymion>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20200507150045.32abbc79@endymion>
 In-Reply-To: <20200507150045.32abbc79@endymion>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 5/7/20 6:00 AM, Jean Delvare wrote:
+On Thu, 7 May 2020 15:00:45 +0200, Jean Delvare wrote:
 > Originally, support for the Nuvoton W83677HG-I and derivatives was
 > first added to the w83627ehf driver, so that's the driver recommended
 > by sensors-detect. Later, support for the same device was added to
@@ -24,9 +24,6 @@ On 5/7/20 6:00 AM, Jean Delvare wrote:
 > nct6775 driver, at least according to git log.
 > 
 > Signed-off-by: Jean Delvare <jdelvare@suse.de>
-
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-
 > ---
 >  prog/detect/sensors-detect |    2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -44,3 +41,10 @@ Acked-by: Guenter Roeck <linux@roeck-us.net>
 >  		logdev => 0x0b,
 > 
 > 
+
+I got negative feedback from my testing user, there's something wrong
+with this patch, please disregard for now, sorry for the noise.
+
+-- 
+Jean Delvare
+SUSE L3 Support
