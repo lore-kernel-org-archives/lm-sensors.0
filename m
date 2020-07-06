@@ -1,8 +1,10 @@
 From: Richard Kimber <richardkimber@btinternet.com>
-Date: Sat, 04 Jul 2020 16:30:41 +0000
+Date: Mon, 06 Jul 2020 12:42:01 +0000
 Subject: Displaying fan speeds
-Message-Id: <20200704173041.4c81d305@infinity>
+Message-Id: <20200706134201.60f325f9@infinity>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20200704173041.4c81d305@infinity>
+In-Reply-To: <20200704173041.4c81d305@infinity>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,7 +21,7 @@ nct6775
 to /etc/modules)
 
 I understand that if lm-sensors can see it, Gkrellm will display it.
-When I run "sensors", sensors does not display fan speeds.
+When I run "sensors", it does not display fan speeds.
 
 However, if I set the boot option acpi=off, sensors and Gkrellm will
 display the fan speeds, but I can only see the 6 cores.
