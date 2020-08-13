@@ -1,49 +1,73 @@
-From: =?utf-8?Q?Ond=C5=99ej_Lyson=C4=9Bk?= <olysonek@redhat.com>
-Date: Fri, 31 Jul 2020 07:53:23 +0000
-Subject: Re: Help with Intel 945GCL MB and Intel 950 CPU hwmon temp
-Message-Id: <flsd04cruh8.fsf@redhat.com>
+From: Hoan Tran <Hoan@os.amperecomputing.com>
+Date: Thu, 13 Aug 2020 00:02:00 +0000
+Subject: [PATCH v3] Add ISA ACPI sensor driver name support
+Message-Id: <1597276920-28290-1-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20200730144408.5a47c6ec@Hicrest1.UGATE2>
-In-Reply-To: <20200730144408.5a47c6ec@Hicrest1.UGATE2>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Brian,
+From: Hoan Tran <hoan.tran@amperecomputing.com>
 
-Brian <bvamundsen@gmail.com> writes:
+ACPI hwmon sensor driver name has a different format such as
+	APMC0D29:00
+	APMC0D29:01
+compared with DTB. This patch supports this format and gives
+the correct device address as below
 
-> I'm struggling to get lm-sensors to see the CPU coretemps available on
-> this motherboard for the CPU.  The sensor-detect identified SMSC
-> LPC47M182, i2c-i801 and aSC7611, but nothing to be written. It also
-> says "SMSC LPC47m182 Super IO Fan Sensors, (but not activate.)".
-> Apparently the smc47m1 and smc47m192 don't support smc47m182, since no
-> driver is listed for 182. Nor does the aSC7621 support aSC7611
-> (confidence 5, "driver-to-be-written", but the description available
-> suggest the aSC7621 extends what Andigilog made available with
-> aSC7611. The CPU thermal coretemp is monitored and able to be
-> displayed with the BIOS setup screen, so I know the sensors are
-> working for it, but why don't they work with Linux?  The odd thing is
-> that /sys/class/thermal/cooling_device0/type is PROCESSOR?
->
-> How would I go about adapting or modify the modules to work properly
-> on this Intel motherboard?  I'm using Slackware64 14.2.
->
-> I've checked that Linux kernel 4.4.231 config has HWMON and THERMAL
-> set to "yes".
+apm_xgene-isa-0000   => APMC0D29:00
+Adapter: ISA adapter
+SoC Temperature:  +35.0°C
+CPU power:        11.00 W
+IO power:         20.00 W
 
-Can you post the full output of sensors-detect? Also the output of
-`sensors -u`, `ls /sys/class/hwmon/` and `cat /sys/class/hwmon/*/name`
-would be useful.
+apm_xgene-isa-0001   => APMC0D29:01
+Adapter: ISA adapter
+SoC Temperature:  +33.0°C
+CPU power:        13.00 W
+IO power:         23.83 W
 
-> While this mother board and CPU are old, they are sufficient for my
-> needs.
+Signed-off-by: Hoan Tran <hoan@os.amperecomputing.com>
+---
+v3:
+  Filter for single '.' or ':'
+v2:
+  Filter A-Z for the name
 
-That's great. No need to keep buying new stuff. Rock on :).
+ lib/sysfs.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Ondrej
-
-> Any advice would be appreciated.  Cheers, BrianA_MN.
-> P.S. I'm also on ##kernel, but have not seen any responses to inquiry
-> there.
+diff --git a/lib/sysfs.c b/lib/sysfs.c
+index e63688b7..9516cec4 100644
+--- a/lib/sysfs.c
++++ b/lib/sysfs.c
+@@ -663,7 +663,7 @@ static int classify_device(const char *dev_name,
+ 	if ((!subsys || !strcmp(subsys, "platform") ||
+ 			!strcmp(subsys, "of_platform"))) {
+ 		/* must be new ISA (platform driver) */
+-		if (sscanf(dev_name, "%*[a-z0-9_].%d", &entry->chip.addr) != 1)
++		if (sscanf(dev_name, "%*[a-zA-Z0-9_]%*1[.:]%d", &entry->chip.addr) != 1)
+ 			entry->chip.addr = 0;
+ 		entry->chip.bus.type = SENSORS_BUS_TYPE_ISA;
+ 		entry->chip.bus.nr = 0;
+@@ -938,7 +938,7 @@ int sensors_read_sysfs_attr(const sensors_chip_name *name,
+ 		if (res = EOF) {
+ 			if (errno = EIO)
+ 				return -SENSORS_ERR_IO;
+-			else 
++			else
+ 				return -SENSORS_ERR_ACCESS_R;
+ 		}
+ 		*value /= get_type_scaling(subfeature->type);
+@@ -972,7 +972,7 @@ int sensors_write_sysfs_attr(const sensors_chip_name *name,
+ 		if (res = EOF) {
+ 			if (errno = EIO)
+ 				return -SENSORS_ERR_IO;
+-			else 
++			else
+ 				return -SENSORS_ERR_ACCESS_W;
+ 		}
+ 	} else
+-- 
+2.24.2
