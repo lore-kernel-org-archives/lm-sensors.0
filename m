@@ -1,68 +1,30 @@
-From: Hoan Tran <Hoan@os.amperecomputing.com>
-Date: Thu, 06 Aug 2020 23:16:49 +0000
-Subject: [PATCH] Add ISA ACPI sensor driver name support
-Message-Id: <1596755809-13616-1-git-send-email-Hoan@os.amperecomputing.com>
+From: Maheshwarran Karthikeyan <klmahesh96@gmail.com>
+Date: Tue, 29 Sep 2020 09:23:19 +0000
+Subject: how to ensure that sensors-detect didn't cause any damage
+Message-Id: <CAAb9TRU+5tC5pWZk14nDkrX2u_HFefk-o3MjQ+rMqjbJ9nw2gA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Hoan Tran <hoan@os.amperecomputing.com>
+Hi,
 
-ACPI hwmon sensor driver name has a different format such as
-	APMC0D29:00
-	APMC0D29:01
-compared with DTB. This patch supports this format and gives
-the correct device address as below
+I am Mahesh from India. Hope you're doing well.
 
-apm_xgene-isa-0000   => APMC0D29:00
-Adapter: ISA adapter
-SoC Temperature:  +35.0°C
-CPU power:        11.00 W
-IO power:         20.00 W
+I bought a Dell Inspiron 15 5501 (Intel Core i7-1065G7) last week and
+installed Ubuntu 18.04 alongside Windows 10. I wanted to check if the
+fan was working in Ubuntu and found out that one can use
+sensors-detect for it.
 
-apm_xgene-isa-0001   => APMC0D29:01
-Adapter: ISA adapter
-SoC Temperature:  +33.0°C
-CPU power:        13.00 W
-IO power:         23.83 W
+I didn't read the warnings and gave "yes" for all the checks. Only
+later I realised that it is recommended to avoid checks which are not
+carried out by default. I am wondering if sensors-detect has caused
+any damage in my machine. Can you please let me know what I should do
+to check if there are any damages?
 
-Signed-off-by: Hoan Tran <hoan@os.amperecomputing.com>
----
- lib/sysfs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thank you very much.
 
-diff --git a/lib/sysfs.c b/lib/sysfs.c
-index e63688b7..c50f9d94 100644
---- a/lib/sysfs.c
-+++ b/lib/sysfs.c
-@@ -663,7 +663,7 @@ static int classify_device(const char *dev_name,
- 	if ((!subsys || !strcmp(subsys, "platform") ||
- 			!strcmp(subsys, "of_platform"))) {
- 		/* must be new ISA (platform driver) */
--		if (sscanf(dev_name, "%*[a-z0-9_].%d", &entry->chip.addr) != 1)
-+		if (sscanf(dev_name, "%*[a-z0-9_]%*[.:]%d", &entry->chip.addr) != 1)
- 			entry->chip.addr = 0;
- 		entry->chip.bus.type = SENSORS_BUS_TYPE_ISA;
- 		entry->chip.bus.nr = 0;
-@@ -938,7 +938,7 @@ int sensors_read_sysfs_attr(const sensors_chip_name *name,
- 		if (res = EOF) {
- 			if (errno = EIO)
- 				return -SENSORS_ERR_IO;
--			else 
-+			else
- 				return -SENSORS_ERR_ACCESS_R;
- 		}
- 		*value /= get_type_scaling(subfeature->type);
-@@ -972,7 +972,7 @@ int sensors_write_sysfs_attr(const sensors_chip_name *name,
- 		if (res = EOF) {
- 			if (errno = EIO)
- 				return -SENSORS_ERR_IO;
--			else 
-+			else
- 				return -SENSORS_ERR_ACCESS_W;
- 		}
- 	} else
 -- 
-2.24.2
+Best Regards,
+Mahesh
