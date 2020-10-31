@@ -1,51 +1,79 @@
-From: Domenico Andreoli <domenico.andreoli@linux.com>
-Date: Sun, 25 Oct 2020 09:45:20 +0000
-Subject: Configuring PWM sysfs entries
-Message-Id: <20201025094520.GA848@dumbo>
+From: Paul Wise <pabs3@bonedaddy.net>
+Date: Sat, 31 Oct 2020 03:49:35 +0000
+Subject: stuck thermal sensor on Thinkpad X201t
+Message-Id: <1099fad0c122502f376f9c5069ba6cdb99f46980.camel@bonedaddy.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-c2x7yO7giVLwrPg+3AV2"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-I'm using fancontrol on a NanoPi M4 having a PWM controlled fan.
+--=-c2x7yO7giVLwrPg+3AV2
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This is the configuration I'm using:
+Hi all,
 
-INTERVAL=10
-FCTEMPS=/sys/class/pwm/pwmchip1/pwm0/duty_cycle=/sys/class/hwmon/hwmon1/temp1_input
-MINTEMP=/sys/class/pwm/pwmchip1/pwm0/duty_cycle=45
-MAXTEMP=/sys/class/pwm/pwmchip1/pwm0/duty_cycle=70
-MINSTART=/sys/class/pwm/pwmchip1/pwm0/duty_cycle=1500000
-MINSTOP=/sys/class/pwm/pwmchip1/pwm0/duty_cycle=1500000
-MAXPWM=/sys/class/pwm/pwmchip1/pwm0/duty_cycle=10000000
+I recently had an issue with a stuck thermal sensor on a Thinkpad X201t.
+I'm sending this mail so there is a record of the solution that I used
+and to get an idea of what caused the issue and why my solution worked.
 
-This is effective only after sysfs has been configured:
+The sensors command constantly showed 128=C2=B0C for one sensor:
 
-PWM=0
-CHIP=1
-POLARITY=normal
-PERIOD=10000000
+   $ sensors acpitz-acpi-0
+   acpitz-acpi-0
+   Adapter: ACPI interface
+   temp1:       +128.0=C2=B0C  (crit =3D +100.0=C2=B0C)
 
-echo $PWM > /sys/class/pwm/pwmchip$CHIP/export
-echo $PERIOD > /sys/class/pwm/pwmchip$CHIP/pwm$PWM/period
-echo $POLARITY > /sys/class/pwm/pwmchip$CHIP/pwm$PWM/polarity
-echo 1 > /sys/class/pwm/pwmchip$CHIP/pwm$PWM/enable
+The Linux kernel was adding this message to dmesg every few seconds:
 
-Additional caveat, fancontrol accepts PWM values up to 255 while my
-configuration works iff such value is 1500000. Therefore I have to
-comment out the max PWM value check in the fancontrol script.
+   kernel: thermal thermal_zone0: critical temperature reached (128 C), shu=
+tting down
 
-Is this the best way to achieve the result?
+Despite the message, the system wasn't being shut down, probably
+because the other sensors were normal and within the range.
 
-Would you accept a patch to improve fancontrol and handle this situation
-in a nicer way?
+These symptoms occurred after my system shut down due to overheating.
 
-Kind regards,
-Domenico
+Annoyingly these symptoms were persisting between reboots.
 
--- 
-rsa4096: 3B10 0CA1 8674 ACBA B4FE  FCD2 CE5B CF17 9960 DE13
-ed25519: FFB4 0CC3 7F2E 091D F7DA  356E CC79 2832 ED38 CB05
+On the Debian support IRC channel, someone else mentioned that they
+solved a similar issue by rebooting into Windows but I don't have
+Windows available.
+
+I also did some searching on the web and got the feeling that I should
+try removing power. So I shut down, removed the battery for 5 minutes,
+inserted battery, started up, entered BIOS, exited BIOS, booted Linux
+and the sensor was now showing normal values and had no dmesg warnings.
+
+Does anyone know why a thermal shutdown would cause just one of the
+sensors to be stuck like this and why removing power fixed it?
+
+--=20
+bye,
+pabs
+
+https://bonedaddy.net/pabs3/
+
+--=-c2x7yO7giVLwrPg+3AV2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEYQsotVz8/kXqG1Y7MRa6Xp/6aaMFAl+c3swACgkQMRa6Xp/6
+aaMQghAAvVGaGViC6mvugr9SLdkmu5VSCbboTuCyTTN+guc7FuXZDWT7Ty/wiTYU
+yyqZmur1w8/DZ/rD+AMjF6XDRuz/KJ7bW0fdR80lKuFKDxhKIcObbOnatasLTc/x
+MAAhAjtKLUrfo1w8YH7P9Tj1zDWC6B+gfzsnqCMVN9EDX+lbnNcSX3MOITh/GVyM
+TRzItMw3g3m6br4GWQ40ijhTke1lowFQp4fGYDxW+PCq/G9ApTggsFdjt6k1H61Y
+Pw6IKqKPf+XmEhz9+nwWPxp6PiwE0zw9Zl1knYs/DA3Q5DeBnhswz1428500rLWW
+NO3P/nrGOTRfsR0ZZrqAk+il/FlpxjQJnNiWiGGR+WLrxlqfcbE0WNYbgeSjGVP5
+fXPbk9YfWhpWh89S480lcMy1MmgPKWbfbJpijPQ/QO4fCZsTegUJC99loCz7LhCm
+JVsV/1fs/Z9HXs3uvwI/bpryeaLoTLOm8AobRpNWSwn+TJLmWlEXEWMlWRQOgICs
+M9d72oBgzwv0mmtJNnFM29KmAwMcksOYj6Fi02gEKpTDC1BwZs4CroN4FwcRvSMG
+4U0g6NVPS/SiQ1HyuTGp8cZgXf4QP1rdPV3eaqBdAs8rZ9xLSYxOCG8LKCJoH6Bx
+cRjOfw2Hc+nipM2oONBe0kioKtgPobJFoQeMyfd4q0D9eDjpnac=
+=zSYJ
+-----END PGP SIGNATURE-----
+
+--=-c2x7yO7giVLwrPg+3AV2--
