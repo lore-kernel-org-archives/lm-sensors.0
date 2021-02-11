@@ -1,37 +1,35 @@
 From: Jean Delvare <jdelvare@suse.de>
-Date: Thu, 11 Feb 2021 12:10:12 +0000
-Subject: [PATCH] pwmconfig: Deal gracefully with unreadable fan inputs
-Message-Id: <20210211131012.2633e64a@endymion>
+Date: Thu, 11 Feb 2021 14:37:03 +0000
+Subject: [PATCH] pwmconfig: Further raise the fan threshold
+Message-Id: <20210211153703.501b0a3b@endymion>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-If a hwmon driver exposes an unreadable fan input, let the user know
-and skip that input. Otherwise we hit syntax errors later on.
+Modern 4-pin fans can have a minimum speed (PWM=0) which is still
+relatively high. I've seen 4500 RPM fans lower their speed to only
+3500 RPM, which is 77% of the maximum speed, above our current
+detection threshold (3/4 or 75%). Increase the threshold to 5/6
+(roughly 83%) to make sure such fans are handled properly.
 
 Signed-off-by: Jean Delvare <jdelvare@suse.de>
 ---
- prog/pwm/pwmconfig |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ prog/pwm/pwmconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- lm-sensors.orig/prog/pwm/pwmconfig	2020-05-07 14:29:34.731733274 +0200
-+++ lm-sensors/prog/pwm/pwmconfig	2021-02-11 11:31:40.636126815 +0100
-@@ -283,8 +283,11 @@ sleep $DELAY
- echo 'Found the following fan sensors:'
- for i in $FAN
- do
--	S=$(cat $i)
--	if [ "$S" = "0" -o "$S" = "-1" ]
-+	S=$(cat $i 2> /dev/null)
-+	if [ $? -ne 0 ]
-+	then
-+		echo "   $i     current speed: can't read ... skipping!"
-+	elif [ "$S" = "0" -o "$S" = "-1" ]
- 	then
- 		echo "   $i     current speed: 0 ... skipping!"
- 	else
+--- lm-sensors.orig/prog/pwm/pwmconfig	2021-02-11 11:31:40.636126815 +0100
++++ lm-sensors/prog/pwm/pwmconfig	2021-02-11 15:30:12.831007617 +0100
+@@ -455,7 +455,7 @@ do
+ 		OS=$(echo $SPEEDS | cut -d' ' -f$count)
+ 		S=$(echo $CURRENT_SPEEDS | cut -d' ' -f$count)
+ 		echo "  $j ... speed was $OS now $S"
+-		let threshold=3*$OS/4
++		let threshold=5*$OS/6
+ 		if [ $S -lt $threshold ]
+ 		then
+ 			echo "    It appears that fan $j"
 
 
 -- 
