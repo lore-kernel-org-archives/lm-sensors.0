@@ -1,112 +1,72 @@
-From: Stephen <clipo1979@googlemail.com>
-Date: Tue, 18 May 2021 17:36:08 +0000
-Subject: Gigabyte GA-Z68AP-D3.conf pull request
-Message-Id: <CADbDEnfz9icz7mS_M9M5NK14Y=R7u_pMvxW8OBy_yn+D1U0=mA@mail.gmail.com>
+From: riveravaldez <riveravaldezmail@gmail.com>
+Date: Wed, 13 Oct 2021 17:17:02 +0000
+Subject: Trying to understand `sensors` output (Debian 11 LXDE)
+Message-Id: <CAD8U+g9D2=0WCL1QP1z=xb2b8iktnS8AnW1j9=P6vnfhsAxfjQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Dear lm_sensors
+Hi, I'm not subscribed to the list, so, please add me in replies.
+Thanks a lot in advance.
 
-I have just put in a pull request for the below configuration for a
-Gigabyte  GA-Z68AP-D3 motherboard if this can be pulled through into
-the main repository.
+I'm trying to understand the readings of `sensors` in terminal.
+This is a Debian 11 machine in a Gigabyte AM1M-S2H motherboard.
+CPU: AMD Athlon(tm) 5150 APU with Radeon(tm) R3
+VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI]
+Kabini [Radeon HD 8400 / R3 Series]
 
-#GA-Z68AP-D3.conf
+LXDE shows a temperature monitor in the taskbar.
+Before installing/configuring lm-sensors package the reading was ~20ºC at idle.
+After `sudo sensors-detect` an it87 module was added and now I have
+these readings:
 
-# Contributed by Clipo.
-# 17-05-2021
-# Updates welcome.
+$ sensors
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +20.9°C  (high = +70.0°C)
+                       (crit = +70.0°C, hyst = +69.0°C)
 
-################
-# CPU sensor
-chip "coretemp-*"
+radeon-pci-0008
+Adapter: PCI adapter
+temp1:        +21.0°C  (crit = +120.0°C, hyst = +90.0°C)
 
-label temp1 "CPU Package temp"
-label temp2 "Core 0"
-label temp3 "Core 1"
-label temp4 "Core 2"
-label temp5 "Core 3"
+fam15h_power-pci-00c4
+Adapter: PCI adapter
+power1:           N/A  (crit =  24.98 W)
 
-################
-# Motherboard sensors
-chip "it8728-*"
+it8620-isa-0228
+Adapter: ISA adapter
+in0:           1.12 V  (min =  +0.00 V, max =  +3.06 V)
+in1:           1.52 V  (min =  +0.00 V, max =  +3.06 V)
+in2:           2.02 V  (min =  +0.00 V, max =  +3.06 V)
+in3:           2.05 V  (min =  +0.00 V, max =  +3.06 V)
+in4:           2.04 V  (min =  +0.00 V, max =  +3.06 V)
+in5:           2.23 V  (min =  +0.00 V, max =  +3.06 V)
+in6:           2.23 V  (min =  +0.00 V, max =  +3.06 V)
+3VSB:          3.31 V  (min =  +0.00 V, max =  +6.12 V)
+Vbat:          3.12 V
+fan1:        2008 RPM  (min =   10 RPM)
+fan2:           0 RPM  (min =    0 RPM)
+fan3:           0 RPM  (min =    0 RPM)
+fan4:           0 RPM  (min =    0 RPM)
+fan5:           0 RPM  (min =    0 RPM)
+temp1:        +31.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = thermistor
+temp2:        +38.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = thermistor
+temp3:        +37.0°C  (low  =  +0.0°C, high = +70.0°C)  sensor = Intel PECI
+temp4:        +45.0°C
+temp5:        +45.0°C
+temp6:        +45.0°C
+intrusion0:  ALARM
 
-################
-# Fans
+The LXDE monitor now shows ~45ºC at idle, but htop keeps showing ~20ºC at the
+same time.
 
-# Labels are chosen to match the silk screen on the motherboard, these
-also match the BIOS names but shorter.
+Could anyone please indicate me which temperature correspond to which
+hardware component?, or point me in the right direction (link, I suppose)
+to read about? I'm trying to understand those values.
 
-label fan1 "CPU_FAN"
-set fan1_min 200
+Thanks a lot again, and in general for all your very useful work. :)
 
-label fan2 "SYS_FAN_2"
-set fan2_min 200
-
-label fan3 "PWR_FAN"
-set fan3_min 200
-
-label fan4 "SYS_FAN_1"
-set fan4_min 200
-
-################
-# Temperatures
-label temp1 "System Temperature"
-set temp1_min 10
-set temp1_max 60
-
-ignore temp2
-#label temp2 "Unknown" # Does not seem to give sensible data (Always shows 25)
-
-label temp3 "CPU Temperature"
-set temp3_min 10
-set temp3_max 55
-# Adding 10 to correct wrong BIOS values.
-compute temp3 @+10,@-10
-
-############
-# Voltages
-label in0 "Vtt"
-set in0_min 1.020
-set in0_max 1.080
-
-label in1 "+3.3V"
-set in1_min 3.3 * 0.95
-set in1_max 3.3 * 1.05
-compute in1 1.635*@,@/1.635
-
-label in2 "+12V"
-set in2_min 12.0 * 0.95
-set in2_max 12.0 * 1.05
-compute in2 4.090*@,@/4.090
-
-label in3 "+5V"
-set in3_min 5.0 * 0.95
-set in3_max 5.0 * 1.05
-compute in3 1.74*@,@/1.74
-
-label in4 "Vaxg IGD"
-set in4_min 0.800
-set in4_max 1.000
-
-label in5 "CPU Vcore"
-set in5_min 0.750
-set in5_max 1.150
-
-label in6 "Dram Voltage"
-set in6_min 1.450
-set in6_max 1.550
-
-label in7 "3.3 VSB"
-set in7_min 3.3 * 0.95
-set in7_max 3.3 * 1.05
-
-label in8 "Vbat"
-
-# Other sensor readings
-label intrusion0 "Chassis Open"
-#set intrusion0_alarm 0
-Configuration file for the Gigabyte GA-Z68AP-D3
+Kind regards!
