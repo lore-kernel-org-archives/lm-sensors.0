@@ -1,25 +1,44 @@
-From: Nikola Marjanovic <nikmarjanovic@gmail.com>
-Date: Sun, 06 Feb 2022 19:12:39 +0000
-Subject: RFE: Support for Noise detection sensor on Gigabyte X570 Boards
-Message-Id: <CAOsTR7Gr4t7WQ5GHvrOu_eAGnCC6r30YGXH1-Y2GNFNNpaRvUw@mail.gmail.com>
+From: Dag B <dag@bakke.com>
+Date: Wed, 25 May 2022 16:36:23 +0000
+Subject: dht11 vs iio-hwmon
+Message-Id: <e437eea6-9027-fa9e-22ba-5710672530b6@bakke.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+Hi.
 
-I would be interested to get the results from the Noise Detection
-sensor, which users of Gigabyte Aorus Master X570S get provided with
-when purchasing the board.
+I have managed to make use of the dht11 driver and can get data from my 
+sensor quite reliably.
 
-Correct me if I am wrong, but at the moment 'sensors-detect' command
-does not detect this sensor at all. (I'm currently running lm_sensors
-1:3.6.0.r41.g31d1f125-1 on Manjaro)
+I want to be able to read this sensor via lm-sensors, and was hoping to 
+employ the iio-hwmon bridge for this purpose. Sadly, I do not get any 
+nodes in the /sys/class/hwmon/ directory for the dht11 sensor.
 
-If anyone is able to make the magic happen, I'd be happy to assist
-with any output and testing.
+Do iio-drivers (like dht11) have to be written with this bridge in mind, 
+in order to get the hwmon entries? Or am I just missing a touch of magic 
+somewhere? I see that the dht11 device-tree overlay doesn't have any 
+reference to iio-hwmon, like some other drivers do.
 
-Cheers,
-Nikola
+
+root@rpi2:/boot# lsmod | egrep 'iio|hw|dht'
+dht11                  16384  0
+iio_hwmon              16384  0
+raspberrypi_hwmon      16384  0
+industrialio           81920  2 iio_hwmon,dht11
+
+root@rpi2:/boot# cat /sys/bus/iio/devices/iio\:device0/in_temp_input
+19400
+
+root@rpi2:/boot# ls -l /sys/class/hwmon/
+total 0
+lrwxrwxrwx 1 root root 0 May 25 08:59 hwmon0 -> ../../devices/virtual/thermal/thermal_zone0/hwmon0
+lrwxrwxrwx 1 root root 0 May 25 08:59 hwmon1 -> ../../devices/platform/soc/soc:firmware/raspberrypi-hwmon/hwmon/hwmon1
+
+
+Thanks,
+
+
+Dag B.
