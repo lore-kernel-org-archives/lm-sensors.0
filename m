@@ -1,75 +1,65 @@
-From: Jonas Malaco <jonas@protocubo.io>
-Date: Fri, 24 Feb 2023 05:57:13 +0000
-Subject: Re: kernel modules
-Message-Id: <20230224055713.fitivi4mirunb5ex@calvin.localdomain>
+From: glen <glenjo@gmail.com>
+Date: Sun, 05 Feb 2023 21:05:48 +0000
+Subject: Updated config file for ASUS TUF GAMING X570 PLUS
+Message-Id: <932be3a5eedc534a7eb8747f34d3bce7d9c716ed.camel@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-rq10aVve7JVRSr1gYB2M"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Y/fpAAvvSZxIJnPF@linux4>
-In-Reply-To: <Y/fpAAvvSZxIJnPF@linux4>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mike,
+--=-rq10aVve7JVRSr1gYB2M
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 23, 2023 at 10:30:24PM +0000, mike mccool wrote:
-> hello,
-> 
-> i am using lm-sensors/sensors on an AMD AM4 motherboard w/ 5700G APU
-> and ubuntu 22.04
-> 
-> i added kernel module 'drivetemp' to get temp data from the 10 SATA
-> drives on this box. i would like to filter-out(ignore) the drivetemp
-> output from /usr/bin/sensors but cannot. the keyword 'chip' does not
-> work so 'ignore' statements have no effect.
-> 
-> please add a new keyword, eg, 'module', so that it would be possible
-> to craft filters like this:
-> 
-> module "drivetemp-scsi-0-*"
->    ignore temp1
-> 
-> or
-> 
-> module "k10temp-pci-00c3"
->    ignore Tctl
-> 
-> or
-> 
-> module "nvme-pci-2600"
->    ignore Sensor 1
->    ignore Sensor 2
-> 
-> regards
+All,
 
-Is the error you're seeing "Undeclared bus id referenced"?
+I have updated the config file for the ASUS TUF GAMING X570 PLUS motherboar=
+d. I am using more of the
+fan headers, and have updated the labels to match those used in the manual =
+for the motherboard. All
+have been checked by stalling the running fan and verifying that the sensor=
+ reads zero.
 
-If that's the case, there are a couple of issues already open on GitHub
-for that problem:
+I have been happily using lm_sensors for a long time and all I can say is T=
+HANK YOU!
 
-- <https://github.com/lm-sensors/lm-sensors/issues/230>
-- <https://github.com/lm-sensors/lm-sensors/issues/369>
+Yours,
 
-and I have a patch that addresses it:
+Glen
 
-- <https://github.com/lm-sensors/lm-sensors/pull/371.patch>
+--=-rq10aVve7JVRSr1gYB2M
+Content-Disposition: attachment; filename="TUF-GAMING-X570-PLUS.conf"
+Content-Type: text/plain; name="TUF-GAMING-X570-PLUS.conf"; charset="UTF-8"
+Content-Transfer-Encoding: base64
 
-Please let me know if you give it a try.
+Y2hpcCAibmN0Njc5OC0qIgojIG5jdDY3OTggdmFsdWVzIGZvciBBc3VzIFRVRiBHQU1JTkcgWDU3
+MC1QTFVTIChXSS1GSSkKIyBJJ20gbm90IGVudGlyZWx5IHN1cmUgZXZlcnl0aGluZyBoZXJlIGlz
+IGNvcnJlY3Qgc2luY2Ugbm8gSFcgbW9uaXRvcmluZwojIGFwcGxpY2F0aW9uIHVuZGVyIFdpbmRv
+d3Mgc2hvd3MgYWxsIHRoZSBuYW1lcyBmb3IgYWxsIHRoZSBmb3VuZCBzZW5zb3JzLgojIFNvbWUg
+b2YgdGhlIG5hbWVzIGFuZCBmb3JtdWxhcyBhcmUgYmVzdCBndWVzc3RpbWF0ZXMgYW5kIGNvdWxk
+IGJlIHdyb25nLgojIFlvdSB3aWxsIGhhdmUgdG8gdW5pZ25vcmUgZmFucyBpZiB5b3Ugd2FudCB0
+aGVtIHRvIGJlIG1vbml0b3JlZC4KCmxhYmVsIGluMCAiVmNvcmUiCiAgICBzZXQgaW4wX21pbiAw
+LjIKICAgIHNldCBpbjBfbWF4IDEuNQoKbGFiZWwgaW4yICJBVlNCIgogICAgc2V0IGluMl9taW4g
+IDMuMyAqIDAuOTUKICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjA1CgpsYWJlbCBpbjMgIjNWQ0Mi
+CiAgICBzZXQgaW4zX21pbiAgMy4zICogMC45NQogICAgc2V0IGluM19tYXggIDMuMyAqIDEuMDUK
+CmxhYmVsIGluNCAiKzEyViIKICAgIGNvbXB1dGUgaW40IEAgKiAxMiwgQCAvIDEyCiAgICBzZXQg
+aW40X21pbiAgMTIgKiAwLjk1CiAgICBzZXQgaW40X21heCAgMTIgKiAxLjA1CgpsYWJlbCBpbjYg
+Iis1ViIKICAgIGNvbXB1dGUgaW42IEAgKiA1LCBAIC8gNQogICAgc2V0IGluNl9taW4gIDUgKiAw
+Ljk1CiAgICBzZXQgaW42X21heCAgNSAqIDEuMDUKCmxhYmVsIGluNyAiMy4zViIKICAgIHNldCBp
+bjdfbWluICAzLjMgKiAwLjk1CiAgICBzZXQgaW43X21heCAgMy4zICogMS4wNQoKbGFiZWwgaW44
+ICJWYmF0IgogICAgc2V0IGluOF9taW4gIDMuMyAqIDAuOTUKICAgIHNldCBpbjhfbWF4ICAzLjMg
+KiAxLjA1CgojIGFsd2F5cyBzaG93cyBhIGNvbnN0YW50IHZhbHVlIGFmdGVyIGJvb3QgLSBlaXRo
+ZXIgMC4yNzIgb3IgMC4yODgKaWdub3JlIGluMTAKCiMgY29uc3RhbnQgMC41NDQKaWdub3JlIGlu
+MTEKCiMgY29uc3RhbnQgMS4wMzIKaWdub3JlIGluMTIKCmxhYmVsIGZhbjEgIkNIQV9GQU4xIgog
+ICAgc2V0IGZhbjFfbWluIDIwMAoKbGFiZWwgZmFuMiAiQ1BVIEZBTiIKICAgIHNldCBmYW4yX21p
+biAyMDAKCmxhYmVsIGZhbjMgIkNIQV9GQU4yIgoKbGFiZWwgZmFuNCAiQ0hBX0ZBTjMiCgpsYWJl
+bCBmYW42ICJBSU9fUFVNUCIKCmxhYmVsIGZhbjcgIkNQVV9PUFQgRmFuIgogICAgc2V0IGZhbjdf
+bWluIDIwMAoKIyBUaGUgWDU3MCBjaGlwc2V0IGlzIHF1aXRlIHBvd2VyIGh1bmdyeSwgc28gbGV0
+J3MgcHV0IDEwMDAgaW4gdG8gYmUgc2FmZQpsYWJlbCBmYW41ICJQQ0ggRkFOIgogICAgc2V0IGZh
+bjVfbWluIDEwMDAKCiMgQWx3YXlzIHNob3cgemVyb3MKaWdub3JlIHRlbXA4Cmlnbm9yZSB0ZW1w
+OQppZ25vcmUgdGVtcDEwCgojIFRoZSBtb3RoZXJib2FyZCBkb2Vzbid0IHNlZW0gdG8gaGF2ZSB0
+aGVtIHBoeXNpY2FsbHkgY29ubmVjdGVkIG9yIHByZXNlbnQKaWdub3JlIGludHJ1c2lvbjAKaWdu
+b3JlIGludHJ1c2lvbjEK
 
-Alternatively, either:
 
-    chip drivetemp-scsi-*-*
-        ignore temp1
-
-or:
-
-    chip drivetemp-*
-        ignore temp1
-
-might work even without the patch. And they should be enough since you
-don't actually need to identify each drive individually.
-
-Finally, yet another alternative is to not load (or build) the drivetemp
-driver.
-
-Jonas
+--=-rq10aVve7JVRSr1gYB2M--
