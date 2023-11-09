@@ -1,126 +1,112 @@
-From: "Rundblom, Glen" <rundblom@illinois.edu>
-Date: Mon, 02 Oct 2023 20:59:19 +0000
-Subject: bnxt_en kernel module is reporting a 92 degrees C
-Message-Id: <CH0PR11MB5505E0C4F0EC33C3E695944CBAC5A@CH0PR11MB5505.namprd11.prod.outlook.com>
-List-Id: <lm-sensors.vger.kernel.org>
+Return-Path: <lm-sensors-owner@vger.kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EAF8C4332F
+	for <lm-sensors@archiver.kernel.org>; Thu,  9 Nov 2023 08:40:26 +0000 (UTC)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S232572AbjKIIk1 (ORCPT <rfc822;lm-sensors@archiver.kernel.org>);
+        Thu, 9 Nov 2023 03:40:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42518 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229697AbjKIIk1 (ORCPT
+        <rfc822;lm-sensors@vger.kernel.org>); Thu, 9 Nov 2023 03:40:27 -0500
+Received: from mail-ot1-x331.google.com (mail-ot1-x331.google.com [IPv6:2607:f8b0:4864:20::331])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CDDF1FFB
+        for <lm-sensors@vger.kernel.org>; Thu,  9 Nov 2023 00:40:25 -0800 (PST)
+Received: by mail-ot1-x331.google.com with SMTP id 46e09a7af769-6ce37d0f1a9so325540a34.0
+        for <lm-sensors@vger.kernel.org>; Thu, 09 Nov 2023 00:40:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699519224; x=1700124024; darn=vger.kernel.org;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=o0R1S1mJjoANo2SzvXhgkPyNgGJQHqmIg9xVfjekNaw=;
+        b=A69UOEBhudgUPaiKjzd/REC9q114+lguTqsvF6nohLuGL3YkWHUcGjlzueOXa0UHzO
+         NeeL03gh4n8w1aeCl2dkQODnceuTRwTm/FMjn3SzD5TTIyjL0Q/ACS1whkiXeIMZXNxw
+         m6TnnDUyOr8QWxSCEzAKf6uDQ8wG2aqRRSNpL8mh7SE5TiOrmRkldXLlPPrIObI+RtuA
+         RqSzEPGCOhaAfNBHH8OJaxVu8QwvpWhhoWXE6EKdJISKJ6uugWCNuFsPr12hTzXnm1Cj
+         yiJcWJzQsPEja2XOwE3AT1pn90kXVLNVKLJsG/s9prwpREPgfEydS4T8D1lWNdb0lTE/
+         M1ng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699519224; x=1700124024;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=o0R1S1mJjoANo2SzvXhgkPyNgGJQHqmIg9xVfjekNaw=;
+        b=Y5egYhscp65eplqkv+hZ4QXRzqAm+u5aXXqTRR3VjP/SWTXTxJnGgzSbF6ig8+ro5D
+         y4tjojJ4amTRnNLz/LPOO1+NnGbUZQRAR9dXtbSRrphrXn5Nb12VSkSrgRxdJ0UXqTVX
+         KJ9ecwBdrlVuhIjrdvhPedoPW5qVWVylGmxCITwirb8pImfXam44zitbVRGbqotr3Yby
+         aVYaR6UZ+FpGuq1G5z8NbieWu97ZiteI8N+B+dtEHJy+LS0+V/Z3wgsTeSmiAHQRpobe
+         2obKj6t7JvOJio2iLZTmR7/E+NK5vfoEHidRhir+VqteG7mIPGBArZyTK6PpzqFqQgez
+         6e2A==
+X-Gm-Message-State: AOJu0YwNPfRQT9Dm6TvSke/s0R6/xEPLkHlQ9c5p+nFYfhYE/ZXVkMPN
+        yL3g9SPbhl/FlbsHNkLj7suCE+d+NZWMaMHKjXUvWSPPHfM=
+X-Google-Smtp-Source: AGHT+IEQ4zPtKDy/0ZV6nF2zSoJXW/HFRTO5NcuB+3E3uo7aPwz7gzaeVbFcOm6hig6mA2C3AaH9+1GNOL1iz0bCsxY=
+X-Received: by 2002:a05:6830:348a:b0:6d4:726f:689f with SMTP id
+ c10-20020a056830348a00b006d4726f689fmr4679463otu.6.1699519223958; Thu, 09 Nov
+ 2023 00:40:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+From:   Rabindra Paikaray <rabipaikaray@gmail.com>
+Date:   Thu, 9 Nov 2023 14:10:12 +0530
+Message-ID: <CACDPk2F2XKL=OpNx-bYnoPfXcR0B0Yv0fe8Uwnyz2PjO___Osw@mail.gmail.com>
+Subject: Fan speed rpm not appearing in sensor
+To:     lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Precedence: bulk
+List-ID: <lm-sensors.vger.kernel.org>
+X-Mailing-List: lm-sensors@vger.kernel.org
 
-Hello,=20
-I apologize if this is the wrong place to post this, please redirect me. I =
-have searched Google and Bing to no avail.
+Hi ,
+I am using Ubuntu 22.04 in a Intel platform to fetch the Fan speed rpm
+in lm_sensor. I installed the lm sensor module.
 
-[The short]
-I have a server that I think the bnxt_en kernel module is reporting a 92 de=
-grees C reading:
+Output of sensor command:
+$ sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Package id 0:  +31.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 0:        +28.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 4:        +28.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 8:        +29.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 12:       +26.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 16:       +29.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 20:       +29.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 24:       +25.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 28:       +27.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 36:       +28.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 37:       +28.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 38:       +28.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
+Core 39:       +28.0=C2=B0C  (high =3D +80.0=C2=B0C, crit =3D +100.0=C2=B0C=
+)
 
-bnxt_en-pci-3100
+acpitz-acpi-0
+Adapter: ACPI interface
+temp1:        +32.0=C2=B0C  (crit =3D +105.0=C2=B0C)
+
+nvme-pci-0200
 Adapter: PCI adapter
-temp1:        +92.0=B0C
+Composite:    +28.9=C2=B0C  (low  =3D  -5.2=C2=B0C, high =3D +79.8=C2=B0C)
+                       (crit =3D +84.8=C2=B0C)
 
-I think that reading is incorrect, but it is causing a lot of concern from =
-the machine's owner.=20
-Has anyone seen this before?
+I could see the fan is listed in acpi device
+$ cat /sys/bus/acpi/devices/INTC1048:00/fan_speed_rpm
+1145
 
-[The long]
-The server is a new Dell Poweredge R750, running Red Hat Enterprise Linux 8=
-.8 and lm_sensors version: sensors version 3.6.0 with libsensors version 3.=
-6.0
+I was not getting why the fan speed rpm not appearing in sensors list.
 
-The bnxt_en kernel module is driving a Broadcom 57454 Quad Port 10GbE Base-=
-T Adapter Dell part number 540-BDOT
+Are there any modules/steps  missing?
 
-Here is the output of lshw -class network truncated to show only the BCM574=
-54 card: (The other card, a Broadcom BCM5720, using kernel module tg3 is no=
-t listed when running just "sensors" )
-
-*-network:0
-       description: Ethernet interface
-       product: BCM57454 NetXtreme-E 10Gb/25Gb/40Gb/50Gb/100Gb Ethernet
-       vendor: Broadcom Inc. and subsidiaries
-       physical id: 0
-       bus info: pci@0000:31:00.0
-       logical name: eno12399np0
-       version: 00
-       serial: 04:32:01:27:d1:e0
-       size: 1Gbit/s
-       capacity: 10Gbit/s
-       width: 64 bits
-       clock: 33MHz
-       capabilities: pm vpd msi msix pciexpress bus_master cap_list rom eth=
-ernet physical tp 1000bt-fd 10000bt-fd autonegotiation
-       configuration: autonegotiation=3Don broadcast=3Dyes driver=3Dbnxt_en=
- driverversion=3D5.15.0-84-generic duplex=3Dfull firmware=3D223.0.205.0/pkg=
- 22.31.13.70 ip=3D172.22.224.232 latency=3D0 link=3Dyes multicast=3Dyes por=
-t=3Dtwisted pair speed=3D1Gbit/s
-       resources: irq:16 memory:a6830000-a683ffff memory:a6700000-a67fffff =
-memory:a6846000-a6847fff memory:a6900000-a693ffff
-  *-network:1
-       description: Ethernet interface
-       product: BCM57454 NetXtreme-E 10Gb/25Gb/40Gb/50Gb/100Gb Ethernet
-       vendor: Broadcom Inc. and subsidiaries
-       physical id: 0.1
-       bus info: pci@0000:31:00.1
-       logical name: eno12409np1
-       version: 00
-       serial: 04:32:01:27:d1:e1
-       capacity: 10Gbit/s
-       width: 64 bits
-       clock: 33MHz
-       capabilities: pm vpd msi msix pciexpress bus_master cap_list rom eth=
-ernet physical tp 1000bt-fd 10000bt-fd autonegotiation
-       configuration: autonegotiation=3Don broadcast=3Dyes driver=3Dbnxt_en=
- driverversion=3D5.15.0-84-generic firmware=3D223.0.205.0/pkg 22.31.13.70 l=
-atency=3D0 link=3Dno multicast=3Dyes port=3Dtwisted pair
-       resources: irq:17 memory:a6820000-a682ffff memory:a6600000-a66fffff =
-memory:a6844000-a6845fff memory:a6940000-a697ffff
-  *-network:2
-       description: Ethernet interface
-       product: BCM57454 NetXtreme-E 10Gb/25Gb/40Gb/50Gb/100Gb Ethernet
-       vendor: Broadcom Inc. and subsidiaries
-       physical id: 0.2
-       bus info: pci@0000:31:00.2
-       logical name: eno12419np2
-       version: 00
-       serial: 04:32:01:27:d1:e2
-       capacity: 10Gbit/s
-       width: 64 bits
-       clock: 33MHz
-       capabilities: pm vpd msi msix pciexpress bus_master cap_list rom eth=
-ernet physical tp 1000bt-fd 10000bt-fd autonegotiation
-       configuration: autonegotiation=3Don broadcast=3Dyes driver=3Dbnxt_en=
- driverversion=3D5.15.0-84-generic firmware=3D223.0.205.0/pkg 22.31.13.70 l=
-atency=3D0 link=3Dno multicast=3Dyes port=3Dtwisted pair
-       resources: irq:16 memory:a6810000-a681ffff memory:a6500000-a65fffff =
-memory:a6842000-a6843fff memory:a6980000-a69bffff
-  *-network:3
-       description: Ethernet interface
-       product: BCM57454 NetXtreme-E 10Gb/25Gb/40Gb/50Gb/100Gb Ethernet
-       vendor: Broadcom Inc. and subsidiaries
-       physical id: 0.3
-       bus info: pci@0000:31:00.3
-       logical name: eno12429np3
-       version: 00
-       serial: 04:32:01:27:d1:e3
-       capacity: 10Gbit/s
-       width: 64 bits
-       clock: 33MHz
-       capabilities: pm vpd msi msix pciexpress bus_master cap_list rom eth=
-ernet physical tp 1000bt-fd 10000bt-fd autonegotiation
-       configuration: autonegotiation=3Don broadcast=3Dyes driver=3Dbnxt_en=
- driverversion=3D5.15.0-84-generic firmware=3D223.0.205.0/pkg 22.31.13.70 l=
-atency=3D0 link=3Dno multicast=3Dyes port=3Dtwisted pair
-       resources: irq:17 memory:a6800000-a680ffff memory:a6400000-a64fffff =
-memory:a6840000-a6841fff memory:a69c0000-a69fffff
-
-The IDRAC reports everything is fine, I switched the system into a more agg=
-ressive cooling profile but the 92 degree reading is unchanged.=20
-
-Is there a configuration file that I need to edit, do I have the wrong kern=
-el module for this network card by chance, or maybe that network card actua=
-lly runs that hot?=20
-
-Thank you in advance,
--Glen
+Any help or pointer will be helpful?
